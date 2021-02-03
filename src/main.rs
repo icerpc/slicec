@@ -1,14 +1,17 @@
 
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
+extern crate pest_consume;
 
-use pest::Parser;
+use pest_consume::Parser;
 use std::fs;
 
 #[derive(Parser)]
 #[grammar = "slice.pest"]
 pub struct SliceParser;
+
+#[pest_consume::parser]
+impl SliceParser {
+
+}
 
 fn main() {
     let slice_file = fs::read_to_string("test.ice").expect("Wheres the file?!");
