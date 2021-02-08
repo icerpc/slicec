@@ -1,9 +1,9 @@
 
 main = { SOI ~ module_def* ~ EOI }
 
-definitions = { module_def | struct_def | interface_def }
+definition = { module_def | struct_def | interface_def }
 
-module_def = { module_kw ~ identifier ~ "{" ~ definitions* ~ "}" }
+module_def = { module_kw ~ identifier ~ "{" ~ definition* ~ "}" }
 struct_def = { struct_kw ~ identifier ~ "{" ~ data_member* ~ "}" }
 interface_def = { interface_kw ~ identifier ~ "{" ~ "}" }
 
