@@ -1,45 +1,18 @@
 
-// This is the worst slice file I've ever seen.
-
-module hello
+module Foo
 {
-    /// this struct
-    /// doesn't do anything
-    struct  myStruct
+    struct s1
     {
-        int something;                      // TODO
-        tag(1) float    somethingElse123;
-        string? custom_Thing0;
-        tag(256)   MyType? custom_stuff;
-        Service        newKeyword;
-        AnyClass?        WowPrettyCool;
-
-        sequence<varuint> mySeq66_;
-        dictionary<Foo?, Bar::Baz> custom_seq;
-    };
-
-    /* This is a test */
-    module inner::nested
-    {
-        exception /** Another test!*/ OhNo
-        {
-            myStruct whatHappened;
-        }
-
-        interface MyOps
-        {
-            void noOp();
-            int opInt(int i);
-
-            void tag_stuff1(tag(99) sequence<int> is, bool myBool);
-            (int i, tag(1) string s) tupleThings(long l);
-        }
+        int myInt;
+        i1 myInterface;
+        s2 myStruct;
     }
 
-    interface useless{};
+    interface i1 {}
 
-    unchecked enum myEnum : varint
+    struct s2
     {
-        // Blah blah
+        int myInt;
+        string myString;
     }
 }

@@ -1,172 +1,31 @@
 
-main = { SOI ~ file_metadata* ~ module_def* ~ EOI }
+main = { SOI ~ module_def* ~ EOI }
 
-//============================//
-//===== slice constructs =====//
-//============================//
+definitions = { module_def | struct_def | interface_def }
 
-module_start = { local_metadata* ~ module }
-module_content = { definitions* }
-module_def = { module_start ~ scoped_identifier ~ "{" ~ module_content ~ "}" ~ ";"? }
+module_def = { module_kw ~ identifier ~ "{" ~ definitions* ~ "}" }
+struct_def = { struct_kw ~ identifier ~ "{" ~ data_member* ~ "}" }
+interface_def = { interface_kw ~ identifier ~ "{" ~ "}" }
 
-struct_qualifiers = { ref_ | compact }
-struct_start = { local_metadata* ~ struct_qualifiers* ~ struct_ }
-// TODO will we allow empty structs?
-struct_content = { data_member* }
-struct_def = { struct_start ~ identifier ~ "{" ~ struct_content ~ "}" ~ ";"? }
-
-exception_start = { local_metadata* ~ exception }
-exception_content = { data_member* }
-exception_def = { exception_start ~ identifier ~ "{" ~ exception_content ~ "}" ~ ";"? }
-
-interface_start = { local_metadata* ~ interface }
-interface_content = { operation* }
-interface_def = { interface_start ~ identifier ~ "{" ~ interface_content ~ "}" ~ ";"? }
-
-enum_qualifiers = { unchecked }
-enum_backing = { ":" ~ type_ }
-enum_start = { local_metadata* ~ enum_qualifiers* ~ enum_ }
-enum_content = { enumerators* }
-enum_def = { enum_start ~ identifier ~ enum_backing? ~ "{" ~ enum_content ~ "}" ~ ";"? }
-
-definitions = { module_def | struct_def | exception_def | interface_def | enum_def }
-
-data_member = { local_metadata* ~ tag_qualifier? ~ type_ ~ identifier ~ ";" }
-
-operation_start = { local_metadata* ~ return_type }
-operation = { operation_start ~ identifier ~ "(" ~ parameters? ~ ")" ~ ";" }
-
-parameter = { local_metadata* ~ tag_qualifier? ~ type_ ~ identifier }
-parameters = { parameter ~ ( "," ~ parameter )* }
-
-enumerators = { "????" } // TODO
-
-//=================//
-//===== types =====//
-//=================//
-
-builtin_type = {
-    bool     |
-    byte     |
-    short    |
-    ushort   |
-    int      |
-    uint     |
-    varint   |
-    varuint  |
-    long     |
-    ulong    |
-    varlong  |
-    varulong |
-    float    |
-    double   |
-    string   |
-    anyclass |
-    service
-}
-
-sequence_type = { sequence ~ "<" ~ local_metadata* ~ type_ ~ ">" }
-dictionary_type = { dictionary ~ "<" ~ local_metadata* ~ type_ ~ "," ~ local_metadata* ~ type_ ~ ">" }
-
-tuple = { local_metadata* ~ "(" ~ parameters ~ ")" }
-
-type_ = {
-    builtin_type      ~ "?"? |
-    sequence_type     ~ "?"? |
-    dictionary_type   ~ "?"? |
-    scoped_identifier ~ "?"?
-}
-
-return_type = {
-    void  |
-    type_ |
-    tuple
-}
-
-tag_qualifier = { tag ~ "(" ~ ASCII_DIGIT+ ~ ")" }
-
-//====================//
-//===== metadata =====//
-//====================//
-
-metadata = { ANY } //TODO
-
-// TODO should we allow trailing commas?
-metadata_list = { metadata ~ ( "," ~ metadata )* }
-
-file_metadata  = { "[[" ~ metadata_list ~ "]]" }
-local_metadata = { "["  ~ metadata_list ~ "]"  }
-
-//====================//
-//===== comments =====//
-//====================//
-
-line_comment     = @{ "//"  ~ NON_NEWLINE* ~ (NEWLINE | EOI)}
-line_doc_comment = @{ "///" ~ NON_NEWLINE* ~ (NEWLINE | EOI)}
-
-block_comment     = @{ "/*"  ~ BLOCK_COMMENT_BODY* ~ "*/" }
-block_doc_comment = @{ "/**" ~ BLOCK_COMMENT_BODY* ~ "*/" }
-
-// This rule is special in Pest, and can be implicitely matched anywhere, even in between sequences and repititions.
-COMMENT = { line_doc_comment | line_comment | block_doc_comment | block_comment }
-
-//======================//
-//===== whitespace =====//
-//======================//
-
-// TODO any other things we should include here?
-// This rule is special in Pest, and can be implicitely matched anywhere, even in between sequences and repititions.
-WHITESPACE = _{ " " | "\t" | NEWLINE }
-
-//====================//
-//===== keywords =====//
-//====================//
-
-// TODO, should we make these case-insensitive?
-void     = { "void" }
-bool     = { "bool" }
-byte     = { "byte" }
-short    = { "short" }
-ushort   = { "ushort" }
-int      = { "int" }
-uint     = { "uint" }
-varint   = { "varint" }
-varuint  = { "varuint" }
-long     = { "long" }
-ulong    = { "ulong" }
-varlong  = { "varlong" }
-varulong = { "varulong" }
-float    = { "float" }
-double   = { "double" }
-string   = { "string" }
-anyclass = { "AnyClass" }
-service  = { "Service" }
-
-sequence = { "sequence" }
-dictionary = { "dictionary" }
-
-struct_ =   { "struct" }
-exception = { "exception" }
-interface = { "interface" }
-enum_ =     { "enum" }
-module =    { "module" }
-
-using =   { "using" }       //TODO ADD
-alias =   { "alias" }       //TODO ADD
-typedef = { "typedef" }     //TODO ADD
-
-tag =       { "tag" }
-ref_ =      { "ref" }
-stream =    { "stream" }       //TODO ADD
-compact =   { "compact" }
-unchecked = { "unchecked" }
-
-//========================//
-//===== helper rules =====//
-//========================//
-
-NON_NEWLINE = { !NEWLINE ~ ANY }
-BLOCK_COMMENT_BODY = { !"*/" ~ ANY }
+data_member = { typename ~ identifier ~ ";" }
 
 identifier = @{ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
+
+typename = {
+    builtin_type      |
+    scoped_identifier
+}
+
+builtin_type = {
+    int_kw    |
+    string_kw
+}
+
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+
+module_kw = { "module" }
+struct_kw = { "struct" }
+interface_kw = { "interface" }
+int_kw = { "int" }
+string_kw = { "string" }
