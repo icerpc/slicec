@@ -11,7 +11,7 @@ pub struct SliceFile {
 }
 
 impl SliceFile {
-    pub fn new() -> Self {
+    pub fn new() /*-> Self*/ {
         // TODO
     }
 
@@ -24,7 +24,7 @@ impl SliceFile {
     }
 
     pub fn get_text(&self, location: &Location) -> &str {
-        &self.raw_text[location.start_pos .. location.end_pos]
+        &self.raw_text[location.start .. location.end]
     }
 
     pub fn to_generate(&self) -> &Vec<usize> {
@@ -38,8 +38,8 @@ impl SliceFile {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Location {
-    start_pos: usize,
-    end_pos: usize,
+    pub start: usize,
+    pub end: usize,
 }
 
 impl Location {
@@ -48,9 +48,6 @@ impl Location {
 
 
 
-
-
-pub trait Definition : Node {}
 
 /// Custom error type that holds information about a parsing-related error.
 
@@ -70,4 +67,4 @@ impl ParserError
     }
 }
 
-pub type ParseResult = Result<(Vec<Box<dyn Node>>, Vec<SliceFile>), ParseError>;
+pub type ParseResult = Result<(usize, Vec<SliceFile>), ParserError>;

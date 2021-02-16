@@ -12,54 +12,55 @@ pub trait Visitor {
     fn visit_identifier(&mut self, identifier: &mut Identifier) {}
     fn visit_type_use(&mut self, type_use: &mut TypeUse) {}
 
-    fn resolve_id(&mut self, id: usize) -> &mut dyn Node;
+    fn resolve_id(&mut self, id: usize) -> &mut Box<dyn Node>;
 }
 
 //------------------------------------------------------------------------------
 // Visitable
 //------------------------------------------------------------------------------
-pub trait Visitable : Node {
+pub trait Visitable {
     fn visit(&mut self, visitor: &mut dyn Visitor);
 }
 
 impl Visitable for Module {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_module(&mut self);
-        for content in self.contents().iter_mut() {
-            (self.resolve_id(content)).visit(visitor);
+        visitor.visit_module(self);
+        for id in self.contents().iter() {
+            let content = visitor.resolve_id(*id);
+            content.visit(visitor);
         }
     }
 }
 
 impl Visitable for Struct {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_struct(&mut self);
-        for content in self.contents().iter_mut() {
-            (self.resolve_id(content)).visit(visitor);
+        visitor.visit_struct(self);
+        for data_member in self.contents().iter_mut() {
+            data_member.visit(visitor);
         }
     }
 }
 
 impl Visitable for Interface {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_interface(&mut self);
+        visitor.visit_interface(self);
     }
 }
 
 impl Visitable for DataMember {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_data_member(&mut self);
+        visitor.visit_data_member(self);
     }
 }
 
 impl Visitable for Identifier {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_identifier(&mut self);
+        visitor.visit_identifier(self);
     }
 }
 
 impl Visitable for TypeUse {
     fn visit(&mut self, visitor: &mut dyn Visitor) {
-        visitor.visit_type_use(&mut self);
+        visitor.visit_type_use(self);
     }
 }

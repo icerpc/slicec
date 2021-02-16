@@ -1,4 +1,5 @@
 
+use crate::visitor::Visitable;
 use crate::util::{ParserError, Location};
 
 use std::collections::HashMap;
@@ -7,7 +8,7 @@ use std::str::FromStr;
 //------------------------------------------------------------------------------
 // Base Traits
 //------------------------------------------------------------------------------
-pub trait Node {
+pub trait Node : Visitable {
     fn location(&self) -> &Location;
 }
 
@@ -199,16 +200,17 @@ impl TypeUse {
         &self.is_tagged
     }
 
-    pub fn definition(&self) -> &usize {
+    pub fn definition(&self) -> usize {
         // panic if we try to access the definition before it's been patched.
-        &self.definition.expect(
-            format!("Failed to unwrap definition for type: {}\n{:?}", &self.type_name, &self)
-        )
+        match self.definition {
+            Some(id) => id,
+            None => panic!("Failed to unwrap definition for type: {}\n{:?}", &self.type_name, &self),
+        }
     }
 
     pub fn patch_definition(&mut self, type_table: &HashMap<String, usize>) -> Result<(), ParserError> {
         // Ensure that the definition hasn't already been patched.
-        assert!(self.definition.is_none());
+        assert!(self.definition.is_none(), "The definition has already been patched!");
 
         // Try to resolve the type and store it's index.
         if let Some(resolved) = type_table.get(&self.type_name) {
@@ -216,7 +218,7 @@ impl TypeUse {
             Ok(())
         } else {
             Err(ParserError::new(
-                format!("No definition was found for `{}` in this scope", self.type_name.clone()),
+                format!("No definition was found for `{}` in this scope", &self.type_name),
                 self.location.clone(),
             ))
         }
@@ -247,7 +249,9 @@ impl Type for BuiltIn {
 }
 
 impl FromStr for BuiltIn {
-    fn from_str(s: &str) -> Result<BuiltIn, String> {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<BuiltIn, Self::Err> {
         match s {
             "int"    => Ok(BuiltIn::Int),
             "string" => Ok(BuiltIn::String),

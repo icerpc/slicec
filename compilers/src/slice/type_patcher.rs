@@ -16,10 +16,12 @@ pub struct LookupTableBuilder<'a> {
 }
 
 impl<'a> LookupTableBuilder<'a> {
-    pub fn new() -> Self {
+    pub fn new(ast: &'a mut Vec<Box<dyn Definition>>) -> Self {
         LookupTableBuilder {
             type_table: HashMap::new(),
             definition_table: HashMap::new(),
+            current_scope: Vec::new(),
+            ast,
         }
     }
 
@@ -53,23 +55,23 @@ impl<'a> Visitor for LookupTableBuilder<'a> {
 
     }
 
-    fn resolve_id(&mut self, id: usize) -> &mut dyn Node {
-
+    fn resolve_id(&mut self, id: usize) -> &mut Box<dyn Node> {
+        unimplemented!() //TODO
     }
 }
 
 //------------------------------------------------------------------------------
 // TypePatcher
 //------------------------------------------------------------------------------
-pub struct TypePatcher<'a> {
+pub struct TypePatcher {
 
 }
 
-impl<'a> TypePatcher<'a> {
+impl TypePatcher {
 
 }
 
-impl<'a> Visitor for TypePatcher<'a> {
+impl Visitor for TypePatcher {
     fn visit_module(&mut self, module_def: &mut Module) {
 
     }
@@ -94,7 +96,7 @@ impl<'a> Visitor for TypePatcher<'a> {
 
     }
 
-    fn resolve_id(&self, id: usize) -> &mut dyn Node {
-
+    fn resolve_id(&mut self, id: usize) -> &mut Box<dyn Node> {
+        unimplemented!() //TODO
     }
 }

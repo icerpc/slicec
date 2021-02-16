@@ -17,14 +17,14 @@ type PestNode<'a, 'b> = pest_consume::Node<'a, Rule, &'b std::cell::RefCell<Pars
 // Parser Utility Functions
 //------------------------------------------------------------------------------
 fn from_span(span: &Span) -> Location {
-    Location { start: span.start, end: span.end}
+    Location { start: span.start(), end: span.end() }
 }
 
-fn store_definition(data_holder: &std::cell::RefCell<ParserData>, definition: dyn Definition) -> usize {
+fn store_definition(data_holder: &std::cell::RefCell<ParserData>, definition: Box<dyn Definition>) -> usize {
     let mut parser_data = data_holder.borrow_mut();
     let mut ast = &mut parser_data.ast;
 
-    ast.push(Box::new(definition));
+    ast.push(definition);
     ast.len() - 1
 }
 
@@ -63,7 +63,7 @@ impl SliceParser {
         let module_ids = match_nodes!(input.into_children();
             [module_def(ids).., EOI(_)] => { ids.collect() }
         );
-        Ok(module_ids);
+        Ok(module_ids)
     }
 
     fn definition(input: PestNode) -> PestResult<usize> {
@@ -76,77 +76,77 @@ impl SliceParser {
     }
 
     fn module_start(input: PestNode) -> PestResult<(Identifier, Location)> {
-        let location = from_span(input.as_span());
+        let location = from_span(&input.as_span());
         let identifier = match_nodes!(input.into_children();
             [_, identifier(ident)] => { ident },
         );
-        Ok((identifier, location));
+        Ok((identifier, location))
     }
 
     fn module_def(input: PestNode) -> PestResult<usize> {
         let module_def = match_nodes!(input.children();
             [module_start(module_start), definition(contents)..] => {
-                Struct::new(module_start.0, contents.collect(), module_start.1);
+                Module::new(module_start.0, contents.collect(), module_start.1)
             }
         );
-        Ok(store_definition(input.user_data(), module_def))
+        Ok(store_definition(input.user_data(), Box::new(module_def)))
     }
 
     fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
-        let location = from_span(input.as_span());
+        let location = from_span(&input.as_span());
         let identifier = match_nodes!(input.into_children();
             [_, identifier(ident)] => { ident },
         );
-        Ok((identifier, location));
+        Ok((identifier, location))
     }
 
     fn struct_def(input: PestNode) -> PestResult<usize> {
         let struct_def = match_nodes!(input.children();
             [struct_start(struct_start), data_member(members)..] => {
-                Struct::new(struct_start.0, members.collect(), struct_start.1);
+                Struct::new(struct_start.0, members.collect(), struct_start.1)
             }
         );
-        Ok(store_definition(input.user_data(), struct_def))
+        Ok(store_definition(input.user_data(), Box::new(struct_def)))
     }
 
     fn interface_start(input: PestNode) -> PestResult<(Identifier, Location)> {
-        let location = from_span(input.as_span());
+        let location = from_span(&input.as_span());
         let identifier = match_nodes!(input.into_children();
             [_, identifier(ident)] => { ident },
         );
-        Ok((identifier, location));
+        Ok((identifier, location))
     }
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
             [module_start(module_start)] => {
-                Interface::new(module_start.0, module_start.1);
+                Interface::new(module_start.0, module_start.1)
             }
         );
-        Ok(store_definition(input.user_data(), interface_def))
+        Ok(store_definition(input.user_data(), Box::new(interface_def)))
     }
 
     fn data_member(input: PestNode) -> PestResult<DataMember> {
-        let location = from_span(input.as_span());
+        let location = from_span(&input.as_span());
 
         let data_member = match_nodes!(input.into_children();
             [typename(data_type), identifier(identifier)] => {
-                DataMember::new(data_type, identifier, location);
+                DataMember::new(data_type, identifier, location)
             }
         );
         Ok(data_member)
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str(), from_span(input.as_span())))
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input.as_span())))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str(), from_span(input.as_span())))
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input.as_span())))
     }
 
     fn typename(input: PestNode) -> PestResult<TypeUse> {
-        Ok(TypeUse::new(input.as_str(), false, from_span(input.as_span())))
+        Ok(TypeUse::new(input.as_str().to_owned(), false, from_span(&input.as_span())))
     }
 
     fn builtin_type(input: PestNode) -> PestResult<()> {
