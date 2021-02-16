@@ -3,9 +3,14 @@ main = { SOI ~ module_def* ~ EOI }
 
 definition = { module_def | struct_def | interface_def }
 
-module_def = { module_kw ~ identifier ~ "{" ~ definition* ~ "}" }
-struct_def = { struct_kw ~ identifier ~ "{" ~ data_member* ~ "}" }
-interface_def = { interface_kw ~ identifier ~ "{" ~ "}" }
+module_start = { module_kw ~ identifier }
+module_def = { module_start ~ "{" ~ definition* ~ "}" }
+
+struct_start = { struct_kw ~ identifier }
+struct_def = { struct_start ~ "{" ~ data_member* ~ "}" }
+
+interface_start = { interface_kw ~ identifier }
+interface_def = { interface_start ~ "{" ~ "}" }
 
 data_member = { typename ~ identifier ~ ";" }
 
