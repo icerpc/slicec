@@ -1,36 +1,8 @@
 
-//------------------------------------------------------------------------------
-// SliceFile
-//------------------------------------------------------------------------------
+use crate::grammar::*;
+use crate::visitor::Visitable;
 
-#[derive(Debug)]
-pub struct SliceFile {
-    filename: String,
-    raw_text: String,
-    to_generate: Vec<usize>,
-}
 
-impl SliceFile {
-    pub fn new() /*-> Self*/ {
-        // TODO
-    }
-
-    pub fn filename(&self) -> &str {
-        &self.filename
-    }
-
-    pub fn raw_text(&self) -> &str {
-        &self.raw_text()
-    }
-
-    pub fn get_text(&self, location: &Location) -> &str {
-        &self.raw_text[location.start .. location.end]
-    }
-
-    pub fn to_generate(&self) -> &Vec<usize> {
-        &self.to_generate
-    }
-}
 
 //------------------------------------------------------------------------------
 // Location
@@ -46,18 +18,25 @@ impl Location {
     // TODO
 }
 
+use std::collections::HashMap;
+
+pub type SliceTable = HashMap<String, usize>;
+
+
+
+
 
 
 
 /// Custom error type that holds information about a parsing-related error.
 
-pub struct ParserError
+pub struct SliceError
 {
     message: String,
     location: Location,
 }
 
-impl ParserError
+impl SliceError
 {
     pub fn new(message: String, location: Location) -> Self {
         Self {
@@ -67,4 +46,3 @@ impl ParserError
     }
 }
 
-pub type ParseResult = Result<(usize, Vec<SliceFile>), ParserError>;

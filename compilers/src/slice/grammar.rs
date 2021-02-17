@@ -1,50 +1,27 @@
 
-use crate::visitor::Visitable;
-use crate::util::{ParserError, Location};
+use crate::util::{SliceError, Location};
 
 use std::collections::HashMap;
 use std::str::FromStr;
-
-//------------------------------------------------------------------------------
-// Base Traits
-//------------------------------------------------------------------------------
-pub trait Node : Visitable {
-    fn location(&self) -> &Location;
-}
-
-pub trait Type {
-    // TODO
-}
 
 //------------------------------------------------------------------------------
 // Module
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct Module {
-    identifier: Identifier,
-    contents: Vec<usize>,
-    location: Location,
+    pub identifier: Identifier,
+    pub contents: Vec<usize>,
+    pub location: Location,
+    pub def_index: usize,
 }
 
 impl Module {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        // TODO do validation here
-
-        Module { identifier, contents, location }
+        Module { identifier, contents, location, def_index: usize::MAX }
     }
 
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value()
-    }
-
-    pub fn contents(&self) -> &Vec<usize> {
-        &self.contents
-    }
-}
-
-impl Node for Module {
-    fn location(&self) -> &Location {
-        &self.location
+    pub fn get_identifier(&self) -> &str {
+        &self.identifier.value
     }
 }
 
@@ -53,24 +30,19 @@ impl Node for Module {
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct Struct {
-    identifier: Identifier,
-    contents: Vec<DataMember>,
-    location: Location,
+    pub identifier: Identifier,
+    pub contents: Vec<DataMember>,
+    pub location: Location,
+    pub def_index: usize,
 }
 
 impl Struct {
     pub fn new(identifier: Identifier, contents: Vec<DataMember>, location: Location) -> Self {
-        // TODO do validation here
-
-        Struct { identifier, contents, location }
+        Struct { identifier, contents, location, def_index: usize::MAX }
     }
 
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value()
-    }
-
-    pub fn contents(&self) -> &Vec<DataMember> {
-        &self.contents
+    pub fn get_identifier(&self) -> &str {
+        &self.identifier.value
     }
 }
 
@@ -78,30 +50,23 @@ impl Type for Struct {
     //TODO
 }
 
-impl Node for Struct {
-    fn location(&self) -> &Location {
-        &self.location
-    }
-}
-
 //------------------------------------------------------------------------------
 // Interface
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct Interface {
-    identifier: Identifier,
-    location: Location,
+    pub identifier: Identifier,
+    pub location: Location,
+    pub def_index: usize,
 }
 
 impl Interface {
     pub fn new(identifier: Identifier, location: Location) -> Self {
-        // TODO do validation here
-
-        Interface { identifier, location }
+        Interface { identifier, location, def_index: usize::MAX }
     }
 
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value()
+    pub fn get_identifier(&self) -> &str {
+        &self.identifier.value
     }
 }
 
@@ -109,41 +74,23 @@ impl Type for Interface {
     // TODO
 }
 
-impl Node for Interface {
-    fn location(&self) -> &Location {
-        &self.location
-    }
-}
-
 //------------------------------------------------------------------------------
 // DataMember
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct DataMember {
-    data_type: TypeUse,
-    identifier: Identifier,
-    location: Location,
+    pub data_type: TypeUse,
+    pub identifier: Identifier,
+    pub location: Location,
 }
 
 impl DataMember {
     pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
-        // TODO do validation here
-
         DataMember { data_type, identifier, location }
     }
 
-    pub fn data_type(&self) -> &TypeUse {
-        &self.data_type
-    }
-
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value()
-    }
-}
-
-impl Node for DataMember {
-    fn location(&self) -> &Location {
-        &self.location
+    pub fn get_identifier(&self) -> &str {
+        &self.identifier.value
     }
 }
 
@@ -152,25 +99,13 @@ impl Node for DataMember {
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct Identifier {
-    value: String,
-    location: Location,
+    pub value: String,
+    pub location: Location,
 }
 
 impl Identifier {
     pub fn new(value: String, location: Location) -> Self {
-        // TODO do validation here
-
         Identifier { value, location }
-    }
-
-    pub fn value(&self) -> &str {
-        &self.value
-    }
-}
-
-impl Node for Identifier {
-    fn location(&self) -> &Location {
-        &self.location
     }
 }
 
@@ -179,56 +114,49 @@ impl Node for Identifier {
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct TypeUse {
-    type_name: String,
-    is_tagged: bool,
+    pub type_name: String,
+    pub is_tagged: bool,
+    pub location: Location,
     definition: Option<usize>,
-    location: Location,
 }
 
 impl TypeUse {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
-        // TODO do validation here
-
         TypeUse { type_name, is_tagged, definition: None, location }
     }
 
-    pub fn type_name(&self) -> &str {
-        &self.type_name
-    }
-
-    pub fn is_tagged(&self) -> &bool {
-        &self.is_tagged
-    }
-
     pub fn definition(&self) -> usize {
-        // panic if we try to access the definition before it's been patched.
+        // Panic if we try to access the definition before it's been patched.
         match self.definition {
-            Some(id) => id,
-            None => panic!("Failed to unwrap definition for type: {}\n{:?}", &self.type_name, &self),
+            Some(value) => value,
+            None => { panic!("Failed to unwrap definition!\n\t{:?}", &self) },
         }
     }
 
-    pub fn patch_definition(&mut self, type_table: &HashMap<String, usize>) -> Result<(), ParserError> {
-        // Ensure that the definition hasn't already been patched.
-        assert!(self.definition.is_none(), "The definition has already been patched!");
+    pub fn patch_definition(&mut self, type_table: &HashMap<String, usize>) -> Result<(), SliceError> {
+        // Panic if the definition has already been patched.
+        if self.definition.is_some() {
+            panic!("Definition has already been patched!\n\t{:?}", &self);
+        }
 
         // Try to resolve the type and store it's index.
         if let Some(resolved) = type_table.get(&self.type_name) {
             self.definition = Some(resolved.clone());
             Ok(())
         } else {
-            Err(ParserError::new(
+            Err(SliceError::new(
                 format!("No definition was found for `{}` in this scope", &self.type_name),
-                self.location.clone(),
+                self.location,
             ))
         }
     }
 }
 
-impl Node for TypeUse {
-    fn location(&self) -> &Location {
-        &self.location
-    }
+//------------------------------------------------------------------------------
+// Type
+//------------------------------------------------------------------------------
+pub trait Type {
+    // TODO
 }
 
 //------------------------------------------------------------------------------
