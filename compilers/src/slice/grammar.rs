@@ -1,13 +1,52 @@
 
-use crate::util::{SliceError, Location};
+use crate::util::Location;
 
-use std::collections::HashMap;
-use std::str::FromStr;
+//------------------------------------------------------------------------------
+// Element
+//------------------------------------------------------------------------------
+pub trait Element {
+    fn as_kind(&self) -> ElementKind;
+    fn get_location(&self) -> Location;
+}
+
+macro_rules! implement_element_for{
+    ($a:ty, $b:ident, $c:ident) => {
+        impl Element for $a {
+            fn as_kind(&self) -> ElementKind {
+                ElementKind::$b
+            }
+
+            fn get_location(&self) -> Location {
+                self.$c.clone()
+            }
+        }
+    }
+}
+
+implement_element_for!(Module, KindModule, location);
+implement_element_for!(Struct, KindStruct, location);
+implement_element_for!(Interface, KindInterface, location);
+implement_element_for!(DataMember, KindDataMember, location);
+implement_element_for!(Identifier, KindIdentifier, location);
+implement_element_for!(TypeUse, KindTypeUse, location);
+
+//------------------------------------------------------------------------------
+// ElementKind
+//------------------------------------------------------------------------------
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+pub enum ElementKind {
+    KindModule,
+    KindStruct,
+    KindInterface,
+    KindDataMember,
+    KindIdentifier,
+    KindTypeUse,
+}
 
 //------------------------------------------------------------------------------
 // Module
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
@@ -28,7 +67,7 @@ impl Module {
 //------------------------------------------------------------------------------
 // Struct
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<DataMember>,
@@ -46,14 +85,12 @@ impl Struct {
     }
 }
 
-impl Type for Struct {
-    //TODO
-}
+impl Type for Struct {}
 
 //------------------------------------------------------------------------------
 // Interface
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Interface {
     pub identifier: Identifier,
     pub location: Location,
@@ -70,14 +107,12 @@ impl Interface {
     }
 }
 
-impl Type for Interface {
-    // TODO
-}
+impl Type for Interface {}
 
 //------------------------------------------------------------------------------
 // DataMember
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DataMember {
     pub data_type: TypeUse,
     pub identifier: Identifier,
@@ -97,7 +132,7 @@ impl DataMember {
 //------------------------------------------------------------------------------
 // Identifier
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Identifier {
     pub value: String,
     pub location: Location,
@@ -112,78 +147,32 @@ impl Identifier {
 //------------------------------------------------------------------------------
 // TypeUse
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TypeUse {
     pub type_name: String,
     pub is_tagged: bool,
+    pub definition: Option<usize>,
     pub location: Location,
-    definition: Option<usize>,
 }
 
 impl TypeUse {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
         TypeUse { type_name, is_tagged, definition: None, location }
     }
-
-    pub fn definition(&self) -> usize {
-        // Panic if we try to access the definition before it's been patched.
-        match self.definition {
-            Some(value) => value,
-            None => { panic!("Failed to unwrap definition!\n\t{:?}", &self) },
-        }
-    }
-
-    pub fn patch_definition(&mut self, type_table: &HashMap<String, usize>) -> Result<(), SliceError> {
-        // Panic if the definition has already been patched.
-        if self.definition.is_some() {
-            panic!("Definition has already been patched!\n\t{:?}", &self);
-        }
-
-        // Try to resolve the type and store it's index.
-        if let Some(resolved) = type_table.get(&self.type_name) {
-            self.definition = Some(resolved.clone());
-            Ok(())
-        } else {
-            Err(SliceError::new(
-                format!("No definition was found for `{}` in this scope", &self.type_name),
-                self.location,
-            ))
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
 // Type
 //------------------------------------------------------------------------------
-pub trait Type {
-    // TODO
-}
+pub trait Type {}
 
 //------------------------------------------------------------------------------
 // BuiltIn
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Clone, Eq, Hash, PartialEq, Debug)]
 pub enum BuiltIn {
     Int,
     String,
 }
 
-impl BuiltIn {
-    // TODO
-}
-
-impl Type for BuiltIn {
-    // TODO
-}
-
-impl FromStr for BuiltIn {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<BuiltIn, Self::Err> {
-        match s {
-            "int"    => Ok(BuiltIn::Int),
-            "string" => Ok(BuiltIn::String),
-            _        => Err(format!("{} is not a builtin type", s))
-        }
-    }
-}
+impl Type for BuiltIn {}
