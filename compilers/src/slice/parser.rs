@@ -78,6 +78,7 @@ impl SliceParser {
             data.current_file = file.clone();
         }
 
+        // TODO we should convert all the \r\n and \r to \n BEFORE parsing!!! Otherwise text positions will change! Seriously do this!
         let raw_text = match fs::read_to_string(&file) {
             Ok(value) => value,
             Err(error) => return, //TODO report the error!

@@ -62,10 +62,20 @@ pub struct SliceFile {
     pub raw_text: String,
     pub definitions: Vec<usize>,
     pub is_source: bool,
+    line_positions: Vec<usize>,
 }
 
 impl SliceFile {
     pub fn new(filename: String, raw_text: String, definitions: Vec<usize>, is_source: bool) -> Self {
-        SliceFile { filename, raw_text, definitions, is_source }
+        let mut line_positions = Vec::new();
+        for (index, character) in raw_text.chars().enumerate() {
+            if character == '\n' {
+                line_positions.push(index + 1);
+            }
+        }
+
+        SliceFile { filename, raw_text, definitions, is_source, line_positions }
     }
+
+    // TODO add methods for getting text snippets from the slice file! (for error reporting)
 }

@@ -15,7 +15,7 @@ pub struct Location {
 #[derive(Debug)]
 pub struct SliceError {
     message: String,
-    location: Location,
+    location: Option<Location>,
     severity: SliceErrorLevel,
 }
 
