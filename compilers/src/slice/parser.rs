@@ -24,8 +24,11 @@ type PestNode<'a, 'b> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData>>;
 #[allow(unused)] //TODO ONLY BECAUSE OF PEST_CONSUME
 fn from_span(input: &PestNode) -> Location {
     let span = input.as_span();
-    let file = input.user_data().borrow().current_file.clone();
-    Location { start: span.start(), end: span.end(), file }
+    Location {
+        start: span.start_pos().line_col(),
+        end: span.end_pos().line_col(),
+        file: input.user_data().borrow().current_file.clone(),
+    }
 }
 
 //------------------------------------------------------------------------------
