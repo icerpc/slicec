@@ -10,7 +10,7 @@ use std::collections::HashMap;
 //------------------------------------------------------------------------------
 pub trait Definition : Element + Visitable {
     fn set_index(&mut self, index: usize);
-    fn get_index(&self) -> usize;
+    fn index(&self) -> usize;
 }
 
 macro_rules! implement_definition_for{
@@ -20,7 +20,7 @@ macro_rules! implement_definition_for{
                 self.$b = index;
             }
 
-            fn get_index(&self) -> usize {
+            fn index(&self) -> usize {
                 self.$b
             }
         }

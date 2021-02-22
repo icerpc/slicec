@@ -5,18 +5,18 @@ use crate::util::Location;
 // Element
 //------------------------------------------------------------------------------
 pub trait Element {
-    fn as_kind(&self) -> ElementKind;
-    fn get_location(&self) -> Location;
+    fn kind(&self) -> ElementKind;
+    fn location(&self) -> Location;
 }
 
 macro_rules! implement_element_for{
     ($a:ty, $b:ident, $c:ident) => {
         impl Element for $a {
-            fn as_kind(&self) -> ElementKind {
+            fn kind(&self) -> ElementKind {
                 ElementKind::$b
             }
 
-            fn get_location(&self) -> Location {
+            fn location(&self) -> Location {
                 self.$c.clone()
             }
         }

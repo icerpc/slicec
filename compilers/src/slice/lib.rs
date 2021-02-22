@@ -32,6 +32,7 @@ pub fn parse_from_input(options: &SliceOptions) -> (SliceAst, HashMap<String, Sl
     for slice_file in slice_files.values() {
         slice_file.visit(&mut table_builder, &unpatched_ast);
     }
+    let slice_table = table_builder.into_table();
 
     unimplemented!()
 
