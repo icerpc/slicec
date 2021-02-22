@@ -91,7 +91,7 @@ impl SliceParser {
 
         let raw_ast = match nodes.single() {
             Ok(value) => value,
-            Err(error) => return, //TODO report the error!
+            Err(error) => panic!("Failed to unwrap raw_ast!\n{:?}", error),
         };
 
         let file_contents = match SliceParser::main(raw_ast) {

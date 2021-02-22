@@ -1,24 +1,26 @@
 
-use crate::ast::SliceAst;
 use crate::grammar::*;
+use crate::util::Location;
 use crate::visitor::Visitor;
 
 use std::collections::HashMap;
-
-//TODO: We should build more tables instead of just the type-table.
 
 //------------------------------------------------------------------------------
 // TableBuilder
 //------------------------------------------------------------------------------
 pub struct TableBuilder {
-    type_table: HashMap<String, usize>,
+    definition_table: HashMap<String, usize>,
+    kind_table: HashMap<String, ElementKind>,
+    location_table: HashMap<String, Location>,
     current_scope: Vec<String>,
 }
 
 impl TableBuilder {
     pub fn new() -> Self {
         TableBuilder {
-            type_table: HashMap::new(),
+            definition_table: HashMap::new(),
+            kind_table: HashMap::new(),
+            location_table: HashMap::new(),
             current_scope: Vec::new(),
         }
     }

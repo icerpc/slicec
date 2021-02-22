@@ -1,6 +1,9 @@
 
 use crate::grammar::*;
+use crate::util::Location;
 use crate::visitor::Visitable;
+
+use std::collections::HashMap;
 
 //------------------------------------------------------------------------------
 // Definition
@@ -78,4 +81,15 @@ impl SliceFile {
     }
 
     // TODO add methods for getting text snippets from the slice file! (for error reporting)
+}
+
+//------------------------------------------------------------------------------
+// SliceTable
+//------------------------------------------------------------------------------
+pub type SliceTable = HashMap<String, SliceTableEntry>;
+
+pub struct SliceTableEntry {
+    pub kind: ElementKind,
+    pub location: Location,
+    pub definition: Option<usize>,
 }

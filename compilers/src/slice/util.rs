@@ -15,8 +15,18 @@ pub struct Location {
 #[derive(Debug)]
 pub struct SliceError {
     message: String,
-    location: Option<Location>,
     severity: SliceErrorLevel,
+    location: Option<Location>,
+}
+
+impl SliceError {
+    pub fn new(message: String, severity: SliceErrorLevel) -> Self {
+        SliceError { message, severity, location: None }
+    }
+
+    pub fn new_with_location(message: String, severity: SliceErrorLevel, loc: Location) -> Self {
+        SliceError { message, severity, location: Some(loc) }
+    }
 }
 
 //------------------------------------------------------------------------------
