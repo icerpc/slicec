@@ -29,20 +29,20 @@ impl TableBuilder {
 }
 
 impl Visitor for TableBuilder {
-    fn visit_module_start(&mut self, module_def: &Module, _: &SliceAst) {
+    fn visit_module_start(&mut self, module_def: &Module) {
         self.current_scope.push(module_def.get_identifier().to_owned());
     }
 
-    fn visit_module_end(&mut self, _: &Module, _: &SliceAst) {
+    fn visit_module_end(&mut self, _: &Module) {
         self.current_scope.pop();
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct, _: &SliceAst) {
+    fn visit_struct_start(&mut self, struct_def: &Struct) {
         let scoped_name = self.current_scope.join("::") + "::" + struct_def.get_identifier();
         self.type_table.insert(scoped_name, struct_def.def_index);
     }
 
-    fn visit_interface_start(&mut self, interface_def: &Interface, _: &SliceAst) {
+    fn visit_interface_start(&mut self, interface_def: &Interface) {
         let scoped_name = self.current_scope.join("::") + "::" + interface_def.get_identifier();
         self.type_table.insert(scoped_name, interface_def.def_index);
     }

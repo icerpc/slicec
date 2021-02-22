@@ -4,17 +4,14 @@ pub mod grammar;
 pub mod options;
 pub mod util;
 pub mod visitor;
-mod ast_patcher;
 mod parser;
 mod table_builder;
-mod validation;
 
 use ast::{SliceAst, SliceFile};
 use options::SliceOptions;
 use parser::SliceParser;
 use table_builder::TableBuilder;
 use util::SliceError;
-use validation::SliceValidator;
 use visitor::Visitable;
 
 use std::collections::HashMap;
@@ -36,14 +33,16 @@ pub fn parse_from_input(options: &SliceOptions) -> (SliceAst, HashMap<String, Sl
         slice_file.visit(&mut table_builder, &unpatched_ast);
     }
 
-    let type_table = table_builder.into_table();
+    unimplemented!()
 
-    let patched_ast = ast_patcher::patch_ast(unpatched_ast, &type_table);
-
-    let mut slice_validator = SliceValidator::new();
-    for slice_file in slice_files.values() {
-        slice_file.visit(&mut slice_validator, &patched_ast);
-    }
-
-    (patched_ast, slice_files, errors)
+//    let type_table = table_builder.into_table();
+//
+//    let patched_ast = ast_patcher::patch_ast(unpatched_ast, &type_table);
+//
+//    let mut slice_validator = SliceValidator::new();
+//    for slice_file in slice_files.values() {
+//        slice_file.visit(&mut slice_validator, &patched_ast);
+//    }
+//
+//    (patched_ast, slice_files, errors)
 }
