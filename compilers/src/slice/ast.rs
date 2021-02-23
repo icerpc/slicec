@@ -1,7 +1,7 @@
 
 use crate::grammar::*;
 use crate::util::Location;
-use crate::visitor::{Visitable, Visitor};
+use crate::visitor::Visitable;
 
 use std::collections::HashMap;
 
@@ -97,49 +97,4 @@ pub struct SliceTableEntry {
     pub kind: ElementKind,
     pub location: Location,
     pub definition: Option<usize>,
-}
-
-//------------------------------------------------------------------------------
-// AstPatcher
-//------------------------------------------------------------------------------
-struct AstPatcher {
-    patched_ast: SliceAst,
-}
-
-impl Visitor for AstPatcher {
-    fn visit_module_start(&mut self, module_def: &Module) {
-
-    }
-
-    fn visit_module_end(&mut self, module_def: &Module) {
-
-    }
-
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
-
-    }
-
-    fn visit_struct_end(&mut self, struct_def: &Struct) {
-
-    }
-
-    fn visit_interface_start(&mut self, interface_def: &Interface) {
-
-    }
-
-    fn visit_interface_end(&mut self, interface_def: &Interface) {
-
-    }
-
-    fn visit_data_member(&mut self, data_member: &DataMember) {
-
-    }
-
-    fn visit_identifier(&mut self, identifier: &Identifier) {
-
-    }
-
-    fn visit_type_use(&mut self, type_use: &TypeUse) {
-
-    }
 }
