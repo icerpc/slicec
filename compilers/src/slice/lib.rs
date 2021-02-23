@@ -7,7 +7,7 @@ pub mod visitor;
 mod parser;
 mod table_builder;
 
-use ast::{SliceAst, SliceFile};
+use ast::{SliceAst, SliceFile, SliceTable};
 use options::SliceOptions;
 use parser::SliceParser;
 use table_builder::TableBuilder;
@@ -16,7 +16,7 @@ use visitor::Visitable;
 
 use std::collections::HashMap;
 
-pub fn parse_from_input(options: &SliceOptions) -> (SliceAst, HashMap<String, SliceFile>, Vec<SliceError>) {
+pub fn parse_from_input(options: &SliceOptions) -> Result<(SliceAst, HashMap<String, SliceFile>, SliceTable), Vec<SliceError>> {
     let mut slice_parser = SliceParser::new(options);
 
     for path in options.sources.iter() { // TODO: make this able to handle directories and relative paths and stuff!
@@ -27,6 +27,9 @@ pub fn parse_from_input(options: &SliceOptions) -> (SliceAst, HashMap<String, Sl
     }
 
     let (unpatched_ast, slice_files, errors) = slice_parser.into_data();
+    if !errors.is_empty() {
+        return Err(errors);
+    }
 
     let mut table_builder = TableBuilder::new();
     for slice_file in slice_files.values() {
