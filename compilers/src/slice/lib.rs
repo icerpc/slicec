@@ -1,8 +1,8 @@
 
+#[macro_use] pub mod util;
 pub mod ast;
 pub mod grammar;
 pub mod options;
-pub mod util;
 pub mod visitor;
 mod ast_patcher;
 mod parser;

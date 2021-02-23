@@ -10,31 +10,45 @@ pub struct Location {
 }
 
 //------------------------------------------------------------------------------
-// SliceError
+// error reporting function
 //------------------------------------------------------------------------------
-#[derive(Debug)]
-pub struct SliceError {
-    message: String,
-    severity: SliceErrorLevel,
-    location: Option<Location>,
-}
-
-impl SliceError {
-    pub fn new(message: String, severity: SliceErrorLevel) -> Self {
-        SliceError { message, severity, location: None }
-    }
-
-    pub fn new_with_location(message: String, severity: SliceErrorLevel, loc: Location) -> Self {
-        SliceError { message, severity, location: Some(loc) }
-    }
+pub fn report_issue(prefix: &str, message: &str, location: Option<Location>) {
+    // TODO report the errors!
 }
 
 //------------------------------------------------------------------------------
-// SliceErrorLevel
+// error reporting macros
 //------------------------------------------------------------------------------
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
-pub enum SliceErrorLevel {
-    Error,
-    Warning,
-    Note,
+macro_rules! issue_error{
+    ($a:expr) => {
+        report_issue("error", $a, None);
+    };
+    ($a:expr, $b: expr) => {
+        report_issue("error", $a, Some($b));
+    };
+}
+
+macro_rules! issue_warning{
+    ($a:expr) => {
+        report_issue("warning", $a, None);
+    };
+    ($a:expr, $b: expr) => {
+        report_issue("warning", $a, Some($b));
+    };
+}
+
+macro_rules! issue_note{
+    ($a:expr) => {
+        report_issue("note", $a, None);
+    };
+    ($a:expr, $b: expr) => {
+        report_issue("note", $a, Some($b));
+    };
+}
+
+pub fn testing() {
+    let myLoc = Location { start: (0,0), end: (8,8), file: "hello".to_owned()};
+    issue_error!("hello!", myLoc);
+    issue_warning!("hello!");
+    issue_note!("hello!");
 }
