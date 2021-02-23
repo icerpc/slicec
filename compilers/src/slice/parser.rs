@@ -142,7 +142,7 @@ impl SliceParser {
             }
         );
         let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_definition(Box::new(module_def)))
+        Ok(ast.add_node(Box::new(module_def)))
     }
 
     fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
@@ -160,7 +160,7 @@ impl SliceParser {
             }
         );
         let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_definition(Box::new(struct_def)))
+        Ok(ast.add_node(Box::new(struct_def)))
     }
 
     fn interface_start(input: PestNode) -> PestResult<(Identifier, Location)> {
@@ -178,17 +178,18 @@ impl SliceParser {
             }
         );
         let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_definition(Box::new(interface_def)))
+        Ok(ast.add_node(Box::new(interface_def)))
     }
 
-    fn data_member(input: PestNode) -> PestResult<DataMember> {
+    fn data_member(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
-        let data_member = match_nodes!(input.into_children();
+        let data_member = match_nodes!(input.children();
             [typename(data_type), identifier(identifier)] => {
                 DataMember::new(data_type, identifier, location)
             }
         );
-        Ok(data_member)
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_node(Box::new(data_member)))
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {

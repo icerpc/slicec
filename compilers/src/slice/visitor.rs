@@ -53,8 +53,8 @@ impl Visitable for Module {
 impl Visitable for Struct {
     fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         visitor.visit_struct_start(self);
-        for data_member in self.contents.iter() {
-            data_member.visit(visitor, ast);
+        for id in self.contents.iter() {
+            ast.resolve_id(*id).visit(visitor, ast);
         }
         visitor.visit_struct_end(self);
     }

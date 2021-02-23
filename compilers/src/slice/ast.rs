@@ -1,21 +1,18 @@
 
 use crate::grammar::*;
-use crate::util::Location;
 use crate::visitor::Visitable;
 
-use std::collections::HashMap;
-
 //------------------------------------------------------------------------------
-// Definition
+// Node
 //------------------------------------------------------------------------------
-pub trait Definition : Element + Visitable {
+pub trait Node : Element + Visitable {
     fn set_index(&mut self, index: usize);
     fn index(&self) -> usize;
 }
 
-macro_rules! implement_definition_for{
+macro_rules! implement_node_for{
     ($a:ty, $b:ident) => {
-        impl Definition for $a {
+        impl Node for $a {
             fn set_index(&mut self, index: usize) {
                 self.$b = index;
             }
@@ -27,15 +24,16 @@ macro_rules! implement_definition_for{
     }
 }
 
-implement_definition_for!(Module, def_index);
-implement_definition_for!(Struct, def_index);
-implement_definition_for!(Interface, def_index);
+implement_node_for!(Module, def_index);
+implement_node_for!(Struct, def_index);
+implement_node_for!(Interface, def_index);
+implement_node_for!(DataMember, def_index);
 
 //------------------------------------------------------------------------------
 // SliceAst
 //------------------------------------------------------------------------------
 pub struct SliceAst {
-    ast: Vec<Box<dyn Definition>>,
+    ast: Vec<Box<dyn Node>>,
 }
 
 impl SliceAst {
@@ -43,15 +41,15 @@ impl SliceAst {
         SliceAst { ast: Vec::new() }
     }
 
-    pub fn add_definition(&mut self, mut definition: Box<dyn Definition>) -> usize {
+    pub fn add_node(&mut self, mut node: Box<dyn Node>) -> usize {
         let index = self.ast.len();
-        definition.set_index(index);
+        node.set_index(index);
 
-        self.ast.push(definition);
+        self.ast.push(node);
         index
     }
 
-    pub fn resolve_id(&self, id: usize) -> &Box<dyn Definition> {
+    pub fn resolve_id(&self, id: usize) -> &Box<dyn Node> {
         &self.ast[id]
     }
 
@@ -85,16 +83,4 @@ impl SliceFile {
     }
 
     // TODO add methods for getting text snippets from the slice file! (for error reporting)
-}
-
-// TODO we should consider making everything a node in the ast vector, instead of storing their information in this table.
-//------------------------------------------------------------------------------
-// SliceTable
-//------------------------------------------------------------------------------
-pub type SliceTable = HashMap<String, SliceTableEntry>;
-
-pub struct SliceTableEntry {
-    pub kind: ElementKind,
-    pub location: Location,
-    pub definition: Option<usize>,
 }

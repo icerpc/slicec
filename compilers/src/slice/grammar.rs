@@ -70,13 +70,13 @@ impl Module {
 #[derive(Clone, Debug)]
 pub struct Struct {
     pub identifier: Identifier,
-    pub contents: Vec<DataMember>,
+    pub contents: Vec<usize>,
     pub location: Location,
     pub def_index: usize,
 }
 
 impl Struct {
-    pub fn new(identifier: Identifier, contents: Vec<DataMember>, location: Location) -> Self {
+    pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
         Struct { identifier, contents, location, def_index: usize::MAX }
     }
 
@@ -117,11 +117,12 @@ pub struct DataMember {
     pub data_type: TypeUse,
     pub identifier: Identifier,
     pub location: Location,
+    pub def_index: usize,
 }
 
 impl DataMember {
     pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, location }
+        DataMember { data_type, identifier, location, def_index: usize::MAX }
     }
 
     pub fn get_identifier(&self) -> &str {

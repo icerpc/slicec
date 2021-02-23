@@ -1,41 +1,39 @@
 
-use crate::ast::{Definition, SliceTable, SliceTableEntry};
+use crate::ast::Node;
 use crate::grammar::*;
 use crate::visitor::Visitor;
+
+use std::collections::HashMap;
 
 //------------------------------------------------------------------------------
 // TableBuilder
 //------------------------------------------------------------------------------
 pub struct TableBuilder {
-    lookup_table: SliceTable,
+    lookup_table: HashMap<String, usize>,
     current_scope: Vec<String>,
 }
 
 impl TableBuilder {
     pub fn new() -> Self {
         TableBuilder {
-            lookup_table: SliceTable::new(),
+            lookup_table: HashMap::new(),
             current_scope: Vec::new(),
         }
     }
 
-    pub fn into_table(self) -> SliceTable {
+    pub fn into_table(self) -> HashMap<String, usize> {
         self.lookup_table
     }
 
-    fn add_entry(&mut self, identifier: &str, entry: SliceTableEntry) {
+    fn add_entry(&mut self, identifier: &str, index: usize) {
         let scoped_identifier = self.current_scope.join("::") + "::" + identifier;
-        self.lookup_table.insert(scoped_identifier, entry);
+        self.lookup_table.insert(scoped_identifier, index);
     }
 }
 
 impl Visitor for TableBuilder {
     fn visit_module_start(&mut self, module_def: &Module) {
-        self.add_entry(module_def.get_identifier(), SliceTableEntry {
-            kind: module_def.kind(),
-            location: module_def.location(),
-            definition: Some(module_def.index()),
-        });
+        self.add_entry(module_def.get_identifier(), module_def.index());
         self.current_scope.push(module_def.get_identifier().to_owned());
     }
 
@@ -44,11 +42,7 @@ impl Visitor for TableBuilder {
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.add_entry(struct_def.get_identifier(), SliceTableEntry {
-            kind: struct_def.kind(),
-            location: struct_def.location(),
-            definition: Some(struct_def.index()),
-        });
+        self.add_entry(struct_def.get_identifier(), struct_def.index());
         self.current_scope.push(struct_def.get_identifier().to_owned());
     }
 
@@ -57,11 +51,7 @@ impl Visitor for TableBuilder {
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface) {
-        self.add_entry(interface_def.get_identifier(), SliceTableEntry {
-            kind: interface_def.kind(),
-            location: interface_def.location(),
-            definition: Some(interface_def.index()),
-        });
+        self.add_entry(interface_def.get_identifier(), interface_def.index());
         self.current_scope.push(interface_def.get_identifier().to_owned());
     }
 
@@ -70,10 +60,6 @@ impl Visitor for TableBuilder {
     }
 
     fn visit_data_member(&mut self, data_member: &DataMember) {
-        self.add_entry(data_member.get_identifier(), SliceTableEntry {
-            kind: data_member.kind(),
-            location: data_member.location(),
-            definition: None,
-        });
+        self.add_entry(data_member.get_identifier(), data_member.index());
     }
 }
