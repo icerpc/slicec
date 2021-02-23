@@ -52,10 +52,6 @@ impl SliceAst {
     pub fn resolve_id(&self, id: usize) -> &Box<dyn Node> {
         &self.ast[id]
     }
-
-    pub fn reserve(&mut self, additional: usize) {
-        &self.ast.reserve(additional);
-    }
 }
 
 //------------------------------------------------------------------------------
