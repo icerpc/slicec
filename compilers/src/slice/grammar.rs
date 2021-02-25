@@ -4,44 +4,34 @@ use crate::util::Location;
 //------------------------------------------------------------------------------
 // Element
 //------------------------------------------------------------------------------
+/// Base trait that all grammar elements implement.
 pub trait Element {
-    fn kind(&self) -> ElementKind;
-    fn location(&self) -> Location;
+    /// Retrieves the location where the grammar element is defined.
+    ///
+    /// For grammar elements with bodies (like modules), the location only spans the initial definition of the element,
+    /// and not the entire body. For instance, the location for `module Foo { ... }` would only span `module Foo`.
+    fn location(&self) -> &Location;
 }
 
+/// This macro implements the `Element` trait for a grammar element, to reduce boilerplate implementations.
 macro_rules! implement_element_for{
-    ($a:ty, $b:ident, $c:ident) => {
+    ($a:ty, $b:ident) => {
         impl Element for $a {
-            fn kind(&self) -> ElementKind {
-                ElementKind::$b
-            }
-
-            fn location(&self) -> Location {
-                self.$c.clone()
+            fn location(&self) -> &Location {
+                &self.$b
             }
         }
     }
 }
 
-implement_element_for!(Module, KindModule, location);
-implement_element_for!(Struct, KindStruct, location);
-implement_element_for!(Interface, KindInterface, location);
-implement_element_for!(DataMember, KindDataMember, location);
-implement_element_for!(Identifier, KindIdentifier, location);
-implement_element_for!(TypeUse, KindTypeUse, location);
+implement_element_for!(Module, location);
+implement_element_for!(Struct, location);
+implement_element_for!(Interface, location);
+implement_element_for!(DataMember, location);
+implement_element_for!(Identifier, location);
+implement_element_for!(TypeUse, location);
 
-//------------------------------------------------------------------------------
-// ElementKind
-//------------------------------------------------------------------------------
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
-pub enum ElementKind {
-    KindModule,
-    KindStruct,
-    KindInterface,
-    KindDataMember,
-    KindIdentifier,
-    KindTypeUse,
-}
+// TODO write comments for everything else below this line.
 
 //------------------------------------------------------------------------------
 // Module
@@ -51,12 +41,12 @@ pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub location: Location,
-    pub def_index: usize,
+    pub index: usize,
 }
 
 impl Module {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Module { identifier, contents, location, def_index: usize::MAX }
+        Module { identifier, contents, location, index: usize::MAX }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -72,12 +62,12 @@ pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub location: Location,
-    pub def_index: usize,
+    pub index: usize,
 }
 
 impl Struct {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Struct { identifier, contents, location, def_index: usize::MAX }
+        Struct { identifier, contents, location, index: usize::MAX }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -94,12 +84,12 @@ impl Type for Struct {}
 pub struct Interface {
     pub identifier: Identifier,
     pub location: Location,
-    pub def_index: usize,
+    pub index: usize,
 }
 
 impl Interface {
     pub fn new(identifier: Identifier, location: Location) -> Self {
-        Interface { identifier, location, def_index: usize::MAX }
+        Interface { identifier, location, index: usize::MAX }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -117,12 +107,12 @@ pub struct DataMember {
     pub data_type: TypeUse,
     pub identifier: Identifier,
     pub location: Location,
-    pub def_index: usize,
+    pub index: usize,
 }
 
 impl DataMember {
     pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, location, def_index: usize::MAX }
+        DataMember { data_type, identifier, location, index: usize::MAX }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -153,12 +143,20 @@ pub struct TypeUse {
     pub type_name: String,
     pub is_tagged: bool,
     pub definition: Option<usize>,
-    pub location: Location,
+    location: Location,
 }
 
 impl TypeUse {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
         TypeUse { type_name, is_tagged, definition: None, location }
+    }
+
+    pub fn definition(&self) -> usize {
+        // Panic if we try to access the definition before it's been patched.
+        match self.definition {
+            Some(value) => value,
+            None => { panic!("Failed to unwrap underlying type definition!\n{:?}", self) },
+        }
     }
 }
 

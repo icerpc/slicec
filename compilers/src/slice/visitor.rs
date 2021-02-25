@@ -1,11 +1,13 @@
 
 use crate::grammar::*;
-use crate::ast::{SliceAst, SliceFile};
+use crate::ast::SliceAst;
+use crate::util::SliceFile;
 
 //------------------------------------------------------------------------------
 // Visitor
 //------------------------------------------------------------------------------
-#[allow(unused_variables)]
+/// Base trait for all visitors.
+#[allow(unused_variables)] // We keep the parameter names for doc generation, even if unused in the default implementations.
 pub trait Visitor {
     fn visit_file_start(&mut self, file: &SliceFile) {}
     fn visit_file_end(&mut self, file: &SliceFile) {}
@@ -26,6 +28,7 @@ pub trait Visitor {
 //------------------------------------------------------------------------------
 // Visitable
 //------------------------------------------------------------------------------
+/// Base trait for all visitable elements.
 pub trait Visitable {
     fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst);
 }
@@ -33,8 +36,8 @@ pub trait Visitable {
 impl Visitable for SliceFile {
     fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         visitor.visit_file_start(self);
-        for id in self.definitions.iter() {
-            ast.resolve_id(*id).visit(visitor, ast);
+        for id in self.contents.iter() {
+            ast.resolve_index(*id).visit(visitor, ast);
         }
         visitor.visit_file_end(self);
     }
@@ -44,7 +47,7 @@ impl Visitable for Module {
     fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         visitor.visit_module_start(self);
         for id in self.contents.iter() {
-            ast.resolve_id(*id).visit(visitor, ast);
+            ast.resolve_index(*id).visit(visitor, ast);
         }
         visitor.visit_module_end(self);
     }
@@ -54,7 +57,7 @@ impl Visitable for Struct {
     fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         visitor.visit_struct_start(self);
         for id in self.contents.iter() {
-            ast.resolve_id(*id).visit(visitor, ast);
+            ast.resolve_index(*id).visit(visitor, ast);
         }
         visitor.visit_struct_end(self);
     }
