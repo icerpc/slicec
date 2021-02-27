@@ -57,7 +57,7 @@ enum ErrorHolder {
 /// Errors can reference definitions and code snippets that might not be accessible in the scope they're reported from
 /// (or they may not of been parsed yet). So instead of immediately reporting them, they're stored by the ErrorHandler
 /// and only reported when [`print_errors`] is called near the end of the compiler's execution.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ErrorHandler {
     /// Vector where all the errors are stored, in the order they're reported in.
     errors: Vec<ErrorHolder>,
@@ -68,15 +68,6 @@ pub struct ErrorHandler {
 }
 
 impl ErrorHandler {
-    /// Creates a new handler with no errors, warnings, or notes.
-    pub(crate) fn new() -> Self {
-        ErrorHandler {
-            errors: Vec::new(),
-            error_count: 0,
-            warning_count: 0,
-        }
-    }
-
     /// Checks if any errors have been reported yet.
     /// This doesn't include notes, and only includes warnings if [`include_warnings`] is set.
     pub fn has_errors(&self, include_warnings: bool) -> bool {

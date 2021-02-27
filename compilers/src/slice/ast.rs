@@ -1,6 +1,5 @@
 
 use crate::grammar::*;
-use crate::visitor::{Visitable, Visitor};
 
 //------------------------------------------------------------------------------
 // Node
@@ -11,56 +10,49 @@ use crate::visitor::{Visitable, Visitor};
 /// their index in the AST vector and resolved with the [resolve_index](SliceAst::resolve_index) method.
 #[derive(Clone, Debug)]
 pub(crate) enum Node {
-    Module(Module),
-    Struct(Struct),
-    Interface(Interface),
-    DataMember(DataMember),
+    Module(usize, Module),
+    Struct(usize, Struct),
+    Interface(usize, Interface),
+    DataMember(usize, DataMember),
 }
 
 impl Node {
-    /// Sets this node's index by setting it on the underlying grammar element.
-    ///
-    /// Grammar elements that can be a node have a default index of `usize::Max` set during construction.
-    /// The actual index is only set when the node is placed into the AST vector.
-    /// This is the only time this method should be called. Invoking it again will cause a panic.
-    pub(crate) fn set_index(&mut self, index: usize) {
-        // Get a reference to the underlying element's `index` field.
-        let old_index = match self {
-            Self::Module(module_def)       => { &mut module_def.index },
-            Self::Struct(struct_def)       => { &mut struct_def.index },
-            Self::Interface(interface_def) => { &mut interface_def.index },
-            Self::DataMember(data_member)  => { &mut data_member.index },
-        };
-
-        // Ensure the index hasn't already been set.
-        debug_assert!(*old_index == usize::MAX, "Node index has already been set!\n{:?}", self);
-
-        // Set the new index.
-        *old_index = index;
-    }
-
-    /// Returns this node's index from the underlying grammar element.
-    pub(crate) fn get_index(&self) -> usize {
+    /// Returns this node's index.
+    pub(crate) fn index(&self) -> usize {
         match self {
-            Self::Module(module_def)       => { module_def.index },
-            Self::Struct(struct_def)       => { struct_def.index },
-            Self::Interface(interface_def) => { interface_def.index },
-            Self::DataMember(data_member)  => { data_member.index },
+            Self::Module(index, _)     => index,
+            Self::Struct(index, _)     => index,
+            Self::Interface(index, _)  => index,
+            Self::DataMember(index, _) => index,
+        }.clone()
+    }
+}
+
+//------------------------------------------------------------------------------
+// IntoNode
+//------------------------------------------------------------------------------
+/// This trait provides a conversion method to simplify wrapping a grammar element in a node.
+/// Only types implementing this trait can be stored in nodes, and hence the AST vector.
+pub(crate) trait IntoNode : Element {
+    /// Converts an element into a node that contains the element and the node's index in the AST vector.
+    fn into_node(self, index: usize) -> Node;
+}
+
+/// This macro implements the `IntoTrait` trait for a grammar element, to reduce boilerplate implementations.
+macro_rules! implement_into_node_for{
+    ($a:ty, $b:path) => {
+        impl IntoNode for $a {
+            fn into_node(self, index: usize) -> Node {
+                $b(index, self)
+            }
         }
     }
 }
 
-impl Visitable for Node {
-    fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
-        // Forward the `visit` call to the underlying element.
-        match self {
-            Self::Module(module_def)       => { module_def.visit(visitor, ast) },
-            Self::Struct(struct_def)       => { struct_def.visit(visitor, ast) },
-            Self::Interface(interface_def) => { interface_def.visit(visitor, ast) },
-            Self::DataMember(data_member)  => { data_member.visit(visitor, ast) },
-        }
-    }
-}
+implement_into_node_for!(Module, Node::Module);
+implement_into_node_for!(Struct, Node::Struct);
+implement_into_node_for!(Interface, Node::Interface);
+implement_into_node_for!(DataMember, Node::DataMember);
 
 //------------------------------------------------------------------------------
 // SliceAst
@@ -77,24 +69,17 @@ impl Visitable for Node {
 /// of needing an actual memory reference. This is especially important in Rust where references are strictly managed.
 /// Additionally, it simplifies the ownership semantics, since all nodes are directly owned by the vector, instead of
 /// having parent and children ownership semantics like normal trees do.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SliceAst {
     /// The AST vector where all the 'tree' nodes are stored, in the order the parser parsed them.
     ast: Vec<Node>,
 }
 
 impl SliceAst {
-    /// Creates an empty AST with no entries in it.
-    pub(crate) fn new() -> Self {
-        SliceAst { ast: Vec::new() }
-    }
-
-    /// Moves the provided node into the AST vector and sets the node's index.
-    pub(crate) fn add_node(&mut self, mut node: Node) -> usize {
+    /// Wraps the provided element in a Node and moves it into the AST vector.
+    pub(crate) fn add_element(&mut self, element: impl IntoNode) -> usize {
         let index = self.ast.len();
-        node.set_index(index);
-
-        self.ast.push(node);
+        self.ast.push(element.into_node(index));
         index
     }
 

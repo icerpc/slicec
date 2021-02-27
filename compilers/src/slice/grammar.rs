@@ -41,12 +41,11 @@ pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub location: Location,
-    pub index: usize,
 }
 
 impl Module {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Module { identifier, contents, location, index: usize::MAX }
+        Module { identifier, contents, location }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -62,12 +61,11 @@ pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub location: Location,
-    pub index: usize,
 }
 
 impl Struct {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Struct { identifier, contents, location, index: usize::MAX }
+        Struct { identifier, contents, location }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -84,12 +82,11 @@ impl Type for Struct {}
 pub struct Interface {
     pub identifier: Identifier,
     pub location: Location,
-    pub index: usize,
 }
 
 impl Interface {
     pub fn new(identifier: Identifier, location: Location) -> Self {
-        Interface { identifier, location, index: usize::MAX }
+        Interface { identifier, location }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -107,12 +104,11 @@ pub struct DataMember {
     pub data_type: TypeUse,
     pub identifier: Identifier,
     pub location: Location,
-    pub index: usize,
 }
 
 impl DataMember {
     pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, location, index: usize::MAX }
+        DataMember { data_type, identifier, location }
     }
 
     pub fn get_identifier(&self) -> &str {
@@ -143,20 +139,12 @@ pub struct TypeUse {
     pub type_name: String,
     pub is_tagged: bool,
     pub definition: Option<usize>,
-    location: Location,
+    pub location: Location,
 }
 
 impl TypeUse {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
         TypeUse { type_name, is_tagged, definition: None, location }
-    }
-
-    pub fn definition(&self) -> usize {
-        // Panic if we try to access the definition before it's been patched.
-        match self.definition {
-            Some(value) => value,
-            None => { panic!("Failed to unwrap underlying type definition!\n{:?}", self) },
-        }
     }
 }
 
