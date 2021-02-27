@@ -1,6 +1,7 @@
 
 use crate::grammar::*;
 
+// TODO maybe turn `Node` into a macro, to reduce the boilerplate inside match statements?
 //------------------------------------------------------------------------------
 // Node
 //------------------------------------------------------------------------------
@@ -14,6 +15,7 @@ pub(crate) enum Node {
     Struct(usize, Struct),
     Interface(usize, Interface),
     DataMember(usize, DataMember),
+    Builtin(usize, Builtin),
 }
 
 impl Node {
@@ -24,6 +26,20 @@ impl Node {
             Self::Struct(index, _)     => index,
             Self::Interface(index, _)  => index,
             Self::DataMember(index, _) => index,
+            Self::Builtin(index, _)    => index,
+        }.clone()
+    }
+
+    /// Returns the TypeId of this node's underlying definition.
+    /// This function is only enabled in debug configurations.
+    #[cfg(debug_assertions)]
+    pub(crate) fn type_id(&self) -> std::any::TypeId {
+        match self {
+            Self::Module(_, _)     => std::any::TypeId::of::<Module>(),
+            Self::Struct(_, _)     => std::any::TypeId::of::<Struct>(),
+            Self::Interface(_, _)  => std::any::TypeId::of::<Interface>(),
+            Self::DataMember(_, _) => std::any::TypeId::of::<DataMember>(),
+            Self::Builtin(_, _)    => std::any::TypeId::of::<Builtin>(),
         }.clone()
     }
 }
@@ -31,14 +47,14 @@ impl Node {
 //------------------------------------------------------------------------------
 // IntoNode
 //------------------------------------------------------------------------------
-/// This trait provides a conversion method to simplify wrapping a grammar element in a node.
+/// This trait provides a conversion method to simplify wrapping a definition in a node.
 /// Only types implementing this trait can be stored in nodes, and hence the AST vector.
-pub(crate) trait IntoNode : Element {
-    /// Converts an element into a node that contains the element and the node's index in the AST vector.
+pub(crate) trait IntoNode {
+    /// Converts an element into a node that contains the definition and the node's index in the AST vector.
     fn into_node(self, index: usize) -> Node;
 }
 
-/// This macro implements the `IntoTrait` trait for a grammar element, to reduce boilerplate implementations.
+/// This macro implements the `IntoTrait` trait for a definition, to reduce boilerplate implementations.
 macro_rules! implement_into_node_for{
     ($a:ty, $b:path) => {
         impl IntoNode for $a {
@@ -53,6 +69,7 @@ implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(DataMember, Node::DataMember);
+implement_into_node_for!(Builtin, Node::Builtin);
 
 //------------------------------------------------------------------------------
 // SliceAst

@@ -29,19 +29,20 @@ pub trait Visitor {
 // Visit Functions
 //------------------------------------------------------------------------------
 impl Node {
-    fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         // Forward the `visit` call to the underlying element.
         match self {
             Self::Module(index, module_def)       => { module_def.visit(visitor, ast, *index) },
             Self::Struct(index, struct_def)       => { struct_def.visit(visitor, ast, *index) },
             Self::Interface(index, interface_def) => { interface_def.visit(visitor, ast, *index) },
             Self::DataMember(index, data_member)  => { data_member.visit(visitor, ast, *index) },
+            _ => { panic!("Cannot visit the following Node!\n{:?}", self) }
         }
     }
 }
 
 impl SliceFile {
-    fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst) {
         visitor.visit_file_start(self);
         for id in self.contents.iter() {
             ast.resolve_index(*id).visit(visitor, ast);
@@ -51,7 +52,7 @@ impl SliceFile {
 }
 
 impl Module {
-    fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst, index: usize) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst, index: usize) {
         visitor.visit_module_start(self, index);
         for id in self.contents.iter() {
             ast.resolve_index(*id).visit(visitor, ast);
@@ -61,7 +62,7 @@ impl Module {
 }
 
 impl Struct {
-    fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst, index: usize) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, ast: &SliceAst, index: usize) {
         visitor.visit_struct_start(self, index);
         for id in self.contents.iter() {
             ast.resolve_index(*id).visit(visitor, ast);
@@ -71,26 +72,26 @@ impl Struct {
 }
 
 impl Interface {
-    fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst, index: usize) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst, index: usize) {
         visitor.visit_interface_start(self, index);
         visitor.visit_interface_end(self, index);
     }
 }
 
 impl DataMember {
-    fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst, index: usize) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst, index: usize) {
         visitor.visit_data_member(self, index);
     }
 }
 
 impl Identifier {
-    fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst) {
         visitor.visit_identifier(self);
     }
 }
 
 impl TypeUse {
-    fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst) {
+    pub fn visit(&self, visitor: &mut dyn Visitor, _: &SliceAst) {
         visitor.visit_type_use(self);
     }
 }

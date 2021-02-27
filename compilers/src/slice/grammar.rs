@@ -48,7 +48,7 @@ impl Module {
         Module { identifier, contents, location }
     }
 
-    pub fn get_identifier(&self) -> &str {
+    pub fn identifier(&self) -> &str {
         &self.identifier.value
     }
 }
@@ -68,7 +68,7 @@ impl Struct {
         Struct { identifier, contents, location }
     }
 
-    pub fn get_identifier(&self) -> &str {
+    pub fn identifier(&self) -> &str {
         &self.identifier.value
     }
 }
@@ -89,7 +89,7 @@ impl Interface {
         Interface { identifier, location }
     }
 
-    pub fn get_identifier(&self) -> &str {
+    pub fn identifier(&self) -> &str {
         &self.identifier.value
     }
 }
@@ -111,7 +111,7 @@ impl DataMember {
         DataMember { data_type, identifier, location }
     }
 
-    pub fn get_identifier(&self) -> &str {
+    pub fn identifier(&self) -> &str {
         &self.identifier.value
     }
 }
@@ -154,12 +154,22 @@ impl TypeUse {
 pub trait Type {}
 
 //------------------------------------------------------------------------------
-// BuiltIn
+// Builtin
 //------------------------------------------------------------------------------
 #[derive(Clone, Eq, Hash, PartialEq, Debug)]
-pub enum BuiltIn {
+pub enum Builtin {
     Int,
     String,
 }
 
-impl Type for BuiltIn {}
+impl Type for Builtin {}
+
+impl From<&str> for Builtin {
+    fn from(s: &str) -> Self {
+        match s {
+            "int" => Self::Int,
+            "String" => Self::String,
+            _ => panic!("`{}` is not a valid builtin type!", s),
+        }
+    }
+}

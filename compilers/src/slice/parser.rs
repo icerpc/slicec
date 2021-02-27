@@ -26,16 +26,26 @@ fn from_span(input: &PestNode) -> Location {
     }
 }
 
-fn resolve_type(data: &ParserData, type_name: &str, constructor: fn(...)->...) -> usize {
+fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserData, type_name: &'a str) -> usize {
     // Check if we've already constructed this type's definition.
-    // If we did already construct and store it, just return a copy of it's index stored in the type table.
+    // If we did already construct and store it, just return a copy of the index stored in the type table for it.
     // Otherwise we construct the type on-the-spot, store it, and then return it's index.
-    match data.type_table.get(type_name) {
+    let result = match data.type_table.get(type_name) {
         Some(definition) => { definition.clone() },
         None => {
-            45
+            // Construct the type with a into-conversion.
+            let definition: T = type_name.into();
+
+            let index = data.ast.add_element(definition);
+            data.type_table.insert(type_name.to_owned(), index);
+            index
         }
-    }
+    };
+
+    // Ensure the correct type was constructed (or retrieved from the type table).
+    debug_assert!(data.ast.resolve_index(result).type_id() == std::any::TypeId::of::<T>());
+
+    result
 }
 
 //------------------------------------------------------------------------------
@@ -226,12 +236,13 @@ impl SliceParser {
         let mut type_use = TypeUse::new(type_name, false, location);
 
         // Resolve and/or construct non user defined types.
+        let user_data = &mut input.user_data().borrow_mut();
         match_nodes!(input.children();
             [scoped_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
             [builtin_type(builtin)] => {
-                type_use.definition = Some(resolve_type(&input.user_data().borrow(), &type_use.type_name, ?));
+                type_use.definition = Some(construct_type::<Builtin>(user_data, &type_use.type_name));
             }
         );
         Ok(type_use)

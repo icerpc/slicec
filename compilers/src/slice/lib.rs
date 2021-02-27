@@ -6,6 +6,7 @@ pub mod options;
 pub mod util;
 pub mod visitor;
 mod parser;
+mod table_builder;
 
 //struct CompilerData {
 //    slice_files: HashMap<String, SliceFile>,
