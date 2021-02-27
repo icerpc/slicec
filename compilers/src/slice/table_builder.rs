@@ -8,7 +8,7 @@ use std::collections::HashMap;
 //------------------------------------------------------------------------------
 pub(crate) struct TableBuilder {
     lookup_table: HashMap<String, usize>,
-    current_scope: Vec<String>, //TODO make this a vector of &'a str instead!
+    current_scope: Vec<String>,
 }
 
 impl TableBuilder {
