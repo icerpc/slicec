@@ -5,6 +5,7 @@ pub mod grammar;
 pub mod options;
 pub mod util;
 pub mod visitor;
+mod ast_patcher;
 mod parser;
 mod table_builder;
 
@@ -37,6 +38,19 @@ use structopt::StructOpt;
 
 pub fn temp() -> ast::SliceAst {
     let o = options::SliceOptions::from_args();
-    let result = parser::SliceParser::parse_files(&o);
-    result.0
+    let (mut ast, slice_files, constructed_table, error_handler) = parser::SliceParser::parse_files(&o);
+
+    let mut table_builder = table_builder::TableBuilder::new();
+    for file in slice_files.values() {
+        file.visit(&mut table_builder, &ast);
+    }
+    let defined_table = table_builder.into_table();
+
+    let mut ast_patcher = ast_patcher::AstPatcher::new(&defined_table);
+    for file in slice_files.values() {
+        file.visit(&mut ast_patcher, &ast);
+    }
+    ast_patcher.commit_patches(&mut ast);
+
+    ast
 }

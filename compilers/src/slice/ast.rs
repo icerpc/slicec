@@ -19,17 +19,6 @@ pub(crate) enum Node {
 }
 
 impl Node {
-    /// Returns this node's index.
-    pub(crate) fn index(&self) -> usize {
-        match self {
-            Self::Module(index, _)     => index,
-            Self::Struct(index, _)     => index,
-            Self::Interface(index, _)  => index,
-            Self::DataMember(index, _) => index,
-            Self::Builtin(index, _)    => index,
-        }.clone()
-    }
-
     /// Returns the TypeId of this node's underlying definition.
     /// This function is only enabled in debug configurations.
     #[cfg(debug_assertions)]

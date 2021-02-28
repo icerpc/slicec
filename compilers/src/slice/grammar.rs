@@ -168,7 +168,7 @@ impl From<&str> for Builtin {
     fn from(s: &str) -> Self {
         match s {
             "int" => Self::Int,
-            "String" => Self::String,
+            "string" => Self::String,
             _ => panic!("`{}` is not a valid builtin type!", s),
         }
     }
