@@ -56,6 +56,10 @@ impl TypePatcher {
                 _ => { continue },
             };
 
+            if type_use.definition.is_some() {
+                continue;
+            }
+
             match Self::find_type(scope, &type_use.type_name, lookup_table) {
                 Some(index) => {
                     type_use.definition = Some(index);

@@ -69,3 +69,4 @@ pub struct CompilerData {
 // pub dry_run: bool,
 
 // TODO MAKE ALL THESE MAIN CALLS INTO A RESULT SO WE CAN '?' ON THEM!
+// we need to add code to detect name collisions!

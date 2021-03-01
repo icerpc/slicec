@@ -41,7 +41,7 @@ impl SliceFile {
     pub(crate) fn new(path: String, raw_text: String, contents: Vec<usize>, is_source: bool) -> Self {
         // Store the starting position of each line the file.
         // These are needed to translate `(line,col)` positions into string indices for snippets.
-        let mut line_positions = Vec::new();
+        let mut line_positions = vec![0]; // The first line always starts at index 0.
         let mut last_char_was_carriage_return = false;
         for (index, character) in raw_text.chars().enumerate() {
             if character == '\n' {
@@ -69,6 +69,6 @@ impl SliceFile {
 
     /// Calculates the position in this file's raw text corresponding to the provided line and column numbers.
     fn raw_pos(&self, (line, col): (usize, usize)) -> usize {
-        self.line_positions[line] + col
+        self.line_positions[line - 1] + (col - 1)
     }
 }

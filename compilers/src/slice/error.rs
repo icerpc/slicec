@@ -133,7 +133,7 @@ impl ErrorHandler {
             // Check if the error included a location
             if let Some(value) = location {
                 // Add the string `@filename: (line,col)` on the next line in the message.
-                message = format!("{}\n@{}: {:?}", message, &value.file, value.start);
+                message = format!("{}\n@ {}: {:?}\n", message, &value.file, value.start);
 
                 // If the location spans two file positions, add a snippet from the slice file into the error message.
                 if value.start != value.end {
@@ -149,6 +149,6 @@ impl ErrorHandler {
         }
 
         // Print the total number of errors and warnings.
-        println!("\n\terrors:{}\n\twarnings:{}\n", self.error_count, self.warning_count);
+        println!("compilation failed with {} error(s) and {} warning(s)\n", self.error_count, self.warning_count);
     }
 }

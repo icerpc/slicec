@@ -43,7 +43,8 @@ fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserDa
     };
 
     // Ensure the correct type was constructed (or retrieved from the type table).
-    debug_assert!(data.ast.resolve_index(result).type_id() == std::any::TypeId::of::<T>());
+    #[cfg(debug_assertions)]
+    { debug_assert!(data.ast.resolve_index(result).type_id() == std::any::TypeId::of::<T>()); }
 
     result
 }
@@ -202,8 +203,8 @@ impl SliceParser {
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
-            [module_start(module_start)] => {
-                Interface::new(module_start.0, module_start.1)
+            [interface_start(interface_start)] => {
+                Interface::new(interface_start.0, interface_start.1)
             }
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -229,6 +230,10 @@ impl SliceParser {
         Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
+    fn global_identifier(input: PestNode) -> PestResult<Identifier> {
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+    }
+
     fn typename(input: PestNode) -> PestResult<TypeUse> {
         let location = from_span(&input);
         // Remove any whitespace from the type name, then create the TypeUse.
@@ -236,12 +241,15 @@ impl SliceParser {
         let mut type_use = TypeUse::new(type_name, false, location);
 
         // Resolve and/or construct non user defined types.
-        let user_data = &mut input.user_data().borrow_mut();
         match_nodes!(input.children();
             [scoped_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
+            [global_identifier(identifier)] => {
+                // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
+            },
             [builtin_type(builtin)] => {
+                let user_data = &mut input.user_data().borrow_mut();
                 type_use.definition = Some(construct_type::<Builtin>(user_data, &type_use.type_name));
             }
         );
