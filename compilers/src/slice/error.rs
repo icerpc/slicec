@@ -118,9 +118,8 @@ impl ErrorHandler {
     /// Writes any errors, warnings, or notes stored in the handler to stderr,
     /// along with their relevant locations and code snippets.
     ///
-    /// This method consumes the ErrorHandler to ensure it can only be called once (shortly before the program
-    /// terminates), and returns a tuple holding the total number of errors and warnings reported respectively.
-    pub fn print_errors(self, slice_files: &HashMap<String, SliceFile>) -> (usize, usize) {
+    /// This method consumes the ErrorHandler to ensure it can only be called once (shortly before the program exits).
+    pub fn print_errors(self, slice_files: &HashMap<String, SliceFile>){
         for error_holder in self.errors.into_iter() {
             // Unwrap the error into it's fields, and get the prefix corresponding to the error severity.
             let (mut message, location, prefix) = match error_holder {
@@ -145,12 +144,11 @@ impl ErrorHandler {
                     message += file.get_snippet(value.start, value.end);
                 }
             }
-
-            // Print the message to stderr, followed by an extra newline.
+            // Print the message to stderr.
             eprintln!("{}\n", message);
         }
 
-        // Return the error and warning counts, so they can be displayed to the user.
-        (self.error_count, self.warning_count)
+        // Print the total number of errors and warnings.
+        println!("\n\terrors:{}\n\twarnings:{}\n", self.error_count, self.warning_count);
     }
 }
