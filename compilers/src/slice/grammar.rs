@@ -40,12 +40,13 @@ implement_element_for!(TypeUse, location);
 pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
+    pub scope: Option<String>,
     pub location: Location,
 }
 
 impl Module {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Module { identifier, contents, location }
+        Module { identifier, contents, scope: None, location }
     }
 
     pub fn identifier(&self) -> &str {
@@ -60,12 +61,13 @@ impl Module {
 pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
+    pub scope: Option<String>,
     pub location: Location,
 }
 
 impl Struct {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
-        Struct { identifier, contents, location }
+        Struct { identifier, contents, scope: None, location }
     }
 
     pub fn identifier(&self) -> &str {
@@ -81,12 +83,13 @@ impl Type for Struct {}
 #[derive(Clone, Debug)]
 pub struct Interface {
     pub identifier: Identifier,
+    pub scope: Option<String>,
     pub location: Location,
 }
 
 impl Interface {
     pub fn new(identifier: Identifier, location: Location) -> Self {
-        Interface { identifier, location }
+        Interface { identifier, scope: None, location }
     }
 
     pub fn identifier(&self) -> &str {
@@ -103,12 +106,13 @@ impl Type for Interface {}
 pub struct DataMember {
     pub data_type: TypeUse,
     pub identifier: Identifier,
+    pub scope: Option<String>,
     pub location: Location,
 }
 
 impl DataMember {
     pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, location }
+        DataMember { data_type, identifier, scope: None, location }
     }
 
     pub fn identifier(&self) -> &str {

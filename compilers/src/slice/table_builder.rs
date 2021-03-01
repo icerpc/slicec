@@ -1,5 +1,7 @@
 
+use crate::ast::SliceAst;
 use crate::grammar::*;
+use crate::util::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
@@ -12,19 +14,24 @@ pub(crate) struct TableBuilder {
 }
 
 impl TableBuilder {
-    pub(crate) fn new() -> Self {
+    fn new() -> Self {
         TableBuilder {
             lookup_table: HashMap::new(),
-            current_scope: Vec::new(),
+            // We add an empty string so when we join the vector with '::' separators, we'll get a leading "::".
+            current_scope: vec!["".to_owned()],
         }
     }
 
-    pub(crate) fn into_table(self) -> HashMap<String, usize> {
-        self.lookup_table
+    pub(crate) fn build_lookup_table(files: &HashMap<String, SliceFile>, ast: &SliceAst) -> HashMap<String, usize> {
+        let mut table_builder = TableBuilder::new();
+        for file in files.values() {
+            file.visit(&mut table_builder, ast);
+        }
+        table_builder.lookup_table
     }
 
     fn add_entry(&mut self, identifier: &str, index: usize) {
-        let scoped_identifier = self.current_scope.join("::") + "::" + identifier;
+        let scoped_identifier = self.current_scope.join("::")+ "::" + identifier;
         self.lookup_table.insert(scoped_identifier, index);
     }
 }
