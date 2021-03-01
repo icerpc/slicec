@@ -104,4 +104,8 @@ impl SliceAst {
     pub(crate) fn resolve_index_mut(&mut self, index: usize) -> &mut Node {
         &mut self.ast[index]
     }
+
+    pub(crate) fn iter_mut(&mut self) -> std::slice::IterMut<'_, Node> {
+        self.ast.iter_mut()
+    }
 }

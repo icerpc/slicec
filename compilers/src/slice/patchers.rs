@@ -1,9 +1,6 @@
 
 use crate::ast::{Node, SliceAst};
 use crate::error::ErrorHandler;
-use crate::grammar::DataMember;
-use crate::util::SliceFile;
-use crate::visitor::Visitor;
 use std::collections::HashMap;
 
 //------------------------------------------------------------------------------
@@ -47,58 +44,47 @@ impl ScopePatcher {
 // TypePatcher
 //------------------------------------------------------------------------------
 #[derive(Debug)]
-pub(crate) struct TypePatcher<'a> {
-    type_patches: Vec<(usize, usize)>,
-    lookup_table: &'a HashMap<String, usize>,
-    error_handler: &'a ErrorHandler,
-}
+pub(crate) struct TypePatcher;
 
-impl<'a> TypePatcher<'a> {
-    pub(crate) fn new(lookup_table: &'a HashMap<String, usize>, error_handler: &'a ErrorHandler) -> Self {
-        TypePatcher {
-            type_patches: Vec::new(),
-            lookup_table,
-            error_handler,
-        }
-    }
-
-    pub(crate) fn patch_types(ast: &mut SliceAst,
-                              slice_files: &HashMap<String, SliceFile>,
-                              lookup_table: & HashMap<String, usize>,
-                              error_handler: & ErrorHandler) {
-        let mut type_patcher = TypePatcher::new(lookup_table, error_handler);
-
-                                // TODO I don't think we really need this visitor here...
-                                // we can just iterate over the nodes and directly check for DataMembers and set their definitions right there in place...
-                                // but the visitor might make it easier? I don't know... I don't think so. Yeah, I think we shouldn't take the visitor approach here.
-
-        for file in slice_files.values() {
-            file.visit(&mut type_patcher, ast);
-        }
-
-        for (patch, index) in type_patcher.type_patches.into_iter() {
-            let node = ast.resolve_index_mut(index);
-            match node {
+impl TypePatcher {
+    pub(crate) fn patch_types(ast: &mut SliceAst, lookup_table: &HashMap<String, usize>, error_handler: &mut ErrorHandler) {
+        for node in ast.iter_mut() {
+            let (scope, type_use) = match node {
                 Node::DataMember(_, data_member) => {
-                    data_member.data_type.definition = Some(patch);
+                    (data_member.scope.as_ref().unwrap(), &mut data_member.data_type)
                 },
-                _ => {
-                    panic!("Grammar element does not need type patching!\n{:?}", node);
-                }
+                _ => { continue },
+            };
+
+            match Self::find_type(scope, &type_use.type_name, lookup_table) {
+                Some(index) => {
+                    type_use.definition = Some(index);
+                },
+                None => {
+                    error_handler.report_error((
+                        format!("failed to resolve type `{}` in scope `{}`", &type_use.type_name, scope).as_str(),
+                        type_use.location.clone(),
+                    ).into());
+                },
             }
         }
     }
-}
 
-impl<'a> Visitor for TypePatcher<'a> {
-    fn visit_data_member(&mut self, data_member: &DataMember, index: usize) {
+    fn find_type(scope: &str, typename: &str, lookup_table: &HashMap<String, usize>) -> Option<usize> {
+        // If the typename starts with '::' it's an absolute path, and we can directly look it up.
+        if typename.starts_with("::") {
+            return lookup_table.get(typename).map(|index| index.clone());
+        }
 
+        let parents: Vec<&str> = scope.split("::").collect();
+        for i in (0..parents.len()).rev() {
+            let test_scope = parents[..i].join("::") + "::" + typename;
+
+            if let Some(result) = lookup_table.get(&test_scope) {
+                return Some(result.clone());
+            }
+        }
+
+        return None
     }
 }
-
-//        let data_type = &data_member.data_type;
-//        if data_type.definition.is_none() {
-//            let type_name = data_type.type_name.as_str();//
-//
-//            // lookup the type somehow and resolve it!
-//            self.type_patches.push((index, 54));
