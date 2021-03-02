@@ -6,7 +6,7 @@ description = """
 These are the slice compilers!
 """
 keywords = ["ice", "rpc", "icerpc", "zeroc", "awesome"]
-license = "Apache-2.0 I want to say"
+license = "Apache-2.0"
 edition = "2018"
 ### These are other things that seem common to put in Cargo files ###
 ### Link: https://doc.rust-lang.org/cargo/reference/manifest.html ###
