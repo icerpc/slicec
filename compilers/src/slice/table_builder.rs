@@ -1,5 +1,5 @@
 
-use crate::ast::SliceAst;
+use crate::ast::Ast;
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::util::SliceFile;
@@ -30,7 +30,7 @@ impl<'a> TableBuilder<'a> {
     /// Builds a lookup table for all the named symbols defined in the provided slice files.
     /// The table maps a symbol's fully scoped identifier to it's index in the AST.
     pub(crate) fn build_lookup_table(files: &HashMap<String, SliceFile>,
-                                     ast: &SliceAst,
+                                     ast: &Ast,
                                      error_handler: &'a mut ErrorHandler) -> HashMap<String, usize> {
         let mut table_builder = TableBuilder::new(error_handler);
         for file in files.values() {
@@ -50,7 +50,7 @@ impl<'a> TableBuilder<'a> {
     }
 
     /// Computes the fully scoped identifier for the provided element, and stores an entry for it in the lookup table.
-    fn add_entry(&mut self, element: &impl NamedSymbol, index: usize, ast: &SliceAst) {
+    fn add_entry(&mut self, element: &impl NamedSymbol, index: usize, ast: &Ast) {
         let scoped_identifier = self.current_scope.join("::") + "::" + element.identifier();
 
         // Issue an error if the table already contains an entry for this fully scoped identifier.
@@ -73,34 +73,34 @@ impl<'a> TableBuilder<'a> {
 }
 
 impl<'a> Visitor for TableBuilder<'a> {
-    fn visit_module_start(&mut self, module_def: &Module, index: usize, ast: &SliceAst) {
+    fn visit_module_start(&mut self, module_def: &Module, index: usize, ast: &Ast) {
         self.add_entry(module_def, index, ast);
         self.current_scope.push(module_def.identifier().to_owned());
     }
 
-    fn visit_module_end(&mut self, _: &Module, _: usize, _: &SliceAst) {
+    fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.current_scope.pop();
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct, index: usize, ast: &SliceAst) {
+    fn visit_struct_start(&mut self, struct_def: &Struct, index: usize, ast: &Ast) {
         self.add_entry(struct_def, index, ast);
         self.current_scope.push(struct_def.identifier().to_owned());
     }
 
-    fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &SliceAst) {
+    fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
         self.current_scope.pop();
     }
 
-    fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &SliceAst) {
+    fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {
         self.add_entry(interface_def, index, ast);
         self.current_scope.push(interface_def.identifier().to_owned());
     }
 
-    fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &SliceAst) {
+    fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.current_scope.pop();
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &SliceAst) {
+    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {
         self.add_entry(data_member, index, ast);
     }
 }

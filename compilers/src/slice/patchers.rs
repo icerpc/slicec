@@ -1,5 +1,5 @@
 
-use crate::ast::{Node, SliceAst};
+use crate::ast::{Node, Ast};
 use crate::error::ErrorHandler;
 use std::collections::HashMap;
 
@@ -10,7 +10,7 @@ use std::collections::HashMap;
 pub(crate) struct ScopePatcher;
 
 impl ScopePatcher {
-    pub(crate) fn patch_scopes(ast: &mut SliceAst, lookup_table: &HashMap<String, usize>) {
+    pub(crate) fn patch_scopes(ast: &mut Ast, lookup_table: &HashMap<String, usize>) {
         for (scoped_identifier, index) in lookup_table.iter() {
             // TODO replace this with 'https://github.com/rust-lang/rust/issues/74773' when it's merged into STABLE.
             let mut scope = scoped_identifier.rsplitn(2, "::").collect::<Vec<&str>>()[1].to_owned();
@@ -48,7 +48,7 @@ impl ScopePatcher {
 pub(crate) struct TypePatcher;
 
 impl TypePatcher {
-    pub(crate) fn patch_types(ast: &mut SliceAst, lookup_table: &HashMap<String, usize>, error_handler: &mut ErrorHandler) {
+    pub(crate) fn patch_types(ast: &mut Ast, lookup_table: &HashMap<String, usize>, error_handler: &mut ErrorHandler) {
         for node in ast.iter_mut() {
             let (scope, type_use) = match node {
                 Node::DataMember(_, data_member) => {

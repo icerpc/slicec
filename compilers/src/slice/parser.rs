@@ -1,5 +1,5 @@
 
-use crate::ast::{SliceAst, IntoNode};
+use crate::ast::{Ast, IntoNode};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
@@ -54,7 +54,7 @@ fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserDa
 //------------------------------------------------------------------------------
 #[derive(Debug, Default)]
 struct ParserData {
-    ast: SliceAst,
+    ast: Ast,
     definition_table: HashMap<String, usize>,
     type_table: HashMap<String, usize>,
     error_handler: ErrorHandler,
@@ -78,7 +78,7 @@ pub(crate) struct SliceParser {
 }
 
 impl SliceParser {
-    pub(crate) fn parse_files(options: &SliceOptions) -> (SliceAst,
+    pub(crate) fn parse_files(options: &SliceOptions) -> (Ast,
                                                           HashMap<String, SliceFile>,
                                                           HashMap<String, usize>,
                                                           ErrorHandler) {

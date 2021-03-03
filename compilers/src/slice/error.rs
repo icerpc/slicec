@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use std::mem;
 
 //------------------------------------------------------------------------------
-// SliceError
+// Error
 //------------------------------------------------------------------------------
-/// The SliceError struct holds information describing a slice related error. It's only used internally by this module.
+/// The Error struct holds information describing a slice related error. It's only used internally by this module.
 /// Errors should only be created when reporting them through an [`ErrorHandler`] with an `into` conversion.
 /// # Examples
 /// ```
@@ -14,34 +14,34 @@ use std::mem;
 /// handler.report_error(("error!", location).into());  // with location
 /// ```
 #[derive(Debug)]
-pub struct SliceError {
+pub struct Error {
     /// The message to print when the error is displayed.
     message: String,
     /// The location where the error occurred. If set, the location and a code snippet will be printed with the error.
     location: Option<Location>,
 }
 
-impl From<&str> for SliceError {
+impl From<&str> for Error {
     fn from(message: &str) -> Self {
-        SliceError {
+        Error {
             message: message.to_owned(),
             location: None
         }
     }
 }
 
-impl From<(&str, Location)> for SliceError {
+impl From<(&str, Location)> for Error {
     fn from((message, location): (&str, Location)) -> Self {
-        SliceError {
+        Error {
             message: message.to_owned(),
             location: Some(location)
         }
     }
 }
 
-impl From<(&str, &Location)> for SliceError {
+impl From<(&str, &Location)> for Error {
     fn from((message, location): (&str, &Location)) -> Self {
-        SliceError {
+        Error {
             message: message.to_owned(),
             location: Some(location.clone())
         }
@@ -56,11 +56,11 @@ impl From<(&str, &Location)> for SliceError {
 #[derive(Debug)]
 enum ErrorHolder {
     /// High severity. Errors will cause compilation to end prematurely after the current compilation phase is finished.
-    Error(SliceError),
+    Error(Error),
     /// Low severity. Warnings only impact compilation if `warn-as-error` is set, as then they're treated like errors.
-    Warning(SliceError),
+    Warning(Error),
     /// No severity. Notes have no impact on compilation and are purely informative.
-    Note(SliceError),
+    Note(Error),
 }
 
 //------------------------------------------------------------------------------
@@ -91,39 +91,39 @@ impl ErrorHandler {
 
     /// Reports an error. If the error's location is set, a code snippet will be printed beneath it.
     ///
-    /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
+    /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
     /// ```
     /// handler.report_error("error!".into());              // without location
     /// handler.report_error(("error!", location).into());  // with location
     /// ```
-    pub fn report_error(&mut self, error: SliceError) {
+    pub fn report_error(&mut self, error: Error) {
         self.errors.push(ErrorHolder::Error(error));
         self.error_count += 1;
     }
 
     /// Reports a warning. If the error's location is set, a code snippet will be printed beneath it.
     ///
-    /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
+    /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
     /// ```
     /// handler.report_warning("warning!".into());              // without location
     /// handler.report_warning(("warning!", location).into());  // with location
     /// ```
-    pub fn report_warning(&mut self, warning: SliceError) {
+    pub fn report_warning(&mut self, warning: Error) {
         self.errors.push(ErrorHolder::Warning(warning));
         self.warning_count += 1;
     }
 
     /// Reports a note. If the error's location is set, a code snippet will be printed beneath it.
     ///
-    /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
+    /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
     /// ```
     /// handler.report_note("note!".into());              // without location
     /// handler.report_note(("note!", location).into());  // with location
     /// ```
-    pub fn report_note(&mut self, note: SliceError) {
+    pub fn report_note(&mut self, note: Error) {
         self.errors.push(ErrorHolder::Note(note));
     }
 

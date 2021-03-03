@@ -7,7 +7,7 @@ use crate::grammar::*;
 /// Nodes represent (and own) grammar elements that can be referenced by the compiler or other grammar elements.
 ///
 /// Elements are wrapped in a Node and inserted into the AST vector after creation. They can then be referenced by
-/// their index in the AST and resolved with the [resolve_index](SliceAst::resolve_index) method.
+/// their index in the AST and resolved with the [resolve_index](Ast::resolve_index) method.
 #[derive(Debug)]
 pub enum Node {
     Module(usize, Module),
@@ -82,11 +82,11 @@ implement_into_node_for!(DataMember, Node::DataMember);
 implement_into_node_for!(Builtin, Node::Builtin);
 
 //------------------------------------------------------------------------------
-// SliceAst
+// Ast
 //------------------------------------------------------------------------------
-/// SliceAst stores the Abstract Syntax Tree where all slice grammar elements are stored, directly or indirectly.
+/// Ast stores the Abstract Syntax Tree where all slice grammar elements are stored, directly or indirectly.
 ///
-/// All elements parsed by the compiler are stored in a single instance of SliceAst, even those from different slice
+/// All elements parsed by the compiler are stored in a single instance of Ast, even those from different slice
 /// files. Hence there is no notion of 'file' at the semantic level, all elements are only grouped by module.
 /// Storing all elements in a single common AST also simplifies cross-file referencing. All definitions are referencable
 /// from all slice files, without needing to explicitely include or import files by name.
@@ -97,12 +97,12 @@ implement_into_node_for!(Builtin, Node::Builtin);
 /// Additionally, it simplifies ownership semantics, since all nodes are directly owned by the vector, instead of
 /// having parents that own their children, like normal trees do.
 #[derive(Debug, Default)]
-pub struct SliceAst {
+pub struct Ast {
     /// The AST vector where all the nodes are stored, in the order the parser parsed them.
     ast: Vec<Node>,
 }
 
-impl SliceAst {
+impl Ast {
     /// Retrieves an immutable reference to the node at the specified index.
     /// # Panics
     /// This method panics if `index` doesn't represent a valid node.

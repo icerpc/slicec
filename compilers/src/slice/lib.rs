@@ -5,12 +5,13 @@ pub mod grammar;
 pub mod options;
 pub mod util;
 pub mod visitor;
+pub mod writer;
 mod parser;
 mod patchers;
 mod table_builder;
 mod validator;
 
-use ast::SliceAst;
+use ast::Ast;
 use error::ErrorHandler;
 use options::SliceOptions;
 use parser::SliceParser;
@@ -52,7 +53,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
 //------------------------------------------------------------------------------
 #[derive(Debug, Default)]
 pub struct CompilerData {
-    pub ast: SliceAst,
+    pub ast: Ast,
     pub slice_files: HashMap<String, SliceFile>,
     pub error_handler: ErrorHandler,
     pub constructed_table: HashMap<String, usize>,
