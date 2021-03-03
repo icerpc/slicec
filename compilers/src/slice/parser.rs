@@ -31,7 +31,7 @@ fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserDa
     // If we did already construct and store it, just return a copy of the index stored in the type table for it.
     // Otherwise we construct the type on-the-spot, store it, and then return it's index.
     let result = match data.type_table.get(type_name) {
-        Some(definition) => { definition.clone() },
+        Some(definition) => { *definition },
         None => {
             // Construct the type with a into-conversion.
             let definition: T = type_name.into();
@@ -85,10 +85,10 @@ impl SliceParser {
         let mut parser = SliceParser::new();
 
         for path in options.sources.iter() {
-            parser.try_parse_file(path.clone(), true);
+            parser.try_parse_file(path, true);
         }
         for path in options.references.iter() {
-            parser.try_parse_file(path.clone(), false);
+            parser.try_parse_file(path, false);
         }
 
         let data = parser.user_data.into_inner();
@@ -102,10 +102,10 @@ impl SliceParser {
         }
     }
 
-    fn try_parse_file(&mut self, file: String, is_source: bool) {
-        match self.parse_file(&file, is_source) {
+    fn try_parse_file(&mut self, file: &str, is_source: bool) {
+        match self.parse_file(file, is_source) {
             Ok(slice_file) => {
-                self.slice_files.insert(file, slice_file);
+                self.slice_files.insert(file.to_owned(), slice_file);
             },
             Err(message) => {
                 let data = &mut self.user_data.borrow_mut();
@@ -114,12 +114,12 @@ impl SliceParser {
         }
     }
 
-    fn parse_file(&mut self, file: &String, is_source: bool) -> Result<SliceFile, String> {
+    fn parse_file(&mut self, file: &str, is_source: bool) -> Result<SliceFile, String> {
         // We use an explicit scope to ensure the mutable borrow is dropped before the parser starts running.
         {
             // Mutably borrow the ParserData struct, to set it's current file.
             let data = &mut self.user_data.borrow_mut();
-            data.current_file = file.clone();
+            data.current_file = file.to_owned();
         }
 
         // Read the raw text from the file, and parse it into a raw ast.
@@ -129,7 +129,7 @@ impl SliceParser {
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
         let file_contents = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-        Ok(SliceFile::new(file.clone(), raw_text, file_contents, is_source))
+        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, is_source))
     }
 }
 

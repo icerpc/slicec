@@ -78,7 +78,7 @@ impl TypePatcher {
     fn find_type(scope: &str, typename: &str, lookup_table: &HashMap<String, usize>) -> Option<usize> {
         // If the typename starts with '::' it's an absolute path, and we can directly look it up.
         if typename.starts_with("::") {
-            return lookup_table.get(typename).map(|index| index.clone());
+            return lookup_table.get(typename).copied();
         }
 
         let parents: Vec<&str> = scope.split("::").collect();
@@ -86,10 +86,9 @@ impl TypePatcher {
             let test_scope = parents[..i].join("::") + "::" + typename;
 
             if let Some(result) = lookup_table.get(&test_scope) {
-                return Some(result.clone());
+                return Some(*result);
             }
         }
-
-        return None
+        None
     }
 }

@@ -50,7 +50,7 @@ impl Node {
             Self::Interface(_, _)  => std::any::TypeId::of::<Interface>(),
             Self::DataMember(_, _) => std::any::TypeId::of::<DataMember>(),
             Self::Builtin(_, _)    => std::any::TypeId::of::<Builtin>(),
-        }.clone()
+        }
     }
 }
 
