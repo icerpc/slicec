@@ -125,10 +125,7 @@ impl SliceParser {
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
         let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &self.user_data).map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
-        let raw_ast = match node.single() {
-            Ok(value) => value,
-            Err(error) => panic!("Failed to unwrap raw_ast!\n{:?}", error),
-        };
+        let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
         let file_contents = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;

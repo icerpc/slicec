@@ -33,6 +33,7 @@ impl ScopePatcher {
                     data_member.scope = Some(scope);
                 },
                 _ => {
+                    // There are no other other symbols that can appear in the lookup table.
                     panic!("Grammar element does not need scope patching!\n{:?}", node);
                 }
             }

@@ -2,36 +2,60 @@
 use crate::util::Location;
 
 //------------------------------------------------------------------------------
-// Element
+// Symbol
 //------------------------------------------------------------------------------
-/// Base trait that all grammar elements implement.
-pub trait Element {
-    /// Retrieves the location where the grammar element is defined.
-    ///
-    /// For grammar elements with bodies (like modules), the location only spans the initial definition of the element,
-    /// and not the entire body. For instance, the location for `module Foo { ... }` would only span `module Foo`.
+pub trait Symbol {
     fn location(&self) -> &Location;
+    fn kind(&self) -> &'static str;
 }
 
-/// This macro implements the `Element` trait for a grammar element, to reduce boilerplate implementations.
-macro_rules! implement_element_for{
-    ($a:ty, $b:ident) => {
-        impl Element for $a {
+macro_rules! implement_symbol_for {
+    ($a:ty, $b:literal) => {
+        impl Symbol for $a {
             fn location(&self) -> &Location {
-                &self.$b
+                &self.location
+            }
+
+            fn kind(&self) -> &'static str {
+                $b
             }
         }
     }
 }
 
-implement_element_for!(Module, location);
-implement_element_for!(Struct, location);
-implement_element_for!(Interface, location);
-implement_element_for!(DataMember, location);
-implement_element_for!(Identifier, location);
-implement_element_for!(TypeUse, location);
+implement_symbol_for!(Module, "module");
+implement_symbol_for!(Struct, "struct");
+implement_symbol_for!(Interface, "interface");
+implement_symbol_for!(DataMember, "data member");
+implement_symbol_for!(Identifier, "identifier");
+implement_symbol_for!(TypeUse, "type use");
 
-// TODO write comments for everything else below this line.
+//------------------------------------------------------------------------------
+// NamedSymbol
+//------------------------------------------------------------------------------
+pub trait NamedSymbol : Symbol {
+    fn identifier(&self) -> &str;
+}
+
+macro_rules! implement_named_symbol_for {
+    ($a:ty) => {
+        impl NamedSymbol for $a {
+            fn identifier(&self) -> &str {
+                &self.identifier()
+            }
+        }
+    }
+}
+
+implement_named_symbol_for!(Module);
+implement_named_symbol_for!(Struct);
+implement_named_symbol_for!(Interface);
+implement_named_symbol_for!(DataMember);
+
+//------------------------------------------------------------------------------
+// Type
+//------------------------------------------------------------------------------
+pub trait Type {}
 
 //------------------------------------------------------------------------------
 // Module
@@ -151,11 +175,6 @@ impl TypeUse {
         TypeUse { type_name, is_tagged, definition: None, location }
     }
 }
-
-//------------------------------------------------------------------------------
-// Type
-//------------------------------------------------------------------------------
-pub trait Type {}
 
 //------------------------------------------------------------------------------
 // Builtin

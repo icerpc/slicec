@@ -11,7 +11,7 @@ pub struct Location {
     pub start: (usize, usize),
     /// The ending position, stored as a tuple of line number, and column number, in that order.
     pub end: (usize, usize),
-    /// The path of the slice file where this location is in.
+    /// The path of the slice file this location is in.
     pub file: String,
 }
 
@@ -21,28 +21,32 @@ pub struct Location {
 /// Stores information about a single slice file, and it's contents.
 #[derive(Debug)]
 pub struct SliceFile {
-    /// The pathless filename of the slice file (without it's '.ice' extension).
+    /// The filename of the slice file (without it's '.ice' extension).
     pub filename: String,
     /// The path of the slice file, relative to where the slice compiler was run from (including it's '.ice' extension).
-    pub path: String,
+    pub relative_path: String,
     /// The raw text contained in the slice file.
     pub raw_text: String,
     /// The AST indices of all the top-level definitions in the slice file, in the order they're defined.
     pub contents: Vec<usize>,
-    /// True if this slice file is a source file (that code should be generated for), or false if it's a reference file.
+    /// True if the slice file is a source file (which code should be generated for), or false if it's a reference file.
     pub is_source: bool,
-    /// Stores the starting position of every new line in the file. We pre-compute these when the SliceFile is first
+    /// Stores the starting position of every line in the file. We pre-compute these when the SliceFile is first
     /// created and cache them here, to make snippet extraction and line referencing more efficient.
     line_positions: Vec<usize>,
 }
 
 impl SliceFile {
     /// Creates a new slice file
-    pub(crate) fn new(path: String, raw_text: String, contents: Vec<usize>, is_source: bool) -> Self {
-        // Store the starting position of each line the file.
-        // These are needed to translate `(line,col)` positions into string indices for snippets.
+    pub(crate) fn new(relative_path: String, raw_text: String, contents: Vec<usize>, is_source: bool) -> Self {
+        // Store the starting position of each line the file. Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.
         let mut last_char_was_carriage_return = false;
+
+        // Iterate through each character in the file. If we hit a '\n' we immediately store `index + 1` as the starting
+        // position for the next line (`+ 1` because the line starts after the newline character).
+        // If we hit a '\r' we wait and read the next character to see if it's a '\n'. If so, the '\n' block handles it,
+        // otherwise we store `index` (no plus one, because we've already read ahead to the next character).
         for (index, character) in raw_text.chars().enumerate() {
             if character == '\n' {
                 line_positions.push(index + 1);
@@ -55,19 +59,19 @@ impl SliceFile {
             }
         }
 
-        // Extract the name of the slice file without it's extension or directory's path.
-        let filename = Path::new(&path).file_stem().unwrap().to_os_string().into_string().unwrap();
+        // Extract the name of the slice file without it's extension.
+        let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
 
-        SliceFile { filename, path, raw_text, contents, is_source, line_positions }
+        SliceFile { filename, relative_path, raw_text, contents, is_source, line_positions }
     }
 
-    /// TODO
-    pub(crate) fn get_snippet(&self, start: (usize, usize), end: (usize, usize)) -> &str {
+    /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
+    pub(crate) fn get_snippet(&self, start: (usize, usize), end: (usize, usize)) -> String {
         // TODO we should return nice snippets that snap whole lines and have underlining, etc...
-        &self.raw_text[self.raw_pos(start)..self.raw_pos(end)]
+        self.raw_text[self.raw_pos(start)..self.raw_pos(end)].to_owned() + "\n"
     }
 
-    /// Calculates the position in this file's raw text corresponding to the provided line and column numbers.
+    /// Converts the provided line and column numbers into an index in the file's raw text.
     fn raw_pos(&self, (line, col): (usize, usize)) -> usize {
         self.line_positions[line - 1] + (col - 1)
     }

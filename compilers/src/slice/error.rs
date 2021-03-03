@@ -1,12 +1,18 @@
 
 use crate::util::{Location, SliceFile};
 use std::collections::HashMap;
+use std::mem;
 
 //------------------------------------------------------------------------------
 // SliceError
 //------------------------------------------------------------------------------
-/// The SliceError struct holds information describing a slice error. It's only used internally by this module.
+/// The SliceError struct holds information describing a slice related error. It's only used internally by this module.
 /// Errors should only be created when reporting them through an [`ErrorHandler`] with an `into` conversion.
+/// # Examples
+/// ```
+/// handler.report_error("error!".into());              // without location
+/// handler.report_error(("error!", location).into());  // with location
+/// ```
 #[derive(Clone, Debug)]
 pub struct SliceError {
     /// The message to print when the error is displayed.
@@ -33,6 +39,15 @@ impl From<(&str, Location)> for SliceError {
     }
 }
 
+impl From<(&str, &Location)> for SliceError {
+    fn from((message, location): (&str, &Location)) -> Self {
+        SliceError {
+            message: message.to_owned(),
+            location: Some(location.clone())
+        }
+    }
+}
+
 //------------------------------------------------------------------------------
 // ErrorHolder
 //------------------------------------------------------------------------------
@@ -51,15 +66,15 @@ enum ErrorHolder {
 //------------------------------------------------------------------------------
 // ErrorHandler
 //------------------------------------------------------------------------------
-/// The ErrorHandler stores all errors, warnings, and notes reported by the compiler during execution,
+/// The ErrorHandler temporarily stores errors, warnings, and notes reported by the compiler during execution,
 /// and provides methods for reporting them.
 ///
-/// Errors can reference definitions and code snippets that might not be accessible in the scope they're reported from
+/// Errors can reference elements and code snippets that might not be accessible in the scope they're reported from
 /// (or they may not of been parsed yet). So instead of immediately reporting them, they're stored by the ErrorHandler
-/// and only reported when [`print_errors`] is called near the end of the compiler's execution.
+/// and only reported when [`print_errors`] is called.
 #[derive(Debug, Default)]
 pub struct ErrorHandler {
-    /// Vector where all the errors are stored, in the order they're reported in.
+    /// Vector where all the errors are stored, in the order they're reported.
     errors: Vec<ErrorHolder>,
     /// The total number of errors reported.
     error_count: usize,
@@ -68,7 +83,7 @@ pub struct ErrorHandler {
 }
 
 impl ErrorHandler {
-    /// Checks if any errors have been reported yet.
+    /// Checks if any errors have been reported during compilation.
     /// This doesn't include notes, and only includes warnings if [`include_warnings`] is set.
     pub fn has_errors(&self, include_warnings: bool) -> bool {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
@@ -77,7 +92,6 @@ impl ErrorHandler {
     /// Reports an error. If the error's location is set, a code snippet will be printed beneath it.
     ///
     /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
-    ///
     /// # Examples
     /// ```
     /// handler.report_error("error!".into());              // without location
@@ -91,7 +105,6 @@ impl ErrorHandler {
     /// Reports a warning. If the error's location is set, a code snippet will be printed beneath it.
     ///
     /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
-    ///
     /// # Examples
     /// ```
     /// handler.report_warning("warning!".into());              // without location
@@ -105,7 +118,6 @@ impl ErrorHandler {
     /// Reports a note. If the error's location is set, a code snippet will be printed beneath it.
     ///
     /// It is recommended to construct the SliceError with an `into` conversion, instead of directly.
-    ///
     /// # Examples
     /// ```
     /// handler.report_note("note!".into());              // without location
@@ -115,40 +127,35 @@ impl ErrorHandler {
         self.errors.push(ErrorHolder::Note(note));
     }
 
-    /// Writes any errors, warnings, or notes stored in the handler to stderr,
-    /// along with their relevant locations and code snippets.
-    ///
-    /// This method consumes the ErrorHandler to ensure it can only be called once (shortly before the program exits).
-    pub fn print_errors(self, slice_files: &HashMap<String, SliceFile>){
-        for error_holder in self.errors.into_iter() {
+    /// Writes all the errors stored in the handler to stderr, along with their locations and code snippets if provided.
+    pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
+        for error_holder in mem::take(&mut self.errors).into_iter() {
             // Unwrap the error into it's fields, and get the prefix corresponding to the error severity.
             let (mut message, location, prefix) = match error_holder {
                 ErrorHolder::Error(error)   => { (error.message, error.location, "error: ") },
-                ErrorHolder::Warning(error) => { (error.message, error.location, "warning: ")},
-                ErrorHolder::Note(error)    => { (error.message, error.location, "note: ")},
+                ErrorHolder::Warning(error) => { (error.message, error.location, "warning: ") },
+                ErrorHolder::Note(error)    => { (error.message, error.location, "note: ") },
             };
             // Insert the prefix at the start of the message.
             message.insert_str(0, prefix);
 
-            // Check if the error included a location
-            if let Some(value) = location {
-                // Add the string `@filename: (line,col)` on the next line in the message.
-                message = format!("{}\n@ {}: {:?}\n", message, &value.file, value.start);
+            if let Some(loc) = location {
+                // Specify the location where the error starts on it's own line after the main message.
+                message = format!("{}\n@ '{}' ({},{}):\n", message, &loc.file, loc.start.0, loc.start.1);
 
-                // If the location spans two file positions, add a snippet from the slice file into the error message.
-                if value.start != value.end {
-                    let file = match slice_files.get(&value.file) {
-                        Some(file) => file,
-                        None => panic!("No slice file named '{}' is in the file map!", &value.file),
-                    };
-                    message += file.get_snippet(value.start, value.end);
+                // If the location spans between two file positions, add a snippet from the slice file into the message.
+                if loc.start != loc.end {
+                    let file = slice_files.get(&loc.file).expect("Missing slice file in the file map!");
+                    message += &file.get_snippet(loc.start, loc.end);
                 }
             }
             // Print the message to stderr.
             eprintln!("{}\n", message);
         }
+    }
 
-        // Print the total number of errors and warnings.
-        println!("compilation failed with {} error(s) and {} warning(s)\n", self.error_count, self.warning_count);
+    /// Returns the total number of errors and warnings reported through the error handler.
+    pub fn get_totals(&self) -> (usize, usize) {
+        (self.error_count, self.warning_count)
     }
 }

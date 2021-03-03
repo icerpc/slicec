@@ -20,8 +20,8 @@ pub fn main() {
 
 fn generate_code(compiler_data: CompilerData) {
     for slice_file in compiler_data.slice_files.values() {
-        let mut writer = CsWriter::new(&slice_file.path);
-        slice_file.visit(&mut writer, &compiler_data.ast);// this API feels weird, maybe add a visitor.visit_file(...) method to make this better
+        let mut writer = CsWriter::new(&slice_file.relative_path);
+        slice_file.visit_with(&mut writer, &compiler_data.ast);
         writer.flush();
     }
 }

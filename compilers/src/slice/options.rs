@@ -1,14 +1,16 @@
 
 use structopt::StructOpt;
 
-// Note: StructOpt automatically uses the doc-comments of fields to populate the '--help' output of slice-cs.
-//       boolean flags are automatically default to false, and strings are automatically default to empty.
+// Note: StructOpt automatically uses the doc-comments of fields to populate the '--help' output of slice-xxx.
+//       boolean flags automatically default to false, and strings automatically default to empty.
+
+// TODO revisit these names, and add more options!
 
 //------------------------------------------------------------------------------
 // SliceOptions
 //------------------------------------------------------------------------------
-/// This struct is responsible for parsing the line options common to all slice compilers.
-/// The option parser is automatically derived from the struct by the `StructOpt` crate
+/// This struct is responsible for parsing the command line options common to all slice compilers.
+/// The option parsing capabilities are automatically generated for the struct by the `StructOpt` crate.
 #[derive(StructOpt, Debug)]
 #[structopt(rename_all = "kebab-case", about = "_")] // We don't set `about`, since each compiler will set their own.
 pub struct SliceOptions {
@@ -31,5 +33,3 @@ pub struct SliceOptions {
     #[structopt(long)]
     pub dry_run: bool,
 }
-
-// TODO add more options and maybe improve the naming of these!
