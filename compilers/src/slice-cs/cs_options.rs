@@ -12,7 +12,7 @@ use slice::options::SliceOptions;
 /// The option parsing capabilities are automatically generated for the struct by the `StructOpt` crate.
 #[derive(StructOpt, Debug)]
 #[structopt(name = "slice-cs", version = "0.1.0", rename_all = "kebab-case")]
-pub(crate) struct CsOptions {
+pub struct CsOptions {
     // Options only relevant to slice-cs.
     // TODO add more options!
 

@@ -7,7 +7,7 @@ use crate::visitor::Visitor;
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub(crate) struct Validator<'a> {
-    /// Reference to the parser's error handler, 
+    /// Reference to the parser's error handler,
     error_handler: &'a mut ErrorHandler,
 }
 

@@ -13,7 +13,7 @@ use std::mem;
 /// handler.report_error("error!".into());              // without location
 /// handler.report_error(("error!", location).into());  // with location
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct SliceError {
     /// The message to print when the error is displayed.
     message: String,
@@ -53,7 +53,7 @@ impl From<(&str, &Location)> for SliceError {
 //------------------------------------------------------------------------------
 /// ErrorHolder has variants describing the possible severity of a slice error.
 /// Each variant holds the error it's describing.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 enum ErrorHolder {
     /// High severity. Errors will cause compilation to end prematurely after the current compilation phase is finished.
     Error(SliceError),

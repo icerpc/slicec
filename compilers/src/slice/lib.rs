@@ -59,8 +59,6 @@ pub struct CompilerData {
     pub defined_table: HashMap<String, usize>,
 }
 
-
-
 // THINGS WE NEED TO DO!
 // implement the debug, and dry_run settings
 // implement the output directory setting

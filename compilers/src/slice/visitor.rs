@@ -7,7 +7,7 @@ use crate::util::SliceFile;
 // Visitor
 //------------------------------------------------------------------------------
 /// Base trait for all visitors. It provides default empty implementations for all visitor functions.
-/// 
+///
 /// These functions should never be called directly by code outside of this module.
 /// Instead, visiting should be done by calling `visit_with` on grammar symbols, which will automatically call the
 /// symbol's `x_start` and `x_end` visit functions, and visit through it's contents (if any).

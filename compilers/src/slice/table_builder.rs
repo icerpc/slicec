@@ -11,12 +11,12 @@ use std::collections::HashMap;
 //------------------------------------------------------------------------------
 /// TableBuilder visits all the named symbols in a set of slice files and generates a lookup table that allows
 /// those symbols to be retrieved from the AST by their identifier, instead of requiring an index.
-/// 
+///
 /// The table's keys are fully scoped identifiers and it's values are the corresponding symbol's index in the AST.
 #[derive(Debug)]
 pub(crate) struct TableBuilder<'a> {
     /// This stack holds the identifiers of any enclosing scopes the builder is currently visiting within.
-    /// 
+    ///
     /// Except for the 1st element, which is always the empty string.
     /// This represents the global scope, and ensures we always have a leading '::' when joining identifiers together.
     current_scope: Vec<String>,

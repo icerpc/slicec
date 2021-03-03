@@ -8,7 +8,7 @@ use crate::grammar::*;
 ///
 /// Elements are wrapped in a Node and inserted into the AST vector after creation. They can then be referenced by
 /// their index in the AST and resolved with the [resolve_index](SliceAst::resolve_index) method.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum Node {
     Module(usize, Module),
     Struct(usize, Struct),
@@ -103,17 +103,10 @@ pub struct SliceAst {
 }
 
 impl SliceAst {
-    /// Wraps the provided element in a Node and moves it into the AST vector.
-    pub(crate) fn add_element(&mut self, element: impl IntoNode) -> usize {
-        let index = self.ast.len();
-        self.ast.push(element.into_node(index));
-        index
-    }
-
     /// Retrieves an immutable reference to the node at the specified index.
     /// # Panics
     /// This method panics if `index` doesn't represent a valid node.
-    pub(crate) fn resolve_index(&self, index: usize) -> &Node {
+    pub fn resolve_index(&self, index: usize) -> &Node {
         &self.ast[index]
     }
 
@@ -128,5 +121,12 @@ impl SliceAst {
     /// Each node accessed by the iterator is presented as a mutable reference.
     pub(crate) fn iter_mut(&mut self) -> std::slice::IterMut<'_, Node> {
         self.ast.iter_mut()
+    }
+
+    /// Wraps the provided element in a Node and moves it into the AST vector.
+    pub(crate) fn add_element(&mut self, element: impl IntoNode) -> usize {
+        let index = self.ast.len();
+        self.ast.push(element.into_node(index));
+        index
     }
 }
