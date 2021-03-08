@@ -10,7 +10,7 @@ use std::collections::HashMap;
 // TableBuilder
 //------------------------------------------------------------------------------
 /// TableBuilder visits all the named symbols in a set of slice files and generates a lookup table that allows
-/// those symbols to be retrieved from the AST by their identifier, instead of requiring an index.
+/// those symbols to be retrieved from the AST by identifier.
 ///
 /// The table's keys are fully scoped identifiers and it's values are the corresponding symbol's index in the AST.
 #[derive(Debug)]
@@ -27,20 +27,8 @@ pub(crate) struct TableBuilder<'a> {
 }
 
 impl<'a> TableBuilder<'a> {
-    /// Builds a lookup table for all the named symbols defined in the provided slice files.
-    /// The table maps a symbol's fully scoped identifier to it's index in the AST.
-    pub(crate) fn build_lookup_table(files: &HashMap<String, SliceFile>,
-                                     ast: &Ast,
-                                     error_handler: &'a mut ErrorHandler) -> HashMap<String, usize> {
-        let mut table_builder = TableBuilder::new(error_handler);
-        for file in files.values() {
-            file.visit_with(&mut table_builder, ast);
-        }
-        table_builder.lookup_table
-    }
-
     /// Creates a new `TableBuilder` with an empty lookup table, and starting at global scope ("::").
-    fn new(error_handler: &'a mut ErrorHandler) -> Self {
+    pub(crate) fn new(error_handler: &'a mut ErrorHandler) -> Self {
         TableBuilder {
             // We add an empty string so when we join the vector with '::' separators, we'll get a leading "::".
             current_scope: vec!["".to_owned()],
@@ -49,21 +37,31 @@ impl<'a> TableBuilder<'a> {
         }
     }
 
+    /// Builds a lookup table of all the named symbols defined in the provided slice files.
+    /// The table maps a symbol's fully scoped identifier to it's index in the AST.
+    pub(crate) fn build_lookup_table(mut self, files: &HashMap<String, SliceFile>, ast: &Ast)
+    -> HashMap<String, usize> {
+        for file in files.values() {
+            file.visit_with(&mut self, ast);
+        }
+        self.lookup_table
+    }
+
     /// Computes the fully scoped identifier for the provided element, and stores an entry for it in the lookup table.
     fn add_entry(&mut self, element: &impl NamedSymbol, index: usize, ast: &Ast) {
         let scoped_identifier = self.current_scope.join("::") + "::" + element.identifier();
 
         // Issue an error if the table already contains an entry for this fully scoped identifier.
         if let Some(index) = self.lookup_table.get(&scoped_identifier) {
-            let original = ast.resolve_index(*index);
+            let original = ast.resolve_index(*index).as_named_symbol().unwrap();
 
             self.error_handler.report_error((
-                "cannot reuse identifier `{}` in this scope",
-                element.location(),
+                format!("cannot reuse identifier `{}` in this scope", element.identifier()),
+                element.location().clone(),
             ).into());
             self.error_handler.report_note((
-                "",
-                original.as_named_symbol().unwrap().location(),
+                format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
+                original.location().clone(),
             ).into());
         } else {
             // Otherwise insert the identifier and it's definition's index into the lookup table.

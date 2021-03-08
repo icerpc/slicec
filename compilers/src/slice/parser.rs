@@ -109,7 +109,7 @@ impl SliceParser {
             },
             Err(message) => {
                 let data = &mut self.user_data.borrow_mut();
-                data.error_handler.report_error(message.as_str().into());
+                data.error_handler.report_error(message.into());
             },
         }
     }

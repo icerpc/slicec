@@ -11,7 +11,7 @@ use slice::options::SliceOptions;
 /// This struct is responsible for parsing the command line options specified to the 'slice-cs' compiler.
 /// The option parsing capabilities are automatically generated for the struct by the `StructOpt` crate.
 #[derive(StructOpt, Debug)]
-#[structopt(name = "slice-cs", version = "0.1.0", rename_all = "kebab-case")]
+#[structopt(name = "slice-cs", version = "0.1.0", rename_all = "kebab-case", about = ABOUT_MESSAGE)]
 pub struct CsOptions {
     // Options only relevant to slice-cs.
     // TODO add more options!
@@ -20,3 +20,6 @@ pub struct CsOptions {
     #[structopt(flatten)]
     pub slice_options: SliceOptions,
 }
+
+/// Short description of slicec-cs that is displayed in it's help dialogue.
+const ABOUT_MESSAGE: &str = "The slice compiler for C#.\nGenerates C# code for use with icerpc from slice files.";

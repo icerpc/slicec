@@ -67,7 +67,7 @@ impl TypePatcher {
                 },
                 None => {
                     error_handler.report_error((
-                        format!("failed to resolve type `{}` in scope `{}`", &type_use.type_name, scope).as_str(),
+                        format!("failed to resolve type `{}` in scope `{}`", &type_use.type_name, scope),
                         type_use.location.clone(),
                     ).into());
                 },

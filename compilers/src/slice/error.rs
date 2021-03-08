@@ -21,30 +21,15 @@ pub struct Error {
     location: Option<Location>,
 }
 
-impl From<&str> for Error {
-    fn from(message: &str) -> Self {
-        Error {
-            message: message.to_owned(),
-            location: None
-        }
+impl From<String> for Error {
+    fn from(message: String) -> Self {
+        Error { message: message, location: None }
     }
 }
 
-impl From<(&str, Location)> for Error {
-    fn from((message, location): (&str, Location)) -> Self {
-        Error {
-            message: message.to_owned(),
-            location: Some(location)
-        }
-    }
-}
-
-impl From<(&str, &Location)> for Error {
-    fn from((message, location): (&str, &Location)) -> Self {
-        Error {
-            message: message.to_owned(),
-            location: Some(location.clone())
-        }
+impl From<(String, Location)> for Error {
+    fn from((message, location): (String, Location)) -> Self {
+        Error { message: message, location: Some(location) }
     }
 }
 
