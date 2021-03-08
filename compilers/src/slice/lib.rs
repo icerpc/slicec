@@ -21,29 +21,54 @@ use util::SliceFile;
 use validator::Validator;
 use std::collections::HashMap;
 
+//------------------------------------------------------------------------------
+// CompilerData
+//------------------------------------------------------------------------------
+///
+#[derive(Debug)]
+pub struct CompilerData {
+    ///
+    pub ast: Ast,
+    ///
+    pub slice_files: HashMap<String, SliceFile>,
+    ///
+    pub error_handler: ErrorHandler,
+    ///
+    pub constructed_table: HashMap<String, usize>,
+    ///
+    pub defined_table: HashMap<String, usize>,
+}
+
+
+
 ///
 pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
+    // Parse the slice files from the command line input into an unpatched AST.
     let (mut ast, slice_files, constructed_table, mut error_handler) = SliceParser::parse_files(&options);
-    handle_errors(options, &mut error_handler, &slice_files)?;
+    handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
+    // Generate a lookup table for all the user-defined types.
     let defined_table = TableBuilder::new(&mut error_handler).build_lookup_table(&slice_files, &ast);
+    // Patch the unpatched AST in place by fixing it's scopes and type references.
     ScopePatcher::patch_scopes(&mut ast, &defined_table);
     TypePatcher::patch_types(&mut ast, &defined_table, &mut error_handler);
-    handle_errors(options, &mut error_handler, &slice_files)?;
+    handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
+    // Visit the fully parsed slice files to check for additional errors and warnings.
     let mut validator = Validator::new(&mut error_handler);
     for slice_file in slice_files.values() {
         slice_file.visit_with(&mut validator, &ast);
     }
-    handle_errors(options, &mut error_handler, &slice_files)?;
 
+    // Return the data to the compiler's main function.
     Ok(CompilerData { ast, slice_files, error_handler, constructed_table, defined_table })
 }
 
+
 ///
-fn handle_errors(options: &SliceOptions, error_handler: &mut ErrorHandler, slice_files: &HashMap<String, SliceFile>) -> Result<(), ()> {
+pub fn handle_errors(warn_as_error: bool, error_handler: &mut ErrorHandler, slice_files: &HashMap<String, SliceFile>) -> Result<(), ()> {
     error_handler.print_errors(&slice_files);
-    if error_handler.has_errors(options.warn_as_error) {
+    if error_handler.has_errors(warn_as_error) {
         let counts = error_handler.get_totals();
         println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
         Err(())
@@ -52,17 +77,20 @@ fn handle_errors(options: &SliceOptions, error_handler: &mut ErrorHandler, slice
     }
 }
 
-//------------------------------------------------------------------------------
-// CompilerData
-//------------------------------------------------------------------------------
-#[derive(Debug, Default)]
-pub struct CompilerData {
-    pub ast: Ast,
-    pub slice_files: HashMap<String, SliceFile>,
-    pub error_handler: ErrorHandler,
-    pub constructed_table: HashMap<String, usize>,
-    pub defined_table: HashMap<String, usize>,
-}
+
+
+// For the main function to do:
+// error_handler.print_errors(&slice_files);
+// let counts = error_handler.get_totals();
+// if error_handler.has_errors(warn_as_error) {
+//     println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
+//     Err(())
+// } else {
+//     println!("Compilation succeeded with {} error(s) and {} warning(s).\n", counts.0, counts.1);
+//     Ok(())
+// }
+
+
 
 // implement the debug, and dry_run settings
 // implement the output directory setting
@@ -87,10 +115,3 @@ pub struct CompilerData {
 // It's worth noting that the identifiers in this compiler are case sensative, so `IFoo` is different than `iFoo`.
 
 // Come up with better names for things
-
-// For the main function to do:
-// if error_handler.has_errors(true) {
-//     error_handler.print_errors(&slice_files);
-//     let counts = error_handler.get_totals();
-//     println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
-// }

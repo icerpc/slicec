@@ -15,6 +15,10 @@ impl CsWriter {
         let output = Writer::new(&(path.to_owned() + ".cs"))?;
         Ok(CsWriter { output })
     }
+
+    pub fn close(self) {
+        self.output.close();
+    }
 }
 
 impl Visitor for CsWriter {

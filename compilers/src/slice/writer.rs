@@ -8,7 +8,7 @@ use std::io::prelude::*;
 pub struct Writer {
     file_buffer: BufWriter<File>,
     indentation: String,
-    io_error: io::Result<()>,
+    is_valid: bool,
 }
 
 impl Writer {
@@ -18,13 +18,16 @@ impl Writer {
         Ok(Writer {
             file_buffer: BufWriter::new(file),
             indentation: "".to_owned(),
-            io_error: Ok(()),
+            is_valid: true,
         })
     }
 
     pub fn write_all(&mut self, bytes: &[u8]) {
-        if self.io_error.is_ok() {
-            self.io_error = self.try_write_all(bytes);
+        if self.is_valid {
+            if let Err(error) = self.try_write_all(bytes) {
+                eprintln!("{}", error);
+                self.is_valid = false;
+            }
         }
     }
 
@@ -42,8 +45,11 @@ impl Writer {
         }
     }
 
-    pub fn close(mut self) -> io::Result<()> {
-        self.io_error?;
-        self.file_buffer.flush()
+    pub fn close(mut self) {
+        if self.is_valid {
+            if let Err(error) = self.file_buffer.flush() {
+                eprintln!("{}", error);
+            }
+        }
     }
 }
