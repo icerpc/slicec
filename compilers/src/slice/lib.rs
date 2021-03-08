@@ -70,7 +70,7 @@ pub struct CompilerData {
 // improve the snippeting system
 // introduce support for comments
 // clean up and comment all my code
-// actually write the slice-cs project for real
+// actually write the slicec-cs project for real
 // write a 'writer' struct for simplifying the code generation process.
 // Add support for passing directoes into the slice compiler
 //      We need to do this BEFORE we pass the options into the Slice Parser, as it expects nothing but files!
@@ -87,9 +87,6 @@ pub struct CompilerData {
 // It's worth noting that the identifiers in this compiler are case sensative, so `IFoo` is different than `iFoo`.
 
 // Come up with better names for things
-// Change 'slice-cs' to 'slicec-cs'
-
-
 
 // For the main function to do:
 // if error_handler.has_errors(true) {
