@@ -64,38 +64,3 @@ pub fn handle_errors(warn_as_error: bool, error_handler: &mut ErrorHandler, slic
         Ok(())
     }
 }
-
-// For the main function to do:
-// error_handler.print_errors(&slice_files);
-// let counts = error_handler.get_totals();
-// if error_handler.has_errors(warn_as_error) {
-//     println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
-//     Err(())
-// } else {
-//     println!("Compilation succeeded with {} error(s) and {} warning(s).\n", counts.0, counts.1);
-//     Ok(())
-// }
-
-// implement the debug, and dry_run settings
-// implement the output directory setting
-// implement a check for redefinitions
-// improve the snippeting system
-// introduce support for comments
-// clean up and comment all my code
-// actually write the slicec-cs project for real
-// write a 'writer' struct for simplifying the code generation process.
-// Add support for passing directoes into the slice compiler
-//      We need to do this BEFORE we pass the options into the Slice Parser, as it expects nothing but files!
-//      It probably makes the most sense to add this functionality into the `options` module.
-//  We should also support preservation of relative paths. So if you parse the 'Hello/' directory, it's sub-structure should be preserved in the generated code.
-//      Hello
-//      --Foo
-//        --thing.ice
-//  Should get mapped to
-//      %outputdir%
-//      --Foo
-//        --thing.cs
-// Make sure that the compiler can cope with random strings passed in as files. The SliceFile code parses it with `unwraps` so we should be careful.
-// It's worth noting that the identifiers in this compiler are case sensative, so `IFoo` is different than `iFoo`.
-
-// Come up with better names for things
