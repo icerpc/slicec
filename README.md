@@ -9,7 +9,7 @@ You can run the compiler directly with cargo (assuming you're running from the b
 cargo run example/testing.ice
 ```
 
-Or build libslice and the slicec-cs binary, and use them directly:
+Or build the slice library and the slicec-cs binary, and use them directly:
 
 ```
 cargo build --release
@@ -17,7 +17,7 @@ target/release/slicec-cs example/testing.ice
 ```
 
 # Examples
-There are 3 example files, one with no errors that generated code:
+There are 3 example files, one with no errors that generates code:
 ```
 target/release/slicec-cs example/testing.ice
 ```
@@ -29,6 +29,7 @@ and another which shows a semantic error, where the input can be parsed, but the
 ```
 target/release/slicec-cs example/sliceerrors.ice
 ```
+
 The compiler doesn't support passing directores, but does support multiple files being passed in. For instance, running:
 ```
 target/release/slicec-cs example/testing.ice example/sliceerrors.ice
