@@ -1,5 +1,5 @@
 
-module Module1
+module SyntaxError
 {
     struct MyStruct
     {

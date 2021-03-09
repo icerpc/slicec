@@ -1,5 +1,5 @@
 
-module Module1
+module ErrorModule1
 {
     struct Foo
     {
@@ -13,10 +13,12 @@ module Module1
     }
 }
 
-module Module2
+module ErrorModule2
 {
     struct Foo
     {
         Bar out_of_scope;
     }
 }
+
+module ClashWithTesting {}

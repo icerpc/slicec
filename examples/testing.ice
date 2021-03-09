@@ -56,3 +56,5 @@ module Module3
         ::Module1::Clock clock;
     }
 }
+
+module ClashWithTesting {}
