@@ -31,38 +31,41 @@ impl Visitor for CsWriter {
     }
 
     fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
-        let content = format!("namespace {}\n{{\n", module_def.identifier());
+        let content = format!("namespace {}\n", module_def.identifier());
         self.output.write_all(content.as_bytes());
+        self.output.write_all(b"{\n");
         self.output.indent_by(4);
     }
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n");
+        let content = format!("}}\n\n");
         self.output.write_all(content.as_bytes());
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
-        let content = format!("struct {}\n{{\n", struct_def.identifier());
+        let content = format!("struct {}\n", struct_def.identifier());
         self.output.write_all(content.as_bytes());
+        self.output.write_all(b"{\n");
         self.output.indent_by(4);
     }
 
     fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n");
+        let content = format!("}}\n\n");
         self.output.write_all(content.as_bytes());
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, _: &Ast) {
-        let content = format!("interface {}\n{{\n", interface_def.identifier());
+        let content = format!("interface {}\n", interface_def.identifier());
         self.output.write_all(content.as_bytes());
+        self.output.write_all(b"{\n");
         self.output.indent_by(4);
     }
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n");
+        let content = format!("}}\n\n");
         self.output.write_all(content.as_bytes());
     }
 

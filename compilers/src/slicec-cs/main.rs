@@ -12,7 +12,7 @@ use structopt::StructOpt;
 pub fn main() {
     match try_main() {
         Ok(()) => { println!("SUCCESS"); },
-        Err(()) => { println!("FAILED") },
+        Err(()) => { println!("FAILED"); },
     };
 }
 
@@ -27,7 +27,7 @@ fn try_main() -> Result<(), ()> {
     slice::handle_errors(options.slice_options.warn_as_error, &mut data.error_handler, &data.slice_files)?;
 
     for slice_file in data.slice_files.values() {
-        let mut writer = CsWriter::new(&slice_file.relative_path).unwrap();
+        let mut writer = CsWriter::new(&slice_file.filename).unwrap();
         slice_file.visit_with(&mut writer, &data.ast);
         writer.close();
     }
