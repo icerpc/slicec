@@ -20,23 +20,29 @@ module Module1
 
 module Module2
 {
+    struct BaseStruct {}
+
     module Outer
     {
+        struct OuterStruct {}
+
         module Inner
         {
-            struct InnerStruct {
+            struct InnerStruct {}
+
+            struct ScopeTest {
                 BaseStruct s1;
                 OuterStruct s2;
             }
         }
 
-        struct OuterStruct {
+        struct ScopeTest {
             BaseStruct s1;
             Inner::InnerStruct s2;
         }
     }
 
-    struct BaseStruct {
+    struct ScopeTest {
         Outer::OuterStruct s1;
         Outer::Inner::InnerStruct s2;
     }
