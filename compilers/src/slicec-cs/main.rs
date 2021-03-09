@@ -32,5 +32,6 @@ fn try_main() -> Result<(), ()> {
         writer.close();
     }
 
+    let _ = slice::handle_errors(true, &mut data.error_handler, &data.slice_files);
     Ok(())
 }
