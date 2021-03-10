@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use structopt::StructOpt;
 use slice::options::SliceOptions;

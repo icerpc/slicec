@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use std::fs::File;
 use std::io;

@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::cs_util::*;
 use slice::ast::Ast;

@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::util::{Location, SliceFile};
 use std::collections::HashMap;

@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Node;
 use slice::grammar::Builtin;

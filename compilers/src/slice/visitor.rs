@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
 use crate::ast::{Ast, Node};

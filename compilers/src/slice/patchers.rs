@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::{Node, Ast};
 use crate::error::ErrorHandler;
