@@ -21,5 +21,5 @@ name = "slice"
 path = "src/slice/lib.rs"
 
 [[bin]]
-name = "slicec-cs"
-path = "src/slicec-cs/main.rs"
+name = "slicec-csharp"
+path = "src/slicec-csharp/main.rs"
