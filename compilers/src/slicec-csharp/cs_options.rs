@@ -14,9 +14,6 @@ use slice::options::SliceOptions;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "slicec-csharp", version = "0.1.0", rename_all = "kebab-case", about = ABOUT_MESSAGE)]
 pub struct CsOptions {
-    // Options only relevant to slicec-csharp.
-    // TODO add more options!
-
     // Import the options common to all slice compilers.
     #[structopt(flatten)]
     pub slice_options: SliceOptions,
