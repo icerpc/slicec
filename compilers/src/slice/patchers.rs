@@ -7,9 +7,6 @@ use crate::util::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-//------------------------------------------------------------------------------
-// ScopePatcher
-//------------------------------------------------------------------------------
 #[derive(Debug)]
 pub(crate) struct ScopePatcher<'a> {
     /// This stack holds the identifiers of any enclosing scopes the patcher is currently visiting within.
@@ -138,9 +135,6 @@ impl<'a> Visitor for ScopePatcher<'a> {
     }
 }
 
-//------------------------------------------------------------------------------
-// TypePatcher
-//------------------------------------------------------------------------------
 #[derive(Debug)]
 pub(crate) struct TypePatcher<'a> {
     /// Reference to the compiler's error handler so the patcher can output errors.

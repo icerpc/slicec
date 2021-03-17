@@ -2,9 +2,6 @@
 
 use crate::grammar::*;
 
-//------------------------------------------------------------------------------
-// Node
-//------------------------------------------------------------------------------
 /// Nodes represent (and own) grammar elements that can be referenced by the compiler or other grammar elements.
 ///
 /// Elements are wrapped in a Node and inserted into the AST vector after creation. They can then be referenced by
@@ -55,9 +52,6 @@ impl Node {
     }
 }
 
-//------------------------------------------------------------------------------
-// IntoNode
-//------------------------------------------------------------------------------
 /// This trait provides a conversion method to simplify wrapping an element in a node.
 /// Only elements implementing this trait can be stored in nodes, and hence the AST vector.
 pub(crate) trait IntoNode {
@@ -82,9 +76,6 @@ implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(DataMember, Node::DataMember);
 implement_into_node_for!(Builtin, Node::Builtin);
 
-//------------------------------------------------------------------------------
-// Ast
-//------------------------------------------------------------------------------
 /// Ast stores the Abstract Syntax Tree where all slice grammar elements are stored, directly or indirectly.
 ///
 /// All elements parsed by the compiler are stored in a single instance of Ast, even those from different slice

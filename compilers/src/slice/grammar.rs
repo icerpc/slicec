@@ -2,9 +2,6 @@
 
 use crate::util::Location;
 
-//------------------------------------------------------------------------------
-// Symbol
-//------------------------------------------------------------------------------
 pub trait Symbol {
     fn location(&self) -> &Location;
     fn kind(&self) -> &'static str;
@@ -31,9 +28,6 @@ implement_symbol_for!(DataMember, "data member");
 implement_symbol_for!(Identifier, "identifier");
 implement_symbol_for!(TypeUse, "type use");
 
-//------------------------------------------------------------------------------
-// NamedSymbol
-//------------------------------------------------------------------------------
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
 }
@@ -53,14 +47,8 @@ implement_named_symbol_for!(Struct);
 implement_named_symbol_for!(Interface);
 implement_named_symbol_for!(DataMember);
 
-//------------------------------------------------------------------------------
-// Type
-//------------------------------------------------------------------------------
 pub trait Type {}
 
-//------------------------------------------------------------------------------
-// Module
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct Module {
     pub identifier: Identifier,
@@ -79,9 +67,6 @@ impl Module {
     }
 }
 
-//------------------------------------------------------------------------------
-// Struct
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct Struct {
     pub identifier: Identifier,
@@ -102,9 +87,6 @@ impl Struct {
 
 impl Type for Struct {}
 
-//------------------------------------------------------------------------------
-// Interface
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct Interface {
     pub identifier: Identifier,
@@ -124,9 +106,6 @@ impl Interface {
 
 impl Type for Interface {}
 
-//------------------------------------------------------------------------------
-// DataMember
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct DataMember {
     pub data_type: TypeUse,
@@ -145,9 +124,6 @@ impl DataMember {
     }
 }
 
-//------------------------------------------------------------------------------
-// Identifier
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct Identifier {
     pub value: String,
@@ -160,9 +136,6 @@ impl Identifier {
     }
 }
 
-//------------------------------------------------------------------------------
-// TypeUse
-//------------------------------------------------------------------------------
 #[derive(Clone, Debug)]
 pub struct TypeUse {
     pub type_name: String,
@@ -177,9 +150,6 @@ impl TypeUse {
     }
 }
 
-//------------------------------------------------------------------------------
-// Builtin
-//------------------------------------------------------------------------------
 #[derive(Clone, Eq, Hash, PartialEq, Debug)]
 pub enum Builtin {
     Int,

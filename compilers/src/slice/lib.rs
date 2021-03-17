@@ -20,9 +20,6 @@ use util::SliceFile;
 use validator::Validator;
 use std::collections::HashMap;
 
-//------------------------------------------------------------------------------
-// CompilerData
-//------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct CompilerData {
     pub ast: Ast,

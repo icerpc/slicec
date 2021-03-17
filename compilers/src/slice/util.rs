@@ -2,9 +2,6 @@
 
 use std::path::Path;
 
-//------------------------------------------------------------------------------
-// Location
-//------------------------------------------------------------------------------
 /// Describes a single position, or a span over two positions in a slice file.
 #[derive(Clone, Debug)]
 pub struct Location {
@@ -16,9 +13,6 @@ pub struct Location {
     pub file: String,
 }
 
-//------------------------------------------------------------------------------
-// SliceFile
-//------------------------------------------------------------------------------
 /// Stores information about a single slice file, and it's contents.
 #[derive(Debug)]
 pub struct SliceFile {

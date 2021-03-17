@@ -15,9 +15,6 @@ use pest_consume::Parser as PestParser;
 type PestResult<T> = Result<T, PestError<Rule>>;
 type PestNode<'a, 'b> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData>>;
 
-//------------------------------------------------------------------------------
-// Parser Utility Functions
-//------------------------------------------------------------------------------
 fn from_span(input: &PestNode) -> Location {
     let span = input.as_span();
     Location {
@@ -50,9 +47,6 @@ fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserDa
     result
 }
 
-//------------------------------------------------------------------------------
-// ParserData
-//------------------------------------------------------------------------------
 #[derive(Debug, Default)]
 struct ParserData {
     ast: Ast,
@@ -68,9 +62,6 @@ impl ParserData {
     }
 }
 
-//------------------------------------------------------------------------------
-// SliceParser
-//------------------------------------------------------------------------------
 #[derive(PestParser)]
 #[grammar = "slice/slice.pest"]
 pub(crate) struct SliceParser {
@@ -134,9 +125,6 @@ impl SliceParser {
     }
 }
 
-//------------------------------------------------------------------------------
-// pest_consume Implementation
-//------------------------------------------------------------------------------
 #[pest_consume::parser]
 impl SliceParser {
     fn main(input: PestNode) -> PestResult<Vec<usize>> {

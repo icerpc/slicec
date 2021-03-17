@@ -6,9 +6,6 @@ use slice::options::SliceOptions;
 // Note: StructOpt automatically uses the doc-comments of fields to populate the '--help' output of slicec-csharp.
 //       boolean flags automatically default to false, and strings automatically default to empty.
 
-//------------------------------------------------------------------------------
-// CsOptions
-//------------------------------------------------------------------------------
 /// This struct is responsible for parsing the command line options specified to the 'slicec-csharp' compiler.
 /// The option parsing capabilities are automatically generated for the struct by the `StructOpt` crate.
 #[derive(StructOpt, Debug)]

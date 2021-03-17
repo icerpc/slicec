@@ -4,9 +4,6 @@ use crate::util::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
 
-//------------------------------------------------------------------------------
-// Error
-//------------------------------------------------------------------------------
 /// The Error struct holds information describing a slice related error. It's only used internally by this module.
 /// Errors should only be created when reporting them through an [`ErrorHandler`] with an `into` conversion.
 /// # Examples
@@ -34,9 +31,6 @@ impl From<(String, Location)> for Error {
     }
 }
 
-//------------------------------------------------------------------------------
-// ErrorHolder
-//------------------------------------------------------------------------------
 /// ErrorHolder has variants describing the possible severity of a slice error.
 /// Each variant holds the error it's describing.
 #[derive(Debug)]
@@ -49,9 +43,6 @@ enum ErrorHolder {
     Note(Error),
 }
 
-//------------------------------------------------------------------------------
-// ErrorHandler
-//------------------------------------------------------------------------------
 /// The ErrorHandler temporarily stores errors, warnings, and notes reported by the compiler during execution,
 /// and provides methods for reporting them.
 ///

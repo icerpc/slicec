@@ -4,9 +4,6 @@ use crate::grammar::*;
 use crate::ast::{Ast, Node};
 use crate::util::SliceFile;
 
-//------------------------------------------------------------------------------
-// Visitor
-//------------------------------------------------------------------------------
 /// Base trait for all visitors. It provides default empty implementations for all visitor functions.
 ///
 /// These functions should never be called directly by code outside of this module.
@@ -31,9 +28,6 @@ pub trait Visitor {
     fn visit_type_use(&mut self, type_use: &TypeUse, ast: &Ast) {}
 }
 
-//------------------------------------------------------------------------------
-// `visit_with` Functions
-//------------------------------------------------------------------------------
 impl Node {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast) {
         // Forward the `visit` call to the underlying element.

@@ -27,10 +27,12 @@ fn try_main() -> Result<(), ()> {
     }
     slice::handle_errors(options.slice_options.warn_as_error, &mut data.error_handler, &data.slice_files)?;
 
-    for slice_file in data.slice_files.values() {
-        let mut writer = CsWriter::new(&slice_file.filename).unwrap();
-        slice_file.visit_with(&mut writer, &data.ast);
-        writer.close();
+    if !options.slice_options.validate {
+        for slice_file in data.slice_files.values() {
+            let mut writer = CsWriter::new(&slice_file.filename).unwrap();
+            slice_file.visit_with(&mut writer, &data.ast);
+            writer.close();
+        }
     }
 
     let _ = slice::handle_errors(true, &mut data.error_handler, &data.slice_files);

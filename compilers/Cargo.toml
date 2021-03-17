@@ -5,7 +5,7 @@ authors = ["ZeroC Inc."]
 description = """
 These are the slice compilers!
 """
-keywords = ["ice", "rpc", "icerpc", "zeroc", "awesome"]
+keywords = ["ice", "rpc", "icerpc", "zeroc"]
 license = "Apache-2.0"
 edition = "2018"
 ### These are other things that seem common to put in Cargo files ###

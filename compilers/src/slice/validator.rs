@@ -3,9 +3,6 @@
 use crate::error::ErrorHandler;
 use crate::visitor::Visitor;
 
-//------------------------------------------------------------------------------
-// Vaidator
-//------------------------------------------------------------------------------
 /// Validator visits all the elements in a slice file to check for additional errors and warnings not caught by previous
 /// phases of parsing and that are common to all slice compilers.
 #[derive(Debug)]

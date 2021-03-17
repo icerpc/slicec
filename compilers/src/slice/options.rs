@@ -7,9 +7,6 @@ use structopt::StructOpt;
 
 // TODO revisit these names, and add more options!
 
-//------------------------------------------------------------------------------
-// SliceOptions
-//------------------------------------------------------------------------------
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are automatically generated for the struct by the `StructOpt` crate.
 #[derive(StructOpt, Debug)]
@@ -32,5 +29,5 @@ pub struct SliceOptions {
 
     /// Validates input files without generating code for them.
     #[structopt(long)]
-    pub dry_run: bool,
+    pub validate: bool,
 }
