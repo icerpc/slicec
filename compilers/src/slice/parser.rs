@@ -220,11 +220,11 @@ impl SliceParser {
         Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
-    fn typename(input: PestNode) -> PestResult<TypeUse> {
+    fn typename(input: PestNode) -> PestResult<TypeRef> {
         let location = from_span(&input);
-        // Remove any whitespace from the type name, then create the TypeUse.
+        // Remove any whitespace from the type name, then create the TypeRef.
         let type_name: String = input.as_str().chars().filter(|c| !c.is_whitespace()).collect();
-        let mut type_use = TypeUse::new(type_name, false, location);
+        let mut type_use = TypeRef::new(type_name, false, location);
 
         // Resolve and/or construct non user defined types.
         match_nodes!(input.children();

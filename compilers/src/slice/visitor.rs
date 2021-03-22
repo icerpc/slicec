@@ -25,7 +25,7 @@ pub trait Visitor {
     fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {}
 
     fn visit_identifier(&mut self, identifier: &Identifier, ast: &Ast) {}
-    fn visit_type_use(&mut self, type_use: &TypeUse, ast: &Ast) {}
+    fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {}
 }
 
 impl Node {
@@ -90,7 +90,7 @@ impl Identifier {
     }
 }
 
-impl TypeUse {
+impl TypeRef {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast) {
         visitor.visit_type_use(self, ast);
     }

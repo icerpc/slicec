@@ -26,7 +26,7 @@ implement_symbol_for!(Struct, "struct");
 implement_symbol_for!(Interface, "interface");
 implement_symbol_for!(DataMember, "data member");
 implement_symbol_for!(Identifier, "identifier");
-implement_symbol_for!(TypeUse, "type use");
+implement_symbol_for!(TypeRef, "type ref");
 
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
@@ -108,14 +108,14 @@ impl Type for Interface {}
 
 #[derive(Clone, Debug)]
 pub struct DataMember {
-    pub data_type: TypeUse,
+    pub data_type: TypeRef,
     pub identifier: Identifier,
     pub scope: Option<String>,
     pub location: Location,
 }
 
 impl DataMember {
-    pub fn new(data_type: TypeUse, identifier: Identifier, location: Location) -> Self {
+    pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
         DataMember { data_type, identifier, scope: None, location }
     }
 
@@ -137,16 +137,16 @@ impl Identifier {
 }
 
 #[derive(Clone, Debug)]
-pub struct TypeUse {
+pub struct TypeRef {
     pub type_name: String,
     pub is_tagged: bool,
     pub definition: Option<usize>,
     pub location: Location,
 }
 
-impl TypeUse {
+impl TypeRef {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
-        TypeUse { type_name, is_tagged, definition: None, location }
+        TypeRef { type_name, is_tagged, definition: None, location }
     }
 }
 
