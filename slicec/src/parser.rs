@@ -63,7 +63,7 @@ impl ParserData {
 }
 
 #[derive(PestParser)]
-#[grammar = "slice/slice.pest"]
+#[grammar = "slice.pest"]
 pub(crate) struct SliceParser {
     slice_files: HashMap<String, SliceFile>,
     user_data: RefCell<ParserData>,
