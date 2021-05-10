@@ -2,9 +2,9 @@
 
 use crate::cs_util::*;
 use slice::ast::Ast;
-use slice::visitor::Visitor;
 use slice::grammar::*;
 use slice::util::SliceFile;
+use slice::visitor::Visitor;
 use slice::writer::Writer;
 use std::io;
 
@@ -13,7 +13,7 @@ pub struct CsWriter {
 }
 
 impl CsWriter {
-    pub fn new(path: &str) -> io::Result<Self>{
+    pub fn new(path: &str) -> io::Result<Self> {
         let output = Writer::new(&(path.to_owned() + ".cs"))?;
         Ok(CsWriter { output })
     }
@@ -41,7 +41,7 @@ impl Visitor for CsWriter {
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n\n");
+        let content = "}}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 
@@ -54,7 +54,7 @@ impl Visitor for CsWriter {
 
     fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n\n");
+        let content = "}}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 
@@ -67,7 +67,7 @@ impl Visitor for CsWriter {
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = format!("}}\n\n");
+        let content = "}}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 

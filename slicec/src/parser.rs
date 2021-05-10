@@ -5,12 +5,12 @@ use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
 use crate::util::{Location, SliceFile};
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::fs;
 use pest_consume::match_nodes;
 use pest_consume::Error as PestError;
 use pest_consume::Parser as PestParser;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::fs;
 
 type PestResult<T> = Result<T, PestError<Rule>>;
 type PestNode<'a, 'b> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData>>;
@@ -29,7 +29,7 @@ fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserDa
     // If we did already construct and store it, just return a copy of the index stored in the type table for it.
     // Otherwise we construct the type on-the-spot, store it, and then return it's index.
     let result = match data.type_table.get(type_name) {
-        Some(definition) => { *definition },
+        Some(definition) => *definition,
         None => {
             // Construct the type with a into-conversion.
             let definition: T = type_name.into();
@@ -98,11 +98,11 @@ impl SliceParser {
         match self.parse_file(file, is_source) {
             Ok(slice_file) => {
                 self.slice_files.insert(file.to_owned(), slice_file);
-            },
+            }
             Err(message) => {
                 let data = &mut self.user_data.borrow_mut();
                 data.error_handler.report_error(message.into());
-            },
+            }
         }
     }
 
@@ -209,15 +209,24 @@ impl SliceParser {
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn typename(input: PestNode) -> PestResult<TypeRef> {

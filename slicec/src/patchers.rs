@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::{Node, Ast};
+use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::util::SliceFile;
@@ -77,16 +77,16 @@ impl<'a> ScopePatcher<'a> {
             match node {
                 Node::Module(_, module_def) => {
                     module_def.scope = Some(scope);
-                },
+                }
                 Node::Struct(_, struct_def) => {
                     struct_def.scope = Some(scope);
-                },
+                }
                 Node::Interface(_, interface_def) => {
                     interface_def.scope = Some(scope);
-                },
+                }
                 Node::DataMember(_, data_member) => {
                     data_member.scope = Some(scope);
-                },
+                }
                 _ => {
                     // There are no other other symbols that can appear in the lookup table.
                     panic!("Grammar element does not need scope patching!\n{:?}", node);

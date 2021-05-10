@@ -18,30 +18,36 @@ pub struct Location {
 pub struct SliceFile {
     /// The filename of the slice file (without it's '.ice' extension).
     pub filename: String,
-    /// The path of the slice file, relative to where the slice compiler was run from (including it's '.ice' extension).
+    /// The path of the slice file, relative to where the compiler was run from
+    /// (including it's '.ice' extension).
     pub relative_path: String,
     /// The raw text contained in the slice file.
     pub raw_text: String,
-    /// The AST indices of all the top-level definitions in the slice file, in the order they're defined.
+    /// The AST indices of all the top-level definitions contained in the slice file,
+    /// in the order they were defined.
     pub contents: Vec<usize>,
-    /// True if the slice file is a source file (which code should be generated for), or false if it's a reference file.
+    /// True if the slice file is a source file (which code should be generated for),
+    /// or false if it's a reference file.
     pub is_source: bool,
-    /// Stores the starting position of every line in the file. We pre-compute these when the SliceFile is first
-    /// created and cache them here, to make snippet extraction and line referencing more efficient.
+    /// Stores the starting position of every line in the file. We compute these when the SliceFile
+    /// is first created and cache them here, to speed up snippet extraction and line referencing.
     line_positions: Vec<usize>,
 }
 
 impl SliceFile {
     /// Creates a new slice file
     pub(crate) fn new(relative_path: String, raw_text: String, contents: Vec<usize>, is_source: bool) -> Self {
-        // Store the starting position of each line the file. Slice supports '\n', '\r', and '\r\n' as newlines.
+        // Store the starting position of each line the file.
+        // Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.
         let mut last_char_was_carriage_return = false;
 
-        // Iterate through each character in the file. If we hit a '\n' we immediately store `index + 1` as the starting
-        // position for the next line (`+ 1` because the line starts after the newline character).
-        // If we hit a '\r' we wait and read the next character to see if it's a '\n'. If so, the '\n' block handles it,
-        // otherwise we store `index` (no plus one, because we've already read ahead to the next character).
+        // Iterate through each character in the file.
+        // If we hit a '\n' we immediately store `index + 1` as the starting position for the next
+        // line (`+ 1` because the line starts after the newline character).
+        // If we hit a '\r' we wait and read the next character to see if it's a '\n'.
+        // If so, the '\n' block handles it, otherwise we store `index`
+        // (no plus one, because we've already read ahead to the next character).
         for (index, character) in raw_text.chars().enumerate() {
             if character == '\n' {
                 line_positions.push(index + 1);

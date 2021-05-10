@@ -1,15 +1,16 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::*;
 use crate::ast::{Ast, Node};
+use crate::grammar::*;
 use crate::util::SliceFile;
 
-/// Base trait for all visitors. It provides default empty implementations for all visitor functions.
+/// Base trait for all visitors. It provides default no-op implementations for all visitor methods.
 ///
 /// These functions should never be called directly by code outside of this module.
-/// Instead, visiting should be done by calling `visit_with` on grammar symbols, which will automatically call the
-/// symbol's `x_start` and `x_end` visit functions, and visit through it's contents (if any).
-// We keep the parameter names for doc generation, even if they're unused in the default implementations.
+/// Instead, visiting should be done by calling `visit_with` on grammar symbols, which will
+/// automatically call the symbol's `x_start` and `x_end` visit functions, and visit through it's
+/// contents (if any).
+// Keep parameter names for doc generation, even if they're unused in the default implementations.
 #[allow(unused_variables)]
 pub trait Visitor {
     fn visit_file_start(&mut self, file: &SliceFile, ast: &Ast) {}
@@ -32,11 +33,13 @@ impl Node {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast) {
         // Forward the `visit` call to the underlying element.
         match self {
-            Self::Module(index, module_def)       => { module_def.visit_with(visitor, ast, *index) },
-            Self::Struct(index, struct_def)       => { struct_def.visit_with(visitor, ast, *index) },
-            Self::Interface(index, interface_def) => { interface_def.visit_with(visitor, ast, *index) },
-            Self::DataMember(index, data_member)  => { data_member.visit_with(visitor, ast, *index) },
-            _ => { panic!("Node cannot be visited!\n{:?}", self) }
+            Self::Module(index, module_def)       => module_def.visit_with(visitor, ast, *index),
+            Self::Struct(index, struct_def)       => struct_def.visit_with(visitor, ast, *index),
+            Self::Interface(index, interface_def) => interface_def.visit_with(visitor, ast, *index),
+            Self::DataMember(index, data_member)  => data_member.visit_with(visitor, ast, *index),
+            _ => {
+                panic!("Node cannot be visited!\n{:?}", self)
+            }
         }
     }
 }

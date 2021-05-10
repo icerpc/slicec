@@ -21,13 +21,13 @@ pub struct Error {
 
 impl From<String> for Error {
     fn from(message: String) -> Self {
-        Error { message: message, location: None }
+        Error { message, location: None }
     }
 }
 
 impl From<(String, Location)> for Error {
     fn from((message, location): (String, Location)) -> Self {
-        Error { message: message, location: Some(location) }
+        Error { message, location: Some(location) }
     }
 }
 

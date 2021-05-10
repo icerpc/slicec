@@ -2,8 +2,8 @@
 
 use std::fs::File;
 use std::io;
-use std::io::BufWriter;
 use std::io::prelude::*;
+use std::io::BufWriter;
 
 #[derive(Debug)]
 pub struct Writer {

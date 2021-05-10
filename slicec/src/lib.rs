@@ -11,13 +11,13 @@ mod parser;
 mod patchers;
 mod validator;
 
-use ast::Ast;
-use error::ErrorHandler;
-use options::SliceOptions;
-use parser::SliceParser;
-use patchers::{ScopePatcher, TypePatcher};
-use util::SliceFile;
-use validator::Validator;
+use crate::ast::Ast;
+use crate::error::ErrorHandler;
+use crate::options::SliceOptions;
+use crate::parser::SliceParser;
+use crate::patchers::{ScopePatcher, TypePatcher};
+use crate::util::SliceFile;
+use crate::validator::Validator;
 use std::collections::HashMap;
 
 #[derive(Debug)]

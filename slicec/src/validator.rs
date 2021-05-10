@@ -3,8 +3,8 @@
 use crate::error::ErrorHandler;
 use crate::visitor::Visitor;
 
-/// Validator visits all the elements in a slice file to check for additional errors and warnings not caught by previous
-/// phases of parsing and that are common to all slice compilers.
+/// Validator visits all the elements in a slice file to check for additional errors and warnings
+/// not caught by previous phases of parsing and that are common to all slice compilers.
 #[derive(Debug)]
 pub(crate) struct Validator<'a> {
     /// Reference to the parser's error handler,
