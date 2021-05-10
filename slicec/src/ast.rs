@@ -12,7 +12,7 @@ pub enum Node {
     Struct(usize, Struct),
     Interface(usize, Interface),
     DataMember(usize, DataMember),
-    Builtin(usize, Builtin),
+    Primitive(usize, Primitive),
 }
 
 impl Node {
@@ -34,7 +34,7 @@ impl Node {
         match self {
             Self::Struct(_, struct_def)       => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
-            Self::Builtin(_, builtin)         => Some(builtin),
+            Self::Primitive(_, primitive)     => Some(primitive),
             _ => None,
         }
     }
@@ -47,7 +47,7 @@ impl Node {
             Self::Struct(_, _)     => std::any::TypeId::of::<Struct>(),
             Self::Interface(_, _)  => std::any::TypeId::of::<Interface>(),
             Self::DataMember(_, _) => std::any::TypeId::of::<DataMember>(),
-            Self::Builtin(_, _)    => std::any::TypeId::of::<Builtin>(),
+            Self::Primitive(_, _)  => std::any::TypeId::of::<Primitive>(),
         }
     }
 }
@@ -74,7 +74,7 @@ implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(DataMember, Node::DataMember);
-implement_into_node_for!(Builtin, Node::Builtin);
+implement_into_node_for!(Primitive, Node::Primitive);
 
 /// The Abstract Syntax Tree is where all slice grammar elements are stored, directly or indirectly.
 ///

@@ -20,13 +20,26 @@ scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
 
 typename = {
-    builtin_type      |
+    primitive_type      |
     scoped_identifier |
     global_identifier
 }
 
-builtin_type = {
-    int_kw    |
+primitive_type = {
+    bool_kw     |
+    byte_kw     |
+    short_kw    |
+    ushort_kw   |
+    int_kw      |
+    uint_kw     |
+    varint_kw   |
+    varuint_kw  |
+    long_kw     |
+    ulong_kw    |
+    varlong_kw  |
+    varulong_kw |
+    float_kw    |
+    double_kw   |
     string_kw
 }
 
@@ -35,5 +48,19 @@ WHITESPACE = _{ " " | "\t" | NEWLINE }
 module_kw = { "module" }
 struct_kw = { "struct" }
 interface_kw = { "interface" }
+
+bool_kw = { "bool" }
+byte_kw = { "byte" }
+short_kw = { "short" }
+ushort_kw = { "ushort" }
 int_kw = { "int" }
+uint_kw = { "uint" }
+varint_kw = { "varint" }
+varuint_kw = { "varuint" }
+long_kw = { "long" }
+ulong_kw = { "ulong" }
+varlong_kw = { "varlong" }
+varulong_kw = { "varulong" }
+float_kw = { "float" }
+double_kw = { "double" }
 string_kw = { "string" }

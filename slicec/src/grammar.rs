@@ -151,17 +151,43 @@ impl TypeRef {
 }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug)]
-pub enum Builtin {
+pub enum Primitive {
+    Bool,
+    Byte,
+    Short,
+    UShort,
     Int,
+    UInt,
+    VarInt,
+    VarUInt,
+    Long,
+    ULong,
+    VarLong,
+    VarULong,
+    Float,
+    Double,
     String,
 }
 
-impl Type for Builtin {}
+impl Type for Primitive {}
 
-impl From<&str> for Builtin {
+impl From<&str> for Primitive {
     fn from(s: &str) -> Self {
         match s {
+            "bool" => Self::Bool,
+            "byte" => Self::Byte,
+            "short" => Self::Short,
+            "ushort" => Self::UShort,
             "int" => Self::Int,
+            "uint" => Self::UInt,
+            "varint" => Self::VarInt,
+            "varuint" => Self::VarUInt,
+            "long" => Self::Long,
+            "ulong" => Self::ULong,
+            "varlong" => Self::VarLong,
+            "varulong" => Self::VarULong,
+            "float" => Self::Float,
+            "double" => Self::Double,
             "string" => Self::String,
             _ => panic!("`{}` is not a valid builtin type!", s),
         }

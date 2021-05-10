@@ -243,15 +243,15 @@ impl SliceParser {
             [global_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
-            [builtin_type(builtin)] => {
+            [primitive_type(primitive)] => {
                 let user_data = &mut input.user_data().borrow_mut();
-                type_use.definition = Some(construct_type::<Builtin>(user_data, &type_use.type_name));
+                type_use.definition = Some(construct_type::<Primitive>(user_data, &type_use.type_name));
             }
         );
         Ok(type_use)
     }
 
-    fn builtin_type(input: PestNode) -> PestResult<()> {
+    fn primitive_type(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
@@ -267,7 +267,59 @@ impl SliceParser {
         Ok(())
     }
 
+    fn bool_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn byte_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn short_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn ushort_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
     fn int_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn uint_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn varint_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn varuint_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn long_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn ulong_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn varlong_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn varulong_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn float_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn double_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
