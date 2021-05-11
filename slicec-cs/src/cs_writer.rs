@@ -41,7 +41,7 @@ impl Visitor for CsWriter {
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = "}}\n\n".to_owned();
+        let content = "}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 
@@ -54,7 +54,7 @@ impl Visitor for CsWriter {
 
     fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = "}}\n\n".to_owned();
+        let content = "}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 
@@ -67,7 +67,7 @@ impl Visitor for CsWriter {
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.output.indent_by(-4);
-        let content = "}}\n\n".to_owned();
+        let content = "}\n\n".to_owned();
         self.output.write_all(content.as_bytes());
     }
 
