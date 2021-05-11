@@ -26,20 +26,19 @@ pub struct CompilerData {
     pub slice_files: HashMap<String, SliceFile>,
     pub error_handler: ErrorHandler,
     pub constructed_table: HashMap<String, usize>,
-    pub defined_table: HashMap<String, usize>,
 }
 
 pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     // Parse the slice files from the command line input into an unpatched AST.
-    let (mut ast, slice_files, constructed_table, mut error_handler) = SliceParser::parse_files(&options);
+    let (mut ast, slice_files, mut error_handler) = SliceParser::parse_files(&options);
     handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
     // Patch the scopes in the AST in-place, and use them to generate a lookup table for use-defined types.
     let mut scope_patcher = ScopePatcher::new(&mut error_handler);
     scope_patcher.patch_scopes(&slice_files, &mut ast);
-    let defined_table = scope_patcher.into_lookup_table(&ast);
+    let constructed_table = scope_patcher.into_lookup_table(&ast);
     // Patch the type references in the AST in-place.
-    TypePatcher::new(&mut error_handler).patch_types(&mut ast, &defined_table);
+    TypePatcher::new(&mut error_handler).patch_types(&mut ast, &constructed_table);
     handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
     // Visit the fully parsed slice files to check for additional errors and warnings.
@@ -49,7 +48,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     }
 
     // Return the data to the compiler's main function.
-    Ok(CompilerData { ast, slice_files, error_handler, constructed_table, defined_table })
+    Ok(CompilerData { ast, slice_files, error_handler, constructed_table })
 }
 
 pub fn handle_errors(warn_as_error: bool, error_handler: &mut ErrorHandler, slice_files: &HashMap<String, SliceFile>) -> Result<(), ()> {

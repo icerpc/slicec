@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::{Ast, IntoNode};
+use crate::ast::{Ast};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
@@ -24,34 +24,10 @@ fn from_span(input: &PestNode) -> Location {
     }
 }
 
-fn construct_type<'a, T: From<&'a str> + IntoNode + 'static>(data: &mut ParserData, type_name: &'a str) -> usize {
-    // Check if we've already constructed this type's definition.
-    // If we did already construct and store it, just return a copy of the index stored in the type table for it.
-    // Otherwise we construct the type on-the-spot, store it, and then return it's index.
-    let result = match data.type_table.get(type_name) {
-        Some(definition) => *definition,
-        None => {
-            // Construct the type with a into-conversion.
-            let definition: T = type_name.into();
-
-            let index = data.ast.add_element(definition);
-            data.type_table.insert(type_name.to_owned(), index);
-            index
-        }
-    };
-
-    // Ensure the correct type was constructed (or retrieved from the type table).
-    #[cfg(debug_assertions)]
-    { debug_assert!(data.ast.resolve_index(result).type_id() == std::any::TypeId::of::<T>()); }
-
-    result
-}
-
 #[derive(Debug, Default)]
 struct ParserData {
     ast: Ast,
     definition_table: HashMap<String, usize>,
-    type_table: HashMap<String, usize>,
     error_handler: ErrorHandler,
     current_file: String,
 }
@@ -72,7 +48,6 @@ pub(crate) struct SliceParser {
 impl SliceParser {
     pub(crate) fn parse_files(options: &SliceOptions) -> (Ast,
                                                           HashMap<String, SliceFile>,
-                                                          HashMap<String, usize>,
                                                           ErrorHandler) {
         let mut parser = SliceParser::new();
 
@@ -84,7 +59,7 @@ impl SliceParser {
         }
 
         let data = parser.user_data.into_inner();
-        (data.ast, parser.slice_files, data.type_table, data.error_handler)
+        (data.ast, parser.slice_files, data.error_handler)
     }
 
     fn new() -> Self {
@@ -244,15 +219,31 @@ impl SliceParser {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
             [primitive(primitive)] => {
-                let user_data = &mut input.user_data().borrow_mut();
-                type_use.definition = Some(construct_type::<Primitive>(user_data, &type_use.type_name));
+                let ast = &mut input.user_data().borrow_mut().ast;
+                type_use.definition = Some(ast.add_primitive(primitive));
             }
         );
         Ok(type_use)
     }
 
-    fn primitive(input: PestNode) -> PestResult<()> {
-        Ok(())
+    fn primitive(input: PestNode) -> PestResult<Primitive> {
+        Ok(match_nodes!(input.into_children();
+            [bool_kw(bool_kw)]         => Primitive::Bool,
+            [byte_kw(byte_kw)]         => Primitive::Byte,
+            [short_kw(short_kw)]       => Primitive::Short,
+            [ushort_kw(ushort_kw)]     => Primitive::UShort,
+            [int_kw(int_kw)]           => Primitive::Int,
+            [uint_kw(uint_kw)]         => Primitive::UInt,
+            [varint_kw(varint_kw)]     => Primitive::VarInt,
+            [varuint_kw(varuint_kw)]   => Primitive::VarUInt,
+            [long_kw(long_kw)]         => Primitive::Long,
+            [ulong_kw(ulong_kw)]       => Primitive::ULong,
+            [varlong_kw(varlong_kw)]   => Primitive::VarLong,
+            [varulong_kw(varulong_kw)] => Primitive::VarULong,
+            [float_kw(float_kw)]       => Primitive::Float,
+            [double_kw(double_kw)]     => Primitive::Double,
+            [string_kw(string_kw)]     => Primitive::String
+        ))
     }
 
     fn module_kw(input: PestNode) -> PestResult<()> {

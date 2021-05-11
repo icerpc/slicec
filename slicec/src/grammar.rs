@@ -150,7 +150,7 @@ impl TypeRef {
     }
 }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
 pub enum Primitive {
     Bool,
     Byte,
@@ -170,26 +170,3 @@ pub enum Primitive {
 }
 
 impl Type for Primitive {}
-
-impl From<&str> for Primitive {
-    fn from(s: &str) -> Self {
-        match s {
-            "bool" => Self::Bool,
-            "byte" => Self::Byte,
-            "short" => Self::Short,
-            "ushort" => Self::UShort,
-            "int" => Self::Int,
-            "uint" => Self::UInt,
-            "varint" => Self::VarInt,
-            "varuint" => Self::VarUInt,
-            "long" => Self::Long,
-            "ulong" => Self::ULong,
-            "varlong" => Self::VarLong,
-            "varulong" => Self::VarULong,
-            "float" => Self::Float,
-            "double" => Self::Double,
-            "string" => Self::String,
-            _ => panic!("`{}` is not a valid primitive type!", s),
-        }
-    }
-}
