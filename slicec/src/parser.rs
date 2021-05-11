@@ -237,13 +237,13 @@ impl SliceParser {
 
         // Resolve and/or construct non user defined types.
         match_nodes!(input.children();
-            [scoped_identifier(identifier)] => {
-                // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
-            },
             [global_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
-            [primitive_type(primitive)] => {
+            [scoped_identifier(identifier)] => {
+                // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
+            },
+            [primitive(primitive)] => {
                 let user_data = &mut input.user_data().borrow_mut();
                 type_use.definition = Some(construct_type::<Primitive>(user_data, &type_use.type_name));
             }
@@ -251,7 +251,7 @@ impl SliceParser {
         Ok(type_use)
     }
 
-    fn primitive_type(input: PestNode) -> PestResult<()> {
+    fn primitive(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

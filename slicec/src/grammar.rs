@@ -189,7 +189,7 @@ impl From<&str> for Primitive {
             "float" => Self::Float,
             "double" => Self::Double,
             "string" => Self::String,
-            _ => panic!("`{}` is not a valid builtin type!", s),
+            _ => panic!("`{}` is not a valid primitive type!", s),
         }
     }
 }
