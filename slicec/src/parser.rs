@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::{Ast};
+use crate::ast::Ast;
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
@@ -27,7 +27,6 @@ fn from_span(input: &PestNode) -> Location {
 #[derive(Debug, Default)]
 struct ParserData {
     ast: Ast,
-    definition_table: HashMap<String, usize>,
     error_handler: ErrorHandler,
     current_file: String,
 }

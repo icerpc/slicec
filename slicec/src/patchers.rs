@@ -8,72 +8,126 @@ use crate::visitor::Visitor;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub(crate) struct ScopePatcher<'a> {
-    /// This stack holds the identifiers of any enclosing scopes the patcher is currently visiting within.
-    ///
-    /// Except for the 1st element, which is always the empty string.
-    /// This represents the global scope, and ensures we always have a leading '::' when joining identifiers together.
+pub(crate) struct TableBuilder<'a> {
+    /// This stack holds the identifiers of any enclosing scopes the builder is currently visiting.
+    /// Except for the 1st element, which is always the empty string. This represents the global
+    /// scope, and ensures we always have a leading '::' when joining identifiers together.
     current_scope: Vec<String>,
-    /// The patcher immutably visits elements and stores any needed patches in this vector. The patches are directly
-    /// applied to the AST nodes in-place after visiting.
-    /// Patches are stored as a tuple of a node's index in the AST, and the scope that should be patched into it.
-    patches: Vec<(usize, String)>,
-    /// Reference to the compiler's error handler so the patcher can output errors.
+    /// Table of all the named elements parsed in the AST. Keys are the element's fully scoped
+    /// identifier, with their indexes in the AST as values. This table is used for resolving
+    /// elements by their identifiers in later parsing stages.
+    lookup_table: HashMap<String, usize>,
+    /// Pest parses bottom-up, so we can't know enclosing scopes while parsing. Instead this builder
+    /// visits elements and wherever there's an empty scope field, it computes the scope and stores
+    /// a patch for it here. Each element is a tuple of the element's AST index and it's scope.
+    /// The patches can't be applied in place since the builder visits elements immutably.
+    scope_patches: Vec<(usize, String)>,
+    /// Reference to the compiler's error handler so the builder can output errors.
     error_handler: &'a mut ErrorHandler,
 }
 
-impl<'a> ScopePatcher<'a> {
-    /// Creates a new `ScopePatcher` with an empty lookup table, and starting at global scope ("::").
+impl<'a> TableBuilder<'a> {
+    /// Creates a new `TableBuilder` with empty tables, and starting at global scope ("::").
     pub(crate) fn new(error_handler: &'a mut ErrorHandler) -> Self {
-        ScopePatcher {
-            // We add an empty string so when we join the vector with '::' separators, we'll get a leading "::".
+        TableBuilder {
+            // We add an empty string so joining the vector gives a leading '::' for global scope.
             current_scope: vec!["".to_owned()],
-            patches: Vec::new(),
+            lookup_table: HashMap::new(),
+            scope_patches: Vec::new(),
             error_handler,
         }
     }
 
-    /// Consumes the scope patcher and returns a lookup table that maps a symbol's fully scoped identifier to it's index
-    /// in the AST, which allows nodes to be resolved via their fully scoped identifiers.
-    pub(crate) fn into_lookup_table(self, ast: &Ast) -> HashMap<String, usize> {
-        let mut table = HashMap::<String, usize>::new();
-        for (index, scoped_identifier) in self.patches.into_iter() {
-            // Issue an error if the table already contains an entry for this fully scoped identifier.
-            if let Some(original_index) = table.get(&scoped_identifier) {
-                let original = ast.resolve_index(*original_index).as_named_symbol().unwrap();
-                let redefinition = ast.resolve_index(index).as_named_symbol().unwrap();
-
-                self.error_handler.report_error((
-                    format!("cannot reuse identifier `{}` in this scope", redefinition.identifier()),
-                    redefinition.location().clone(),
-                ).into());
-                self.error_handler.report_note((
-                    format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
-                    original.location().clone(),
-                ).into());
-            } else {
-                // Otherwise insert the identifier and it's definition's index into the lookup table.
-                table.insert(scoped_identifier, index);
-            }
-        }
-        table
-    }
-
-    pub(crate) fn patch_scopes(&mut self, slice_files: &HashMap<String, SliceFile>, ast: &mut Ast) {
-        // First immutably visit over the slice files to build a list of all the needed patches
+    pub(crate) fn generate_tables(&mut self, slice_files: &HashMap<String, SliceFile>, ast: &Ast) {
+        // Immutably visit over the slice files.
         for slice_file in slice_files.values() {
             slice_file.visit_with(self, ast);
         }
+    }
 
-        // Second, iterate over the patches and apply them to the AST nodes in-place.
-        for (index, scoped_identifier) in self.patches.iter() {
-            // TODO replace this with 'https://github.com/rust-lang/rust/issues/74773' when it's merged into STABLE.
-            let mut scope = scoped_identifier.rsplitn(2, "::").collect::<Vec<&str>>()[1].to_owned();
+    pub(crate) fn into_tables(self) -> (HashMap<String, usize>, Vec<(usize, String)>) {
+        (self.lookup_table, self.scope_patches)
+    }
+
+    /// Computes the fully scoped identifier for the provided element and stores an entry for it
+    /// (and it's index in the AST) in the lookup table.
+    fn add_table_entry(&mut self, element: &impl NamedSymbol, index: usize, ast: &Ast) {
+        let scoped_identifier = self.current_scope.join("::") + "::" + element.identifier();
+
+        // Report a redefinition error if there's already an entry for this identifier.
+        if let Some(original_index) = self.lookup_table.get(&scoped_identifier) {
+            let original = ast.resolve_index(*original_index).as_named_symbol().unwrap();
+            let redefinition = ast.resolve_index(index).as_named_symbol().unwrap();
+
+            self.error_handler.report_error((
+                format!("cannot reuse identifier `{}` in this scope", redefinition.identifier()),
+                redefinition.location().clone(),
+            ).into());
+            self.error_handler.report_note((
+                format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
+                original.location().clone(),
+            ).into());
+        } else {
+            self.lookup_table.insert(scoped_identifier, index);
+        }
+    }
+
+    /// Computes the scope the current element resides in, and stores that with the element's index
+    /// in the AST, so ScopePatcher can patch it later. We can't patch it now since TableBuilder
+    /// has to immutably visit elements.
+    fn add_scope_patch(&mut self, index: usize) {
+        self.scope_patches.push((index, self.current_scope.join("::")));
+    }
+}
+
+impl<'a> Visitor for TableBuilder<'a> {
+    fn visit_module_start(&mut self, module_def: &Module, index: usize, ast: &Ast) {
+        self.add_table_entry(module_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(module_def.identifier().to_owned());
+    }
+
+    fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
+    fn visit_struct_start(&mut self, struct_def: &Struct, index: usize, ast: &Ast) {
+        self.add_table_entry(struct_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(struct_def.identifier().to_owned());
+    }
+
+    fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
+    fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {
+        self.add_table_entry(interface_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(interface_def.identifier().to_owned());
+    }
+
+    fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
+    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {
+        self.add_table_entry(data_member, index, ast);
+        self.add_scope_patch(index);
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct ScopePatcher {}
+
+impl ScopePatcher {
+    pub(crate) fn patch_scopes(scope_patches: Vec<(usize, String)>, ast: &mut Ast) {
+        for (index, mut scope) in scope_patches.into_iter() {
             if scope.is_empty() {
                 scope = "::".to_owned();
             }
 
-            let node = ast.resolve_index_mut(*index);
+            let node = ast.resolve_index_mut(index);
             match node {
                 Node::Module(_, module_def) => {
                     module_def.scope = Some(scope);
@@ -88,105 +142,74 @@ impl<'a> ScopePatcher<'a> {
                     data_member.scope = Some(scope);
                 }
                 _ => {
-                    // There are no other other symbols that can appear in the lookup table.
                     panic!("Grammar element does not need scope patching!\n{:?}", node);
                 }
             }
         }
     }
-
-    /// Computes the fully scoped identifier for the provided element, and stores it in the patch vector.
-    fn add_patch(&mut self, element: &impl NamedSymbol, index: usize) {
-        let scoped_identifier = self.current_scope.join("::") + "::" + element.identifier();
-        self.patches.push((index, scoped_identifier));
-    }
-}
-
-impl<'a> Visitor for ScopePatcher<'a> {
-    fn visit_module_start(&mut self, module_def: &Module, index: usize, _: &Ast) {
-        self.add_patch(module_def, index);
-        self.current_scope.push(module_def.identifier().to_owned());
-    }
-
-    fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
-        self.current_scope.pop();
-    }
-
-    fn visit_struct_start(&mut self, struct_def: &Struct, index: usize, _: &Ast) {
-        self.add_patch(struct_def, index);
-        self.current_scope.push(struct_def.identifier().to_owned());
-    }
-
-    fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
-        self.current_scope.pop();
-    }
-
-    fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, _: &Ast) {
-        self.add_patch(interface_def, index);
-        self.current_scope.push(interface_def.identifier().to_owned());
-    }
-
-    fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
-        self.current_scope.pop();
-    }
-
-    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, _: &Ast) {
-        self.add_patch(data_member, index);
-    }
 }
 
 #[derive(Debug)]
 pub(crate) struct TypePatcher<'a> {
+    /// Reference to the lookup table, which holds all the named elements parsed in the AST as
+    /// (fully scoped identifier, AST index) entries in a map.
+    lookup_table: &'a HashMap<String, usize>,
     /// Reference to the compiler's error handler so the patcher can output errors.
     error_handler: &'a mut ErrorHandler,
 }
 
 impl<'a> TypePatcher<'a> {
-    pub(crate) fn new(error_handler: &'a mut ErrorHandler) -> Self {
-        TypePatcher { error_handler }
+    pub(crate) fn new(lookup_table: &'a HashMap<String, usize>,  error_handler: &'a mut ErrorHandler)
+    -> Self {
+        TypePatcher { lookup_table, error_handler }
     }
 
-    pub(crate) fn patch_types(&mut self, ast: &mut Ast, lookup_table: &HashMap<String, usize>) {
+    pub(crate) fn patch_types(&mut self, ast: &mut Ast) {
         for node in ast.iter_mut() {
-            // Get the fully qualified scope for the element, and a reference to it's data type field.
-            let (scope, type_use) = match node {
+            match node {
                 Node::DataMember(_, data_member) => {
-                    (data_member.scope.as_ref().unwrap(), &mut data_member.data_type)
-                },
-                _ => { continue },
-            };
-
-            // Skip if the type doesn't need patching. This is the case for builtin types that don't need resolving.
-            if type_use.definition.is_some() {
-                continue;
-            }
-
-            // Attempt to resolve the type, and report an error if it fails.
-            match Self::find_type(scope, &type_use.type_name, lookup_table) {
-                Some(index) => {
-                    type_use.definition = Some(index);
-                },
-                None => {
-                    self.error_handler.report_error((
-                        format!("failed to resolve type `{}` in scope `{}`", &type_use.type_name, scope),
-                        type_use.location.clone(),
-                    ).into());
-                },
+                    let scope = data_member.scope.as_ref().unwrap();
+                    self.patch_type(&mut data_member.data_type, scope);
+                }
+                _ => {}
             }
         }
     }
 
-    fn find_type(scope: &str, typename: &str, lookup_table: &HashMap<String, usize>) -> Option<usize> {
+    fn patch_type(&mut self, typeref: &mut TypeRef, scope: &str) {
+        // Skip if the type doesn't need patching. This is the case for builtin types.
+        if typeref.definition.is_some() {
+            return;
+        }
+
+        // Attempt to resolve the type, and report an error if it fails.
+        match self.find_type(&typeref.type_name, scope) {
+            Some(index) => {
+                // Check that the index does point to a type, and not a normal element.
+                // TODO
+
+                typeref.definition = Some(index);
+            }
+            None => {
+                self.error_handler.report_error((
+                    format!("failed to resolve type `{}` in scope `{}`", &typeref.type_name, scope),
+                    typeref.location.clone(),
+                ).into());
+            }
+        }
+    }
+
+    fn find_type(&mut self, typename: &str, scope: &str) -> Option<usize> {
         // If the typename starts with '::' it's an absolute path, and we can directly look it up.
         if typename.starts_with("::") {
-            return lookup_table.get(typename).copied();
+            return self.lookup_table.get(typename).copied();
         }
 
-        // Search each enclosing scope for the type, from the bottom up.
+        // Otherwise we search for the typename through each enclosing scope, from the bottom up.
         let parents: Vec<&str> = scope.split("::").collect();
         for i in (0..parents.len()).rev() {
-            let test_scope = parents[..i].join("::") + "::" + typename;
-            if let Some(result) = lookup_table.get(&test_scope) {
+            let test_name = parents[..i].join("::") + "::" + typename;
+            if let Some(result) = self.lookup_table.get(&test_name) {
                 return Some(*result);
             }
         }

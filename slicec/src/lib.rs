@@ -15,7 +15,7 @@ use crate::ast::Ast;
 use crate::error::ErrorHandler;
 use crate::options::SliceOptions;
 use crate::parser::SliceParser;
-use crate::patchers::{ScopePatcher, TypePatcher};
+use crate::patchers::{ScopePatcher, TableBuilder, TypePatcher};
 use crate::util::SliceFile;
 use crate::validator::Validator;
 use std::collections::HashMap;
@@ -25,7 +25,7 @@ pub struct CompilerData {
     pub ast: Ast,
     pub slice_files: HashMap<String, SliceFile>,
     pub error_handler: ErrorHandler,
-    pub constructed_table: HashMap<String, usize>,
+    pub lookup_table: HashMap<String, usize>,
 }
 
 pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
@@ -33,12 +33,15 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     let (mut ast, slice_files, mut error_handler) = SliceParser::parse_files(&options);
     handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
-    // Patch the scopes in the AST in-place, and use them to generate a lookup table for use-defined types.
-    let mut scope_patcher = ScopePatcher::new(&mut error_handler);
-    scope_patcher.patch_scopes(&slice_files, &mut ast);
-    let constructed_table = scope_patcher.into_lookup_table(&ast);
-    // Patch the type references in the AST in-place.
-    TypePatcher::new(&mut error_handler).patch_types(&mut ast, &constructed_table);
+    // Generate the tables for looking up elements by identifier and for patching element's scopes.
+    let mut table_builder = TableBuilder::new(&mut error_handler);
+    table_builder.generate_tables(&slice_files, &ast);
+    let (lookup_table, scope_patches) = table_builder.into_tables();
+
+    // Patch the element's scopes. We can't do this during parsing since Pest parses bottom up.
+    ScopePatcher::patch_scopes(scope_patches, &mut ast);
+    // Patch any user defined types to their definitions.
+    TypePatcher::new(&lookup_table, &mut error_handler).patch_types(&mut ast);
     handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
     // Visit the fully parsed slice files to check for additional errors and warnings.
@@ -48,7 +51,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     }
 
     // Return the data to the compiler's main function.
-    Ok(CompilerData { ast, slice_files, error_handler, constructed_table })
+    Ok(CompilerData { ast, slice_files, error_handler, lookup_table })
 }
 
 pub fn handle_errors(warn_as_error: bool, error_handler: &mut ErrorHandler, slice_files: &HashMap<String, SliceFile>) -> Result<(), ()> {
