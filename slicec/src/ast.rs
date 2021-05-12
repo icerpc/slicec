@@ -119,7 +119,7 @@ impl Ast {
 
     /// Wraps the provided Primitive in a node and moves it into the AST vector.
     /// This method caches and returns it's index. If the primitive was already added to the AST
-    /// instead of re-adding it, the value is dropped and it's cached index is return instead.
+    /// instead of re-adding it, the value is dropped and it's cached index is returned instead.
     /// This prevents excessive copies of primitives being in the AST, when they're all identical.
     pub(crate) fn add_primitive(&mut self, primitive: Primitive) -> usize {
         match self.primitive_cache.get(&primitive) {
