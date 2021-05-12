@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
+use std::collections::HashMap;
 
 /// Nodes own and represent grammar elements that can be referenced by other elements or the parser.
 ///
@@ -36,18 +37,6 @@ impl Node {
             Self::Interface(_, interface_def) => Some(interface_def),
             Self::Primitive(_, primitive)     => Some(primitive),
             _ => None,
-        }
-    }
-
-    /// Returns the Rust TypeId of the node's underlying type. This is only enabled in debug builds.
-    #[cfg(debug_assertions)]
-    pub(crate) fn type_id(&self) -> std::any::TypeId {
-        match self {
-            Self::Module(_, _)     => std::any::TypeId::of::<Module>(),
-            Self::Struct(_, _)     => std::any::TypeId::of::<Struct>(),
-            Self::Interface(_, _)  => std::any::TypeId::of::<Interface>(),
-            Self::DataMember(_, _) => std::any::TypeId::of::<DataMember>(),
-            Self::Primitive(_, _)  => std::any::TypeId::of::<Primitive>(),
         }
     }
 }
@@ -94,6 +83,10 @@ implement_into_node_for!(Primitive, Node::Primitive);
 pub struct Ast {
     /// The AST vector where all the nodes are stored, in the order the parser parsed them.
     ast: Vec<Node>,
+    /// Cache of all the primitives that have been added to the AST, and their indexes in it.
+    /// This allows only one copy of each primitive to be needed in the AST, instead of having
+    /// excessive copies of primitives every time they're used.
+    primitive_cache: HashMap<Primitive, usize>,
 }
 
 impl Ast {
@@ -122,5 +115,21 @@ impl Ast {
         let index = self.ast.len();
         self.ast.push(element.into_node(index));
         index
+    }
+
+    /// Wraps the provided Primitive in a node and moves it into the AST vector.
+    /// This method caches and returns it's index. If the primitive was already added to the AST
+    /// instead of re-adding it, the value is dropped and it's cached index is returned instead.
+    /// This prevents excessive copies of primitives being in the AST, when they're all identical.
+    pub(crate) fn add_primitive(&mut self, primitive: Primitive) -> usize {
+        match self.primitive_cache.get(&primitive) {
+            Some(index) => *index,
+            None => {
+                // Add the primitive into the AST and cache it's index.
+                let index = self.add_element(primitive);
+                self.primitive_cache.insert(primitive, index);
+                index
+            }
+        }
     }
 }
