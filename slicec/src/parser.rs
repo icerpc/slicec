@@ -211,18 +211,42 @@ impl SliceParser {
 
         // Resolve and/or construct non user defined types.
         match_nodes!(input.children();
+            [primitive(primitive)] => {
+                let ast = &mut input.user_data().borrow_mut().ast;
+                type_use.definition = Some(ast.add_primitive(primitive));
+            },
+            [sequence(sequence)] => {
+                let ast = &mut input.user_data().borrow_mut().ast;
+                type_use.definition = Some(ast.add_element(sequence));
+            },
+            [dictionary(dictionary)] => {
+                let ast = &mut input.user_data().borrow_mut().ast;
+                type_use.definition = Some(ast.add_element(dictionary));
+            },
             [global_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
             [scoped_identifier(identifier)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
-            [primitive(primitive)] => {
-                let ast = &mut input.user_data().borrow_mut().ast;
-                type_use.definition = Some(ast.add_primitive(primitive));
-            }
         );
         Ok(type_use)
+    }
+
+    fn sequence(input: PestNode) -> PestResult<Sequence> {
+        Ok(match_nodes!(input.into_children();
+            [_, typename(element_type)] => {
+                Sequence::new(element_type)
+            }
+        ))
+    }
+
+    fn dictionary(input: PestNode) -> PestResult<Dictionary> {
+        Ok(match_nodes!(input.into_children();
+            [_, typename(key_type), typename(value_type)] => {
+                Dictionary::new(key_type, value_type)
+            }
+        ))
     }
 
     fn primitive(input: PestNode) -> PestResult<Primitive> {
@@ -254,6 +278,14 @@ impl SliceParser {
     }
 
     fn interface_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn sequence_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn dictionary_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

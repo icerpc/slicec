@@ -115,6 +115,14 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.add_table_entry(data_member, index, ast);
         self.add_scope_patch(index);
     }
+
+    fn visit_sequence(&mut self, _: &Sequence, index: usize, _: &Ast) {
+        self.add_scope_patch(index);
+    }
+
+    fn visit_dictionary(&mut self, _: &Dictionary, index: usize, _: &Ast) {
+        self.add_scope_patch(index);
+    }
 }
 
 #[derive(Debug)]
@@ -140,6 +148,12 @@ impl ScopePatcher {
                 }
                 Node::DataMember(_, data_member) => {
                     data_member.scope = Some(scope);
+                }
+                Node::Sequence(_, sequence) => {
+                    sequence.scope = Some(scope);
+                }
+                Node::Dictionary(_, dictionary) => {
+                    dictionary.scope = Some(scope);
                 }
                 _ => {
                     panic!("Grammar element does not need scope patching!\n{:?}", node);
@@ -170,6 +184,15 @@ impl<'a> TypePatcher<'a> {
                 Node::DataMember(_, data_member) => {
                     let scope = data_member.scope.as_ref().unwrap();
                     self.patch_type(&mut data_member.data_type, scope);
+                }
+                Node::Sequence(_, sequence) => {
+                    let scope = sequence.scope.as_ref().unwrap();
+                    self.patch_type(&mut sequence.element_type, scope);
+                }
+                Node::Dictionary(_, dictionary) => {
+                    let scope = dictionary.scope.as_ref().unwrap();
+                    self.patch_type(&mut dictionary.key_type, scope);
+                    self.patch_type(&mut dictionary.value_type, scope);
                 }
                 _ => {}
             }

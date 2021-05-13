@@ -13,6 +13,8 @@ pub enum Node {
     Struct(usize, Struct),
     Interface(usize, Interface),
     DataMember(usize, DataMember),
+    Sequence(usize, Sequence),
+    Dictionary(usize, Dictionary),
     Primitive(usize, Primitive),
 }
 
@@ -35,6 +37,8 @@ impl Node {
         match self {
             Self::Struct(_, struct_def)       => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
+            Self::Sequence(_, sequence)       => Some(sequence),
+            Self::Dictionary(_, dictionary)   => Some(dictionary),
             Self::Primitive(_, primitive)     => Some(primitive),
             _ => None,
         }
@@ -63,6 +67,8 @@ implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(DataMember, Node::DataMember);
+implement_into_node_for!(Sequence, Node::Sequence);
+implement_into_node_for!(Dictionary, Node::Dictionary);
 implement_into_node_for!(Primitive, Node::Primitive);
 
 /// The Abstract Syntax Tree is where all slice grammar elements are stored, directly or indirectly.
