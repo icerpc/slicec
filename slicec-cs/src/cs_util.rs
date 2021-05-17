@@ -23,7 +23,7 @@ pub fn type_to_string(node: &Node, ast: &Ast) -> String {
             let value_type = ast.resolve_index(dictionary.value_type.definition.unwrap());
             let key_type_string = type_to_string(key_type, ast);
             let value_type_string = type_to_string(value_type, ast);
-            "IDictionary<".to_owned() + &key_type_string + ", " + &value_type_string + ">"
+            "global::System.Collections.Generic.IDictionary<".to_owned() + &key_type_string + ", " + &value_type_string + ">"
         }
         Node::Primitive(_, primitive) => {
             match primitive {
