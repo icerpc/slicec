@@ -119,13 +119,17 @@ impl<'a> Visitor for TableBuilder<'a> {
     fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {
         if let Some(definition) = type_use.definition {
             let node = ast.resolve_index(definition);
+            // Only sequences and dictionaries need patching.
+            // Since they are the only builtin types that reference other types.
             match node {
                 Node::Sequence(index, sequence) => {
                     self.add_scope_patch(*index);
+                    // Visit the sequence's element type in case it needs patching.
                     sequence.element_type.visit_with(self, ast);
                 }
                 Node::Dictionary(index, dictionary) => {
                     self.add_scope_patch(*index);
+                    // Visit the dictionary's key and value types in case they need patching.
                     dictionary.key_type.visit_with(self, ast);
                     dictionary.value_type.visit_with(self, ast);
                 }
