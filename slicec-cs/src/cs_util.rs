@@ -16,7 +16,7 @@ pub fn type_to_string(node: &Node, ast: &Ast) -> String {
         Node::Sequence(_, sequence) => {
             let element_type = ast.resolve_index(sequence.element_type.definition.unwrap());
             let element_type_string = type_to_string(element_type, ast);
-            "IList<".to_owned() + &element_type_string + ">"
+            "global::System.Collections.Generic.IList<".to_owned() + &element_type_string + ">"
         }
         Node::Dictionary(_, dictionary) => {
             let key_type = ast.resolve_index(dictionary.key_type.definition.unwrap());
