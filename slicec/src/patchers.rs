@@ -116,12 +116,22 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.add_scope_patch(index);
     }
 
-    fn visit_sequence(&mut self, _: &Sequence, index: usize, _: &Ast) {
-        self.add_scope_patch(index);
-    }
-
-    fn visit_dictionary(&mut self, _: &Dictionary, index: usize, _: &Ast) {
-        self.add_scope_patch(index);
+    fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {
+        if let Some(definition) = type_use.definition {
+            let node = ast.resolve_index(definition);
+            match node {
+                Node::Sequence(index, sequence) => {
+                    self.add_scope_patch(*index);
+                    sequence.element_type.visit_with(self, ast);
+                }
+                Node::Dictionary(index, dictionary) => {
+                    self.add_scope_patch(*index);
+                    dictionary.key_type.visit_with(self, ast);
+                    dictionary.value_type.visit_with(self, ast);
+                }
+                _ => {}
+            }
+        }
     }
 }
 

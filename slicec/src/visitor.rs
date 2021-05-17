@@ -25,9 +25,6 @@ pub trait Visitor {
 
     fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {}
 
-    fn visit_sequence(&mut self, sequence: &Sequence, index: usize, ast: &Ast) {}
-    fn visit_dictionary(&mut self, dictionary: &Dictionary, index: usize, ast: &Ast) {}
-
     fn visit_identifier(&mut self, identifier: &Identifier, ast: &Ast) {}
     fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {}
 }
@@ -40,8 +37,6 @@ impl Node {
             Self::Struct(index, struct_def)       => struct_def.visit_with(visitor, ast, *index),
             Self::Interface(index, interface_def) => interface_def.visit_with(visitor, ast, *index),
             Self::DataMember(index, data_member)  => data_member.visit_with(visitor, ast, *index),
-            Self::Sequence(index, sequence)       => sequence.visit_with(visitor, ast, *index),
-            Self::Dictionary(index, dictionary)   => dictionary.visit_with(visitor, ast, *index),
             _ => {
                 panic!("Node cannot be visited!\n{:?}", self)
             }
@@ -89,18 +84,7 @@ impl Interface {
 impl DataMember {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_data_member(self, index, ast);
-    }
-}
-
-impl Sequence {
-    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
-        visitor.visit_sequence(self, index, ast);
-    }
-}
-
-impl Dictionary {
-    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
-        visitor.visit_dictionary(self, index, ast);
+        self.data_type.visit_with(visitor, ast);
     }
 }
 
