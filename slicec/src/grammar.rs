@@ -150,6 +150,35 @@ impl TypeRef {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct Sequence {
+    pub element_type: TypeRef,
+    pub scope: Option<String>,
+}
+
+impl Sequence {
+    pub fn new(element_type: TypeRef) -> Self {
+        Sequence { element_type, scope: None }
+    }
+}
+
+impl Type for Sequence {}
+
+#[derive(Clone, Debug)]
+pub struct Dictionary {
+    pub key_type: TypeRef,
+    pub value_type: TypeRef,
+    pub scope: Option<String>,
+}
+
+impl Dictionary {
+    pub fn new(key_type: TypeRef, value_type: TypeRef,) -> Self {
+        Dictionary { key_type, value_type, scope: None }
+    }
+}
+
+impl Type for Dictionary {}
+
 #[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
 pub enum Primitive {
     Bool,

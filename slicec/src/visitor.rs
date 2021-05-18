@@ -26,6 +26,10 @@ pub trait Visitor {
     fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {}
 
     fn visit_identifier(&mut self, identifier: &Identifier, ast: &Ast) {}
+
+    // This only shallowly visits type-uses, and won't visit nested types. For instance, only the
+    // outermost sequence will be visited in 'sequence<sequence<int>>'. Neither the inner sequence,
+    // or int types will be visited by default.
     fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {}
 }
 
@@ -84,6 +88,7 @@ impl Interface {
 impl DataMember {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_data_member(self, index, ast);
+        self.data_type.visit_with(visitor, ast);
     }
 }
 

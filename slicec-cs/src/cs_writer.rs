@@ -73,7 +73,7 @@ impl Visitor for CsWriter {
 
     fn visit_data_member(&mut self, data_member: &DataMember, _: usize, ast: &Ast) {
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
-        let type_string = type_to_string(node);
+        let type_string = type_to_string(node, ast);
 
         let content = format!("{} {};\n", type_string, data_member.identifier());
         self.output.write_all(content.as_bytes());

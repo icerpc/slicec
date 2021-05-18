@@ -115,6 +115,28 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.add_table_entry(data_member, index, ast);
         self.add_scope_patch(index);
     }
+
+    fn visit_type_use(&mut self, type_use: &TypeRef, ast: &Ast) {
+        if let Some(definition) = type_use.definition {
+            let node = ast.resolve_index(definition);
+            // Only sequences and dictionaries need patching.
+            // Since they are the only builtin types that reference other types.
+            match node {
+                Node::Sequence(index, sequence) => {
+                    self.add_scope_patch(*index);
+                    // Visit the sequence's element type in case it needs patching.
+                    sequence.element_type.visit_with(self, ast);
+                }
+                Node::Dictionary(index, dictionary) => {
+                    self.add_scope_patch(*index);
+                    // Visit the dictionary's key and value types in case they need patching.
+                    dictionary.key_type.visit_with(self, ast);
+                    dictionary.value_type.visit_with(self, ast);
+                }
+                _ => {}
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -140,6 +162,12 @@ impl ScopePatcher {
                 }
                 Node::DataMember(_, data_member) => {
                     data_member.scope = Some(scope);
+                }
+                Node::Sequence(_, sequence) => {
+                    sequence.scope = Some(scope);
+                }
+                Node::Dictionary(_, dictionary) => {
+                    dictionary.scope = Some(scope);
                 }
                 _ => {
                     panic!("Grammar element does not need scope patching!\n{:?}", node);
@@ -170,6 +198,15 @@ impl<'a> TypePatcher<'a> {
                 Node::DataMember(_, data_member) => {
                     let scope = data_member.scope.as_ref().unwrap();
                     self.patch_type(&mut data_member.data_type, scope);
+                }
+                Node::Sequence(_, sequence) => {
+                    let scope = sequence.scope.as_ref().unwrap();
+                    self.patch_type(&mut sequence.element_type, scope);
+                }
+                Node::Dictionary(_, dictionary) => {
+                    let scope = dictionary.scope.as_ref().unwrap();
+                    self.patch_type(&mut dictionary.key_type, scope);
+                    self.patch_type(&mut dictionary.value_type, scope);
                 }
                 _ => {}
             }

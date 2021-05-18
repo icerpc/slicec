@@ -21,9 +21,14 @@ scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
 
 typename = {
     primitive         |
+    sequence          |
+    dictionary        |
     global_identifier |
     scoped_identifier
 }
+
+sequence = { sequence_kw ~ "<" ~ typename ~ ">" }
+dictionary = { dictionary_kw ~ "<" ~ typename ~ "," ~ typename ~ ">" }
 
 primitive = {
     bool_kw     |
@@ -48,6 +53,9 @@ WHITESPACE = _{ " " | "\t" | NEWLINE }
 module_kw = { "module" }
 struct_kw = { "struct" }
 interface_kw = { "interface" }
+
+sequence_kw = { "sequence" }
+dictionary_kw = { "dictionary" }
 
 bool_kw = { "bool" }
 byte_kw = { "byte" }
