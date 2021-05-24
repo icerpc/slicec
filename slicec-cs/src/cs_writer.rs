@@ -25,57 +25,58 @@ impl CsWriter {
 
 impl Visitor for CsWriter {
     fn visit_file_start(&mut self, _: &SliceFile, _: &Ast) {
-        self.output.write_all("//Start of file\n".as_bytes());
+        self.output.write_all("//Start of file\n");
     }
 
     fn visit_file_end(&mut self, _: &SliceFile, _: &Ast) {
-        self.output.write_all("//End of file\n".as_bytes());
+        self.output.clear_line_separator();
+        self.output.write_all("\n//End of file\n");
     }
 
     fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
-        let content = format!("namespace {}\n", module_def.identifier());
-        self.output.write_all(content.as_bytes());
-        self.output.write_all(b"{\n");
+        let content = format!("\nnamespace {}\n{{", module_def.identifier());
+        self.output.write_all(content.as_str());
         self.output.indent_by(4);
     }
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
+        self.output.clear_line_separator();
         self.output.indent_by(-4);
-        let content = "}\n\n".to_owned();
-        self.output.write_all(content.as_bytes());
+        self.output.write_all("\n}");
+        self.output.write_line_seperator();
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
-        let content = format!("struct {}\n", struct_def.identifier());
-        self.output.write_all(content.as_bytes());
-        self.output.write_all(b"{\n");
+        let content = format!("\nstruct {}\n{{", struct_def.identifier());
+        self.output.write_all(content.as_str());
         self.output.indent_by(4);
     }
 
     fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
+        self.output.clear_line_separator();
         self.output.indent_by(-4);
-        let content = "}\n\n".to_owned();
-        self.output.write_all(content.as_bytes());
+        self.output.write_all("\n}");
+        self.output.write_line_seperator();
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, _: &Ast) {
-        let content = format!("interface {}\n", interface_def.identifier());
-        self.output.write_all(content.as_bytes());
-        self.output.write_all(b"{\n");
+        let content = format!("\ninterface {}\n{{", interface_def.identifier());
+        self.output.write_all(content.as_str());
         self.output.indent_by(4);
     }
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
+        self.output.clear_line_separator();
         self.output.indent_by(-4);
-        let content = "}\n\n".to_owned();
-        self.output.write_all(content.as_bytes());
+        self.output.write_all("\n}");
+        self.output.write_line_seperator();
     }
 
     fn visit_data_member(&mut self, data_member: &DataMember, _: usize, ast: &Ast) {
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
         let type_string = type_to_string(node, ast);
 
-        let content = format!("{} {};\n", type_string, data_member.identifier());
-        self.output.write_all(content.as_bytes());
+        let content = format!("\n{} {};", type_string, data_member.identifier());
+        self.output.write_all(content.as_str());
     }
 }

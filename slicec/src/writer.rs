@@ -9,6 +9,7 @@ use std::io::BufWriter;
 pub struct Writer {
     file_buffer: BufWriter<File>,
     indentation: String,
+    write_line_separator: bool,
     is_valid: bool,
 }
 
@@ -18,23 +19,26 @@ impl Writer {
 
         Ok(Writer {
             file_buffer: BufWriter::new(file),
-            indentation: "".to_owned(),
+            // Indentation starts with a \n, since when we actually write the indentation to a file,
+            // it will always start with a newline (since that's where indentation is applied).
+            indentation: "\n".to_owned(),
+            write_line_separator: false,
             is_valid: true,
         })
     }
 
-    pub fn write_all(&mut self, bytes: &[u8]) {
+    pub fn write_all(&mut self, content: &str) {
         if self.is_valid {
-            if let Err(error) = self.try_write_all(bytes) {
+            let mut indented_content = str::replace(content, "\n", self.indentation.as_str());
+            if self.write_line_separator {
+                self.write_line_separator = false;
+                indented_content.insert(0, '\n');
+            }
+            if let Err(error) = self.file_buffer.write_all(indented_content.as_bytes()) {
                 eprintln!("{}", error);
                 self.is_valid = false;
             }
         }
-    }
-
-    fn try_write_all(&mut self, bytes: &[u8]) -> io::Result<()> {
-        self.file_buffer.write_all(self.indentation.as_bytes())?;
-        self.file_buffer.write_all(bytes)
     }
 
     pub fn indent_by(&mut self, spaces: isize) {
@@ -44,6 +48,19 @@ impl Writer {
             let new_size = self.indentation.len() - (spaces.abs() as usize);
             self.indentation.truncate(new_size);
         }
+    }
+
+    /// Instructs the writer to place an empty newline before the next string it writes to the file,
+    /// to provide some space between two definitions to separate them.
+    /// Just writing '\n' to the stream will introduce trailing whitespace since it's indented.
+    /// Plus, using this line separator lets the writer be smart, and omit them when not needed.
+    pub fn write_line_seperator(&mut self) {
+        self.write_line_separator = true;
+    }
+
+    /// Clears any line separators that were set to be written to the file.
+    pub fn clear_line_separator(&mut self) {
+        self.write_line_separator = false;
     }
 
     pub fn close(mut self) {
