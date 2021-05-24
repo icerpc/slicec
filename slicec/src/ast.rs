@@ -12,6 +12,8 @@ pub enum Node {
     Module(usize, Module),
     Struct(usize, Struct),
     Interface(usize, Interface),
+    Enum(usize, Enum),
+    Enumerator(usize, Enumerator),
     DataMember(usize, DataMember),
     Sequence(usize, Sequence),
     Dictionary(usize, Dictionary),
@@ -26,6 +28,8 @@ impl Node {
             Self::Module(_, module_def)       => Some(module_def),
             Self::Struct(_, struct_def)       => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
+            Self::Enum(_, enum_def)           => Some(enum_def),
+            Self::Enumerator(_, enumerator)   => Some(enumerator),
             Self::DataMember(_, data_member)  => Some(data_member),
             _ => None,
         }
@@ -37,6 +41,7 @@ impl Node {
         match self {
             Self::Struct(_, struct_def)       => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
+            Self::Enum(_, enum_def)           => Some(enum_def),
             Self::Sequence(_, sequence)       => Some(sequence),
             Self::Dictionary(_, dictionary)   => Some(dictionary),
             Self::Primitive(_, primitive)     => Some(primitive),
@@ -66,6 +71,8 @@ macro_rules! implement_into_node_for {
 implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
+implement_into_node_for!(Enum, Node::Enum);
+implement_into_node_for!(Enumerator, Node::Enumerator);
 implement_into_node_for!(DataMember, Node::DataMember);
 implement_into_node_for!(Sequence, Node::Sequence);
 implement_into_node_for!(Dictionary, Node::Dictionary);

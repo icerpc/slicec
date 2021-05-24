@@ -72,6 +72,33 @@ impl Visitor for CsWriter {
         self.output.write_line_seperator();
     }
 
+    fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
+        let content = format!("\npublic enum {}", enum_def.identifier());
+        self.output.write_all(content.as_str());
+        if let Some(underlying) = &enum_def.underlying {
+            let node = ast.resolve_index(*underlying.definition.as_ref().unwrap());
+            let underlying_type_string = format!(" : {}", type_to_string(node, ast));
+            self.output.write_all(underlying_type_string.as_str());
+        } else {
+            self.output.write_all(" : int")
+        }
+        self.output.write_all("\n{");
+        self.output.indent_by(4);
+    }
+
+    fn visit_enum_end(&mut self, _: &Enum, _: usize, _: &Ast) {
+        self.output.clear_line_separator();
+        self.output.indent_by(-4);
+        self.output.write_all("\n}");
+        self.output.write_line_seperator();
+    }
+
+    fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast)
+    {
+        let content = format!("\n{} = {},", enumerator.identifier(), enumerator.value);
+        self.output.write_all(content.as_str());
+    }
+
     fn visit_data_member(&mut self, data_member: &DataMember, _: usize, ast: &Ast) {
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
         let type_string = type_to_string(node, ast);

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::{Ast, Node};
-use slice::grammar::Primitive;
+use slice::grammar::*;
 
 pub fn type_to_string(node: &Node, ast: &Ast) -> String {
     match node {
@@ -11,6 +11,10 @@ pub fn type_to_string(node: &Node, ast: &Ast) -> String {
         }
         Node::Interface(_, interface_def) => {
             let mut identifier = interface_def.scope.as_ref().unwrap().clone() + "::" + interface_def.identifier();
+            identifier.drain(2..).collect::<String>().replace("::", ".")
+        }
+        Node::Enum(_, enum_def) => {
+            let mut identifier = enum_def.scope.as_ref().unwrap().clone() + "::" + enum_def.identifier();
             identifier.drain(2..).collect::<String>().replace("::", ".")
         }
         Node::Sequence(_, sequence) => {

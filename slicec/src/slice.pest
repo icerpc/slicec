@@ -2,7 +2,7 @@
 
 main = { SOI ~ module_def* ~ EOI }
 
-definition = { module_def | struct_def | interface_def }
+definition = { module_def | struct_def | interface_def | enum_def }
 
 module_start = { module_kw ~ identifier }
 module_def = { module_start ~ "{" ~ definition* ~ "}" }
@@ -12,6 +12,12 @@ struct_def = { struct_start ~ "{" ~ data_member* ~ "}" }
 
 interface_start = { interface_kw ~ identifier }
 interface_def = { interface_start ~ "{" ~ "}" }
+
+enum_start = { unchecked_modifier ~ enum_kw ~ identifier ~ ( ":" ~ typename )? }
+enum_def = { enum_start ~ "{" ~ enumerator_list? ~ "}" }
+
+enumerator_list = { ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
+enumerator = { identifier ~ ( "=" ~ integer )? }
 
 data_member = { typename ~ identifier ~ ";" }
 
@@ -48,11 +54,16 @@ primitive = {
     string_kw
 }
 
+unchecked_modifier = { unchecked_kw? }
+
+integer = { "-"? ~ ASCII_DIGIT+ }
+
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 
 module_kw = { "module" }
 struct_kw = { "struct" }
 interface_kw = { "interface" }
+enum_kw = { "enum" }
 
 sequence_kw = { "sequence" }
 dictionary_kw = { "dictionary" }
@@ -72,3 +83,5 @@ varulong_kw = { "varulong" }
 float_kw = { "float" }
 double_kw = { "double" }
 string_kw = { "string" }
+
+unchecked_kw = { "unchecked" }
