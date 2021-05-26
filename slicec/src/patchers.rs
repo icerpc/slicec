@@ -111,6 +111,21 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.current_scope.pop();
     }
 
+    fn visit_enum_start(&mut self, enum_def: &Enum, index: usize, ast: &Ast) {
+        self.add_table_entry(enum_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(enum_def.identifier().to_owned());
+    }
+
+    fn visit_enum_end(&mut self, _: &Enum, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
+    fn visit_enumerator(&mut self, enumerator: &Enumerator, index: usize, ast: &Ast) {
+        self.add_table_entry(enumerator, index, ast);
+        self.add_scope_patch(index);
+    }
+
     fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {
         self.add_table_entry(data_member, index, ast);
         self.add_scope_patch(index);
@@ -160,6 +175,12 @@ impl ScopePatcher {
                 Node::Interface(_, interface_def) => {
                     interface_def.scope = Some(scope);
                 }
+                Node::Enum(_, enum_def) => {
+                    enum_def.scope = Some(scope);
+                }
+                Node::Enumerator(_, enumerator) => {
+                    enumerator.scope = Some(scope);
+                }
                 Node::DataMember(_, data_member) => {
                     data_member.scope = Some(scope);
                 }
@@ -195,6 +216,13 @@ impl<'a> TypePatcher<'a> {
     pub(crate) fn patch_types(&mut self, ast: &mut Ast) {
         for node in ast.iter_mut() {
             match node {
+                Node::Enum(_, enum_def) => {
+                    // Check if the enum has an underlying type and patch it if needed.
+                    if let Some(underlying) = &mut enum_def.underlying {
+                        let scope = enum_def.scope.as_ref().unwrap();
+                        self.patch_type(underlying, scope);
+                    }
+                }
                 Node::DataMember(_, data_member) => {
                     let scope = data_member.scope.as_ref().unwrap();
                     self.patch_type(&mut data_member.data_type, scope);

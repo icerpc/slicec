@@ -24,6 +24,8 @@ macro_rules! implement_symbol_for {
 implement_symbol_for!(Module, "module");
 implement_symbol_for!(Struct, "struct");
 implement_symbol_for!(Interface, "interface");
+implement_symbol_for!(Enum, "enum");
+implement_symbol_for!(Enumerator, "enumerator");
 implement_symbol_for!(DataMember, "data member");
 implement_symbol_for!(Identifier, "identifier");
 implement_symbol_for!(TypeRef, "type ref");
@@ -36,7 +38,7 @@ macro_rules! implement_named_symbol_for {
     ($a:ty) => {
         impl NamedSymbol for $a {
             fn identifier(&self) -> &str {
-                &self.identifier()
+                &self.identifier.value
             }
         }
     }
@@ -45,6 +47,8 @@ macro_rules! implement_named_symbol_for {
 implement_named_symbol_for!(Module);
 implement_named_symbol_for!(Struct);
 implement_named_symbol_for!(Interface);
+implement_named_symbol_for!(Enum);
+implement_named_symbol_for!(Enumerator);
 implement_named_symbol_for!(DataMember);
 
 pub trait Type {}
@@ -61,10 +65,6 @@ impl Module {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
         Module { identifier, contents, scope: None, location }
     }
-
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -78,10 +78,6 @@ pub struct Struct {
 impl Struct {
     pub fn new(identifier: Identifier, contents: Vec<usize>, location: Location) -> Self {
         Struct { identifier, contents, scope: None, location }
-    }
-
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value
     }
 }
 
@@ -98,13 +94,47 @@ impl Interface {
     pub fn new(identifier: Identifier, location: Location) -> Self {
         Interface { identifier, scope: None, location }
     }
-
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value
-    }
 }
 
 impl Type for Interface {}
+
+#[derive(Clone, Debug)]
+pub struct Enum {
+    pub identifier: Identifier,
+    pub contents: Vec<usize>,
+    pub is_checked: bool,
+    pub underlying: Option<TypeRef>,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Enum {
+    pub fn new(
+        identifier: Identifier,
+        contents: Vec<usize>,
+        is_checked: bool,
+        underlying: Option<TypeRef>,
+        location: Location
+    ) -> Self {
+        Enum { identifier, contents, is_checked, underlying, scope: None, location }
+    }
+}
+
+impl Type for Enum {}
+
+#[derive(Clone, Debug)]
+pub struct Enumerator {
+    pub identifier: Identifier,
+    pub value: i64,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Enumerator {
+    pub fn new(identifier: Identifier, value: i64, location: Location) -> Self {
+        Enumerator { identifier, value, scope: None, location }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct DataMember {
@@ -117,10 +147,6 @@ pub struct DataMember {
 impl DataMember {
     pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
         DataMember { data_type, identifier, scope: None, location }
-    }
-
-    pub fn identifier(&self) -> &str {
-        &self.identifier.value
     }
 }
 

@@ -22,7 +22,10 @@ pub trait Visitor {
     fn visit_struct_end(&mut self, struct_def: &Struct, index: usize, ast: &Ast) {}
     fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {}
     fn visit_interface_end(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {}
+    fn visit_enum_start(&mut self, enum_def: &Enum, index: usize, ast: &Ast) {}
+    fn visit_enum_end(&mut self, enum_def: &Enum, index: usize, ast: &Ast) {}
 
+    fn visit_enumerator(&mut self, enumerator: &Enumerator, index: usize, ast: &Ast) {}
     fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {}
 
     fn visit_identifier(&mut self, identifier: &Identifier, ast: &Ast) {}
@@ -40,6 +43,8 @@ impl Node {
             Self::Module(index, module_def)       => module_def.visit_with(visitor, ast, *index),
             Self::Struct(index, struct_def)       => struct_def.visit_with(visitor, ast, *index),
             Self::Interface(index, interface_def) => interface_def.visit_with(visitor, ast, *index),
+            Self::Enum(index, enum_def)           => enum_def.visit_with(visitor, ast, *index),
+            Self::Enumerator(index, enumerator)   => enumerator.visit_with(visitor, ast, *index),
             Self::DataMember(index, data_member)  => data_member.visit_with(visitor, ast, *index),
             _ => {
                 panic!("Node cannot be visited!\n{:?}", self)
@@ -82,6 +87,22 @@ impl Interface {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_interface_start(self, index, ast);
         visitor.visit_interface_end(self, index, ast);
+    }
+}
+
+impl Enum {
+    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
+        visitor.visit_enum_start(self, index, ast);
+        for id in self.contents.iter() {
+            ast.resolve_index(*id).visit_with(visitor, ast);
+        }
+        visitor.visit_enum_end(self, index, ast);
+    }
+}
+
+impl Enumerator {
+    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
+        visitor.visit_enumerator(self, index, ast);
     }
 }
 
