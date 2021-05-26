@@ -77,7 +77,7 @@ impl<'a> Validator<'a> {
         if let Node::Enumerator(_, enumerator) = ast.resolve_index(id) {
             if (enumerator.value < lower) || (enumerator.value > upper) {
                 let message = format!(
-                    "enumerator '{}'s value ({}) is outside the range of it's enum: [{}...{}]",
+                    "enumerator '{}'s value ({}) is outside the range of its enum: [{}...{}]",
                     enumerator.identifier(),
                     enumerator.value,
                     lower,
