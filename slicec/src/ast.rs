@@ -21,6 +21,21 @@ pub enum Node {
 }
 
 impl Node {
+    /// Unwraps a node into an Element and returns a reference to it.
+    pub fn as_element(&self) -> &dyn Element {
+        match self {
+            Self::Module(_, module_def)       => module_def,
+            Self::Struct(_, struct_def)       => struct_def,
+            Self::Interface(_, interface_def) => interface_def,
+            Self::Enum(_, enum_def)           => enum_def,
+            Self::Enumerator(_, enumerator)   => enumerator,
+            Self::DataMember(_, data_member)  => data_member,
+            Self::Sequence(_, sequence)       => sequence,
+            Self::Dictionary(_, dictionary)   => dictionary,
+            Self::Primitive(_, primitive)     => primitive,
+        }
+    }
+
     /// Unwraps a node if it contains a struct implementing `NamedSymbol` and returns a reference to
     /// it. If the underlying struct doesn't implement it, this returns `None`.
     pub fn as_named_symbol(&self) -> Option<&dyn NamedSymbol> {
@@ -35,7 +50,7 @@ impl Node {
         }
     }
 
-    /// Unwraps the node if it contains a struct implementing `Type` and returns a reference to it.
+    /// Unwraps a node if it contains a struct implementing `Type` and returns a reference to it.
     /// If the underlying struct doesn't implement it, this returns `None`.
     pub fn as_type(&self) -> Option<&dyn Type> {
         match self {
@@ -48,6 +63,46 @@ impl Node {
             _ => None,
         }
     }
+}
+
+/// Attempts to unwrap a node to a specified underlying type. If the node is the specified type,
+/// it is unwrapped, and a reference is returned to the underlying element.
+/// Otherwise this panics.
+#[macro_export]
+macro_rules! ref_from_node {
+    ($a:path, $b:expr, $c:expr) => {{
+        let resolved = $b.resolve_index($c);
+        if let $a(_, element) = resolved {
+            element
+        } else {
+            panic!(
+                "Node #{} contains a {} when a {} was expected!",
+                $c,
+                resolved.as_element().kind(),
+                stringify!($a),
+            );
+        }
+    }};
+}
+
+/// Attempts to unwrap a node to a specified underlying type. If the node is the specified type,
+/// it is unwrapped, and a mutable reference is returned to the underlying element.
+/// Otherwise this panics.
+#[macro_export]
+macro_rules! mut_ref_from_node {
+    ($a:path, $b:expr, $c:expr) => {
+        let resolved = $b.resolve_index_mut($c);
+        if let $a(_, element) = resolved {
+            element
+        } else {
+            panic!(
+                "Node #{} contains a {} when a {} was expected!",
+                $c,
+                resolved.as_element().kind(),
+                stringify!($a),
+            );
+        }
+    };
 }
 
 /// This trait provides a conversion method to simplify wrapping an element in a node.
