@@ -86,9 +86,9 @@ impl<'a> Validator<'a> {
                 lower,
                 upper,
             );
-            return Err((message, enumerator).into())
+            Err((message, enumerator).into())
         } else {
-            return Ok(());
+            Ok(())
         }
     }
 }
@@ -117,7 +117,7 @@ impl<'a> Visitor for Validator<'a> {
             let enumerator = ref_from_node!(Node::Enumerator, ast, *id);
             if used_values.contains_key(&enumerator.value) {
                 let error_message = format!(
-                    "cannot reuse the value {} for enumerator '{}'",
+                    "cannot reuse the value '{}' for enumerator '{}'",
                     enumerator.value,
                     enumerator.identifier(),
                 );
