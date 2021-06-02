@@ -61,11 +61,11 @@ impl<'a> TableBuilder<'a> {
 
             self.error_handler.report_error((
                 format!("cannot reuse identifier `{}` in this scope", redefinition.identifier()),
-                redefinition.location().clone(),
+                redefinition,
             ).into());
             self.error_handler.report_note((
                 format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
-                original.location().clone(),
+                original,
             ).into());
         } else {
             self.lookup_table.insert(scoped_identifier, index);
@@ -258,7 +258,7 @@ impl<'a> TypePatcher<'a> {
             None => {
                 self.error_handler.report_error((
                     format!("failed to resolve type `{}` in scope `{}`", &typeref.type_name, scope),
-                    typeref.location.clone(),
+                    typeref,
                 ).into());
             }
         }

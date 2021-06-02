@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::error::{Error, ErrorHandler};
 use crate::grammar::*;
@@ -54,18 +55,20 @@ impl<'a> Validator<'a> {
                     }
                     _ => {
                         let message = format!(
-                            //"Type '{}' cannot be used as an enum's underlying type. TODO IMPROVE THIS ERROR MESSAGE.
-                            "An enum's underlying type must be byte, short, ushort, int, uint, varint, or varuint.",
-                            //primitive.kind(),
+                            "Type '{}' cannot be used as an enum's underlying type.\n\
+                             An enum's underlying type must be byte, short, ushort, int, uint, \
+                             varint, or varuint.",
+                            primitive.kind(),
                         );
                         return Err((message, underlying).into());
                     }
                 }
             } else {
                 let message = format!(
-                    //"'{}'s cannot be used as an enum's underlying type. TODO IMPROVE THIS ERROR MESSAGE.
-                    "An enum's underlying type must be byte, short, ushort, int, uint, varint, or varuint.",
-                    //underlying_type.as_element().kind(),
+                    "'{}'s cannot be used as an enum's underlying type.\n\
+                     An enum's underlying type must be byte, short, ushort, int, uint, varint, or \
+                     varuint.",
+                    underlying_type.as_element().kind(),
                 );
                 return Err((message, underlying).into());
             }
@@ -74,25 +77,19 @@ impl<'a> Validator<'a> {
     }
 
     fn check_enumerator_value(id: usize, lower: i64, upper: i64, ast: &Ast) -> Result<(), Error> {
-        if let Node::Enumerator(_, enumerator) = ast.resolve_index(id) {
-            if (enumerator.value < lower) || (enumerator.value > upper) {
-                let message = format!(
-                    "enumerator '{}'s value ({}) is outside the range of its enum: [{}...{}]",
-                    enumerator.identifier(),
-                    enumerator.value,
-                    lower,
-                    upper,
-                );
-                return Err((message, enumerator).into())
-            } else {
-                return Ok(());
-            }
+        let enumerator = ref_from_node!(Node::Enumerator, ast, id);
+        if (enumerator.value < lower) || (enumerator.value > upper) {
+            let message = format!(
+                "enumerator '{}'s value ({}) is outside the range of its enum: [{}...{}]",
+                enumerator.identifier(),
+                enumerator.value,
+                lower,
+                upper,
+            );
+            Err((message, enumerator).into())
+        } else {
+            Ok(())
         }
-        panic!(
-            "Node #{} contains a {} when an enumerator was expected!",
-            id,
-            ast.resolve_index(id).as_element().kind(),
-        );
     }
 }
 
@@ -117,32 +114,25 @@ impl<'a> Visitor for Validator<'a> {
         // Check if any of the enumerator values are repeated.
         let mut used_values = HashMap::new();
         for id in &enum_def.contents {
-            if let Node::Enumerator(_, enumerator) = ast.resolve_index(*id) {
-                if used_values.contains_key(&enumerator.value) {
-                    let error_message = format!(
-                        "cannot reuse the value {} for enumerator '{}'",
-                        enumerator.value,
-                        enumerator.identifier(),
-                    );
-                    self.error_handler.report_error((error_message, enumerator).into());
-
-                    let original_id = *used_values.get(&enumerator.value).unwrap();
-                    let original = ast.resolve_index(original_id).as_named_symbol().unwrap();
-                    let note_message = format!(
-                        "the value {} was originally used by the enumerator '{}' here",
-                        enumerator.value,
-                        original.identifier(),
-                    );
-                    self.error_handler.report_note((note_message, original).into());
-                } else {
-                    used_values.insert(enumerator.value, *id);
-                }
-            } else {
-                panic!(
-                    "Node #{} contains a {} when an enumerator was expected!",
-                    id,
-                    ast.resolve_index(*id).as_element().kind(),
+            let enumerator = ref_from_node!(Node::Enumerator, ast, *id);
+            if used_values.contains_key(&enumerator.value) {
+                let error_message = format!(
+                    "cannot reuse the value '{}' for enumerator '{}'",
+                    enumerator.value,
+                    enumerator.identifier(),
                 );
+                self.error_handler.report_error((error_message, enumerator).into());
+
+                let original_id = *used_values.get(&enumerator.value).unwrap();
+                let original = ast.resolve_index(original_id).as_named_symbol().unwrap();
+                let note_message = format!(
+                    "the value {} was originally used by the enumerator '{}' here",
+                    enumerator.value,
+                    original.identifier(),
+                );
+                self.error_handler.report_note((note_message, original).into());
+            } else {
+                used_values.insert(enumerator.value, *id);
             }
         }
     }

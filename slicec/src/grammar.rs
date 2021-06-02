@@ -2,18 +2,14 @@
 
 use crate::util::Location;
 
-pub trait Symbol {
-    fn location(&self) -> &Location;
+/// The lowest base trait in the compiler, which all symbols and types implement.
+pub trait Element {
     fn kind(&self) -> &'static str;
 }
 
-macro_rules! implement_symbol_for {
+macro_rules! implement_element_for {
     ($a:ty, $b:literal) => {
-        impl Symbol for $a {
-            fn location(&self) -> &Location {
-                &self.location
-            }
-
+        impl Element for $a {
             fn kind(&self) -> &'static str {
                 $b
             }
@@ -21,15 +17,43 @@ macro_rules! implement_symbol_for {
     }
 }
 
-implement_symbol_for!(Module, "module");
-implement_symbol_for!(Struct, "struct");
-implement_symbol_for!(Interface, "interface");
-implement_symbol_for!(Enum, "enum");
-implement_symbol_for!(Enumerator, "enumerator");
-implement_symbol_for!(DataMember, "data member");
-implement_symbol_for!(Identifier, "identifier");
-implement_symbol_for!(TypeRef, "type ref");
+implement_element_for!(Module, "module");
+implement_element_for!(Struct, "struct");
+implement_element_for!(Interface, "interface");
+implement_element_for!(Enum, "enum");
+implement_element_for!(Enumerator, "enumerator");
+implement_element_for!(DataMember, "data member");
+implement_element_for!(Identifier, "identifier");
+implement_element_for!(TypeRef, "type ref");
+implement_element_for!(Sequence, "sequence");
+implement_element_for!(Dictionary, "dictionary");
+// Primitive has it's own custom implementation of Element which returns the primitive's type name.
 
+/// Symbols represent elements that are written in the slice file.
+pub trait Symbol : Element {
+    fn location(&self) -> &Location;
+}
+
+macro_rules! implement_symbol_for {
+    ($a:ty) => {
+        impl Symbol for $a {
+            fn location(&self) -> &Location {
+                &self.location
+            }
+        }
+    }
+}
+
+implement_symbol_for!(Module);
+implement_symbol_for!(Struct);
+implement_symbol_for!(Interface);
+implement_symbol_for!(Enum);
+implement_symbol_for!(Enumerator);
+implement_symbol_for!(DataMember);
+implement_symbol_for!(Identifier);
+implement_symbol_for!(TypeRef);
+
+/// NamedSymbols are symbols that have an identifier attached to them.
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
 }
@@ -51,6 +75,7 @@ implement_named_symbol_for!(Enum);
 implement_named_symbol_for!(Enumerator);
 implement_named_symbol_for!(DataMember);
 
+/// Base trait that all elements representing types implement.
 pub trait Type {}
 
 #[derive(Clone, Debug)]
@@ -222,6 +247,28 @@ pub enum Primitive {
     Float,
     Double,
     String,
+}
+
+impl Element for Primitive {
+    fn kind(&self) -> &'static str {
+        match self {
+            Self::Bool => "bool",
+            Self::Byte => "byte",
+            Self::Short => "short",
+            Self::UShort => "ushort",
+            Self::Int => "int",
+            Self::UInt => "uint",
+            Self::VarInt => "varint",
+            Self::VarUInt => "varuint",
+            Self::Long => "long",
+            Self::ULong => "ulong",
+            Self::VarLong => "varlong",
+            Self::VarULong => "varulong",
+            Self::Float => "float",
+            Self::Double => "double",
+            Self::String => "string",
+        }
+    }
 }
 
 impl Type for Primitive {}

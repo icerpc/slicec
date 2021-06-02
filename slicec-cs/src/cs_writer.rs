@@ -93,8 +93,7 @@ impl Visitor for CsWriter {
         self.output.write_line_seperator();
     }
 
-    fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast)
-    {
+    fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast) {
         let content = format!("\n{} = {},", enumerator.identifier(), enumerator.value);
         self.output.write_all(content.as_str());
     }
