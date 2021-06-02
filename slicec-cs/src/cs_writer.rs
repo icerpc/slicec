@@ -105,4 +105,6 @@ impl Visitor for CsWriter {
         let content = format!("\n{} {};", type_string, data_member.identifier());
         self.output.write_all(content.as_str());
     }
+
+    // TODO add operation code in this file!!!
 }

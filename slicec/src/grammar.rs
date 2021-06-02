@@ -21,15 +21,18 @@ implement_element_for!(Module, "module");
 implement_element_for!(Struct, "struct");
 implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
-implement_element_for!(Enumerator, "enumerator");
+implement_element_for!(ReturnType, "return type");
+implement_element_for!(Operation, "operation");
 implement_element_for!(DataMember, "data member");
+implement_element_for!(Parameter, "parameter");
+implement_element_for!(Enumerator, "enumerator");
 implement_element_for!(Identifier, "identifier");
 implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
 // Primitive has it's own custom implementation of Element which returns the primitive's type name.
 
-/// Symbols represent elements that are written in the slice file.
+/// Symbols represent elements of the actual source code written in the slice file.
 pub trait Symbol : Element {
     fn location(&self) -> &Location;
 }
@@ -48,8 +51,11 @@ implement_symbol_for!(Module);
 implement_symbol_for!(Struct);
 implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
-implement_symbol_for!(Enumerator);
+// ReturnType has it's own custom implementation of Symbol, since it's an enum instead of a struct.
+implement_symbol_for!(Operation);
 implement_symbol_for!(DataMember);
+implement_symbol_for!(Parameter);
+implement_symbol_for!(Enumerator);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
 
@@ -72,8 +78,10 @@ implement_named_symbol_for!(Module);
 implement_named_symbol_for!(Struct);
 implement_named_symbol_for!(Interface);
 implement_named_symbol_for!(Enum);
-implement_named_symbol_for!(Enumerator);
+implement_named_symbol_for!(Operation);
 implement_named_symbol_for!(DataMember);
+implement_named_symbol_for!(Parameter);
+implement_named_symbol_for!(Enumerator);
 
 /// Base trait that all elements representing types implement.
 pub trait Type {}
@@ -148,16 +156,39 @@ impl Enum {
 impl Type for Enum {}
 
 #[derive(Clone, Debug)]
-pub struct Enumerator {
+pub enum ReturnType {
+    Void(Location),
+    Single(TypeRef, Location),
+    Tuple(Vec<usize>, Location),
+}
+
+impl Symbol for ReturnType {
+    fn location(&self) -> &Location {
+        match self {
+            Self::Void(location)      => location,
+            Self::Single(_, location) => location,
+            Self::Tuple(_, location)  => location,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Operation {
+    pub return_type: ReturnType,
+    pub parameters: Vec<usize>,
     pub identifier: Identifier,
-    pub value: i64,
     pub scope: Option<String>,
     pub location: Location,
 }
 
-impl Enumerator {
-    pub fn new(identifier: Identifier, value: i64, location: Location) -> Self {
-        Enumerator { identifier, value, scope: None, location }
+impl Operation {
+    pub fn new(
+        return_type: ReturnType,
+        identifier: Identifier,
+        parameters: Vec<usize>,
+        location: Location
+    ) -> Self {
+        Operation { return_type, parameters, identifier, scope: None, location }
     }
 }
 
@@ -172,6 +203,35 @@ pub struct DataMember {
 impl DataMember {
     pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
         DataMember { data_type, identifier, scope: None, location }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Parameter {
+    pub data_type: TypeRef,
+    pub identifier: Identifier,
+    pub is_in_parameter: bool,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Parameter {
+    pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
+        Parameter { data_type, identifier, is_in_parameter: true, scope: None, location }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Enumerator {
+    pub identifier: Identifier,
+    pub value: i64,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Enumerator {
+    pub fn new(identifier: Identifier, value: i64, location: Location) -> Self {
+        Enumerator { identifier, value, scope: None, location }
     }
 }
 

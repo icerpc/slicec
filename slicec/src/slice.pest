@@ -16,10 +16,17 @@ interface_def = { interface_start ~ "{" ~ "}" }
 enum_start = { unchecked_modifier ~ enum_kw ~ identifier ~ ( ":" ~ typename )? }
 enum_def = { enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
-enumerator_list = { ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
-enumerator = { identifier ~ ( "=" ~ integer )? }
+return_type = { void_kw | typename | return_tuple }
+return_tuple = { "(" ~ parameter_list ~ ")" }
+operation = { return_type ~ identifier ~ "(" ~ parameter_list ~ ")" ~ ";" }
 
 data_member = { typename ~ identifier ~ ";" }
+
+parameter_list = { ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
+parameter = { typename ~ identifier }
+
+enumerator_list = { ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
+enumerator = { identifier ~ ( "=" ~ integer )? }
 
 identifier = @{ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
@@ -68,6 +75,7 @@ enum_kw = { "enum" }
 sequence_kw = { "sequence" }
 dictionary_kw = { "dictionary" }
 
+void_kw = { "void" }
 bool_kw = { "bool" }
 byte_kw = { "byte" }
 short_kw = { "short" }
