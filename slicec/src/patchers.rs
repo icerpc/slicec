@@ -124,6 +124,23 @@ impl<'a> Visitor for TableBuilder<'a> {
     fn visit_operation_start(&mut self, operation: &Operation, index: usize, ast: &Ast) {
         self.add_table_entry(operation, index, ast);
         self.add_scope_patch(index);
+        self.current_scope.push(operation.identifier().to_owned());
+
+        // Visit the operation's return type. Return types are placed in there own scope, to keep
+        // the scopes for in-parameters and return-parameters separate.
+        self.current_scope.push("_return".to_owned());
+        match &operation.return_type {
+            ReturnType::Void(_) => {}
+            ReturnType::Single(return_type, _) => {
+                return_type.visit_with(self, ast);
+            }
+            ReturnType::Tuple(return_tuple, _) => {
+                for id in return_tuple.iter() {
+                    ast.resolve_index(*id).visit_with(self, ast);
+                }
+            }
+        }
+        self.current_scope.pop();
     }
 
     fn visit_operation_end(&mut self, _: &Operation, _: usize, _: &Ast) {
