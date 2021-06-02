@@ -92,6 +92,9 @@ impl Struct {
 impl Interface {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_interface_start(self, index, ast);
+        for id in self.operations.iter() {
+            ast.resolve_index(*id).visit_with(visitor, ast);
+        }
         visitor.visit_interface_end(self, index, ast);
     }
 }

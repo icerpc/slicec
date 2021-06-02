@@ -119,13 +119,14 @@ impl Type for Struct {}
 #[derive(Clone, Debug)]
 pub struct Interface {
     pub identifier: Identifier,
+    pub operations: Vec<usize>,
     pub scope: Option<String>,
     pub location: Location,
 }
 
 impl Interface {
-    pub fn new(identifier: Identifier, location: Location) -> Self {
-        Interface { identifier, scope: None, location }
+    pub fn new(identifier: Identifier, operations: Vec<usize>, location: Location) -> Self {
+        Interface { identifier, operations, scope: None, location }
     }
 }
 

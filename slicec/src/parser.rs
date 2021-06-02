@@ -167,8 +167,8 @@ impl SliceParser {
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
-            [interface_start(interface_start)] => {
-                Interface::new(interface_start.0, interface_start.1)
+            [interface_start(interface_start), operation(operations)..] => {
+                Interface::new(interface_start.0, operations.collect(), interface_start.1)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;

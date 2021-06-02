@@ -11,7 +11,7 @@ struct_start = { struct_kw ~ identifier }
 struct_def = { struct_start ~ "{" ~ data_member* ~ "}" }
 
 interface_start = { interface_kw ~ identifier }
-interface_def = { interface_start ~ "{" ~ "}" }
+interface_def = { interface_start ~ "{" ~ operation* ~ "}" }
 
 enum_start = { unchecked_modifier ~ enum_kw ~ identifier ~ ( ":" ~ typename )? }
 enum_def = { enum_start ~ "{" ~ enumerator_list? ~ "}" }

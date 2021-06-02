@@ -53,3 +53,5 @@ pub fn type_to_string(node: &Node, ast: &Ast) -> String {
         },
     }
 }
+
+// TODO add a helper method for handling return types of operations.
