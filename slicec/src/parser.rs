@@ -219,25 +219,28 @@ impl SliceParser {
     }
 
     fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [parameter_list(parameters)] => {
                 // Before returning the parameter list, set that they aren't in parameters.
+                let ast = &mut input.user_data().borrow_mut().ast;
                 for id in parameters.iter() {
                     let parameter = mut_ref_from_node!(Node::Parameter, ast, *id);
                     parameter.is_in_parameter = false;
                 }
                 parameters
-            }
+            },
         ))
     }
 
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let operation = match_nodes!(input.children();
+            [return_type(return_type), identifier(identifier)] => {
+                Operation::new(return_type, identifier, Vec::new(), location)
+            },
             [return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
                 Operation::new(return_type, identifier, parameters, location)
-            }
+            },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(operation))

@@ -18,7 +18,7 @@ enum_def = { enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 return_type = { void_kw | typename | return_tuple }
 return_tuple = { "(" ~ parameter_list ~ ")" }
-operation = { return_type ~ identifier ~ "(" ~ parameter_list ~ ")" ~ ";" }
+operation = { return_type ~ identifier ~ "(" ~ parameter_list? ~ ")" ~ ";" }
 
 data_member = { typename ~ identifier ~ ";" }
 

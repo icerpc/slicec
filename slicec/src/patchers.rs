@@ -264,6 +264,13 @@ impl<'a> TypePatcher<'a> {
                     let scope = data_member.scope.as_ref().unwrap();
                     self.patch_type(&mut data_member.data_type, scope);
                 }
+                //TODO simplify operations to treat single return types as nameless parameters.
+                Node::Operation(_, operation) => {
+                    if let ReturnType::Single(type_ref, _) = &mut operation.return_type {
+                        let scope = operation.scope.as_ref().unwrap();
+                        self.patch_type(type_ref, scope);
+                    }
+                }
                 Node::Parameter(_, parameter) => {
                     let scope = parameter.scope.as_ref().unwrap();
                     self.patch_type(&mut parameter.data_type, scope);
