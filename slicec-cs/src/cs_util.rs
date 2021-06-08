@@ -5,6 +5,7 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::TypeContext;
 
+// TODO move this function beneath the other functions.
 pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeContext) -> String {
     let mut type_string = "global::System.Threading.Tasks.ValueTask".to_owned();
     match return_type {
@@ -18,12 +19,12 @@ pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeC
         ReturnType::Tuple(tuple, _) => {
             type_string += "<(";
             for id in tuple.iter() {
-                let parameter = ref_from_node!(Node::Parameter, ast, *id);
-                let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
+                let return_element = ref_from_node!(Node::Member, ast, *id);
+                let data_type = ast.resolve_index(return_element.data_type.definition.unwrap());
                 type_string += format!(
                     "{} {}, ",
                     type_to_string(data_type, ast, context),
-                    parameter.identifier(),
+                    return_element.identifier(),
                 ).as_str();
             }
             // Remove the trailing comma and space.

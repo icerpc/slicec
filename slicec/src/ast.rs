@@ -14,8 +14,7 @@ pub enum Node {
     Interface(usize, Interface),
     Enum(usize, Enum),
     Operation(usize, Operation),
-    DataMember(usize, DataMember),
-    Parameter(usize, Parameter),
+    Member(usize, Member),
     Enumerator(usize, Enumerator),
     Sequence(usize, Sequence),
     Dictionary(usize, Dictionary),
@@ -31,8 +30,7 @@ impl Node {
             Self::Interface(_, interface_def) => interface_def,
             Self::Enum(_, enum_def)           => enum_def,
             Self::Operation(_, operation)     => operation,
-            Self::DataMember(_, data_member)  => data_member,
-            Self::Parameter(_, parameter)     => parameter,
+            Self::Member(_, member)           => member,
             Self::Enumerator(_, enumerator)   => enumerator,
             Self::Sequence(_, sequence)       => sequence,
             Self::Dictionary(_, dictionary)   => dictionary,
@@ -49,8 +47,7 @@ impl Node {
             Self::Interface(_, interface_def) => Some(interface_def),
             Self::Enum(_, enum_def)           => Some(enum_def),
             Self::Operation(_, operation)     => Some(operation),
-            Self::DataMember(_, data_member)  => Some(data_member),
-            Self::Parameter(_, parameter)     => Some(parameter),
+            Self::Member(_, member)           => Some(member),
             Self::Enumerator(_, enumerator)   => Some(enumerator),
             _ => None,
         }
@@ -134,8 +131,7 @@ implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(Enum, Node::Enum);
 implement_into_node_for!(Operation, Node::Operation);
-implement_into_node_for!(DataMember, Node::DataMember);
-implement_into_node_for!(Parameter, Node::Parameter);
+implement_into_node_for!(Member, Node::Member);
 implement_into_node_for!(Enumerator, Node::Enumerator);
 implement_into_node_for!(Sequence, Node::Sequence);
 implement_into_node_for!(Dictionary, Node::Dictionary);

@@ -23,8 +23,7 @@ implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
 implement_element_for!(ReturnType, "return type");
 implement_element_for!(Operation, "operation");
-implement_element_for!(DataMember, "data member");
-implement_element_for!(Parameter, "parameter");
+// Member has it's own custom implementation of Element which depends on it's member type.
 implement_element_for!(Enumerator, "enumerator");
 implement_element_for!(Identifier, "identifier");
 implement_element_for!(TypeRef, "type ref");
@@ -53,8 +52,7 @@ implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
 // ReturnType has it's own custom implementation of Symbol, since it's an enum instead of a struct.
 implement_symbol_for!(Operation);
-implement_symbol_for!(DataMember);
-implement_symbol_for!(Parameter);
+implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
@@ -79,8 +77,7 @@ implement_named_symbol_for!(Struct);
 implement_named_symbol_for!(Interface);
 implement_named_symbol_for!(Enum);
 implement_named_symbol_for!(Operation);
-implement_named_symbol_for!(DataMember);
-implement_named_symbol_for!(Parameter);
+implement_named_symbol_for!(Member);
 implement_named_symbol_for!(Enumerator);
 
 /// Base trait that all elements representing types implement.
@@ -194,32 +191,40 @@ impl Operation {
 }
 
 #[derive(Clone, Debug)]
-pub struct DataMember {
+pub struct Member {
     pub data_type: TypeRef,
     pub identifier: Identifier,
+    pub member_type: MemberType,
     pub scope: Option<String>,
     pub location: Location,
 }
 
-impl DataMember {
-    pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, scope: None, location }
+impl Member {
+    pub fn new(
+        data_type: TypeRef,
+        identifier: Identifier,
+        member_type: MemberType,
+        location: Location,
+    ) -> Self {
+        Member { data_type, identifier, member_type, scope: None, location }
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Parameter {
-    pub data_type: TypeRef,
-    pub identifier: Identifier,
-    pub is_in_parameter: bool,
-    pub scope: Option<String>,
-    pub location: Location,
+impl Element for Member {
+    fn kind(&self) -> &'static str {
+        match self.member_type {
+            MemberType::DataMember    => "data member",
+            MemberType::Parameter     => "parameter",
+            MemberType::ReturnElement => "return element",
+        }
+    }
 }
 
-impl Parameter {
-    pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
-        Parameter { data_type, identifier, is_in_parameter: true, scope: None, location }
-    }
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum MemberType {
+    DataMember,
+    Parameter,
+    ReturnElement,
 }
 
 #[derive(Clone, Debug)]
@@ -291,7 +296,7 @@ impl Dictionary {
 
 impl Type for Dictionary {}
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Primitive {
     Bool,
     Byte,

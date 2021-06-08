@@ -220,14 +220,15 @@ impl SliceParser {
 
     fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
         Ok(match_nodes!(input.children();
-            [parameter_list(parameters)] => {
-                // Before returning the parameter list, set that they aren't in parameters.
+            // Return tuple elements and parameters have the same syntax, so we re-use the parsing
+            // for parameter lists, then change their member type here, after the fact.
+            [parameter_list(return_elements)] => {
                 let ast = &mut input.user_data().borrow_mut().ast;
-                for id in parameters.iter() {
-                    let parameter = mut_ref_from_node!(Node::Parameter, ast, *id);
-                    parameter.is_in_parameter = false;
+                for id in return_elements.iter() {
+                    let return_element = mut_ref_from_node!(Node::Member, ast, *id);
+                    return_element.member_type = MemberType::ReturnElement;
                 }
-                parameters
+                return_elements
             },
         ))
     }
@@ -250,7 +251,7 @@ impl SliceParser {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
             [typename(data_type), identifier(identifier)] => {
-                DataMember::new(data_type, identifier, location)
+                Member::new(data_type, identifier, MemberType::DataMember, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -275,7 +276,7 @@ impl SliceParser {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
             [typename(data_type), identifier(identifier)] => {
-                Parameter::new(data_type, identifier, location)
+                Member::new(data_type, identifier, MemberType::Parameter, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;

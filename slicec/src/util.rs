@@ -80,7 +80,7 @@ impl SliceFile {
 
 /// The context that a type is written in. This is used primarliy by the `type_to_string` methods in
 /// each of the language mapping's code generators.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum TypeContext {
     DataMember,
     Incoming,

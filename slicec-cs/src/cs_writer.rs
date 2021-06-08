@@ -76,24 +76,24 @@ impl Visitor for CsWriter {
     }
 
     fn visit_operation_start(&mut self, operation: &Operation, _: usize, ast: &Ast) {
-        let mut parameters = String::new();
+        let mut parameters_string = String::new();
         for id in operation.parameters.iter() {
-            let parameter = ref_from_node!(Node::Parameter, ast, *id);
+            let parameter = ref_from_node!(Node::Member, ast, *id);
             let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
-            parameters += format!(
+            parameters_string += format!(
                 "{} {}, ",
                 type_to_string(data_type, ast, TypeContext::Outgoing),
                 parameter.identifier(),
             ).as_str();
         }
         // Remove the trailing comma and space.
-        parameters.truncate(parameters.len() - 2);
+        parameters_string.truncate(parameters_string.len() - 2);
 
         let content = format!(
             "\npublic {} {}({});",
             return_type_to_string(&operation.return_type, ast, TypeContext::Outgoing),
             operation.identifier(),
-            parameters,
+            parameters_string,
         );
         self.output.write_all(content.as_str());
         self.output.write_line_seperator();
@@ -128,7 +128,7 @@ impl Visitor for CsWriter {
         self.output.write_all(content.as_str());
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember, _: usize, ast: &Ast) {
+    fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
         let type_string = type_to_string(node, ast, TypeContext::DataMember);
 

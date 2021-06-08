@@ -7,7 +7,7 @@ use structopt::StructOpt;
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `StructOpt` macro.
-#[derive(StructOpt, Debug)]
+#[derive(Debug, StructOpt)]
 #[structopt(rename_all = "kebab-case", about = "_")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.

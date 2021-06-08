@@ -28,8 +28,8 @@ pub trait Visitor {
     fn visit_operation_start(&mut self, operation: &Operation, index: usize, ast: &Ast) {}
     fn visit_operation_end(&mut self, operation: &Operation, index: usize, ast: &Ast) {}
 
-    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {}
-    fn visit_parameter(&mut self, parameter: &Parameter, index: usize, ast: &Ast) {}
+    fn visit_data_member(&mut self, data_member: &Member, index: usize, ast: &Ast) {}
+    fn visit_parameter(&mut self, parameter: &Member, index: usize, ast: &Ast) {}
     fn visit_enumerator(&mut self, enumerator: &Enumerator, index: usize, ast: &Ast) {}
 
     fn visit_identifier(&mut self, identifier: &Identifier, ast: &Ast) {}
@@ -49,8 +49,7 @@ impl Node {
             Self::Interface(index, interface_def) => interface_def.visit_with(visitor, ast, *index),
             Self::Enum(index, enum_def)           => enum_def.visit_with(visitor, ast, *index),
             Self::Operation(index, operation)     => operation.visit_with(visitor, ast, *index),
-            Self::DataMember(index, data_member)  => data_member.visit_with(visitor, ast, *index),
-            Self::Parameter(index, parameter)     => parameter.visit_with(visitor, ast, *index),
+            Self::Member(index, member)           => member.visit_with(visitor, ast, *index),
             Self::Enumerator(index, enumerator)   => enumerator.visit_with(visitor, ast, *index),
             _ => {
                 panic!("Node cannot be visited!\n{:?}", self)
@@ -112,7 +111,8 @@ impl Enum {
 impl Operation {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_operation_start(self, index, ast);
-        // We only visit the operation's in parameters. Return types needs to be handled manually.
+        // We only visit the operation's parameters. Return types need to be visited manually.
+        // This is because return types are not AST nodes, but are directly owned by operations.
         for id in self.parameters.iter() {
             ast.resolve_index(*id).visit_with(visitor, ast);
         }
@@ -120,16 +120,19 @@ impl Operation {
     }
 }
 
-impl DataMember {
+impl Member {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
-        visitor.visit_data_member(self, index, ast);
-        self.data_type.visit_with(visitor, ast);
-    }
-}
-
-impl Parameter {
-    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
-        visitor.visit_parameter(self, index, ast);
+        match self.member_type {
+            MemberType::DataMember => {
+                visitor.visit_data_member(self, index, ast);
+            }
+            MemberType::Parameter => {
+                visitor.visit_parameter(self, index, ast);
+            }
+            MemberType::ReturnElement => {
+                panic!("return elements cannot be automatically visited");
+            }
+        }
         self.data_type.visit_with(visitor, ast);
     }
 }

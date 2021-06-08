@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
@@ -127,7 +128,7 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.current_scope.push(operation.identifier().to_owned());
 
         // Visit the operation's return type. Return types are placed in there own scope, to keep
-        // the scopes for in-parameters and return-parameters separate.
+        // the scopes for parameters and return-types separate.
         self.current_scope.push("_return".to_owned());
         match &operation.return_type {
             ReturnType::Void(_) => {}
@@ -136,7 +137,9 @@ impl<'a> Visitor for TableBuilder<'a> {
             }
             ReturnType::Tuple(return_tuple, _) => {
                 for id in return_tuple.iter() {
-                    ast.resolve_index(*id).visit_with(self, ast);
+                    let return_element = ref_from_node!(Node::Member, ast, *id);
+                    self.add_table_entry(return_element, index, ast);
+                    self.add_scope_patch(index);
                 }
             }
         }
@@ -147,12 +150,12 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.current_scope.pop();
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember, index: usize, ast: &Ast) {
+    fn visit_data_member(&mut self, data_member: &Member, index: usize, ast: &Ast) {
         self.add_table_entry(data_member, index, ast);
         self.add_scope_patch(index);
     }
 
-    fn visit_parameter(&mut self, parameter: &Parameter, index: usize, ast: &Ast) {
+    fn visit_parameter(&mut self, parameter: &Member, index: usize, ast: &Ast) {
         self.add_table_entry(parameter, index, ast);
         self.add_scope_patch(index);
     }
@@ -212,11 +215,8 @@ impl ScopePatcher {
                 Node::Operation(_, operation) => {
                     operation.scope = Some(scope);
                 }
-                Node::DataMember(_, data_member) => {
-                    data_member.scope = Some(scope);
-                }
-                Node::Parameter(_, parameter) => {
-                    parameter.scope = Some(scope);
+                Node::Member(_, member) => {
+                    member.scope = Some(scope);
                 }
                 Node::Enumerator(_, enumerator) => {
                     enumerator.scope = Some(scope);
@@ -260,20 +260,17 @@ impl<'a> TypePatcher<'a> {
                         self.patch_type(underlying, scope);
                     }
                 }
-                Node::DataMember(_, data_member) => {
-                    let scope = data_member.scope.as_ref().unwrap();
-                    self.patch_type(&mut data_member.data_type, scope);
-                }
-                //TODO simplify operations to treat single return types as nameless parameters.
                 Node::Operation(_, operation) => {
+                    // We only have to handle the case of single return types here.
+                    // Return tuple elements will be handled by the `Member` case instead.
                     if let ReturnType::Single(type_ref, _) = &mut operation.return_type {
                         let scope = operation.scope.as_ref().unwrap();
                         self.patch_type(type_ref, scope);
                     }
                 }
-                Node::Parameter(_, parameter) => {
-                    let scope = parameter.scope.as_ref().unwrap();
-                    self.patch_type(&mut parameter.data_type, scope);
+                Node::Member(_, member) => {
+                    let scope = member.scope.as_ref().unwrap();
+                    self.patch_type(&mut member.data_type, scope);
                 }
                 Node::Sequence(_, sequence) => {
                     let scope = sequence.scope.as_ref().unwrap();
