@@ -127,7 +127,7 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.add_scope_patch(index);
         self.current_scope.push(operation.identifier().to_owned());
 
-        // Visit the operation's return type. Return types are placed in there own scope, to keep
+        // Visit the operation's return type. Return types are placed in their own scope, to keep
         // the scopes for parameters and return-types separate.
         self.current_scope.push("_return".to_owned());
         match &operation.return_type {
