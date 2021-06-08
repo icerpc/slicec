@@ -203,6 +203,10 @@ impl SliceParser {
         Ok(ast.add_element(enum_def))
     }
 
+    // Parses an operation's return type. There are 3 possible syntaxes for a return type:
+    //   A void return type, specified by the `void` keyword.
+    //   A single unnamed return type, specified by a typename.
+    //   A return tuple, specified as a list of named elements enclosed in parenthesis.
     fn return_type(input: PestNode) -> PestResult<ReturnType> {
         let location = from_span(&input);
         Ok(match_nodes!(input.into_children();
@@ -218,6 +222,7 @@ impl SliceParser {
         ))
     }
 
+    // Parses a return type that is written in return tuple syntax.
     fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
         Ok(match_nodes!(input.children();
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
