@@ -82,7 +82,7 @@ impl Visitor for CsWriter {
             let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
             parameters += format!(
                 "{} {}, ",
-                type_to_string(data_type, ast, TypeContext::ReturnParameter),
+                type_to_string(data_type, ast, TypeContext::Outgoing),
                 parameter.identifier(),
             ).as_str();
         }
@@ -91,7 +91,7 @@ impl Visitor for CsWriter {
 
         let content = format!(
             "\npublic {} {}({});",
-            return_type_to_string(&operation.return_type, ast),
+            return_type_to_string(&operation.return_type, ast, TypeContext::Outgoing),
             operation.identifier(),
             parameters,
         );

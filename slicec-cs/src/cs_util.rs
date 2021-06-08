@@ -5,14 +5,14 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::TypeContext;
 
-pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast) -> String {
+pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeContext) -> String {
     let mut type_string = "global::System.Threading.Tasks.ValueTask".to_owned();
     match return_type {
         ReturnType::Void(_) => {}
         ReturnType::Single(data_type, _) => {
             let node = ast.resolve_index(data_type.definition.unwrap());
             type_string += "<";
-            type_string += &type_to_string(node, ast, TypeContext::ReturnParameter);
+            type_string += &type_to_string(node, ast, context);
             type_string += ">";
         }
         ReturnType::Tuple(tuple, _) => {
@@ -22,7 +22,7 @@ pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast) -> String {
                 let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
                 type_string += format!(
                     "{} {}, ",
-                    type_to_string(data_type, ast, TypeContext::ReturnParameter),
+                    type_to_string(data_type, ast, context),
                     parameter.identifier(),
                 ).as_str();
             }
@@ -90,13 +90,13 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
                 element_type_string,
             )
         }
-        TypeContext::InParameter => {
+        TypeContext::Incoming => {
             format!(
                 "{}[]",
                 element_type_string,
             )
         }
-        TypeContext::ReturnParameter => {
+        TypeContext::Outgoing => {
             let mut container_type = "global::System.Collections.Generic.IEnumerable";
             // If the underlying type is a fixed size primitive, we map to `ReadOnlyMemory` instead.
             if let Node::Primitive(_, primitive) = element_type {
@@ -127,14 +127,14 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
                 value_type_string,
             )
         }
-        TypeContext::InParameter => {
+        TypeContext::Incoming => {
             format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
                 key_type_string,
                 value_type_string,
             )
         }
-        TypeContext::ReturnParameter => {
+        TypeContext::Outgoing => {
             format!(
                 "global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{}, {}>>",
                 key_type_string,
