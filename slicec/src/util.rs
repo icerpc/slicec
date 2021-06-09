@@ -78,12 +78,19 @@ impl SliceFile {
     }
 }
 
-/// The context that a type is written in. This is used primarliy by the `type_to_string` methods in
-/// each of the language mapping's code generators.
+/// The context that a type is being used in while generating code. This is used primarily by the
+/// `type_to_string` methods in each of the language mapping's code generators.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum TypeContext {
+    /// Used when generating the types of data members in structs and classes.
     DataMember,
+    /// Used when generating the types of operation members (parameters and return types) in places
+    /// where they're being read off the wire and unmarshalled.
     Incoming,
+    /// Used when generating the types of operation members (parameters and return types) in places
+    /// where they're being going to be marshalled and written onto the wire.
     Outgoing,
+    /// Used when generating types that are parts of other types, such as the key & value types of
+    /// dictionaries, or the element type of a sequence.
     Nested,
 }

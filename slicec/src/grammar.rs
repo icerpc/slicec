@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ref_from_node;
+use crate::ast::{Ast, Node};
 use crate::util::Location;
 
 /// The lowest base trait in the compiler, which all symbols and types implement.
@@ -81,7 +83,9 @@ implement_named_symbol_for!(Member);
 implement_named_symbol_for!(Enumerator);
 
 /// Base trait that all elements representing types implement.
-pub trait Type {}
+pub trait Type {
+    fn is_fixed_size(&self, ast: &Ast) -> bool;
+}
 
 #[derive(Clone, Debug)]
 pub struct Module {
@@ -111,7 +115,18 @@ impl Struct {
     }
 }
 
-impl Type for Struct {}
+impl Type for Struct {
+    fn is_fixed_size(&self, ast: &Ast) -> bool {
+        for id in &self.contents {
+            let member = ref_from_node!(Node::Member, ast, *id);
+            let data_type = ast.resolve_index(member.data_type.definition.unwrap()).as_type();
+            if !data_type.unwrap().is_fixed_size(ast) {
+                return false;
+            }
+        }
+        true
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Interface {
@@ -127,7 +142,11 @@ impl Interface {
     }
 }
 
-impl Type for Interface {}
+impl Type for Interface {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Enum {
@@ -151,7 +170,16 @@ impl Enum {
     }
 }
 
-impl Type for Enum {}
+impl Type for Enum {
+    fn is_fixed_size(&self, ast: &Ast) -> bool {
+        if let Some(typeref) = &self.underlying {
+            let underlying_id = typeref.definition.unwrap();
+            let underlying_type = ast.resolve_index(underlying_id).as_type().unwrap();
+            return underlying_type.is_fixed_size(ast);
+        }
+        true
+    }
+}
 
 #[derive(Clone, Debug)]
 pub enum ReturnType {
@@ -279,7 +307,11 @@ impl Sequence {
     }
 }
 
-impl Type for Sequence {}
+impl Type for Sequence {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Dictionary {
@@ -294,7 +326,11 @@ impl Dictionary {
     }
 }
 
-impl Type for Dictionary {}
+impl Type for Dictionary {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Primitive {
@@ -337,4 +373,11 @@ impl Element for Primitive {
     }
 }
 
-impl Type for Primitive {}
+impl Type for Primitive {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        match self {
+            Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String => false,
+            _ => true,
+        }
+    }
+}

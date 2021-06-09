@@ -99,11 +99,9 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
         }
         TypeContext::Outgoing => {
             let mut container_type = "global::System.Collections.Generic.IEnumerable";
-            // If the underlying type is a fixed size primitive, we map to `ReadOnlyMemory` instead.
-            if let Node::Primitive(_, primitive) = element_type {
-                if *primitive != Primitive::String {
-                    container_type = "global::System.ReadOnlyMemory";
-                }
+            // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
+            if element_type.as_type().unwrap().is_fixed_size(ast) {
+                container_type = "global::System.ReadOnlyMemory";
             }
             format!(
                 "{}<{}>",
