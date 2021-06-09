@@ -1,9 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+// TODO split into SliceFile and Util files! No need to keep together!
+
 use crate::cs_util::*;
-use slice::ast::Ast;
+use slice::ref_from_node;
+use slice::ast::{Ast, Node};
 use slice::grammar::*;
-use slice::util::SliceFile;
+use slice::util::{SliceFile, TypeContext};
 use slice::visitor::Visitor;
 use slice::writer::Writer;
 use std::io;
@@ -72,12 +75,39 @@ impl Visitor for CsWriter {
         self.output.write_line_seperator();
     }
 
+    fn visit_operation_start(&mut self, operation: &Operation, _: usize, ast: &Ast) {
+        let mut parameters_string = String::new();
+        for id in operation.parameters.iter() {
+            let parameter = ref_from_node!(Node::Member, ast, *id);
+            let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
+            parameters_string += format!(
+                "{} {}, ",
+                type_to_string(data_type, ast, TypeContext::Outgoing),
+                parameter.identifier(),
+            ).as_str();
+        }
+        // Remove the trailing comma and space.
+        parameters_string.truncate(parameters_string.len() - 2);
+
+        let content = format!(
+            "\npublic {} {}({});",
+            return_type_to_string(&operation.return_type, ast, TypeContext::Outgoing),
+            operation.identifier(),
+            parameters_string,
+        );
+        self.output.write_all(content.as_str());
+        self.output.write_line_seperator();
+    }
+
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
         let content = format!("\npublic enum {}", enum_def.identifier());
         self.output.write_all(content.as_str());
         if let Some(underlying) = &enum_def.underlying {
             let node = ast.resolve_index(*underlying.definition.as_ref().unwrap());
-            let underlying_type_string = format!(" : {}", type_to_string(node, ast));
+            let underlying_type_string = format!(
+                " : {}",
+                type_to_string(node, ast, TypeContext::Nested),
+            );
             self.output.write_all(underlying_type_string.as_str());
         } else {
             self.output.write_all(" : int")
@@ -98,9 +128,9 @@ impl Visitor for CsWriter {
         self.output.write_all(content.as_str());
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember, _: usize, ast: &Ast) {
+    fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
-        let type_string = type_to_string(node, ast);
+        let type_string = type_to_string(node, ast, TypeContext::DataMember);
 
         let content = format!("\n{} {};", type_string, data_member.identifier());
         self.output.write_all(content.as_str());

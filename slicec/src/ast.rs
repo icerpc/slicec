@@ -13,8 +13,9 @@ pub enum Node {
     Struct(usize, Struct),
     Interface(usize, Interface),
     Enum(usize, Enum),
+    Operation(usize, Operation),
+    Member(usize, Member),
     Enumerator(usize, Enumerator),
-    DataMember(usize, DataMember),
     Sequence(usize, Sequence),
     Dictionary(usize, Dictionary),
     Primitive(usize, Primitive),
@@ -28,8 +29,9 @@ impl Node {
             Self::Struct(_, struct_def)       => struct_def,
             Self::Interface(_, interface_def) => interface_def,
             Self::Enum(_, enum_def)           => enum_def,
+            Self::Operation(_, operation)     => operation,
+            Self::Member(_, member)           => member,
             Self::Enumerator(_, enumerator)   => enumerator,
-            Self::DataMember(_, data_member)  => data_member,
             Self::Sequence(_, sequence)       => sequence,
             Self::Dictionary(_, dictionary)   => dictionary,
             Self::Primitive(_, primitive)     => primitive,
@@ -44,8 +46,9 @@ impl Node {
             Self::Struct(_, struct_def)       => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
             Self::Enum(_, enum_def)           => Some(enum_def),
+            Self::Operation(_, operation)     => Some(operation),
+            Self::Member(_, member)           => Some(member),
             Self::Enumerator(_, enumerator)   => Some(enumerator),
-            Self::DataMember(_, data_member)  => Some(data_member),
             _ => None,
         }
     }
@@ -90,7 +93,7 @@ macro_rules! ref_from_node {
 /// Otherwise this panics.
 #[macro_export]
 macro_rules! mut_ref_from_node {
-    ($a:path, $b:expr, $c:expr) => {
+    ($a:path, $b:expr, $c:expr) => {{
         let resolved = $b.resolve_index_mut($c);
         if let $a(_, element) = resolved {
             element
@@ -102,7 +105,7 @@ macro_rules! mut_ref_from_node {
                 stringify!($a),
             );
         }
-    };
+    }};
 }
 
 /// This trait provides a conversion method to simplify wrapping an element in a node.
@@ -127,8 +130,9 @@ implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(Enum, Node::Enum);
+implement_into_node_for!(Operation, Node::Operation);
+implement_into_node_for!(Member, Node::Member);
 implement_into_node_for!(Enumerator, Node::Enumerator);
-implement_into_node_for!(DataMember, Node::DataMember);
 implement_into_node_for!(Sequence, Node::Sequence);
 implement_into_node_for!(Dictionary, Node::Dictionary);
 implement_into_node_for!(Primitive, Node::Primitive);

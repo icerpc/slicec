@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ref_from_node;
+use crate::ast::{Ast, Node};
 use crate::util::Location;
 
 /// The lowest base trait in the compiler, which all symbols and types implement.
@@ -21,15 +23,17 @@ implement_element_for!(Module, "module");
 implement_element_for!(Struct, "struct");
 implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
+implement_element_for!(ReturnType, "return type");
+implement_element_for!(Operation, "operation");
+// Member has it's own custom implementation of Element which depends on it's member type.
 implement_element_for!(Enumerator, "enumerator");
-implement_element_for!(DataMember, "data member");
 implement_element_for!(Identifier, "identifier");
 implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
 // Primitive has it's own custom implementation of Element which returns the primitive's type name.
 
-/// Symbols represent elements that are written in the slice file.
+/// Symbols represent elements of the actual source code written in the slice file.
 pub trait Symbol : Element {
     fn location(&self) -> &Location;
 }
@@ -48,8 +52,10 @@ implement_symbol_for!(Module);
 implement_symbol_for!(Struct);
 implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
+// ReturnType has it's own custom implementation of Symbol, since it's an enum instead of a struct.
+implement_symbol_for!(Operation);
+implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
-implement_symbol_for!(DataMember);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
 
@@ -72,11 +78,14 @@ implement_named_symbol_for!(Module);
 implement_named_symbol_for!(Struct);
 implement_named_symbol_for!(Interface);
 implement_named_symbol_for!(Enum);
+implement_named_symbol_for!(Operation);
+implement_named_symbol_for!(Member);
 implement_named_symbol_for!(Enumerator);
-implement_named_symbol_for!(DataMember);
 
 /// Base trait that all elements representing types implement.
-pub trait Type {}
+pub trait Type {
+    fn is_fixed_size(&self, ast: &Ast) -> bool;
+}
 
 #[derive(Clone, Debug)]
 pub struct Module {
@@ -106,22 +115,38 @@ impl Struct {
     }
 }
 
-impl Type for Struct {}
+impl Type for Struct {
+    fn is_fixed_size(&self, ast: &Ast) -> bool {
+        for id in &self.contents {
+            let member = ref_from_node!(Node::Member, ast, *id);
+            let data_type = ast.resolve_index(member.data_type.definition.unwrap()).as_type();
+            if !data_type.unwrap().is_fixed_size(ast) {
+                return false;
+            }
+        }
+        true
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Interface {
     pub identifier: Identifier,
+    pub operations: Vec<usize>,
     pub scope: Option<String>,
     pub location: Location,
 }
 
 impl Interface {
-    pub fn new(identifier: Identifier, location: Location) -> Self {
-        Interface { identifier, scope: None, location }
+    pub fn new(identifier: Identifier, operations: Vec<usize>, location: Location) -> Self {
+        Interface { identifier, operations, scope: None, location }
     }
 }
 
-impl Type for Interface {}
+impl Type for Interface {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Enum {
@@ -145,7 +170,90 @@ impl Enum {
     }
 }
 
-impl Type for Enum {}
+impl Type for Enum {
+    fn is_fixed_size(&self, ast: &Ast) -> bool {
+        if let Some(typeref) = &self.underlying {
+            let underlying_id = typeref.definition.unwrap();
+            let underlying_type = ast.resolve_index(underlying_id).as_type().unwrap();
+            return underlying_type.is_fixed_size(ast);
+        }
+        true
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum ReturnType {
+    Void(Location),
+    Single(TypeRef, Location),
+    Tuple(Vec<usize>, Location),
+}
+
+impl Symbol for ReturnType {
+    fn location(&self) -> &Location {
+        match self {
+            Self::Void(location)      => location,
+            Self::Single(_, location) => location,
+            Self::Tuple(_, location)  => location,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Operation {
+    pub return_type: ReturnType,
+    pub parameters: Vec<usize>,
+    pub identifier: Identifier,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Operation {
+    pub fn new(
+        return_type: ReturnType,
+        identifier: Identifier,
+        parameters: Vec<usize>,
+        location: Location
+    ) -> Self {
+        Operation { return_type, parameters, identifier, scope: None, location }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Member {
+    pub data_type: TypeRef,
+    pub identifier: Identifier,
+    pub member_type: MemberType,
+    pub scope: Option<String>,
+    pub location: Location,
+}
+
+impl Member {
+    pub fn new(
+        data_type: TypeRef,
+        identifier: Identifier,
+        member_type: MemberType,
+        location: Location,
+    ) -> Self {
+        Member { data_type, identifier, member_type, scope: None, location }
+    }
+}
+
+impl Element for Member {
+    fn kind(&self) -> &'static str {
+        match self.member_type {
+            MemberType::DataMember    => "data member",
+            MemberType::Parameter     => "parameter",
+            MemberType::ReturnElement => "return element",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum MemberType {
+    DataMember,
+    Parameter,
+    ReturnElement,
+}
 
 #[derive(Clone, Debug)]
 pub struct Enumerator {
@@ -158,20 +266,6 @@ pub struct Enumerator {
 impl Enumerator {
     pub fn new(identifier: Identifier, value: i64, location: Location) -> Self {
         Enumerator { identifier, value, scope: None, location }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct DataMember {
-    pub data_type: TypeRef,
-    pub identifier: Identifier,
-    pub scope: Option<String>,
-    pub location: Location,
-}
-
-impl DataMember {
-    pub fn new(data_type: TypeRef, identifier: Identifier, location: Location) -> Self {
-        DataMember { data_type, identifier, scope: None, location }
     }
 }
 
@@ -213,7 +307,11 @@ impl Sequence {
     }
 }
 
-impl Type for Sequence {}
+impl Type for Sequence {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Dictionary {
@@ -228,9 +326,13 @@ impl Dictionary {
     }
 }
 
-impl Type for Dictionary {}
+impl Type for Dictionary {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        false
+    }
+}
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Primitive {
     Bool,
     Byte,
@@ -271,4 +373,11 @@ impl Element for Primitive {
     }
 }
 
-impl Type for Primitive {}
+impl Type for Primitive {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
+        match self {
+            Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String => false,
+            _ => true,
+        }
+    }
+}

@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::Ast;
+use crate::mut_ref_from_node;
+use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
@@ -166,8 +167,8 @@ impl SliceParser {
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
-            [interface_start(interface_start)] => {
-                Interface::new(interface_start.0, interface_start.1)
+            [interface_start(interface_start), operation(operations)..] => {
+                Interface::new(interface_start.0, operations.collect(), interface_start.1)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -202,13 +203,98 @@ impl SliceParser {
         Ok(ast.add_element(enum_def))
     }
 
+    // Parses an operation's return type. There are 3 possible syntaxes for a return type:
+    //   A void return type, specified by the `void` keyword.
+    //   A single unnamed return type, specified by a typename.
+    //   A return tuple, specified as a list of named elements enclosed in parenthesis.
+    fn return_type(input: PestNode) -> PestResult<ReturnType> {
+        let location = from_span(&input);
+        Ok(match_nodes!(input.into_children();
+            [void_kw(_)] => {
+                ReturnType::Void(location)
+            },
+            [typename(data_type)] => {
+                ReturnType::Single(data_type, location)
+            },
+            [return_tuple(tuple)] => {
+                ReturnType::Tuple(tuple, location)
+            },
+        ))
+    }
+
+    // Parses a return type that is written in return tuple syntax.
+    fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
+        Ok(match_nodes!(input.children();
+            // Return tuple elements and parameters have the same syntax, so we re-use the parsing
+            // for parameter lists, then change their member type here, after the fact.
+            [parameter_list(return_elements)] => {
+                let ast = &mut input.user_data().borrow_mut().ast;
+                for id in return_elements.iter() {
+                    let return_element = mut_ref_from_node!(Node::Member, ast, *id);
+                    return_element.member_type = MemberType::ReturnElement;
+                }
+                return_elements
+            },
+        ))
+    }
+
+    fn operation(input: PestNode) -> PestResult<usize> {
+        let location = from_span(&input);
+        let operation = match_nodes!(input.children();
+            [return_type(return_type), identifier(identifier)] => {
+                Operation::new(return_type, identifier, Vec::new(), location)
+            },
+            [return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
+                Operation::new(return_type, identifier, parameters, location)
+            },
+        );
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_element(operation))
+    }
+
+    fn data_member(input: PestNode) -> PestResult<usize> {
+        let location = from_span(&input);
+        let data_member = match_nodes!(input.children();
+            [typename(data_type), identifier(identifier)] => {
+                Member::new(data_type, identifier, MemberType::DataMember, location)
+            },
+        );
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_element(data_member))
+    }
+
+    fn parameter_list(input: PestNode) -> PestResult<Vec<usize>> {
+        Ok(match_nodes!(input.into_children();
+            [parameter(parameter_id)] => {
+                vec![parameter_id]
+            },
+            [parameter(parameter_id), parameter_list(mut list)] => {
+                // The parameter comes before the parameter_list when parsing, so we have to
+                // insert the new parameter at the front of the list.
+                list.insert(0, parameter_id);
+                list
+            },
+        ))
+    }
+
+    fn parameter(input: PestNode) -> PestResult<usize> {
+        let location = from_span(&input);
+        let parameter = match_nodes!(input.children();
+            [typename(data_type), identifier(identifier)] => {
+                Member::new(data_type, identifier, MemberType::Parameter, location)
+            },
+        );
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_element(parameter))
+    }
+
     fn enumerator_list(input: PestNode) -> PestResult<Vec<usize>> {
         Ok(match_nodes!(input.into_children();
             [enumerator(enumerator_id)] => {
                 vec![enumerator_id]
             },
             [enumerator(enumerator_id), enumerator_list(mut list)] => {
-                // The enumerator comes before the enumerator list when parsing, so we have to
+                // The enumerator comes before the enumerator_list when parsing, so we have to
                 // insert the new enumerator at the front of the list.
                 list.insert(0, enumerator_id);
                 list
@@ -233,17 +319,6 @@ impl SliceParser {
         let parser_data = &mut input.user_data().borrow_mut();
         parser_data.current_enum_value = next_enum_value + 1;
         Ok(parser_data.ast.add_element(enumerator_def))
-    }
-
-    fn data_member(input: PestNode) -> PestResult<usize> {
-        let location = from_span(&input);
-        let data_member = match_nodes!(input.children();
-            [typename(data_type), identifier(identifier)] => {
-                DataMember::new(data_type, identifier, location)
-            },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(data_member))
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
@@ -374,6 +449,10 @@ impl SliceParser {
     }
 
     fn dictionary_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn void_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
