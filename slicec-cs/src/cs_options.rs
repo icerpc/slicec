@@ -16,6 +16,6 @@ pub struct CsOptions {
     pub slice_options: SliceOptions,
 }
 
-/// Short description of slicec-cs that is displayed in it's help dialogue.
+/// Short description of slicec-cs that is displayed in its help dialogue.
 const DESCRIPTION: &str = "The slice compiler for C#.
                            Generates C# code from Slice files for use with icerpc.";

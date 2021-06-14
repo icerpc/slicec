@@ -125,7 +125,7 @@ impl ErrorHandler {
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for error_holder in mem::take(&mut self.errors).into_iter() {
-            // Unwrap the error into it's fields, and get it's error severity prefix.
+            // Unwrap the error into its fields, and get its error severity prefix.
             let (mut message, location, prefix) = match error_holder {
                 ErrorHolder::Error(error)   => { (error.message, error.location, "error: ") },
                 ErrorHolder::Warning(error) => { (error.message, error.location, "warning: ") },
@@ -135,7 +135,7 @@ impl ErrorHandler {
             message.insert_str(0, prefix);
 
             if let Some(loc) = location {
-                // Specify the location where the error starts on it's own line after the message.
+                // Specify the location where the error starts on its own line after the message.
                 message = format!(
                     "{}\n@ '{}' ({},{}):\n",
                     message,

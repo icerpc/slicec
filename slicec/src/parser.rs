@@ -86,7 +86,7 @@ impl SliceParser {
     fn parse_file(&mut self, file: &str, is_source: bool) -> Result<SliceFile, String> {
         // We use an explicit scope to ensure the mutable borrow is dropped before the parser starts running.
         {
-            // Mutably borrow the ParserData struct, to set it's current file.
+            // Mutably borrow the ParserData struct, to set its current file.
             let data = &mut self.user_data.borrow_mut();
             data.current_file = file.to_owned();
         }

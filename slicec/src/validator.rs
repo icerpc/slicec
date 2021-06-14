@@ -21,11 +21,11 @@ impl<'a> Validator<'a> {
         Validator { error_handler }
     }
 
-    /// Checks the underlying type of an enum, and computes the lower and upper bounds that it's
+    /// Checks the underlying type of an enum, and computes the lower and upper bounds that its
     /// enumerator's values can be between. If the enum has an allowed type, it returns the bounds
     /// as a tuple of (lower, upper), but if the enum has a disallowed type it returns an error.
     fn get_enum_bounds(enum_def: &Enum, ast: &Ast) -> Result<(i64, i64), Error> {
-        // By default, if an enum doesn't have an underlying type, it's bounds are the same as u32.
+        // By default, if an enum doesn't have an underlying type, its bounds are the same as u32.
         let mut lower_bound: i64 = 0i64;
         let mut upper_bound: i64 = 4_294_967_295i64;
 
@@ -142,7 +142,7 @@ impl<'a> Visitor for Validator<'a> {
         if let ReturnType::Tuple(tuple, _) = &operation.return_type {
             if tuple.len() < 2 {
                 let error_message = format!(
-                    "Operation '{}' has too few elements in it's return tuple.\nReturn tuples must \
+                    "Operation '{}' has too few elements in its return tuple.\nReturn tuples must \
                      have at least 2 elements. Consider using a single return type instead.",
                     operation.identifier(),
                 );

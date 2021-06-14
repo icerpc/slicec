@@ -111,7 +111,7 @@ macro_rules! mut_ref_from_node {
 /// This trait provides a conversion method to simplify wrapping an element in a node.
 /// Only elements implementing this trait can be stored in nodes, and hence the AST vector.
 pub(crate) trait IntoNode {
-    /// Wraps `self` into a node that stores it and it's index in the AST.
+    /// Wraps `self` into a node that stores it and its index in the AST.
     fn into_node(self, index: usize) -> Node;
 }
 
@@ -190,14 +190,14 @@ impl Ast {
     }
 
     /// Wraps the provided Primitive in a node and moves it into the AST vector.
-    /// This method caches and returns it's index. If the primitive was already added to the AST
-    /// instead of re-adding it, the value is dropped and it's cached index is returned instead.
+    /// This method caches and returns its index. If the primitive was already added to the AST,
+    /// instead of re-adding it, the value is dropped and its cached index is returned instead.
     /// This prevents excessive copies of primitives being in the AST, when they're all identical.
     pub(crate) fn add_primitive(&mut self, primitive: Primitive) -> usize {
         match self.primitive_cache.get(&primitive) {
             Some(index) => *index,
             None => {
-                // Add the primitive into the AST and cache it's index.
+                // Add the primitive into the AST and cache its index.
                 let index = self.add_element(primitive);
                 self.primitive_cache.insert(primitive, index);
                 index

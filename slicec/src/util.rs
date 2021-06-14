@@ -13,13 +13,13 @@ pub struct Location {
     pub file: String,
 }
 
-/// Stores information about a single slice file, and it's contents.
+/// Stores information about a single slice file, and its contents.
 #[derive(Debug)]
 pub struct SliceFile {
-    /// The filename of the slice file (without it's '.ice' extension).
+    /// The filename of the slice file (without its '.ice' extension).
     pub filename: String,
     /// The path of the slice file, relative to where the compiler was run from
-    /// (including it's '.ice' extension).
+    /// (including its '.ice' extension).
     pub relative_path: String,
     /// The raw text contained in the slice file.
     pub raw_text: String,
@@ -60,7 +60,7 @@ impl SliceFile {
             }
         }
 
-        // Extract the name of the slice file without it's extension.
+        // Extract the name of the slice file without its extension.
         let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
 
         SliceFile { filename, relative_path, raw_text, contents, is_source, line_positions }

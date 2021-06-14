@@ -8,7 +8,7 @@ use crate::util::SliceFile;
 ///
 /// These functions should never be called directly by code outside of this module.
 /// Instead, visiting should be done by calling `visit_with` on grammar symbols, which will
-/// automatically call the symbol's `x_start` and `x_end` visit functions, and visit through it's
+/// automatically call the symbol's `x_start` and `x_end` visit functions, and visit through its
 /// contents (if any).
 // Keep parameter names for doc generation, even if they're unused in the default implementations.
 #[allow(unused_variables)]

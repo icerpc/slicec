@@ -20,7 +20,7 @@ pub(crate) struct TableBuilder<'a> {
     lookup_table: HashMap<String, usize>,
     /// Pest parses bottom-up, so we can't know enclosing scopes while parsing. Instead this builder
     /// visits elements and wherever there's an empty scope field, it computes the scope and stores
-    /// a patch for it here. Each element is a tuple of the element's AST index and it's scope.
+    /// a patch for it here. Each element is a tuple of the element's AST index and its scope.
     /// The patches can't be applied in place since the builder visits elements immutably.
     scope_patches: Vec<(usize, String)>,
     /// Reference to the compiler's error handler so the builder can output errors.
@@ -51,7 +51,7 @@ impl<'a> TableBuilder<'a> {
     }
 
     /// Computes the fully scoped identifier for the provided element and stores an entry for it
-    /// (and it's index in the AST) in the lookup table.
+    /// (and its index in the AST) in the lookup table.
     fn add_table_entry(&mut self, element: &impl NamedSymbol, index: usize, ast: &Ast) {
         let scoped_identifier = self.current_scope.join("::") + "::" + element.identifier();
 

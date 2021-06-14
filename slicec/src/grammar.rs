@@ -25,13 +25,13 @@ implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
 implement_element_for!(ReturnType, "return type");
 implement_element_for!(Operation, "operation");
-// Member has it's own custom implementation of Element which depends on it's member type.
+// Member has its own custom implementation of Element which depends on its member type.
 implement_element_for!(Enumerator, "enumerator");
 implement_element_for!(Identifier, "identifier");
 implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
-// Primitive has it's own custom implementation of Element which returns the primitive's type name.
+// Primitive has its own custom implementation of Element which returns the primitive's type name.
 
 /// Symbols represent elements of the actual source code written in the slice file.
 pub trait Symbol : Element {
@@ -52,7 +52,7 @@ implement_symbol_for!(Module);
 implement_symbol_for!(Struct);
 implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
-// ReturnType has it's own custom implementation of Symbol, since it's an enum instead of a struct.
+// ReturnType has its own custom implementation of Symbol, since it's an enum instead of a struct.
 implement_symbol_for!(Operation);
 implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
