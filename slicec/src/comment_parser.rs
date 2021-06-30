@@ -57,21 +57,18 @@ impl CommentParser {
                     current_string.push('\n');
                 }
                 Rule::param_field => {
-                    // Split the field into it's subtokens.
-                    let subtokens = token.into_inner().collect::<Vec<PestPair>>();
-
                     // Iterate through the subtokens. Any of them can be missing, but they will always be in
                     // the following order when present: space, identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
-                    for subtoken in subtokens {
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
                         match subtoken.as_rule() {
                             Rule::space => {
                                 has_space = true;
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace in between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
@@ -100,21 +97,18 @@ impl CommentParser {
                     }
                 }
                 Rule::return_field => {
-                    // Split the field into it's subtokens.
-                    let subtokens = token.into_inner().collect::<Vec<PestPair>>();
-
                     // Iterate through the subtokens. Any of them can be missing, but they will always be in
                     // the following order when present: space, message.
                     let mut has_space = false;
                     let mut has_message = false;
-                    for subtoken in subtokens {
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
                         match subtoken.as_rule() {
                             Rule::space => {
                                 has_space = true;
                             }
                             Rule::message => {
                                 has_message = true;
-                                // Issue an error if there's no whitespace in between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
@@ -141,21 +135,18 @@ impl CommentParser {
                     }
                 }
                 Rule::throws_field => {
-                    // Split the field into it's subtokens.
-                    let subtokens = token.into_inner().collect::<Vec<PestPair>>();
-
                     // Iterate through the subtokens. Any of them can be missing, but they will always be in
                     // the following order when present: space, identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
-                    for subtoken in subtokens {
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
                         match subtoken.as_rule() {
                             Rule::space => {
                                 has_space = true;
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace in between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
@@ -184,21 +175,18 @@ impl CommentParser {
                     }
                 }
                 Rule::see_field => {
-                    // Split the field into it's subtokens.
-                    let subtokens = token.into_inner().collect::<Vec<PestPair>>();
-
                     // Iterate through the subtokens. Any of them can be missing, but they will always be in
                     // the following order when present: space, identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
-                    for subtoken in subtokens {
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
                         match subtoken.as_rule() {
                             Rule::space => {
                                 has_space = true;
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace in between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
@@ -227,23 +215,17 @@ impl CommentParser {
                     }
                 }
                 Rule::invalid_field => {
-                    // Split the field into it's subtokens.
-                    let subtokens = token.into_inner().collect::<Vec<PestPair>>();
-
                     // Iterate through the subtokens.
                     let mut has_tag = false;
-                    for subtoken in subtokens {
-                        match subtoken.as_rule() {
-                            Rule::identifier => {
-                                has_tag = true;
-                                // Issue an error for the unknown field tag.
-                                // TODO issue the error.
-                            }
-                            _ => {}
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
+                        if let Rule::identifier = subtoken.as_rule() {
+                            has_tag = true;
+                            // Issue an error for the unknown field tag.
+                            // TODO issue the error.
                         }
                     }
 
-                    // Issue an error if the field didn't have a tag to it.
+                    // Issue an error if the field didn't have a tag name.
                     if !has_tag {
                         // TODO issue an error.
                     }
