@@ -2,6 +2,7 @@
 
 use crate::mut_ref_from_node;
 use crate::ast::{Ast, Node};
+use crate::comment_parser::CommentParser;
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
@@ -131,8 +132,8 @@ impl SliceParser {
 
     fn module_def(input: PestNode) -> PestResult<usize> {
         let module_def = match_nodes!(input.children();
-            [module_start(module_start), definition(contents)..] => {
-                Module::new(module_start.0, contents.collect(), module_start.1)
+            [doc_comment(comment), module_start(module_start), definition(contents)..] => {
+                Module::new(module_start.0, contents.collect(), module_start.1, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -149,8 +150,8 @@ impl SliceParser {
 
     fn struct_def(input: PestNode) -> PestResult<usize> {
         let struct_def = match_nodes!(input.children();
-            [struct_start(struct_start), data_member(members)..] => {
-                Struct::new(struct_start.0, members.collect(), struct_start.1)
+            [doc_comment(comment), struct_start(struct_start), data_member(members)..] => {
+                Struct::new(struct_start.0, members.collect(), struct_start.1, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -167,8 +168,8 @@ impl SliceParser {
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
-            [interface_start(interface_start), operation(operations)..] => {
-                Interface::new(interface_start.0, operations.collect(), interface_start.1)
+            [doc_comment(comment), interface_start(interface_start), operation(operations)..] => {
+                Interface::new(interface_start.0, operations.collect(), interface_start.1, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -192,11 +193,25 @@ impl SliceParser {
 
     fn enum_def(input: PestNode) -> PestResult<usize> {
         let enum_def = match_nodes!(input.children();
-            [enum_start(enum_start), enumerator_list(enumerators)] => {
-                Enum::new(enum_start.1, enumerators, enum_start.0, enum_start.3, enum_start.2)
+            [doc_comment(comment), enum_start(enum_start), enumerator_list(enumerators)] => {
+                Enum::new(
+                    enum_start.1,
+                    enumerators,
+                    enum_start.0,
+                    enum_start.3,
+                    enum_start.2,
+                    comment,
+                )
             },
-            [enum_start(enum_start)] => {
-                Enum::new(enum_start.1, Vec::new(), enum_start.0, enum_start.3, enum_start.2)
+            [doc_comment(comment), enum_start(enum_start)] => {
+                Enum::new(
+                    enum_start.1,
+                    Vec::new(),
+                    enum_start.0,
+                    enum_start.3,
+                    enum_start.2,
+                    comment,
+                )
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -241,11 +256,11 @@ impl SliceParser {
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let operation = match_nodes!(input.children();
-            [return_type(return_type), identifier(identifier)] => {
-                Operation::new(return_type, identifier, Vec::new(), location)
+            [doc_comment(comment), return_type(return_type), identifier(identifier)] => {
+                Operation::new(return_type, identifier, Vec::new(), location, comment)
             },
-            [return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
-                Operation::new(return_type, identifier, parameters, location)
+            [doc_comment(comment), return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
+                Operation::new(return_type, identifier, parameters, location, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -255,8 +270,8 @@ impl SliceParser {
     fn data_member(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
-            [typename(data_type), identifier(identifier)] => {
-                Member::new(data_type, identifier, MemberType::DataMember, location)
+            [doc_comment(comment), typename(data_type), identifier(identifier)] => {
+                Member::new(data_type, identifier, MemberType::DataMember, location, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -280,8 +295,8 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
-            [typename(data_type), identifier(identifier)] => {
-                Member::new(data_type, identifier, MemberType::Parameter, location)
+            [doc_comment(comment), typename(data_type), identifier(identifier)] => {
+                Member::new(data_type, identifier, MemberType::Parameter, location, comment)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -307,12 +322,12 @@ impl SliceParser {
         let mut next_enum_value = input.user_data().borrow().current_enum_value;
 
         let enumerator_def = match_nodes!(input.children();
-            [identifier(ident)] => {
-                Enumerator::new(ident, next_enum_value, location)
+            [doc_comment(comment), identifier(ident)] => {
+                Enumerator::new(ident, next_enum_value, location, comment)
             },
-            [identifier(ident), integer(value)] => {
+            [doc_comment(comment), identifier(ident), integer(value)] => {
                 next_enum_value = value;
-                Enumerator::new(ident, value, location)
+                Enumerator::new(ident, value, location, comment)
             },
         );
 
@@ -426,6 +441,31 @@ impl SliceParser {
                 ))
             }
         }
+    }
+
+    fn doc_comment(input: PestNode) -> PestResult<Option<DocComment>> {
+        let location = from_span(&input);
+        Ok(match_nodes!(input.into_children();
+            [] => {
+                None
+            },
+            [line_doc_comment(comments)..] => {
+                // Merge all the line comments together.
+                let combined = comments.collect::<Vec<String>>().join("\n");
+                Some(CommentParser::parse_doc_comment(&combined, location))
+            },
+            [block_doc_comment(comment)] => {
+                Some(CommentParser::parse_doc_comment(&comment, location))
+            }
+        ))
+    }
+
+    fn line_doc_comment(input: PestNode) -> PestResult<String> {
+        Ok(input.as_str().to_owned())
+    }
+
+    fn block_doc_comment(input: PestNode) -> PestResult<String> {
+        Ok(input.as_str().to_owned())
     }
 
     fn module_kw(input: PestNode) -> PestResult<()> {

@@ -8,6 +8,7 @@ pub mod util;
 pub mod visitor;
 pub mod writer;
 mod parser;
+mod comment_parser;
 mod patchers;
 mod validator;
 
