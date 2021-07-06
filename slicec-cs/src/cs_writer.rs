@@ -28,67 +28,42 @@ impl CsWriter {
     fn write_comment(&mut self, named_symbol: &dyn NamedSymbol) {
         if let Some(comment) = &named_symbol.comment() {
             if !comment.message.is_empty() {
-                let mut summary_string = "/// <summary>".to_owned();
-                // Iterate through each line of the comment, and at the end of each line, append a
-                // newline followed by 3 forward slashes to continue the comment.
-                for line in comment.message.lines() {
-                    summary_string += line;
-                    summary_string += "\n/// ";
-                }
-                // Remove the trailing newline and slashes, and append a closing summary tag.
-                summary_string.truncate(summary_string.len() - 5);
-                summary_string += "</summary>\n";
-                self.output.write_all(&summary_string);
+                write_comment_field("summary", &comment.message, "");
             }
 
             for param in &comment.params {
                 let (identifier, description) = param;
-                let mut param_string = format!("/// <param name=\"{}\">", identifier);
-                if !description.is_empty() {
-                    // Iterate through each line of the description, and at the end of each line,
-                    // append a newline followed by 3 forward slashes to continue the comment.
-                    for line in description.lines() {
-                        param_string += line;
-                        param_string += "\n/// ";
-                    }
-                    // Remove the trailing newline and slashes
-                    param_string.truncate(param_string.len() - 5);
-                }
-                param_string += "</param>\n";
-                self.output.write_all(&param_string);
+                let attribute = format!(" name=\"{}\"", &identifier);
+                write_comment_field("param", &description, &attribute);
             }
 
             if let Some(returns) = &comment.returns {
-                let mut returns_string = "/// <returns>".to_owned();
-                // Iterate through each line of the return message, and at the end of each line,
-                // append a newline followed by 3 forward slashes to continue the comment.
-                for line in returns.lines() {
-                    returns_string += line;
-                    returns_string += "\n/// ";
-                }
-                // Remove the trailing newline and slashes, and append a closing returns tag.
-                returns_string.truncate(returns_string.len() - 5);
-                returns_string += "</returns>\n";
-                self.output.write_all(&returns_string);
+                write_comment_field("returns", &returns, "");
             }
 
             for exception in &comment.throws {
                 let (exception, description) = exception;
-                let mut throws_string = format!("/// <exceptions cref=\"{}\">", exception);
-                if !description.is_empty() {
-                    // Iterate through each line of the description, and at the end of each line,
-                    // append a newline followed by 3 forward slashes to continue the comment.
-                    for line in description.lines() {
-                        throws_string += line;
-                        throws_string += "\n/// ";
-                    }
-                    // Remove the trailing newline and slashes
-                    throws_string.truncate(throws_string.len() - 5);
-                }
-                throws_string += "</exceptions>\n";
-                self.output.write_all(&throws_string);
+                let attribute = format!(" cref=\"{}\"", &exception);
+                write_comment_field("exceptions", &description, &attribute);
             }
         }
+    }
+
+    fn write_comment_field(&mut self, field_name: &str, content: &str, attribute: &str) {
+        let mut field_string = format!("/// <{}{}>", field_name, attribute);
+        if !content.is_empty() {
+            // Iterate through each line of the field's content, and at the end of each line, append a
+            // newline followed by 3 forward slashes to continue the comment.
+            for line in content.lines() {
+                field_string += line;
+                field_string += "\n/// ";
+            }
+            // Remove the trailing newline and slashes by truncating off the last 5 characters.
+            field_string.truncate(field_string.len() - 5);
+        }
+        // Append a closing tag, and write the field.
+        field_string = field_string + "</" + field_name + ">\n";
+        self.output.write_all(&field_string);
     }
 }
 
