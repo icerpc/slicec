@@ -25,22 +25,29 @@ impl CsWriter {
         self.output.close();
     }
 
+    /// Helper method that checks if a named symbol has a comment written on it, and if so, formats
+    /// it as a C# style doc comment and writes it to the underlying output.
     fn write_comment(&mut self, named_symbol: &dyn NamedSymbol) {
+        // If the symbol has a doc comment attached to it, write it's fields to the output.
         if let Some(comment) = &named_symbol.comment() {
+            // Write the comment's summary message if it has one.
             if !comment.message.is_empty() {
                 write_comment_field("summary", &comment.message, "");
             }
 
+            // Write each of the comment's parameter fields.
             for param in &comment.params {
                 let (identifier, description) = param;
                 let attribute = format!(" name=\"{}\"", &identifier);
                 write_comment_field("param", &description, &attribute);
             }
 
+            // Write the comment's returns message if it has one.
             if let Some(returns) = &comment.returns {
                 write_comment_field("returns", &returns, "");
             }
 
+            // Write each of the comment's exception fields.
             for exception in &comment.throws {
                 let (exception, description) = exception;
                 let attribute = format!(" cref=\"{}\"", &exception);
