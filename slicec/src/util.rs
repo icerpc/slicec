@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::grammar::Metadata;
 use std::path::Path;
 
 /// Describes a single position, or a span over two positions in a slice file.
@@ -26,6 +27,8 @@ pub struct SliceFile {
     /// The AST indices of all the top-level definitions contained in the slice file,
     /// in the order they were defined.
     pub contents: Vec<usize>,
+    /// Stores any file metadata defined on the file.
+    pub metadata: Vec<Metadata>,
     /// True if the slice file is a source file (which code should be generated for),
     /// or false if it's a reference file.
     pub is_source: bool,
@@ -36,7 +39,13 @@ pub struct SliceFile {
 
 impl SliceFile {
     /// Creates a new slice file
-    pub(crate) fn new(relative_path: String, raw_text: String, contents: Vec<usize>, is_source: bool) -> Self {
+    pub(crate) fn new(
+        relative_path: String,
+        raw_text: String,
+        contents: Vec<usize>,
+        metadata: Vec<Metadata>,
+        is_source: bool,
+    ) -> Self {
         // Store the starting position of each line the file.
         // Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.
@@ -63,7 +72,7 @@ impl SliceFile {
         // Extract the name of the slice file without its extension.
         let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
 
-        SliceFile { filename, relative_path, raw_text, contents, is_source, line_positions }
+        SliceFile { filename, relative_path, raw_text, contents, metadata, is_source, line_positions }
     }
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.

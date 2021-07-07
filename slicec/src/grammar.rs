@@ -32,6 +32,7 @@ implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
 // Primitive has its own custom implementation of Element which returns the primitive's type name.
+implement_element_for!(Metadata, "metadata");
 implement_element_for!(DocComment, "comment");
 
 /// Symbols represent elements of the actual source code written in the slice file.
@@ -59,11 +60,13 @@ implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
+implement_symbol_for!(Metadata);
 implement_symbol_for!(DocComment);
 
 /// NamedSymbols are symbols that have an identifier attached to them.
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
+    fn metadata(&self) -> &Vec<Metadata>;
     fn comment(&self) -> Option<&DocComment>;
 }
 
@@ -72,6 +75,10 @@ macro_rules! implement_named_symbol_for {
         impl NamedSymbol for $a {
             fn identifier(&self) -> &str {
                 &self.identifier.value
+            }
+
+            fn metadata(&self) -> &Vec<Metadata> {
+                &self.metadata
             }
 
             fn comment(&self) -> Option<&DocComment> {
@@ -100,6 +107,7 @@ pub struct Module {
     pub contents: Vec<usize>,
     pub scope: Option<String>,
     pub location: Location,
+    pub metadata: Vec<Metadata>,
     pub comment: Option<DocComment>,
 }
 
@@ -107,10 +115,11 @@ impl Module {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Module { identifier, contents, scope: None, location, comment }
+        Module { identifier, contents, scope: None, metadata, comment, location }
     }
 }
 
@@ -119,18 +128,20 @@ pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub scope: Option<String>,
+    pub metadata: Vec<Metadata>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Struct {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Struct { identifier, contents, scope: None, location, comment }
+        Struct { identifier, contents, scope: None, metadata, comment, location }
     }
 }
 
@@ -152,18 +163,20 @@ pub struct Interface {
     pub identifier: Identifier,
     pub operations: Vec<usize>,
     pub scope: Option<String>,
+    pub metadata: Vec<Metadata>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Interface {
     pub fn new(
         identifier: Identifier,
         operations: Vec<usize>,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Interface { identifier, operations, scope: None, location, comment }
+        Interface { identifier, operations, scope: None, metadata, comment, location }
     }
 }
 
@@ -180,8 +193,9 @@ pub struct Enum {
     pub is_checked: bool,
     pub underlying: Option<TypeRef>,
     pub scope: Option<String>,
+    pub metadata: Vec<Metadata>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Enum {
@@ -190,10 +204,20 @@ impl Enum {
         contents: Vec<usize>,
         is_checked: bool,
         underlying: Option<TypeRef>,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Enum { identifier, contents, is_checked, underlying, scope: None, location, comment }
+        Enum {
+            identifier,
+            contents,
+            is_checked,
+            underlying,
+            scope: None,
+            metadata,
+            comment,
+            location,
+        }
     }
 }
 
@@ -231,8 +255,9 @@ pub struct Operation {
     pub parameters: Vec<usize>,
     pub identifier: Identifier,
     pub scope: Option<String>,
-    pub location: Location,
+    pub metadata: Vec<Metadata>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Operation {
@@ -240,10 +265,11 @@ impl Operation {
         return_type: ReturnType,
         identifier: Identifier,
         parameters: Vec<usize>,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Operation { return_type, parameters, identifier, scope: None, location, comment }
+        Operation { return_type, parameters, identifier, scope: None, metadata, comment, location }
     }
 }
 
@@ -253,8 +279,9 @@ pub struct Member {
     pub identifier: Identifier,
     pub member_type: MemberType,
     pub scope: Option<String>,
-    pub location: Location,
+    pub metadata: Vec<Metadata>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Member {
@@ -262,10 +289,11 @@ impl Member {
         data_type: TypeRef,
         identifier: Identifier,
         member_type: MemberType,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Member { data_type, identifier, member_type, scope: None, location, comment }
+        Member { data_type, identifier, member_type, scope: None, metadata, comment, location }
     }
 }
 
@@ -291,18 +319,20 @@ pub struct Enumerator {
     pub identifier: Identifier,
     pub value: i64,
     pub scope: Option<String>,
-    pub location: Location,
+    pub metadata: Vec<Metadata>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Enumerator {
     pub fn new(
         identifier: Identifier,
         value: i64,
-        location: Location,
+        metadata: Vec<Metadata>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Enumerator { identifier, value, scope: None, location, comment }
+        Enumerator { identifier, value, scope: None, metadata, comment, location }
     }
 }
 
@@ -417,6 +447,14 @@ impl Type for Primitive {
             _ => true,
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct Metadata {
+    pub prefix: Option<String>,
+    pub directive: String,
+    pub arguments: Vec<String>,
+    pub location: Location,
 }
 
 #[derive(Clone, Debug)]
