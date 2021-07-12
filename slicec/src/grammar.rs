@@ -83,6 +83,8 @@ macro_rules! implement_named_symbol_for {
                 &self.metadata
             }
 
+            /// Checks if the symbol has the specified metadata attribute, and if so, returns it's
+            /// attributes as a vector. If it doesn't, it returns 'None'.
             fn find_metadata(&self, directive: &str) -> Option<&Vec<String>> {
                 for m in &self.metadata {
                     if m.raw_directive == directive {
@@ -92,6 +94,8 @@ macro_rules! implement_named_symbol_for {
                 return None;
             }
 
+            /// Returns true if the symbol has the specified metadata attribute on it,
+            /// and false otherwise.
             fn has_metadata(&self, directive: &str) -> bool {
                 self.find_metadata(directive).is_some()
             }

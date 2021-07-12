@@ -27,7 +27,7 @@ pub struct SliceFile {
     /// The AST indices of all the top-level definitions contained in the slice file,
     /// in the order they were defined.
     pub contents: Vec<usize>,
-    /// Stores any file metadata defined on the file.
+    /// Stores any file metadata defined in the file.
     pub metadata: Vec<Metadata>,
     /// True if the slice file is a source file (which code should be generated for),
     /// or false if it's a reference file.
