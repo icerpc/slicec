@@ -67,6 +67,8 @@ implement_symbol_for!(DocComment);
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
     fn metadata(&self) -> &Vec<Metadata>;
+    fn get_metadata(&self, directive: &str) -> Option<&Vec<String>>;
+    fn has_metadata(&self, directive: &str) -> bool;
     fn comment(&self) -> Option<&DocComment>;
 }
 
@@ -79,6 +81,19 @@ macro_rules! implement_named_symbol_for {
 
             fn metadata(&self) -> &Vec<Metadata> {
                 &self.metadata
+            }
+
+            fn get_metadata(&self, directive: &str) -> Option<&Vec<String>> {
+                for m in &self.metadata {
+                    if m.raw_directive == directive {
+                        return Some(&m.arguments);
+                    }
+                }
+                return None;
+            }
+
+            fn has_metadata(&self, directive: &str) -> bool {
+                self.get_metadata(directive).is_some()
             }
 
             fn comment(&self) -> Option<&DocComment> {
@@ -453,8 +468,22 @@ impl Type for Primitive {
 pub struct Metadata {
     pub prefix: Option<String>,
     pub directive: String,
+    pub raw_directive: String,
     pub arguments: Vec<String>,
     pub location: Location,
+}
+
+impl Metadata {
+    pub fn new(
+        prefix: Option<String>,
+        directive: String,
+        arguments: Vec<String>,
+        location: Location,
+    ) -> Self {
+        // Combine the prefix and directive together to make searching qualified directives easier.
+        let raw_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
+        Metadata { prefix, directive, raw_directive, arguments, location}
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -485,11 +485,11 @@ impl SliceParser {
         Ok(match_nodes!(input.into_children();
             [metadata_directive(metadata)] => {
                 let (prefix, directive) = metadata;
-                Metadata { prefix, directive, arguments: Vec::new(), location }
+                Metadata::new(prefix, directive, Vec::new(), location)
             },
             [metadata_directive(metadata), metadata_arguments(arguments)] => {
                 let (prefix, directive) = metadata;
-                Metadata { prefix, directive, arguments, location }
+                Metadata::new(prefix, directive, arguments, location)
             },
         ))
     }
