@@ -107,8 +107,8 @@ impl SliceParser {
 impl SliceParser {
     fn main(input: PestNode) -> PestResult<(Vec<Metadata>, Vec<usize>)> {
         let module_ids = match_nodes!(input.into_children();
-            [file_metadata(metadata).., module_def(ids).., EOI(_)] => {
-                (metadata.collect(), ids.collect())
+            [file_metadata(metadata), module_def(ids).., EOI(_)] => {
+                (metadata, ids.collect())
             }
         );
         Ok(module_ids)
@@ -459,23 +459,23 @@ impl SliceParser {
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Metadata>, Option<DocComment>)> {
         Ok(match_nodes!(input.into_children();
-            [local_metadata(metadata1).., doc_comment(comment), local_metadata(metadata2)..] => {
-                // Combine the metadata into a single a list.
-                let metadata = metadata1.collect().extend(metadata2);
-                (metadata, comment)
+            [local_metadata(mut metadata1), doc_comment(comment), local_metadata(metadata2)] => {
+                // Combine the metadata into a single a list, by moving the elements of 2 into 1.
+                metadata1.extend(metadata2);
+                (metadata1, comment)
             },
         ))
     }
 
-    fn file_metadata(input: PestNode) -> PestResult<Metadata> {
+    fn file_metadata(input: PestNode) -> PestResult<Vec<Metadata>> {
         Ok(match_nodes!(input.into_children();
-            [metadata(metadata)] => metadata,
+            [metadata(metadata)..] => metadata.collect(),
         ))
     }
 
-    fn local_metadata(input: PestNode) -> PestResult<Metadata> {
+    fn local_metadata(input: PestNode) -> PestResult<Vec<Metadata>> {
         Ok(match_nodes!(input.into_children();
-            [metadata(metadata)] => metadata,
+            [metadata(metadata)..] => metadata.collect(),
         ))
     }
 

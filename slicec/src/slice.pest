@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-main = { SOI ~ file_metadata* ~ module_def* ~ EOI }
+main = { SOI ~ file_metadata ~ module_def* ~ EOI }
 
 definition = { module_def | struct_def | interface_def | enum_def }
 
@@ -61,10 +61,10 @@ primitive = {
     string_kw
 }
 
-prelude = { local_metadata* ~ doc_comment ~ local_metadata* }
+prelude = { local_metadata ~ doc_comment ~ local_metadata }
 
-file_metadata = { "[[" ~ metadata ~ "]]" }
-local_metadata = { "[" ~ metadata ~ "]" }
+file_metadata = { ("[[" ~ metadata ~ "]]")* }
+local_metadata = { ("[" ~ metadata ~ "]")* }
 metadata = { metadata_directive ~ ( "(" ~ metadata_arguments? ~ ")" )? }
 metadata_directive = { metadata_identifier ~ (":" ~ metadata_identifier)? }
 metadata_identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
