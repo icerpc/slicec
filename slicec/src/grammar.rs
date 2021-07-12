@@ -67,7 +67,7 @@ implement_symbol_for!(DocComment);
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
     fn metadata(&self) -> &Vec<Metadata>;
-    fn get_metadata(&self, directive: &str) -> Option<&Vec<String>>;
+    fn find_metadata(&self, directive: &str) -> Option<&Vec<String>>;
     fn has_metadata(&self, directive: &str) -> bool;
     fn comment(&self) -> Option<&DocComment>;
 }
@@ -83,7 +83,7 @@ macro_rules! implement_named_symbol_for {
                 &self.metadata
             }
 
-            fn get_metadata(&self, directive: &str) -> Option<&Vec<String>> {
+            fn find_metadata(&self, directive: &str) -> Option<&Vec<String>> {
                 for m in &self.metadata {
                     if m.raw_directive == directive {
                         return Some(&m.arguments);
@@ -93,7 +93,7 @@ macro_rules! implement_named_symbol_for {
             }
 
             fn has_metadata(&self, directive: &str) -> bool {
-                self.get_metadata(directive).is_some()
+                self.find_metadata(directive).is_some()
             }
 
             fn comment(&self) -> Option<&DocComment> {
