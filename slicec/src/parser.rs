@@ -411,10 +411,10 @@ impl SliceParser {
                 let ast = &mut input.user_data().borrow_mut().ast;
                 type_use.definition = Some(ast.add_element(dictionary));
             },
-            [global_identifier(identifier)] => {
+            [global_identifier(_)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
-            [scoped_identifier(identifier)] => {
+            [scoped_identifier(_)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
         );
@@ -439,21 +439,21 @@ impl SliceParser {
 
     fn primitive(input: PestNode) -> PestResult<Primitive> {
         Ok(match_nodes!(input.into_children();
-            [bool_kw(bool_kw)]         => Primitive::Bool,
-            [byte_kw(byte_kw)]         => Primitive::Byte,
-            [short_kw(short_kw)]       => Primitive::Short,
-            [ushort_kw(ushort_kw)]     => Primitive::UShort,
-            [int_kw(int_kw)]           => Primitive::Int,
-            [uint_kw(uint_kw)]         => Primitive::UInt,
-            [varint_kw(varint_kw)]     => Primitive::VarInt,
-            [varuint_kw(varuint_kw)]   => Primitive::VarUInt,
-            [long_kw(long_kw)]         => Primitive::Long,
-            [ulong_kw(ulong_kw)]       => Primitive::ULong,
-            [varlong_kw(varlong_kw)]   => Primitive::VarLong,
-            [varulong_kw(varulong_kw)] => Primitive::VarULong,
-            [float_kw(float_kw)]       => Primitive::Float,
-            [double_kw(double_kw)]     => Primitive::Double,
-            [string_kw(string_kw)]     => Primitive::String
+            [bool_kw(_)]     => Primitive::Bool,
+            [byte_kw(_)]     => Primitive::Byte,
+            [short_kw(_)]    => Primitive::Short,
+            [ushort_kw(_)]   => Primitive::UShort,
+            [int_kw(_)]      => Primitive::Int,
+            [uint_kw(_)]     => Primitive::UInt,
+            [varint_kw(_)]   => Primitive::VarInt,
+            [varuint_kw(_)]  => Primitive::VarUInt,
+            [long_kw(_)]     => Primitive::Long,
+            [ulong_kw(_)]    => Primitive::ULong,
+            [varlong_kw(_)]  => Primitive::VarLong,
+            [varulong_kw(_)] => Primitive::VarULong,
+            [float_kw(_)]    => Primitive::Float,
+            [double_kw(_)]   => Primitive::Double,
+            [string_kw(_)]   => Primitive::String
         ))
     }
 
