@@ -32,6 +32,7 @@ implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
 // Primitive has its own custom implementation of Element which returns the primitive's type name.
+implement_element_for!(Attribute, "attribute");
 implement_element_for!(DocComment, "comment");
 
 /// Symbols represent elements of the actual source code written in the slice file.
@@ -59,11 +60,15 @@ implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
+implement_symbol_for!(Attribute);
 implement_symbol_for!(DocComment);
 
 /// NamedSymbols are symbols that have an identifier attached to them.
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
+    fn attributes(&self) -> &Vec<Attribute>;
+    fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
+    fn has_attribute(&self, directive: &str) -> bool;
     fn comment(&self) -> Option<&DocComment>;
 }
 
@@ -72,6 +77,27 @@ macro_rules! implement_named_symbol_for {
         impl NamedSymbol for $a {
             fn identifier(&self) -> &str {
                 &self.identifier.value
+            }
+
+            fn attributes(&self) -> &Vec<Attribute> {
+                &self.attributes
+            }
+
+            /// Checks if the symbol has the specified attribute, and if so, returns it's
+            /// arguments as a string vector. If it doesn't, it returns 'None'.
+            fn find_attribute(&self, directive: &str) -> Option<&Vec<String>> {
+                for m in &self.attributes {
+                    if m.qualified_directive == directive {
+                        return Some(&m.arguments);
+                    }
+                }
+                return None;
+            }
+
+            /// Returns true if the symbol has the specified attribute on it,
+            /// and false otherwise.
+            fn has_attribute(&self, directive: &str) -> bool {
+                self.find_attribute(directive).is_some()
             }
 
             fn comment(&self) -> Option<&DocComment> {
@@ -100,6 +126,7 @@ pub struct Module {
     pub contents: Vec<usize>,
     pub scope: Option<String>,
     pub location: Location,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
 }
 
@@ -107,10 +134,11 @@ impl Module {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Module { identifier, contents, scope: None, location, comment }
+        Module { identifier, contents, scope: None, attributes, comment, location }
     }
 }
 
@@ -119,18 +147,20 @@ pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Struct {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Struct { identifier, contents, scope: None, location, comment }
+        Struct { identifier, contents, scope: None, attributes, comment, location }
     }
 }
 
@@ -152,18 +182,20 @@ pub struct Interface {
     pub identifier: Identifier,
     pub operations: Vec<usize>,
     pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Interface {
     pub fn new(
         identifier: Identifier,
         operations: Vec<usize>,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Interface { identifier, operations, scope: None, location, comment }
+        Interface { identifier, operations, scope: None, attributes, comment, location }
     }
 }
 
@@ -180,8 +212,9 @@ pub struct Enum {
     pub is_checked: bool,
     pub underlying: Option<TypeRef>,
     pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
     pub location: Location,
-    pub comment: Option<DocComment>
 }
 
 impl Enum {
@@ -190,10 +223,20 @@ impl Enum {
         contents: Vec<usize>,
         is_checked: bool,
         underlying: Option<TypeRef>,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Enum { identifier, contents, is_checked, underlying, scope: None, location, comment }
+        Enum {
+            identifier,
+            contents,
+            is_checked,
+            underlying,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -231,8 +274,9 @@ pub struct Operation {
     pub parameters: Vec<usize>,
     pub identifier: Identifier,
     pub scope: Option<String>,
-    pub location: Location,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Operation {
@@ -240,10 +284,11 @@ impl Operation {
         return_type: ReturnType,
         identifier: Identifier,
         parameters: Vec<usize>,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Operation { return_type, parameters, identifier, scope: None, location, comment }
+        Self { return_type, parameters, identifier, scope: None, attributes, comment, location }
     }
 }
 
@@ -253,8 +298,9 @@ pub struct Member {
     pub identifier: Identifier,
     pub member_type: MemberType,
     pub scope: Option<String>,
-    pub location: Location,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Member {
@@ -262,10 +308,11 @@ impl Member {
         data_type: TypeRef,
         identifier: Identifier,
         member_type: MemberType,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Member { data_type, identifier, member_type, scope: None, location, comment }
+        Self { data_type, identifier, member_type, scope: None, attributes, comment, location }
     }
 }
 
@@ -291,18 +338,20 @@ pub struct Enumerator {
     pub identifier: Identifier,
     pub value: i64,
     pub scope: Option<String>,
-    pub location: Location,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
+    pub location: Location,
 }
 
 impl Enumerator {
     pub fn new(
         identifier: Identifier,
         value: i64,
-        location: Location,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
+        location: Location,
     ) -> Self {
-        Enumerator { identifier, value, scope: None, location, comment }
+        Enumerator { identifier, value, scope: None, attributes, comment, location }
     }
 }
 
@@ -416,6 +465,35 @@ impl Type for Primitive {
             Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String => false,
             _ => true,
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Attribute {
+    /// If the attribute's directive had a language mapping prefix, it is stored here, otherwise
+    /// this is `None`. Ex: the prefix for `cs::readonly` would be `cs`.
+    pub prefix: Option<String>,
+    /// The attribute's directive, without it's prefix if one was present.
+    pub directive: String,
+    /// Stores the fully qualified directive (the prefix and directive with a `::` separator).
+    /// We compute this up-front, to make searching for fully qualified metadata more efficient.
+    pub qualified_directive: String,
+    /// Stores all the arguments passed into the directive, in the order they were passed.
+    /// For directives that don't take any arguments, this should always be empty.
+    pub arguments: Vec<String>,
+    pub location: Location,
+}
+
+impl Attribute {
+    pub fn new(
+        prefix: Option<String>,
+        directive: String,
+        arguments: Vec<String>,
+        location: Location,
+    ) -> Self {
+        // Combine the prefix and directive together to make searching qualified directives easier.
+        let qualified_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
+        Attribute { prefix, directive, qualified_directive, arguments, location}
     }
 }
 

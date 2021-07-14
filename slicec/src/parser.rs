@@ -98,26 +98,28 @@ impl SliceParser {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let file_contents = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, is_source))
+        let (file_attributes, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, file_attributes, is_source))
     }
 }
 
 #[pest_consume::parser]
 impl SliceParser {
-    fn main(input: PestNode) -> PestResult<Vec<usize>> {
+    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<usize>)> {
         let module_ids = match_nodes!(input.into_children();
-            [module_def(ids).., EOI(_)] => { ids.collect() },
+            [file_attributes(attributes), module_def(ids).., EOI(_)] => {
+                (attributes, ids.collect())
+            }
         );
         Ok(module_ids)
     }
 
     fn definition(input: PestNode) -> PestResult<usize> {
         let definition_id = match_nodes!(input.into_children();
-            [module_def(id)]    => { id },
-            [struct_def(id)]    => { id },
-            [interface_def(id)] => { id },
-            [enum_def(id)]      => { id },
+            [module_def(id)]    => id,
+            [struct_def(id)]    => id,
+            [interface_def(id)] => id,
+            [enum_def(id)]      => id,
         );
         Ok(definition_id)
     }
@@ -125,15 +127,17 @@ impl SliceParser {
     fn module_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
         let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => { ident },
+            [_, identifier(ident)] => ident,
         );
         Ok((identifier, location))
     }
 
     fn module_def(input: PestNode) -> PestResult<usize> {
         let module_def = match_nodes!(input.children();
-            [doc_comment(comment), module_start(module_start), definition(contents)..] => {
-                Module::new(module_start.0, contents.collect(), module_start.1, comment)
+            [prelude(prelude), module_start(module_start), definition(contents)..] => {
+                let (identifier, location) = module_start;
+                let (attributes, comment) = prelude;
+                Module::new(identifier, contents.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -143,15 +147,17 @@ impl SliceParser {
     fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
         let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => { ident },
+            [_, identifier(ident)] => ident,
         );
         Ok((identifier, location))
     }
 
     fn struct_def(input: PestNode) -> PestResult<usize> {
         let struct_def = match_nodes!(input.children();
-            [doc_comment(comment), struct_start(struct_start), data_member(members)..] => {
-                Struct::new(struct_start.0, members.collect(), struct_start.1, comment)
+            [prelude(prelude), struct_start(struct_start), data_member(members)..] => {
+                let (identifier, location) = struct_start;
+                let (attributes, comment) = prelude;
+                Struct::new(identifier, members.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -161,15 +167,17 @@ impl SliceParser {
     fn interface_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
         let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => { ident },
+            [_, identifier(ident)] => ident,
         );
         Ok((identifier, location))
     }
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
-            [doc_comment(comment), interface_start(interface_start), operation(operations)..] => {
-                Interface::new(interface_start.0, operations.collect(), interface_start.1, comment)
+            [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
+                let (identifier, location) = interface_start;
+                let (attributes, comment) = prelude;
+                Interface::new(identifier, operations.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -193,24 +201,30 @@ impl SliceParser {
 
     fn enum_def(input: PestNode) -> PestResult<usize> {
         let enum_def = match_nodes!(input.children();
-            [doc_comment(comment), enum_start(enum_start), enumerator_list(enumerators)] => {
+            [prelude(prelude), enum_start(enum_start), enumerator_list(enumerators)] => {
+                let (is_unchecked, identifier, location, underlying) = enum_start;
+                let (attributes, comment) = prelude;
                 Enum::new(
-                    enum_start.1,
+                    identifier,
                     enumerators,
-                    enum_start.0,
-                    enum_start.3,
-                    enum_start.2,
+                    is_unchecked,
+                    underlying,
+                    attributes,
                     comment,
+                    location,
                 )
             },
-            [doc_comment(comment), enum_start(enum_start)] => {
+            [prelude(prelude), enum_start(enum_start)] => {
+                let (is_unchecked, identifier, location, underlying) = enum_start;
+                let (attributes, comment) = prelude;
                 Enum::new(
-                    enum_start.1,
+                    identifier,
                     Vec::new(),
-                    enum_start.0,
-                    enum_start.3,
-                    enum_start.2,
+                    is_unchecked,
+                    underlying,
+                    attributes,
                     comment,
+                    location,
                 )
             },
         );
@@ -256,11 +270,13 @@ impl SliceParser {
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let operation = match_nodes!(input.children();
-            [doc_comment(comment), return_type(return_type), identifier(identifier)] => {
-                Operation::new(return_type, identifier, Vec::new(), location, comment)
+            [prelude(prelude), return_type(return_type), identifier(identifier)] => {
+                let (attributes, comment) = prelude;
+                Operation::new(return_type, identifier, Vec::new(), attributes, comment, location)
             },
-            [doc_comment(comment), return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
-                Operation::new(return_type, identifier, parameters, location, comment)
+            [prelude(prelude), return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
+                let (attributes, comment) = prelude;
+                Operation::new(return_type, identifier, parameters, attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -270,8 +286,16 @@ impl SliceParser {
     fn data_member(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
-            [doc_comment(comment), typename(data_type), identifier(identifier)] => {
-                Member::new(data_type, identifier, MemberType::DataMember, location, comment)
+            [prelude(prelude), typename(data_type), identifier(identifier)] => {
+                let (attributes, comment) = prelude;
+                Member::new(
+                    data_type,
+                    identifier,
+                    MemberType::DataMember,
+                    attributes,
+                    comment,
+                    location,
+                )
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -295,8 +319,16 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
-            [doc_comment(comment), typename(data_type), identifier(identifier)] => {
-                Member::new(data_type, identifier, MemberType::Parameter, location, comment)
+            [prelude(prelude), typename(data_type), identifier(identifier)] => {
+                let (attributes, comment) = prelude;
+                Member::new(
+                    data_type,
+                    identifier,
+                    MemberType::Parameter,
+                    attributes,
+                    comment,
+                    location,
+                )
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -322,12 +354,14 @@ impl SliceParser {
         let mut next_enum_value = input.user_data().borrow().current_enum_value;
 
         let enumerator_def = match_nodes!(input.children();
-            [doc_comment(comment), identifier(ident)] => {
-                Enumerator::new(ident, next_enum_value, location, comment)
+            [prelude(prelude), identifier(ident)] => {
+                let (attributes, comment) = prelude;
+                Enumerator::new(ident, next_enum_value, attributes, comment, location)
             },
-            [doc_comment(comment), identifier(ident), integer(value)] => {
+            [prelude(prelude), identifier(ident), integer(value)] => {
                 next_enum_value = value;
-                Enumerator::new(ident, value, location, comment)
+                let (attributes, comment) = prelude;
+                Enumerator::new(ident, value, attributes, comment, location)
             },
         );
 
@@ -377,10 +411,10 @@ impl SliceParser {
                 let ast = &mut input.user_data().borrow_mut().ast;
                 type_use.definition = Some(ast.add_element(dictionary));
             },
-            [global_identifier(identifier)] => {
+            [global_identifier(_)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
-            [scoped_identifier(identifier)] => {
+            [scoped_identifier(_)] => {
                 // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
             },
         );
@@ -405,42 +439,88 @@ impl SliceParser {
 
     fn primitive(input: PestNode) -> PestResult<Primitive> {
         Ok(match_nodes!(input.into_children();
-            [bool_kw(bool_kw)]         => Primitive::Bool,
-            [byte_kw(byte_kw)]         => Primitive::Byte,
-            [short_kw(short_kw)]       => Primitive::Short,
-            [ushort_kw(ushort_kw)]     => Primitive::UShort,
-            [int_kw(int_kw)]           => Primitive::Int,
-            [uint_kw(uint_kw)]         => Primitive::UInt,
-            [varint_kw(varint_kw)]     => Primitive::VarInt,
-            [varuint_kw(varuint_kw)]   => Primitive::VarUInt,
-            [long_kw(long_kw)]         => Primitive::Long,
-            [ulong_kw(ulong_kw)]       => Primitive::ULong,
-            [varlong_kw(varlong_kw)]   => Primitive::VarLong,
-            [varulong_kw(varulong_kw)] => Primitive::VarULong,
-            [float_kw(float_kw)]       => Primitive::Float,
-            [double_kw(double_kw)]     => Primitive::Double,
-            [string_kw(string_kw)]     => Primitive::String
+            [bool_kw(_)]     => Primitive::Bool,
+            [byte_kw(_)]     => Primitive::Byte,
+            [short_kw(_)]    => Primitive::Short,
+            [ushort_kw(_)]   => Primitive::UShort,
+            [int_kw(_)]      => Primitive::Int,
+            [uint_kw(_)]     => Primitive::UInt,
+            [varint_kw(_)]   => Primitive::VarInt,
+            [varuint_kw(_)]  => Primitive::VarUInt,
+            [long_kw(_)]     => Primitive::Long,
+            [ulong_kw(_)]    => Primitive::ULong,
+            [varlong_kw(_)]  => Primitive::VarLong,
+            [varulong_kw(_)] => Primitive::VarULong,
+            [float_kw(_)]    => Primitive::Float,
+            [double_kw(_)]   => Primitive::Double,
+            [string_kw(_)]   => Primitive::String
         ))
     }
 
-    fn unchecked_modifier(input: PestNode) -> PestResult<bool> {
+    fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {
         Ok(match_nodes!(input.into_children();
-            []                => false,
-            [unchecked_kw(_)] => true
+            [local_attributes(mut attributes1), doc_comment(comment), local_attributes(attributes2)] => {
+                // Combine the attributes into a single list, by moving the elements of 2 into 1.
+                attributes1.extend(attributes2);
+                (attributes1, comment)
+            },
         ))
     }
 
-    fn integer(input: PestNode) -> PestResult<i64> {
-        let int = input.as_str().parse::<i64>();
-        match int {
-            Ok(int) => Ok(int),
-            Err(err) => {
-                Err(PestError::new_from_span(
-                    PestErrorVariant::CustomError { message: format!("Malformed integer: {}", err)},
-                    input.as_span(),
-                ))
-            }
-        }
+    fn file_attributes(input: PestNode) -> PestResult<Vec<Attribute>> {
+        Ok(match_nodes!(input.into_children();
+            [attribute(attributes)..] => attributes.collect(),
+        ))
+    }
+
+    fn local_attributes(input: PestNode) -> PestResult<Vec<Attribute>> {
+        Ok(match_nodes!(input.into_children();
+            [attribute(attributes)..] => attributes.collect(),
+        ))
+    }
+
+    fn attribute(input: PestNode) -> PestResult<Attribute> {
+        let location = from_span(&input);
+
+        Ok(match_nodes!(input.into_children();
+            [attribute_directive(attribute)] => {
+                let (prefix, directive) = attribute;
+                Attribute::new(prefix, directive, Vec::new(), location)
+            },
+            [attribute_directive(attribute), attribute_arguments(arguments)] => {
+                let (prefix, directive) = attribute;
+                Attribute::new(prefix, directive, arguments, location)
+            },
+        ))
+    }
+
+    fn attribute_directive(input: PestNode) -> PestResult<(Option<String>, String)> {
+        Ok(match_nodes!(input.into_children();
+            [attribute_identifier(name)] => (None, name),
+            [attribute_identifier(prefix), attribute_identifier(name)] => (Some(prefix), name)
+        ))
+    }
+
+    fn attribute_identifier(input: PestNode) -> PestResult<String> {
+        Ok(input.as_str().to_owned())
+    }
+
+    fn attribute_argument(input: PestNode) -> PestResult<String> {
+        Ok(input.as_str().to_owned())
+    }
+
+    fn attribute_arguments(input: PestNode) -> PestResult<Vec<String>> {
+        Ok(match_nodes!(input.into_children();
+            [attribute_argument(argument)] => {
+                vec![argument]
+            },
+            [attribute_argument(argument), attribute_arguments(mut list)] => {
+                // The argument comes before the rest of the arguments when parsing, so we have to
+                // insert the new argument at the front of the list.
+                list.insert(0, argument);
+                list
+            },
+        ))
     }
 
     fn doc_comment(input: PestNode) -> PestResult<Option<DocComment>> {
@@ -466,6 +546,26 @@ impl SliceParser {
 
     fn block_doc_comment(input: PestNode) -> PestResult<String> {
         Ok(input.as_str().to_owned())
+    }
+
+    fn integer(input: PestNode) -> PestResult<i64> {
+        let int = input.as_str().parse::<i64>();
+        match int {
+            Ok(int) => Ok(int),
+            Err(err) => {
+                Err(PestError::new_from_span(
+                    PestErrorVariant::CustomError { message: format!("Malformed integer: {}", err)},
+                    input.as_span(),
+                ))
+            }
+        }
+    }
+
+    fn unchecked_modifier(input: PestNode) -> PestResult<bool> {
+        Ok(match_nodes!(input.into_children();
+            []                => false,
+            [unchecked_kw(_)] => true
+        ))
     }
 
     fn module_kw(input: PestNode) -> PestResult<()> {

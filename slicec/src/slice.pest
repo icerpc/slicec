@@ -1,32 +1,32 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-main = { SOI ~ module_def* ~ EOI }
+main = { SOI ~ file_attributes ~ module_def* ~ EOI }
 
 definition = { module_def | struct_def | interface_def | enum_def }
 
 module_start = { module_kw ~ identifier }
-module_def = { doc_comment ~ module_start ~ "{" ~ definition* ~ "}" }
+module_def = { prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 
 struct_start = { struct_kw ~ identifier }
-struct_def = { doc_comment ~ struct_start ~ "{" ~ data_member* ~ "}" }
+struct_def = { prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
 
 interface_start = { interface_kw ~ identifier }
-interface_def = { doc_comment ~ interface_start ~ "{" ~ operation* ~ "}" }
+interface_def = { prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 
 enum_start = { unchecked_modifier ~ enum_kw ~ identifier ~ ( ":" ~ typename )? }
-enum_def = { doc_comment ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
+enum_def = { prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 return_type = { void_kw | typename | return_tuple }
 return_tuple = { "(" ~ parameter_list ~ ")" }
-operation = { doc_comment ~ return_type ~ identifier ~ "(" ~ parameter_list? ~ ")" ~ ";" }
+operation = { prelude ~ return_type ~ identifier ~ "(" ~ parameter_list? ~ ")" ~ ";" }
 
-data_member = { doc_comment ~ typename ~ identifier ~ ";" }
+data_member = { prelude ~ typename ~ identifier ~ ";" }
 
 parameter_list = { ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
-parameter = { doc_comment ~ typename ~ identifier }
+parameter = { prelude ~ typename ~ identifier }
 
 enumerator_list = { ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
-enumerator = { doc_comment ~ identifier ~ ( "=" ~ integer )? }
+enumerator = { prelude ~ identifier ~ ( "=" ~ integer )? }
 
 identifier = @{ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
@@ -61,9 +61,18 @@ primitive = {
     string_kw
 }
 
-unchecked_modifier = { unchecked_kw? }
+prelude = { local_attributes ~ doc_comment ~ local_attributes }
 
-integer = { "-"? ~ ASCII_DIGIT+ }
+file_attributes = { ("[[" ~ attribute ~ "]]")* }
+local_attributes = { ("[" ~ attribute ~ "]")* }
+attribute = { attribute_directive ~ ( "(" ~ attribute_arguments? ~ ")" )? }
+attribute_directive = { attribute_identifier ~ (":" ~ attribute_identifier)? }
+attribute_identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+attribute_argument = {
+    "\"" ~ (!"\"" ~ ANY)* ~ "\"" |          // Add support for escaped characters in the future.
+    (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "<" | ">")+
+}
+attribute_arguments = { ( attribute_argument ~ "," ~ attribute_arguments) | ( attribute_argument ~ ","? ) }
 
 // "WHITESPACE" and "COMMENT" are special rules that Pest will implicitely allow to appear in between any other rules.
 WHITESPACE = _{ " " | "\t" | NEWLINE }
@@ -74,6 +83,10 @@ line_comment = _{ "//" ~ ( !"\n" ~ ANY )* }
 line_doc_comment = { "///" ~ ( !"\n" ~ ANY )* }
 block_comment = _{ "/*" ~ ( !"*/" ~ ANY )* ~ "*/" }
 block_doc_comment = { "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
+
+integer = { "-"? ~ ASCII_DIGIT+ }
+
+unchecked_modifier = { unchecked_kw? }
 
 module_kw = { "module" }
 struct_kw = { "struct" }
