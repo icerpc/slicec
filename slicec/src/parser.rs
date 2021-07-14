@@ -98,17 +98,17 @@ impl SliceParser {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_metadata, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, file_metadata, is_source))
+        let (file_attributes, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, file_attributes, is_source))
     }
 }
 
 #[pest_consume::parser]
 impl SliceParser {
-    fn main(input: PestNode) -> PestResult<(Vec<Metadata>, Vec<usize>)> {
+    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<usize>)> {
         let module_ids = match_nodes!(input.into_children();
-            [file_metadata(metadata), module_def(ids).., EOI(_)] => {
-                (metadata, ids.collect())
+            [file_attributes(attributes), module_def(ids).., EOI(_)] => {
+                (attributes, ids.collect())
             }
         );
         Ok(module_ids)
@@ -136,8 +136,8 @@ impl SliceParser {
         let module_def = match_nodes!(input.children();
             [prelude(prelude), module_start(module_start), definition(contents)..] => {
                 let (identifier, location) = module_start;
-                let (metadata, comment) = prelude;
-                Module::new(identifier, contents.collect(), metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Module::new(identifier, contents.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -156,8 +156,8 @@ impl SliceParser {
         let struct_def = match_nodes!(input.children();
             [prelude(prelude), struct_start(struct_start), data_member(members)..] => {
                 let (identifier, location) = struct_start;
-                let (metadata, comment) = prelude;
-                Struct::new(identifier, members.collect(), metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Struct::new(identifier, members.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -176,8 +176,8 @@ impl SliceParser {
         let interface_def = match_nodes!(input.children();
             [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
                 let (identifier, location) = interface_start;
-                let (metadata, comment) = prelude;
-                Interface::new(identifier, operations.collect(), metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Interface::new(identifier, operations.collect(), attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -203,26 +203,26 @@ impl SliceParser {
         let enum_def = match_nodes!(input.children();
             [prelude(prelude), enum_start(enum_start), enumerator_list(enumerators)] => {
                 let (is_unchecked, identifier, location, underlying) = enum_start;
-                let (metadata, comment) = prelude;
+                let (attributes, comment) = prelude;
                 Enum::new(
                     identifier,
                     enumerators,
                     is_unchecked,
                     underlying,
-                    metadata,
+                    attributes,
                     comment,
                     location,
                 )
             },
             [prelude(prelude), enum_start(enum_start)] => {
                 let (is_unchecked, identifier, location, underlying) = enum_start;
-                let (metadata, comment) = prelude;
+                let (attributes, comment) = prelude;
                 Enum::new(
                     identifier,
                     Vec::new(),
                     is_unchecked,
                     underlying,
-                    metadata,
+                    attributes,
                     comment,
                     location,
                 )
@@ -271,12 +271,12 @@ impl SliceParser {
         let location = from_span(&input);
         let operation = match_nodes!(input.children();
             [prelude(prelude), return_type(return_type), identifier(identifier)] => {
-                let (metadata, comment) = prelude;
-                Operation::new(return_type, identifier, Vec::new(), metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Operation::new(return_type, identifier, Vec::new(), attributes, comment, location)
             },
             [prelude(prelude), return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
-                let (metadata, comment) = prelude;
-                Operation::new(return_type, identifier, parameters, metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Operation::new(return_type, identifier, parameters, attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -287,12 +287,12 @@ impl SliceParser {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
             [prelude(prelude), typename(data_type), identifier(identifier)] => {
-                let (metadata, comment) = prelude;
+                let (attributes, comment) = prelude;
                 Member::new(
                     data_type,
                     identifier,
                     MemberType::DataMember,
-                    metadata,
+                    attributes,
                     comment,
                     location,
                 )
@@ -320,12 +320,12 @@ impl SliceParser {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
             [prelude(prelude), typename(data_type), identifier(identifier)] => {
-                let (metadata, comment) = prelude;
+                let (attributes, comment) = prelude;
                 Member::new(
                     data_type,
                     identifier,
                     MemberType::Parameter,
-                    metadata,
+                    attributes,
                     comment,
                     location,
                 )
@@ -355,13 +355,13 @@ impl SliceParser {
 
         let enumerator_def = match_nodes!(input.children();
             [prelude(prelude), identifier(ident)] => {
-                let (metadata, comment) = prelude;
-                Enumerator::new(ident, next_enum_value, metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Enumerator::new(ident, next_enum_value, attributes, comment, location)
             },
             [prelude(prelude), identifier(ident), integer(value)] => {
                 next_enum_value = value;
-                let (metadata, comment) = prelude;
-                Enumerator::new(ident, value, metadata, comment, location)
+                let (attributes, comment) = prelude;
+                Enumerator::new(ident, value, attributes, comment, location)
             },
         );
 
@@ -457,64 +457,64 @@ impl SliceParser {
         ))
     }
 
-    fn prelude(input: PestNode) -> PestResult<(Vec<Metadata>, Option<DocComment>)> {
+    fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {
         Ok(match_nodes!(input.into_children();
-            [local_metadata(mut metadata1), doc_comment(comment), local_metadata(metadata2)] => {
-                // Combine the metadata into a single a list, by moving the elements of 2 into 1.
-                metadata1.extend(metadata2);
-                (metadata1, comment)
+            [local_attributes(mut attributes1), doc_comment(comment), local_attributes(attributes2)] => {
+                // Combine the attributes into a single list, by moving the elements of 2 into 1.
+                attributes1.extend(attributes2);
+                (attributes1, comment)
             },
         ))
     }
 
-    fn file_metadata(input: PestNode) -> PestResult<Vec<Metadata>> {
+    fn file_attributes(input: PestNode) -> PestResult<Vec<Attribute>> {
         Ok(match_nodes!(input.into_children();
-            [metadata(metadata)..] => metadata.collect(),
+            [attribute(attributes)..] => attributes.collect(),
         ))
     }
 
-    fn local_metadata(input: PestNode) -> PestResult<Vec<Metadata>> {
+    fn local_attributes(input: PestNode) -> PestResult<Vec<Attribute>> {
         Ok(match_nodes!(input.into_children();
-            [metadata(metadata)..] => metadata.collect(),
+            [attribute(attributes)..] => attributes.collect(),
         ))
     }
 
-    fn metadata(input: PestNode) -> PestResult<Metadata> {
+    fn attribute(input: PestNode) -> PestResult<Attribute> {
         let location = from_span(&input);
 
         Ok(match_nodes!(input.into_children();
-            [metadata_directive(metadata)] => {
-                let (prefix, directive) = metadata;
-                Metadata::new(prefix, directive, Vec::new(), location)
+            [attribute_directive(attribute)] => {
+                let (prefix, directive) = attribute;
+                Attribute::new(prefix, directive, Vec::new(), location)
             },
-            [metadata_directive(metadata), metadata_arguments(arguments)] => {
-                let (prefix, directive) = metadata;
-                Metadata::new(prefix, directive, arguments, location)
+            [attribute_directive(attribute), attribute_arguments(arguments)] => {
+                let (prefix, directive) = attribute;
+                Attribute::new(prefix, directive, arguments, location)
             },
         ))
     }
 
-    fn metadata_directive(input: PestNode) -> PestResult<(Option<String>, String)> {
+    fn attribute_directive(input: PestNode) -> PestResult<(Option<String>, String)> {
         Ok(match_nodes!(input.into_children();
-            [metadata_identifier(name)] => (None, name),
-            [metadata_identifier(prefix), metadata_identifier(name)] => (Some(prefix), name)
+            [attribute_identifier(name)] => (None, name),
+            [attribute_identifier(prefix), attribute_identifier(name)] => (Some(prefix), name)
         ))
     }
 
-    fn metadata_identifier(input: PestNode) -> PestResult<String> {
+    fn attribute_identifier(input: PestNode) -> PestResult<String> {
         Ok(input.as_str().to_owned())
     }
 
-    fn metadata_argument(input: PestNode) -> PestResult<String> {
+    fn attribute_argument(input: PestNode) -> PestResult<String> {
         Ok(input.as_str().to_owned())
     }
 
-    fn metadata_arguments(input: PestNode) -> PestResult<Vec<String>> {
+    fn attribute_arguments(input: PestNode) -> PestResult<Vec<String>> {
         Ok(match_nodes!(input.into_children();
-            [metadata_argument(argument)] => {
+            [attribute_argument(argument)] => {
                 vec![argument]
             },
-            [metadata_argument(argument), metadata_arguments(mut list)] => {
+            [attribute_argument(argument), attribute_arguments(mut list)] => {
                 // The argument comes before the rest of the arguments when parsing, so we have to
                 // insert the new argument at the front of the list.
                 list.insert(0, argument);

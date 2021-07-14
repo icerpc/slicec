@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::Metadata;
+use crate::grammar::Attribute;
 use std::path::Path;
 
 /// Describes a single position, or a span over two positions in a slice file.
@@ -27,8 +27,8 @@ pub struct SliceFile {
     /// The AST indices of all the top-level definitions contained in the slice file,
     /// in the order they were defined.
     pub contents: Vec<usize>,
-    /// Stores any file metadata defined in the file.
-    pub metadata: Vec<Metadata>,
+    /// Stores any file attribute defined on the file.
+    pub attributes: Vec<Attribute>,
     /// True if the slice file is a source file (which code should be generated for),
     /// or false if it's a reference file.
     pub is_source: bool,
@@ -43,7 +43,7 @@ impl SliceFile {
         relative_path: String,
         raw_text: String,
         contents: Vec<usize>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         is_source: bool,
     ) -> Self {
         // Store the starting position of each line the file.
@@ -72,7 +72,7 @@ impl SliceFile {
         // Extract the name of the slice file without its extension.
         let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
 
-        SliceFile { filename, relative_path, raw_text, contents, metadata, is_source, line_positions }
+        SliceFile { filename, relative_path, raw_text, contents, attributes, is_source, line_positions }
     }
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.

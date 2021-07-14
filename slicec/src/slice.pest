@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-main = { SOI ~ file_metadata ~ module_def* ~ EOI }
+main = { SOI ~ file_attributes ~ module_def* ~ EOI }
 
 definition = { module_def | struct_def | interface_def | enum_def }
 
@@ -61,18 +61,18 @@ primitive = {
     string_kw
 }
 
-prelude = { local_metadata ~ doc_comment ~ local_metadata }
+prelude = { local_attributes ~ doc_comment ~ local_attributes }
 
-file_metadata = { ("[[" ~ metadata ~ "]]")* }
-local_metadata = { ("[" ~ metadata ~ "]")* }
-metadata = { metadata_directive ~ ( "(" ~ metadata_arguments? ~ ")" )? }
-metadata_directive = { metadata_identifier ~ (":" ~ metadata_identifier)? }
-metadata_identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
-metadata_argument = {
+file_attributes = { ("[[" ~ attribute ~ "]]")* }
+local_attributes = { ("[" ~ attribute ~ "]")* }
+attribute = { attribute_directive ~ ( "(" ~ attribute_arguments? ~ ")" )? }
+attribute_directive = { attribute_identifier ~ (":" ~ attribute_identifier)? }
+attribute_identifier = { (ASCII_ALPHANUMERIC | "_" | "-")+ }
+attribute_argument = {
     "\"" ~ (!"\"" ~ ANY)* ~ "\"" |          // Add support for escaped characters in the future.
     (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "<" | ">")+
 }
-metadata_arguments = { ( metadata_argument ~ "," ~ metadata_arguments) | ( metadata_argument ~ ","? ) }
+attribute_arguments = { ( attribute_argument ~ "," ~ attribute_arguments) | ( attribute_argument ~ ","? ) }
 
 // "WHITESPACE" and "COMMENT" are special rules that Pest will implicitely allow to appear in between any other rules.
 WHITESPACE = _{ " " | "\t" | NEWLINE }

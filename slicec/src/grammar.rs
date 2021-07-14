@@ -32,7 +32,7 @@ implement_element_for!(TypeRef, "type ref");
 implement_element_for!(Sequence, "sequence");
 implement_element_for!(Dictionary, "dictionary");
 // Primitive has its own custom implementation of Element which returns the primitive's type name.
-implement_element_for!(Metadata, "metadata");
+implement_element_for!(Attribute, "attribute");
 implement_element_for!(DocComment, "comment");
 
 /// Symbols represent elements of the actual source code written in the slice file.
@@ -60,15 +60,15 @@ implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
 implement_symbol_for!(Identifier);
 implement_symbol_for!(TypeRef);
-implement_symbol_for!(Metadata);
+implement_symbol_for!(Attribute);
 implement_symbol_for!(DocComment);
 
 /// NamedSymbols are symbols that have an identifier attached to them.
 pub trait NamedSymbol : Symbol {
     fn identifier(&self) -> &str;
-    fn metadata(&self) -> &Vec<Metadata>;
-    fn find_metadata(&self, directive: &str) -> Option<&Vec<String>>;
-    fn has_metadata(&self, directive: &str) -> bool;
+    fn attributes(&self) -> &Vec<Attribute>;
+    fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
+    fn has_attribute(&self, directive: &str) -> bool;
     fn comment(&self) -> Option<&DocComment>;
 }
 
@@ -79,25 +79,25 @@ macro_rules! implement_named_symbol_for {
                 &self.identifier.value
             }
 
-            fn metadata(&self) -> &Vec<Metadata> {
-                &self.metadata
+            fn attributes(&self) -> &Vec<Attribute> {
+                &self.attributes
             }
 
-            /// Checks if the symbol has the specified metadata attribute, and if so, returns it's
-            /// attributes as a vector. If it doesn't, it returns 'None'.
-            fn find_metadata(&self, directive: &str) -> Option<&Vec<String>> {
-                for m in &self.metadata {
-                    if m.raw_directive == directive {
+            /// Checks if the symbol has the specified attribute, and if so, returns it's
+            /// arguments as a string vector. If it doesn't, it returns 'None'.
+            fn find_attribute(&self, directive: &str) -> Option<&Vec<String>> {
+                for m in &self.attributes {
+                    if m.qualified_directive == directive {
                         return Some(&m.arguments);
                     }
                 }
                 return None;
             }
 
-            /// Returns true if the symbol has the specified metadata attribute on it,
+            /// Returns true if the symbol has the specified attribute on it,
             /// and false otherwise.
-            fn has_metadata(&self, directive: &str) -> bool {
-                self.find_metadata(directive).is_some()
+            fn has_attribute(&self, directive: &str) -> bool {
+                self.find_attribute(directive).is_some()
             }
 
             fn comment(&self) -> Option<&DocComment> {
@@ -126,7 +126,7 @@ pub struct Module {
     pub contents: Vec<usize>,
     pub scope: Option<String>,
     pub location: Location,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
 }
 
@@ -134,11 +134,11 @@ impl Module {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Module { identifier, contents, scope: None, metadata, comment, location }
+        Module { identifier, contents, scope: None, attributes, comment, location }
     }
 }
 
@@ -147,7 +147,7 @@ pub struct Struct {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -156,11 +156,11 @@ impl Struct {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Struct { identifier, contents, scope: None, metadata, comment, location }
+        Struct { identifier, contents, scope: None, attributes, comment, location }
     }
 }
 
@@ -182,7 +182,7 @@ pub struct Interface {
     pub identifier: Identifier,
     pub operations: Vec<usize>,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -191,11 +191,11 @@ impl Interface {
     pub fn new(
         identifier: Identifier,
         operations: Vec<usize>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Interface { identifier, operations, scope: None, metadata, comment, location }
+        Interface { identifier, operations, scope: None, attributes, comment, location }
     }
 }
 
@@ -212,7 +212,7 @@ pub struct Enum {
     pub is_checked: bool,
     pub underlying: Option<TypeRef>,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -223,7 +223,7 @@ impl Enum {
         contents: Vec<usize>,
         is_checked: bool,
         underlying: Option<TypeRef>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
@@ -233,7 +233,7 @@ impl Enum {
             is_checked,
             underlying,
             scope: None,
-            metadata,
+            attributes,
             comment,
             location,
         }
@@ -274,7 +274,7 @@ pub struct Operation {
     pub parameters: Vec<usize>,
     pub identifier: Identifier,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -284,11 +284,11 @@ impl Operation {
         return_type: ReturnType,
         identifier: Identifier,
         parameters: Vec<usize>,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Operation { return_type, parameters, identifier, scope: None, metadata, comment, location }
+        Self { return_type, parameters, identifier, scope: None, attributes, comment, location }
     }
 }
 
@@ -298,7 +298,7 @@ pub struct Member {
     pub identifier: Identifier,
     pub member_type: MemberType,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -308,11 +308,11 @@ impl Member {
         data_type: TypeRef,
         identifier: Identifier,
         member_type: MemberType,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Member { data_type, identifier, member_type, scope: None, metadata, comment, location }
+        Self { data_type, identifier, member_type, scope: None, attributes, comment, location }
     }
 }
 
@@ -338,7 +338,7 @@ pub struct Enumerator {
     pub identifier: Identifier,
     pub value: i64,
     pub scope: Option<String>,
-    pub metadata: Vec<Metadata>,
+    pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
 }
@@ -347,11 +347,11 @@ impl Enumerator {
     pub fn new(
         identifier: Identifier,
         value: i64,
-        metadata: Vec<Metadata>,
+        attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Enumerator { identifier, value, scope: None, metadata, comment, location }
+        Enumerator { identifier, value, scope: None, attributes, comment, location }
     }
 }
 
@@ -469,15 +469,22 @@ impl Type for Primitive {
 }
 
 #[derive(Clone, Debug)]
-pub struct Metadata {
+pub struct Attribute {
+    /// If the attribute's directive had a language mapping prefix, it is stored here, otherwise
+    /// this is `None`. Ex: the prefix for `cs::readonly` would be `cs`.
     pub prefix: Option<String>,
+    /// The attribute's directive, without it's prefix if one was present.
     pub directive: String,
-    pub raw_directive: String,
+    /// Stores the fully qualified directive (the prefix and directive with a `::` separator).
+    /// We compute this up-front, to make searching for fully qualified metadata more efficient.
+    pub qualified_directive: String,
+    /// Stores all the arguments passed into the directive, in the order they were passed.
+    /// For directives that don't take any arguments, this should always be empty.
     pub arguments: Vec<String>,
     pub location: Location,
 }
 
-impl Metadata {
+impl Attribute {
     pub fn new(
         prefix: Option<String>,
         directive: String,
@@ -485,8 +492,8 @@ impl Metadata {
         location: Location,
     ) -> Self {
         // Combine the prefix and directive together to make searching qualified directives easier.
-        let raw_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
-        Metadata { prefix, directive, raw_directive, arguments, location}
+        let qualified_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
+        Attribute { prefix, directive, qualified_directive, arguments, location}
     }
 }
 
