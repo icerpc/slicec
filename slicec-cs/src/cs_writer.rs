@@ -159,7 +159,7 @@ impl Visitor for CsWriter {
         if let Some(underlying) = &enum_def.underlying {
             let node = ast.resolve_index(*underlying.definition.as_ref().unwrap());
             let underlying_type_string =
-                format!(" : {}", type_to_string(node, ast, TypeContext::Nested),);
+                format!(" : {}", type_to_string(node, ast, TypeContext::Nested));
             self.output.write_all(&underlying_type_string);
         } else {
             self.output.write_all(" : int")
