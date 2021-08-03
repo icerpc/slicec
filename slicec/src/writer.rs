@@ -54,7 +54,7 @@ impl Writer {
     /// to provide some space between two definitions to separate them.
     /// Just writing '\n' to the stream will introduce trailing whitespace since it's indented.
     /// Plus, using this line separator lets the writer be smart, and omit them when not needed.
-    pub fn write_line_seperator(&mut self) {
+    pub fn write_line_separator(&mut self) {
         self.write_line_separator = true;
     }
 

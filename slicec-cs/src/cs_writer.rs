@@ -3,9 +3,9 @@
 // TODO split into SliceFile and Util files! No need to keep together!
 
 use crate::cs_util::*;
-use slice::ref_from_node;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
+use slice::ref_from_node;
 use slice::util::{SliceFile, TypeContext};
 use slice::visitor::Visitor;
 use slice::writer::Writer;
@@ -95,7 +95,7 @@ impl Visitor for CsWriter {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write_all("\n}");
-        self.output.write_line_seperator();
+        self.output.write_line_separator();
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
@@ -109,7 +109,7 @@ impl Visitor for CsWriter {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write_all("\n}");
-        self.output.write_line_seperator();
+        self.output.write_line_separator();
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, _: &Ast) {
@@ -123,7 +123,7 @@ impl Visitor for CsWriter {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write_all("\n}");
-        self.output.write_line_seperator();
+        self.output.write_line_separator();
     }
 
     fn visit_operation_start(&mut self, operation: &Operation, _: usize, ast: &Ast) {
@@ -136,7 +136,8 @@ impl Visitor for CsWriter {
                 "{} {}, ",
                 type_to_string(data_type, ast, TypeContext::Outgoing),
                 parameter.identifier(),
-            ).as_str();
+            )
+            .as_str();
         }
         // Remove the trailing comma and space.
         parameters_string.truncate(parameters_string.len() - 2);
@@ -148,7 +149,7 @@ impl Visitor for CsWriter {
             parameters_string,
         );
         self.output.write_all(&content);
-        self.output.write_line_seperator();
+        self.output.write_line_separator();
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
@@ -157,10 +158,8 @@ impl Visitor for CsWriter {
         self.output.write_all(&content);
         if let Some(underlying) = &enum_def.underlying {
             let node = ast.resolve_index(*underlying.definition.as_ref().unwrap());
-            let underlying_type_string = format!(
-                " : {}",
-                type_to_string(node, ast, TypeContext::Nested),
-            );
+            let underlying_type_string =
+                format!(" : {}", type_to_string(node, ast, TypeContext::Nested),);
             self.output.write_all(&underlying_type_string);
         } else {
             self.output.write_all(" : int")
@@ -173,7 +172,7 @@ impl Visitor for CsWriter {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write_all("\n}");
-        self.output.write_line_seperator();
+        self.output.write_line_separator();
     }
 
     fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast) {
