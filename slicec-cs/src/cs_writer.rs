@@ -129,18 +129,19 @@ impl Visitor for CsWriter {
     fn visit_operation_start(&mut self, operation: &Operation, _: usize, ast: &Ast) {
         self.write_comment(operation);
         let mut parameters_string = String::new();
-        for id in operation.parameters.iter() {
-            let parameter = ref_from_node!(Node::Member, ast, *id);
-            let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
-            parameters_string += format!(
-                "{} {}, ",
-                type_to_string(data_type, ast, TypeContext::Outgoing),
-                parameter.identifier(),
-            )
-            .as_str();
+        if !operation.parameters.is_empty() {
+            for id in operation.parameters.iter() {
+                let parameter = ref_from_node!(Node::Member, ast, *id);
+                let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
+                parameters_string += format!(
+                    "{} {}, ",
+                    type_to_string(data_type, ast, TypeContext::Outgoing),
+                    parameter.identifier(),
+                ).as_str();
+            }
+            // Remove the trailing comma and space.
+            parameters_string.truncate(parameters_string.len() - 2);
         }
-        // Remove the trailing comma and space.
-        parameters_string.truncate(parameters_string.len() - 2);
 
         let content = format!(
             "\npublic {} {}({});",
