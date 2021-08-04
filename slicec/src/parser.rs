@@ -267,15 +267,25 @@ impl SliceParser {
         ))
     }
 
+    fn operation_start(input: PestNode) -> PestResult<(ReturnType, Identifier)> {
+        Ok(match_nodes!(input.into_children();
+            [return_type(return_type), identifier(identifier)] => {
+                (return_type, identifier)
+            }
+        ))
+    }
+
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let operation = match_nodes!(input.children();
-            [prelude(prelude), return_type(return_type), identifier(identifier)] => {
+            [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
+                let (return_type, identifier) = operation_start;
                 Operation::new(return_type, identifier, Vec::new(), attributes, comment, location)
             },
-            [prelude(prelude), return_type(return_type), identifier(identifier), parameter_list(parameters)] => {
+            [prelude(prelude), operation_start(operation_start), parameter_list(parameters)] => {
                 let (attributes, comment) = prelude;
+                let (return_type, identifier) = operation_start;
                 Operation::new(return_type, identifier, parameters, attributes, comment, location)
             },
         );
