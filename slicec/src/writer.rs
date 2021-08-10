@@ -9,7 +9,7 @@ use std::io::BufWriter;
 pub struct Writer {
     file_buffer: BufWriter<File>,
     indentation: String,
-    write_line_separator: bool,
+    line_separator_flag: bool,
     is_valid: bool,
 }
 
@@ -22,16 +22,16 @@ impl Writer {
             // Indentation starts with a \n, since when we actually write the indentation to a file,
             // it will always start with a newline (since that's where indentation is applied).
             indentation: "\n".to_owned(),
-            write_line_separator: false,
+            line_separator_flag: false,
             is_valid: true,
         })
     }
 
-    pub fn write_all(&mut self, content: &str) {
+    pub fn write(&mut self, content: &str) {
         if self.is_valid {
             let mut indented_content = str::replace(content, "\n", self.indentation.as_str());
-            if self.write_line_separator {
-                self.write_line_separator = false;
+            if self.line_separator_flag {
+                self.line_separator_flag = false;
                 indented_content.insert(0, '\n');
             }
             if let Err(error) = self.file_buffer.write_all(indented_content.as_bytes()) {
@@ -55,12 +55,12 @@ impl Writer {
     /// Just writing '\n' to the stream will introduce trailing whitespace since it's indented.
     /// Plus, using this line separator lets the writer be smart, and omit them when not needed.
     pub fn write_line_separator(&mut self) {
-        self.write_line_separator = true;
+        self.line_separator_flag = true;
     }
 
     /// Clears any line separators that were set to be written to the file.
     pub fn clear_line_separator(&mut self) {
-        self.write_line_separator = false;
+        self.line_separator_flag = false;
     }
 
     pub fn close(mut self) {

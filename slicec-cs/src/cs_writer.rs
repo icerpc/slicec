@@ -70,59 +70,59 @@ impl CsWriter {
         }
         // Append a closing tag, and write the field.
         field_string = field_string + "</" + field_name + ">\n";
-        self.output.write_all(&field_string);
+        self.output.write(&field_string);
     }
 }
 
 impl Visitor for CsWriter {
     fn visit_file_start(&mut self, _: &SliceFile, _: &Ast) {
-        self.output.write_all("//Start of file\n");
+        self.output.write("//Start of file\n");
     }
 
     fn visit_file_end(&mut self, _: &SliceFile, _: &Ast) {
         self.output.clear_line_separator();
-        self.output.write_all("\n//End of file\n");
+        self.output.write("\n//End of file\n");
     }
 
     fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
         self.write_comment(module_def);
         let content = format!("\nnamespace {}\n{{", module_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
         self.write_comment(struct_def);
         let content = format!("\nstruct {}\n{{", struct_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
     fn visit_struct_end(&mut self, _: &Struct, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, _: &Ast) {
         self.write_comment(interface_def);
         let content = format!("\ninterface {}\n{{", interface_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
@@ -149,37 +149,37 @@ impl Visitor for CsWriter {
             operation.identifier(),
             parameters_string,
         );
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.write_line_separator();
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
         self.write_comment(enum_def);
         let content = format!("\npublic enum {}", enum_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         if let Some(underlying) = &enum_def.underlying {
             let node = ast.resolve_index(*underlying.definition.as_ref().unwrap());
             let underlying_type_string =
                 format!(" : {}", type_to_string(node, ast, TypeContext::Nested));
-            self.output.write_all(&underlying_type_string);
+            self.output.write(&underlying_type_string);
         } else {
-            self.output.write_all(" : int")
+            self.output.write(" : int")
         }
-        self.output.write_all("\n{");
+        self.output.write("\n{");
         self.output.indent_by(4);
     }
 
     fn visit_enum_end(&mut self, _: &Enum, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
     fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast) {
         self.write_comment(enumerator);
         let content = format!("\n{} = {},", enumerator.identifier(), enumerator.value);
-        self.output.write_all(&content);
+        self.output.write(&content);
     }
 
     fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
@@ -188,6 +188,6 @@ impl Visitor for CsWriter {
         let type_string = type_to_string(node, ast, TypeContext::DataMember);
 
         let content = format!("\n{} {};", type_string, data_member.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
     }
 }
