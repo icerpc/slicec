@@ -11,10 +11,16 @@ use cs_writer::CsWriter;
 use structopt::StructOpt;
 
 pub fn main() {
-    match try_main() {
-        Ok(()) =>  println!("SUCCESS"),
-        Err(()) => println!("FAILED"),
-    };
+    std::process::exit(match try_main() {
+        Ok(()) => {
+            println!("SUCCESS");
+            0
+        }
+        Err(()) => {
+            println!("FAILED");
+            1
+        }
+    })
 }
 
 fn try_main() -> Result<(), ()> {
