@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ref_from_node;
 use crate::ast::{Ast, Node};
+use crate::ref_from_node;
 use crate::util::Location;
 
 /// The lowest base trait in the compiler, which all symbols and types implement.
@@ -16,7 +16,7 @@ macro_rules! implement_element_for {
                 $b
             }
         }
-    }
+    };
 }
 
 implement_element_for!(Module, "module");
@@ -36,7 +36,7 @@ implement_element_for!(Attribute, "attribute");
 implement_element_for!(DocComment, "comment");
 
 /// Symbols represent elements of the actual source code written in the slice file.
-pub trait Symbol : Element {
+pub trait Symbol: Element {
     fn location(&self) -> &Location;
 }
 
@@ -47,7 +47,7 @@ macro_rules! implement_symbol_for {
                 &self.location
             }
         }
-    }
+    };
 }
 
 implement_symbol_for!(Module);
@@ -64,7 +64,7 @@ implement_symbol_for!(Attribute);
 implement_symbol_for!(DocComment);
 
 /// NamedSymbols are symbols that have an identifier attached to them.
-pub trait NamedSymbol : Symbol {
+pub trait NamedSymbol: Symbol {
     fn identifier(&self) -> &str;
     fn attributes(&self) -> &Vec<Attribute>;
     fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
@@ -104,7 +104,7 @@ macro_rules! implement_named_symbol_for {
                 self.comment.as_ref()
             }
         }
-    }
+    };
 }
 
 implement_named_symbol_for!(Module);
@@ -138,7 +138,14 @@ impl Module {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Module { identifier, contents, scope: None, attributes, comment, location }
+        Module {
+            identifier,
+            contents,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -160,7 +167,14 @@ impl Struct {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Struct { identifier, contents, scope: None, attributes, comment, location }
+        Struct {
+            identifier,
+            contents,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -168,7 +182,9 @@ impl Type for Struct {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
         for id in &self.contents {
             let member = ref_from_node!(Node::Member, ast, *id);
-            let data_type = ast.resolve_index(member.data_type.definition.unwrap()).as_type();
+            let data_type = ast
+                .resolve_index(member.data_type.definition.unwrap())
+                .as_type();
             if !data_type.unwrap().is_fixed_size(ast) {
                 return false;
             }
@@ -195,7 +211,14 @@ impl Interface {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Interface { identifier, operations, scope: None, attributes, comment, location }
+        Interface {
+            identifier,
+            operations,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -261,9 +284,9 @@ pub enum ReturnType {
 impl Symbol for ReturnType {
     fn location(&self) -> &Location {
         match self {
-            Self::Void(location)      => location,
+            Self::Void(location) => location,
             Self::Single(_, location) => location,
-            Self::Tuple(_, location)  => location,
+            Self::Tuple(_, location) => location,
         }
     }
 }
@@ -288,7 +311,15 @@ impl Operation {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Self { return_type, parameters, identifier, scope: None, attributes, comment, location }
+        Self {
+            return_type,
+            parameters,
+            identifier,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -312,15 +343,23 @@ impl Member {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Self { data_type, identifier, member_type, scope: None, attributes, comment, location }
+        Self {
+            data_type,
+            identifier,
+            member_type,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
 impl Element for Member {
     fn kind(&self) -> &'static str {
         match self.member_type {
-            MemberType::DataMember    => "data member",
-            MemberType::Parameter     => "parameter",
+            MemberType::DataMember => "data member",
+            MemberType::Parameter => "parameter",
             MemberType::ReturnElement => "return element",
         }
     }
@@ -351,7 +390,14 @@ impl Enumerator {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Enumerator { identifier, value, scope: None, attributes, comment, location }
+        Enumerator {
+            identifier,
+            value,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -377,7 +423,12 @@ pub struct TypeRef {
 
 impl TypeRef {
     pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
-        TypeRef { type_name, is_tagged, definition: None, location }
+        TypeRef {
+            type_name,
+            is_tagged,
+            definition: None,
+            location,
+        }
     }
 }
 
@@ -389,7 +440,10 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn new(element_type: TypeRef) -> Self {
-        Sequence { element_type, scope: None }
+        Sequence {
+            element_type,
+            scope: None,
+        }
     }
 }
 
@@ -407,8 +461,12 @@ pub struct Dictionary {
 }
 
 impl Dictionary {
-    pub fn new(key_type: TypeRef, value_type: TypeRef,) -> Self {
-        Dictionary { key_type, value_type, scope: None }
+    pub fn new(key_type: TypeRef, value_type: TypeRef) -> Self {
+        Dictionary {
+            key_type,
+            value_type,
+            scope: None,
+        }
     }
 }
 
@@ -493,7 +551,13 @@ impl Attribute {
     ) -> Self {
         // Combine the prefix and directive together to make searching qualified directives easier.
         let qualified_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
-        Attribute { prefix, directive, qualified_directive, arguments, location}
+        Attribute {
+            prefix,
+            directive,
+            qualified_directive,
+            arguments,
+            location,
+        }
     }
 }
 

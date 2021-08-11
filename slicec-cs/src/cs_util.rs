@@ -1,9 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::ref_from_node;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
+use slice::ref_from_node;
 use slice::util::TypeContext;
+use slice::writer::Writer;
 
 // TODO move this function beneath the other functions.
 pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeContext) -> String {
@@ -25,7 +26,8 @@ pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeC
                     "{} {}, ",
                     type_to_string(data_type, ast, context),
                     return_element.identifier(),
-                ).as_str();
+                )
+                .as_str();
             }
             // Remove the trailing comma and space.
             type_string.truncate(type_string.len() - 2);
@@ -42,38 +44,34 @@ pub fn type_to_string(node: &Node, ast: &Ast, context: TypeContext) -> String {
             identifier.drain(2..).collect::<String>().replace("::", ".")
         }
         Node::Interface(_, interface_def) => {
-            let mut identifier = interface_def.scope.clone().unwrap() + "::" + interface_def.identifier();
+            let mut identifier =
+                interface_def.scope.clone().unwrap() + "::" + interface_def.identifier();
             identifier.drain(2..).collect::<String>().replace("::", ".") + "Prx"
         }
         Node::Enum(_, enum_def) => {
             let mut identifier = enum_def.scope.clone().unwrap() + "::" + enum_def.identifier();
             identifier.drain(2..).collect::<String>().replace("::", ".")
         }
-        Node::Sequence(_, sequence) => {
-            sequence_type_to_string(sequence, ast, context)
+        Node::Sequence(_, sequence) => sequence_type_to_string(sequence, ast, context),
+        Node::Dictionary(_, dictionary) => dictionary_type_to_string(dictionary, ast, context),
+        Node::Primitive(_, primitive) => match primitive {
+            Primitive::Bool => "bool",
+            Primitive::Byte => "byte",
+            Primitive::Short => "short",
+            Primitive::UShort => "ushort",
+            Primitive::Int => "int",
+            Primitive::UInt => "uint",
+            Primitive::VarInt => "int",
+            Primitive::VarUInt => "uint",
+            Primitive::Long => "long",
+            Primitive::ULong => "ulong",
+            Primitive::VarLong => "long",
+            Primitive::VarULong => "ulong",
+            Primitive::Float => "float",
+            Primitive::Double => "double",
+            Primitive::String => "string",
         }
-        Node::Dictionary(_, dictionary) => {
-            dictionary_type_to_string(dictionary, ast, context)
-        }
-        Node::Primitive(_, primitive) => {
-            match primitive {
-                Primitive::Bool     => "bool",
-                Primitive::Byte     => "byte",
-                Primitive::Short    => "short",
-                Primitive::UShort   => "ushort",
-                Primitive::Int      => "int",
-                Primitive::UInt     => "uint",
-                Primitive::VarInt   => "int",
-                Primitive::VarUInt  => "uint",
-                Primitive::Long     => "long",
-                Primitive::ULong    => "ulong",
-                Primitive::VarLong  => "long",
-                Primitive::VarULong => "ulong",
-                Primitive::Float    => "float",
-                Primitive::Double   => "double",
-                Primitive::String   => "string",
-            }.to_owned()
-        }
+        .to_owned(),
         _ => {
             panic!("Node does not represent a type: '{:?}'!", node);
         }
@@ -92,10 +90,7 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             )
         }
         TypeContext::Incoming => {
-            format!(
-                "{}[]",
-                element_type_string,
-            )
+            format!("{}[]", element_type_string,)
         }
         TypeContext::Outgoing => {
             let mut container_type = "global::System.Collections.Generic.IEnumerable";
@@ -103,11 +98,7 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             if element_type.as_type().unwrap().is_fixed_size(ast) {
                 container_type = "global::System.ReadOnlyMemory";
             }
-            format!(
-                "{}<{}>",
-                container_type,
-                element_type_string,
-            )
+            format!("{}<{}>", container_type, element_type_string,)
         }
     }
 }
@@ -122,15 +113,13 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
         TypeContext::DataMember | TypeContext::Nested => {
             format!(
                 "global::System.Collections.Generic.IDictionary<{}, {}>",
-                key_type_string,
-                value_type_string,
+                key_type_string, value_type_string,
             )
         }
         TypeContext::Incoming => {
             format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
-                key_type_string,
-                value_type_string,
+                key_type_string, value_type_string,
             )
         }
         TypeContext::Outgoing => {
@@ -141,4 +130,42 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
             )
         }
     }
+}
+
+pub fn write_equality_operators(writer: &mut Writer, name: &str) {
+    writer.write_line_separator();
+    let content = format!(
+        r#"
+/// <summary>The equality operator == returns true if its operands are equal, false otherwise.</summary>
+/// <param name="lhs">The left hand side operand.</param>
+/// <param name="rhs">The right hand side operand.</param>
+/// <returns><c>true</c> if the operands are equal, otherwise <c>false</c>.</returns>
+public static bool operator ==({name} lhs, {name} rhs) => lhs.Equals(rhs);
+
+/// <summary>The inequality operator != returns true if its operands are not equal, false otherwise.</summary>"
+/// <param name="lhs">The left hand side operand.</param>
+/// <param name="rhs">The right hand side operand.</param>
+/// <returns><c>true</c> if the operands are not equal, otherwise <c>false</c>.</returns>
+public static bool operator !=({name} lhs, {name} rhs) => !lhs.Equals(rhs);"#,
+        name = name
+    );
+    writer.write_all(&content);
+}
+
+pub fn decode_data_members(struct_def: &Struct, ast: &Ast) -> String {
+    let mut content = String::new();
+    for id in &struct_def.contents {
+        let member = ref_from_node!(Node::Member, ast, *id);
+        let identifier = member.identifier();
+        // let type_node = ast.resolve_index(member.data_type.definition.unwrap());
+        // let type_string = type_to_string(type_node, ast, TypeContext::DataMember);
+
+        content += &format!(
+            "{}this.{identifier} = decoder.Decode",
+            if content.len() > 0 { "\n" } else { "" },
+            identifier = identifier
+        );
+    }
+
+    content
 }
