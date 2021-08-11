@@ -149,7 +149,7 @@ public static bool operator ==({name} lhs, {name} rhs) => lhs.Equals(rhs);
 public static bool operator !=({name} lhs, {name} rhs) => !lhs.Equals(rhs);"#,
         name = name
     );
-    writer.write_all(&content);
+    writer.write(&content);
 }
 
 pub fn decode_data_members(struct_def: &Struct, ast: &Ast) -> String {

@@ -14,7 +14,7 @@ use std::io;
 macro_rules! write_fmt {
     ($writer:expr, $fmt:expr, $($arg:tt)*) => {{
         let content = format!($fmt, $($arg)*);
-        $writer.write_all(&content);
+        $writer.write(&content);
     }};
 }
 
@@ -77,7 +77,7 @@ impl CsWriter {
         }
         // Append a closing tag, and write the field.
         field_string = field_string + "</" + field_name + ">\n";
-        self.output.write_all(&field_string);
+        self.output.write(&field_string);
     }
 }
 
@@ -101,20 +101,20 @@ impl Visitor for CsWriter {
     }
 
     fn visit_file_end(&mut self, _: &SliceFile, _: &Ast) {
-        self.output.write_all("\n")
+        self.output.write("\n")
     }
 
     fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
         self.write_comment(module_def);
         let content = format!("\nnamespace {}\n{{", module_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
     fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
@@ -137,7 +137,7 @@ impl Visitor for CsWriter {
             struct_modifier,
             name = struct_def.identifier()
         );
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
@@ -230,21 +230,21 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, _: &Ast) {
         self.write_comment(interface_def);
         let content = format!("\ninterface {}\n{{", interface_def.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.indent_by(4);
     }
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
     }
 
@@ -272,7 +272,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             operation.identifier(),
             parameters_string,
         );
-        self.output.write_all(&content);
+        self.output.write(&content);
         self.output.write_line_separator();
     }
 
@@ -301,7 +301,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
     fn visit_enum_end(&mut self, enum_def: &Enum, _: usize, _: &Ast) {
         self.output.clear_line_separator();
         self.output.indent_by(-4);
-        self.output.write_all("\n}");
+        self.output.write("\n}");
         self.output.write_line_separator();
 
         // Enum helper class
@@ -320,7 +320,7 @@ public static class {name}Helper
     fn visit_enumerator(&mut self, enumerator: &Enumerator, _: usize, _: &Ast) {
         self.write_comment(enumerator);
         let content = format!("\n{} = {},", enumerator.identifier(), enumerator.value);
-        self.output.write_all(&content);
+        self.output.write(&content);
     }
 
     fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
@@ -329,6 +329,6 @@ public static class {name}Helper
         let type_string = type_to_string(node, ast, TypeContext::DataMember);
 
         let content = format!("\npublic {} {};", type_string, data_member.identifier());
-        self.output.write_all(&content);
+        self.output.write(&content);
     }
 }
