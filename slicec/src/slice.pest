@@ -13,7 +13,7 @@ struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
 interface_start = ${ interface_kw ~ ws+ ~ identifier }
 interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 
-enum_start = ${ unchecked_modifier ~ ws+ ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ ":" ~ ws* ~ typename )? }
+enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ ":" ~ ws* ~ typename )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 return_type = !{ void_kw | typename | return_tuple }
@@ -89,7 +89,7 @@ block_doc_comment = @{ "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
 
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 
-unchecked_modifier = { unchecked_kw? }
+unchecked_modifier = { (unchecked_kw ~ ws+)? }
 
 module_kw = { "module" }
 struct_kw = { "struct" }
