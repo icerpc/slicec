@@ -12,7 +12,7 @@ use slice::writer::Writer;
 use std::io;
 
 macro_rules! write_fmt {
-    ($writer:expr, $fmt:expr, $($arg:tt)*) => {{
+    ($writer:expr, $fmt:literal, $($arg:tt)*) => {{
         let content = format!($fmt, $($arg)*);
         $writer.write(&content);
     }};
@@ -45,7 +45,7 @@ impl CsWriter {
             // Write each of the comment's parameter fields.
             for param in &comment.params {
                 let (identifier, description) = param;
-                let attribute = format!(" name=\"{}\"", &identifier);
+                let attribute = format!(r#" name="{}""#, &identifier);
                 self.write_comment_field("param", &description, &attribute);
             }
 
@@ -57,7 +57,7 @@ impl CsWriter {
             // Write each of the comment's exception fields.
             for exception in &comment.throws {
                 let (exception, description) = exception;
-                let attribute = format!(" cref=\"{}\"", &exception);
+                let attribute = format!(r#" cref="{}""#, &exception);
                 self.write_comment_field("exceptions", &description, &attribute);
             }
         }
@@ -277,43 +277,78 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
+        let underlying_type = underlying_enum_type(enum_def, ast);
+
+        self.output.write_line_separator();
+
         self.write_comment(enum_def);
-
-        let backing_type = if let Some(underlying) = &enum_def.underlying {
-            type_to_string(
-                ast.resolve_index(*underlying.definition.as_ref().unwrap()),
-                ast,
-                TypeContext::Nested,
-            )
-        } else {
-            "int".to_string()
-        };
-
+        //TODO: from slice2cs
+        // writeTypeDocComment(p, getDeprecateReason(p));
+        // emitCommonAttributes();
+        // emitCustomAttributes(p);
         write_fmt!(
             self.output,
-            "\npublic enum {name} : {backing_type}\n{{",
+            "\npublic enum {name} : {underlying_type}\n{{",
             name = enum_def.identifier(),
-            backing_type = backing_type
+            underlying_type = underlying_type
         );
         self.output.indent_by(4);
     }
 
-    fn visit_enum_end(&mut self, enum_def: &Enum, _: usize, _: &Ast) {
+    fn visit_enum_end(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
+        // Close the enum
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write("\n}");
         self.output.write_line_separator();
 
+        // When the number of enumerators is smaller than the distance between the min and max values, the values are not
+        // consecutive and we need to use a set to validate the value during unmarshaling.
+        // Note that the values are not necessarily in order, e.g. we can use a simple range check for
+        // enum E { A = 3, B = 2, C = 1 } during unmarshaling.
+        let use_set = if let (Some(min_value), Some(max_value)) =
+            (enum_def.min_value(ast), enum_def.max_value(ast))
+        {
+            !enum_def.is_unchecked && (enum_def.contents.len() as i64) < max_value - min_value + 1
+        } else {
+            // This means there are no enumerators.*
+            true
+        };
+
+        let underlying_type = underlying_enum_type(enum_def, ast);
+
+        let hash_set = if use_set {
+            format!(
+                "\
+\npublic static readonly global::System::Collections.Generic.HashSet<{underlying}> EnumeratorValues =
+    new global::System.Collections.Generic.HashSet<{underlying}> {{{enum_values}}}",
+                underlying = underlying_type,
+                enum_values = enum_def.enumerators(ast).iter().map(|e| e.value.to_string()).collect::<Vec<String>>().join(","))
+        } else {
+            "".to_owned()
+        };
+
         // Enum helper class
         write_fmt!(
             self.output,
             r#"
-/// <summary>Helper class for marshaling and unmarshaling <see cref="{name}"/>.</summary>
+/// <summary>Helper class for marshaling and unmarshaling <see cref="{fixedName}"/>.</summary>
 public static class {name}Helper
-{{
+{{{hash_set}
 
+    public static {fixedName} As{name}(this {underlying_type} value) => {as_enum};
+
+    public static {fixedName} Decode{name} (this IceRpc.IceDecoder decoder) => {decode_enum};
+
+    public static void Encode{name} (this IceRpc.IceEncoder encoder, {fixedName} value) => {encode_enum};
 }}"#,
-            name = enum_def.identifier()
+            fixedName = enum_def.identifier(), //TODO: should be "fixed name"
+            name = enum_def.identifier(),
+            underlying_type = underlying_type,
+            hash_set = hash_set.replace("\n", "\n    "),
+            as_enum = "...",
+            decode_enum = "...",
+            encode_enum = "..."
         );
     }
 
@@ -330,5 +365,17 @@ public static class {name}Helper
 
         let content = format!("\npublic {} {};", type_string, data_member.identifier());
         self.output.write(&content);
+    }
+}
+
+pub fn underlying_enum_type(enum_def: &Enum, ast: &Ast) -> String {
+    if let Some(underlying) = &enum_def.underlying {
+        type_to_string(
+            ast.resolve_index(*underlying.definition.as_ref().unwrap()),
+            ast,
+            TypeContext::Nested,
+        )
+    } else {
+        "int".to_owned()
     }
 }

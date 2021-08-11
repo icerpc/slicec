@@ -232,7 +232,7 @@ impl Type for Interface {
 pub struct Enum {
     pub identifier: Identifier,
     pub contents: Vec<usize>,
-    pub is_checked: bool,
+    pub is_unchecked: bool,
     pub underlying: Option<TypeRef>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
@@ -244,7 +244,7 @@ impl Enum {
     pub fn new(
         identifier: Identifier,
         contents: Vec<usize>,
-        is_checked: bool,
+        is_unchecked: bool,
         underlying: Option<TypeRef>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
@@ -253,13 +253,36 @@ impl Enum {
         Enum {
             identifier,
             contents,
-            is_checked,
+            is_unchecked,
             underlying,
             scope: None,
             attributes,
             comment,
             location,
         }
+    }
+
+    /// Returns the min enum value if the enum is non-empty.
+    pub fn min_value(&self, ast: &Ast) -> Option<i64> {
+        self.contents
+            .iter()
+            .map(|id| ref_from_node!(Node::Enumerator, ast, *id).value)
+            .min()
+    }
+
+    /// Returns the max enum value if the enum is non-empty.
+    pub fn max_value(&self, ast: &Ast) -> Option<i64> {
+        self.contents
+            .iter()
+            .map(|id| ref_from_node!(Node::Enumerator, ast, *id).value)
+            .max()
+    }
+
+    pub fn enumerators<'a>(&self, ast: &'a Ast) -> Vec<&'a Enumerator> {
+        self.contents
+            .iter()
+            .map(|id| ref_from_node!(Node::Enumerator, ast, *id))
+            .collect()
     }
 }
 
