@@ -194,14 +194,13 @@ fn mangle_name(identifier: &str, kind: &str) -> String {
     ];
 
     let needs_mangling = match kind {
-        // TODO add checks for classes and exceptions once we've added them.
-        //"class" => {
-        //    OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
-        //}
-        //"exception" => {
-        //    OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some() |
-        //    EXCEPTION_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
-        //}
+        "class" => {
+            OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
+        }
+        "exception" => {
+            OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some() |
+            EXCEPTION_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
+        }
         _ => false,
     };
 
