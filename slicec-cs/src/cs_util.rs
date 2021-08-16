@@ -132,6 +132,10 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
     }
 }
 
+pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
+    return "Foo".to_owned();//Actually implement this
+}
+
 pub fn write_equality_operators(writer: &mut Writer, name: &str) {
     writer.write_line_separator();
     let content = format!(
