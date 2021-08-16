@@ -26,8 +26,7 @@ pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeC
                     "{} {}, ",
                     type_to_string(data_type, ast, context),
                     return_element.identifier(),
-                )
-                .as_str();
+                ).as_str();
             }
             // Remove the trailing comma and space.
             type_string.truncate(type_string.len() - 2);
@@ -55,23 +54,22 @@ pub fn type_to_string(node: &Node, ast: &Ast, context: TypeContext) -> String {
         Node::Sequence(_, sequence) => sequence_type_to_string(sequence, ast, context),
         Node::Dictionary(_, dictionary) => dictionary_type_to_string(dictionary, ast, context),
         Node::Primitive(_, primitive) => match primitive {
-            Primitive::Bool => "bool",
-            Primitive::Byte => "byte",
-            Primitive::Short => "short",
-            Primitive::UShort => "ushort",
-            Primitive::Int => "int",
-            Primitive::UInt => "uint",
-            Primitive::VarInt => "int",
-            Primitive::VarUInt => "uint",
-            Primitive::Long => "long",
-            Primitive::ULong => "ulong",
-            Primitive::VarLong => "long",
+            Primitive::Bool     => "bool",
+            Primitive::Byte     => "byte",
+            Primitive::Short    => "short",
+            Primitive::UShort   => "ushort",
+            Primitive::Int      => "int",
+            Primitive::UInt     => "uint",
+            Primitive::VarInt   => "int",
+            Primitive::VarUInt  => "uint",
+            Primitive::Long     => "long",
+            Primitive::ULong    => "ulong",
+            Primitive::VarLong  => "long",
             Primitive::VarULong => "ulong",
-            Primitive::Float => "float",
-            Primitive::Double => "double",
-            Primitive::String => "string",
-        }
-        .to_owned(),
+            Primitive::Float    => "float",
+            Primitive::Double   => "double",
+            Primitive::String   => "string",
+        }.to_owned(),
         _ => {
             panic!("Node does not represent a type: '{:?}'!", node);
         }
@@ -90,7 +88,10 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             )
         }
         TypeContext::Incoming => {
-            format!("{}[]", element_type_string,)
+            format!(
+                "{}[]",
+                element_type_string,
+            )
         }
         TypeContext::Outgoing => {
             let mut container_type = "global::System.Collections.Generic.IEnumerable";
@@ -98,7 +99,11 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             if element_type.as_type().unwrap().is_fixed_size(ast) {
                 container_type = "global::System.ReadOnlyMemory";
             }
-            format!("{}<{}>", container_type, element_type_string,)
+            format!(
+                "{}<{}>",
+                container_type,
+                element_type_string,
+            )
         }
     }
 }
@@ -113,13 +118,15 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
         TypeContext::DataMember | TypeContext::Nested => {
             format!(
                 "global::System.Collections.Generic.IDictionary<{}, {}>",
-                key_type_string, value_type_string,
+                key_type_string,
+                value_type_string,
             )
         }
         TypeContext::Incoming => {
             format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
-                key_type_string, value_type_string,
+                key_type_string,
+                value_type_string,
             )
         }
         TypeContext::Outgoing => {
