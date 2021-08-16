@@ -132,11 +132,34 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
     }
 }
 
-// TODO write a doc comment here.
+/// Escapes and returns the definition's identifier, without any scoping.
+///
+/// If the identifier is a C# keyword, a '@' prefix is appended to it.
+/// If the idenfifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
+/// (This is only done on types that inherit from Object or Exception respectively).
 pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
-    // Only NamedSymbols have identifiers, so this unwrap will always succeed.
-    let identifier = definition.identifier();
+    let identifier = escape_keyword(definition.identifier());
+    mangle_name(&identifier, definition.kind())
+}
 
+/// Escapes and returns the definition's identifier, fully scoped.
+///
+/// If the identifier or any of the scopes are C# keywords, a '@' prefix is appended to them.
+/// If the idenfifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
+/// (This is only done on types that inherit from Object or Exception respectively).
+pub fn escape_scoped_identifier(definition: &dyn NamedSymbol) -> String {
+    let mut scoped_identifier = String::new();
+
+    // Escape any keywords in the scope identifiers.
+    for scope in definition.scope().split("::") {
+        scoped_identifier += &escape_keyword(scope);
+    }
+    scoped_identifier += &escape_identifier(definition);
+    scoped_identifier
+}
+
+/// Checks if the provided string is a C# keyword, and escapes it if necessary (by appending a '@').
+pub fn escape_keyword(identifier: &str) -> String {
     const CS_KEYWORDS: [&'static str; 79] = [
         "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch",
         "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
@@ -149,17 +172,16 @@ pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
         "virtual", "void", "volatile", "while",
     ];
 
-    // Check if the identifier is a C# keyword.
-    if CS_KEYWORDS.iter().find(|&&keyword| identifier == keyword).is_some() {
-        "@".to_owned() + identifier
-    } else {
-        // Otherwise check if it would shadow a base method name.
-        mangle_name(definition, identifier)
-    }
+    // Add a '@' prefix if the identifier matched a C# keyword.
+    let needs_escaping = CS_KEYWORDS.iter().find(|&&keyword| identifier == keyword).is_some();
+    (if needs_escaping { "@" } else { "" }).to_owned() + identifier
 }
 
-// TODO write a doc comment here.
-fn mangle_name(definition: &dyn NamedSymbol, identifier: &str) -> String {
+/// Checks if the provided identifier would shadow a base method in an object or exception, and
+/// escapes it if necessary by appending an 'Ice' prefix to the identifier.
+///
+/// `kind` is the stringified slice type. Escaping is only performed on `class`es and `exception`s.
+fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&'static str; 7] = [
         "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
@@ -171,7 +193,7 @@ fn mangle_name(definition: &dyn NamedSymbol, identifier: &str) -> String {
         "Message", "Source", "StackTrace", "TargetSite",
     ];
 
-    let needs_mangling = match definition.kind() {
+    let needs_mangling = match kind {
         // TODO add checks for classes and exceptions once we've added them.
         //"class" => {
         //    OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
@@ -180,7 +202,7 @@ fn mangle_name(definition: &dyn NamedSymbol, identifier: &str) -> String {
         //    OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some() |
         //    EXCEPTION_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
         //}
-        _ => { false }
+        _ => false,
     };
 
     // If the name conflicts with a base method, add an "Ice" prefix to it.
