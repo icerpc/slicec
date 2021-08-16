@@ -486,6 +486,10 @@ impl TypeRef {
             location,
         }
     }
+
+    pub fn definition<'a>(&self, ast: &'a Ast) -> &'a Node {
+        ast.resolve_index(self.definition.unwrap())
+    }
 }
 
 #[derive(Clone, Debug)]
