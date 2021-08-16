@@ -149,8 +149,7 @@ impl Visitor for CsWriter {
         let mut constructor_args = Vec::new();
         let mut constructor_body = Vec::new();
 
-        for id in &struct_def.contents {
-            let member = ref_from_node!(Node::Member, ast, *id);
+        for member in struct_def.members(ast) {
             let identifier = member.identifier();
             let type_node = ast.resolve_index(member.data_type.definition.unwrap());
             let type_string = type_to_string(type_node, ast, TypeContext::DataMember);
@@ -312,7 +311,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         let use_set = if let (Some(min_value), Some(max_value)) =
             (enum_def.min_value(ast), enum_def.max_value(ast))
         {
-            !enum_def.is_unchecked && (enum_def.contents.len() as i64) < max_value - min_value + 1
+            !enum_def.is_unchecked && (enum_def.enumerators.len() as i64) < max_value - min_value + 1
         } else {
             // This means there are no enumerators.*
             true

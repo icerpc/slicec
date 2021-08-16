@@ -81,7 +81,7 @@ impl Module {
 impl Struct {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_struct_start(self, index, ast);
-        for id in self.contents.iter() {
+        for id in self.members.iter() {
             ast.resolve_index(*id).visit_with(visitor, ast);
         }
         visitor.visit_struct_end(self, index, ast);
@@ -101,7 +101,7 @@ impl Interface {
 impl Enum {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_enum_start(self, index, ast);
-        for id in self.contents.iter() {
+        for id in self.enumerators.iter() {
             ast.resolve_index(*id).visit_with(visitor, ast);
         }
         visitor.visit_enum_end(self, index, ast);

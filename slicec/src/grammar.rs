@@ -147,12 +147,19 @@ impl Module {
             location,
         }
     }
+
+    pub fn contents<'a>(&self, ast: &'a Ast) -> Vec<&'a dyn NamedSymbol> {
+        self.contents
+            .iter()
+            .map(|id| ast.resolve_index(*id).as_named_symbol().unwrap())
+            .collect()
+    }
 }
 
 #[derive(Clone, Debug)]
 pub struct Struct {
     pub identifier: Identifier,
-    pub contents: Vec<usize>,
+    pub members: Vec<usize>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -162,26 +169,32 @@ pub struct Struct {
 impl Struct {
     pub fn new(
         identifier: Identifier,
-        contents: Vec<usize>,
+        members: Vec<usize>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
         Struct {
             identifier,
-            contents,
+            members,
             scope: None,
             attributes,
             comment,
             location,
         }
     }
+
+    pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.members
+            .iter()
+            .map(|id| ref_from_node!(Node::Member, ast, *id))
+            .collect()
+    }
 }
 
 impl Type for Struct {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
-        for id in &self.contents {
-            let member = ref_from_node!(Node::Member, ast, *id);
+        for member in self.members(ast) {
             let data_type = ast
                 .resolve_index(member.data_type.definition.unwrap())
                 .as_type();
@@ -220,6 +233,13 @@ impl Interface {
             location,
         }
     }
+
+    pub fn operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
+        self.operations
+            .iter()
+            .map(|id| ref_from_node!(Node::Operation, ast, *id))
+            .collect()
+    }
 }
 
 impl Type for Interface {
@@ -231,7 +251,7 @@ impl Type for Interface {
 #[derive(Clone, Debug)]
 pub struct Enum {
     pub identifier: Identifier,
-    pub contents: Vec<usize>,
+    pub enumerators: Vec<usize>,
     pub is_unchecked: bool,
     pub underlying: Option<TypeRef>,
     pub scope: Option<String>,
@@ -243,7 +263,7 @@ pub struct Enum {
 impl Enum {
     pub fn new(
         identifier: Identifier,
-        contents: Vec<usize>,
+        enumerators: Vec<usize>,
         is_unchecked: bool,
         underlying: Option<TypeRef>,
         attributes: Vec<Attribute>,
@@ -252,7 +272,7 @@ impl Enum {
     ) -> Self {
         Enum {
             identifier,
-            contents,
+            enumerators,
             is_unchecked,
             underlying,
             scope: None,
@@ -264,22 +284,22 @@ impl Enum {
 
     /// Returns the min enum value if the enum is non-empty.
     pub fn min_value(&self, ast: &Ast) -> Option<i64> {
-        self.contents
+        self.enumerators(ast)
             .iter()
-            .map(|id| ref_from_node!(Node::Enumerator, ast, *id).value)
+            .map(|enumerator| enumerator.value)
             .min()
     }
 
     /// Returns the max enum value if the enum is non-empty.
     pub fn max_value(&self, ast: &Ast) -> Option<i64> {
-        self.contents
+        self.enumerators(ast)
             .iter()
-            .map(|id| ref_from_node!(Node::Enumerator, ast, *id).value)
+            .map(|enumerator| enumerator.value)
             .max()
     }
 
     pub fn enumerators<'a>(&self, ast: &'a Ast) -> Vec<&'a Enumerator> {
-        self.contents
+        self.enumerators
             .iter()
             .map(|id| ref_from_node!(Node::Enumerator, ast, *id))
             .collect()

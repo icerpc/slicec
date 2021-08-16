@@ -76,8 +76,7 @@ impl<'a> Validator<'a> {
         Ok((lower_bound, upper_bound))
     }
 
-    fn check_enumerator_value(id: usize, lower: i64, upper: i64, ast: &Ast) -> Result<(), Error> {
-        let enumerator = ref_from_node!(Node::Enumerator, ast, id);
+    fn check_enumerator_value(enumerator: &Enumerator, lower: i64, upper: i64) -> Result<(), Error> {
         if (enumerator.value < lower) || (enumerator.value > upper) {
             let message = format!(
                 "enumerator '{}'s value ({}) is outside the range of its enum: [{}...{}]",
@@ -99,8 +98,8 @@ impl<'a> Visitor for Validator<'a> {
         match Self::get_enum_bounds(enum_def, ast) {
             Ok((lower, upper)) => {
                 // Iterate through the enumerators and check if each is within bounds.
-                for id in &enum_def.contents {
-                    if let Err(err) = Self::check_enumerator_value(*id, lower, upper, ast) {
+                for enumerator in enum_def.enumerators(ast) {
+                    if let Err(err) = Self::check_enumerator_value(enumerator, lower, upper) {
                         self.error_handler.report_error(err);
                     }
                 }
@@ -113,7 +112,7 @@ impl<'a> Visitor for Validator<'a> {
 
         // Check if any of the enumerator values are repeated.
         let mut used_values = HashMap::new();
-        for id in &enum_def.contents {
+        for id in &enum_def.enumerators {
             let enumerator = ref_from_node!(Node::Enumerator, ast, *id);
             if used_values.contains_key(&enumerator.value) {
                 let error_message = format!(
