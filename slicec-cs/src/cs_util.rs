@@ -169,3 +169,34 @@ pub fn decode_data_members(struct_def: &Struct, ast: &Ast) -> String {
 
     content
 }
+
+pub fn builtin_suffix(node: &Node) -> String {
+    match node {
+        Node::Primitive(_, primitive) => primitive_type_suffix(&primitive),
+        // Node::Proxy(_, proxy) => "Proxy".to_owned(), //TODO: proxies
+        // Node::Class(class: &Class) => "Class" //TODO: classes
+        _ => panic!("unexpected builtin type: {}", node.as_element().kind()),
+    }
+}
+
+pub fn primitive_type_suffix(primitive: &Primitive) -> String {
+    // TODO: can we just stringify the primitive?
+    match primitive {
+        Primitive::Bool => "Bool",
+        Primitive::Byte => "Byte",
+        Primitive::Short => "Short",
+        Primitive::UShort => "UShort",
+        Primitive::Int => "Int",
+        Primitive::UInt => "UInt",
+        Primitive::VarInt => "VarInt",
+        Primitive::VarUInt => "VarUInt",
+        Primitive::Long => "Long",
+        Primitive::ULong => "",
+        Primitive::VarLong => "VarLong",
+        Primitive::VarULong => "VarULong",
+        Primitive::Float => "Float",
+        Primitive::Double => "Double",
+        Primitive::String => "String",
+    }
+    .to_owned()
+}

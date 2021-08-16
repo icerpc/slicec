@@ -284,6 +284,14 @@ impl Enum {
             .map(|id| ref_from_node!(Node::Enumerator, ast, *id))
             .collect()
     }
+
+    pub fn underlying_type<'a>(&self, ast: &'a Ast) -> &'a Node {
+        if let Some(underlying) = &self.underlying {
+            ast.resolve_index(underlying.definition.unwrap())
+        } else {
+            ast.resolve_primitive(Primitive::Int)
+        }
+    }
 }
 
 impl Type for Enum {

@@ -25,16 +25,16 @@ impl Node {
     /// Unwraps a node into an Element and returns a reference to it.
     pub fn as_element(&self) -> &dyn Element {
         match self {
-            Self::Module(_, module_def)       => module_def,
-            Self::Struct(_, struct_def)       => struct_def,
+            Self::Module(_, module_def) => module_def,
+            Self::Struct(_, struct_def) => struct_def,
             Self::Interface(_, interface_def) => interface_def,
-            Self::Enum(_, enum_def)           => enum_def,
-            Self::Operation(_, operation)     => operation,
-            Self::Member(_, member)           => member,
-            Self::Enumerator(_, enumerator)   => enumerator,
-            Self::Sequence(_, sequence)       => sequence,
-            Self::Dictionary(_, dictionary)   => dictionary,
-            Self::Primitive(_, primitive)     => primitive,
+            Self::Enum(_, enum_def) => enum_def,
+            Self::Operation(_, operation) => operation,
+            Self::Member(_, member) => member,
+            Self::Enumerator(_, enumerator) => enumerator,
+            Self::Sequence(_, sequence) => sequence,
+            Self::Dictionary(_, dictionary) => dictionary,
+            Self::Primitive(_, primitive) => primitive,
         }
     }
 
@@ -42,13 +42,13 @@ impl Node {
     /// it. If the underlying struct doesn't implement it, this returns `None`.
     pub fn as_named_symbol(&self) -> Option<&dyn NamedSymbol> {
         match self {
-            Self::Module(_, module_def)       => Some(module_def),
-            Self::Struct(_, struct_def)       => Some(struct_def),
+            Self::Module(_, module_def) => Some(module_def),
+            Self::Struct(_, struct_def) => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
-            Self::Enum(_, enum_def)           => Some(enum_def),
-            Self::Operation(_, operation)     => Some(operation),
-            Self::Member(_, member)           => Some(member),
-            Self::Enumerator(_, enumerator)   => Some(enumerator),
+            Self::Enum(_, enum_def) => Some(enum_def),
+            Self::Operation(_, operation) => Some(operation),
+            Self::Member(_, member) => Some(member),
+            Self::Enumerator(_, enumerator) => Some(enumerator),
             _ => None,
         }
     }
@@ -57,12 +57,12 @@ impl Node {
     /// If the underlying struct doesn't implement it, this returns `None`.
     pub fn as_type(&self) -> Option<&dyn Type> {
         match self {
-            Self::Struct(_, struct_def)       => Some(struct_def),
+            Self::Struct(_, struct_def) => Some(struct_def),
             Self::Interface(_, interface_def) => Some(interface_def),
-            Self::Enum(_, enum_def)           => Some(enum_def),
-            Self::Sequence(_, sequence)       => Some(sequence),
-            Self::Dictionary(_, dictionary)   => Some(dictionary),
-            Self::Primitive(_, primitive)     => Some(primitive),
+            Self::Enum(_, enum_def) => Some(enum_def),
+            Self::Sequence(_, sequence) => Some(sequence),
+            Self::Dictionary(_, dictionary) => Some(dictionary),
+            Self::Primitive(_, primitive) => Some(primitive),
             _ => None,
         }
     }
@@ -202,6 +202,14 @@ impl Ast {
                 self.primitive_cache.insert(primitive, index);
                 index
             }
+        }
+    }
+
+    ///Retrieves the node of the specified primitive.
+    pub(crate) fn resolve_primitive(&self, primitive: Primitive) -> &Node {
+        match self.primitive_cache.get(&primitive) {
+            Some(index) => &self.ast[*index],
+            None => panic!("primitive type not found"),
         }
     }
 }
