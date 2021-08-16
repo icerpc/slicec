@@ -303,8 +303,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         self.output.write("\n}");
         self.output.write_line_separator();
 
-        //TODO: fixId this
-        let name = enum_def.identifier();
+        let escaped_identifier = escape_identifier(enum_def);
 
         // When the number of enumerators is smaller than the distance between the min and max values, the values are not
         // consecutive and we need to use a set to validate the value during unmarshaling.
@@ -334,7 +333,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         };
 
         let as_enum = if enum_def.is_unchecked {
-            format!("({})value", name)
+            format!("({})value", escaped_identifier)
         } else {
             let check_enum = if use_set {
                 "EnumeratorValues.Contains(value)".to_owned()
@@ -348,9 +347,9 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             };
             // TODO: scoped = fixId(p->scoped())
             format!(
-                "{check_enum} ? ({name})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
+                "{check_enum} ? ({escaped_identifier})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
                 check_enum = check_enum,
-                name = name,
+                escaped_identifier = escaped_identifier,
                 scoped = "...")
         };
 
@@ -379,21 +378,21 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         write_fmt!(
             self.output,
             r#"
-/// <summary>Helper class for marshaling and unmarshaling <see cref="{fixedName}"/>.</summary>
-public static class {name}Helper
+/// <summary>Helper class for marshaling and unmarshaling <see cref="{escaped_identifier}"/>.</summary>
+public static class {identifier}Helper
 {{{hash_set}
 
-    public static {fixedName} As{name}(this {underlying_type} value) =>
+    public static {escaped_identifier} As{identifier}(this {underlying_type} value) =>
         {as_enum};
 
-    public static {fixedName} Decode{name} (this IceRpc.IceDecoder decoder) =>
+    public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
         {decode_enum};
 
-    public static void Encode{name} (this IceRpc.IceEncoder encoder, {fixedName} value) =>
+    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
         {encode_enum};
 }}"#,
-            fixedName = enum_def.identifier(), //TODO: should be "fixed name"
-            name = enum_def.identifier(),
+            escaped_identifier = escaped_identifier,
+            identifier = enum_def.identifier(),
             underlying_type = underlying_type,
             hash_set = hash_set.replace("\n", "\n    "),
             as_enum = as_enum.replace("\n", "\n    "),
