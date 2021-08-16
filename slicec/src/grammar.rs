@@ -472,16 +472,16 @@ impl Identifier {
 #[derive(Clone, Debug)]
 pub struct TypeRef {
     pub type_name: String,
-    pub is_tagged: bool,
+    pub is_optional: bool,
     pub definition: Option<usize>,
     pub location: Location,
 }
 
 impl TypeRef {
-    pub fn new(type_name: String, is_tagged: bool, location: Location) -> Self {
+    pub fn new(type_name: String, is_optional: bool, location: Location) -> Self {
         TypeRef {
             type_name,
-            is_tagged,
+            is_optional,
             definition: None,
             location,
         }
