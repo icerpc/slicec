@@ -70,6 +70,7 @@ pub trait NamedSymbol: Symbol {
     fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
     fn has_attribute(&self, directive: &str) -> bool;
     fn comment(&self) -> Option<&DocComment>;
+    fn scope(&self) -> &str;
 }
 
 macro_rules! implement_named_symbol_for {
@@ -102,6 +103,10 @@ macro_rules! implement_named_symbol_for {
 
             fn comment(&self) -> Option<&DocComment> {
                 self.comment.as_ref()
+            }
+
+            fn scope(&self) -> &str {
+                self.scope.as_ref().unwrap()
             }
         }
     };
