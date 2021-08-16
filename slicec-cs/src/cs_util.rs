@@ -174,11 +174,7 @@ pub fn escape_keyword(identifier: &str) -> String {
     ];
 
     // Add a '@' prefix if the identifier matched a C# keyword.
-    let needs_escaping = CS_KEYWORDS
-        .iter()
-        .find(|&&keyword| identifier == keyword)
-        .is_some();
-    (if needs_escaping { "@" } else { "" }).to_owned() + identifier
+    (if CS_KEYWORDS.contains(&identifier) { "@" } else { "" }.to_owned()) + identifier
 }
 
 /// Checks if the provided identifier would shadow a base method in an object or exception, and
@@ -211,20 +207,9 @@ fn mangle_name(identifier: &str, kind: &str) -> String {
     ];
 
     let needs_mangling = match kind {
-        "class" => OBJECT_BASE_NAMES
-            .iter()
-            .find(|&&name| identifier == name)
-            .is_some(),
-        "exception" => {
-            OBJECT_BASE_NAMES
-                .iter()
-                .find(|&&name| identifier == name)
-                .is_some()
-                | EXCEPTION_BASE_NAMES
-                    .iter()
-                    .find(|&&name| identifier == name)
-                    .is_some()
-        }
+        "exception" =>
+            OBJECT_BASE_NAMES.contains(&identifier) | EXCEPTION_BASE_NAMES.contains(&identifier),
+        "class" => OBJECT_BASE_NAMES.contains(&identifier),
         _ => false,
     };
 
