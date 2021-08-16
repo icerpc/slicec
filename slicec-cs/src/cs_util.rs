@@ -132,8 +132,61 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
     }
 }
 
-pub fn escape_identifier(node: &Node) -> String {
-    return "Foo".to_owned();//TODO: Actually implement this
+// TODO write a doc comment here.
+pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
+    // Only NamedSymbols have identifiers, so this unwrap will always succeed.
+    let identifier = definition.identifier();
+
+    const cs_keywords: [&'static str; 79] = [
+        "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch",
+        "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
+        "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed",
+        "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal",
+        "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
+        "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
+        "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw",
+        "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
+        "virtual", "void", "volatile", "while",
+    ];
+
+    // Check if the identifier is a C# keyword.
+    if cs_keywords.iter().find(|&&keyword| identifier == keyword) {
+        "@".to_owned() + identifier
+    } else {
+        // Otherwise check if it would shadow a base method name.
+        mangle_name(definition, identifier)
+    }
+}
+
+// TODO write a doc comment here.
+fn mangle_name(definition: &dyn NamedSymbol, identifier: &str) -> String {
+    // The names of all the methods defined on the Object base class.
+    const object_base_names: [&'static str; 7] = [
+        "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
+        "ToString",
+    ];
+    // The names of all the methods and properties defined on the Exception base class.
+    const exception_base_names: [&'static str; 10] = [
+        "Data", "GetBaseException", "GetObjectData", "HelpLink", "HResult", "InnerException",
+        "Message", "Source", "StackTrace", "TargetSite",
+    ];
+
+    let mut needs_mangling = false;
+    match definition.kind() {
+        // TODO add checks for classes and exceptions once we've added them.
+        //"class" => {
+        //    needs_mangling =
+        //        object_base_names.iter().find(|&&name| identifier == name).is_some();
+        //}
+        //"exception" => {
+        //    needs_mangling =
+        //        object_base_names.iter().find(|&&name| identifier == name).is_some() |
+        //        exception_base_names.iter().find(|&&name| identifier == name).is_some();
+        //}
+    }
+
+    // If the name conflicts with a base method, add an "Ice" prefix to it.
+    (if needs_mangling { "Ice" } else { "" }).to_owned() + identifier;
 }
 
 pub fn write_equality_operators(writer: &mut Writer, name: &str) {
