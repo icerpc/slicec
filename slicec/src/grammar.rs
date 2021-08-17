@@ -2,7 +2,7 @@
 
 use crate::ast::{Ast, Node};
 use crate::ref_from_node;
-use crate::util::Location;
+use crate::slice_file::Location;
 
 /// The lowest base trait in the compiler, which all symbols and types implement.
 pub trait Element {
@@ -308,8 +308,8 @@ impl Enum {
 
 impl Type for Enum {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
-        if let Some(type_ref) = &self.underlying {
-            let underlying_id = type_ref.definition.unwrap();
+        if let Some(typeref) = &self.underlying {
+            let underlying_id = typeref.definition.unwrap();
             let underlying_type = ast.resolve_index(underlying_id).as_type().unwrap();
             return underlying_type.is_fixed_size(ast);
         }

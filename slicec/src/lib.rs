@@ -7,6 +7,7 @@ pub mod grammar;
 pub mod options;
 mod parser;
 mod patchers;
+pub mod slice_file;
 pub mod util;
 pub mod util_macros;
 mod validator;
@@ -18,7 +19,7 @@ use crate::error::ErrorHandler;
 use crate::options::SliceOptions;
 use crate::parser::SliceParser;
 use crate::patchers::{ScopePatcher, TableBuilder, TypePatcher};
-use crate::util::SliceFile;
+use crate::slice_file::SliceFile;
 use crate::validator::Validator;
 use std::collections::HashMap;
 

@@ -2,7 +2,7 @@
 
 use crate::ast::{Ast, Node};
 use crate::grammar::*;
-use crate::util::SliceFile;
+use crate::slice_file::SliceFile;
 
 /// Base trait for all visitors. It provides default no-op implementations for all visitor methods.
 ///

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
-use crate::util::Location;
+use crate::slice_file::Location;
 use pest::Parser;
 use pest::iterators::Pair;
 use pest_derive::Parser as PestParser;

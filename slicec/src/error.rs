@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::Symbol;
-use crate::util::{Location, SliceFile};
+use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
 

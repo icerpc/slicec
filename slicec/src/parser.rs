@@ -6,7 +6,7 @@ use crate::comment_parser::CommentParser;
 use crate::error::ErrorHandler;
 use crate::grammar::*;
 use crate::options::SliceOptions;
-use crate::util::{Location, SliceFile};
+use crate::slice_file::{Location, SliceFile};
 use pest::error::ErrorVariant as PestErrorVariant;
 use pest_consume::match_nodes;
 use pest_consume::Error as PestError;

@@ -4,7 +4,7 @@ use crate::ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
-use crate::util::SliceFile;
+use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
