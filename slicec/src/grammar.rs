@@ -326,7 +326,7 @@ impl Type for Enum {
     }
 
     fn min_wire_size(&self, ast: &Ast) -> u32 {
-        if let Some(_) = &self.underlying {
+        if self.underlying.is_some() {
             self.underlying_type(ast)
                 .as_type()
                 .unwrap()

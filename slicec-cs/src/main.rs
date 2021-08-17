@@ -29,7 +29,7 @@ pub fn main() {
 fn try_main() -> Result<(), ()> {
     let options = CsOptions::from_args();
     let slice_options = &options.slice_options;
-    let mut data = slice::parse_from_options(&slice_options)?;
+    let mut data = slice::parse_from_options(slice_options)?;
 
     let mut cs_validator = CsValidator::new(&mut data.error_handler);
     for slice_file in data.slice_files.values() {

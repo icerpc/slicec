@@ -12,7 +12,7 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let (required_members, tagged_members) = get_sorted_members(members);
 
     let mut bit_sequence_index = -1;
-    let bit_sequence_size = get_bit_sequence_size(&members, ast);
+    let bit_sequence_size = get_bit_sequence_size(members, ast);
 
     if bit_sequence_size > 0 {
         code.writeln(&format!(

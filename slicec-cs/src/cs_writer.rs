@@ -48,20 +48,20 @@ impl CsWriter {
             // Write each of the comment's parameter fields.
             for param in &comment.params {
                 let (identifier, description) = param;
-                let attribute = format!(r#" name="{}""#, &identifier);
-                self.write_comment_field("param", &description, &attribute);
+                let attribute = format!(r#" name="{}""#, identifier);
+                self.write_comment_field("param", description, &attribute);
             }
 
             // Write the comment's returns message if it has one.
             if let Some(returns) = &comment.returns {
-                self.write_comment_field("returns", &returns, "");
+                self.write_comment_field("returns", returns, "");
             }
 
             // Write each of the comment's exception fields.
             for exception in &comment.throws {
                 let (exception, description) = exception;
-                let attribute = format!(r#" cref="{}""#, &exception);
-                self.write_comment_field("exceptions", &description, &attribute);
+                let attribute = format!(r#" cref="{}""#, exception);
+                self.write_comment_field("exceptions", description, &attribute);
             }
         }
     }
@@ -366,18 +366,18 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         let decode_enum = format!(
             "As{name}(decoder.{decode_method})",
             name = enum_def.identifier(),
-            decode_method = if let Some(_) = &enum_def.underlying {
-                format!("Decode{}()", builtin_suffix(&enum_def.underlying_type(ast)))
+            decode_method = if enum_def.underlying.is_some() {
+                format!("Decode{}()", builtin_suffix(enum_def.underlying_type(ast)))
             } else {
                 "DecodeSize()".to_owned()
             }
         );
 
         // Enum encoding
-        let encode_enum = if let Some(_) = &enum_def.underlying {
+        let encode_enum = if enum_def.underlying.is_some() {
             format!(
                 "encoder.Encode{}",
-                builtin_suffix(&enum_def.underlying_type(ast))
+                builtin_suffix(enum_def.underlying_type(ast))
             )
         } else {
             "encoder.EncodeSize((int)value)".to_owned()

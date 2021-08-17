@@ -33,7 +33,7 @@ pub struct CompilerData {
 
 pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     // Parse the slice files from the command line input into an unpatched AST.
-    let (mut ast, slice_files, mut error_handler) = SliceParser::parse_files(&options);
+    let (mut ast, slice_files, mut error_handler) = SliceParser::parse_files(options);
     handle_errors(options.warn_as_error, &mut error_handler, &slice_files)?;
 
     // Generate the tables for looking up elements by identifier and for patching element's scopes.
@@ -67,7 +67,7 @@ pub fn handle_errors(
     error_handler: &mut ErrorHandler,
     slice_files: &HashMap<String, SliceFile>,
 ) -> Result<(), ()> {
-    error_handler.print_errors(&slice_files);
+    error_handler.print_errors(slice_files);
     if error_handler.has_errors(warn_as_error) {
         let counts = error_handler.get_totals();
         println!(
