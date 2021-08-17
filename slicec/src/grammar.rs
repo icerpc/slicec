@@ -265,7 +265,9 @@ impl Type for Interface {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize { 3 }
+    fn min_wire_size(&self, _: &Ast) -> usize {
+        3
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -346,11 +348,14 @@ impl Type for Enum {
 
     fn min_wire_size(&self, ast: &Ast) -> usize {
         if let Some(_) = &self.underlying {
-            self.underlying_type(ast).as_type().unwrap().min_wire_size(ast)
+            self.underlying_type(ast)
+                .as_type()
+                .unwrap()
+                .min_wire_size(ast)
         } else {
             1
         }
-     }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -534,7 +539,7 @@ impl TypeRef {
         if self.is_optional {
             return self.min_wire_size(ast) == 0;
         } else {
-            return false
+            return false;
         }
     }
 }
@@ -559,7 +564,9 @@ impl Type for Sequence {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize { 1 }
+    fn min_wire_size(&self, _: &Ast) -> usize {
+        1
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -584,7 +591,9 @@ impl Type for Dictionary {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize { 1 }
+    fn min_wire_size(&self, _: &Ast) -> usize {
+        1
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -654,7 +663,7 @@ impl Type for Primitive {
             Self::Double => 8,
             Self::String => 1,
         }
-     }
+    }
 }
 
 #[derive(Clone, Debug)]

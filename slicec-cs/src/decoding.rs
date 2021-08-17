@@ -120,15 +120,16 @@ pub fn decode_type(
             "decoder.Decode{}()",
             primitive_type_suffix(primitive_def)
         )),
-        Node::Struct(_, struct_def) => {
-            code.write(&format!("new {}(decoder)", get_unqualified(node, ast)))
-        }
+        Node::Struct(_, struct_def) => code.write(&format!(
+            "new {}(decoder)",
+            get_unqualified(node, scope, "", "", ast)
+        )),
         Node::Dictionary(_, dictionary_def) => {}
         Node::Sequence(_, sequence_def) => {}
         _ => {
             code.write(&format!(
                 "{}.Decode{}(decoder)",
-                helper_name(type_ref, scope),
+                helper_name(type_ref, scope, ast),
                 type_string
             ));
             // out << helperName(underlying, scope) << ".Decode" << contained->name() << "(decoder)";
@@ -148,7 +149,7 @@ pub fn decode_type(
 pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
     let mut size: i32 = 0;
     for member in members {
-        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged  {
+        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged {
             size += 1;
         }
     }
@@ -156,12 +157,18 @@ pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
     size
 }
 
-pub fn get_unqualified(node: &Node, ast: &Ast) -> String {
+pub fn get_unqualified(
+    node: &Node,
+    package: &str,
+    prefix: &str,
+    suffix: &str,
+    ast: &Ast,
+) -> String {
     "".to_owned()
 }
 
-pub fn helper_name(type_ref: &TypeRef, scope: &str) -> String {
-    "".to_owned()
+pub fn helper_name(type_ref: &TypeRef, scope: &str, ast: &Ast) -> String {
+    get_unqualified(type_ref.definition(ast), scope, "", "Helper", ast)
 }
 
 pub fn field_name(member: &Member) -> String {
