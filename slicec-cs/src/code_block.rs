@@ -9,9 +9,7 @@ pub struct CodeBlock {
 
 impl CodeBlock {
     pub fn new() -> CodeBlock {
-        CodeBlock {
-            content: String::new(),
-        }
+        CodeBlock { content: String::new() }
     }
 
     pub fn write<T: fmt::Display + ?Sized>(&mut self, s: &T) {

@@ -34,13 +34,13 @@ impl From<(String, Location)> for Error {
     }
 }
 
-impl <T: Symbol + ?Sized> From<(String, &T)> for Error {
+impl<T: Symbol + ?Sized> From<(String, &T)> for Error {
     fn from((message, symbol): (String, &T)) -> Self {
         Error { message, location: Some(symbol.location().clone()) }
     }
 }
 
-impl <T: Symbol + ?Sized> From<(String, &mut T)> for Error {
+impl<T: Symbol + ?Sized> From<(String, &mut T)> for Error {
     fn from((message, symbol): (String, &mut T)) -> Self {
         Error { message, location: Some(symbol.location().clone()) }
     }
@@ -138,15 +138,14 @@ impl ErrorHandler {
                 // Specify the location where the error starts on its own line after the message.
                 message = format!(
                     "{}\n@ '{}' ({},{}):\n",
-                    message,
-                    &loc.file,
-                    loc.start.0,
-                    loc.start.1,
+                    message, &loc.file, loc.start.0, loc.start.1
                 );
 
                 // If the location spans between two positions, add a snippet from the slice file.
                 if loc.start != loc.end {
-                    let file = slice_files.get(&loc.file).expect("Slice file not in file map!");
+                    let file = slice_files
+                        .get(&loc.file)
+                        .expect("Slice file not in file map!");
                     message += &file.get_snippet(loc.start, loc.end);
                 }
             }

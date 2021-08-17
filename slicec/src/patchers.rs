@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
+use crate::ref_from_node;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
@@ -77,7 +77,9 @@ impl<'a> TableBuilder<'a> {
     /// in the AST, so ScopePatcher can patch it later. We can't patch it now since TableBuilder
     /// has to immutably visit elements.
     fn add_scope_patch(&mut self, index: usize) {
-        self.scope_patches.push((index, self.current_scope.join("::")));
+        self.scope_patches.push(
+            (index, self.current_scope.join("::"))
+        );
     }
 }
 
@@ -105,7 +107,9 @@ impl<'a> Visitor for TableBuilder<'a> {
     fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {
         self.add_table_entry(interface_def, index, ast);
         self.add_scope_patch(index);
-        self.current_scope.push(interface_def.identifier().to_owned());
+        self.current_scope.push(
+            interface_def.identifier().to_owned()
+        );
     }
 
     fn visit_interface_end(&mut self, _: &Interface, _: usize, _: &Ast) {
@@ -245,8 +249,10 @@ pub(crate) struct TypePatcher<'a> {
 }
 
 impl<'a> TypePatcher<'a> {
-    pub(crate) fn new(lookup_table: &'a HashMap<String, usize>,  error_handler: &'a mut ErrorHandler)
-    -> Self {
+    pub(crate) fn new(
+        lookup_table: &'a HashMap<String, usize>,
+        error_handler: &'a mut ErrorHandler,
+    ) -> Self {
         TypePatcher { lookup_table, error_handler }
     }
 

@@ -271,7 +271,16 @@ impl Enum {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Enum { identifier, enumerators, is_unchecked, underlying, scope: None, attributes, comment, location }
+        Enum {
+            identifier,
+            enumerators,
+            is_unchecked,
+            underlying,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 
     /// Returns the min enum value if the enum is non-empty.
@@ -365,7 +374,15 @@ impl Operation {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Operation { return_type, parameters, identifier, scope: None, attributes, comment, location }
+        Operation {
+            return_type,
+            parameters,
+            identifier,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 

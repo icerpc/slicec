@@ -167,7 +167,6 @@ pub fn escape_scoped_identifier(definition: &dyn NamedSymbol) -> String {
 
 /// Checks if the provided string is a C# keyword, and escapes it if necessary (by appending a '@').
 pub fn escape_keyword(identifier: &str) -> String {
-    #[rustfmt::skip]
     const CS_KEYWORDS: [&'static str; 79] = [
         "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch",
         "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
@@ -191,31 +190,19 @@ pub fn escape_keyword(identifier: &str) -> String {
 fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&'static str; 7] = [
-        "Equals",
-        "Finalize",
-        "GetHashCode",
-        "GetType",
-        "MemberwiseClone",
-        "ReferenceEquals",
+        "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
         "ToString",
     ];
     // The names of all the methods and properties defined on the Exception base class.
     const EXCEPTION_BASE_NAMES: [&'static str; 10] = [
-        "Data",
-        "GetBaseException",
-        "GetObjectData",
-        "HelpLink",
-        "HResult",
-        "InnerException",
-        "Message",
-        "Source",
-        "StackTrace",
-        "TargetSite",
+        "Data", "GetBaseException", "GetObjectData", "HelpLink", "HResult", "InnerException",
+        "Message", "Source", "StackTrace", "TargetSite",
     ];
 
     let needs_mangling = match kind {
-        "exception" =>
-            OBJECT_BASE_NAMES.contains(&identifier) | EXCEPTION_BASE_NAMES.contains(&identifier),
+        "exception" => {
+            OBJECT_BASE_NAMES.contains(&identifier) | EXCEPTION_BASE_NAMES.contains(&identifier)
+        }
         "class" => OBJECT_BASE_NAMES.contains(&identifier),
         _ => false,
     };

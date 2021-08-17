@@ -2,8 +2,8 @@
 
 use crate::grammar::*;
 use crate::slice_file::Location;
-use pest::Parser;
 use pest::iterators::Pair;
+use pest::Parser;
 use pest_derive::Parser as PestParser;
 
 type PestPair<'i> = Pair<'i, Rule>;
@@ -21,7 +21,7 @@ impl CommentParser {
             params: Vec::new(),
             throws: Vec::new(),
             returns: None,
-            location
+            location,
         };
 
         // Attempt to parse the raw string as a comment (via the `main` rule in `comment.pest`).
@@ -53,7 +53,11 @@ impl CommentParser {
                 Rule::message => {
                     // Remove any trailing padding from the message, and append it to the current
                     // field being written into the comment.
-                    current_string.push_str(token.as_str().trim_end_matches(Self::is_padding).trim_start_matches(char::is_whitespace));
+                    current_string.push_str(token
+                        .as_str()
+                        .trim_end_matches(Self::is_padding)
+                        .trim_start_matches(char::is_whitespace)
+                    );
                     current_string.push('\n');
                 }
                 Rule::param_field => {

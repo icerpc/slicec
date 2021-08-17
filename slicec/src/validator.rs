@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::error::{Error, ErrorHandler};
 use crate::grammar::*;
+use crate::ref_from_node;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
@@ -76,7 +76,11 @@ impl<'a> Validator<'a> {
         Ok((lower_bound, upper_bound))
     }
 
-    fn check_enumerator_value(enumerator: &Enumerator, lower: i64, upper: i64) -> Result<(), Error> {
+    fn check_enumerator_value(
+        enumerator: &Enumerator,
+        lower: i64,
+        upper: i64,
+    ) -> Result<(), Error> {
         if (enumerator.value < lower) || (enumerator.value > upper) {
             let message = format!(
                 "enumerator '{}'s value ({}) is outside the range of its enum: [{}...{}]",
@@ -120,7 +124,9 @@ impl<'a> Visitor for Validator<'a> {
                     enumerator.value,
                     enumerator.identifier(),
                 );
-                self.error_handler.report_error((error_message, enumerator).into());
+                self.error_handler.report_error(
+                    (error_message, enumerator).into()
+                );
 
                 let original_id = *used_values.get(&enumerator.value).unwrap();
                 let original = ast.resolve_index(original_id).as_named_symbol().unwrap();
@@ -129,7 +135,9 @@ impl<'a> Visitor for Validator<'a> {
                     enumerator.value,
                     original.identifier(),
                 );
-                self.error_handler.report_note((note_message, original).into());
+                self.error_handler.report_note(
+                    (note_message, original).into()
+                );
             } else {
                 used_values.insert(enumerator.value, *id);
             }
@@ -145,7 +153,9 @@ impl<'a> Visitor for Validator<'a> {
                      have at least 2 elements. Consider using a single return type instead.",
                     operation.identifier(),
                 );
-                self.error_handler.report_error((error_message, &operation.return_type).into());
+                self.error_handler.report_error(
+                    (error_message, &operation.return_type).into()
+                );
             }
         }
     }

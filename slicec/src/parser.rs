@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::mut_ref_from_node;
 use crate::ast::{Ast, Node};
 use crate::comment_parser::CommentParser;
 use crate::error::ErrorHandler;
 use crate::grammar::*;
+use crate::mut_ref_from_node;
 use crate::options::SliceOptions;
 use crate::slice_file::{Location, SliceFile};
 use pest::error::ErrorVariant as PestErrorVariant;
@@ -85,12 +85,9 @@ impl SliceParser {
     }
 
     fn parse_file(&mut self, file: &str, is_source: bool) -> Result<SliceFile, String> {
-        // We use an explicit scope to ensure the mutable borrow is dropped before the parser starts running.
-        {
-            // Mutably borrow the ParserData struct, to set its current file.
-            let data = &mut self.user_data.borrow_mut();
-            data.current_file = file.to_owned();
-        }
+        // Mutably borrow the ParserData struct, to set its current file.
+        let data = &mut self.user_data.borrow_mut();
+        data.current_file = file.to_owned();
 
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
@@ -99,7 +96,13 @@ impl SliceParser {
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
         let (file_attributes, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-        Ok(SliceFile::new(file.to_owned(), raw_text, file_contents, file_attributes, is_source))
+        Ok(SliceFile::new(
+            file.to_owned(),
+            raw_text,
+            file_contents,
+            file_attributes,
+            is_source,
+        ))
     }
 }
 
@@ -404,7 +407,11 @@ impl SliceParser {
     fn typename(input: PestNode) -> PestResult<TypeRef> {
         let location = from_span(&input);
         // Remove any whitespace from the type name, then create the TypeRef.
-        let type_name: String = input.as_str().chars().filter(|c| !c.is_whitespace()).collect();
+        let type_name: String = input
+            .as_str()
+            .chars()
+            .filter(|c| !c.is_whitespace())
+            .collect();
         let mut type_use = TypeRef::new(type_name, false, location);
 
         // Resolve and/or construct non user defined types.
@@ -562,12 +569,10 @@ impl SliceParser {
         let int = input.as_str().parse::<i64>();
         match int {
             Ok(int) => Ok(int),
-            Err(err) => {
-                Err(PestError::new_from_span(
-                    PestErrorVariant::CustomError { message: format!("Malformed integer: {}", err)},
-                    input.as_span(),
-                ))
-            }
+            Err(err) => Err(PestError::new_from_span(
+                PestErrorVariant::CustomError { message: format!("Malformed integer: {}", err) },
+                input.as_span(),
+            )),
         }
     }
 

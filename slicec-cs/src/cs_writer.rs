@@ -69,8 +69,8 @@ impl CsWriter {
     fn write_comment_field(&mut self, field_name: &str, content: &str, attribute: &str) {
         let mut field_string = format!("/// <{}{}>", field_name, attribute);
         if !content.is_empty() {
-            // Iterate through each line of the field's content, and at the end of each line, append a
-            // newline followed by 3 forward slashes to continue the comment.
+            // Iterate through each line of the field's content, and at the end of each line, append
+            // a newline followed by 3 forward slashes to continue the comment.
             for line in content.lines() {
                 field_string += line;
                 field_string += "\n/// ";
@@ -307,10 +307,11 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 
         let escaped_identifier = escape_identifier(enum_def);
 
-        // When the number of enumerators is smaller than the distance between the min and max values, the values are not
-        // consecutive and we need to use a set to validate the value during unmarshaling.
-        // Note that the values are not necessarily in order, e.g. we can use a simple range check for
-        // enum E { A = 3, B = 2, C = 1 } during unmarshaling.
+        // When the number of enumerators is smaller than the distance between the min and max
+        // values, the values are not consecutive and we need to use a set to validate the value
+        // during unmarshaling.
+        // Note that the values are not necessarily in order, e.g. we can use a simple range check
+        // for enum E { A = 3, B = 2, C = 1 } during unmarshaling.
         let use_set = if let (Some(min_value), Some(max_value)) =
             (enum_def.min_value(ast), enum_def.max_value(ast))
         {
@@ -330,7 +331,12 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 \npublic static readonly global::System::Collections.Generic.HashSet<{underlying}> EnumeratorValues =
     new global::System.Collections.Generic.HashSet<{underlying}> {{ {enum_values} }}",
                 underlying = underlying_type,
-                enum_values = enum_def.enumerators(ast).iter().map(|e| e.value.to_string()).collect::<Vec<String>>().join(","))
+                enum_values = enum_def
+                    .enumerators(ast)
+                    .iter()
+                    .map(|e| e.value.to_string())
+                    .collect::<Vec<String>>()
+                    .join(","))
         } else {
             "".to_owned()
         };
