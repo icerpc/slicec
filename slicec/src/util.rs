@@ -27,25 +27,23 @@ pub fn get_bit_sequence_size(members: &[&Member], ast: &Ast) -> i32 {
             size += 1;
         }
     }
-
     size
 }
 
 /// Takes a slice of Member references and returns two vectors. One containing the required members
-/// and the other containing the tagged members. The tagged vector is sorted by the tag.
+/// and the other containing the tagged members. The tagged vector is sorted by it's tags.
 pub fn get_sorted_members<'a>(members: &[&'a Member]) -> (Vec<&'a Member>, Vec<&'a Member>) {
     let required_members = members
         .iter()
-        .cloned()
         .filter(|m| m.tag.is_none())
+        .cloned()
         .collect::<Vec<_>>();
     let mut tagged_members = members
         .iter()
-        .cloned()
         .filter(|m| m.tag.is_some())
+        .cloned()
         .collect::<Vec<_>>();
-
-    tagged_members.sort_by(|a, b| a.tag.unwrap().cmp(&b.tag.unwrap()));
+    tagged_members.sort_by_key(|m| m.tag.unwrap());
 
     (required_members, tagged_members)
 }

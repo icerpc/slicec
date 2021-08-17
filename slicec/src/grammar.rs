@@ -123,7 +123,7 @@ implement_named_symbol_for!(Enumerator);
 /// Base trait that all elements representing types implement.
 pub trait Type {
     fn is_fixed_size(&self, ast: &Ast) -> bool;
-    fn min_wire_size(&self, ast: &Ast) -> usize;
+    fn min_wire_size(&self, ast: &Ast) -> u32;
 }
 
 #[derive(Clone, Debug)]
@@ -197,11 +197,11 @@ impl Type for Struct {
         true
     }
 
-    fn min_wire_size(&self, ast: &Ast) -> usize {
+    fn min_wire_size(&self, ast: &Ast) -> u32 {
         let mut size = 0;
         for member in self.members(ast) {
-            size += ast
-                .resolve_index(member.data_type.definition.unwrap())
+            size += member.data_type
+                .definition(ast)
                 .as_type()
                 .unwrap()
                 .min_wire_size(ast);
@@ -244,7 +244,7 @@ impl Type for Interface {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize {
+    fn min_wire_size(&self, _: &Ast) -> u32 {
         3
     }
 }
@@ -316,7 +316,7 @@ impl Type for Enum {
         true
     }
 
-    fn min_wire_size(&self, ast: &Ast) -> usize {
+    fn min_wire_size(&self, ast: &Ast) -> u32 {
         if let Some(_) = &self.underlying {
             self.underlying_type(ast)
                 .as_type()
@@ -471,7 +471,7 @@ impl TypeRef {
         ast.resolve_index(self.definition.unwrap())
     }
 
-    pub fn min_wire_size(&self, ast: &Ast) -> usize {
+    pub fn min_wire_size(&self, ast: &Ast) -> u32 {
         let node = self.definition(ast);
 
         if self.is_optional {
@@ -486,11 +486,7 @@ impl TypeRef {
     }
 
     pub fn encode_using_bit_sequence(&self, ast: &Ast) -> bool {
-        if self.is_optional {
-            return self.min_wire_size(ast) == 0;
-        } else {
-            return false;
-        }
+        self.is_optional && self.min_wire_size(ast) == 0
     }
 }
 
@@ -511,7 +507,7 @@ impl Type for Sequence {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize {
+    fn min_wire_size(&self, _: &Ast) -> u32 {
         1
     }
 }
@@ -534,7 +530,7 @@ impl Type for Dictionary {
         false
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize {
+    fn min_wire_size(&self, _: &Ast) -> u32 {
         1
     }
 }
@@ -588,7 +584,7 @@ impl Type for Primitive {
         }
     }
 
-    fn min_wire_size(&self, _: &Ast) -> usize {
+    fn min_wire_size(&self, _: &Ast) -> u32 {
         match self {
             Self::Bool => 1,
             Self::Byte => 1,
