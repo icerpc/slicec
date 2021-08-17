@@ -76,7 +76,7 @@ pub fn decode_type(
     let node = ast.resolve_index(type_ref.definition.unwrap());
     let type_string = type_to_string(node, ast, TypeContext::Incoming); // TODO: the scope
 
-    code.write(format!("{} = ", param));
+    code.write(&format!("{} = ", param));
 
     if type_ref.is_optional {
         match node {
@@ -103,7 +103,7 @@ pub fn decode_type(
             // }
             _ => {
                 assert!(*bit_sequence_index > 0);
-                code.write(format!("bitSequence[{}]", *bit_sequence_index));
+                code.write(&format!("bitSequence[{}]", *bit_sequence_index));
                 *bit_sequence_index += 1;
                 // keep going
             }
@@ -111,20 +111,22 @@ pub fn decode_type(
     }
 
     match node {
-        Node::Interface(_, _) => {
+        Node::Interface(_, interface_def) => {
             assert!(!type_ref.is_optional);
-            code.write(format!("new {}(decoder.DecodeProxy());", type_string));
+            code.write(&format!("new {}(decoder.DecodeProxy());", type_string));
         }
         // Node::Class(_, class_def) => {} // TODO: Class not yet implemented in the ast
-        Node::Primitive(_, primitive_def) => code.write(format!(
+        Node::Primitive(_, primitive_def) => code.write(&format!(
             "decoder.Decode{}()",
             primitive_type_suffix(primitive_def)
         )),
-        Node::Struct(_, _) => code.write(format!("new {}(decoder)", get_unqualified(node, ast))),
-        Node::Dictionary(_, _) => {}
-        Node::Sequence(_, _) => {}
+        Node::Struct(_, struct_def) => {
+            code.write(&format!("new {}(decoder)", get_unqualified(node, ast)))
+        }
+        Node::Dictionary(_, dictionary_def) => {}
+        Node::Sequence(_, sequence_def) => {}
         _ => {
-            code.write(format!(
+            code.write(&format!(
                 "{}.Decode{}(decoder)",
                 helper_name(type_ref, scope),
                 type_string
