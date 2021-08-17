@@ -160,6 +160,7 @@ pub fn escape_scoped_identifier(definition: &dyn NamedSymbol) -> String {
 
 /// Checks if the provided string is a C# keyword, and escapes it if necessary (by appending a '@').
 pub fn escape_keyword(identifier: &str) -> String {
+    #[rustfmt::skip]
     const CS_KEYWORDS: [&'static str; 79] = [
         "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch",
         "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
@@ -173,7 +174,10 @@ pub fn escape_keyword(identifier: &str) -> String {
     ];
 
     // Add a '@' prefix if the identifier matched a C# keyword.
-    let needs_escaping = CS_KEYWORDS.iter().find(|&&keyword| identifier == keyword).is_some();
+    let needs_escaping = CS_KEYWORDS
+        .iter()
+        .find(|&&keyword| identifier == keyword)
+        .is_some();
     (if needs_escaping { "@" } else { "" }).to_owned() + identifier
 }
 
@@ -184,22 +188,42 @@ pub fn escape_keyword(identifier: &str) -> String {
 fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&'static str; 7] = [
-        "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
+        "Equals",
+        "Finalize",
+        "GetHashCode",
+        "GetType",
+        "MemberwiseClone",
+        "ReferenceEquals",
         "ToString",
     ];
     // The names of all the methods and properties defined on the Exception base class.
     const EXCEPTION_BASE_NAMES: [&'static str; 10] = [
-        "Data", "GetBaseException", "GetObjectData", "HelpLink", "HResult", "InnerException",
-        "Message", "Source", "StackTrace", "TargetSite",
+        "Data",
+        "GetBaseException",
+        "GetObjectData",
+        "HelpLink",
+        "HResult",
+        "InnerException",
+        "Message",
+        "Source",
+        "StackTrace",
+        "TargetSite",
     ];
 
     let needs_mangling = match kind {
-        "class" => {
-            OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
-        }
+        "class" => OBJECT_BASE_NAMES
+            .iter()
+            .find(|&&name| identifier == name)
+            .is_some(),
         "exception" => {
-            OBJECT_BASE_NAMES.iter().find(|&&name| identifier == name).is_some() |
-            EXCEPTION_BASE_NAMES.iter().find(|&&name| identifier == name).is_some()
+            OBJECT_BASE_NAMES
+                .iter()
+                .find(|&&name| identifier == name)
+                .is_some()
+                | EXCEPTION_BASE_NAMES
+                    .iter()
+                    .find(|&&name| identifier == name)
+                    .is_some()
         }
         _ => false,
     };
@@ -226,23 +250,6 @@ public static bool operator !=({name} lhs, {name} rhs) => !lhs.Equals(rhs);"#,
         name = name
     );
     writer.write(&content);
-}
-
-pub fn decode_data_members(struct_def: &Struct, ast: &Ast) -> String {
-    let mut content = String::new();
-    for member in struct_def.members(ast) {
-        let identifier = member.identifier();
-        // let type_node = ast.resolve_index(member.data_type.definition.unwrap());
-        // let type_string = type_to_string(type_node, ast, TypeContext::DataMember);
-
-        content += &format!(
-            "{}this.{identifier} = decoder.Decode",
-            if content.len() > 0 { "\n" } else { "" },
-            identifier = identifier
-        );
-    }
-
-    content
 }
 
 pub fn builtin_suffix(node: &Node) -> String {

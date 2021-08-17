@@ -3,6 +3,7 @@
 // TODO split into SliceFile and Util files! No need to keep together!
 
 use crate::cs_util::*;
+use crate::decoding::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::ref_from_node;
@@ -181,7 +182,7 @@ public {name}(IceRpc.IceDecoder decoder)
             doc_comment = "", //TODO: get doc comment
             constructor_args = constructor_args.join(", "),
             constructor_body = constructor_body.join("\n    "),
-            decoder_body = decode_data_members(struct_def, ast).replace("\n", "\n    ")
+            decoder_body = decode_data_members(&struct_def.members(ast), ast).indent()
         );
 
         self.output.write_line_separator();
@@ -311,7 +312,8 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         let use_set = if let (Some(min_value), Some(max_value)) =
             (enum_def.min_value(ast), enum_def.max_value(ast))
         {
-            !enum_def.is_unchecked && (enum_def.enumerators.len() as i64) < max_value - min_value + 1
+            !enum_def.is_unchecked
+                && (enum_def.enumerators.len() as i64) < max_value - min_value + 1
         } else {
             // This means there are no enumerators.*
             true

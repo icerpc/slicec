@@ -1,16 +1,17 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod ast;
+mod comment_parser;
 pub mod error;
 pub mod grammar;
 pub mod options;
+mod parser;
+mod patchers;
 pub mod util;
+pub mod util_macros;
+mod validator;
 pub mod visitor;
 pub mod writer;
-mod parser;
-mod comment_parser;
-mod patchers;
-mod validator;
 
 use crate::ast::Ast;
 use crate::error::ErrorHandler;
@@ -52,14 +53,26 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     }
 
     // Return the data to the compiler's main function.
-    Ok(CompilerData { ast, slice_files, error_handler, lookup_table })
+    Ok(CompilerData {
+        ast,
+        slice_files,
+        error_handler,
+        lookup_table,
+    })
 }
 
-pub fn handle_errors(warn_as_error: bool, error_handler: &mut ErrorHandler, slice_files: &HashMap<String, SliceFile>) -> Result<(), ()> {
+pub fn handle_errors(
+    warn_as_error: bool,
+    error_handler: &mut ErrorHandler,
+    slice_files: &HashMap<String, SliceFile>,
+) -> Result<(), ()> {
     error_handler.print_errors(&slice_files);
     if error_handler.has_errors(warn_as_error) {
         let counts = error_handler.get_totals();
-        println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
+        println!(
+            "Compilation failed with {} error(s) and {} warning(s).\n",
+            counts.0, counts.1
+        );
         Err(())
     } else {
         Ok(())

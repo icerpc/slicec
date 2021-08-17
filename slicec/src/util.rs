@@ -70,9 +70,22 @@ impl SliceFile {
         }
 
         // Extract the name of the slice file without its extension.
-        let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
+        let filename = Path::new(&relative_path)
+            .file_stem()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap();
 
-        SliceFile { filename, relative_path, raw_text, contents, attributes, is_source, line_positions }
+        SliceFile {
+            filename,
+            relative_path,
+            raw_text,
+            contents,
+            attributes,
+            is_source,
+            line_positions,
+        }
     }
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
