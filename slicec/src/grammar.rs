@@ -416,7 +416,7 @@ pub struct Member {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
-    pub is_tagged: bool,
+    pub tag: Option<i32>,
 }
 
 impl Member {
@@ -436,7 +436,7 @@ impl Member {
             attributes,
             comment,
             location,
-            is_tagged: false, //TODO tags
+            tag: None, //TODO tags
         }
     }
 }

@@ -183,7 +183,7 @@ public {name}(IceRpc.IceDecoder decoder)
             doc_comment = "", //TODO: get doc comment
             constructor_args = constructor_args.join(", "),
             constructor_body = constructor_body.join("\n    "),
-            decoder_body = decode_data_members(&struct_def.members(ast), ast).indent()
+            decoder_body = decode_data_members(struct_def.members(ast).as_slice(), ast).indent()
         );
 
         self.output.write_line_separator();

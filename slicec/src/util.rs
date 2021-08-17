@@ -118,13 +118,32 @@ pub enum TypeContext {
     Nested,
 }
 
-pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
+pub fn get_bit_sequence_size(members: &[&Member], ast: &Ast) -> i32 {
     let mut size: i32 = 0;
     for member in members {
-        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged {
+        if member.data_type.encode_using_bit_sequence(ast) && member.tag.is_none() {
             size += 1;
         }
     }
 
     size
+}
+
+/// Takes a slice of Member references and returns two vectors. One containing the required members
+/// and the other containing the tagged members. The tagged vector is sorted by the tag.
+pub fn get_sorted_members<'a>(members: &[&'a Member]) -> (Vec<&'a Member>, Vec<&'a Member>) {
+    let required_members = members
+        .iter()
+        .cloned()
+        .filter(|m| m.tag.is_none())
+        .collect::<Vec<_>>();
+    let mut tagged_members = members
+        .iter()
+        .cloned()
+        .filter(|m| m.tag.is_some())
+        .collect::<Vec<_>>();
+
+    tagged_members.sort_by(|a, b| a.tag.unwrap().cmp(&b.tag.unwrap()));
+
+    (required_members, tagged_members)
 }

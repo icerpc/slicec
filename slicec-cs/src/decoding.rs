@@ -6,13 +6,10 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
 
-pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
+pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    // TODO: tags and tag bit sequence
-    //TODO: these should also be sorted (they currently don't exist)
-    // let required_members = struct_def.contents.filter(|contents| contents.required);
-    // let tagged_members = struct_def.contents.filter(|contents| contents.tag != "");
+    let (required_members, tagged_members) = get_sorted_members(members);
 
     let mut bit_sequence_index = -1;
     let bit_sequence_size = get_bit_sequence_size(&members, ast);
@@ -27,7 +24,7 @@ pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
     }
 
     // Encode required members
-    for member in members {
+    for member in required_members {
         let decode_member = decode_type(
             &member.data_type,
             &mut bit_sequence_index,
@@ -41,19 +38,14 @@ pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
     }
 
     // Encode tagged members
+    let mut current_tag = -1; // sanity check to ensure tags are sorted
+    for member in tagged_members {
+        let tag = member.tag.unwrap();
+        assert!(tag > current_tag);
+        current_tag = tag;
 
-    // for id in &struct_def.contents {
-    //     let member = ref_from_node!(Node::Member, ast, *id);
-    //     let identifier = member.identifier();
-    //     // let type_node = ast.resolve_index(member.data_type.definition.unwrap());
-    //     // let type_string = type_to_string(type_node, ast, TypeContext::DataMember);
-
-    //     content += &format!(
-    //         "{}this.{identifier} = decoder.Decode",
-    //         if content.len() > 0 { "\n" } else { "" },
-    //         identifier = identifier
-    //     );
-    // }
+        // decode_tagged_type()
+    }
 
     if bit_sequence_size > 0 {
         assert_eq!(bit_sequence_index, bit_sequence_size);
