@@ -4,7 +4,6 @@ use crate::code_block::CodeBlock;
 use crate::cs_util::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
-use slice::is_underlying_type;
 use slice::util::*;
 
 pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
@@ -80,7 +79,7 @@ pub fn decode_type(
 
     if type_ref.is_optional {
         match node {
-            Node::Interface(_, interface_def) => {
+            Node::Interface(_, _) => {
                 // does not use bit sequence
                 code.writeln(&format!(
                     "IceRpc.IceDecoderPrxExtensions.DecodeNullablePrx<{}>(decoder);",
@@ -111,7 +110,7 @@ pub fn decode_type(
     }
 
     match node {
-        Node::Interface(_, interface_def) => {
+        Node::Interface(_, _) => {
             assert!(!type_ref.is_optional);
             code.write(&format!("new {}(decoder.DecodeProxy());", type_string));
         }
@@ -120,12 +119,12 @@ pub fn decode_type(
             "decoder.Decode{}()",
             primitive_type_suffix(primitive_def)
         )),
-        Node::Struct(_, struct_def) => code.write(&format!(
+        Node::Struct(_, _) => code.write(&format!(
             "new {}(decoder)",
-            get_unqualified(node, scope, "", "", ast)
+            get_scoped_unqualified(node, scope, ast)
         )),
-        Node::Dictionary(_, dictionary_def) => {}
-        Node::Sequence(_, sequence_def) => {}
+        Node::Dictionary(_, _) => {}
+        Node::Sequence(_, _) => {}
         _ => {
             code.write(&format!(
                 "{}.Decode{}(decoder)",
@@ -157,13 +156,11 @@ pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
     size
 }
 
-pub fn get_unqualified(
-    node: &Node,
-    package: &str,
-    prefix: &str,
-    suffix: &str,
-    ast: &Ast,
-) -> String {
+pub fn get_scoped_unqualified(_: &Node, _: &str, _: &Ast) -> String {
+    "".to_owned()
+}
+
+pub fn get_unqualified(_: &Node, _: &str, _: &str, _: &str, _: &Ast) -> String {
     "".to_owned()
 }
 

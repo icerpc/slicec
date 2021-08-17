@@ -4,6 +4,7 @@
 
 use crate::cs_util::*;
 use crate::decoding::*;
+use crate::encoding::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::ref_from_node;
@@ -225,7 +226,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 {{
     {encode_body}
 }}",
-            encode_body = "//TODO encode fields"
+            encode_body = encode_data_members(struct_def, ast).indent()
         );
 
         self.output.clear_line_separator();

@@ -338,8 +338,8 @@ impl Enum {
 
 impl Type for Enum {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
-        if let Some(typeref) = &self.underlying {
-            let underlying_id = typeref.definition.unwrap();
+        if let Some(type_ref) = &self.underlying {
+            let underlying_id = type_ref.definition.unwrap();
             let underlying_type = ast.resolve_index(underlying_id).as_type().unwrap();
             return underlying_type.is_fixed_size(ast);
         }
