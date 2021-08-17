@@ -144,14 +144,7 @@ impl Module {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Module {
-            identifier,
-            contents,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Module { identifier, contents, scope: None, attributes, comment, location }
     }
 
     pub fn contents<'a>(&self, ast: &'a Ast) -> Vec<&'a dyn NamedSymbol> {
@@ -180,14 +173,7 @@ impl Struct {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Struct {
-            identifier,
-            members,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Struct { identifier, members, scope: None, attributes, comment, location }
     }
 
     pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
@@ -242,14 +228,7 @@ impl Interface {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Interface {
-            identifier,
-            operations,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Interface { identifier, operations, scope: None, attributes, comment, location }
     }
 
     pub fn operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
@@ -292,16 +271,7 @@ impl Enum {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Enum {
-            identifier,
-            enumerators,
-            is_unchecked,
-            underlying,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Enum { identifier, enumerators, is_unchecked, underlying, scope: None, attributes, comment, location }
     }
 
     /// Returns the min enum value if the enum is non-empty.
@@ -395,15 +365,7 @@ impl Operation {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Self {
-            return_type,
-            parameters,
-            identifier,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Operation { return_type, parameters, identifier, scope: None, attributes, comment, location }
     }
 }
 
@@ -428,7 +390,7 @@ impl Member {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Self {
+        Member {
             data_type,
             identifier,
             member_type,
@@ -476,14 +438,7 @@ impl Enumerator {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Enumerator {
-            identifier,
-            value,
-            scope: None,
-            attributes,
-            comment,
-            location,
-        }
+        Enumerator { identifier, value, scope: None, attributes, comment, location }
     }
 }
 
@@ -509,12 +464,7 @@ pub struct TypeRef {
 
 impl TypeRef {
     pub fn new(type_name: String, is_optional: bool, location: Location) -> Self {
-        TypeRef {
-            type_name,
-            is_optional,
-            definition: None,
-            location,
-        }
+        TypeRef { type_name, is_optional, definition: None, location }
     }
 
     pub fn definition<'a>(&self, ast: &'a Ast) -> &'a Node {
@@ -552,10 +502,7 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn new(element_type: TypeRef) -> Self {
-        Sequence {
-            element_type,
-            scope: None,
-        }
+        Sequence { element_type, scope: None }
     }
 }
 
@@ -578,11 +525,7 @@ pub struct Dictionary {
 
 impl Dictionary {
     pub fn new(key_type: TypeRef, value_type: TypeRef) -> Self {
-        Dictionary {
-            key_type,
-            value_type,
-            scope: None,
-        }
+        Dictionary { key_type, value_type, scope: None }
     }
 }
 
@@ -691,13 +634,7 @@ impl Attribute {
     ) -> Self {
         // Combine the prefix and directive together to make searching qualified directives easier.
         let qualified_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
-        Attribute {
-            prefix,
-            directive,
-            qualified_directive,
-            arguments,
-            location,
-        }
+        Attribute { prefix, directive, qualified_directive, arguments, location }
     }
 }
 
