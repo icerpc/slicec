@@ -66,6 +66,22 @@ impl Node {
             _ => None,
         }
     }
+
+    /// Returns the node's index in the AST.
+    pub fn index(&self) -> usize {
+        *match self {
+            Self::Module(index, _)     => index,
+            Self::Struct(index, _)     => index,
+            Self::Interface(index, _)  => index,
+            Self::Enum(index, _)       => index,
+            Self::Operation(index, _)  => index,
+            Self::Member(index, _)     => index,
+            Self::Enumerator(index, _) => index,
+            Self::Sequence(index, _)   => index,
+            Self::Dictionary(index, _) => index,
+            Self::Primitive(index, _)  => index,
+        }
+    }
 }
 
 /// Attempts to unwrap a node to a specified underlying type. If the node is the specified type,
@@ -151,7 +167,7 @@ implement_into_node_for!(Primitive, Node::Primitive);
 /// in Rust where references are strictly managed. Additionally, it simplifies ownership semantics,
 /// since all nodes are directly owned by the vector, instead of having parents that own their
 /// children, like normal trees do.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Ast {
     /// The AST vector where all the nodes are stored, in the order the parser parsed them.
     ast: Vec<Node>,
@@ -189,20 +205,12 @@ impl Ast {
         index
     }
 
-    /// Wraps the provided Primitive in a node and moves it into the AST vector.
-    /// This method caches and returns its index. If the primitive was already added to the AST,
-    /// instead of re-adding it, the value is dropped and its cached index is returned instead.
-    /// This prevents excessive copies of primitives being in the AST, when they're all identical.
-    pub(crate) fn add_primitive(&mut self, primitive: Primitive) -> usize {
-        match self.primitive_cache.get(&primitive) {
-            Some(index) => *index,
-            None => {
-                // Add the primitive into the AST and cache its index.
-                let index = self.add_element(primitive);
-                self.primitive_cache.insert(primitive, index);
-                index
-            }
-        }
+    /// Wraps the provided Primitive in a node and moves it into the AST vector, then caches the
+    /// Primitives and it's index in the AST. This prevents execessive copies of primitives being
+    /// created; instead the single cached instance gets used anywhere we need that primitive.
+    fn add_primitive(&mut self, primitive: Primitive) {
+        let index = self.add_element(primitive);
+        self.primitive_cache.insert(primitive, index);
     }
 
     /// Retrieves the node of the specified primitive.
@@ -211,5 +219,35 @@ impl Ast {
             Some(index) => &self.ast[*index],
             None => panic!("primitive type not found"),
         }
+    }
+}
+
+impl Default for Ast {
+    fn default() -> Self {
+        // Create a new default initialized AST.
+        let mut ast = Ast {
+            ast: Vec::new(),
+            primitive_cache: HashMap::new(),
+        };
+
+        // Create an instance of each primitive and place them into the AST.
+        // We create them here since primitives are always available as types,
+        // and are 'defined' by the compiler, not anywhere in Slice like all other types are.
+        ast.add_primitive(Primitive::Bool);
+        ast.add_primitive(Primitive::Byte);
+        ast.add_primitive(Primitive::Short);
+        ast.add_primitive(Primitive::UShort);
+        ast.add_primitive(Primitive::Int);
+        ast.add_primitive(Primitive::UInt);
+        ast.add_primitive(Primitive::VarInt);
+        ast.add_primitive(Primitive::VarUInt);
+        ast.add_primitive(Primitive::Long);
+        ast.add_primitive(Primitive::ULong);
+        ast.add_primitive(Primitive::VarLong);
+        ast.add_primitive(Primitive::VarULong);
+        ast.add_primitive(Primitive::Float);
+        ast.add_primitive(Primitive::Double);
+        ast.add_primitive(Primitive::String);
+        ast
     }
 }

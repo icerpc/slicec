@@ -411,7 +411,7 @@ impl SliceParser {
         match_nodes!(input.children();
             [primitive(primitive)] => {
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_use.definition = Some(ast.add_primitive(primitive));
+                type_use.definition = Some(ast.resolve_primitive(primitive).index());
             },
             [sequence(sequence)] => {
                 let ast = &mut input.user_data().borrow_mut().ast;
