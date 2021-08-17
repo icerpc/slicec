@@ -38,7 +38,7 @@ pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
             ast,
         );
 
-        code.writeln(&(decode_member.to_string()));
+        code.writeln(&decode_member);
     }
 
     // Encode tagged members

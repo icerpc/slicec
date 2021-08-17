@@ -12,11 +12,11 @@ impl CodeBlock {
         }
     }
 
-    pub fn write(&mut self, s: &str) {
-        self.content.push_str(s);
+    pub fn write(&mut self, s: &dyn fmt::Display) {
+        self.content.push_str(&s.to_string());
     }
 
-    pub fn writeln(&mut self, s: &str) {
+    pub fn writeln(&mut self, s: &dyn fmt::Display) {
         self.write(&format!("{}\n", s));
     }
 
