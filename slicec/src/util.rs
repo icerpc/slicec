@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::Attribute;
+use crate::ast::Ast;
+use crate::grammar::{Attribute, Member};
 use std::path::Path;
 
 /// Describes a single position, or a span over two positions in a slice file.
@@ -115,4 +116,15 @@ pub enum TypeContext {
     /// Used when generating types that are parts of other types, such as the key & value types of
     /// dictionaries, or the element type of a sequence.
     Nested,
+}
+
+pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
+    let mut size: i32 = 0;
+    for member in members {
+        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged {
+            size += 1;
+        }
+    }
+
+    size
 }

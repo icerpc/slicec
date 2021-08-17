@@ -282,3 +282,24 @@ pub fn primitive_type_suffix(primitive: &Primitive) -> String {
     }
     .to_owned()
 }
+
+pub fn get_scoped_unqualified(_: &Node, _: &str, _: &Ast) -> String {
+    "".to_owned()
+}
+
+pub fn get_unqualified(_: &Node, _: &str, _: &str, _: &str, _: &Ast) -> String {
+    "".to_owned()
+}
+
+pub fn helper_name(type_ref: &TypeRef, scope: &str, ast: &Ast) -> String {
+    get_unqualified(type_ref.definition(ast), scope, "", "Helper", ast)
+}
+
+pub fn field_name(member: &Member) -> String {
+    let identifier = member.identifier();
+    //TODO: port this C++ code
+    // string name = member->name();
+    // return normalizeCase(member) ? fixId(pascalCase(name)) : fixId(name);
+
+    identifier.to_owned()
+}

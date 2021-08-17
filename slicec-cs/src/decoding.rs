@@ -143,36 +143,3 @@ pub fn decode_type(
 
     code
 }
-
-// TODO: move to slicec
-pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
-    let mut size: i32 = 0;
-    for member in members {
-        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged {
-            size += 1;
-        }
-    }
-
-    size
-}
-
-pub fn get_scoped_unqualified(_: &Node, _: &str, _: &Ast) -> String {
-    "".to_owned()
-}
-
-pub fn get_unqualified(_: &Node, _: &str, _: &str, _: &str, _: &Ast) -> String {
-    "".to_owned()
-}
-
-pub fn helper_name(type_ref: &TypeRef, scope: &str, ast: &Ast) -> String {
-    get_unqualified(type_ref.definition(ast), scope, "", "Helper", ast)
-}
-
-pub fn field_name(member: &Member) -> String {
-    let identifier = member.identifier();
-    //TODO: port this C++ code
-    // string name = member->name();
-    // return normalizeCase(member) ? fixId(pascalCase(name)) : fixId(name);
-
-    identifier.to_owned()
-}
