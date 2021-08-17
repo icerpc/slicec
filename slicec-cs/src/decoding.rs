@@ -16,7 +16,7 @@ pub fn decode_data_members(members: &Vec<&Member>, ast: &Ast) -> CodeBlock {
     // let tagged_members = struct_def.contents.filter(|contents| contents.tag != "");
 
     let mut bit_sequence_index = -1;
-    let bit_sequence_size = get_bit_sequence_size(&members);
+    let bit_sequence_size = get_bit_sequence_size(&members, ast);
 
     if bit_sequence_size > 0 {
         code.writeln(&format!(
@@ -144,9 +144,16 @@ pub fn decode_type(
     code
 }
 
-pub fn get_bit_sequence_size(members: &Vec<&Member>) -> i32 {
-    //TODO impl this
-    0
+// TODO: move to slicec
+pub fn get_bit_sequence_size(members: &Vec<&Member>, ast: &Ast) -> i32 {
+    let mut size: i32 = 0;
+    for member in members {
+        if member.data_type.encode_using_bit_sequence(ast) && !member.is_tagged  {
+            size += 1;
+        }
+    }
+
+    size
 }
 
 pub fn get_unqualified(node: &Node, ast: &Ast) -> String {

@@ -123,6 +123,7 @@ implement_named_symbol_for!(Enumerator);
 /// Base trait that all elements representing types implement.
 pub trait Type {
     fn is_fixed_size(&self, ast: &Ast) -> bool;
+    fn min_wire_size(&self, ast: &Ast) -> usize;
 }
 
 #[derive(Clone, Debug)]
@@ -209,6 +210,18 @@ impl Type for Struct {
         }
         true
     }
+
+    fn min_wire_size(&self, ast: &Ast) -> usize {
+        let mut size = 0;
+        for member in self.members(ast) {
+            size += ast
+                .resolve_index(member.data_type.definition.unwrap())
+                .as_type()
+                .unwrap()
+                .min_wire_size(ast);
+        }
+        size
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -251,6 +264,8 @@ impl Type for Interface {
     fn is_fixed_size(&self, _: &Ast) -> bool {
         false
     }
+
+    fn min_wire_size(&self, _: &Ast) -> usize { 3 }
 }
 
 #[derive(Clone, Debug)]
@@ -328,6 +343,14 @@ impl Type for Enum {
         }
         true
     }
+
+    fn min_wire_size(&self, ast: &Ast) -> usize {
+        if let Some(_) = &self.underlying {
+            self.underlying_type(ast).as_type().unwrap().min_wire_size(ast)
+        } else {
+            1
+        }
+     }
 }
 
 #[derive(Clone, Debug)]
@@ -388,6 +411,7 @@ pub struct Member {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub is_tagged: bool,
 }
 
 impl Member {
@@ -407,6 +431,7 @@ impl Member {
             attributes,
             comment,
             location,
+            is_tagged: false, //TODO tags
         }
     }
 }
@@ -490,6 +515,28 @@ impl TypeRef {
     pub fn definition<'a>(&self, ast: &'a Ast) -> &'a Node {
         ast.resolve_index(self.definition.unwrap())
     }
+
+    pub fn min_wire_size(&self, ast: &Ast) -> usize {
+        let node = self.definition(ast);
+
+        if self.is_optional {
+            match node {
+                Node::Interface(_, _) => 1,
+                // Node::Class(_, _) => 1, TODO: class support
+                _ => 0,
+            }
+        } else {
+            node.as_type().unwrap().min_wire_size(ast)
+        }
+    }
+
+    pub fn encode_using_bit_sequence(&self, ast: &Ast) -> bool {
+        if self.is_optional {
+            return self.min_wire_size(ast) == 0;
+        } else {
+            return false
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -511,6 +558,8 @@ impl Type for Sequence {
     fn is_fixed_size(&self, _: &Ast) -> bool {
         false
     }
+
+    fn min_wire_size(&self, _: &Ast) -> usize { 1 }
 }
 
 #[derive(Clone, Debug)]
@@ -534,6 +583,8 @@ impl Type for Dictionary {
     fn is_fixed_size(&self, _: &Ast) -> bool {
         false
     }
+
+    fn min_wire_size(&self, _: &Ast) -> usize { 1 }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -584,6 +635,26 @@ impl Type for Primitive {
             _ => true,
         }
     }
+
+    fn min_wire_size(&self, _: &Ast) -> usize {
+        match self {
+            Self::Bool => 1,
+            Self::Byte => 1,
+            Self::Short => 2,
+            Self::UShort => 2,
+            Self::Int => 4,
+            Self::UInt => 4,
+            Self::VarInt => 1,
+            Self::VarUInt => 1,
+            Self::Long => 8,
+            Self::ULong => 8,
+            Self::VarLong => 1,
+            Self::VarULong => 1,
+            Self::Float => 4,
+            Self::Double => 8,
+            Self::String => 1,
+        }
+     }
 }
 
 #[derive(Clone, Debug)]
