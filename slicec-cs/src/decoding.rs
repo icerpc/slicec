@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::code_block::*;
+use crate::code_block::CodeBlock;
 use crate::cs_util::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
