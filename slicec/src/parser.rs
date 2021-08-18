@@ -85,9 +85,12 @@ impl SliceParser {
     }
 
     fn parse_file(&mut self, file: &str, is_source: bool) -> Result<SliceFile, String> {
-        // Mutably borrow the ParserData struct, to set its current file.
-        let data = &mut self.user_data.borrow_mut();
-        data.current_file = file.to_owned();
+        // We use an explicit scope to ensure the mutable borrow is dropped before parsing starts.
+        {
+            // Mutably borrow the ParserData struct, to set its current file.
+            let data = &mut self.user_data.borrow_mut();
+            data.current_file = file.to_owned();
+        }
 
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
