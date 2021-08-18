@@ -9,7 +9,6 @@ mod parser;
 mod patchers;
 pub mod slice_file;
 pub mod util;
-pub mod util_macros;
 mod validator;
 pub mod visitor;
 pub mod writer;
