@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::code_block::CodeBlock;
+use crate::code_block::*;
 use crate::cs_util::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
@@ -15,10 +15,11 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let bit_sequence_size = get_bit_sequence_size(members, ast);
 
     if bit_sequence_size > 0 {
-        code.writeln(&format!(
+        writeln!(
+            code,
             "var bitSequence = decoder.DecodeBitSequence({});",
-            bit_sequence_size
-        ));
+            bit_sequence_size,
+        );
 
         bit_sequence_index = 0;
     }
@@ -67,34 +68,34 @@ pub fn decode_type(
     let node = ast.resolve_index(type_ref.definition.unwrap());
     let type_string = type_to_string(node, ast, TypeContext::Incoming); // TODO: the scope
 
-    code.write(&format!("{} = ", param));
+    write!(code, "{} = ", param);
 
     if type_ref.is_optional {
         match node {
             Node::Interface(_, _) => {
                 // does not use bit sequence
-                code.writeln(&format!(
+                writeln!(
+                    code,
                     "IceRpc.IceDecoderPrxExtensions.DecodeNullablePrx<{}>(decoder);",
                     type_string
-                ));
+                );
                 return code;
             }
             // TODO: this else if once we have Node::Class
             // Node::Class(_, class_def) => {
             // // does not use bit sequence
-            // code.writeln(&format!(
-            //     "decoder.DecodeNullableClass<{}>();",
+            // write!(
+            //     "decoder.DecodeNullableClass<{}>();\n",
             //     type_to_string(
-            //         ast.resolve_index(type_ref.definition.unwrap()),
+            //         astresolve_index(type_ref.definition.unwrap()),
             //         ast,
             //         TypeContext::Incoming
-            //     )
-            //     return code;
-            // ));
+            //     ));
+            //return code;
             // }
             _ => {
                 assert!(*bit_sequence_index > 0);
-                code.write(&format!("bitSequence[{}]", *bit_sequence_index));
+                write!(code, "bitSequence[{}]", *bit_sequence_index);
                 *bit_sequence_index += 1;
                 // keep going
             }
@@ -104,25 +105,32 @@ pub fn decode_type(
     match node {
         Node::Interface(_, _) => {
             assert!(!type_ref.is_optional);
-            code.write(&format!("new {}(decoder.DecodeProxy());", type_string));
+            write!(code, "new {}(decoder.DecodeProxy());", type_string)
         }
         // Node::Class(_, class_def) => {} // TODO: Class not yet implemented in the ast
-        Node::Primitive(_, primitive_def) => code.write(&format!(
-            "decoder.Decode{}()",
-            primitive_type_suffix(primitive_def)
-        )),
-        Node::Struct(_, _) => code.write(&format!(
-            "new {}(decoder)",
-            get_scoped_unqualified(node, scope, ast)
-        )),
+        Node::Primitive(_, primitive_def) => {
+            write!(
+                code,
+                "decoder.Decode{}()",
+                primitive_type_suffix(primitive_def),
+            );
+        }
+        Node::Struct(_, _) => {
+            write!(
+                code,
+                "new {}(decoder)",
+                get_scoped_unqualified(node, scope, ast),
+            );
+        }
         Node::Dictionary(_, _) => {}
         Node::Sequence(_, _) => {}
         _ => {
-            code.write(&format!(
+            write!(
+                code,
                 "{}.Decode{}(decoder)",
                 helper_name(type_ref, scope, ast),
-                type_string
-            ));
+                type_string,
+            );
             // out << helperName(underlying, scope) << ".Decode" << contained->name() << "(decoder)";
         }
     }

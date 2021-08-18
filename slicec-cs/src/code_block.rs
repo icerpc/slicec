@@ -1,5 +1,4 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
-
 use std::fmt;
 
 #[derive(Debug)]
@@ -18,6 +17,17 @@ impl CodeBlock {
 
     pub fn writeln<T: fmt::Display + ?Sized>(&mut self, s: &T) {
         self.write(&format!("{}\n", s));
+    }
+
+    /// Used to write code blocks using the write! and writeln! macros
+    /// without results. Note that the write_fmt defined in fmt::Write and io::Write
+    /// have a Result<()> return type.
+    pub fn write_fmt(&mut self, args: fmt::Arguments<'_>) {
+        if let Some(s) = args.as_str() {
+            self.write(s);
+        } else {
+            self.write(&args.to_string());
+        }
     }
 
     pub fn indent(&mut self) -> &mut Self {
