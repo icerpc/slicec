@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-// TODO split into SliceFile and Util files! No need to keep together!
-
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
@@ -124,7 +122,7 @@ impl Visitor for CsWriter {
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
         self.write_comment(struct_def);
 
-        //TODO: this stuff from slice2cs
+        // TODO: this stuff from slice2cs
         // emitDeprecate(p, false, _out);
         // emitCommonAttributes();
         // emitCustomAttributes(p);
@@ -181,7 +179,7 @@ public {name}(IceRpc.IceDecoder decoder)
     {decoder_body}
 }}"#,
             name = struct_def.identifier(),
-            doc_comment = "", //TODO: get doc comment
+            doc_comment = "", // TODO: get doc comment
             constructor_args = constructor_args.join(", "),
             constructor_body = constructor_body.join("\n    "),
             decoder_body = decode_data_members(struct_def.members(ast).as_slice(), ast).indent()
@@ -285,7 +283,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         self.output.write_line_separator();
 
         self.write_comment(enum_def);
-        //TODO: from slice2cs
+        // TODO: from slice2cs
         // writeTypeDocComment(p, getDeprecateReason(p));
         // emitCommonAttributes();
         // emitCustomAttributes(p);
@@ -347,7 +345,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             let check_enum = if use_set {
                 "EnumeratorValues.Contains(value)".to_owned()
             } else {
-                //TODO: get the actual min and max values
+                // TODO: get the actual min and max values
                 format!(
                     "{min_value} <= value && value <= {max_value}",
                     min_value = "min",

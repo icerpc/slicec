@@ -415,7 +415,7 @@ impl Member {
             attributes,
             comment,
             location,
-            tag: None, //TODO tags
+            tag: None, // TODO tags
         }
     }
 }

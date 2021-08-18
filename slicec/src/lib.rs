@@ -1,17 +1,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod ast;
-mod comment_parser;
 pub mod error;
 pub mod grammar;
 pub mod options;
-mod parser;
-mod patchers;
 pub mod slice_file;
 pub mod util;
-mod validator;
 pub mod visitor;
 pub mod writer;
+
+mod comment_parser;
+mod parser;
+mod patchers;
+mod validator;
 
 use crate::ast::Ast;
 use crate::error::ErrorHandler;
@@ -53,12 +54,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<CompilerData, ()> {
     }
 
     // Return the data to the compiler's main function.
-    Ok(CompilerData {
-        ast,
-        slice_files,
-        error_handler,
-        lookup_table,
-    })
+    Ok(CompilerData { ast, slice_files, error_handler, lookup_table })
 }
 
 pub fn handle_errors(

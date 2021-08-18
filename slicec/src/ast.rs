@@ -225,10 +225,7 @@ impl Ast {
 impl Default for Ast {
     fn default() -> Self {
         // Create a new default initialized AST.
-        let mut ast = Ast {
-            ast: Vec::new(),
-            primitive_cache: HashMap::new(),
-        };
+        let mut ast = Ast { ast: Vec::new(), primitive_cache: HashMap::new() };
 
         // Create an instance of each primitive and place them into the AST.
         // We create them here since primitives are always available as types,

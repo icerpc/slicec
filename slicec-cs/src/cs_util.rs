@@ -88,10 +88,7 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             )
         }
         TypeContext::Incoming => {
-            format!(
-                "{}[]",
-                element_type_string,
-            )
+            format!("{}[]", element_type_string)
         }
         TypeContext::Outgoing => {
             let mut container_type = "global::System.Collections.Generic.IEnumerable";
@@ -99,11 +96,7 @@ fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext)
             if element_type.as_type().unwrap().is_fixed_size(ast) {
                 container_type = "global::System.ReadOnlyMemory";
             }
-            format!(
-                "{}<{}>",
-                container_type,
-                element_type_string,
-            )
+            format!("{}<{}>", container_type, element_type_string)
         }
     }
 }
@@ -118,22 +111,19 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
         TypeContext::DataMember | TypeContext::Nested => {
             format!(
                 "global::System.Collections.Generic.IDictionary<{}, {}>",
-                key_type_string,
-                value_type_string,
+                key_type_string, value_type_string,
             )
         }
         TypeContext::Incoming => {
             format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
-                key_type_string,
-                value_type_string,
+                key_type_string, value_type_string,
             )
         }
         TypeContext::Outgoing => {
             format!(
                 "global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{}, {}>>",
-                key_type_string,
-                value_type_string,
+                key_type_string, value_type_string,
             )
         }
     }
@@ -276,7 +266,7 @@ pub fn helper_name(type_ref: &TypeRef, scope: &str, ast: &Ast) -> String {
 
 pub fn field_name(member: &Member) -> String {
     let identifier = member.identifier();
-    //TODO: port this C++ code
+    // TODO: port this C++ code
     // string name = member->name();
     // return normalizeCase(member) ? fixId(pascalCase(name)) : fixId(name);
 

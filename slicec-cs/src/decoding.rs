@@ -54,7 +54,7 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     code
 }
 
-//TODO: scope and param (scope should be passed in to type_to_string)
+// TODO: scope and param (scope should be passed in to type_to_string)
 pub fn decode_type(
     type_ref: &TypeRef,
     bit_sequence_index: &mut i32,
@@ -79,7 +79,7 @@ pub fn decode_type(
                 ));
                 return code;
             }
-            //TODO: this else if once we have Node::Class
+            // TODO: this else if once we have Node::Class
             // Node::Class(_, class_def) => {
             // // does not use bit sequence
             // code.writeln(&format!(
@@ -89,7 +89,7 @@ pub fn decode_type(
             //         ast,
             //         TypeContext::Incoming
             //     )
-            //return code;
+            //     return code;
             // ));
             // }
             _ => {
