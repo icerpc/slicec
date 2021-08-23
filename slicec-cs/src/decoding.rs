@@ -167,7 +167,7 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
         ));
     }
 
-    if with_bit_sequence && is_value_type(&dictionary_def.value_type, ast) {
+    if with_bit_sequence && is_reference_type(&dictionary_def.value_type, ast) {
         args.push("withBitSequence: true".to_owned());
     }
 
@@ -245,7 +245,7 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
                 if element_type.is_optional && element_type.encode_using_bit_sequence(ast) {
                     args = format!(
                         "decoder.DecodeSequence({}{})",
-                        if !is_value_type(element_type, ast) {
+                        if is_reference_type(element_type, ast) {
                             "withBitSequence: true, "
                         } else {
                             ""
@@ -307,7 +307,7 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
                 if element_type.is_optional && element_type.encode_using_bit_sequence(ast) {
                     decoder_args = format!(
                         "{}{}",
-                        if !is_value_type(element_type, ast) {
+                        if is_reference_type(element_type, ast) {
                             "withBitSequence: true, "
                         } else {
                             ""

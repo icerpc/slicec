@@ -280,3 +280,7 @@ pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {
         _ => false,
     }
 }
+
+pub fn is_reference_type(type_ref: &TypeRef, ast: &Ast) -> bool {
+    !is_value_type(type_ref, ast)
+}
