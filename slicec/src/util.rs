@@ -60,3 +60,15 @@ macro_rules! is_underlying_type {
         }
     }};
 }
+/// Gets a Node of the give type as an Optional<$t> from node $n
+/// e.g. is_some!(Node::Primitive, a_node)
+#[macro_export]
+macro_rules! is_some {
+    ($t:path, $n:expr) => {{
+        if let $t(_, p) = $n {
+            Some(p)
+        } else {
+            None
+        }
+    }};
+}
