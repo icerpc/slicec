@@ -143,9 +143,57 @@ pub fn decode_type(
     code
 }
 
-pub fn decode_dictionary(_: &Dictionary, _: &str, _: &Ast) -> CodeBlock {
+pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
-    code.writeln("//TODO");
+
+    //TOOD: check for generic "cs:generic:" attribute
+    // let generic = sequence.element_type.
+    let value_node = dictionary_def.value_type.definition(ast);
+    let generic_attribute: Option<&str> = None; // TODO: temporary
+
+    let with_bit_sequence = dictionary_def.key_type.encode_using_bit_sequence(ast);
+
+    let method = match generic_attribute {
+        Some(_) => "DecodeSortedDictionary",
+        None => "DecodeDictionary",
+    };
+
+    let mut args = vec![format!("minKeySize: {}", dictionary_def.key_type.min_wire_size(ast))];
+
+    if !with_bit_sequence {
+        args.push(format!(
+            "minValueSize: {}",
+            dictionary_def.value_type.min_wire_size(ast)
+        ));
+    }
+
+    if with_bit_sequence && is_value_type(&dictionary_def.value_type, ast) {
+        args.push("withBitSequence: true".to_owned());
+    }
+
+    // decode key
+    args.push(decode_func(&dictionary_def.key_type, scope, ast).to_string());
+
+    // decode value
+    let mut decode_value = decode_func(&dictionary_def.value_type, scope, ast);
+    match value_node {
+        Node::Sequence(_, _) | Node::Dictionary(_, _) => {
+            write!(
+                decode_value,
+                " as {}",
+                //TODO scope
+                type_to_string(value_node, ast, TypeContext::Incoming)
+            );
+        }
+        _ => {}
+    }
+
+    write!(
+        code,
+        "decoder.{method}({args})",
+        method = method,
+        args = args.join(", ")
+    );
     code
 }
 
