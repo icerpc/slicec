@@ -143,7 +143,7 @@ pub fn decode_type(
     code
 }
 
-pub fn decode_dictionary(dictionary: &Dictionary, scope: &str, ast: &Ast) -> CodeBlock {
+pub fn decode_dictionary(_: &Dictionary, _: &str, _: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     code.writeln("//TODO");
     code
@@ -161,7 +161,6 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
     if let Some(generic_attribute) = generic_attribute {
         let mut args: String;
 
-        args = "".to_owned();
         match element_node {
             Node::Primitive(_, primitive)
                 if primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast) =>
@@ -311,7 +310,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     } else {
         match node {
             // Node::Class(_, ) => {} // TODO when we have class support
-            Node::Interface(_, interface_def) => {
+            Node::Interface(_, _) => {
                 //TODO: type_to_string should take the scope
                 write!(
                     code,
