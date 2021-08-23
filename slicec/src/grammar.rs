@@ -63,23 +63,18 @@ implement_symbol_for!(TypeRef);
 implement_symbol_for!(Attribute);
 implement_symbol_for!(DocComment);
 
-/// NamedSymbols are symbols that have an identifier attached to them.
-pub trait NamedSymbol: Symbol {
-    fn identifier(&self) -> &str;
+/// Scoped symbols are symbols that are sensative to their enclosing scopes.
+/// These also support having attributes placed on them, and provide methods for handling them.
+pub trait ScopedSymbol: Symbol {
     fn attributes(&self) -> &Vec<Attribute>;
     fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
     fn has_attribute(&self, directive: &str) -> bool;
-    fn comment(&self) -> Option<&DocComment>;
     fn scope(&self) -> &str;
 }
 
-macro_rules! implement_named_symbol_for {
+macro_rules! implement_scoped_symbol_for {
     ($a:ty) => {
-        impl NamedSymbol for $a {
-            fn identifier(&self) -> &str {
-                &self.identifier.value
-            }
-
+        impl ScopedSymbol for $a {
             fn attributes(&self) -> &Vec<Attribute> {
                 &self.attributes
             }
@@ -101,12 +96,37 @@ macro_rules! implement_named_symbol_for {
                 self.find_attribute(directive).is_some()
             }
 
-            fn comment(&self) -> Option<&DocComment> {
-                self.comment.as_ref()
-            }
-
             fn scope(&self) -> &str {
                 self.scope.as_ref().unwrap()
+            }
+        }
+    };
+}
+
+implement_scoped_symbol_for!(Module);
+implement_scoped_symbol_for!(Struct);
+implement_scoped_symbol_for!(Interface);
+implement_scoped_symbol_for!(Enum);
+implement_scoped_symbol_for!(Operation);
+implement_scoped_symbol_for!(Member);
+implement_scoped_symbol_for!(Enumerator);
+implement_scoped_symbol_for!(TypeRef);
+
+/// NamedSymbols are scoped symbols that have an identifier attached to them.
+pub trait NamedSymbol: ScopedSymbol {
+    fn identifier(&self) -> &str;
+    fn comment(&self) -> Option<&DocComment>;
+}
+
+macro_rules! implement_named_symbol_for {
+    ($a:ty) => {
+        impl NamedSymbol for $a {
+            fn identifier(&self) -> &str {
+                &self.identifier.value
+            }
+
+            fn comment(&self) -> Option<&DocComment> {
+                self.comment.as_ref()
             }
         }
     };
@@ -477,12 +497,26 @@ pub struct TypeRef {
     pub type_name: String,
     pub is_optional: bool,
     pub definition: Option<usize>,
+    pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
     pub location: Location,
 }
 
 impl TypeRef {
-    pub fn new(type_name: String, is_optional: bool, location: Location) -> Self {
-        TypeRef { type_name, is_optional, definition: None, location }
+    pub fn new(
+        type_name: String,
+        is_optional: bool,
+        attributes: Vec<Attribute>,
+        location: Location,
+    ) -> Self {
+        TypeRef {
+            type_name,
+            is_optional,
+            definition: None,
+            scope: None,
+            attributes,
+            location,
+        }
     }
 
     pub fn definition<'a>(&self, ast: &'a Ast) -> &'a Node {

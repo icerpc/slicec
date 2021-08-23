@@ -409,36 +409,43 @@ impl SliceParser {
 
     fn typename(input: PestNode) -> PestResult<TypeRef> {
         let location = from_span(&input);
-        // Remove any whitespace from the type name, then create the TypeRef.
-        let type_name: String = input
+        let mut nodes = input.children();
+
+        // The first node is always a `local_attribute`. This is guaranteed by the grammar rules.
+        let attributes = SliceParser::local_attributes(nodes.next().unwrap()).unwrap();
+        // The second node is the type.
+        let type_node = nodes.next().unwrap();
+
+        // Get the typename as a string, with any whitespace removed from it.
+        let type_name = type_node
             .as_str()
             .chars()
             .filter(|c| !c.is_whitespace())
             .collect();
-        let mut type_use = TypeRef::new(type_name, false, location);
+        let mut type_ref = TypeRef::new(type_name, false, attributes, location); // TODO add support for optional here!
 
         // Resolve and/or construct non user defined types.
-        match_nodes!(input.children();
-            [primitive(primitive)] => {
+        match type_node.as_rule() {
+            Rule::primitive => {
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_use.definition = Some(ast.resolve_primitive(primitive).index());
-            },
-            [sequence(sequence)] => {
+                let primitive = Self::primitive(type_node).unwrap();
+                type_ref.definition = Some(ast.resolve_primitive(primitive).index());
+            }
+            Rule::sequence => {
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_use.definition = Some(ast.add_element(sequence));
-            },
-            [dictionary(dictionary)] => {
+                let sequence = Self::sequence(type_node).unwrap();
+                type_ref.definition = Some(ast.add_element(sequence));
+            }
+            Rule::dictionary => {
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_use.definition = Some(ast.add_element(dictionary));
-            },
-            [global_identifier(_)] => {
-                // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
-            },
-            [scoped_identifier(_)] => {
-                // Nothing to do, we wait until after we've generated a lookup table to patch user defined types.
-            },
-        );
-        Ok(type_use)
+                let dictionary = Self::dictionary(type_node).unwrap();
+                type_ref.definition = Some(ast.add_element(dictionary));
+            }
+            // Nothing to do, we wait until after we've generated a lookup table to patch user
+            // defined types.
+            _ => {}
+        }
+        Ok(type_ref)
     }
 
     fn sequence(input: PestNode) -> PestResult<Sequence> {

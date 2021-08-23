@@ -214,22 +214,32 @@ impl ScopePatcher {
                     interface_def.scope = Some(scope);
                 }
                 Node::Enum(_, enum_def) => {
-                    enum_def.scope = Some(scope);
+                    enum_def.scope = Some(scope.clone());
+                    if let Some(underlying) = &mut enum_def.underlying {
+                        underlying.scope = Some(scope);
+                    }
                 }
                 Node::Operation(_, operation) => {
-                    operation.scope = Some(scope);
+                    operation.scope = Some(scope.clone());
+                    if let ReturnType::Single(type_ref, _) = &mut operation.return_type {
+                        type_ref.scope = Some(scope);
+                    }
                 }
                 Node::Member(_, member) => {
-                    member.scope = Some(scope);
+                    member.scope = Some(scope.clone());
+                    member.data_type.scope = Some(scope);
                 }
                 Node::Enumerator(_, enumerator) => {
                     enumerator.scope = Some(scope);
                 }
                 Node::Sequence(_, sequence) => {
-                    sequence.scope = Some(scope);
+                    sequence.scope = Some(scope.clone());
+                    sequence.element_type.scope = Some(scope);
                 }
                 Node::Dictionary(_, dictionary) => {
-                    dictionary.scope = Some(scope);
+                    dictionary.scope = Some(scope.clone());
+                    dictionary.key_type.scope = Some(scope.clone());
+                    dictionary.value_type.scope = Some(scope);
                 }
                 _ => {
                     panic!("Grammar element does not need scope patching!\n{:?}", node);
