@@ -272,3 +272,11 @@ pub fn field_name(member: &Member) -> String {
 
     identifier.to_owned()
 }
+
+pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {
+    match type_ref.definition(ast) {
+        Node::Primitive(_, primitive) => !matches!(primitive, Primitive::String),
+        Node::Enum(_, _) | Node::Struct(_, _) | Node::Interface(_, _) => true,
+        _ => false,
+    }
+}
