@@ -446,18 +446,18 @@ impl SliceParser {
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
             Rule::primitive => {
-                let ast = &mut input.user_data().borrow_mut().ast;
                 let primitive = Self::primitive(type_node).unwrap();
+                let ast = &input.user_data().borrow_mut().ast;
                 type_ref.definition = Some(ast.resolve_primitive(primitive).index());
             }
             Rule::sequence => {
-                let ast = &mut input.user_data().borrow_mut().ast;
                 let sequence = Self::sequence(type_node).unwrap();
+                let ast = &mut input.user_data().borrow_mut().ast;
                 type_ref.definition = Some(ast.add_element(sequence));
             }
             Rule::dictionary => {
-                let ast = &mut input.user_data().borrow_mut().ast;
                 let dictionary = Self::dictionary(type_node).unwrap();
+                let ast = &mut input.user_data().borrow_mut().ast;
                 type_ref.definition = Some(ast.add_element(dictionary));
             }
             // Nothing to do, we wait until after we've generated a lookup table to patch user
