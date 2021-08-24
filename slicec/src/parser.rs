@@ -283,7 +283,7 @@ impl SliceParser {
 
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
-        let operation = match_nodes!(input.children();
+        let mut operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
                 let (return_type, identifier) = operation_start;
@@ -295,6 +295,13 @@ impl SliceParser {
                 Operation::new(return_type, identifier, parameters, attributes, comment, location)
             },
         );
+
+        // Forward the operations's attributes to the return type, if it returns a single type.
+        // TODO: in the future we should only forward type metadata by filtering metadata.
+        if let ReturnType::Single(return_type, _) = &mut operation.return_type {
+            return_type.attributes = operation.attributes.clone();
+        }
+
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(operation))
     }
@@ -302,8 +309,13 @@ impl SliceParser {
     fn data_member(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
-            [prelude(prelude), typename(data_type), identifier(identifier)] => {
+            [prelude(prelude), typename(mut data_type), identifier(identifier)] => {
                 let (attributes, comment) = prelude;
+
+                // Forward the member's attributes to the data type.
+                // TODO: in the future we should only forward type metadata by filtering metadata.
+                data_type.attributes = attributes.clone();
+
                 Member::new(
                     data_type,
                     identifier,
@@ -314,6 +326,7 @@ impl SliceParser {
                 )
             },
         );
+
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(data_member))
     }
@@ -335,8 +348,13 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
-            [prelude(prelude), typename(data_type), identifier(identifier)] => {
+            [prelude(prelude), typename(mut data_type), identifier(identifier)] => {
                 let (attributes, comment) = prelude;
+
+                // Forward the member's attributes to the data type.
+                // TODO: in the future we should only forward type metadata by filtering metadata.
+                data_type.attributes = attributes.clone();
+
                 Member::new(
                     data_type,
                     identifier,
@@ -347,6 +365,7 @@ impl SliceParser {
                 )
             },
         );
+
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(parameter))
     }

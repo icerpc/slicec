@@ -220,8 +220,7 @@ impl Type for Struct {
     fn min_wire_size(&self, ast: &Ast) -> u32 {
         let mut size = 0;
         for member in self.members(ast) {
-            size += member
-                .data_type
+            size += member.data_type
                 .definition(ast)
                 .as_type()
                 .unwrap()
@@ -368,9 +367,9 @@ pub enum ReturnType {
 impl Symbol for ReturnType {
     fn location(&self) -> &Location {
         match self {
-            Self::Void(location) => location,
+            Self::Void(location)      => location,
             Self::Single(_, location) => location,
-            Self::Tuple(_, location) => location,
+            Self::Tuple(_, location)  => location,
         }
     }
 }
@@ -444,8 +443,8 @@ impl Member {
 impl Element for Member {
     fn kind(&self) -> &'static str {
         match self.member_type {
-            MemberType::DataMember => "data member",
-            MemberType::Parameter => "parameter",
+            MemberType::DataMember    => "data member",
+            MemberType::Parameter     => "parameter",
             MemberType::ReturnElement => "return element",
         }
     }
