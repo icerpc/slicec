@@ -1,16 +1,21 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 mod code_block;
+mod comments;
 mod cs_options;
 mod cs_util;
 mod cs_validator;
 mod cs_writer;
 mod decoding;
 mod encoding;
+mod proxy_visitor;
+
+use slice::writer::Writer;
 
 use cs_options::CsOptions;
 use cs_validator::CsValidator;
 use cs_writer::CsWriter;
+use proxy_visitor::ProxyVisitor;
 use structopt::StructOpt;
 
 pub fn main() {
@@ -43,9 +48,20 @@ fn try_main() -> Result<(), ()> {
 
     if !slice_options.validate {
         for slice_file in data.slice_files.values() {
-            let mut writer = CsWriter::new(&slice_file.filename).unwrap();
-            slice_file.visit_with(&mut writer, &data.ast);
-            writer.close();
+            //TODO: actually check for the error
+            let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
+
+            {
+                let mut cs_writer = CsWriter::new(&mut output);
+                slice_file.visit_with(&mut cs_writer, &data.ast);
+            }
+
+            {
+                let mut proxy_visitor = ProxyVisitor::new(&mut output);
+                slice_file.visit_with(&mut proxy_visitor, &data.ast);
+            }
+
+            output.close()
         }
     }
 
