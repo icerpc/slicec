@@ -15,11 +15,15 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let bit_sequence_size = get_bit_sequence_size(members, ast);
 
     if bit_sequence_size > 0 {
-        writeln!(code, "var bitSequence = decoder.DecodeBitSequence({});", bit_sequence_size);
+        writeln!(
+            code,
+            "var bitSequence = decoder.DecodeBitSequence({});",
+            bit_sequence_size
+        );
         bit_sequence_index = 0;
     }
 
-    // Encode required members
+    // Decode required members
     for member in required_members {
         let decode_member = decode_type(
             &member.data_type,
@@ -33,7 +37,7 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         code.writeln(&decode_member);
     }
 
-    // Encode tagged members
+    // Decode tagged members
     let mut current_tag = -1; // sanity check to ensure tags are sorted
     for member in tagged_members {
         let tag = member.tag.unwrap();
@@ -82,7 +86,7 @@ pub fn decode_type(
             // write!(
             //     "decoder.DecodeNullableClass<{}>();\n",
             //     type_to_string(
-            //         astresolve_index(type_ref.definition.unwrap()),
+            //         ast.resolve_index(type_ref.definition.unwrap()),
             //         ast,
             //         TypeContext::Incoming
             //     ));
@@ -146,7 +150,7 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
     let value_node = dictionary_def.value_type.definition(ast);
     let generic_attribute: Option<&str> = None; // TODO: temporary
 
-    let with_bit_sequence = dictionary_def.key_type.encode_using_bit_sequence(ast);
+    let with_bit_sequence = dictionary_def.value_type.encode_using_bit_sequence(ast);
 
     let method = match generic_attribute {
         Some(_) => "DecodeSortedDictionary",
