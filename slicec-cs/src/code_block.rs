@@ -42,3 +42,13 @@ impl fmt::Display for CodeBlock {
         write!(f, "{}", self.content.trim_end_matches(char::is_whitespace))
     }
 }
+
+impl std::iter::FromIterator<std::string::String> for CodeBlock {
+    fn from_iter<T: IntoIterator<Item = std::string::String>>(iter: T) -> Self {
+        let mut code = CodeBlock::new();
+        for i in iter {
+            code.writeln(&i);
+        }
+        code
+    }
+}

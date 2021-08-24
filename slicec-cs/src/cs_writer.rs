@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::code_block::CodeBlock;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
@@ -208,11 +209,32 @@ public readonly bool Equals({name} other) =>
 /// <inheritdoc/>
 public readonly override int GetHashCode()
 {{
-    {hash_code}
+    var hash = new global::System.HashCode();
+    {hash_members}
+    return hash.ToHashCode();
 }}",
                 name = struct_def.identifier(),
-                equals = "//TODO: gen equals",
-                hash_code = "//TODO: gen hashcode"
+                equals = struct_def
+                    .members(ast)
+                    .iter()
+                    .map(|m| {
+                        // TODO fix_id + filedName
+                        // string mName = fixId(fieldName(*q), Slice::ObjectType);
+                        format!("this.{name} == other.{name}", name = m.identifier())
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" &&\n    "),
+                hash_members = struct_def
+                    .members(ast)
+                    .iter()
+                    .map(|m| {
+                        //TODO: this fixId
+                        // string obj = "this." + fixId(fieldName(dataMember), Slice::ObjectType);
+                        // TypePtr mType = unwrapIfOptional(dataMember->type());
+                        format!("hash.Add({});", m.identifier())
+                    })
+                    .collect::<CodeBlock>()
+                    .indent()
             );
         }
 

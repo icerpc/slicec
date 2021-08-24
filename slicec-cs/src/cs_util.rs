@@ -132,7 +132,7 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
 /// Escapes and returns the definition's identifier, without any scoping.
 ///
 /// If the identifier is a C# keyword, a '@' prefix is appended to it.
-/// If the idenfifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
+/// If the identifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
 /// (This is only done on types that inherit from Object or Exception respectively).
 pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
     let identifier = escape_keyword(definition.identifier());
@@ -142,7 +142,7 @@ pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
 /// Escapes and returns the definition's identifier, fully scoped.
 ///
 /// If the identifier or any of the scopes are C# keywords, a '@' prefix is appended to them.
-/// If the idenfifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
+/// If the identifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
 /// (This is only done on types that inherit from Object or Exception respectively).
 pub fn escape_scoped_identifier(definition: &dyn NamedSymbol) -> String {
     let mut scoped_identifier = String::new();
