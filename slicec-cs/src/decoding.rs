@@ -15,12 +15,7 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let bit_sequence_size = get_bit_sequence_size(members, ast);
 
     if bit_sequence_size > 0 {
-        writeln!(
-            code,
-            "var bitSequence = decoder.DecodeBitSequence({});",
-            bit_sequence_size,
-        );
-
+        writeln!(code, "var bitSequence = decoder.DecodeBitSequence({});", bit_sequence_size);
         bit_sequence_index = 0;
     }
 
@@ -44,7 +39,7 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!(tag > current_tag);
         current_tag = tag;
-
+        //TODO: tags are not yet supported
         // decode_tagged_type()
     }
 

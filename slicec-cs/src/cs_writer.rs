@@ -247,7 +247,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 {{
     {encode_body}
 }}",
-            encode_body = encode_data_members(struct_def, ast).indent()
+            encode_body = encode_data_members(&struct_def.members(ast), ast).indent()
         );
 
         self.output.clear_line_separator();
