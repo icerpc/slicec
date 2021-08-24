@@ -555,17 +555,17 @@ impl Sequence {
     pub fn is_element_fixed_sized_numeric(&self, ast: &Ast) -> bool {
         let mut element_node = self.element_type.definition(ast);
 
+        // If the elements are an enum with an underlying type, check the underlying type instead.
         if let Node::Enum(_, enum_def) = element_node {
             if let Some(underlying) = &enum_def.underlying {
                 element_node = underlying.definition(ast);
             }
         }
 
-        match element_node {
-            Node::Primitive(_, primitive) => {
-                primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)
-            }
-            _ => false,
+        if let Node::Primitive(_, primitive) = element_node {
+            primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)
+        } else {
+            false
         }
     }
 }
