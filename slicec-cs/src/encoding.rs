@@ -139,7 +139,16 @@ pub fn encode_sequence(
             args.push("withBitSequence: true".to_owned());
         }
 
-        args.push(encode_action(&sequence_def.element_type, scope, is_read_only, ast).to_string());
+        args.push(
+            encode_action(
+                &sequence_def.element_type,
+                scope,
+                is_read_only,
+                is_param,
+                ast,
+            )
+            .to_string(),
+        );
     }
 
     write!(
@@ -166,8 +175,8 @@ pub fn encode_dictionary(
     if with_bit_sequence && is_reference_type(&dictionary_def.value_type, ast) {
         args.push("withBitSequence: true".to_owned());
     }
-    args.push(encode_action(&dictionary_def.key_type, scope, false, ast).to_string());
-    args.push(encode_action(&dictionary_def.value_type, scope, false, ast).to_string());
+    args.push(encode_action(&dictionary_def.key_type, scope, false, false, ast).to_string());
+    args.push(encode_action(&dictionary_def.value_type, scope, false, false, ast).to_string());
 
     write!(
         code,
@@ -234,8 +243,69 @@ bitSequence[{bit_sequence_index}] = false;
     code
 }
 
-pub fn encode_action(type_def: &TypeRef, scope: &str, is_read_only: bool, ast: &Ast) -> CodeBlock {
+pub fn encode_action(
+    type_def: &TypeRef,
+    scope: &str,
+    is_read_only: bool,
+    is_param: bool,
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
+
+    let node = type_def.definition(ast);
+
+    if type_def.is_optional {
+        match node {
+            Node::Interface(_, _) => {
+                write!(
+                    code,
+                    "(encoder, value) => encoder.EncodeNullableProxy(value?.Proxy)"
+                )
+            } //TODO: Node::Class (see C++ code)
+            _ => panic!("expected interface or class"),
+        }
+    } else {
+        match node {
+            Node::Interface(_, _) => {
+                write!(code, "(encoder, value) => encoder.EncodeProxy(value.Proxy)")
+            } //TODO: Node::Class
+            Node::Primitive(_, _) => {
+                write!(
+                    code,
+                    "(encoder, value) => encoder.Encode{}(value)",
+                    builtin_suffix(node)
+                )
+            }
+            Node::Enum(_, enum_def) => {
+                write!(
+                    code,
+                    "(encoder, value) => {helper}.Encode{name}(encoder, value)",
+                    helper = helper_name(type_def, scope, ast),
+                    name = enum_def.identifier()
+                )
+            }
+            Node::Dictionary(_, dictionary_def) => {
+                write!(
+                    code,
+                    "(encoder, dictionary) => {}",
+                    encode_dictionary(dictionary_def, scope, "dictionary", ast)
+                );
+            }
+            Node::Sequence(_, sequence_def) => {
+                // We generate the sequence encoder inline, so this function must not be called when the top-level object is
+                // not cached.
+                write!(
+                    code,
+                    "(encoder, sequence) => {}",
+                    encode_sequence(sequence_def, scope, "sequence", is_read_only, is_param, ast)
+                )
+            }
+            Node::Struct(_, _) => {
+                write!(code, "(encoder, value) => value.Encode(encoder)")
+            }
+            _ => panic!(""),
+        }
+    }
 
     code
 }
