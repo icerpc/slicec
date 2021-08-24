@@ -20,6 +20,43 @@ pub enum TypeContext {
     Nested,
 }
 
+/// TODOAUSTIN write a good comment here
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum CaseStyle {
+    Camel,
+    Pascal,
+    Snake,
+}
+
+// TODOAUSTIN write a good comment here. THIS EXPECTS 's' to be in camel case!!!
+pub fn fix_case(s: &str, case: CaseStyle) -> String {
+    if s.is_empty() {
+        return String::new()
+    }
+
+    match case {
+        CaseStyle::Camel => {
+            s.to_owned()
+        }
+        CaseStyle::Pascal => {
+            let mut chars = s.chars();
+            // We already handled empty strings, so unwrap is safe; there must be at least 1 char.
+            let first_letter = chars.next().unwrap();
+
+            // We capitalize the first letter and convert it to an owned string, then append the
+            // rest of the original string to it. The 'chars' iterator skipped over the first char
+            // when we called 'next', and so only contains the rest of the string.
+            //
+            // We need to 'collect' here, since 'to_uppercase' returns an iterator. 1 lowercase
+            // grapheme can produce multiple graphemes when capitalized in UTF8.
+            first_letter.to_uppercase().collect::<String>() + chars.as_str()
+        }
+        CaseStyle::Snake => {
+            s.to_owned() //TODOAUSTIN I need to actually write this logic.
+        }
+    }
+}
+
 pub fn get_bit_sequence_size(members: &[&Member], ast: &Ast) -> i32 {
     let mut size: i32 = 0;
     for member in members {

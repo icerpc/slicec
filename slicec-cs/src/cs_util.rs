@@ -3,28 +3,33 @@
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::ref_from_node;
-use slice::util::TypeContext;
+use slice::util::{fix_case, CaseStyle, TypeContext};
 use slice::writer::Writer;
 
-// TODO move this function beneath the other functions.
-pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeContext) -> String {
+// TODOAUSTIN move this function beneath the other functions.
+pub fn return_type_to_string(
+    return_type: &ReturnType,
+    scope: &str,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
     let mut type_string = "global::System.Threading.Tasks.ValueTask".to_owned();
     match return_type {
         ReturnType::Void(_) => {}
         ReturnType::Single(data_type, _) => {
-            let node = ast.resolve_index(data_type.definition.unwrap());
+            let type_node = data_type.definition(ast);
             type_string += "<";
-            type_string += &type_to_string(node, ast, context);
+            type_string += &type_to_string(type_node, scope, ast, context);
             type_string += ">";
         }
         ReturnType::Tuple(tuple, _) => {
             type_string += "<(";
             for id in tuple.iter() {
                 let return_element = ref_from_node!(Node::Member, ast, *id);
-                let data_type = ast.resolve_index(return_element.data_type.definition.unwrap());
+                let data_type = return_element.data_type.definition(ast);
                 type_string += format!(
                     "{} {}, ",
-                    type_to_string(data_type, ast, context),
+                    type_to_string(data_type, scope, ast, context),
                     return_element.identifier(),
                 ).as_str();
             }
@@ -36,23 +41,24 @@ pub fn return_type_to_string(return_type: &ReturnType, ast: &Ast, context: TypeC
     type_string
 }
 
-pub fn type_to_string(node: &Node, ast: &Ast, context: TypeContext) -> String {
+pub fn type_to_string(node: &Node, scope: &str, ast: &Ast, context: TypeContext) -> String {
     match node {
         Node::Struct(_, struct_def) => {
-            let mut identifier = struct_def.scope.clone().unwrap() + "::" + struct_def.identifier();
-            identifier.drain(2..).collect::<String>().replace("::", ".")
+            let identifier = escape_scoped_identifier(struct_def, CaseStyle::Pascal);
+            fix_scope(&identifier, scope)
         }
         Node::Interface(_, interface_def) => {
-            let mut identifier =
-                interface_def.scope.clone().unwrap() + "::" + interface_def.identifier();
-            identifier.drain(2..).collect::<String>().replace("::", ".") + "Prx"
+            let identifier = escape_scoped_identifier(interface_def, CaseStyle::Pascal) + "Prx";
+            fix_scope(&identifier, scope)
         }
         Node::Enum(_, enum_def) => {
-            let mut identifier = enum_def.scope.clone().unwrap() + "::" + enum_def.identifier();
-            identifier.drain(2..).collect::<String>().replace("::", ".")
+            let identifier = escape_scoped_identifier(enum_def, CaseStyle::Pascal);
+            fix_scope(&identifier, scope)
         }
-        Node::Sequence(_, sequence) => sequence_type_to_string(sequence, ast, context),
-        Node::Dictionary(_, dictionary) => dictionary_type_to_string(dictionary, ast, context),
+        Node::Sequence(_, sequence) => sequence_type_to_string(sequence, scope, ast, context),
+        Node::Dictionary(_, dictionary) => {
+            dictionary_type_to_string(dictionary, scope, ast, context)
+        }
         Node::Primitive(_, primitive) => match primitive {
             Primitive::Bool     => "bool",
             Primitive::Byte     => "byte",
@@ -76,36 +82,43 @@ pub fn type_to_string(node: &Node, ast: &Ast, context: TypeContext) -> String {
     }
 }
 
-fn sequence_type_to_string(sequence: &Sequence, ast: &Ast, context: TypeContext) -> String {
-    let element_type = ast.resolve_index(sequence.element_type.definition.unwrap());
-    let element_type_string = type_to_string(element_type, ast, TypeContext::Nested);
+fn sequence_type_to_string(
+    sequence: &Sequence,
+    scope: &str,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
+    let element_type = sequence.element_type.definition(ast);
+    let element_type_string = type_to_string(element_type, scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
-            format!(
-                "global::System.Collections.Generic.IList<{}>",
-                element_type_string,
-            )
+            format!("global::System.Collections.Generic.IList<{}>", element_type_string)
         }
         TypeContext::Incoming => {
             format!("{}[]", element_type_string)
         }
         TypeContext::Outgoing => {
-            let mut container_type = "global::System.Collections.Generic.IEnumerable";
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
             if element_type.as_type().unwrap().is_fixed_size(ast) {
-                container_type = "global::System.ReadOnlyMemory";
+                format!("global::System.Collections.Generic.IEnumerable<{}>", element_type_string)
+            } else {
+                format!("global::System.ReadOnlyMemory<{}>", element_type_string)
             }
-            format!("{}<{}>", container_type, element_type_string)
         }
     }
 }
 
-fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeContext) -> String {
-    let key_type = ast.resolve_index(dictionary.key_type.definition.unwrap());
-    let value_type = ast.resolve_index(dictionary.value_type.definition.unwrap());
-    let key_type_string = type_to_string(key_type, ast, TypeContext::Nested);
-    let value_type_string = type_to_string(value_type, ast, TypeContext::Nested);
+fn dictionary_type_to_string(
+    dictionary: &Dictionary,
+    scope: &str,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
+    let key_type = dictionary.key_type.definition(ast);
+    let value_type = dictionary.value_type.definition(ast);
+    let key_type_string = type_to_string(key_type, scope, ast, TypeContext::Nested);
+    let value_type_string = type_to_string(value_type, scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
@@ -130,28 +143,24 @@ fn dictionary_type_to_string(dictionary: &Dictionary, ast: &Ast, context: TypeCo
 }
 
 /// Escapes and returns the definition's identifier, without any scoping.
-///
 /// If the identifier is a C# keyword, a '@' prefix is appended to it.
-/// If the identifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
-/// (This is only done on types that inherit from Object or Exception respectively).
-pub fn escape_identifier(definition: &dyn NamedSymbol) -> String {
-    let identifier = escape_keyword(definition.identifier());
-    mangle_name(&identifier, definition.kind())
+pub fn escape_identifier(definition: &dyn NamedSymbol, case: CaseStyle) -> String {
+    escape_keyword(&fix_case(definition.identifier(), case))
 }
 
 /// Escapes and returns the definition's identifier, fully scoped.
-///
 /// If the identifier or any of the scopes are C# keywords, a '@' prefix is appended to them.
-/// If the identifier shadows a base method in Object or Exception, an 'Ice' prefix is appended.
-/// (This is only done on types that inherit from Object or Exception respectively).
-pub fn escape_scoped_identifier(definition: &dyn NamedSymbol) -> String {
+/// Note: The case style is applied to all scope segments, not just the last one.
+pub fn escape_scoped_identifier(definition: &dyn NamedSymbol, case: CaseStyle) -> String {
     let mut scoped_identifier = String::new();
 
     // Escape any keywords in the scope identifiers.
-    for scope in definition.scope().split("::") {
-        scoped_identifier += &escape_keyword(scope);
+    // We skip the first scope segment, since it is always an empty string because all scopes start
+    // with '::' (to represent global scope).
+    for segment in definition.scope().split("::").skip(1) {
+        scoped_identifier += &(escape_keyword(&fix_case(segment, case)) + ".");
     }
-    scoped_identifier += &escape_identifier(definition);
+    scoped_identifier += &escape_identifier(definition, case);
     scoped_identifier
 }
 
@@ -173,11 +182,13 @@ pub fn escape_keyword(identifier: &str) -> String {
     (if CS_KEYWORDS.contains(&identifier) { "@" } else { "" }.to_owned()) + identifier
 }
 
+// TODOAUSTIN WE NEED TO HANDLE NAME MANGLING FOR CLASSES AND EXCEPTIONS!
 /// Checks if the provided identifier would shadow a base method in an object or exception, and
 /// escapes it if necessary by appending an 'Ice' prefix to the identifier.
 ///
 /// `kind` is the stringified slice type. Escaping is only performed on `class`es and `exception`s.
-fn mangle_name(identifier: &str, kind: &str) -> String {
+/// TODOAUSTIN write a better comment
+pub fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&str; 7] = [
         "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
@@ -199,6 +210,25 @@ fn mangle_name(identifier: &str, kind: &str) -> String {
 
     // If the name conflicts with a base method, add an "Ice" prefix to it.
     (if needs_mangling { "Ice" } else { "" }).to_owned() + identifier
+}
+
+/// TODO write a comment here!
+/// THIS IS ONLY FOR NON_BUILTIN TYPES! NO PRIMITIVES, NO SEQUENCES, and NO DICTIONARIES!
+pub fn fix_scope(scoped_identifier: &str, current_scope: &str) -> String {
+    let scope_prefix = current_scope.to_owned() + ".";
+    // Check if `scoped_identifier` starts with `current_scope`, and strip it off.
+    if let Some(unscoped_identifier) = scoped_identifier.strip_prefix(&scope_prefix) {
+        // If the identifier is now fully unscoped, return the fully unscoped identifier.
+        if !unscoped_identifier.contains(".") {
+            return unscoped_identifier.to_owned();
+        }
+    }
+
+    if scoped_identifier.starts_with("IceRpc") {
+        scoped_identifier.to_owned()
+    } else {
+        "global::".to_owned() + scoped_identifier
+    }
 }
 
 pub fn write_equality_operators(writer: &mut Writer, name: &str) {
