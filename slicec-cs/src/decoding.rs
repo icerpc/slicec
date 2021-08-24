@@ -65,7 +65,7 @@ pub fn decode_type(
     let mut code = CodeBlock::new();
 
     let node = ast.resolve_index(type_ref.definition.unwrap());
-    let type_string = type_to_string(node, ast, TypeContext::Incoming); // TODO: the scope
+    let type_string = type_to_string(node, scope, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
@@ -180,8 +180,7 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
             write!(
                 decode_value,
                 " as {}",
-                //TODO scope
-                type_to_string(value_node, ast, TypeContext::Incoming)
+                type_to_string(value_node, scope, ast, TypeContext::Incoming)
             );
         }
         _ => {}
@@ -210,31 +209,27 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
 
         match element_node {
             Node::Primitive(_, primitive)
-                if primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast) =>
-            {
-                //TODO type_to_string should use the scope: c++ => typeToString(type, scope)
+                if primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast) => {
                 // We always read an array even when mapped to a collection, as it's expected to be faster than unmarshaling
                 // the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    type_to_string(element_node, ast, TypeContext::Incoming)
+                    type_to_string(element_node, scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() && enum_def.is_unchecked => {
-                //TODO type_to_string should use the scope: c++ => typeToString(type, scope)
                 // We always read an array even when mapped to a collection, as it's expected to be faster than unmarshaling
                 // the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    type_to_string(element_node, ast, TypeContext::Incoming)
+                    type_to_string(element_node, scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
-                //TODO both type_to_string  should use the scope: c++ => typeToString(enum, scope)
                 let underlying_type = enum_def.underlying_type(ast);
                 args = format!(
                     "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                    enum_type_name =type_to_string(element_node, ast, TypeContext::Incoming),
+                    enum_type_name = type_to_string(element_node, scope, ast, TypeContext::Incoming),
                     helper = helper_name(element_type, scope, ast),
                     name = enum_def.identifier(),
                     underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
@@ -265,11 +260,10 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
             args = format!("(global::System.Linq.Enumerable.Reverse{})", args);
         }
 
-        //TODO type_to_string should use the scope: c++ =>  typeToString(seq, scope, false, true)
         write!(
             code,
             "new {}({})",
-            type_to_string(element_node, ast, TypeContext::Incoming),
+            type_to_string(element_node, scope, ast, TypeContext::Incoming),
             args
         );
     } else {
@@ -282,19 +276,17 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
             Node::Primitive(_, primitive)
                 if (primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)) =>
             {
-                //TODO: use the scope (see c++ code below)
-                generic_arg = type_to_string(element_node, ast, TypeContext::Incoming);
-                decoder_args = "".to_owned();
+                generic_arg = type_to_string(element_node, scope, ast, TypeContext::Incoming);
+                decoder_args = "".to_owned(); // TODO write this
                 // out << "decoder.DecodeArray<" << typeToString(type, scope) << ">()";
             }
             Node::Enum(_, enum_def) if (enum_def.underlying.is_some() && enum_def.is_unchecked) => {
-                //TODO: use the scope (see c++ code below)
-                generic_arg = type_to_string(element_node, ast, TypeContext::Incoming);
-                decoder_args = "".to_owned();
+                generic_arg = type_to_string(element_node, scope, ast, TypeContext::Incoming);
+                decoder_args = "".to_owned(); // TODO write this
                 // out << "decoder.DecodeArray<" << typeToString(type, scope) << ">()";
             }
             Node::Enum(_, enum_def) if (enum_def.underlying.is_some()) => {
-                //TODO
+                //TODO write these
                 generic_arg = "".to_owned();
                 decoder_args = "".to_owned();
 
@@ -348,7 +340,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder => IceRpc.IceDecoderPrxExtensions.DecodeNullablePrx<{}>(decoder)",
-                    type_to_string(node, ast, TypeContext::Incoming)
+                    type_to_string(node, scope, ast, TypeContext::Incoming)
                 );
             }
             //TODO Node::Class(_, _)
@@ -358,11 +350,10 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
         match node {
             // Node::Class(_, ) => {} // TODO when we have class support
             Node::Interface(_, _) => {
-                //TODO: type_to_string should take the scope
                 write!(
                     code,
                     "decoder = new {}(decoder.DecodeProxy())",
-                    type_to_string(node, ast, TypeContext::Incoming)
+                    type_to_string(node, scope, ast, TypeContext::Incoming)
                 );
             }
             //TODO review logic here wrt Builtin && usesClasses() (see c++ code)
@@ -391,8 +382,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder => new {}(decoder)",
-                    //TODO: scope
-                    type_to_string(node, ast, TypeContext::Incoming)
+                    type_to_string(node, scope, ast, TypeContext::Incoming)
                 );
             }
             _ => panic!("unexpected node type"),

@@ -69,6 +69,8 @@ pub trait ScopedSymbol: Symbol {
     fn attributes(&self) -> &Vec<Attribute>;
     fn find_attribute(&self, directive: &str) -> Option<&Vec<String>>;
     fn has_attribute(&self, directive: &str) -> bool;
+    // TODOAUSTIN re-implement to discard parser scopes to make code generation easier.
+    // EX: datamembers shouldn't have their struct as a scope in C#. That's purely for parsing.
     fn scope(&self) -> &str;
 }
 

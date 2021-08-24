@@ -8,7 +8,7 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::ref_from_node;
 use slice::slice_file::SliceFile;
-use slice::util::TypeContext;
+use slice::util::{fix_case, CaseStyle, TypeContext};
 use slice::visitor::Visitor;
 use slice::writer::Writer;
 use std::io;
@@ -154,13 +154,15 @@ impl Visitor for CsWriter {
         for member in struct_def.members(ast) {
             let identifier = member.identifier();
             let type_node = ast.resolve_index(member.data_type.definition.unwrap());
-            let type_string = type_to_string(type_node, ast, TypeContext::DataMember);
+            let type_string =
+                type_to_string(type_node, struct_def.scope(), ast, TypeContext::DataMember);
 
             constructor_args.push(format!("{} {}", type_string, identifier));
 
             constructor_body.push(format!(
-                "this.{identifier} = {identifier};",
-                identifier = identifier, // TODO: this needs to be split because LHS should use correct case. eg. AnInt = anInt
+                "this.{} = {};",
+                fix_case(identifier, CaseStyle::Pascal),
+                identifier,
             ));
         }
 
@@ -279,7 +281,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
                 let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
                 parameters_string += format!(
                     "{} {}, ",
-                    type_to_string(data_type, ast, TypeContext::Outgoing),
+                    type_to_string(data_type, operation.scope(), ast, TypeContext::Outgoing),
                     parameter.identifier(),
                 )
                 .as_str();
@@ -288,9 +290,15 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             parameters_string.truncate(parameters_string.len() - 2);
         }
 
+        let return_type_string = return_type_to_string(
+            &operation.return_type,
+            operation.scope(),
+            ast,
+            TypeContext::Outgoing,
+        );
         let content = format!(
             "\npublic {} {}({});",
-            return_type_to_string(&operation.return_type, ast, TypeContext::Outgoing),
+            return_type_string,
             operation.identifier(),
             parameters_string,
         );
@@ -299,8 +307,12 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
-        let underlying_type =
-            type_to_string(enum_def.underlying_type(ast), ast, TypeContext::Nested);
+        let underlying_type = type_to_string(
+            enum_def.underlying_type(ast),
+            enum_def.scope(),
+            ast,
+            TypeContext::Nested,
+        );
 
         self.output.write_line_separator();
 
@@ -325,7 +337,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         self.output.write("\n}");
         self.output.write_line_separator();
 
-        let escaped_identifier = escape_identifier(enum_def);
+        let escaped_identifier = escape_identifier(enum_def, CaseStyle::Pascal);
 
         // When the number of enumerators is smaller than the distance between the min and max
         // values, the values are not consecutive and we need to use a set to validate the value
@@ -342,8 +354,12 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             true
         };
 
-        let underlying_type =
-            type_to_string(enum_def.underlying_type(ast), ast, TypeContext::Nested);
+        let underlying_type = type_to_string(
+            enum_def.underlying_type(ast),
+            enum_def.scope(),
+            ast,
+            TypeContext::Nested,
+        );
 
         let hash_set = if use_set {
             format!(
@@ -439,7 +455,7 @@ public static class {identifier}Helper
     fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
         self.write_comment(data_member);
         let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
-        let type_string = type_to_string(node, ast, TypeContext::DataMember);
+        let type_string = type_to_string(node, data_member.scope(), ast, TypeContext::DataMember);
 
         let content = format!("\npublic {} {};", type_string, data_member.identifier());
         self.output.write(&content);
