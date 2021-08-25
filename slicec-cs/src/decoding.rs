@@ -41,8 +41,8 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let mut current_tag = -1; // sanity check to ensure tags are sorted
     for member in tagged_members {
         let tag = member.tag.unwrap();
-        assert!(tag > current_tag);
-        current_tag = tag;
+        assert!((tag as i32) > current_tag);
+        current_tag = tag as i32;
         //TODO: tags are not yet supported
         // decode_tagged_type()
     }

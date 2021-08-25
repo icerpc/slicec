@@ -333,10 +333,10 @@ impl SliceParser {
         Ok(ast.add_element(data_member))
     }
 
-    fn member(input: PestNode) -> PestResult<(Option<i32>, TypeRef, Identifier)> {
+    fn member(input: PestNode) -> PestResult<(Option<u32>, TypeRef, Identifier)> {
         Ok(match_nodes!(input.into_children();
             [tag(tag), typename(data_type), identifier(identifier)] => {
-                (Some(tag as i32), data_type, identifier) //TODO check that tag can fit in an i32!
+                (Some(tag), data_type, identifier)
             },
             [typename(data_type), identifier(identifier)] => {
                 (None, data_type, identifier)
@@ -344,9 +344,25 @@ impl SliceParser {
         ))
     }
 
-    fn tag(input: PestNode) -> PestResult<i64> {
-        Ok(match_nodes!(input.into_children();
-            [_, integer(integer)] => integer
+    fn tag(input: PestNode) -> PestResult<u32> {
+        Ok(match_nodes!(input.children();
+            [_, integer(integer)] => {
+                // tags must fit in an i32 and be non-negative.
+                if integer < 0 || integer > i32::MAX.into() {
+                    let location = from_span(&input);
+                    let error_string = if integer < 0 {
+                        format!("tag is out of range: {}. Tag values must be positive", integer)
+                    } else {
+                        format!(
+                            "tag is out of range: {}. Tag values must be less than {}",
+                            integer, i32::MAX
+                        )
+                    };
+                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
+                    error_handler.report_error((error_string, location).into());
+                }
+                integer as u32
+            }
         ))
     }
 

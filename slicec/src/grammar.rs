@@ -412,7 +412,7 @@ impl Operation {
 pub struct Member {
     pub data_type: TypeRef,
     pub identifier: Identifier,
-    pub tag: Option<i32>,
+    pub tag: Option<u32>,
     pub member_type: MemberType,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
@@ -424,7 +424,7 @@ impl Member {
     pub fn new(
         data_type: TypeRef,
         identifier: Identifier,
-        tag: Option<i32>,
+        tag: Option<u32>,
         member_type: MemberType,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
