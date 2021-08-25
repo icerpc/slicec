@@ -114,23 +114,24 @@ pub fn decode_type(
                 primitive_type_suffix(primitive_def),
             );
         }
-        Node::Struct(_, _) => {
+        Node::Struct(_, struct_def) => {
             write!(
                 code,
                 "new {}(decoder)",
-                get_scoped_unqualified(node, scope, ast),
+                escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope),
             );
         }
         Node::Dictionary(_, dictionary) => code.write(&decode_dictionary(dictionary, scope, ast)),
         Node::Sequence(_, sequence) => code.write(&decode_sequence(sequence, scope, ast)),
-        _ => {
+        Node::Enum(_, enum_def) => {
             write!(
                 code,
                 "{}.Decode{}(decoder)",
-                helper_name(type_ref, scope, ast),
+                helper_name(enum_def, scope),
                 type_string,
             );
         }
+        _ => panic!("Node does not represent a type: {:?}", node),
     }
 
     if type_ref.is_optional {
@@ -230,7 +231,7 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
                 args = format!(
                     "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
                     enum_type_name = type_to_string(element_node, scope, ast, TypeContext::Incoming),
-                    helper = helper_name(element_type, scope, ast),
+                    helper = helper_name(enum_def, scope),
                     name = enum_def.identifier(),
                     underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
                 );
@@ -374,7 +375,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder => {}.Decode{}(decoder)",
-                    helper_name(type_ref, scope, ast),
+                    helper_name(enum_def, scope),
                     enum_def.identifier()
                 );
             }

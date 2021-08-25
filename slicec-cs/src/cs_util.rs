@@ -44,16 +44,13 @@ pub fn return_type_to_string(
 pub fn type_to_string(node: &Node, scope: &str, ast: &Ast, context: TypeContext) -> String {
     match node {
         Node::Struct(_, struct_def) => {
-            let identifier = escape_scoped_identifier(struct_def, CaseStyle::Pascal);
-            fix_scope(&identifier, scope)
+            escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope)
         }
         Node::Interface(_, interface_def) => {
-            let identifier = escape_scoped_identifier(interface_def, CaseStyle::Pascal) + "Prx";
-            fix_scope(&identifier, scope)
+            escape_scoped_identifier(interface_def, CaseStyle::Pascal, scope) + "Prx"
         }
         Node::Enum(_, enum_def) => {
-            let identifier = escape_scoped_identifier(enum_def, CaseStyle::Pascal);
-            fix_scope(&identifier, scope)
+            escape_scoped_identifier(enum_def, CaseStyle::Pascal, scope)
         }
         Node::Sequence(_, sequence) => sequence_type_to_string(sequence, scope, ast, context),
         Node::Dictionary(_, dictionary) => {
@@ -151,7 +148,13 @@ pub fn escape_identifier(definition: &dyn NamedSymbol, case: CaseStyle) -> Strin
 /// Escapes and returns the definition's identifier, fully scoped.
 /// If the identifier or any of the scopes are C# keywords, a '@' prefix is appended to them.
 /// Note: The case style is applied to all scope segments, not just the last one.
-pub fn escape_scoped_identifier(definition: &dyn NamedSymbol, case: CaseStyle) -> String {
+///
+/// If scope is non-empty, this also qualifies the identifier's scope relative to the provided one.
+pub fn escape_scoped_identifier(
+    definition: &dyn NamedSymbol,
+    case: CaseStyle,
+    scope: &str,
+) -> String {
     let mut scoped_identifier = String::new();
 
     // Escape any keywords in the scope identifiers.
@@ -161,7 +164,7 @@ pub fn escape_scoped_identifier(definition: &dyn NamedSymbol, case: CaseStyle) -
         scoped_identifier += &(escape_keyword(&fix_case(segment, case)) + ".");
     }
     scoped_identifier += &escape_identifier(definition, case);
-    scoped_identifier
+    fix_scope(&scoped_identifier, scope)
 }
 
 /// Checks if the provided string is a C# keyword, and escapes it if necessary (by appending a '@').
@@ -282,25 +285,13 @@ pub fn primitive_type_suffix(primitive: &Primitive) -> String {
     .to_owned()
 }
 
-pub fn get_scoped_unqualified(_: &Node, _: &str, _: &Ast) -> String {
-    "".to_owned()
-}
-
-pub fn get_unqualified(_: &Node, _: &str, _: &str, _: &str, _: &Ast) -> String {
-    "".to_owned()
-}
-
-pub fn helper_name(type_ref: &TypeRef, scope: &str, ast: &Ast) -> String {
-    get_unqualified(type_ref.definition(ast), scope, "", "Helper", ast)
+pub fn helper_name(definition: &dyn NamedSymbol, scope: &str) -> String {
+    escape_scoped_identifier(definition, CaseStyle::Pascal, scope) + "Helper"
 }
 
 pub fn field_name(member: &Member) -> String {
-    let identifier = member.identifier();
-    // TODO: port this C++ code
-    // string name = member->name();
-    // return normalizeCase(member) ? fixId(pascalCase(name)) : fixId(name);
-
-    identifier.to_owned()
+    let identifier = escape_identifier(member, CaseStyle::Pascal);
+    mangle_name(&identifier, "TODO") // TODO add name mangling when we add class support.
 }
 
 pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {

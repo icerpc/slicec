@@ -84,15 +84,16 @@ pub fn encode_type(
         Node::Dictionary(_, dictionary_def) => {
             code.writeln(&encode_dictionary(dictionary_def, scope, param, ast))
         }
-        _ => {
+        Node::Enum(_, enum_def) => {
             writeln!(
                 code,
                 "{helper}.Encode{name}(encoder, {param});",
-                helper = helper_name(type_ref, scope, ast),
+                helper = helper_name(enum_def, scope),
                 name = node.as_named_symbol().unwrap().identifier(),
                 param = param
             );
         }
+        _ => panic!("Node does not represent a type: {:?}", node),
     }
 
     if type_ref.is_optional {
@@ -280,7 +281,7 @@ pub fn encode_action(
                 write!(
                     code,
                     "(encoder, value) => {helper}.Encode{name}(encoder, value)",
-                    helper = helper_name(type_def, scope, ast),
+                    helper = helper_name(enum_def, scope),
                     name = enum_def.identifier()
                 )
             }
