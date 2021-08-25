@@ -441,7 +441,9 @@ impl SliceParser {
             .chars()
             .filter(|c| !c.is_whitespace())
             .collect();
-        let mut type_ref = TypeRef::new(type_name, false, attributes, location); // TODO add support for optional here!
+
+        let is_optional = input.as_str().ends_with("?");
+        let mut type_ref = TypeRef::new(type_name, is_optional, attributes, location);
 
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
