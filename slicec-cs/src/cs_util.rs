@@ -189,7 +189,7 @@ pub fn escape_keyword(identifier: &str) -> String {
 /// Checks if the provided identifier would shadow a base method in an object or exception, and
 /// escapes it if necessary by appending an 'Ice' prefix to the identifier.
 ///
-/// `kind` is the stringified slice type. Escaping is only performed on `class`es and `exception`s.
+/// `kind` is the stringified C# type. Escaping is only performed on `object`es and `exception`s.
 /// TODOAUSTIN write a better comment
 pub fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
@@ -289,9 +289,9 @@ pub fn helper_name(definition: &dyn NamedSymbol, scope: &str) -> String {
     escape_scoped_identifier(definition, CaseStyle::Pascal, scope) + "Helper"
 }
 
-pub fn field_name(member: &Member) -> String {
+pub fn field_name(member: &Member, field_type: &str) -> String {
     let identifier = escape_identifier(member, CaseStyle::Pascal);
-    mangle_name(&identifier, "TODO") // TODO add name mangling when we add class support.
+    mangle_name(&identifier, field_type)
 }
 
 pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {

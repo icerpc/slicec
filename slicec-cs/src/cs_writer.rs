@@ -167,9 +167,7 @@ public readonly override int GetHashCode()
                     .members(ast)
                     .iter()
                     .map(|m| {
-                        // TODO fix_id + filedName
-                        // string mName = fixId(fieldName(*q), Slice::ObjectType);
-                        format!("this.{name} == other.{name}", name = m.identifier())
+                        format!("this.{name} == other.{name}", name = field_name(m, "object"))
                     })
                     .collect::<Vec<_>>()
                     .join(" &&\n    "),
@@ -177,10 +175,7 @@ public readonly override int GetHashCode()
                     .members(ast)
                     .iter()
                     .map(|m| {
-                        //TODO: this fixId
-                        // string obj = "this." + fixId(fieldName(dataMember), Slice::ObjectType);
-                        // TypePtr mType = unwrapIfOptional(dataMember->type());
-                        format!("hash.Add({});", m.identifier())
+                        format!("hash.Add(this.{});", field_name(m, "object"))
                     })
                     .collect::<CodeBlock>()
                     .indent()
@@ -337,12 +332,13 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
                     max_value = "max"
                 )
             };
-            // TODO: scoped = fixId(p->scoped())
+
             format!(
                 "{check_enum} ? ({escaped_identifier})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
                 check_enum = check_enum,
                 escaped_identifier = escaped_identifier,
-                scoped = "...")
+                scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
+            )
         };
 
         // Enum decoding
