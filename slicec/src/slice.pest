@@ -21,10 +21,12 @@ return_tuple = !{ "(" ~ parameter_list ~ ")" }
 operation_start = ${ return_type ~ ws+ ~ identifier }
 operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
 
-data_member = ${ prelude ~ ws* ~ typename ~ ws+ ~ identifier ~ ws* ~ ";" }
+data_member = ${ prelude ~ ws* ~ member ~ ws* ~ ";" }
+member = ${ (tag ~ ws*)? ~ typename ~ ws+ ~ identifier }
+tag = !{ tag_kw ~ "(" ~ integer ~ ")" }
 
 parameter_list = !{ ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
-parameter = ${ prelude ~ ws* ~ typename ~ ws+ ~ identifier }
+parameter = ${ prelude ~ ws* ~ member }
 
 enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
 enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
@@ -110,4 +112,5 @@ float_kw = { "float" }
 double_kw = { "double" }
 string_kw = { "string" }
 
+tag_kw = { "tag" }
 unchecked_kw = { "unchecked" }

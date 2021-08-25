@@ -309,8 +309,9 @@ impl SliceParser {
     fn data_member(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let data_member = match_nodes!(input.children();
-            [prelude(prelude), typename(mut data_type), identifier(identifier)] => {
+            [prelude(prelude), member(member)] => {
                 let (attributes, comment) = prelude;
+                let (tag, mut data_type, identifier) = member;
 
                 // Forward the member's attributes to the data type.
                 // TODO: in the future we should only forward type metadata by filtering metadata.
@@ -319,6 +320,7 @@ impl SliceParser {
                 Member::new(
                     data_type,
                     identifier,
+                    tag,
                     MemberType::DataMember,
                     attributes,
                     comment,
@@ -329,6 +331,23 @@ impl SliceParser {
 
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(data_member))
+    }
+
+    fn member(input: PestNode) -> PestResult<(Option<i32>, TypeRef, Identifier)> {
+        Ok(match_nodes!(input.into_children();
+            [tag(tag), typename(data_type), identifier(identifier)] => {
+                (Some(tag as i32), data_type, identifier) //TODO check that tag can fit in an i32!
+            },
+            [typename(data_type), identifier(identifier)] => {
+                (None, data_type, identifier)
+            }
+        ))
+    }
+
+    fn tag(input: PestNode) -> PestResult<i64> {
+        Ok(match_nodes!(input.into_children();
+            [_, integer(integer)] => integer
+        ))
     }
 
     fn parameter_list(input: PestNode) -> PestResult<Vec<usize>> {
@@ -348,8 +367,9 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
-            [prelude(prelude), typename(mut data_type), identifier(identifier)] => {
+            [prelude(prelude), member(member)] => {
                 let (attributes, comment) = prelude;
+                let (tag, mut data_type, identifier) = member;
 
                 // Forward the member's attributes to the data type.
                 // TODO: in the future we should only forward type metadata by filtering metadata.
@@ -358,6 +378,7 @@ impl SliceParser {
                 Member::new(
                     data_type,
                     identifier,
+                    tag,
                     MemberType::Parameter,
                     attributes,
                     comment,
@@ -699,6 +720,10 @@ impl SliceParser {
     }
 
     fn string_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn tag_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
