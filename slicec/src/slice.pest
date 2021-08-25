@@ -33,7 +33,7 @@ identifier = @{ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
 scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
 
-typename = { local_attributes ~ (primitive | sequence | dictionary | global_identifier | scoped_identifier) ~ "?"? }
+typename = ${ local_attributes ~ ws* ~ (primitive | sequence | dictionary | global_identifier | scoped_identifier) ~ (ws* ~ "?")? }
 
 sequence = !{ sequence_kw ~ "<" ~ typename ~ ">" }
 dictionary = !{ dictionary_kw ~ "<" ~ typename ~ "," ~ typename ~ ">" }

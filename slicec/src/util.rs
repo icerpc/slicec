@@ -35,9 +35,7 @@ pub fn fix_case(s: &str, case: CaseStyle) -> String {
     }
 
     match case {
-        CaseStyle::Camel => {
-            s.to_owned()
-        }
+        CaseStyle::Camel => s.to_owned(), // strings are in camel-case by default.
         CaseStyle::Pascal => {
             let mut chars = s.chars();
             // We already handled empty strings, so unwrap is safe; there must be at least 1 char.
