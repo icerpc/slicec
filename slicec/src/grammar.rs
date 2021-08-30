@@ -327,32 +327,26 @@ impl Enum {
             .map(|id| ref_from_node!(Node::Enumerator, ast, *id))
             .collect()
     }
-
-    pub fn underlying_type<'a>(&self, ast: &'a Ast) -> &'a Node {
-        if let Some(underlying) = &self.underlying {
-            ast.resolve_index(underlying.definition.unwrap())
-        } else {
-            ast.resolve_primitive(Primitive::Int)
-        }
-    }
 }
 
 impl Type for Enum {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
         if let Some(typeref) = &self.underlying {
-            let underlying_id = typeref.definition.unwrap();
-            let underlying_type = ast.resolve_index(underlying_id).as_type().unwrap();
-            return underlying_type.is_fixed_size(ast);
+            typeref.definition(ast)
+                   .as_type()
+                   .unwrap()
+                   .is_fixed_size(ast)
+        } else {
+            true
         }
-        true
     }
 
     fn min_wire_size(&self, ast: &Ast) -> u32 {
-        if self.underlying.is_some() {
-            self.underlying_type(ast)
-                .as_type()
-                .unwrap()
-                .min_wire_size(ast)
+        if let Some(typeref) = &self.underlying {
+            typeref.definition(ast)
+                   .as_type()
+                   .unwrap()
+                   .min_wire_size(ast)
         } else {
             1
         }

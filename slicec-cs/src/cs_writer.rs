@@ -100,9 +100,8 @@ impl Visitor for CsWriter<'_> {
 
         for member in struct_def.members(ast) {
             let identifier = member.identifier();
-            let type_node = ast.resolve_index(member.data_type.definition.unwrap());
             let type_string =
-                type_to_string(type_node, struct_def.scope(), ast, TypeContext::DataMember);
+                type_to_string(&member.data_type, struct_def.scope(), ast, TypeContext::DataMember);
 
             constructor_args.push(format!("{} {}", type_string, identifier));
 
@@ -220,10 +219,9 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         if !operation.parameters.is_empty() {
             for id in operation.parameters.iter() {
                 let parameter = ref_from_node!(Node::Member, ast, *id);
-                let data_type = ast.resolve_index(parameter.data_type.definition.unwrap());
                 parameters_string += format!(
                     "{} {}, ",
-                    type_to_string(data_type, operation.scope(), ast, TypeContext::Outgoing),
+                    type_to_string(&parameter.data_type, operation.scope(), ast, TypeContext::Outgoing),
                     parameter.identifier(),
                 )
                 .as_str();
@@ -249,12 +247,11 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
-        let underlying_type = type_to_string(
-            enum_def.underlying_type(ast),
-            enum_def.scope(),
-            ast,
-            TypeContext::Nested,
-        );
+        let underlying_type = if let Some(typeref) = &enum_def.underlying {
+            type_to_string(&typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+        } else {
+            "int".to_owned() //TODO we should make a builtin table to get names from.
+        };
 
         self.output.write_line_separator();
 
@@ -296,12 +293,11 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
             true
         };
 
-        let underlying_type = type_to_string(
-            enum_def.underlying_type(ast),
-            enum_def.scope(),
-            ast,
-            TypeContext::Nested,
-        );
+        let underlying_type = if let Some(typeref) = &enum_def.underlying {
+            type_to_string(&typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+        } else {
+            "int".to_owned() //TODO we should make a builtin table to get names from.
+        };
 
         let hash_set = if use_set {
             format!(
@@ -345,18 +341,18 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         let decode_enum = format!(
             "As{name}(decoder.{decode_method})",
             name = enum_def.identifier(),
-            decode_method = if enum_def.underlying.is_some() {
-                format!("Decode{}()", builtin_suffix(enum_def.underlying_type(ast)))
+            decode_method = if let Some(underlying) = &enum_def.underlying {
+                format!("Decode{}()", builtin_suffix(underlying.definition(ast)))
             } else {
                 "DecodeSize()".to_owned()
             }
         );
 
         // Enum encoding
-        let encode_enum = if enum_def.underlying.is_some() {
+        let encode_enum = if let Some(underlying) = &enum_def.underlying {
             format!(
                 "encoder.Encode{}",
-                builtin_suffix(enum_def.underlying_type(ast))
+                builtin_suffix(underlying.definition(ast))
             )
         } else {
             "encoder.EncodeSize((int)value)".to_owned()
@@ -397,8 +393,8 @@ public static class {identifier}Helper
 
     fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
         write_comment(&mut self.output, data_member);
-        let node = ast.resolve_index(*data_member.data_type.definition.as_ref().unwrap());
-        let type_string = type_to_string(node, data_member.scope(), ast, TypeContext::DataMember);
+
+        let type_string = type_to_string(&data_member.data_type, data_member.scope(), ast, TypeContext::DataMember);
 
         let content = format!("\npublic {} {};", type_string, data_member.identifier());
         self.output.write(&content);

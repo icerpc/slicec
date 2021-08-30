@@ -31,7 +31,7 @@ impl<'a> Validator<'a> {
 
         // Check if the enum has an underlying type.
         if let Some(underlying) = &enum_def.underlying {
-            let underlying_type = ast.resolve_index(underlying.definition.unwrap());
+            let underlying_type = underlying.definition(ast);
             if let Node::Primitive(_, primitive) = underlying_type {
                 match primitive {
                     Primitive::Byte => {

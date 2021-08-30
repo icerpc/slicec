@@ -64,8 +64,8 @@ pub fn decode_type(
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let node = ast.resolve_index(type_ref.definition.unwrap());
-    let type_string = type_to_string(node, scope, ast, TypeContext::Incoming);
+    let node = type_ref.definition(ast);
+    let type_string = type_to_string(&type_ref, scope, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
@@ -148,10 +148,11 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
 
     //TOOD: check for generic "cs:generic:" attribute
     // let generic = sequence.element_type.
-    let value_node = dictionary_def.value_type.definition(ast);
+    let value_type = &dictionary_def.value_type;
+    let value_node = value_type.definition(ast);
     let generic_attribute: Option<&str> = None; // TODO: temporary
 
-    let with_bit_sequence = dictionary_def.value_type.encode_using_bit_sequence(ast);
+    let with_bit_sequence = value_type.encode_using_bit_sequence(ast);
 
     let method = match generic_attribute {
         Some(_) => "DecodeSortedDictionary",
@@ -163,11 +164,11 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
     if !with_bit_sequence {
         args.push(format!(
             "minValueSize: {}",
-            dictionary_def.value_type.min_wire_size(ast)
+            value_type.min_wire_size(ast)
         ));
     }
 
-    if with_bit_sequence && is_reference_type(&dictionary_def.value_type, ast) {
+    if with_bit_sequence && is_reference_type(value_type, ast) {
         args.push("withBitSequence: true".to_owned());
     }
 
@@ -175,13 +176,13 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
     args.push(decode_func(&dictionary_def.key_type, scope, ast).to_string());
 
     // decode value
-    let mut decode_value = decode_func(&dictionary_def.value_type, scope, ast);
+    let mut decode_value = decode_func(value_type, scope, ast);
     match value_node {
         Node::Sequence(_, _) | Node::Dictionary(_, _) => {
             write!(
                 decode_value,
                 " as {}",
-                type_to_string(value_node, scope, ast, TypeContext::Incoming)
+                type_to_string(value_type, scope, ast, TypeContext::Incoming)
             );
         }
         _ => {}
@@ -215,7 +216,7 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
                 // the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    type_to_string(element_node, scope, ast, TypeContext::Incoming)
+                    type_to_string(element_type, scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() && enum_def.is_unchecked => {
@@ -223,14 +224,14 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
                 // the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    type_to_string(element_node, scope, ast, TypeContext::Incoming)
+                    type_to_string(element_type, scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
-                let underlying_type = enum_def.underlying_type(ast);
+                let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
                 args = format!(
                     "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                    enum_type_name = type_to_string(element_node, scope, ast, TypeContext::Incoming),
+                    enum_type_name = type_to_string(element_type, scope, ast, TypeContext::Incoming),
                     helper = helper_name(enum_def, scope),
                     name = enum_def.identifier(),
                     underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
@@ -264,7 +265,7 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
         write!(
             code,
             "new {}({})",
-            type_to_string(element_node, scope, ast, TypeContext::Incoming),
+            type_to_string(element_type, scope, ast, TypeContext::Incoming),
             args
         );
     } else {
@@ -277,12 +278,12 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
             Node::Primitive(_, primitive)
                 if (primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)) =>
             {
-                generic_arg = type_to_string(element_node, scope, ast, TypeContext::Incoming);
+                generic_arg = type_to_string(element_type, scope, ast, TypeContext::Incoming);
                 decoder_args = "".to_owned(); // TODO write this
                 // out << "decoder.DecodeArray<" << typeToString(type, scope) << ">()";
             }
             Node::Enum(_, enum_def) if (enum_def.underlying.is_some() && enum_def.is_unchecked) => {
-                generic_arg = type_to_string(element_node, scope, ast, TypeContext::Incoming);
+                generic_arg = type_to_string(element_type, scope, ast, TypeContext::Incoming);
                 decoder_args = "".to_owned(); // TODO write this
                 // out << "decoder.DecodeArray<" << typeToString(type, scope) << ">()";
             }
@@ -341,7 +342,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder => IceRpc.IceDecoderPrxExtensions.DecodeNullablePrx<{}>(decoder)",
-                    type_to_string(node, scope, ast, TypeContext::Incoming)
+                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
                 );
             }
             //TODO Node::Class(_, _)
@@ -354,7 +355,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder = new {}(decoder.DecodeProxy())",
-                    type_to_string(node, scope, ast, TypeContext::Incoming)
+                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
                 );
             }
             //TODO review logic here wrt Builtin && usesClasses() (see c++ code)
@@ -383,7 +384,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                 write!(
                     code,
                     "decoder => new {}(decoder)",
-                    type_to_string(node, scope, ast, TypeContext::Incoming)
+                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
                 );
             }
             _ => panic!("unexpected node type"),

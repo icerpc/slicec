@@ -17,19 +17,17 @@ pub fn return_type_to_string(
     match return_type {
         ReturnType::Void(_) => {}
         ReturnType::Single(data_type, _) => {
-            let type_node = data_type.definition(ast);
             type_string += "<";
-            type_string += &type_to_string(type_node, scope, ast, context);
+            type_string += &type_to_string(data_type, scope, ast, context);
             type_string += ">";
         }
         ReturnType::Tuple(tuple, _) => {
             type_string += "<(";
             for id in tuple.iter() {
                 let return_element = ref_from_node!(Node::Member, ast, *id);
-                let data_type = return_element.data_type.definition(ast);
                 type_string += format!(
                     "{} {}, ",
-                    type_to_string(data_type, scope, ast, context),
+                    type_to_string(&return_element.data_type, scope, ast, context),
                     return_element.identifier(),
                 ).as_str();
             }
@@ -41,7 +39,9 @@ pub fn return_type_to_string(
     type_string
 }
 
-pub fn type_to_string(node: &Node, scope: &str, ast: &Ast, context: TypeContext) -> String {
+// TODO look at ripping out scope
+pub fn type_to_string(typeref: &TypeRef, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    let node = typeref.definition(ast);
     match node {
         Node::Struct(_, struct_def) => {
             escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope)
@@ -85,22 +85,22 @@ fn sequence_type_to_string(
     ast: &Ast,
     context: TypeContext,
 ) -> String {
-    let element_type = sequence.element_type.definition(ast);
-    let element_type_string = type_to_string(element_type, scope, ast, TypeContext::Nested);
+    let element_type = type_to_string(&sequence.element_type, scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
-            format!("global::System.Collections.Generic.IList<{}>", element_type_string)
+            format!("global::System.Collections.Generic.IList<{}>", element_type)
         }
         TypeContext::Incoming => {
-            format!("{}[]", element_type_string)
+            format!("{}[]", element_type)
         }
         TypeContext::Outgoing => {
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
-            if element_type.as_type().unwrap().is_fixed_size(ast) {
-                format!("global::System.Collections.Generic.IEnumerable<{}>", element_type_string)
+            let element_node = sequence.element_type.definition(ast);
+            if element_node.as_type().unwrap().is_fixed_size(ast) {
+                format!("global::System.Collections.Generic.IEnumerable<{}>", element_type)
             } else {
-                format!("global::System.ReadOnlyMemory<{}>", element_type_string)
+                format!("global::System.ReadOnlyMemory<{}>", element_type)
             }
         }
     }
@@ -112,28 +112,26 @@ fn dictionary_type_to_string(
     ast: &Ast,
     context: TypeContext,
 ) -> String {
-    let key_type = dictionary.key_type.definition(ast);
-    let value_type = dictionary.value_type.definition(ast);
-    let key_type_string = type_to_string(key_type, scope, ast, TypeContext::Nested);
-    let value_type_string = type_to_string(value_type, scope, ast, TypeContext::Nested);
+    let key_type = type_to_string(&dictionary.key_type, scope, ast, TypeContext::Nested);
+    let value_type = type_to_string(&dictionary.value_type, scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
             format!(
                 "global::System.Collections.Generic.IDictionary<{}, {}>",
-                key_type_string, value_type_string,
+                key_type, value_type,
             )
         }
         TypeContext::Incoming => {
             format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
-                key_type_string, value_type_string,
+                key_type, value_type,
             )
         }
         TypeContext::Outgoing => {
             format!(
                 "global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{}, {}>>",
-                key_type_string, value_type_string,
+                key_type, value_type,
             )
         }
     }
