@@ -498,6 +498,7 @@ impl Identifier {
 pub struct TypeRef {
     pub type_name: String,
     pub is_optional: bool,
+    pub is_streamed: bool,
     pub definition: Option<usize>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
@@ -514,6 +515,7 @@ impl TypeRef {
         TypeRef {
             type_name,
             is_optional,
+            is_streamed: false,
             definition: None,
             scope: None,
             attributes,
