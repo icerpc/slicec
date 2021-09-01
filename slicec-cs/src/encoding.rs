@@ -70,7 +70,7 @@ pub fn encode_type(
         Node::Primitive(_, _) => {
             writeln!(code, "encoder.Encode{}({});", builtin_suffix(node), param)
         }
-        Node::Struct(_, _) => { // TODO add class
+        Node::Struct(_, _) => {
             writeln!(code, "{}.Encode(encoder);", param)
         }
         Node::Sequence(_, sequence_def) => code.writeln(&encode_sequence(
@@ -301,7 +301,7 @@ pub fn encode_action(
                     encode_sequence(sequence_def, scope, "sequence", is_read_only, is_param, ast)
                 )
             }
-            Node::Struct(_, _) => { // TODO add class
+            Node::Struct(_, _) => {
                 write!(code, "(encoder, value) => value.Encode(encoder)")
             }
             _ => panic!(""),

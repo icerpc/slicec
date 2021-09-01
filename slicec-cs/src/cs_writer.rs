@@ -67,7 +67,7 @@ impl Visitor for CsWriter<'_> {
         self.output.write_line_separator();
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) { // TODO add class
+    fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, _: &Ast) {
         write_comment(&mut self.output, struct_def);
 
         // TODO: this stuff from slice2cs
@@ -90,7 +90,7 @@ impl Visitor for CsWriter<'_> {
         self.output.indent_by(4);
     }
 
-    fn visit_struct_end(&mut self, struct_def: &Struct, _: usize, ast: &Ast) { // TODO add class
+    fn visit_struct_end(&mut self, struct_def: &Struct, _: usize, ast: &Ast) {
         write_equality_operators(&mut self.output, struct_def.identifier());
 
         self.output.write_line_separator();
