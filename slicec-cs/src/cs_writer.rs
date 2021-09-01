@@ -248,7 +248,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
         let underlying_type = if let Some(typeref) = &enum_def.underlying {
-            type_to_string(&typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+            type_to_string(typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
         } else {
             "int".to_owned() //TODO we should make a builtin table to get names from.
         };
@@ -294,7 +294,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         };
 
         let underlying_type = if let Some(typeref) = &enum_def.underlying {
-            type_to_string(&typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+            type_to_string(typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
         } else {
             "int".to_owned() //TODO we should make a builtin table to get names from.
         };

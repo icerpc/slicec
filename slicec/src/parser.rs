@@ -521,7 +521,7 @@ impl SliceParser {
             .filter(|c| !c.is_whitespace())
             .collect();
 
-        let is_optional = input.as_str().ends_with("?");
+        let is_optional = input.as_str().ends_with('?');
         let mut type_ref = TypeRef::new(type_name, is_optional, attributes, location);
 
         // Resolve and/or construct non user defined types.

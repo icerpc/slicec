@@ -743,10 +743,9 @@ impl Element for Primitive {
 
 impl Type for Primitive {
     fn is_fixed_size(&self, _: &Ast) -> bool {
-        match self {
-            Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String => false,
-            _ => true,
-        }
+        !matches!(self,
+            Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String
+        )
     }
 
     fn min_wire_size(&self, _: &Ast) -> u32 {

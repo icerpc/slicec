@@ -226,7 +226,7 @@ pub fn fix_scope(scoped_identifier: &str, current_scope: &str) -> String {
     // Check if `scoped_identifier` starts with `current_scope`, and strip it off.
     if let Some(unscoped_identifier) = scoped_identifier.strip_prefix(&scope_prefix) {
         // If the identifier is now fully unscoped, return the fully unscoped identifier.
-        if !unscoped_identifier.contains(".") {
+        if !unscoped_identifier.contains('.') {
             return unscoped_identifier.to_owned();
         }
     }

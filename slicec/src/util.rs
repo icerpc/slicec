@@ -31,7 +31,7 @@ pub enum CaseStyle {
 // TODOAUSTIN write a good comment here. THIS EXPECTS 's' to be in camel case!!!
 pub fn fix_case(s: &str, case: CaseStyle) -> String {
     if s.is_empty() {
-        return String::new()
+        return String::new();
     }
 
     match case {

@@ -65,7 +65,7 @@ pub fn decode_type(
     let mut code = CodeBlock::new();
 
     let node = type_ref.definition(ast);
-    let type_string = type_to_string(&type_ref, scope, ast, TypeContext::Incoming);
+    let type_string = type_to_string(type_ref, scope, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
