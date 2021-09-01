@@ -1,3 +1,5 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
 use slice::ast::Ast;
 use slice::grammar::{DocComment, NamedSymbol, Operation};
 use slice::writer::Writer;

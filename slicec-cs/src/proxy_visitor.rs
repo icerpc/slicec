@@ -1,3 +1,5 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
 use crate::code_block::CodeBlock;
 use crate::comments::*;
 use crate::cs_util::*;
