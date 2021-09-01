@@ -12,6 +12,7 @@ edition = "2018"
 [dependencies]
 slicec = { path = "../slicec", version = "0.1.0" }
 structopt = "0.3.13"
+regex = "1.5"
 
 [[bin]]
 name = "slicec-cs"

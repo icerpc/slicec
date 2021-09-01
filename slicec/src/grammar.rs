@@ -230,7 +230,8 @@ impl Type for Struct {
     fn min_wire_size(&self, ast: &Ast) -> u32 {
         let mut size = 0;
         for member in self.members(ast) {
-            size += member.data_type
+            size += member
+                .data_type
                 .definition(ast)
                 .as_type()
                 .unwrap()
@@ -285,7 +286,8 @@ impl Type for Class {
     fn min_wire_size(&self, ast: &Ast) -> u32 {
         let mut size = 0;
         for member in self.members(ast) {
-            size += member.data_type
+            size += member
+                .data_type
                 .definition(ast)
                 .as_type()
                 .unwrap()
@@ -424,10 +426,11 @@ impl Enum {
 impl Type for Enum {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
         if let Some(typeref) = &self.underlying {
-            typeref.definition(ast)
-                   .as_type()
-                   .unwrap()
-                   .is_fixed_size(ast)
+            typeref
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .is_fixed_size(ast)
         } else {
             true
         }
@@ -435,10 +438,11 @@ impl Type for Enum {
 
     fn min_wire_size(&self, ast: &Ast) -> u32 {
         if let Some(typeref) = &self.underlying {
-            typeref.definition(ast)
-                   .as_type()
-                   .unwrap()
-                   .min_wire_size(ast)
+            typeref
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .min_wire_size(ast)
         } else {
             1
         }
@@ -455,9 +459,9 @@ pub enum ReturnType {
 impl Symbol for ReturnType {
     fn location(&self) -> &Location {
         match self {
-            Self::Void(location)      => location,
+            Self::Void(location) => location,
             Self::Single(_, location) => location,
-            Self::Tuple(_, location)  => location,
+            Self::Tuple(_, location) => location,
         }
     }
 }
@@ -491,6 +495,13 @@ impl Operation {
             comment,
             location,
         }
+    }
+
+    pub fn parameters<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.parameters
+            .iter()
+            .map(|index| ref_from_node!(Node::Member, ast, *index))
+            .collect()
     }
 }
 
@@ -532,8 +543,8 @@ impl Member {
 impl Element for Member {
     fn kind(&self) -> &'static str {
         match self.member_type {
-            MemberType::DataMember    => "data member",
-            MemberType::Parameter     => "parameter",
+            MemberType::DataMember => "data member",
+            MemberType::Parameter => "parameter",
             MemberType::ReturnElement => "return element",
         }
     }
@@ -743,7 +754,8 @@ impl Element for Primitive {
 
 impl Type for Primitive {
     fn is_fixed_size(&self, _: &Ast) -> bool {
-        !matches!(self,
+        !matches!(
+            self,
             Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong | Self::String
         )
     }
@@ -802,6 +814,7 @@ impl Attribute {
 pub struct DocComment {
     pub message: String,
     pub references: Vec<String>,
+    pub deprecate_reason: Option<String>,
     pub params: Vec<(String, String)>,
     pub returns: Option<String>,
     pub throws: Vec<(String, String)>,

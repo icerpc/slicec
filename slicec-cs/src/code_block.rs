@@ -39,7 +39,7 @@ impl CodeBlock {
 
 impl fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.content.trim_end_matches(char::is_whitespace))
+        write!(f, "{}", self.content.trim_matches(char::is_whitespace))
     }
 }
 

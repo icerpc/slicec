@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use std::fmt;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
@@ -68,6 +69,17 @@ impl Writer {
             if let Err(error) = self.file_buffer.flush() {
                 eprintln!("{}", error);
             }
+        }
+    }
+
+    /// Used to write code blocks using the write! and writeln! macros
+    /// without results. Note that the write_fmt defined in fmt::Write and io::Write
+    /// have a Result<()> return type.
+    pub fn write_fmt(&mut self, args: fmt::Arguments<'_>) {
+        if let Some(s) = args.as_str() {
+            self.write(s);
+        } else {
+            self.write(&args.to_string());
         }
     }
 }
