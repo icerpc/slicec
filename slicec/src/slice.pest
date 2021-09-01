@@ -2,13 +2,19 @@
 
 main = { SOI ~ file_attributes ~ module_def* ~ EOI }
 
-definition = { module_def | struct_def | interface_def | enum_def }
+definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def }
 
 module_start = ${ module_kw ~ ws+ ~ identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 
 struct_start = ${ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
+
+class_start = ${ class_kw ~ ws+ ~ identifier }
+class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
+
+exception_start = ${ exception_kw ~ ws+ ~ identifier }
+exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member* ~ "}" }
 
 interface_start = ${ interface_kw ~ ws+ ~ identifier }
 interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
@@ -89,6 +95,8 @@ unchecked_modifier = { (unchecked_kw ~ ws+)? }
 
 module_kw = { "module" }
 struct_kw = { "struct" }
+class_kw = { "class" }
+exception_kw = { "exception" }
 interface_kw = { "interface" }
 enum_kw = { "enum" }
 

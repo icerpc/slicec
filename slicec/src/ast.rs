@@ -11,6 +11,8 @@ use std::collections::HashMap;
 pub enum Node {
     Module(usize, Module),
     Struct(usize, Struct),
+    Class(usize, Class),
+    Exception(usize, Exception),
     Interface(usize, Interface),
     Enum(usize, Enum),
     Operation(usize, Operation),
@@ -27,6 +29,8 @@ impl Node {
         match self {
             Self::Module(_, module_def)       => module_def,
             Self::Struct(_, struct_def)       => struct_def,
+            Self::Class(_, class_def)         => class_def,
+            Self::Exception(_, exception_def) => exception_def,
             Self::Interface(_, interface_def) => interface_def,
             Self::Enum(_, enum_def)           => enum_def,
             Self::Operation(_, operation)     => operation,
@@ -44,6 +48,8 @@ impl Node {
         match self {
             Self::Module(_, module_def)       => Some(module_def),
             Self::Struct(_, struct_def)       => Some(struct_def),
+            Self::Class(_, class_def)         => Some(class_def),
+            Self::Exception(_, exception_def) => Some(exception_def),
             Self::Interface(_, interface_def) => Some(interface_def),
             Self::Enum(_, enum_def)           => Some(enum_def),
             Self::Operation(_, operation)     => Some(operation),
@@ -58,6 +64,7 @@ impl Node {
     pub fn as_type(&self) -> Option<&dyn Type> {
         match self {
             Self::Struct(_, struct_def)       => Some(struct_def),
+            Self::Class(_, class_def)         => Some(class_def),
             Self::Interface(_, interface_def) => Some(interface_def),
             Self::Enum(_, enum_def)           => Some(enum_def),
             Self::Sequence(_, sequence)       => Some(sequence),
@@ -72,6 +79,8 @@ impl Node {
         *match self {
             Self::Module(index, _)     => index,
             Self::Struct(index, _)     => index,
+            Self::Class(index, _)      => index,
+            Self::Exception(index, _)  => index,
             Self::Interface(index, _)  => index,
             Self::Enum(index, _)       => index,
             Self::Operation(index, _)  => index,
@@ -144,6 +153,8 @@ macro_rules! implement_into_node_for {
 
 implement_into_node_for!(Module, Node::Module);
 implement_into_node_for!(Struct, Node::Struct);
+implement_into_node_for!(Class, Node::Class);
+implement_into_node_for!(Exception, Node::Exception);
 implement_into_node_for!(Interface, Node::Interface);
 implement_into_node_for!(Enum, Node::Enum);
 implement_into_node_for!(Operation, Node::Operation);

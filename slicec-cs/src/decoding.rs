@@ -114,7 +114,7 @@ pub fn decode_type(
                 primitive_type_suffix(primitive_def),
             );
         }
-        Node::Struct(_, struct_def) => {
+        Node::Struct(_, struct_def) => { // TODO add class
             write!(
                 code,
                 "new {}(decoder)",
@@ -380,7 +380,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
                     enum_def.identifier()
                 );
             }
-            Node::Struct(_, _) => {
+            Node::Struct(_, _) => { // TODO add class
                 write!(
                     code,
                     "decoder => new {}(decoder)",

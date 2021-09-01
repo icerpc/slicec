@@ -20,6 +20,10 @@ pub trait Visitor {
     fn visit_module_end(&mut self, module_def: &Module, index: usize, ast: &Ast) {}
     fn visit_struct_start(&mut self, struct_def: &Struct, index: usize, ast: &Ast) {}
     fn visit_struct_end(&mut self, struct_def: &Struct, index: usize, ast: &Ast) {}
+    fn visit_class_start(&mut self, class_def: &Class, index: usize, ast: &Ast) {}
+    fn visit_class_end(&mut self, class_def: &Class, index: usize, ast: &Ast) {}
+    fn visit_exception_start(&mut self, exception_def: &Exception, index: usize, ast: &Ast) {}
+    fn visit_exception_end(&mut self, exception_def: &Exception, index: usize, ast: &Ast) {}
     fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {}
     fn visit_interface_end(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {}
     fn visit_enum_start(&mut self, enum_def: &Enum, index: usize, ast: &Ast) {}
@@ -46,6 +50,8 @@ impl Node {
         match self {
             Self::Module(index, module_def)       => module_def.visit_with(visitor, ast, *index),
             Self::Struct(index, struct_def)       => struct_def.visit_with(visitor, ast, *index),
+            Self::Class(index, class_def)         => class_def.visit_with(visitor, ast, *index),
+            Self::Exception(index, exception_def) => exception_def.visit_with(visitor, ast, *index),
             Self::Interface(index, interface_def) => interface_def.visit_with(visitor, ast, *index),
             Self::Enum(index, enum_def)           => enum_def.visit_with(visitor, ast, *index),
             Self::Operation(index, operation)     => operation.visit_with(visitor, ast, *index),
@@ -85,6 +91,26 @@ impl Struct {
             ast.resolve_index(*id).visit_with(visitor, ast);
         }
         visitor.visit_struct_end(self, index, ast);
+    }
+}
+
+impl Class {
+    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
+        visitor.visit_class_start(self, index, ast);
+        for id in self.members.iter() {
+            ast.resolve_index(*id).visit_with(visitor, ast);
+        }
+        visitor.visit_class_end(self, index, ast);
+    }
+}
+
+impl Exception {
+    pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
+        visitor.visit_exception_start(self, index, ast);
+        for id in self.members.iter() {
+            ast.resolve_index(*id).visit_with(visitor, ast);
+        }
+        visitor.visit_exception_end(self, index, ast);
     }
 }
 

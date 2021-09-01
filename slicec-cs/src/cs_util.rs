@@ -46,6 +46,12 @@ pub fn type_to_string(typeref: &TypeRef, scope: &str, ast: &Ast, context: TypeCo
         Node::Struct(_, struct_def) => {
             escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope)
         }
+        Node::Class(_, class_def) => {
+            escape_scoped_identifier(class_def, CaseStyle::Pascal, scope)
+        }
+        Node::Exception(_, exception_def) => {
+            escape_scoped_identifier(exception_def, CaseStyle::Pascal, scope)
+        }
         Node::Interface(_, interface_def) => {
             escape_scoped_identifier(interface_def, CaseStyle::Pascal, scope) + "Prx"
         }

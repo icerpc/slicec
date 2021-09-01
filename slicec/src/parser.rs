@@ -124,6 +124,8 @@ impl SliceParser {
         let definition_id = match_nodes!(input.into_children();
             [module_def(id)]    => id,
             [struct_def(id)]    => id,
+            [class_def(id)]     => id,
+            [exception_def(id)] => id,
             [interface_def(id)] => id,
             [enum_def(id)]      => id,
         );
@@ -168,6 +170,46 @@ impl SliceParser {
         );
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(struct_def))
+    }
+
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+        let location = from_span(&input);
+        let identifier = match_nodes!(input.into_children();
+            [_, identifier(ident)] => ident,
+        );
+        Ok((identifier, location))
+    }
+
+    fn class_def(input: PestNode) -> PestResult<usize> {
+        let class_def = match_nodes!(input.children();
+            [prelude(prelude), class_start(class_start), data_member(members)..] => {
+                let (identifier, location) = class_start;
+                let (attributes, comment) = prelude;
+                Class::new(identifier, members.collect(), attributes, comment, location)
+            },
+        );
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_element(class_def))
+    }
+
+    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+        let location = from_span(&input);
+        let identifier = match_nodes!(input.into_children();
+            [_, identifier(ident)] => ident,
+        );
+        Ok((identifier, location))
+    }
+
+    fn exception_def(input: PestNode) -> PestResult<usize> {
+        let exception_def = match_nodes!(input.children();
+            [prelude(prelude), exception_start(exception_start), data_member(members)..] => {
+                let (identifier, location) = exception_start;
+                let (attributes, comment) = prelude;
+                Exception::new(identifier, members.collect(), attributes, comment, location)
+            },
+        );
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_element(exception_def))
     }
 
     fn interface_start(input: PestNode) -> PestResult<(Identifier, Location)> {
@@ -656,6 +698,14 @@ impl SliceParser {
     }
 
     fn struct_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn class_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn exception_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

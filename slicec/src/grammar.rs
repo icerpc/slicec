@@ -21,6 +21,8 @@ macro_rules! implement_element_for {
 
 implement_element_for!(Module, "module");
 implement_element_for!(Struct, "struct");
+implement_element_for!(Class, "class");
+implement_element_for!(Exception, "exception");
 implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
 implement_element_for!(ReturnType, "return type");
@@ -52,6 +54,8 @@ macro_rules! implement_symbol_for {
 
 implement_symbol_for!(Module);
 implement_symbol_for!(Struct);
+implement_symbol_for!(Class);
+implement_symbol_for!(Exception);
 implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
 // ReturnType has its own custom implementation of Symbol, since it's an enum instead of a struct.
@@ -107,6 +111,8 @@ macro_rules! implement_scoped_symbol_for {
 
 implement_scoped_symbol_for!(Module);
 implement_scoped_symbol_for!(Struct);
+implement_scoped_symbol_for!(Class);
+implement_scoped_symbol_for!(Exception);
 implement_scoped_symbol_for!(Interface);
 implement_scoped_symbol_for!(Enum);
 implement_scoped_symbol_for!(Operation);
@@ -136,6 +142,8 @@ macro_rules! implement_named_symbol_for {
 
 implement_named_symbol_for!(Module);
 implement_named_symbol_for!(Struct);
+implement_named_symbol_for!(Class);
+implement_named_symbol_for!(Exception);
 implement_named_symbol_for!(Interface);
 implement_named_symbol_for!(Enum);
 implement_named_symbol_for!(Operation);
@@ -229,6 +237,90 @@ impl Type for Struct {
                 .min_wire_size(ast);
         }
         size
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Class {
+    pub identifier: Identifier,
+    pub members: Vec<usize>,
+    pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
+    pub location: Location,
+}
+
+impl Class {
+    pub fn new(
+        identifier: Identifier,
+        members: Vec<usize>,
+        attributes: Vec<Attribute>,
+        comment: Option<DocComment>,
+        location: Location,
+    ) -> Self {
+        Class { identifier, members, scope: None, attributes, comment, location }
+    }
+
+    pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.members
+            .iter()
+            .map(|id| ref_from_node!(Node::Member, ast, *id))
+            .collect()
+    }
+}
+
+impl Type for Class {
+    fn is_fixed_size(&self, ast: &Ast) -> bool {
+        for member in self.members(ast) {
+            let data_type = ast
+                .resolve_index(member.data_type.definition.unwrap())
+                .as_type();
+            if !data_type.unwrap().is_fixed_size(ast) {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn min_wire_size(&self, ast: &Ast) -> u32 {
+        let mut size = 0;
+        for member in self.members(ast) {
+            size += member.data_type
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .min_wire_size(ast);
+        }
+        size
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Exception {
+    pub identifier: Identifier,
+    pub members: Vec<usize>,
+    pub scope: Option<String>,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
+    pub location: Location,
+}
+
+impl Exception {
+    pub fn new(
+        identifier: Identifier,
+        members: Vec<usize>,
+        attributes: Vec<Attribute>,
+        comment: Option<DocComment>,
+        location: Location,
+    ) -> Self {
+        Exception { identifier, members, scope: None, attributes, comment, location }
+    }
+
+    pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.members
+            .iter()
+            .map(|id| ref_from_node!(Node::Member, ast, *id))
+            .collect()
     }
 }
 

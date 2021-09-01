@@ -104,6 +104,26 @@ impl<'a> Visitor for TableBuilder<'a> {
         self.current_scope.pop();
     }
 
+    fn visit_class_start(&mut self, class_def: &Class, index: usize, ast: &Ast) {
+        self.add_table_entry(class_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(class_def.identifier().to_owned());
+    }
+
+    fn visit_class_end(&mut self, _: &Class, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
+    fn visit_exception_start(&mut self, exception_def: &Exception, index: usize, ast: &Ast) {
+        self.add_table_entry(exception_def, index, ast);
+        self.add_scope_patch(index);
+        self.current_scope.push(exception_def.identifier().to_owned());
+    }
+
+    fn visit_exception_end(&mut self, _: &Exception, _: usize, _: &Ast) {
+        self.current_scope.pop();
+    }
+
     fn visit_interface_start(&mut self, interface_def: &Interface, index: usize, ast: &Ast) {
         self.add_table_entry(interface_def, index, ast);
         self.add_scope_patch(index);
@@ -209,6 +229,12 @@ impl ScopePatcher {
                 }
                 Node::Struct(_, struct_def) => {
                     struct_def.scope = Some(scope);
+                }
+                Node::Class(_, class_def) => {
+                    class_def.scope = Some(scope);
+                }
+                Node::Exception(_, exception_def) => {
+                    exception_def.scope = Some(scope);
                 }
                 Node::Interface(_, interface_def) => {
                     interface_def.scope = Some(scope);
