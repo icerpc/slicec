@@ -29,7 +29,8 @@ pub fn return_type_to_string(
                     "{} {}, ",
                     type_to_string(&return_element.data_type, scope, ast, context),
                     return_element.identifier(),
-                ).as_str();
+                )
+                .as_str();
             }
             // Remove the trailing comma and space.
             type_string.truncate(type_string.len() - 2);
@@ -46,39 +47,36 @@ pub fn type_to_string(typeref: &TypeRef, scope: &str, ast: &Ast, context: TypeCo
         Node::Struct(_, struct_def) => {
             escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope)
         }
-        Node::Class(_, class_def) => {
-            escape_scoped_identifier(class_def, CaseStyle::Pascal, scope)
-        }
+        Node::Class(_, class_def) => escape_scoped_identifier(class_def, CaseStyle::Pascal, scope),
         Node::Exception(_, exception_def) => {
             escape_scoped_identifier(exception_def, CaseStyle::Pascal, scope)
         }
         Node::Interface(_, interface_def) => {
             escape_scoped_identifier(interface_def, CaseStyle::Pascal, scope) + "Prx"
         }
-        Node::Enum(_, enum_def) => {
-            escape_scoped_identifier(enum_def, CaseStyle::Pascal, scope)
-        }
+        Node::Enum(_, enum_def) => escape_scoped_identifier(enum_def, CaseStyle::Pascal, scope),
         Node::Sequence(_, sequence) => sequence_type_to_string(sequence, scope, ast, context),
         Node::Dictionary(_, dictionary) => {
             dictionary_type_to_string(dictionary, scope, ast, context)
         }
         Node::Primitive(_, primitive) => match primitive {
-            Primitive::Bool     => "bool",
-            Primitive::Byte     => "byte",
-            Primitive::Short    => "short",
-            Primitive::UShort   => "ushort",
-            Primitive::Int      => "int",
-            Primitive::UInt     => "uint",
-            Primitive::VarInt   => "int",
-            Primitive::VarUInt  => "uint",
-            Primitive::Long     => "long",
-            Primitive::ULong    => "ulong",
-            Primitive::VarLong  => "long",
+            Primitive::Bool => "bool",
+            Primitive::Byte => "byte",
+            Primitive::Short => "short",
+            Primitive::UShort => "ushort",
+            Primitive::Int => "int",
+            Primitive::UInt => "uint",
+            Primitive::VarInt => "int",
+            Primitive::VarUInt => "uint",
+            Primitive::Long => "long",
+            Primitive::ULong => "ulong",
+            Primitive::VarLong => "long",
             Primitive::VarULong => "ulong",
-            Primitive::Float    => "float",
-            Primitive::Double   => "double",
-            Primitive::String   => "string",
-        }.to_owned(),
+            Primitive::Float => "float",
+            Primitive::Double => "double",
+            Primitive::String => "string",
+        }
+        .to_owned(),
         _ => {
             panic!("Node does not represent a type: '{:?}'!", node);
         }
@@ -104,7 +102,10 @@ fn sequence_type_to_string(
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
             let element_node = sequence.element_type.definition(ast);
             if element_node.as_type().unwrap().is_fixed_size(ast) {
-                format!("global::System.Collections.Generic.IEnumerable<{}>", element_type)
+                format!(
+                    "global::System.Collections.Generic.IEnumerable<{}>",
+                    element_type
+                )
             } else {
                 format!("global::System.ReadOnlyMemory<{}>", element_type)
             }
@@ -174,15 +175,85 @@ pub fn escape_scoped_identifier(
 /// Checks if the provided string is a C# keyword, and escapes it if necessary (by appending a '@').
 pub fn escape_keyword(identifier: &str) -> String {
     const CS_KEYWORDS: [&str; 79] = [
-        "abstract", "as", "async", "await", "base", "bool", "break", "byte", "case", "catch",
-        "char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do",
-        "double", "else", "enum", "event", "explicit", "extern", "false", "finally", "fixed",
-        "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal",
-        "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
-        "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed",
-        "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw",
-        "true", "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using",
-        "virtual", "void", "volatile", "while",
+        "abstract",
+        "as",
+        "async",
+        "await",
+        "base",
+        "bool",
+        "break",
+        "byte",
+        "case",
+        "catch",
+        "char",
+        "checked",
+        "class",
+        "const",
+        "continue",
+        "decimal",
+        "default",
+        "delegate",
+        "do",
+        "double",
+        "else",
+        "enum",
+        "event",
+        "explicit",
+        "extern",
+        "false",
+        "finally",
+        "fixed",
+        "float",
+        "for",
+        "foreach",
+        "goto",
+        "if",
+        "implicit",
+        "in",
+        "int",
+        "interface",
+        "internal",
+        "is",
+        "lock",
+        "long",
+        "namespace",
+        "new",
+        "null",
+        "object",
+        "operator",
+        "out",
+        "override",
+        "params",
+        "private",
+        "protected",
+        "public",
+        "readonly",
+        "ref",
+        "return",
+        "sbyte",
+        "sealed",
+        "short",
+        "sizeof",
+        "stackalloc",
+        "static",
+        "string",
+        "struct",
+        "switch",
+        "this",
+        "throw",
+        "true",
+        "try",
+        "typeof",
+        "uint",
+        "ulong",
+        "unchecked",
+        "unsafe",
+        "ushort",
+        "using",
+        "virtual",
+        "void",
+        "volatile",
+        "while",
     ];
 
     // Add a '@' prefix if the identifier matched a C# keyword.
@@ -198,13 +269,26 @@ pub fn escape_keyword(identifier: &str) -> String {
 pub fn mangle_name(identifier: &str, kind: &str) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&str; 7] = [
-        "Equals", "Finalize", "GetHashCode", "GetType", "MemberwiseClone", "ReferenceEquals",
+        "Equals",
+        "Finalize",
+        "GetHashCode",
+        "GetType",
+        "MemberwiseClone",
+        "ReferenceEquals",
         "ToString",
     ];
     // The names of all the methods and properties defined on the Exception base class.
     const EXCEPTION_BASE_NAMES: [&str; 10] = [
-        "Data", "GetBaseException", "GetObjectData", "HelpLink", "HResult", "InnerException",
-        "Message", "Source", "StackTrace", "TargetSite",
+        "Data",
+        "GetBaseException",
+        "GetObjectData",
+        "HelpLink",
+        "HResult",
+        "InnerException",
+        "Message",
+        "Source",
+        "StackTrace",
+        "TargetSite",
     ];
 
     let needs_mangling = match kind {
@@ -308,4 +392,12 @@ pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {
 
 pub fn is_reference_type(type_ref: &TypeRef, ast: &Ast) -> bool {
     !is_value_type(type_ref, ast)
+}
+
+pub fn escape_member_name(parameters: &[&Member], name: &str) -> String {
+    if parameters.iter().any(|p| p.identifier() == name) {
+        return name.to_owned() + "_";
+    } else {
+        name.to_owned()
+    }
 }

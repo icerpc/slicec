@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::code_block::CodeBlock;
+use crate::cs_util::*;
 use slice::ast::Ast;
 use slice::grammar::{DocComment, NamedSymbol, Operation};
 use slice::writer::Writer;
@@ -135,14 +137,49 @@ impl fmt::Display for CsharpComment {
     }
 }
 
-pub fn operation_doc_comment(operation: &Operation, _: &Ast) -> String {
+pub fn operation_doc_comment(operation: &Operation, dispatch: bool, ast: &Ast) -> CodeBlock {
     // let summary =
     //     CommentTag { tag: "summary", attribute_name: "", attribute_value: "", content: "" };
     // "".to_owned()
 
+    let mut code = CodeBlock::new();
+
     if let Some(comment) = &operation.comment {
-        CsharpComment::new(comment).to_string()
-    } else {
-        "".to_owned()
+        let parsed_comment = CsharpComment::new(comment);
+        code.writeln(&CommentTag {
+            tag: "summary",
+            attribute_name: "",
+            attribute_value: "",
+            content: &parsed_comment.0.message,
+        });
+
+        // TODO: write params (see writeParamDocComment in C++)
     }
+
+    if dispatch {
+        code.writeln(&CommentTag {
+            tag: "param",
+            attribute_name: "name",
+            attribute_value: &escape_member_name(&operation.parameters(ast), "dispatch"),
+            content: "The dispatch properties",
+        });
+    } else {
+        code.writeln(&CommentTag {
+            tag: "param",
+            attribute_name: "name",
+            attribute_value: &escape_member_name(&operation.parameters(ast), "invocation"),
+            content: "The invocation properties.",
+        });
+    }
+
+    code.writeln(&CommentTag {
+        tag: "param",
+        attribute_name: "name",
+        attribute_value: &escape_member_name(&operation.parameters(ast), "cancel"),
+        content: "A cancellation token that receives the cancellation requests.",
+    });
+
+    // TODO: return types (see C++)
+
+    code
 }

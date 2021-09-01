@@ -91,7 +91,7 @@ pub fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         writeln!(
             code,
             "{doc_comment}\n{return} {name}({params});\n",
-            doc_comment = operation_doc_comment(operation, ast),
+            doc_comment = operation_doc_comment(operation, false, ast),
             return = operation_return_task(operation, false, ast),
             name = async_name,
             params = get_invocation_params(operation, ast).join(", ")
@@ -182,11 +182,11 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
 
     params.push(format!(
         "IceRpc.Invocation? {} = null",
-        escape_operation_parameter_name(&operation_parameters, "invocation")
+        escape_member_name(&operation_parameters, "invocation")
     ));
     params.push(format!(
         "global::System.Threading.CancellationToken {} = default",
-        escape_operation_parameter_name(&operation_parameters, "cancel")
+        escape_member_name(&operation_parameters, "cancel")
     ));
 
     params
@@ -199,13 +199,5 @@ pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -
         escape_keyword(&name)
     } else {
         name
-    }
-}
-
-pub fn escape_operation_parameter_name(parameters: &[&Member], name: &str) -> String {
-    if parameters.iter().any(|p| p.identifier() == name) {
-        return name.to_owned() + "_";
-    } else {
-        name.to_owned()
     }
 }
