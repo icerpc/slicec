@@ -245,6 +245,7 @@ impl Type for Struct {
 pub struct Class {
     pub identifier: Identifier,
     pub members: Vec<usize>,
+    pub base: Option<TypeRef>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -255,11 +256,12 @@ impl Class {
     pub fn new(
         identifier: Identifier,
         members: Vec<usize>,
+        base: Option<TypeRef>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Class { identifier, members, scope: None, attributes, comment, location }
+        Class { identifier, members, base, scope: None, attributes, comment, location }
     }
 
     pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
@@ -301,6 +303,7 @@ impl Type for Class {
 pub struct Exception {
     pub identifier: Identifier,
     pub members: Vec<usize>,
+    pub base: Option<TypeRef>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -311,11 +314,12 @@ impl Exception {
     pub fn new(
         identifier: Identifier,
         members: Vec<usize>,
+        base: Option<TypeRef>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Exception { identifier, members, scope: None, attributes, comment, location }
+        Exception { identifier, members, base, scope: None, attributes, comment, location }
     }
 
     pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
@@ -330,6 +334,7 @@ impl Exception {
 pub struct Interface {
     pub identifier: Identifier,
     pub operations: Vec<usize>,
+    pub bases: Vec<TypeRef>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -340,11 +345,12 @@ impl Interface {
     pub fn new(
         identifier: Identifier,
         operations: Vec<usize>,
+        bases: Vec<TypeRef>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Interface { identifier, operations, scope: None, attributes, comment, location }
+        Interface { identifier, operations, bases, scope: None, attributes, comment, location }
     }
 
     pub fn operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {

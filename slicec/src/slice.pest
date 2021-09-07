@@ -10,16 +10,16 @@ module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 struct_start = ${ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
 
-class_start = ${ class_kw ~ ws+ ~ identifier }
+class_start = ${ class_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
 
-exception_start = ${ exception_kw ~ ws+ ~ identifier }
+exception_start = ${ exception_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member* ~ "}" }
 
-interface_start = ${ interface_kw ~ ws+ ~ identifier }
+interface_start = ${ interface_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 
-enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ ":" ~ ws* ~ typename )? }
+enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typename )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 return_type = !{ void_kw | typename | return_tuple }
@@ -36,6 +36,8 @@ parameter = ${ prelude ~ ws* ~ member }
 
 enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
 enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
+
+inheritance_list = !{ ( typename ~ "," ~ inheritance_list ) | ( typename ~ ","? ) }
 
 identifier = @{ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
@@ -121,4 +123,6 @@ double_kw = { "double" }
 string_kw = { "string" }
 
 tag_kw = { "tag" }
+// extends_kw = { "extends" | ":" } TODO add this when we have a parser that handles whitespace.
+extends_kw = { ":" }
 unchecked_kw = { "unchecked" }

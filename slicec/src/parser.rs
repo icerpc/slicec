@@ -172,60 +172,87 @@ impl SliceParser {
         Ok(ast.add_element(struct_def))
     }
 
-    fn class_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef>)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => ident,
-        );
-        Ok((identifier, location))
+        Ok(match_nodes!(input.children();
+            [_, identifier(identifier)] => (identifier, location, None),
+            [_, identifier(identifier), inheritance_list(mut bases)] => {
+                // Classes can only inherit from a single base class.
+                if bases.len() > 1 {
+                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
+                    error_handler.report_error((
+                        format!("classes can only inherit from a single base class"),
+                        location.clone()
+                    ).into());
+                }
+                (identifier, location, Some(bases.remove(0)))
+            }
+        ))
     }
 
     fn class_def(input: PestNode) -> PestResult<usize> {
         let class_def = match_nodes!(input.children();
             [prelude(prelude), class_start(class_start), data_member(members)..] => {
-                let (identifier, location) = class_start;
+                let (identifier, location, base) = class_start;
                 let (attributes, comment) = prelude;
-                Class::new(identifier, members.collect(), attributes, comment, location)
+                Class::new(identifier, members.collect(), base, attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(class_def))
     }
 
-    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef>)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => ident,
-        );
-        Ok((identifier, location))
+        Ok(match_nodes!(input.children();
+            [_, identifier(identifier)] => (identifier, location, None),
+            [_, identifier(identifier), inheritance_list(mut bases)] => {
+                // Exceptions can only inherit from a single base exception.
+                if bases.len() > 1 {
+                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
+                    error_handler.report_error((
+                        format!("exceptions can only inherit from a single base exception"),
+                        location.clone()
+                    ).into());
+                }
+                (identifier, location, Some(bases.remove(0)))
+            }
+        ))
     }
 
     fn exception_def(input: PestNode) -> PestResult<usize> {
         let exception_def = match_nodes!(input.children();
             [prelude(prelude), exception_start(exception_start), data_member(members)..] => {
-                let (identifier, location) = exception_start;
+                let (identifier, location, base) = exception_start;
                 let (attributes, comment) = prelude;
-                Exception::new(identifier, members.collect(), attributes, comment, location)
+                Exception::new(identifier, members.collect(), base, attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(exception_def))
     }
 
-    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef>)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => ident,
-        );
-        Ok((identifier, location))
+        Ok(match_nodes!(input.into_children();
+            [_, identifier(identifier)] => (identifier, location, Vec::new()),
+            [_, identifier(identifier), inheritance_list(bases)] => (identifier, location, bases)
+        ))
     }
 
     fn interface_def(input: PestNode) -> PestResult<usize> {
         let interface_def = match_nodes!(input.children();
             [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
-                let (identifier, location) = interface_start;
+                let (identifier, location, bases) = interface_start;
                 let (attributes, comment) = prelude;
-                Interface::new(identifier, operations.collect(), attributes, comment, location)
+                Interface::new(
+                    identifier,
+                    operations.collect(),
+                    bases,
+                    attributes,
+                    comment,
+                    location,
+                )
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -482,6 +509,20 @@ impl SliceParser {
         let parser_data = &mut input.user_data().borrow_mut();
         parser_data.current_enum_value = next_enum_value + 1;
         Ok(parser_data.ast.add_element(enumerator_def))
+    }
+
+    fn inheritance_list(input: PestNode) -> PestResult<Vec<TypeRef>> {
+        Ok(match_nodes!(input.into_children();
+            [typename(typeref)] => {
+                vec![typeref]
+            },
+            [typename(typeref), inheritance_list(mut list)] => {
+                // The typename comes before the inheritance_list when parsing, so we have to
+                // insert the new typename at the front of the list.
+                list.insert(0, typeref);
+                list
+            },
+        ))
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
