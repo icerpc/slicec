@@ -268,7 +268,7 @@ impl SliceParser {
             [unchecked_modifier(unchecked), _, identifier(ident)] => {
                 (unchecked, ident, location, None)
             },
-            [unchecked_modifier(unchecked), _, identifier(ident), typename(underlying)] => {
+            [unchecked_modifier(unchecked), _, identifier(ident), _, typename(underlying)] => {
                 (unchecked, ident, location, Some(underlying))
             },
         ))
