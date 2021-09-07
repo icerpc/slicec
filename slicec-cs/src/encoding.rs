@@ -337,6 +337,27 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             "var bitSequence = encoder.EncodeBitSequence({})",
             bit_sequence_size
         );
+        bit_sequence_index = 0;
+    }
+
+    for member in required_members {
+        let encode_member = encode_type(
+            &member.data_type,
+            &mut bit_sequence_index,
+            true,
+            "scope",
+            "param",
+            ast,
+        );
+        code.writeln(&encode_member);
+    }
+
+    if bit_sequence_size > 0 {
+        assert_eq!(bit_sequence_index, bit_sequence_size);
+    }
+
+    for member in tagged_members {
+        // TODO: tags
     }
 
     code

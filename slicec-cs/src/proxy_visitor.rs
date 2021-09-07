@@ -285,7 +285,7 @@ public static global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>
             _in = if params.len() == 1 { "" } else { "in " },
             create_payload = if params.len() == 1 { "FromSingleArg" } else { "FromArgs" },
             encode_action = request_encode_action(operation, ast).indent().indent(),
-            class_format = "\"TODO:// opFormatTypeToString(operation);\""
+            class_format = operation_format_type_to_string(operation)
         )
     }
 

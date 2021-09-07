@@ -413,3 +413,8 @@ pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
         .replace("::", ".")
         .to_owned()
 }
+
+pub fn operation_format_type_to_string(operation: &Operation) -> String {
+    // TODO: Austin - Implement this :)
+    "default".to_owned()
+}
