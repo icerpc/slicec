@@ -295,6 +295,27 @@ impl<'a> TypePatcher<'a> {
     pub(crate) fn patch_types(&mut self, ast: &mut Ast) {
         for node in ast.iter_mut() {
             match node {
+                Node::Class(_, class_def) => {
+                    // If the class derives from a base class, patch a reference to it.
+                    if let Some(base) = &mut class_def.base {
+                        let scope = class_def.scope.as_ref().unwrap();
+                        self.patch_type(base, scope);
+                    }
+                }
+                Node::Exception(_, exception_def) => {
+                    // If the exception derives from a base exception, patch a reference to it.
+                    if let Some(base) = &mut exception_def.base {
+                        let scope = exception_def.scope.as_ref().unwrap();
+                        self.patch_type(base, scope);
+                    }
+                }
+                Node::Interface(_, interface_def) => {
+                    // Patch references to any base interfaces this one inherits from.
+                    let scope = interface_def.scope.as_ref().unwrap();
+                    for base in &mut interface_def.bases {
+                        self.patch_type(base, scope);
+                    }
+                }
                 Node::Enum(_, enum_def) => {
                     // Check if the enum has an underlying type and patch it if needed.
                     if let Some(underlying) = &mut enum_def.underlying {
@@ -360,7 +381,7 @@ impl<'a> TypePatcher<'a> {
         // Otherwise we search for the typename through each enclosing scope, from the bottom up.
         let parents: Vec<&str> = scope.split("::").collect();
         for i in (0..parents.len()).rev() {
-            let test_name = parents[..i].join("::") + "::" + typename;
+            let test_name = parents[..(i+1)].join("::") + "::" + typename;
             if let Some(result) = self.lookup_table.get(&test_name) {
                 return Some(*result);
             }

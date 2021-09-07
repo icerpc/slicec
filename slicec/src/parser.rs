@@ -176,7 +176,7 @@ impl SliceParser {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => (identifier, location, None),
-            [_, identifier(identifier), inheritance_list(mut bases)] => {
+            [_, identifier(identifier), _, inheritance_list(mut bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     let error_handler = &mut input.user_data().borrow_mut().error_handler;
@@ -206,7 +206,7 @@ impl SliceParser {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => (identifier, location, None),
-            [_, identifier(identifier), inheritance_list(mut bases)] => {
+            [_, identifier(identifier), _, inheritance_list(mut bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     let error_handler = &mut input.user_data().borrow_mut().error_handler;
@@ -236,7 +236,7 @@ impl SliceParser {
         let location = from_span(&input);
         Ok(match_nodes!(input.into_children();
             [_, identifier(identifier)] => (identifier, location, Vec::new()),
-            [_, identifier(identifier), inheritance_list(bases)] => (identifier, location, bases)
+            [_, identifier(identifier), _, inheritance_list(bases)] => (identifier, location, bases)
         ))
     }
 
@@ -831,6 +831,10 @@ impl SliceParser {
     }
 
     fn tag_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn extends_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
