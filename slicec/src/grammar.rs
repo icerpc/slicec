@@ -509,6 +509,29 @@ impl Operation {
             .map(|index| ref_from_node!(Node::Member, ast, *index))
             .collect()
     }
+
+    pub fn has_non_streamed_params(&self, ast: &Ast) -> bool {
+        let params = self.parameters(ast);
+        !params.is_empty() && (params.len() > 1 || !params[0].data_type.is_streamed)
+    }
+
+    pub fn has_non_streamed_return(&self) -> bool {
+        match &self.return_type {
+            ReturnType::Void(_) => false,
+            ReturnType::Single(type_ref, _) => !type_ref.is_streamed,
+            ReturnType::Tuple(_, _) => true,
+        }
+    }
+
+    pub fn streamed_params<'a>(&self, ast: &'a Ast) -> impl Iterator<Item = &'a Member> {
+        let params = self.parameters(ast);
+        params.into_iter().filter(|p| p.data_type.is_streamed)
+    }
+
+    pub fn non_streamed_params<'a>(&self, ast: &'a Ast) -> impl Iterator<Item = &'a Member> {
+        let params = self.parameters(ast);
+        params.into_iter().filter(|p| !p.data_type.is_streamed)
+    }
 }
 
 #[derive(Clone, Debug)]

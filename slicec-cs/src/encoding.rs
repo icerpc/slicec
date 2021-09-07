@@ -13,7 +13,8 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let (required_members, tagged_members) = get_sorted_members(members);
 
     let mut bit_sequence_index = -1;
-    // Tagged members are encoded in a dictionary and don't count towards the optional bit sequence size.
+    // Tagged members are encoded in a dictionary and don't count towards the optional bit sequence
+    // size.
     let bit_sequence_size = get_bit_sequence_size(members, ast);
 
     if bit_sequence_size > 0 {
@@ -44,7 +45,7 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
-        //TODO: tags are not yet supported
+        // TODO: tags are not yet supported
         // encode_tagged_type()
     }
 
@@ -121,7 +122,7 @@ pub fn encode_sequence(
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let has_custom_type = false; //TODO: get from sequence metadata
+    let has_custom_type = false; // TODO: get from sequence metadata
     let mut args = Vec::new();
 
     if sequence_def.is_element_fixed_sized_numeric(ast) && (is_read_only && !has_custom_type) {
@@ -216,9 +217,10 @@ pub fn encode_as_optional(
                 false
             };
 
-            // A null T[]? or List<T>? is implicitly converted into a default aka null ReadOnlyMemory<T> or
-            // ReadOnlySpan<T>. Furthermore, the span of a default ReadOnlyMemory<T> is a default ReadOnlySpan<T>,
-            // which is distinct from the span of an empty sequence. This is why the "value.Span != null" below
+            // A null T[]? or List<T>? is implicitly converted into a default aka null
+            // ReadOnlyMemory<T> or ReadOnlySpan<T>. Furthermore, the span of a default
+            // ReadOnlyMemory<T> is a default ReadOnlySpan<T>, which is distinct from
+            // the span of an empty sequence. This is why the "value.Span != null" below
             // works correctly.
             writeln!(
                 code,
@@ -262,14 +264,14 @@ pub fn encode_action(
                     code,
                     "(encoder, value) => encoder.EncodeNullableProxy(value?.Proxy)"
                 )
-            } //TODO: Node::Class (see C++ code)
+            } // TODO: Node::Class (see C++ code)
             _ => panic!("expected interface or class"),
         }
     } else {
         match node {
             Node::Interface(_, _) => {
                 write!(code, "(encoder, value) => encoder.EncodeProxy(value.Proxy)")
-            } //TODO: Node::Class
+            } // TODO: Node::Class
             Node::Primitive(_, _) => {
                 write!(
                     code,
@@ -293,8 +295,8 @@ pub fn encode_action(
                 );
             }
             Node::Sequence(_, sequence_def) => {
-                // We generate the sequence encoder inline, so this function must not be called when the top-level object is
-                // not cached.
+                // We generate the sequence encoder inline, so this function must not be called when
+                // the top-level object is not cached.
                 write!(
                     code,
                     "(encoder, sequence) => {}",
@@ -306,6 +308,35 @@ pub fn encode_action(
             }
             _ => panic!(""),
         }
+    }
+
+    code
+}
+
+pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
+    let mut code = CodeBlock::new();
+
+    let members = if return_type {
+        // TODO:
+        vec![]
+    } else {
+        operation.parameters(ast)
+    };
+
+    let members: Vec<&Member> = operation.non_streamed_params(ast).collect();
+    let streamed_members: Vec<&Member> = operation.streamed_params(ast).collect();
+
+    let (required_members, tagged_members) = get_sorted_members(&members);
+
+    let mut bit_sequence_index = -1;
+    let bit_sequence_size = get_bit_sequence_size(&members, ast);
+
+    if bit_sequence_size > 0 {
+        writeln!(
+            code,
+            "var bitSequence = encoder.EncodeBitSequence({})",
+            bit_sequence_size
+        );
     }
 
     code

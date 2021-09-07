@@ -401,3 +401,15 @@ pub fn escape_member_name(parameters: &[&Member], name: &str) -> String {
         name.to_owned()
     }
 }
+
+pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
+    // TODO: check metadata
+    // TODO: not all types need to remove just one "::" (we use this currently for operations)
+    named_symbol
+        .scope()
+        .rsplit_once("::")
+        .unwrap()
+        .1
+        .replace("::", ".")
+        .to_owned()
+}

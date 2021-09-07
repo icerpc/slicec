@@ -3,6 +3,7 @@
 use crate::code_block::CodeBlock;
 use crate::comments::*;
 use crate::cs_util::*;
+use crate::encoding::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::ref_from_node;
@@ -37,28 +38,62 @@ impl Visitor for ProxyVisitor<'_> {
 
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, ast: &Ast) {
         let prx_interface = format!("{}Prx", interface_name(interface_def)); // IFooPrx
-        let prx_impl = prx_interface.chars().take(1); // IFooPrx -> FooPrx
+        let prx_impl: String = prx_interface.chars().skip(1).collect(); // IFooPrx -> FooPrx
+
+        let all_bases: Vec<&Interface> = vec![];
+        let bases: Vec<&Interface> = vec![];
+
+        // prx impl bases
+        let mut prx_impl_bases: Vec<String> = vec![
+            prx_interface.clone(),
+            "IceRpc.IPrx".to_owned(),
+            format!("global::System.IEquatable<{}>", &prx_impl),
+        ];
+
+        if all_bases.iter().any(|b| b.scope() == "::IceRpc::Service")
+            && interface_def.scope() != "::IceRpc::Service"
+        {
+            prx_impl_bases.push("IceRpc.IServicePrx".to_owned());
+        }
+
+        // prx bases
+        let prx_bases: Vec<String> = bases
+            .into_iter()
+            .map(|b| escape_scoped_identifier(b, CaseStyle::Pascal, interface_def.scope()))
+            .collect();
 
         // writeProxyDocComment(p, getDeprecateReason(p));
-        // emitCommonAttributes();
         // emitTypeIdAttribute(p->scoped());
         // emitCustomAttributes(p);
-        // TODO: the above doc comments
-
-        let bases: Vec<&Interface> = vec![];
+        // TODO: above doc comments and attributes
 
         // Generate abstract methods and documentation
         write!(
             self.output,
-            "
+            r#"
 {doc_comment}
 public partial interface {prx_interface}{prx_bases}
 {{
     {operations}
-}}",
+}}
+
+/// <summary>Typed proxy struct. It implements <see cref="{prx_interface}"/> by sending requests to a remote IceRPC service.</summary>
+{type_id_attribute}{custom_attributes}
+public readonly partial struct {prx_impl} : {prx_impl_bases}
+{{
+    {request_class}
+    {response_class}
+}}
+"#,
             doc_comment = "foo",
             prx_interface = prx_interface,
-            prx_bases = "",
+            type_id_attribute = "", // TODO: emitTypeIdAttribute(p->scoped()),
+            custom_attributes = "", // TODO: emitCustomAttributes(p),
+            prx_bases = prx_bases.join(", "),
+            prx_impl = prx_impl,
+            prx_impl_bases = prx_impl_bases.join(", "),
+            request_class = request_class(interface_def, &prx_impl, ast).indent(),
+            response_class = response_class(interface_def, ast),
             operations = prx_operations(interface_def, ast).indent()
         )
     }
@@ -79,7 +114,7 @@ pub fn interface_name(interface_def: &Interface) -> String {
     }
 }
 
-pub fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
+fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
     let operations = interface_def.operations(ast);
@@ -88,10 +123,21 @@ pub fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         let operation_name = escape_identifier(operation, CaseStyle::Pascal);
         let async_name = operation_name + "Async";
 
+        let deprecate_reason = match &operation.comment {
+            Some(comment) if comment.deprecate_reason.is_some() => {
+                format!(
+                    r#"[global::System::Obsolete("{}")]"#,
+                    comment.deprecate_reason.as_ref().unwrap()
+                )
+            }
+            _ => "".to_owned(),
+        };
+
         writeln!(
             code,
-            "{doc_comment}\n{return} {name}({params});\n",
+            "{doc_comment}{deprecate_reason}\n{return} {name}({params});\n",
             doc_comment = operation_doc_comment(operation, false, ast),
+            deprecate_reason = deprecate_reason,
             return = operation_return_task(operation, false, ast),
             name = async_name,
             params = get_invocation_params(operation, ast).join(", ")
@@ -200,4 +246,107 @@ pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -
     } else {
         name
     }
+}
+
+fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBlock {
+    let mut code = CodeBlock::new();
+
+    let operations = interface_def.operations(ast);
+
+    if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
+        return code;
+    }
+
+    let mut request_operations = CodeBlock::new();
+
+    for operation in operations {
+        let params: Vec<&Member> = operation.non_streamed_params(ast).collect();
+
+        writeln!(
+            request_operations,
+            r#"
+/// <summary>Creates the request payload for operation {name}.</summary>
+/// <param name="prx">Typed proxy to the target service.</param>
+/// <param name="arg{s}">The request argument{s}.</param>
+/// <returns>The payload.</returns>
+
+public static global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>> {escaped_name}({prx_impl} prx, {_in}{params} arg{s}) =>
+    IceRpc.Payload.{create_payload}(
+        prx.Payload,
+        {_in}arg{s},
+        {encode_action},
+        {class_format});
+"#,
+            name = operation.identifier(),
+            s = if params.len() == 1 { "" } else { "s" },
+            escaped_name = escape_identifier(operation, CaseStyle::Pascal),
+            prx_impl = prx_impl,
+            params = to_tuple_type(&params, true, ast),
+            _in = if params.len() == 1 { "" } else { "in " },
+            create_payload = if params.len() == 1 { "FromSingleArg" } else { "FromArgs" },
+            encode_action = request_encode_action(operation, ast).indent().indent(),
+            class_format = "\"TODO:// opFormatTypeToString(operation);\""
+        )
+    }
+
+    write!(code, "\
+/// <summary>Converts the arguments of each operation that takes arguments into a request payload.</summary>
+public static class Request
+{{
+    {}
+}}
+", request_operations.indent());
+
+    code
+}
+
+fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
+    let mut code = CodeBlock::new();
+
+    let operations = interface_def.operations(ast);
+
+    if !operations.iter().any(|o| o.has_non_streamed_return()) {
+        return code;
+    }
+
+    code
+}
+
+fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
+    let mut code = CodeBlock::new();
+
+    // TODO: scope
+    let ns = get_namespace(operation);
+
+    // We only want the non-streamed params
+    let params: Vec<&Member> = operation.non_streamed_params(ast).collect();
+
+    // When the operation's parameter is a T? where T is an interface or a class, there is a
+    // built-in encoder, so defaultEncodeAction is true.
+    if params.len() == 1
+        && get_bit_sequence_size(&params, ast) == 0
+        && params.first().unwrap().tag.is_none()
+    {
+        code.write(&encode_action(
+            &params.first().unwrap().data_type,
+            &ns,
+            true,
+            true,
+            ast,
+        ));
+    } else {
+        write!(
+            code,
+            "\
+(IceRpc.IceEncoder encoder, {_in}{param_type} value) =>
+{{
+    {encode}
+}}",
+            _in = if params.len() == 1 { "" } else { "in " },
+            param_type = to_tuple_type(&params, true, ast),
+            encode = encode_operation(operation, false, ast).indent()
+        );
+    }
+
+    code
 }

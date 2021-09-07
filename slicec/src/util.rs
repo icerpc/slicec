@@ -50,7 +50,7 @@ pub fn fix_case(s: &str, case: CaseStyle) -> String {
             first_letter.to_uppercase().collect::<String>() + chars.as_str()
         }
         CaseStyle::Snake => {
-            s.to_owned() //TODOAUSTIN I need to actually write this logic.
+            s.to_owned() // TODOAUSTIN I need to actually write this logic.
         }
     }
 }
