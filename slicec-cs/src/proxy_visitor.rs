@@ -4,9 +4,8 @@ use crate::code_block::CodeBlock;
 use crate::comments::*;
 use crate::cs_util::*;
 use crate::encoding::*;
-use slice::ast::{Ast, Node};
+use slice::ast::Ast;
 use slice::grammar::*;
-use slice::ref_from_node;
 use slice::util::*;
 use slice::visitor::Visitor;
 use slice::writer::Writer;
@@ -148,21 +147,19 @@ fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 }
 
 pub fn operation_return_task(operation: &Operation, is_dispatch: bool, ast: &Ast) -> String {
-    match operation.return_type {
-        ReturnType::Void(_) => {
-            if is_dispatch {
-                "global::System.Threading.Tasks.ValueTask".to_owned()
-            } else {
-                "global::System.Threading.Tasks.Task".to_owned()
-            }
+    let return_members = operation.return_members(ast);
+    if return_members.is_empty() {
+        if is_dispatch {
+            "global::System.Threading.Tasks.ValueTask".to_owned()
+        } else {
+            "global::System.Threading.Tasks.Task".to_owned()
         }
-        _ => {
-            let return_type = operation_return_type(operation, is_dispatch, ast);
-            if is_dispatch {
-                format!("global::System.Threading.Tasks.ValueTask<{}>", return_type)
-            } else {
-                format!("global::System.Threading.Tasks.Task<{}>", return_type)
-            }
+    } else {
+        let return_type = operation_return_type(operation, is_dispatch, ast);
+        if is_dispatch {
+            format!("global::System.Threading.Tasks.ValueTask<{}>", return_type)
+        } else {
+            format!("global::System.Threading.Tasks.Task<{}>", return_type)
         }
     }
 }
@@ -176,15 +173,12 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
         return "".to_owned();
     }
 
-    match return_type {
-        ReturnType::Void(_) => "void".to_owned(),
-        ReturnType::Single(type_ref, _) => param_type_to_string(&type_ref, is_dispatch, ast),
-        ReturnType::Tuple(indices, _) => {
-            let members = indices
-                .iter()
-                .map(|index| ref_from_node!(Node::Member, ast, *index))
-                .collect::<Vec<&Member>>();
-            to_tuple_type(&members, is_dispatch, ast)
+    let return_members = operation.return_members(ast);
+    match return_members.len() {
+        0 => "void".to_owned(),
+        1 => param_type_to_string(&return_members[0].data_type, is_dispatch, ast),
+        _ => {
+            to_tuple_type(&return_members, is_dispatch, ast)
         }
     }
 }
@@ -305,7 +299,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
     let operations = interface_def.operations(ast);
 
-    if !operations.iter().any(|o| o.has_non_streamed_return()) {
+    if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
         return code;
     }
 

@@ -3,7 +3,6 @@
 use crate::ast::{Ast, Node};
 use crate::error::ErrorHandler;
 use crate::grammar::*;
-use crate::ref_from_node;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
@@ -154,18 +153,10 @@ impl<'a> Visitor for TableBuilder<'a> {
         // Visit the operation's return type. Return types are placed in their own scope, to keep
         // the scopes for parameters and return-types separate.
         self.current_scope.push("_return".to_owned());
-        match &operation.return_type {
-            ReturnType::Void(_) => {}
-            ReturnType::Single(return_type, _) => {
-                return_type.visit_with(self, ast);
-            }
-            ReturnType::Tuple(return_tuple, _) => {
-                for id in return_tuple.iter() {
-                    let return_element = ref_from_node!(Node::Member, ast, *id);
-                    self.add_table_entry(return_element, index, ast);
-                    self.add_scope_patch(index);
-                }
-            }
+
+        for return_element in operation.return_members(ast) {
+            self.add_table_entry(return_element, index, ast);
+            self.add_scope_patch(index);
         }
         self.current_scope.pop();
     }
@@ -247,9 +238,6 @@ impl ScopePatcher {
                 }
                 Node::Operation(_, operation) => {
                     operation.scope = Some(scope.clone());
-                    if let ReturnType::Single(type_ref, _) = &mut operation.return_type {
-                        type_ref.scope = Some(scope);
-                    }
                 }
                 Node::Member(_, member) => {
                     member.scope = Some(scope.clone());
@@ -321,14 +309,6 @@ impl<'a> TypePatcher<'a> {
                     if let Some(underlying) = &mut enum_def.underlying {
                         let scope = enum_def.scope.as_ref().unwrap();
                         self.patch_type(underlying, scope);
-                    }
-                }
-                Node::Operation(_, operation) => {
-                    // We only have to handle the case of single return types here.
-                    // Return tuple elements will be handled by the `Member` case instead.
-                    if let ReturnType::Single(type_ref, _) = &mut operation.return_type {
-                        let scope = operation.scope.as_ref().unwrap();
-                        self.patch_type(type_ref, scope);
                     }
                 }
                 Node::Member(_, member) => {

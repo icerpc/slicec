@@ -137,9 +137,10 @@ impl Enum {
 impl Operation {
     pub fn visit_with(&self, visitor: &mut dyn Visitor, ast: &Ast, index: usize) {
         visitor.visit_operation_start(self, index, ast);
-        // We only visit the operation's parameters. Return types need to be visited manually.
-        // This is because return types are not AST nodes, but are directly owned by operations.
         for id in self.parameters.iter() {
+            ast.resolve_index(*id).visit_with(visitor, ast);
+        }
+        for id in self.return_type.iter() {
             ast.resolve_index(*id).visit_with(visitor, ast);
         }
         visitor.visit_operation_end(self, index, ast);
@@ -156,7 +157,7 @@ impl Member {
                 visitor.visit_parameter(self, index, ast);
             }
             MemberType::ReturnElement => {
-                panic!("return elements cannot be automatically visited");
+                visitor.visit_parameter(self, index, ast);
             }
         }
         self.data_type.visit_with(visitor, ast);

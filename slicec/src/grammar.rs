@@ -25,7 +25,6 @@ implement_element_for!(Class, "class");
 implement_element_for!(Exception, "exception");
 implement_element_for!(Interface, "interface");
 implement_element_for!(Enum, "enum");
-implement_element_for!(ReturnType, "return type");
 implement_element_for!(Operation, "operation");
 // Member has its own custom implementation of Element which depends on its member type.
 implement_element_for!(Enumerator, "enumerator");
@@ -58,7 +57,6 @@ implement_symbol_for!(Class);
 implement_symbol_for!(Exception);
 implement_symbol_for!(Interface);
 implement_symbol_for!(Enum);
-// ReturnType has its own custom implementation of Symbol, since it's an enum instead of a struct.
 implement_symbol_for!(Operation);
 implement_symbol_for!(Member);
 implement_symbol_for!(Enumerator);
@@ -456,25 +454,8 @@ impl Type for Enum {
 }
 
 #[derive(Clone, Debug)]
-pub enum ReturnType {
-    Void(Location),
-    Single(TypeRef, Location),
-    Tuple(Vec<usize>, Location),
-}
-
-impl Symbol for ReturnType {
-    fn location(&self) -> &Location {
-        match self {
-            Self::Void(location) => location,
-            Self::Single(_, location) => location,
-            Self::Tuple(_, location) => location,
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
 pub struct Operation {
-    pub return_type: ReturnType,
+    pub return_type: Vec<usize>,
     pub parameters: Vec<usize>,
     pub identifier: Identifier,
     pub scope: Option<String>,
@@ -485,7 +466,7 @@ pub struct Operation {
 
 impl Operation {
     pub fn new(
-        return_type: ReturnType,
+        return_type: Vec<usize>,
         identifier: Identifier,
         parameters: Vec<usize>,
         attributes: Vec<Attribute>,
@@ -510,19 +491,39 @@ impl Operation {
             .collect()
     }
 
-    pub fn has_non_streamed_params(&self, ast: &Ast) -> bool {
-        let params = self.parameters(ast);
-        !params.is_empty() && (params.len() > 1 || !params[0].data_type.is_streamed)
+    pub fn return_members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.return_type
+            .iter()
+            .map(|index| ref_from_node!(Node::Member, ast, *index))
+            .collect()
     }
 
-    pub fn has_non_streamed_return(&self) -> bool {
-        match &self.return_type {
-            ReturnType::Void(_) => false,
-            ReturnType::Single(type_ref, _) => !type_ref.is_streamed,
-            ReturnType::Tuple(_, _) => true,
+    pub fn has_non_streamed_params(&self, ast: &Ast) -> bool {
+        let parameters = self.parameters(ast);
+        // An operation can only have 1 streamed parameter; if it has more than 1 parameter, there
+        // must be non-streamed parameters. Otherwise we check if the 1 parameter is streamed
+        // (if it has any parameters at all).
+        match parameters.len() {
+            0 => false,
+            1 => parameters[0].data_type.is_streamed,
+            _ => true,
         }
     }
 
+    pub fn has_non_streamed_return(&self, ast: &Ast) -> bool {
+        let return_members = self.return_members(ast);
+        // An operation can only have 1 streamed return member; if it has more than 1 parameter,
+        // there must be non-streamed return members. Otherwise we check if the 1 parameter is
+        // streamed (if it has any parameters at all).
+        match return_members.len() {
+            0 => false,
+            1 => return_members[0].data_type.is_streamed,
+            _ => true,
+        }
+    }
+
+    // TODO: these methods can return slices instead of iterators, since an operation can only
+    // have a single streamed parameter and it must always be the last parameter.
     pub fn streamed_params<'a>(&self, ast: &'a Ast) -> impl Iterator<Item = &'a Member> {
         let params = self.parameters(ast);
         params.into_iter().filter(|p| p.data_type.is_streamed)

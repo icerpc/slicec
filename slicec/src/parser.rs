@@ -311,23 +311,33 @@ impl SliceParser {
     //   A void return type, specified by the `void` keyword.
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
-    fn return_type(input: PestNode) -> PestResult<ReturnType> {
+    fn return_type(input: PestNode) -> PestResult<Vec<usize>> {
         let location = from_span(&input);
-        Ok(match_nodes!(input.into_children();
-            [void_kw(_)] => {
-                ReturnType::Void(location)
-            },
+        Ok(match_nodes!(input.children();
+            [void_kw(_)] => Vec::new(),
+            [return_tuple(tuple)] => tuple,
             [typename(data_type)] => {
-                ReturnType::Single(data_type, location)
-            },
-            [return_tuple(tuple)] => {
-                ReturnType::Tuple(tuple, location)
+                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
+                // TODO add tag support here!!!
+                let member = Member::new(
+                    data_type,
+                    identifier,
+                    None,
+                    MemberType::ReturnElement,
+                    Vec::new(),
+                    None,
+                    location,
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                vec![ast.add_element(member)]
             },
         ))
     }
 
     // Parses a return type that is written in return tuple syntax.
     fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
+        // TODO we need to enforce there being more than 1 element here!
         Ok(match_nodes!(input.children();
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
@@ -342,7 +352,7 @@ impl SliceParser {
         ))
     }
 
-    fn operation_start(input: PestNode) -> PestResult<(ReturnType, Identifier)> {
+    fn operation_start(input: PestNode) -> PestResult<(Vec<usize>, Identifier)> {
         Ok(match_nodes!(input.into_children();
             [return_type(return_type), identifier(identifier)] => {
                 (return_type, identifier)
@@ -352,7 +362,7 @@ impl SliceParser {
 
     fn operation(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
-        let mut operation = match_nodes!(input.children();
+        let operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
                 let (return_type, identifier) = operation_start;
@@ -367,11 +377,12 @@ impl SliceParser {
 
         // Forward the operations's attributes to the return type, if it returns a single type.
         // TODO: in the future we should only forward type metadata by filtering metadata.
-        if let ReturnType::Single(return_type, _) = &mut operation.return_type {
-            return_type.attributes = operation.attributes.clone();
+        let ast = &mut input.user_data().borrow_mut().ast;
+        if operation.return_type.len() == 1 {
+            let return_member = mut_ref_from_node!(Node::Member, ast, operation.return_type[0]);
+            return_member.data_type.attributes = operation.attributes.clone();
         }
 
-        let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_element(operation))
     }
 

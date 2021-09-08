@@ -2,29 +2,27 @@
 
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
-use slice::ref_from_node;
 use slice::util::{fix_case, CaseStyle, TypeContext};
 use slice::writer::Writer;
 
 // TODOAUSTIN move this function beneath the other functions.
 pub fn return_type_to_string(
-    return_type: &ReturnType,
+    return_type: &[&Member],
     scope: &str,
     ast: &Ast,
     context: TypeContext,
 ) -> String {
     let mut type_string = "global::System.Threading.Tasks.ValueTask".to_owned();
-    match return_type {
-        ReturnType::Void(_) => {}
-        ReturnType::Single(data_type, _) => {
+    match return_type.len() {
+        0 => {}
+        1 => {
             type_string += "<";
-            type_string += &type_to_string(data_type, scope, ast, context);
+            type_string += &type_to_string(&return_type[0].data_type, scope, ast, context);
             type_string += ">";
         }
-        ReturnType::Tuple(tuple, _) => {
+        _ => {
             type_string += "<(";
-            for id in tuple.iter() {
-                let return_element = ref_from_node!(Node::Member, ast, *id);
+            for return_element in return_type {
                 type_string += format!(
                     "{} {}, ",
                     type_to_string(&return_element.data_type, scope, ast, context),

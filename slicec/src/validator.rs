@@ -143,20 +143,4 @@ impl<'a> Visitor for Validator<'a> {
             }
         }
     }
-
-    fn visit_operation_start(&mut self, operation: &Operation, _: usize, _: &Ast) {
-        // Check that return tuples have more than 1 element in them.
-        if let ReturnType::Tuple(tuple, _) = &operation.return_type {
-            if tuple.len() < 2 {
-                let error_message = format!(
-                    "Operation '{}' has too few elements in its return tuple.\nReturn tuples must \
-                     have at least 2 elements. Consider using a single return type instead.",
-                    operation.identifier(),
-                );
-                self.error_handler.report_error(
-                    (error_message, &operation.return_type).into()
-                );
-            }
-        }
-    }
 }

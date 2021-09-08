@@ -231,7 +231,7 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         }
 
         let return_type_string = return_type_to_string(
-            &operation.return_type,
+            &operation.return_members(ast),
             operation.scope(),
             ast,
             TypeContext::Outgoing,
