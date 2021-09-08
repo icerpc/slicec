@@ -84,7 +84,7 @@ public readonly partial struct {prx_impl} : {prx_impl_bases}
     {response_class}
 }}
 "#,
-            doc_comment = "foo",
+            doc_comment = "///TODO:",
             prx_interface = prx_interface,
             type_id_attribute = "", // TODO: emitTypeIdAttribute(p->scoped()),
             custom_attributes = "", // TODO: emitCustomAttributes(p),
@@ -184,14 +184,14 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
 }
 
 pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> String {
-    if members.len() == 1 {
-        return param_type_to_string(&members[0].data_type, is_dispatch, ast);
-    } else {
-        members
+    match members.len() {
+        0 => panic!("tuple type with no members"),
+        1 => param_type_to_string(&members[0].data_type, is_dispatch, ast),
+        _ => members
             .into_iter()
             .map(|m| param_type_to_string(&m.data_type, is_dispatch, ast))
             .collect::<Vec<String>>()
-            .join(", ")
+            .join(", "),
     }
 }
 
@@ -256,6 +256,10 @@ fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBl
     for operation in operations {
         let params: Vec<&Member> = operation.non_streamed_params(ast).collect();
 
+        if params.len() == 0 {
+            continue;
+        }
+
         writeln!(
             request_operations,
             r#"
@@ -263,7 +267,6 @@ fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBl
 /// <param name="prx">Typed proxy to the target service.</param>
 /// <param name="arg{s}">The request argument{s}.</param>
 /// <returns>The payload.</returns>
-
 public static global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>> {escaped_name}({prx_impl} prx, {_in}{params} arg{s}) =>
     IceRpc.Payload.{create_payload}(
         prx.Payload,
