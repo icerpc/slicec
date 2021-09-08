@@ -3,6 +3,7 @@
 use crate::code_block::CodeBlock;
 use crate::comments::*;
 use crate::cs_util::*;
+use crate::decoding::*;
 use crate::encoding::*;
 use slice::ast::Ast;
 use slice::grammar::*;
@@ -92,7 +93,7 @@ public readonly partial struct {prx_impl} : {prx_impl_bases}
             prx_impl = prx_impl,
             prx_impl_bases = prx_impl_bases.join(", "),
             request_class = request_class(interface_def, &prx_impl, ast).indent(),
-            response_class = response_class(interface_def, ast),
+            response_class = response_class(interface_def, ast).indent(),
             operations = prx_operations(interface_def, ast).indent()
         )
     }
@@ -177,9 +178,7 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
     match return_members.len() {
         0 => "void".to_owned(),
         1 => param_type_to_string(&return_members[0].data_type, is_dispatch, ast),
-        _ => {
-            to_tuple_type(&return_members, is_dispatch, ast)
-        }
+        _ => to_tuple_type(&return_members, is_dispatch, ast),
     }
 }
 
@@ -243,12 +242,10 @@ pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -
 }
 
 fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBlock {
-    let mut code = CodeBlock::new();
-
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
-        return code;
+        return "".into();
     }
 
     let mut request_operations = CodeBlock::new();
@@ -286,32 +283,67 @@ public static global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>
         )
     }
 
-    write!(code, "\
+    format!("\
 /// <summary>Converts the arguments of each operation that takes arguments into a request payload.</summary>
 public static class Request
 {{
     {}
 }}
-", request_operations.indent());
-
-    code
+", request_operations.indent()).into()
 }
 
 fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
-    let mut code = CodeBlock::new();
-
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
-        return code;
+        return "".into();
     }
 
-    code
+    let mut response_operations = CodeBlock::new();
+
+    for operation in operations {
+        let members = operation.return_members(ast);
+
+        if members.len() == 0 {
+            continue;
+        }
+
+        let escaped_name = escape_identifier(operation, CaseStyle::Pascal);
+        writeln!(
+            response_operations,
+            r#"
+/// <summary>The <see cref="IceRpc.Gen.ResponseDecodeFunc{{T}}"/> for the return value type of operation {name}.</summary>
+public static {return_type} {escaped_name}(global::System.ReadOnlyMemory<byte> payload, IceRpc.StreamParamReceiver? streamParamReceiver, IceRpc.Encoding payloadEncoding, IceRpc.Connection connection, IceRpc.IInvoker? invoker) =>
+    IceRpc.Payload.ToReturnValue(
+        payload,
+        payloadEncoding,
+        {response_decode_func},
+        connection,
+        invoker);
+    )
+"#,
+            name = operation.identifier(),
+            return_type = to_tuple_type(&members, false, ast),
+            escaped_name = escaped_name,
+            response_decode_func = response_decode_func(operation, ast)
+        );
+    }
+
+    format!(
+        r#"
+/// <summary>Holds a <see cref="IceRpc.Gen.ResponseDecodeFunc{{T}}"/> for each non-void remote operation defined in <see cref="{interface_name}Prx"/>.</summary>
+public static class Response
+{{
+    {response_operations}
+}}
+"#,
+interface_name = interface_name(interface_def),
+response_operations = response_operations.indent()
+    )
+    .into()
 }
 
 fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
-    let mut code = CodeBlock::new();
-
     // TODO: scope
     let ns = get_namespace(operation);
 
@@ -324,16 +356,9 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
         && get_bit_sequence_size(&params, ast) == 0
         && params.first().unwrap().tag.is_none()
     {
-        code.write(&encode_action(
-            &params.first().unwrap().data_type,
-            &ns,
-            true,
-            true,
-            ast,
-        ));
+        encode_action(&params.first().unwrap().data_type, &ns, true, true, ast)
     } else {
-        write!(
-            code,
+        format!(
             "\
 (IceRpc.IceEncoder encoder, {_in}{param_type} value) =>
 {{
@@ -342,8 +367,31 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
             _in = if params.len() == 1 { "" } else { "in " },
             param_type = to_tuple_type(&params, true, ast),
             encode = encode_operation(operation, false, ast).indent()
-        );
+        )
+        .into()
     }
+}
 
-    code
+fn response_decode_func(operation: &Operation, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(operation);
+    // vec of members
+    let members = operation.return_members(ast);
+
+    assert!(
+        !members.is_empty()
+            && (members.len() > 1 || !members.last().unwrap().data_type.is_streamed)
+    );
+
+    if members.len() == 1
+        && get_bit_sequence_size(&members, ast) == 0
+        && members.first().unwrap().tag.is_none()
+    {
+        decode_func(&members.first().unwrap().data_type, &ns, ast)
+    } else {
+        format!(
+            "decoder => {{ {decode} }}",
+            decode = decode_operation(operation, true, ast).indent()
+        )
+        .into()
+    }
 }

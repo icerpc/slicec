@@ -348,7 +348,15 @@ impl Interface {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Interface { identifier, operations, bases, scope: None, attributes, comment, location }
+        Interface {
+            identifier,
+            operations,
+            bases,
+            scope: None,
+            attributes,
+            comment,
+            location,
+        }
     }
 
     pub fn operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
@@ -505,7 +513,7 @@ impl Operation {
         // (if it has any parameters at all).
         match parameters.len() {
             0 => false,
-            1 => parameters[0].data_type.is_streamed,
+            1 => !parameters[0].data_type.is_streamed,
             _ => true,
         }
     }
@@ -517,7 +525,7 @@ impl Operation {
         // streamed (if it has any parameters at all).
         match return_members.len() {
             0 => false,
-            1 => return_members[0].data_type.is_streamed,
+            1 => !return_members[0].data_type.is_streamed,
             _ => true,
         }
     }

@@ -390,3 +390,9 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
 
     code
 }
+
+pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(operation);
+
+    "".into()
+}

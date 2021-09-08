@@ -52,3 +52,15 @@ impl std::iter::FromIterator<std::string::String> for CodeBlock {
         code
     }
 }
+
+impl From<String> for CodeBlock {
+    fn from(s: String) -> Self {
+        CodeBlock { content: s }
+    }
+}
+
+impl From<&str> for CodeBlock {
+    fn from(s: &str) -> Self {
+        CodeBlock { content: s.to_owned() }
+    }
+}
