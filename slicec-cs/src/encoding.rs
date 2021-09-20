@@ -46,7 +46,7 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
         // TODO: tags are not yet supported
-        // encode_tagged_type()
+        code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
     }
 
     code
@@ -110,6 +110,16 @@ pub fn encode_type(
     }
 
     code
+}
+
+pub fn encode_tagged_type(
+    member: &Member,
+    tag: u32,
+    scope: &str,
+    param: &str,
+    ast: &Ast,
+) -> CodeBlock {
+    "".into()
 }
 
 pub fn encode_sequence(
@@ -315,16 +325,16 @@ pub fn encode_action(
 
 pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
+    let ns = get_namespace(operation);
 
     let members = if return_type {
-        // TODO:
-        vec![]
+        operation.return_members(ast)
     } else {
         operation.parameters(ast)
     };
 
-    let members: Vec<&Member> = operation.non_streamed_params(ast).collect();
-    let streamed_members: Vec<&Member> = operation.streamed_params(ast).collect();
+    let (members, streamed_members): (Vec<&Member>, Vec<&Member>) =
+        members.iter().partition(|m| !m.data_type.is_streamed);
 
     let (required_members, tagged_members) = get_sorted_members(&members);
 
@@ -341,12 +351,17 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in required_members {
+        let param = if members.len() == 1 {
+            "value".to_owned()
+        } else {
+            "value.{}".to_owned() + &field_name(member, "")
+        };
         let encode_member = encode_type(
             &member.data_type,
             &mut bit_sequence_index,
             true,
-            "scope",
-            "param",
+            &ns,
+            &param,
             ast,
         );
         code.writeln(&encode_member);
@@ -357,7 +372,9 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in tagged_members {
-        // TODO: tags
+        let tag = member.tag.unwrap();
+        // TODO: tags are not yet supported
+        code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
     }
 
     code

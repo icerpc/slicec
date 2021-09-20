@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
-
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
+use crate::proxy_visitor::{param_type_to_string, to_tuple_return};
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -25,8 +25,9 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
 
     // Decode required members
     for member in required_members {
-        let decode_member = decode_type(
-            &member.data_type,
+        // TODO: scope and param
+        let decode_member = decode_member(
+            &member,
             &mut bit_sequence_index,
             "scope",
             // "this." + fixId(fieldName(member), baseTypes) //TODO: port this from C++ for param
@@ -43,8 +44,8 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
-        // TODO: tags are not yet supported
-        // decode_tagged_type()
+        // TODO: scope and param
+        code.writeln(&decode_tagged_member(member, tag, "scope", "param", ast));
     }
 
     if bit_sequence_size > 0 {
@@ -55,21 +56,22 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
 }
 
 // TODO: scope and param (scope should be passed in to type_to_string)
-pub fn decode_type(
-    type_ref: &TypeRef,
+pub fn decode_member(
+    member: &Member,
     bit_sequence_index: &mut i32,
     scope: &str,
     param: &str,
     ast: &Ast,
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
+    let data_type = &member.data_type;
 
-    let node = type_ref.definition(ast);
-    let type_string = type_to_string(type_ref, scope, ast, TypeContext::Incoming);
+    let node = data_type.definition(ast);
+    let type_string = type_to_string(data_type, scope, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
-    if type_ref.is_optional {
+    if data_type.is_optional {
         match node {
             Node::Interface(_, _) => {
                 // does not use bit sequence
@@ -86,7 +88,7 @@ pub fn decode_type(
             // write!(
             //     "decoder.DecodeNullableClass<{}>();\n",
             //     type_to_string(
-            //         ast.resolve_index(type_ref.definition.unwrap()),
+            //         ast.resolve_index(data_type.definition.unwrap()),
             //         ast,
             //         TypeContext::Incoming
             //     ));
@@ -103,7 +105,7 @@ pub fn decode_type(
 
     match node {
         Node::Interface(_, _) => {
-            assert!(!type_ref.is_optional);
+            assert!(!data_type.is_optional);
             write!(code, "new {}(decoder.DecodeProxy());", type_string)
         }
         // Node::Class(_, class_def) => {} // TODO: Class not yet implemented in the ast
@@ -134,13 +136,26 @@ pub fn decode_type(
         _ => panic!("Node does not represent a type: {:?}", node),
     }
 
-    if type_ref.is_optional {
+    if data_type.is_optional {
         code.write(" : null");
     }
 
     code.write(";");
 
     code
+}
+
+pub fn decode_tagged_member(
+    member: &Member,
+    tag: u32,
+    scope: &str,
+    param: &str,
+    ast: &Ast,
+) -> CodeBlock {
+    assert!(member.data_type.is_optional);
+    // TODO [Joe]: the corresponding C++ method as reworked on main to be much smaller than the
+    // branch I'm working off of
+    "".into()
 }
 
 pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) -> CodeBlock {
@@ -392,7 +407,122 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
 }
 
 pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
+    let mut code = CodeBlock::new();
+
     let ns = get_namespace(operation);
 
-    "".into()
+    let (all_members, non_streamed_members) = if return_type {
+        (
+            operation.return_members(ast),
+            operation.non_streamed_returns(ast),
+        )
+    } else {
+        (
+            operation.parameters(ast),
+            operation.non_streamed_params(ast),
+        )
+    };
+
+    let stream_member = if return_type {
+        operation.stream_return(ast)
+    } else {
+        operation.stream_parameter(ast)
+    };
+
+    let (required_members, tagged_members) = get_sorted_members(&non_streamed_members);
+
+    let mut bit_sequence_index = -1;
+    let bit_sequence_size = get_bit_sequence_size(&non_streamed_members, ast);
+
+    if bit_sequence_size > 0 {
+        writeln!(
+            code,
+            "var bitSequence = decoder.DecodeBitSequence({})",
+            bit_sequence_size
+        );
+        bit_sequence_index = 0;
+    }
+
+    for member in required_members {
+        code.writeln(&decode_member(
+            &member,
+            &mut bit_sequence_index,
+            &ns,
+            &member_name(member, "iceP_", true),
+            ast,
+        ));
+    }
+
+    if bit_sequence_size > 0 {
+        assert_eq!(bit_sequence_index, bit_sequence_size);
+    }
+
+    for member in tagged_members {
+        let tag = member.tag.unwrap();
+        // TODO: scope and param
+        code.writeln(&decode_tagged_member(member, tag, "scope", "param", ast));
+    }
+
+    if let Some(stream_member) = stream_member {
+        let stream_param_type = param_type_to_string(&stream_member.data_type, false, ast);
+
+        writeln!(
+            code,
+            "{param_type} {param_name}",
+            param_type = param_type_to_string(&stream_member.data_type, false, ast),
+            param_name = member_name(stream_member, "iceP_", true)
+        );
+
+        let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
+            Node::Primitive(_, primitive) if matches!(primitive, Primitive::Byte) => {
+                if return_type {
+                    "streamParamReceiver!.ToByteStream();".into()
+                } else {
+                    "IceRpc.StreamParamReceiver.ToByteStream(dispatch);".into()
+                }
+            }
+            _ => {
+                // TODO: is this if backwards (copied from C++)
+                if return_type {
+                    format!(
+                        "\
+streamParamReceiver!.ToAsyncEnumerable<{stream_param_type}>(
+    connection,
+    invoker,
+    payloadEncoding,
+    {decode_func});",
+                        stream_param_type = stream_param_type,
+                        decode_func = decode_func(&stream_member.data_type, &ns, ast)
+                    )
+                    .into()
+                } else {
+                    format!(
+                        "\
+IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
+    dispatch,
+    {decode_func});",
+                        stream_param_type = stream_param_type,
+                        decode_func = decode_func(&stream_member.data_type, &ns, ast)
+                    )
+                    .into()
+                }
+            }
+        };
+
+        writeln!(
+            code,
+            "{param_type} {param_name} = {create_stream_param}",
+            param_type = stream_param_type,
+            param_name = member_name(stream_member, "iceP_", true),
+            create_stream_param = create_stream_param.indent()
+        );
+    }
+
+    writeln!(
+        code,
+        "return {}",
+        to_tuple_return(&all_members, "iceP_", ast)
+    );
+
+    code
 }

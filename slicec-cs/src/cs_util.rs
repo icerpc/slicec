@@ -416,3 +416,13 @@ pub fn operation_format_type_to_string(operation: &Operation) -> String {
     // TODO: Austin - Implement this :)
     "default".to_owned()
 }
+
+pub fn member_name(parameter: &Member, prefix: &str, escape_keywords: bool) -> String {
+    let name = prefix.to_owned() + &fix_case(&parameter.identifier(), CaseStyle::Pascal);
+
+    if escape_keywords {
+        escape_keyword(&name)
+    } else {
+        name
+    }
+}

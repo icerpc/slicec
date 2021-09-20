@@ -186,11 +186,29 @@ pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> Strin
     match members.len() {
         0 => panic!("tuple type with no members"),
         1 => param_type_to_string(&members[0].data_type, is_dispatch, ast),
-        _ => members
-            .into_iter()
-            .map(|m| param_type_to_string(&m.data_type, is_dispatch, ast))
-            .collect::<Vec<String>>()
-            .join(", "),
+        _ => format!(
+            "({})",
+            members
+                .into_iter()
+                .map(|m| param_type_to_string(&m.data_type, is_dispatch, ast))
+                .collect::<Vec<String>>()
+                .join(", ")
+        ),
+    }
+}
+
+pub fn to_tuple_return(members: &[&Member], prefix: &str, ast: &Ast) -> String {
+    match members.len() {
+        0 => panic!("tuple type with no members"),
+        1 => member_name(&members[0], prefix, true),
+        _ => format!(
+            "({})",
+            members
+                .iter()
+                .map(|m| member_name(m, prefix, true))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
     }
 }
 
@@ -215,7 +233,7 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
             "{attributes}{param_type} {param_name}",
             attributes = "", // TOOD: getParamAttributes(p)
             param_type = type_to_string(&p.data_type, p.scope(), ast, TypeContext::Outgoing),
-            param_name = parameter_name(p, "", true)
+            param_name = member_name(p, "", true)
         ))
     }
 
@@ -231,16 +249,6 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
     params
 }
 
-pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -> String {
-    let name = prefix.to_owned() + &fix_case(&parameter.identifier(), CaseStyle::Pascal);
-
-    if escape_keywords {
-        escape_keyword(&name)
-    } else {
-        name
-    }
-}
-
 fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBlock {
     let operations = interface_def.operations(ast);
 
@@ -251,7 +259,7 @@ fn request_class(interface_def: &Interface, prx_impl: &str, ast: &Ast) -> CodeBl
     let mut request_operations = CodeBlock::new();
 
     for operation in operations {
-        let params: Vec<&Member> = operation.non_streamed_params(ast).collect();
+        let params: Vec<&Member> = operation.non_streamed_params(ast);
 
         if params.len() == 0 {
             continue;
@@ -320,7 +328,6 @@ public static {return_type} {escaped_name}(global::System.ReadOnlyMemory<byte> p
         {response_decode_func},
         connection,
         invoker);
-    )
 "#,
             name = operation.identifier(),
             return_type = to_tuple_type(&members, false, ast),
@@ -348,7 +355,7 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     let ns = get_namespace(operation);
 
     // We only want the non-streamed params
-    let params: Vec<&Member> = operation.non_streamed_params(ast).collect();
+    let params: Vec<&Member> = operation.non_streamed_params(ast);
 
     // When the operation's parameter is a T? where T is an interface or a class, there is a
     // built-in encoder, so defaultEncodeAction is true.

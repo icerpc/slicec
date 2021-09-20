@@ -100,8 +100,12 @@ impl Visitor for CsWriter<'_> {
 
         for member in struct_def.members(ast) {
             let identifier = member.identifier();
-            let type_string =
-                type_to_string(&member.data_type, struct_def.scope(), ast, TypeContext::DataMember);
+            let type_string = type_to_string(
+                &member.data_type,
+                struct_def.scope(),
+                ast,
+                TypeContext::DataMember,
+            );
 
             constructor_args.push(format!("{} {}", type_string, identifier));
 
@@ -166,16 +170,17 @@ public readonly override int GetHashCode()
                     .members(ast)
                     .iter()
                     .map(|m| {
-                        format!("this.{name} == other.{name}", name = field_name(m, "object"))
+                        format!(
+                            "this.{name} == other.{name}",
+                            name = field_name(m, "object")
+                        )
                     })
                     .collect::<Vec<_>>()
                     .join(" &&\n    "),
                 hash_members = struct_def
                     .members(ast)
                     .iter()
-                    .map(|m| {
-                        format!("hash.Add(this.{});", field_name(m, "object"))
-                    })
+                    .map(|m| { format!("hash.Add(this.{});", field_name(m, "object")) })
                     .collect::<CodeBlock>()
                     .indent()
             );
@@ -221,7 +226,12 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
                 let parameter = ref_from_node!(Node::Member, ast, *id);
                 parameters_string += format!(
                     "{} {}, ",
-                    type_to_string(&parameter.data_type, operation.scope(), ast, TypeContext::Outgoing),
+                    type_to_string(
+                        &parameter.data_type,
+                        operation.scope(),
+                        ast,
+                        TypeContext::Outgoing
+                    ),
                     parameter.identifier(),
                 )
                 .as_str();
@@ -248,9 +258,14 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
 
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
         let underlying_type = if let Some(typeref) = &enum_def.underlying {
-            type_to_string(typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+            type_to_string(
+                typeref,
+                enum_def.scope.as_ref().unwrap(),
+                ast,
+                TypeContext::Nested,
+            )
         } else {
-            "int".to_owned() //TODO we should make a builtin table to get names from.
+            "int".to_owned() // TODO we should make a builtin table to get names from.
         };
 
         self.output.write_line_separator();
@@ -294,9 +309,14 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         };
 
         let underlying_type = if let Some(typeref) = &enum_def.underlying {
-            type_to_string(typeref, enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+            type_to_string(
+                typeref,
+                enum_def.scope.as_ref().unwrap(),
+                ast,
+                TypeContext::Nested,
+            )
         } else {
-            "int".to_owned() //TODO we should make a builtin table to get names from.
+            "int".to_owned() // TODO we should make a builtin table to get names from.
         };
 
         let hash_set = if use_set {
@@ -394,7 +414,12 @@ public static class {identifier}Helper
     fn visit_data_member(&mut self, data_member: &Member, _: usize, ast: &Ast) {
         write_comment(&mut self.output, data_member);
 
-        let type_string = type_to_string(&data_member.data_type, data_member.scope(), ast, TypeContext::DataMember);
+        let type_string = type_to_string(
+            &data_member.data_type,
+            data_member.scope(),
+            ast,
+            TypeContext::DataMember,
+        );
 
         let content = format!("\npublic {} {};", type_string, data_member.identifier());
         self.output.write(&content);

@@ -530,16 +530,38 @@ impl Operation {
         }
     }
 
-    // TODO: these methods can return slices instead of iterators, since an operation can only
-    // have a single streamed parameter and it must always be the last parameter.
-    pub fn streamed_params<'a>(&self, ast: &'a Ast) -> impl Iterator<Item = &'a Member> {
-        let params = self.parameters(ast);
-        params.into_iter().filter(|p| p.data_type.is_streamed)
+    pub fn non_streamed_params<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.parameters(ast)
+            .iter()
+            .filter(|p| !p.data_type.is_streamed)
+            .cloned()
+            .collect()
     }
 
-    pub fn non_streamed_params<'a>(&self, ast: &'a Ast) -> impl Iterator<Item = &'a Member> {
+    pub fn non_streamed_returns<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        self.return_members(ast)
+            .iter()
+            .filter(|p| p.data_type.is_streamed)
+            .cloned()
+            .collect()
+    }
+
+    pub fn stream_parameter<'a>(&self, ast: &'a Ast) -> Option<&'a Member> {
         let params = self.parameters(ast);
-        params.into_iter().filter(|p| !p.data_type.is_streamed)
+
+        match params.last() {
+            Some(p) if p.data_type.is_streamed => Some(p),
+            _ => None,
+        }
+    }
+
+    pub fn stream_return<'a>(&self, ast: &'a Ast) -> Option<&'a Member> {
+        let params = self.return_members(ast);
+
+        match params.last() {
+            Some(p) if p.data_type.is_streamed => Some(p),
+            _ => None,
+        }
     }
 }
 

@@ -48,7 +48,7 @@ fn try_main() -> Result<(), ()> {
 
     if !slice_options.validate {
         for slice_file in data.slice_files.values() {
-            //TODO: actually check for the error
+            // TODO: actually check for the error
             let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
 
             {
