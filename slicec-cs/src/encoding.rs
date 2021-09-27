@@ -354,7 +354,7 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         let param = if members.len() == 1 {
             "value".to_owned()
         } else {
-            "value.{}".to_owned() + &field_name(member, "")
+            "value.".to_owned() + &field_name(member, "")
         };
         let encode_member = encode_type(
             &member.data_type,

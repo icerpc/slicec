@@ -320,26 +320,6 @@ pub fn fix_scope(scoped_identifier: &str, current_scope: &str) -> String {
     }
 }
 
-pub fn write_equality_operators(writer: &mut Writer, name: &str) {
-    writer.write_line_separator();
-    let content = format!(
-        r#"
-/// <summary>The equality operator == returns true if its operands are equal, false otherwise.</summary>
-/// <param name="lhs">The left hand side operand.</param>
-/// <param name="rhs">The right hand side operand.</param>
-/// <returns><c>true</c> if the operands are equal, otherwise <c>false</c>.</returns>
-public static bool operator ==({name} lhs, {name} rhs) => lhs.Equals(rhs);
-
-/// <summary>The inequality operator != returns true if its operands are not equal, false otherwise.</summary>"
-/// <param name="lhs">The left hand side operand.</param>
-/// <param name="rhs">The right hand side operand.</param>
-/// <returns><c>true</c> if the operands are not equal, otherwise <c>false</c>.</returns>
-public static bool operator !=({name} lhs, {name} rhs) => !lhs.Equals(rhs);"#,
-        name = name
-    );
-    writer.write(&content);
-}
-
 pub fn builtin_suffix(node: &Node) -> String {
     match node {
         Node::Primitive(_, primitive) => primitive_type_suffix(primitive),

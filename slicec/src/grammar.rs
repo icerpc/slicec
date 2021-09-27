@@ -152,6 +152,7 @@ implement_named_symbol_for!(Enumerator);
 pub trait Type {
     fn is_fixed_size(&self, ast: &Ast) -> bool;
     fn min_wire_size(&self, ast: &Ast) -> u32;
+    fn uses_classes(&self, ast: &Ast) -> bool;
 }
 
 #[derive(Clone, Debug)]
@@ -237,6 +238,16 @@ impl Type for Struct {
         }
         size
     }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        self.members(ast).iter().any(|m| {
+            m.data_type
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .uses_classes(ast)
+        })
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -294,6 +305,16 @@ impl Type for Class {
                 .min_wire_size(ast);
         }
         size
+    }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        self.members(ast).iter().any(|m| {
+            m.data_type
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .uses_classes(ast)
+        })
     }
 }
 
@@ -359,11 +380,56 @@ impl Interface {
         }
     }
 
+    pub fn all_bases<'a>(&self, ast: &'a Ast) -> Vec<&'a Interface> {
+        let mut bases = self
+            .bases(ast)
+            .iter()
+            .flat_map(|base| base.bases(ast))
+            .collect::<Vec<_>>();
+
+        bases.sort_by_key(|b| b.scoped_identifier());
+        bases.dedup_by_key(|b| b.scoped_identifier());
+
+        bases
+    }
+
+    pub fn all_base_operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
+        let mut operations = self
+            .bases(ast)
+            .iter()
+            .map(|base| base.all_operations(ast))
+            .flatten()
+            .collect::<Vec<_>>();
+
+        operations.dedup_by_key(|op| op.identifier());
+
+        operations
+    }
+
+    pub fn all_operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
+        let mut operations = self.all_base_operations(ast);
+        operations.extend_from_slice(&self.operations(ast));
+        operations.dedup_by_key(|op| op.identifier());
+
+        operations
+    }
+
+    pub fn bases<'a>(&self, ast: &'a Ast) -> Vec<&'a Interface> {
+        self.bases
+            .iter()
+            .map(|base| ref_from_node!(Node::Interface, ast, base.definition.unwrap()))
+            .collect()
+    }
+
     pub fn operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
         self.operations
             .iter()
             .map(|id| ref_from_node!(Node::Operation, ast, *id))
             .collect()
+    }
+
+    pub fn scoped_identifier(&self) -> String {
+        self.scope.clone().unwrap() + "::" + &self.identifier()
     }
 }
 
@@ -374,6 +440,10 @@ impl Type for Interface {
 
     fn min_wire_size(&self, _: &Ast) -> u32 {
         3
+    }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        false
     }
 }
 
@@ -458,6 +528,10 @@ impl Type for Enum {
         } else {
             1
         }
+    }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        false
     }
 }
 
@@ -562,6 +636,26 @@ impl Operation {
             Some(p) if p.data_type.is_streamed => Some(p),
             _ => None,
         }
+    }
+
+    pub fn sends_classes(&self, ast: &Ast) -> bool {
+        self.parameters(ast).iter().any(|p| {
+            p.data_type
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .uses_classes(ast)
+        })
+    }
+
+    pub fn returns_classes(&self, ast: &Ast) -> bool {
+        self.return_members(ast).iter().any(|p| {
+            p.data_type
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .uses_classes(ast)
+        })
     }
 }
 
@@ -740,6 +834,14 @@ impl Type for Sequence {
     fn min_wire_size(&self, _: &Ast) -> u32 {
         1
     }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        self.element_type
+            .definition(ast)
+            .as_type()
+            .unwrap()
+            .uses_classes(ast)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -762,6 +864,14 @@ impl Type for Dictionary {
 
     fn min_wire_size(&self, _: &Ast) -> u32 {
         1
+    }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        self.value_type
+            .definition(ast)
+            .as_type()
+            .unwrap()
+            .uses_classes(ast)
     }
 }
 
@@ -838,6 +948,10 @@ impl Type for Primitive {
             Self::Double => 8,
             Self::String => 1,
         }
+    }
+
+    fn uses_classes(&self, ast: &Ast) -> bool {
+        false
     }
 }
 

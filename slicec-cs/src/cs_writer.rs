@@ -91,8 +91,6 @@ impl Visitor for CsWriter<'_> {
     }
 
     fn visit_struct_end(&mut self, struct_def: &Struct, _: usize, ast: &Ast) {
-        write_equality_operators(&mut self.output, struct_def.identifier());
-
         self.output.write_line_separator();
 
         let mut constructor_args = Vec::new();
@@ -130,72 +128,20 @@ public {name}({constructor_args})
 public {name}(IceRpc.IceDecoder decoder)
 {{
     {decoder_body}
-}}"#,
+}}
+
+///<summary>Encodes the fields of this struct</summary>
+public readonly void Encode(IceRpc.IceEncoder encoder)
+{{
+    {encoder_body}
+}}
+"#,
             name = struct_def.identifier(),
             doc_comment = "", // TODO: get doc comment
             constructor_args = constructor_args.join(", "),
             constructor_body = constructor_body.join("\n    "),
-            decoder_body = decode_data_members(struct_def.members(ast).as_slice(), ast).indent()
-        );
-
-        self.output.write_line_separator();
-
-        write_fmt!(
-            self.output,
-            "
-/// <inheritdoc/>
-public readonly override bool Equals(object? obj) => obj is {name} value && this.Equals(value);",
-            name = struct_def.identifier()
-        );
-
-        if !struct_def.has_attribute("cs:custom-equals") {
-            // Default implementation for Equals and GetHashCode.
-            self.output.write_line_separator();
-            write_fmt!(
-                self.output,
-                "
-/// <inheritdoc/>
-public readonly bool Equals({name} other) =>
-    {equals};
-
-/// <inheritdoc/>
-public readonly override int GetHashCode()
-{{
-    var hash = new global::System.HashCode();
-    {hash_members}
-    return hash.ToHashCode();
-}}",
-                name = struct_def.identifier(),
-                equals = struct_def
-                    .members(ast)
-                    .iter()
-                    .map(|m| {
-                        format!(
-                            "this.{name} == other.{name}",
-                            name = field_name(m, "object")
-                        )
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" &&\n    "),
-                hash_members = struct_def
-                    .members(ast)
-                    .iter()
-                    .map(|m| { format!("hash.Add(this.{});", field_name(m, "object")) })
-                    .collect::<CodeBlock>()
-                    .indent()
-            );
-        }
-
-        self.output.write_line_separator();
-        write_fmt!(
-            self.output,
-            "
-/// <summary>Encodes the fields of this struct.</summary>
-public readonly void Encode(IceRpc.IceEncoder encoder)
-{{
-    {encode_body}
-}}",
-            encode_body = encode_data_members(&struct_def.members(ast), ast).indent()
+            decoder_body = decode_data_members(struct_def.members(ast).as_slice(), ast).indent(),
+            encoder_body = encode_data_members(struct_def.members(ast).as_slice(), ast).indent()
         );
 
         self.output.clear_line_separator();
@@ -322,15 +268,16 @@ public readonly void Encode(IceRpc.IceEncoder encoder)
         let hash_set = if use_set {
             format!(
                 "\
-\npublic static readonly global::System::Collections.Generic.HashSet<{underlying}> EnumeratorValues =
-    new global::System.Collections.Generic.HashSet<{underlying}> {{ {enum_values} }}",
+\npublic static readonly global::System.Collections.Generic.HashSet<{underlying}> EnumeratorValues =
+    new global::System.Collections.Generic.HashSet<{underlying}> {{ {enum_values} }};",
                 underlying = underlying_type,
                 enum_values = enum_def
                     .enumerators(ast)
                     .iter()
                     .map(|e| e.value.to_string())
                     .collect::<Vec<String>>()
-                    .join(","))
+                    .join(",")
+            )
         } else {
             "".to_owned()
         };

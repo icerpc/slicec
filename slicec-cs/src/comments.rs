@@ -17,15 +17,27 @@ pub fn write_comment(writer: &mut Writer, named_symbol: &dyn NamedSymbol) {
     }
 }
 
-struct CommentTag<'a> {
-    tag: &'a str,
-    content: &'a str,
-    attribute_name: &'a str,
-    attribute_value: &'a str,
+#[derive(Clone, Debug)]
+pub struct CommentTag {
+    tag: String,
+    content: String,
+    attribute_name: String,
+    attribute_value: String,
 }
 
-impl fmt::Display for CommentTag<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl CommentTag {
+    pub fn new(tag: &str, attribute_name: &str, attribute_value: &str, content: &str) -> Self {
+        Self {
+            tag: tag.to_string(),
+            content: content.to_string(),
+            attribute_name: attribute_name.to_string(),
+            attribute_value: attribute_value.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for CommentTag {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.content.is_empty() {
             // If the comment has no content don't write anything.
             return Ok(());
@@ -84,53 +96,40 @@ impl fmt::Display for CsharpComment {
         let comment = &self.0;
 
         // Write the comment's summary message.
-        writeln!(f, "{}", CommentTag {
-            tag: "summary",
-            content: &comment.message,
-            attribute_name: "",
-            attribute_value: ""
-        })?;
+        writeln!(
+            f,
+            "{}",
+            CommentTag::new("summary", "", "", &comment.message)
+        )?;
 
         // Write deprecate reason if present
         if let Some(reason) = &comment.deprecate_reason {
-            writeln!(f, "{}", CommentTag {
-                tag: "para",
-                content: reason,
-                attribute_name: "",
-                attribute_value: ""
-            })?;
+            writeln!(f, "{}", CommentTag::new("para", "", "", reason))?;
         }
 
         // Write each of the comment's parameter fields.
         for param in &comment.params {
             let (identifier, description) = param;
-            writeln!(f, "{}", CommentTag {
-                tag: "param",
-                content: description,
-                attribute_name: "name",
-                attribute_value: &identifier
-            })?;
+            writeln!(
+                f,
+                "{}",
+                CommentTag::new("param", "name", &identifier, description)
+            )?;
         }
 
         // Write the comment's returns message if it has one.
         if let Some(returns) = &comment.returns {
-            writeln!(f, "{}", CommentTag {
-                tag: "returns",
-                content: returns,
-                attribute_name: "",
-                attribute_value: ""
-            })?;
+            writeln!(f, "{}", CommentTag::new("returns", "", "", returns))?;
         }
 
         // Write each of the comment's exception fields.
         for exception in &comment.throws {
             let (exception, description) = exception;
-            writeln!(f, "{}", CommentTag {
-                tag: "exceptions",
-                content: description,
-                attribute_name: "cref",
-                attribute_value: exception
-            })?;
+            writeln!(
+                f,
+                "{}",
+                CommentTag::new("exceptions", "cref", exception, description)
+            )?;
         }
 
         Ok(())
@@ -146,38 +145,38 @@ pub fn operation_doc_comment(operation: &Operation, dispatch: bool, ast: &Ast) -
 
     if let Some(comment) = &operation.comment {
         let parsed_comment = CsharpComment::new(comment);
-        code.writeln(&CommentTag {
-            tag: "summary",
-            attribute_name: "",
-            attribute_value: "",
-            content: &parsed_comment.0.message,
-        });
+        code.writeln(&CommentTag::new(
+            "summary",
+            "",
+            "",
+            &parsed_comment.0.message,
+        ));
 
         // TODO: write params (see writeParamDocComment in C++)
     }
 
     if dispatch {
-        code.writeln(&CommentTag {
-            tag: "param",
-            attribute_name: "name",
-            attribute_value: &escape_member_name(&operation.parameters(ast), "dispatch"),
-            content: "The dispatch properties",
-        });
+        code.writeln(&CommentTag::new(
+            "param",
+            "name",
+            &escape_member_name(&operation.parameters(ast), "dispatch"),
+            "The dispatch properties",
+        ))
     } else {
-        code.writeln(&CommentTag {
-            tag: "param",
-            attribute_name: "name",
-            attribute_value: &escape_member_name(&operation.parameters(ast), "invocation"),
-            content: "The invocation properties.",
-        });
+        code.writeln(&CommentTag::new(
+            "param",
+            "name",
+            &escape_member_name(&operation.parameters(ast), "invocation"),
+            "The invocation properties.",
+        ));
     }
 
-    code.writeln(&CommentTag {
-        tag: "param",
-        attribute_name: "name",
-        attribute_value: &escape_member_name(&operation.parameters(ast), "cancel"),
-        content: "A cancellation token that receives the cancellation requests.",
-    });
+    code.writeln(&CommentTag::new(
+        "param",
+        "name",
+        &escape_member_name(&operation.parameters(ast), "cancel"),
+        "A cancellation token that receives the cancellation requests.",
+    ));
 
     // TODO: return types (see C++)
 

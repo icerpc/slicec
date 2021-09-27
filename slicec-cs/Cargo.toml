@@ -13,6 +13,7 @@ edition = "2018"
 slicec = { path = "../slicec", version = "0.1.0" }
 structopt = "0.3.13"
 regex = "1.5"
+lazy_static = "1.4"
 
 [[bin]]
 name = "slicec-cs"
