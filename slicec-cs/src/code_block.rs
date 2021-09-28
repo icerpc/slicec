@@ -70,6 +70,10 @@ impl CodeBlock {
         self.content = self.content.replace("\n", "\n    ");
         self
     }
+
+    pub fn add_block(&mut self, block: &mut Self) {
+        self.write(&format!("\n{}\n", block));
+    }
 }
 
 impl fmt::Display for CodeBlock {

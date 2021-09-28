@@ -2,6 +2,7 @@
 
 mod builders;
 mod code_block;
+mod code_map;
 mod comments;
 mod cs_options;
 mod cs_util;
@@ -10,13 +11,16 @@ mod cs_writer;
 mod decoding;
 mod encoding;
 mod proxy_visitor;
+mod struct_visitor;
 
 use slice::writer::Writer;
 
+use code_map::CodeMap;
 use cs_options::CsOptions;
 use cs_validator::CsValidator;
 use cs_writer::CsWriter;
 use proxy_visitor::ProxyVisitor;
+use struct_visitor::StructVisitor;
 use structopt::StructOpt;
 
 pub fn main() {
@@ -50,19 +54,21 @@ fn try_main() -> Result<(), ()> {
     if !slice_options.validate {
         for slice_file in data.slice_files.values() {
             // TODO: actually check for the error
-            let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
+
+            let mut code_map = CodeMap::new();
+
+            let mut visitor = StructVisitor { code_map: &mut code_map };
+            slice_file.visit_with(&mut visitor, &data.ast);
+
+            let mut proxy_visitor = ProxyVisitor { code_map: &mut code_map };
+            slice_file.visit_with(&mut proxy_visitor, &data.ast);
 
             {
-                let mut cs_writer = CsWriter::new(&mut output);
+                let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
+                let mut cs_writer = CsWriter { output: &mut output, code_map: &mut code_map };
                 slice_file.visit_with(&mut cs_writer, &data.ast);
+                output.close()
             }
-
-            {
-                let mut proxy_visitor = ProxyVisitor::new(&mut output);
-                slice_file.visit_with(&mut proxy_visitor, &data.ast);
-            }
-
-            output.close()
         }
     }
 

@@ -2,6 +2,7 @@
 
 use crate::builders::{ContainerBuilder, FunctionBuilder};
 use crate::code_block::CodeBlock;
+use crate::code_map::CodeMap;
 use crate::comments::*;
 use crate::cs_util::*;
 use crate::decoding::*;
@@ -10,33 +11,12 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
 use slice::visitor::Visitor;
-use slice::writer::Writer;
 
 pub struct ProxyVisitor<'a> {
-    output: &'a mut Writer,
+    pub code_map: &'a mut CodeMap,
 }
 
-impl<'a> ProxyVisitor<'a> {
-    pub fn new(output: &'a mut Writer) -> ProxyVisitor<'a> {
-        ProxyVisitor { output }
-    }
-}
-
-impl Visitor for ProxyVisitor<'_> {
-    fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
-        // write_comment(&mut self.output, module_def);
-        let content = format!("\nnamespace {}\n{{", module_def.identifier());
-        self.output.write(&content);
-        self.output.indent_by(4);
-    }
-
-    fn visit_module_end(&mut self, _: &Module, _: usize, _: &Ast) {
-        self.output.clear_line_separator();
-        self.output.indent_by(-4);
-        self.output.write("\n}");
-        self.output.write_line_separator();
-    }
-
+impl<'a> Visitor for ProxyVisitor<'_> {
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, ast: &Ast) {
         let prx_interface = format!("{}Prx", interface_name(interface_def)); // IFooPrx
         let prx_impl: String = prx_interface.chars().skip(1).collect(); // IFooPrx -> FooPrx
@@ -184,12 +164,13 @@ public {return_task} {async_name}({invocation_params}) =>
         }
 
         // Generate abstract methods and documentation
-        writeln!(
-            self.output,
+        let code = format!(
             "\n{interface}\n\n{proxy_impl}",
             interface = proxy_interface,
             proxy_impl = proxy_impl_builder.build()
         );
+
+        self.code_map.insert(interface_def, code.into())
     }
 }
 
@@ -229,16 +210,16 @@ public static {prx_impl} Parse(string s, IceRpc.IInvoker? invoker = null) => new
 /// <returns><c>true</c> if the s parameter was parsed successfully; otherwise, <c>false</c>.</returns>
 public static bool TryParse(string s, IceRpc.IInvoker? invoker, out {prx_impl} prx)
 {{
-if (IceRpc.Proxy.TryParse(s, invoker, out IceRpc.Proxy? proxy))
-{{
-    prx = new(proxy);
-    return true;
-}}
-else
-{{
-    prx = default;
-    return false;
-}}
+    if (IceRpc.Proxy.TryParse(s, invoker, out IceRpc.Proxy? proxy))
+    {{
+        prx = new(proxy);
+        return true;
+    }}
+    else
+    {{
+        prx = default;
+        return false;
+    }}
 }}
 
 /// <summary>Constructs an instance of <see cref="{prx_impl}"/>.</summary>
