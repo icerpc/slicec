@@ -657,6 +657,27 @@ impl Operation {
                 .uses_classes(ast)
         })
     }
+
+    pub fn compress_arguments(&self) -> bool {
+        if let Some(compress_attribute) = self.find_attribute("compress") {
+            compress_attribute.contains(&"args".to_owned())
+        } else {
+            false
+        }
+    }
+
+    pub fn compress_return(&self) -> bool {
+        if let Some(compress_attribute) = self.find_attribute("compress") {
+            compress_attribute.contains(&"return".to_owned())
+        } else {
+            false
+        }
+    }
+
+    pub fn is_idempotent(&self) -> bool {
+        // TODO: implement
+        false
+    }
 }
 
 #[derive(Clone, Debug)]

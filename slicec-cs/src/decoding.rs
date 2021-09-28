@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::proxy_visitor::{param_type_to_string, to_tuple_return};
+use crate::proxy_visitor::{parameter_type, to_argument_tuple};
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -448,7 +448,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             &member,
             &mut bit_sequence_index,
             &ns,
-            &member_name(member, "iceP_", true),
+            &parameter_name(member, "iceP_", true),
             ast,
         ));
     }
@@ -464,13 +464,13 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     if let Some(stream_member) = stream_member {
-        let stream_param_type = param_type_to_string(&stream_member.data_type, false, ast);
+        let stream_param_type = parameter_type(&stream_member.data_type, false, ast);
 
         writeln!(
             code,
             "{param_type} {param_name}",
-            param_type = param_type_to_string(&stream_member.data_type, false, ast),
-            param_name = member_name(stream_member, "iceP_", true)
+            param_type = parameter_type(&stream_member.data_type, false, ast),
+            param_name = parameter_name(stream_member, "iceP_", true)
         );
 
         let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
@@ -513,16 +513,12 @@ IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
             code,
             "{param_type} {param_name} = {create_stream_param}",
             param_type = stream_param_type,
-            param_name = member_name(stream_member, "iceP_", true),
+            param_name = parameter_name(stream_member, "iceP_", true),
             create_stream_param = create_stream_param.indent()
         );
     }
 
-    writeln!(
-        code,
-        "return {}",
-        to_tuple_return(&all_members, "iceP_", ast)
-    );
+    writeln!(code, "return {}", to_argument_tuple(&all_members, "iceP_"));
 
     code
 }

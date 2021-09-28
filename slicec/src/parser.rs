@@ -8,9 +8,7 @@ use crate::mut_ref_from_node;
 use crate::options::SliceOptions;
 use crate::slice_file::{Location, SliceFile};
 use pest::error::ErrorVariant as PestErrorVariant;
-use pest_consume::match_nodes;
-use pest_consume::Error as PestError;
-use pest_consume::Parser as PestParser;
+use pest_consume::{match_nodes, Error as PestError, Parser as PestParser};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fs;
@@ -49,9 +47,9 @@ pub(crate) struct SliceParser {
 }
 
 impl SliceParser {
-    pub(crate) fn parse_files(options: &SliceOptions) -> (Ast,
-                                                          HashMap<String, SliceFile>,
-                                                          ErrorHandler) {
+    pub(crate) fn parse_files(
+        options: &SliceOptions,
+    ) -> (Ast, HashMap<String, SliceFile>, ErrorHandler) {
         let mut parser = SliceParser::new();
 
         for path in options.sources.iter() {
@@ -94,11 +92,13 @@ impl SliceParser {
 
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
-        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &self.user_data).map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
+        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &self.user_data)
+            .map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        let (file_attributes, file_contents) =
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
         Ok(SliceFile::new(
             file.to_owned(),
             raw_text,

@@ -77,7 +77,7 @@ pub struct FunctionBuilder {
     access: String,
     name: String,
     return_type: String,
-    parameters: Vec<(String, String)>,
+    parameters: Vec<String>,
 
     body: CodeBlock,
 
@@ -129,8 +129,15 @@ impl FunctionBuilder {
         doc_comment: &str,
     ) -> &mut Self {
         self.parameters
-            .push((String::from(param_type), String::from(param_name)));
+            .push(param_type.to_owned() + " " + param_name);
         self.add_comment_with_attribute("param", "name", param_name, doc_comment)
+    }
+
+    pub fn add_parameters(&mut self, parameters: &[String]) -> &mut Self {
+        for p in parameters {
+            self.parameters.push(p.clone());
+        }
+        self
     }
 
     pub fn set_body(&mut self, body: CodeBlock) -> &mut Self {
@@ -166,12 +173,7 @@ impl FunctionBuilder {
             access = self.access,
             return_type = self.return_type,
             name = self.name,
-            parameters = self
-                .parameters
-                .iter()
-                .map(|(param_type, param_name)| format!("{} {}", param_type, param_name))
-                .collect::<Vec<_>>()
-                .join(", "),
+            parameters = self.parameters.join(", "),
             body = body
         )
         .into()

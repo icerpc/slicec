@@ -6,7 +6,7 @@ use crate::comments::*;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
-use slice::ast::Ast;
+use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
 use slice::visitor::Visitor;
@@ -74,7 +74,7 @@ impl Visitor for ProxyVisitor<'_> {
         let interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", "///TODO:")
             .add_bases(&prx_bases)
-            .add_content(prx_operations(interface_def, ast))
+            .add_content(proxy_interface_operations(interface_def, ast))
             .build();
 
         // TODO: add type id attribute and custom attribtues
@@ -210,27 +210,37 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             let mut proxy_params = operation
                 .parameters(ast)
                 .iter()
-                .map(|p| member_name(p, "", true))
+                .map(|p| parameter_name(p, "", true))
                 .collect::<Vec<_>>();
-            proxy_params.push(escape_member_name(&operation.parameters(ast), "invocation"));
-            proxy_params.push(escape_member_name(&operation.parameters(ast), "cancel"));
+            proxy_params.push(escape_parameter_name(
+                &operation.parameters(ast),
+                "invocation",
+            ));
+            proxy_params.push(escape_parameter_name(&operation.parameters(ast), "cancel"));
 
             // TODO: base interface
             // InterfaceDefPtr baseInterface = InterfaceDefPtr::dynamicCast(operation->container());
             // string basePrxImpl = getUnqualified(getNamespace(baseInterface) + "." +
             // interfaceName(baseInterface).substr(1) + "Prx", ns);
 
-            format!(
-                "\
+            proxy_impl_builder.add_content(
+                format!(
+                    "\
 /// <inheritdoc/>
 public {return_task} {async_name}({invocation_params}) =>
     new {base_prx_impl}(Proxy).{async_name}({proxy_params})",
-                return_task = return_task,
-                async_name = async_name,
-                invocation_params = invocation_params.join(", "),
-                base_prx_impl = "TODO",
-                proxy_params = proxy_params.join(", ")
+                    return_task = return_task,
+                    async_name = async_name,
+                    invocation_params = invocation_params.join(", "),
+                    base_prx_impl = "TODO",
+                    proxy_params = proxy_params.join(", ")
+                )
+                .into(),
             );
+        }
+
+        for operation in interface_def.operations(ast) {
+            proxy_impl_builder.add_content(proxy_operation_impl(operation, ast));
         }
 
         // Generate abstract methods and documentation
@@ -241,6 +251,154 @@ public {return_task} {async_name}({invocation_params}) =>
             proxy_impl = proxy_impl_builder.build()
         );
     }
+}
+
+fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(operation);
+    let operation_name = escape_identifier(operation, CaseStyle::Pascal);
+    let async_operation_name = operation_name.clone() + "Async";
+    let return_task = operation_return_task(operation, false, ast);
+    let oneway = operation.has_attribute("oneway");
+
+    let parameters = operation.non_streamed_params(ast);
+    let stream_return = operation.stream_return(ast);
+
+    let invocation_parameter = escape_parameter_name(&operation.parameters(ast), "invocation");
+    let cancel_parameter = escape_parameter_name(&operation.parameters(ast), "cancel");
+
+    let sends_classes = operation.sends_classes(ast);
+    let void_return = operation.return_type.is_empty();
+
+    let mut builder = FunctionBuilder::new("public", &return_task, &async_operation_name);
+    builder.add_parameters(&get_invocation_params(operation, ast));
+
+    let mut body = CodeBlock::new();
+
+    if operation.compress_arguments() {
+        body.writeln(&format!(
+            "\
+if {invocation}?.RequestFeatures.Get<IceRpc.Features.CompressPayload>() == null)
+{{
+{invocation}??= new IceRpc.Invocation();
+{invocation}.RequestFeatures = IceRpc.FeatureCollectionExtensions.CompressPayload({invocation}.RequestFeatures);
+}}
+",
+            invocation = invocation_parameter
+        ));
+    }
+
+    let payload_encoding = if sends_classes {
+        "IceRpc.Encoding.Ice11".to_owned()
+    } else {
+        body.writeln("var payloadEncoding = Proxy.GetIceEncoding();");
+        "payloadEncoding".to_owned()
+    };
+
+    let mut invoke_args =
+        vec![format!(r#""{}""#, operation.identifier()), payload_encoding.clone()];
+
+    // The payload argument
+    if parameters.is_empty() {
+        invoke_args.push(format!("{}.CreateEmptyPayload()", payload_encoding));
+    } else {
+        let mut request_helper_args = vec![to_argument_tuple(&parameters, "")];
+
+        if !sends_classes {
+            request_helper_args.insert(0, payload_encoding.clone());
+        }
+
+        invoke_args.push(format!(
+            "Request.{}({})",
+            operation_name,
+            request_helper_args.join(", ")
+        ));
+    }
+
+    if void_return && stream_return.is_none() {
+        invoke_args.push("_defaultIceDecoderFactories".to_owned());
+    }
+
+    // Stream parameter (if any)
+    if let Some(stream_parameter) = operation.stream_parameter(ast) {
+        let stream_parameter_name = parameter_name(stream_parameter, "", true);
+        match stream_parameter.data_type.definition(ast) {
+            Node::Primitive(_, b) if matches!(b, Primitive::Byte) => invoke_args.push(format!(
+                "new IceRpc.Slice.ByteStreamParamSender({})",
+                stream_parameter_name
+            )),
+            _ => invoke_args.push(format!(
+                "\
+new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
+{stream_parameter},
+{payload_encoding},
+{encode_action}
+)",
+                stream_type =
+                    type_to_string(&stream_parameter.data_type, &ns, ast, TypeContext::Outgoing),
+                stream_parameter = stream_parameter_name,
+                payload_encoding = payload_encoding,
+                encode_action =
+                    encode_action(&stream_parameter.data_type, &ns, true, true, ast).indent()
+            )),
+        }
+    } else {
+        invoke_args.push("streamParamSender: null".to_owned());
+    }
+
+    if !void_return {
+        invoke_args.push("Response.".to_owned() + &operation_name);
+    } else if let Some(stream_return) = stream_return {
+        let stream_return_func = match stream_return.data_type.definition(ast) {
+            Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
+                "streamParamReceiver!.ToByteStream()".to_owned()
+            }
+            _ => {
+                format!(
+                    "\
+streamParamReceiver!.ToAsyncEnumerable<{stream_type}>(
+response,
+invoker,
+response.GetIceDecoderFactory(_defaultIceDecoderFactories),
+{decode_func})",
+                    stream_type =
+                        type_to_string(&stream_return.data_type, &ns, ast, TypeContext::Incoming),
+                    decode_func = decode_func(&stream_return.data_type, &ns, ast).indent()
+                )
+            }
+        };
+
+        invoke_args.push(format!(
+            "(response, invoker, streamParamReceiver) => {}",
+            stream_return_func,
+        ));
+    }
+
+    invoke_args.push("invocation".to_owned());
+
+    if !operation.is_idempotent() {
+        invoke_args.push("idempotent: true".to_owned());
+    }
+
+    if void_return && oneway {
+        invoke_args.push("oneway: true".to_owned());
+    }
+
+    if stream_return.is_some() {
+        invoke_args.push("returnStreamParamReceiver: true".to_owned());
+    }
+
+    invoke_args.push(format!("cancel: {}", cancel_parameter));
+
+    body.writeln(&format!(
+        "\
+return Proxy.InvokeAsync(
+{});",
+        args = invoke_args.join(",\n    ")
+    ));
+
+    builder.set_body(body);
+
+    builder.build()
 }
 
 pub fn interface_name(interface_def: &Interface) -> String {
@@ -258,7 +416,7 @@ pub fn interface_name(interface_def: &Interface) -> String {
     }
 }
 
-fn prx_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
+fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
     let operations = interface_def.operations(ast);
@@ -310,8 +468,6 @@ pub fn operation_return_task(operation: &Operation, is_dispatch: bool, ast: &Ast
 }
 
 pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast) -> String {
-    let return_type = &operation.return_type;
-
     let has_marshaled_result = false; // TODO: do we still want to keep this?
 
     if is_dispatch && has_marshaled_result {
@@ -321,45 +477,42 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
     let return_members = operation.return_members(ast);
     match return_members.len() {
         0 => "void".to_owned(),
-        1 => param_type_to_string(&return_members[0].data_type, is_dispatch, ast),
+        1 => parameter_type(&return_members[0].data_type, is_dispatch, ast),
         _ => to_tuple_type(&return_members, is_dispatch, ast),
     }
 }
 
-pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> String {
+pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
     match members.len() {
         0 => panic!("tuple type with no members"),
-        1 => param_type_to_string(&members[0].data_type, is_dispatch, ast),
+        1 => parameter_name(&members[0], "", true),
         _ => format!(
             "({})",
             members
                 .into_iter()
-                .map(|m| param_type_to_string(&m.data_type, is_dispatch, ast)
-                    + " "
-                    + &field_name(&m, ""))
+                .map(|m| parameter_name(&m, prefix, true))
                 .collect::<Vec<String>>()
                 .join(", ")
         ),
     }
 }
 
-pub fn to_tuple_return(members: &[&Member], prefix: &str, ast: &Ast) -> String {
+pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> String {
     match members.len() {
         0 => panic!("tuple type with no members"),
-        1 => member_name(&members[0], prefix, true),
+        1 => parameter_type(&members[0].data_type, is_dispatch, ast),
         _ => format!(
             "({})",
             members
-                .iter()
-                .map(|m| member_name(m, prefix, true))
-                .collect::<Vec<_>>()
+                .into_iter()
+                .map(|m| parameter_type(&m.data_type, is_dispatch, ast) + " " + &field_name(&m, ""))
+                .collect::<Vec<String>>()
                 .join(", ")
         ),
     }
 }
 
-// TODO: maybe rename operation_param_to_string
-pub fn param_type_to_string(type_ref: &TypeRef, is_dispatch: bool, ast: &Ast) -> String {
+pub fn parameter_type(type_ref: &TypeRef, is_dispatch: bool, ast: &Ast) -> String {
     let context = if is_dispatch {
         TypeContext::Incoming
     } else {
@@ -379,17 +532,17 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
             "{attributes}{param_type} {param_name}",
             attributes = "", // TOOD: getParamAttributes(p)
             param_type = type_to_string(&p.data_type, p.scope(), ast, TypeContext::Outgoing),
-            param_name = member_name(p, "", true)
+            param_name = parameter_name(p, "", true)
         ))
     }
 
     params.push(format!(
         "IceRpc.Invocation? {} = null",
-        escape_member_name(&operation_parameters, "invocation")
+        escape_parameter_name(&operation_parameters, "invocation")
     ));
     params.push(format!(
         "global::System.Threading.CancellationToken {} = default",
-        escape_member_name(&operation_parameters, "cancel")
+        escape_parameter_name(&operation_parameters, "cancel")
     ));
 
     params

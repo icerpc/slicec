@@ -372,7 +372,7 @@ pub fn is_reference_type(type_ref: &TypeRef, ast: &Ast) -> bool {
     !is_value_type(type_ref, ast)
 }
 
-pub fn escape_member_name(parameters: &[&Member], name: &str) -> String {
+pub fn escape_parameter_name(parameters: &[&Member], name: &str) -> String {
     if parameters.iter().any(|p| p.identifier() == name) {
         return name.to_owned() + "_";
     } else {
@@ -397,8 +397,8 @@ pub fn operation_format_type_to_string(operation: &Operation) -> String {
     "default".to_owned()
 }
 
-pub fn member_name(parameter: &Member, prefix: &str, escape_keywords: bool) -> String {
-    let name = prefix.to_owned() + &fix_case(&parameter.identifier(), CaseStyle::Pascal);
+pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -> String {
+    let name = prefix.to_owned() + &fix_case(&parameter.identifier(), CaseStyle::Camel);
 
     if escape_keywords {
         escape_keyword(&name)

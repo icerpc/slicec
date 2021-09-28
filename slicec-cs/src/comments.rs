@@ -159,14 +159,14 @@ pub fn operation_doc_comment(operation: &Operation, dispatch: bool, ast: &Ast) -
         code.writeln(&CommentTag::new(
             "param",
             "name",
-            &escape_member_name(&operation.parameters(ast), "dispatch"),
+            &escape_parameter_name(&operation.parameters(ast), "dispatch"),
             "The dispatch properties",
         ))
     } else {
         code.writeln(&CommentTag::new(
             "param",
             "name",
-            &escape_member_name(&operation.parameters(ast), "invocation"),
+            &escape_parameter_name(&operation.parameters(ast), "invocation"),
             "The invocation properties.",
         ));
     }
@@ -174,7 +174,7 @@ pub fn operation_doc_comment(operation: &Operation, dispatch: bool, ast: &Ast) -
     code.writeln(&CommentTag::new(
         "param",
         "name",
-        &escape_member_name(&operation.parameters(ast), "cancel"),
+        &escape_parameter_name(&operation.parameters(ast), "cancel"),
         "A cancellation token that receives the cancellation requests.",
     ));
 
