@@ -71,10 +71,10 @@ impl Visitor for ProxyVisitor<'_> {
         // emitCustomAttributes(p);
         // TODO: above doc comments and attributes
 
-        let interface = ContainerBuilder::new("public partial interface", &prx_interface)
+        let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", "///TODO:")
             .add_bases(&prx_bases)
-            .add_content(proxy_interface_operations(interface_def, ast))
+            .add_block(proxy_interface_operations(interface_def, ast))
             .build();
 
         // TODO: add type id attribute and custom attribtues
@@ -83,11 +83,9 @@ impl Visitor for ProxyVisitor<'_> {
 
         proxy_impl_builder.add_bases(&prx_bases)
             .add_comment("summary", &format!(r#"Typed proxy record struct. It implements <see cref="{}"/> by sending requests to a remote IceRPC service."#, prx_interface))
-            .add_content(request_class(interface_def, ast))
-            .add_content(response_class(interface_def, ast));
-
-        proxy_impl_builder.add_content(format!(
-            r#"
+            .add_block(request_class(interface_def, ast))
+            .add_block(response_class(interface_def, ast))
+            .add_block(format!(r#"
 /// <summary>The default path for services that implement Slice interface <c>{interface_name}</c>.</summary>
 public static readonly string DefaultPath = typeof({prx_impl}).GetDefaultPath();
 
@@ -100,7 +98,7 @@ public IceRpc.Proxy Proxy {{ get; init; }}"#,
         ).into());
 
         for base_impl in all_base_impl {
-            proxy_impl_builder.add_content(
+            proxy_impl_builder.add_block(
                 format!(
                     r#"
 /// <summary>Implicit conversion to <see cref="{base_impl}"/>.</summary>
@@ -112,65 +110,7 @@ public static implicit operator {base_impl}({prx_impl} prx) => new (prx.Proxy);"
             );
         }
 
-        let static_methods = format!(
-            r#"/// <summary>Creates a new <see=cref="{prx_impl}"/> from the give connection and path.</summary>
-/// <param name="connection">The connection. If it's an outgoing connection, the endpoint of the new proxy is
-/// <see cref="Connection.RemoteEndpoint"/>; otherwise, the new proxy has no endpoint.</param>
-/// <param name="path">The path of the proxy. If null, the path is set to <see cref="DefaultPath"/>.</param>
-/// <param name="invoker">The invoker. If null and connection is an incoming connection, the invoker is set to
-/// the server's invoker.</param>
-/// <returns>The new proxy.</returns>
-public static {prx_impl} FromConnection(
-    IceRpc.Connection connection,
-    string? path = null,
-    IceRpc.IInvoker? invoker = null) =>
-    new(IceRpc.Proxy.FromConnection(connection, path ?? DefaultPath, invoker));
-
-/// <summary>Creates a new <see cref="{prx_impl}"/> with the given path and protocol.</summary>
-/// <param name="path">The path for the proxy.</param>
-/// <param name="protocol">The proxy protocol.</param>
-/// <returns>The new proxy.</returns>
-public static {prx_impl} FromPath(string path, IceRpc.Protocol protocol = IceRpc.Protocol.Ice2) =>
-    new(IceRpc.Proxy.FromPath(path, protocol));
-
-/// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
-/// <param name="s">The string representation of the proxy.</param>
-/// <param name="invoker">The invoker of the new proxy.</param>
-/// <returns>The new proxy</returns>
-/// <exception cref="global::System.FormatException"><c>s</c> does not contain a valid string representation of a proxy.</exception>
-public static {prx_impl} Parse(string s, IceRpc.IInvoker? invoker = null) => new(IceRpc.Proxy.Parse(s, invoker));
-
-/// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
-/// <param name="s">The proxy string representation.</param>
-/// <param name="invoker">The invoker of the new proxy.</param>
-/// <param name="prx">The new proxy.</param>
-/// <returns><c>true</c> if the s parameter was parsed successfully; otherwise, <c>false</c>.</returns>
-public static bool TryParse(string s, IceRpc.IInvoker? invoker, out {prx_impl} prx)
-{{
-    if (IceRpc.Proxy.TryParse(s, invoker, out IceRpc.Proxy? proxy))
-    {{
-        prx = new(proxy);
-        return true;
-    }}
-    else
-    {{
-        prx = default;
-        return false;
-    }}
-}}
-
-/// <summary>Constructs an instance of <see cref="{prx_impl}"/>.</summary>
-/// <param name="proxy">The proxy to the remote service.</param>
-public {prx_impl}(IceRpc.Proxy proxy) => Proxy = proxy;
-
-/// <inheritdoc/>
-public override string ToString() => Proxy.ToString();
-
-        "#,
-            prx_impl = interface_name(interface_def)
-        );
-
-        proxy_impl_builder.add_content(static_methods.into());
+        proxy_impl_builder.add_block(proxy_impl_static_methods(interface_def));
 
         if add_service_prx {
             let f = format!(
@@ -194,7 +134,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
     global::System.Threading.CancellationToken cancel = default) =>
     new IceRpc.ServicePrx(Proxy).IcePingAsync(invocation, cancel);"
             );
-            proxy_impl_builder.add_content(f.into());
+            proxy_impl_builder.add_block(f.into());
         }
 
         for operation in interface_def.all_base_operations(ast) {
@@ -223,7 +163,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             // string basePrxImpl = getUnqualified(getNamespace(baseInterface) + "." +
             // interfaceName(baseInterface).substr(1) + "Prx", ns);
 
-            proxy_impl_builder.add_content(
+            proxy_impl_builder.add_block(
                 format!(
                     "\
 /// <inheritdoc/>
@@ -240,19 +180,78 @@ public {return_task} {async_name}({invocation_params}) =>
         }
 
         for operation in interface_def.operations(ast) {
-            proxy_impl_builder.add_content(proxy_operation_impl(operation, ast));
+            proxy_impl_builder.add_block(proxy_operation_impl(operation, ast));
         }
 
         // Generate abstract methods and documentation
         writeln!(
             self.output,
             "\n{interface}\n\n{proxy_impl}",
-            interface = interface,
+            interface = proxy_interface,
             proxy_impl = proxy_impl_builder.build()
         );
     }
 }
 
+fn proxy_impl_static_methods(interface_def: &Interface) -> CodeBlock {
+    format!(
+        r#"/// <summary>Creates a new <see=cref="{prx_impl}"/> from the give connection and path.</summary>
+/// <param name="connection">The connection. If it's an outgoing connection, the endpoint of the new proxy is
+/// <see cref="Connection.RemoteEndpoint"/>; otherwise, the new proxy has no endpoint.</param>
+/// <param name="path">The path of the proxy. If null, the path is set to <see cref="DefaultPath"/>.</param>
+/// <param name="invoker">The invoker. If null and connection is an incoming connection, the invoker is set to
+/// the server's invoker.</param>
+/// <returns>The new proxy.</returns>
+public static {prx_impl} FromConnection(
+IceRpc.Connection connection,
+string? path = null,
+IceRpc.IInvoker? invoker = null) =>
+new(IceRpc.Proxy.FromConnection(connection, path ?? DefaultPath, invoker));
+
+/// <summary>Creates a new <see cref="{prx_impl}"/> with the given path and protocol.</summary>
+/// <param name="path">The path for the proxy.</param>
+/// <param name="protocol">The proxy protocol.</param>
+/// <returns>The new proxy.</returns>
+public static {prx_impl} FromPath(string path, IceRpc.Protocol protocol = IceRpc.Protocol.Ice2) =>
+new(IceRpc.Proxy.FromPath(path, protocol));
+
+/// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
+/// <param name="s">The string representation of the proxy.</param>
+/// <param name="invoker">The invoker of the new proxy.</param>
+/// <returns>The new proxy</returns>
+/// <exception cref="global::System.FormatException"><c>s</c> does not contain a valid string representation of a proxy.</exception>
+public static {prx_impl} Parse(string s, IceRpc.IInvoker? invoker = null) => new(IceRpc.Proxy.Parse(s, invoker));
+
+/// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
+/// <param name="s">The proxy string representation.</param>
+/// <param name="invoker">The invoker of the new proxy.</param>
+/// <param name="prx">The new proxy.</param>
+/// <returns><c>true</c> if the s parameter was parsed successfully; otherwise, <c>false</c>.</returns>
+public static bool TryParse(string s, IceRpc.IInvoker? invoker, out {prx_impl} prx)
+{{
+if (IceRpc.Proxy.TryParse(s, invoker, out IceRpc.Proxy? proxy))
+{{
+    prx = new(proxy);
+    return true;
+}}
+else
+{{
+    prx = default;
+    return false;
+}}
+}}
+
+/// <summary>Constructs an instance of <see cref="{prx_impl}"/>.</summary>
+/// <param name="proxy">The proxy to the remote service.</param>
+public {prx_impl}(IceRpc.Proxy proxy) => Proxy = proxy;
+
+/// <inheritdoc/>
+public override string ToString() => Proxy.ToString();"#,
+        prx_impl = interface_name(interface_def)
+    ).into()
+}
+
+/// The actual implementation of the proxy operation.
 fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let ns = get_namespace(operation);
     let operation_name = escape_identifier(operation, CaseStyle::Pascal);
@@ -631,7 +630,7 @@ IceRpc.Payload.{name}(
 
         builder.use_expression_body(true).set_body(body);
 
-        class_builder.add_content(builder.build());
+        class_builder.add_block(builder.build());
     }
 
     class_builder.build().into()
@@ -663,27 +662,20 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             "response.GetIceDecoderFactory(_defaultIceDecoderFactories)"
         };
 
-        let mut builder = FunctionBuilder::new(
-            "public static",
-            &to_tuple_type(&members, false, ast),
-            &escape_identifier(operation, CaseStyle::Pascal),
-        );
-
-        builder
-        .add_comment("summary", &format!(r#"The <see cref="ResponseDecodeFunc{{T}}"/> for the return value {} type of operation"#, operation.identifier()))
-        .add_parameter("IceRpc.IncomingResponse", "response", "")
-        .add_parameter("IceRpc.IInvoker?", "invoker", "")
-        .use_expression_body(true)
-        .set_body(format!("
-response.ToReturnValue(
-    invoker,
-    {decoder},
-    {response_decode_func})
-        ",
-        decoder= decoder,
-        response_decode_func = response_decode_func(operation, ast)).into());
-
-        class_builder.add_content(builder.build());
+        class_builder.add_block(format!(
+            r#"
+/// <summary>The <see cref="ResponseDecodeFunc{{T}}"/> for the return value {name} type of operation.</summary>
+public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, IceRpc.IInvoker? invoker) =>
+    response.ToReturnValue(
+        invoker,
+        {decoder},
+        {response_decode_func})"#,
+            name = operation.identifier(),
+            escaped_name = escape_identifier(operation, CaseStyle::Pascal),
+            return_type = to_tuple_type(&members, false, ast),
+            decoder = decoder,
+            response_decode_func = response_decode_func(operation, ast).indent()
+        ).into());
     }
 
     class_builder.build().into()

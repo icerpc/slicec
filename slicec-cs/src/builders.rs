@@ -31,7 +31,7 @@ impl ContainerBuilder {
         self
     }
 
-    pub fn add_content(&mut self, content: CodeBlock) -> &mut Self {
+    pub fn add_block(&mut self, content: CodeBlock) -> &mut Self {
         self.contents.push(content);
         self
     }
