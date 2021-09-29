@@ -50,13 +50,19 @@ impl SliceFile {
         // Slice supports '\n', '\r', and '\r\n' as newlines, for '\n' and '\r' the new line starts at index + 1
         // '\r\n' is handle as '\n'
         let mut line_positions = vec![0]; // The first line always starts at index 0.
-        line_positions.extend(raw_text.as_bytes().windows(2).enumerate().filter_map(|c| {
-            if (c.1[0] as char == '\n') || (c.1[0] as char == '\r' && c.1[1] as char != '\n') {
-                Some(c.0 + 1)
-            } else {
-                None
-            }
-        }));
+        line_positions.extend(
+            raw_text
+                .as_bytes()
+                .windows(2)
+                .enumerate()
+                .filter_map(|(i, c)| {
+                    if (c[0] as char == '\n') || (c[0] as char == '\r' && c[1] as char != '\n') {
+                        Some(i + 1)
+                    } else {
+                        None
+                    }
+                }),
+        );
 
         // Extract the name of the slice file without its extension.
         let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
