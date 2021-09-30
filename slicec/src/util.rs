@@ -47,27 +47,17 @@ impl SliceFile {
         is_source: bool,
     ) -> Self {
         // Store the starting position of each line the file.
-        // Slice supports '\n', '\r', and '\r\n' as newlines.
+        // Slice supports '\n', '\r', and '\r\n' as newlines, for '\n' and '\r' the new line starts at index + 1
+        // '\r\n' is handled the same as '\n'
         let mut line_positions = vec![0]; // The first line always starts at index 0.
-        let mut last_char_was_carriage_return = false;
-
-        // Iterate through each character in the file.
-        // If we hit a '\n' we immediately store `index + 1` as the starting position for the next
-        // line (`+ 1` because the line starts after the newline character).
-        // If we hit a '\r' we wait and read the next character to see if it's a '\n'.
-        // If so, the '\n' block handles it, otherwise we store `index`
-        // (no plus one, because we've already read ahead to the next character).
-        for (index, character) in raw_text.chars().enumerate() {
-            if character == '\n' {
-                line_positions.push(index + 1);
-                last_char_was_carriage_return = false;
-            } else {
-                if last_char_was_carriage_return {
-                    line_positions.push(index);
+        line_positions.extend(raw_text.chars().enumerate().filter_map(|(i, c)| {
+            if let Some(next) = raw_text.chars().skip(i + 1).next() {
+                if c == '\n' || (c == '\r' && next != '\n') {
+                    return Some(i + 1);
                 }
-                last_char_was_carriage_return = character == '\r';
             }
-        }
+            None
+        }));
 
         // Extract the name of the slice file without its extension.
         let filename = Path::new(&relative_path).file_stem().unwrap().to_os_string().into_string().unwrap();
