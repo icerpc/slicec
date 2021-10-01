@@ -615,7 +615,7 @@ impl Operation {
     pub fn non_streamed_returns<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
         self.return_members(ast)
             .iter()
-            .filter(|p| p.data_type.is_streamed)
+            .filter(|p| !p.data_type.is_streamed)
             .cloned()
             .collect()
     }

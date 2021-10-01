@@ -406,3 +406,18 @@ pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -
         name
     }
 }
+
+pub fn interface_name(interface_def: &Interface) -> String {
+    let identifier = fix_case(interface_def.identifier(), CaseStyle::Pascal);
+    let mut chars = identifier.chars();
+
+    // Check if the interface already follows the 'I' prefix convention.
+    if identifier.chars().count() > 2
+        && chars.next().unwrap() == 'I'
+        && chars.next().unwrap().is_uppercase()
+    {
+        identifier.to_owned()
+    } else {
+        format!("I{}", identifier)
+    }
+}

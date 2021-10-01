@@ -9,17 +9,19 @@ mod cs_util;
 mod cs_validator;
 mod cs_writer;
 mod decoding;
+mod dispatch_visitor;
 mod encoding;
 mod proxy_visitor;
 mod struct_visitor;
-
-use slice::writer::Writer;
 
 use code_map::CodeMap;
 use cs_options::CsOptions;
 use cs_validator::CsValidator;
 use cs_writer::CsWriter;
+use dispatch_visitor::DispatchVisitor;
 use proxy_visitor::ProxyVisitor;
+use slice::visitor::Visitor;
+use slice::writer::Writer;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;
 
@@ -62,6 +64,9 @@ fn try_main() -> Result<(), ()> {
 
             let mut proxy_visitor = ProxyVisitor { code_map: &mut code_map };
             slice_file.visit_with(&mut proxy_visitor, &data.ast);
+
+            let mut dispatch_visitor = DispatchVisitor { code_map: &mut code_map };
+            slice_file.visit_with(&mut dispatch_visitor, &data.ast);
 
             {
                 let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();

@@ -187,14 +187,14 @@ public static {prx_impl} FromConnection(
 IceRpc.Connection connection,
 string? path = null,
 IceRpc.IInvoker? invoker = null) =>
-new(IceRpc.Proxy.FromConnection(connection, path ?? DefaultPath, invoker));
+    new(IceRpc.Proxy.FromConnection(connection, path ?? DefaultPath, invoker));
 
 /// <summary>Creates a new <see cref="{prx_impl}"/> with the given path and protocol.</summary>
 /// <param name="path">The path for the proxy.</param>
 /// <param name="protocol">The proxy protocol.</param>
 /// <returns>The new proxy.</returns>
 public static {prx_impl} FromPath(string path, IceRpc.Protocol protocol = IceRpc.Protocol.Ice2) =>
-new(IceRpc.Proxy.FromPath(path, protocol));
+    new(IceRpc.Proxy.FromPath(path, protocol));
 
 /// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
 /// <param name="s">The string representation of the proxy.</param>
@@ -381,21 +381,6 @@ return Proxy.InvokeAsync(
     builder.build()
 }
 
-pub fn interface_name(interface_def: &Interface) -> String {
-    let identifier = fix_case(interface_def.identifier(), CaseStyle::Pascal);
-    let mut chars = identifier.chars();
-
-    // Check if the interface already follows the 'I' prefix convention.
-    if identifier.chars().count() > 2
-        && chars.next().unwrap() == 'I'
-        && chars.next().unwrap().is_uppercase()
-    {
-        identifier.to_owned()
-    } else {
-        format!("I{}", identifier)
-    }
-}
-
 fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
@@ -571,13 +556,13 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         if params.len() == 1 {
             builder.add_parameter(
-                &to_tuple_type(&params, true, ast),
+                &to_tuple_type(&params, false, ast),
                 "arg",
                 "The request argument.",
             );
         } else {
             builder.add_parameter(
-                &format!("in {}", to_tuple_type(&params, true, ast)),
+                &format!("in {}", to_tuple_type(&params, false, ast)),
                 "args",
                 "The request arguments.",
             );
