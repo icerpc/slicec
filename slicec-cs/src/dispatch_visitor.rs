@@ -317,11 +317,11 @@ fn operation_dispatch_body(operation: &Operation, ast: &Ast) -> CodeBlock {
     let operation_name = &escape_identifier(operation, CaseStyle::Pascal);
     let parameters = operation.parameters(ast);
     let stream_parameter = operation.stream_parameter(ast);
-    let stream_return = operation.stream_return(ast);
+    let return_parameters = operation.return_members(ast);
 
     let mut code = CodeBlock::new();
 
-    if stream_parameter.is_some() {
+    if stream_parameter.is_none() {
         code.writeln("request.StreamReadingComplete();");
     }
 
@@ -392,7 +392,116 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
         }
     };
 
-    let returns_classes = operation.returns_classes(ast);
+    // TODO: if operation.has_marshaled_result() {}
+    // else {
+
+    let mut args = vec![];
+
+    if parameters.len() == 1 {
+        args.push(parameter_name(parameters.first().unwrap(), "iceP_", true));
+    } else if parameters.len() > 1 {
+        args.extend(
+            parameters
+                .iter()
+                .map(|parameter| "args.".to_owned() + &field_name(parameter, "")),
+        );
+    };
+
+    args.push("dispatch".to_owned());
+    args.push("cancel".to_owned());
+
+    writeln!(
+        code,
+        "{return_value}await target.{operation_name}({args}).ConfigureAwait(false);",
+        return_value = if !return_parameters.is_empty() {
+            "var returnValue = "
+        } else {
+            ""
+        },
+        operation_name = operation_name,
+        args = args.join(", ")
+    );
+
+    let encoding = if operation.returns_classes(ast) {
+        "IceRpc.Encoding.Ice11"
+    } else {
+        code.writeln("var payloadEncoding = request.GetIceEncoding();");
+        "payloadEncoding"
+    };
+
+    writeln!(
+        code,
+        "return ({encoding}, {payload}, {stream});",
+        encoding = encoding,
+        payload = dispatch_return_payload(operation, encoding, ast),
+        stream = stream_param_sender(operation, encoding, ast)
+    );
+
+    // }
 
     code
+}
+
+fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> CodeBlock {
+    let return_values = operation.return_members(ast);
+    let return_stream = operation.stream_return(ast);
+    let non_streamed_return_values = operation.non_streamed_returns(ast);
+
+    let mut returns = vec![];
+
+    if !operation.returns_classes(ast) {
+        returns.push(encoding.to_owned());
+    }
+
+    if return_stream.is_some() {
+        returns.extend(
+            non_streamed_return_values
+                .iter()
+                .map(|return_value| "returnValue.".to_owned() + &field_name(return_value, "")),
+        );
+    } else {
+        returns.push("returnValue".to_owned());
+    };
+
+    match return_values.len() {
+        0 => format!("{}.CreateEmptyPayload()", encoding),
+        1 if return_stream.is_some() => format!("{}.CreateEmptyPayload()", encoding),
+        _ => format!(
+            "Response.{operation_name}({args})",
+            operation_name = escape_identifier(operation, CaseStyle::Pascal),
+            args = returns.join(", ")
+        ),
+    }
+    .into()
+}
+
+fn stream_param_sender(operation: &Operation, encoding: &str, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(operation);
+    let return_values = operation.return_members(ast);
+    if let Some(stream_parameter) = operation.stream_parameter(ast) {
+        let node = stream_parameter.data_type.definition(ast);
+
+        let stream_arg = if return_values.len() == 1 {
+            "returnValue".to_owned()
+        } else {
+            "returnValue.".to_owned() + &field_name(stream_parameter, "")
+        };
+
+        let stream_type =
+            type_to_string(&stream_parameter.data_type, &ns, ast, TypeContext::Outgoing);
+
+        match node {
+        Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
+            format!("new IceRpc.Slice.ByteStreamParamSender({})", stream_arg).into()
+        }
+        _ => format!("\
+    new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>({stream_arg}, {encoding} {decode_func})",
+        stream_type = stream_type,
+        stream_arg = stream_arg,
+        encoding = encoding,
+        decode_func = decode_func(&stream_parameter.data_type, &ns, ast)).into()
+    }
+    } else {
+        "null".into()
+    }
 }
