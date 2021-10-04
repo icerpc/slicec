@@ -82,20 +82,13 @@ pub fn decode_member(
                 );
                 return code;
             }
-            // TODO: this else if once we have Node::Class
-            // Node::Class(_, class_def) => {
-            // // does not use bit sequence
-            // write!(
-            //     "decoder.DecodeNullableClass<{}>();\n",
-            //     type_to_string(
-            //         ast.resolve_index(data_type.definition.unwrap()),
-            //         ast,
-            //         TypeContext::Incoming
-            //     ));
-            // return code;
-            // }
+            Node::Class(_, _) => {
+                // does not use bit sequence
+                writeln!(code, "decoder.DecodeNullableClass<{}>();", type_string);
+                return code;
+            }
             _ => {
-                assert!(*bit_sequence_index > 0);
+                assert!(*bit_sequence_index >= 0);
                 write!(code, "bitSequence[{}]", *bit_sequence_index);
                 *bit_sequence_index += 1;
                 // keep going
@@ -106,9 +99,12 @@ pub fn decode_member(
     match node {
         Node::Interface(_, _) => {
             assert!(!data_type.is_optional);
-            write!(code, "new {}(decoder.DecodeProxy());", type_string)
+            write!(code, "new {}(decoder.DecodeProxy());", type_string);
         }
-        // Node::Class(_, class_def) => {} // TODO: Class not yet implemented in the ast
+        Node::Class(_, _) => {
+            assert!(!data_type.is_optional);
+            write!(code, "decoder.DecodeClass<{}>();", type_string);
+        }
         Node::Primitive(_, primitive_def) => {
             write!(
                 code,
@@ -153,9 +149,19 @@ pub fn decode_tagged_member(
     ast: &Ast,
 ) -> CodeBlock {
     assert!(member.data_type.is_optional);
-    // TODO [Joe]: the corresponding C++ method as reworked on main to be much smaller than the
-    // branch I'm working off of
-    "".into()
+
+    // TODO : add tag_format to Type trait
+    // member.tagged_format.unwrap()
+    let tag_format = "";
+
+    format!(
+        "{param} = decoder.DecodeType({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
+        param = param,
+        tag = tag,
+        tag_format = tag_format,
+        decode_func = decode_func(&member.data_type, scope, ast)
+    )
+    .into()
 }
 
 pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) -> CodeBlock {

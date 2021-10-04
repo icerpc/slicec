@@ -805,7 +805,7 @@ impl TypeRef {
         if self.is_optional {
             match node {
                 Node::Interface(_, _) => 1,
-                // Node::Class(_, _) => 1, TODO: class support
+                Node::Class(_, _) => 1,
                 _ => 0,
             }
         } else {

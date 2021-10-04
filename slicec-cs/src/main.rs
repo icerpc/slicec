@@ -20,7 +20,6 @@ use cs_validator::CsValidator;
 use cs_writer::CsWriter;
 use dispatch_visitor::DispatchVisitor;
 use proxy_visitor::ProxyVisitor;
-use slice::visitor::Visitor;
 use slice::writer::Writer;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;

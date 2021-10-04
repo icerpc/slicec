@@ -15,7 +15,7 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     let mut bit_sequence_index = -1;
     // Tagged members are encoded in a dictionary and don't count towards the optional bit sequence
     // size.
-    let bit_sequence_size = get_bit_sequence_size(members, ast);
+    let bit_sequence_size = get_bit_sequence_size(&required_members, ast);
 
     if bit_sequence_size > 0 {
         writeln!(
@@ -45,7 +45,7 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
-        // TODO: tags are not yet supported
+        // TODO: scope and param
         code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
     }
 
@@ -67,7 +67,10 @@ pub fn encode_type(
     match node {
         Node::Interface(_, _) => {
             writeln!(code, "encoder.EncodeProxy({}.Proxy);", param)
-        } // Node::Class(_, _) => {} //TODO
+        }
+        Node::Class(_, _) => {
+            writeln!(code, "encoder.EncodeClass({});", param)
+        }
         Node::Primitive(_, _) => {
             writeln!(code, "encoder.Encode{}({});", builtin_suffix(node), param)
         }
@@ -117,8 +120,13 @@ pub fn encode_tagged_type(
     tag: u32,
     scope: &str,
     param: &str,
+    context: TypeContext,
     ast: &Ast,
 ) -> CodeBlock {
+    let mut value = param.to_owned();
+
+    let node = member.data_type.definition(ast);
+
     "".into()
 }
 
@@ -215,9 +223,11 @@ pub fn encode_as_optional(
         Node::Interface(_, _) => {
             writeln!(code, "encoder.EncodeNullableProxy({}?.Proxy);", param)
         }
-        // Node::Class(_,_) //TODO: classes
+        Node::Class(_, _) => {
+            writeln!(code, "encoder.EncodeNullableClass({});", param)
+        }
         _ => {
-            assert!(*bit_sequence_index > 0);
+            assert!(*bit_sequence_index >= 0);
             let read_only_memory = if let Node::Sequence(_, sequence_def) = node {
                 let has_custom_type = sequence_def.element_type.has_attribute("cs:generic:");
                 sequence_def.is_element_fixed_sized_numeric(ast)
@@ -237,11 +247,11 @@ pub fn encode_as_optional(
                 "\
 if ({param}{as_span} != null)
 {{
-{encode_type}
+    {encode_type}
 }}
 else
 {{
-bitSequence[{bit_sequence_index}] = false;
+    bitSequence[{bit_sequence_index}] = false;
 }}
 ",
                 param = param,
@@ -339,6 +349,7 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     let (required_members, tagged_members) = get_sorted_members(&members);
 
     let mut bit_sequence_index = -1;
+
     let bit_sequence_size = get_bit_sequence_size(&members, ast);
 
     if bit_sequence_size > 0 {
@@ -373,7 +384,6 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
 
     for member in tagged_members {
         let tag = member.tag.unwrap();
-        // TODO: tags are not yet supported
         code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
     }
 
