@@ -239,7 +239,11 @@ if ({param} != null)
 {{
     encoder.EncodeTagged({args})
 }}",
-        param = if read_only_memory { param + ".Span" } else { param },
+        param = if read_only_memory {
+            param.to_owned() + ".Span"
+        } else {
+            param.to_owned()
+        },
         args = args.join(", "),
     );
 
