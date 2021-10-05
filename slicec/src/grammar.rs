@@ -11,31 +11,34 @@ pub trait Element {
 }
 
 macro_rules! implement_element_for {
-    ($a:ty, $b:literal) => {
-        impl Element for $a {
-            fn kind(&self) -> &'static str {
-                $b
+    ( $( ($a:ty, $b:literal) ),* ) => {
+        $(
+            impl Element for $a {
+                fn kind(&self) -> &'static str {
+                    $b
+                }
             }
-        }
+        )*
     };
 }
 
-implement_element_for!(Module, "module");
-implement_element_for!(Struct, "struct");
-implement_element_for!(Class, "class");
-implement_element_for!(Exception, "exception");
-implement_element_for!(Interface, "interface");
-implement_element_for!(Enum, "enum");
-implement_element_for!(Operation, "operation");
-// Member has its own custom implementation of Element which depends on its member type.
-implement_element_for!(Enumerator, "enumerator");
-implement_element_for!(Identifier, "identifier");
-implement_element_for!(TypeRef, "type ref");
-implement_element_for!(Sequence, "sequence");
-implement_element_for!(Dictionary, "dictionary");
-// Primitive has its own custom implementation of Element which returns the primitive's type name.
-implement_element_for!(Attribute, "attribute");
-implement_element_for!(DocComment, "comment");
+// Member and Primitive have their own custom implementations.
+implement_element_for!(
+    (Attribute, "attribute"),
+    (Class, "class"),
+    (Dictionary, "dictionary"),
+    (DocComment, "comment"),
+    (Enum, "enum"),
+    (Enumerator, "enumerator"),
+    (Exception, "exception"),
+    (Identifier, "identifier"),
+    (Interface, "interface"),
+    (Module, "module"),
+    (Operation, "operation"),
+    (Sequence, "sequence"),
+    (Struct, "struct"),
+    (TypeRef, "type ref")
+);
 
 /// Symbols represent elements of the actual source code written in the slice file.
 pub trait Symbol: Element {
@@ -43,28 +46,21 @@ pub trait Symbol: Element {
 }
 
 macro_rules! implement_symbol_for {
-    ($a:ty) => {
-        impl Symbol for $a {
-            fn location(&self) -> &Location {
-                &self.location
+    ( $( $a:ty ),* ) => {
+        $(
+            impl Symbol for $a {
+                fn location(&self) -> &Location {
+                    &self.location
+                }
             }
-        }
+        )*
     };
 }
 
-implement_symbol_for!(Module);
-implement_symbol_for!(Struct);
-implement_symbol_for!(Class);
-implement_symbol_for!(Exception);
-implement_symbol_for!(Interface);
-implement_symbol_for!(Enum);
-implement_symbol_for!(Operation);
-implement_symbol_for!(Member);
-implement_symbol_for!(Enumerator);
-implement_symbol_for!(Identifier);
-implement_symbol_for!(TypeRef);
-implement_symbol_for!(Attribute);
-implement_symbol_for!(DocComment);
+implement_symbol_for!(
+    Attribute, Class, DocComment, Enum, Enumerator, Exception, Identifier, Interface, Member,
+    Module, Operation, Struct, TypeRef
+);
 
 /// Scoped symbols are symbols that are sensitive to their enclosing scopes.
 /// These also support having attributes placed on them, and provide methods for handling them.
@@ -78,46 +74,41 @@ pub trait ScopedSymbol: Symbol {
 }
 
 macro_rules! implement_scoped_symbol_for {
-    ($a:ty) => {
-        impl ScopedSymbol for $a {
-            fn attributes(&self) -> &Vec<Attribute> {
-                &self.attributes
-            }
-
-            /// Checks if the symbol has the specified attribute, and if so, returns it's
-            /// arguments as a string vector. If it doesn't, it returns 'None'.
-            fn find_attribute(&self, directive: &str) -> Option<&Vec<String>> {
-                for m in &self.attributes {
-                    if m.qualified_directive == directive {
-                        return Some(&m.arguments);
-                    }
+    ( $( $a:ty ),* ) => {
+        $(
+            impl ScopedSymbol for $a {
+                fn attributes(&self) -> &Vec<Attribute> {
+                    &self.attributes
                 }
-                return None;
-            }
 
-            /// Returns true if the symbol has the specified attribute on it,
-            /// and false otherwise.
-            fn has_attribute(&self, directive: &str) -> bool {
-                self.find_attribute(directive).is_some()
-            }
+                /// Checks if the symbol has the specified attribute, and if so, returns it's
+                /// arguments as a string vector. If it doesn't, it returns 'None'.
+                fn find_attribute(&self, directive: &str) -> Option<&Vec<String>> {
+                    for m in &self.attributes {
+                        if m.qualified_directive == directive {
+                            return Some(&m.arguments);
+                        }
+                    }
+                    return None;
+                }
 
-            fn scope(&self) -> &str {
-                self.scope.as_ref().unwrap()
+                /// Returns true if the symbol has the specified attribute on it,
+                /// and false otherwise.
+                fn has_attribute(&self, directive: &str) -> bool {
+                    self.find_attribute(directive).is_some()
+                }
+
+                fn scope(&self) -> &str {
+                    self.scope.as_ref().unwrap()
+                }
             }
-        }
+        )*
     };
 }
 
-implement_scoped_symbol_for!(Module);
-implement_scoped_symbol_for!(Struct);
-implement_scoped_symbol_for!(Class);
-implement_scoped_symbol_for!(Exception);
-implement_scoped_symbol_for!(Interface);
-implement_scoped_symbol_for!(Enum);
-implement_scoped_symbol_for!(Operation);
-implement_scoped_symbol_for!(Member);
-implement_scoped_symbol_for!(Enumerator);
-implement_scoped_symbol_for!(TypeRef);
+implement_scoped_symbol_for!(
+    Class, Enum, Enumerator, Exception, Interface, Member, Module, Operation, Struct, TypeRef
+);
 
 /// NamedSymbols are scoped symbols that have an identifier attached to them.
 pub trait NamedSymbol: ScopedSymbol {
@@ -126,28 +117,24 @@ pub trait NamedSymbol: ScopedSymbol {
 }
 
 macro_rules! implement_named_symbol_for {
-    ($a:ty) => {
-        impl NamedSymbol for $a {
-            fn identifier(&self) -> &str {
-                &self.identifier.value
-            }
+    ( $( $a:ty ),* ) => {
+        $(
+            impl NamedSymbol for $a {
+                fn identifier(&self) -> &str {
+                    &self.identifier.value
+                }
 
-            fn comment(&self) -> Option<&DocComment> {
-                self.comment.as_ref()
+                fn comment(&self) -> Option<&DocComment> {
+                    self.comment.as_ref()
+                }
             }
-        }
+        )*
     };
 }
 
-implement_named_symbol_for!(Module);
-implement_named_symbol_for!(Struct);
-implement_named_symbol_for!(Class);
-implement_named_symbol_for!(Exception);
-implement_named_symbol_for!(Interface);
-implement_named_symbol_for!(Enum);
-implement_named_symbol_for!(Operation);
-implement_named_symbol_for!(Member);
-implement_named_symbol_for!(Enumerator);
+implement_named_symbol_for!(
+    Class, Enum, Enumerator, Exception, Interface, Member, Module, Operation, Struct
+);
 
 /// Base trait that all elements representing types implement.
 pub trait Type {
