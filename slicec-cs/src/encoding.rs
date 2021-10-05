@@ -46,7 +46,9 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
         // TODO: scope and param
-        code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
+        code.writeln(&encode_tagged_type(
+            member, tag, "scope", "param", true, ast,
+        ));
     }
 
     code
@@ -115,19 +117,124 @@ pub fn encode_type(
     code
 }
 
+// TODO: should is_data_member be TypeContext instead of bool?
 pub fn encode_tagged_type(
     member: &Member,
     tag: u32,
     scope: &str,
     param: &str,
-    context: TypeContext,
+    is_data_member: bool,
     ast: &Ast,
 ) -> CodeBlock {
-    let mut value = param.to_owned();
+    let mut code = CodeBlock::new();
 
     let node = member.data_type.definition(ast);
 
-    "".into()
+    let read_only_memory = match node {
+        Node::Sequence(_, sequence_def)
+            if sequence_def.is_fixed_size(ast)
+                && !is_data_member
+                && !member.data_type.has_attribute("cs:generic") =>
+        {
+            true
+        }
+        _ => false,
+    };
+
+    let value = if is_value_type(&member.data_type, ast) && !read_only_memory {
+        format!("{}.Value", param)
+    } else {
+        param.to_owned()
+    };
+
+    // For types with a known size, we provide a size parameter with the size of the tagged
+    // param/member:
+    let mut size_parameter = String::new();
+
+    match node {
+        Node::Primitive(_, primitive_def) => {
+            if primitive_def.is_fixed_size(ast) {
+                size_parameter = primitive_def.min_wire_size(ast).to_string();
+            } else {
+                if !matches!(primitive_def, Primitive::String) {
+                    if primitive_def.is_unsigned_numeric() {
+                        size_parameter = format!("IceRpc.GetVarULongEncodedSize({})", value)
+                    } else {
+                        size_parameter = format!("IceRpc.GetVarLongEncodedSize({})", value)
+                    }
+                }
+                // else no size
+            }
+        }
+        Node::Struct(_, struct_def) => {
+            if struct_def.is_fixed_size(ast) {
+                size_parameter = struct_def.min_wire_size(ast).to_string();
+            }
+        }
+        Node::Enum(_, enum_def) => {
+            if let Some(underlying) = &enum_def.underlying {
+                size_parameter = underlying.min_wire_size(ast).to_string();
+            } else {
+                size_parameter = format!("encoder.GetSizeLength((int){})", value);
+            }
+        }
+        Node::Sequence(_, sequence_def) => {
+            let element_type = &sequence_def.element_type;
+
+            if element_type.is_fixed_size(ast) {
+                if read_only_memory {
+                    size_parameter = format!(
+                        "encoder.GetSizeLength({value}) + {element_min_wire_size} * {value}.Length",
+                        value = value,
+                        element_min_wire_size = element_type.min_wire_size(ast)
+                    );
+                } else {
+                    writeln!(code, "int count = {}.Count();", value);
+                    size_parameter = format!(
+                        "encoder.GetSizeLength(count) + {} * count",
+                        element_type.min_wire_size(ast)
+                    )
+                }
+            }
+        }
+        Node::Dictionary(_, dictionary_def) => {
+            let key_type = &dictionary_def.key_type;
+            let value_type = &dictionary_def.value_type;
+
+            if key_type.is_fixed_size(ast) && value_type.is_fixed_size(ast) {
+                writeln!(code, "int count = {}.Count();", value);
+                size_parameter = format!(
+                    "encoder.GetSizeLength(count) + {min_wire_size} * count",
+                    min_wire_size = key_type.min_wire_size(ast) + value_type.min_wire_size(ast)
+                );
+            }
+        }
+        Node::Interface(_, _) => {}
+        _ => panic!("unexpected node type: {:?}", node),
+    }
+
+    let mut args = vec![];
+    args.push(tag.to_string());
+    // TODO: get tag format
+    args.push(format!("IceRpc.Slice.TagFormat.{}", "TAG_FORMAT"));
+    args.push(value);
+    if !size_parameter.is_empty() {
+        args.push("size: ".to_owned() + &size_parameter);
+    }
+    args.push(
+        encode_action(
+            &member.data_type,
+            scope,
+            !is_data_member,
+            !is_data_member,
+            ast,
+        )
+        .to_string(),
+    );
+
+    writeln!(code, "encoder.EncodeTagged({})", args.join(", "));
+
+    code
 }
 
 pub fn encode_sequence(
@@ -384,7 +491,10 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
 
     for member in tagged_members {
         let tag = member.tag.unwrap();
-        code.writeln(&encode_tagged_type(member, tag, "scope", "param", ast));
+        // TODO: scope and parameter
+        code.writeln(&encode_tagged_type(
+            member, tag, "scope", "param", false, ast,
+        ));
     }
 
     code

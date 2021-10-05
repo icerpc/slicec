@@ -65,7 +65,7 @@ implement_symbol_for!(TypeRef);
 implement_symbol_for!(Attribute);
 implement_symbol_for!(DocComment);
 
-/// Scoped symbols are symbols that are sensative to their enclosing scopes.
+/// Scoped symbols are symbols that are sensitive to their enclosing scopes.
 /// These also support having attributes placed on them, and provide methods for handling them.
 pub trait ScopedSymbol: Symbol {
     fn attributes(&self) -> &Vec<Attribute>;
@@ -816,6 +816,10 @@ impl TypeRef {
     pub fn encode_using_bit_sequence(&self, ast: &Ast) -> bool {
         self.is_optional && self.min_wire_size(ast) == 0
     }
+
+    pub fn is_fixed_size(&self, ast: &Ast) -> bool {
+        self.definition(ast).as_type().unwrap().is_fixed_size(ast)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -918,6 +922,13 @@ pub enum Primitive {
 impl Primitive {
     pub fn is_numeric_or_bool(&self) -> bool {
         !matches!(&self, Self::String)
+    }
+
+    pub fn is_unsigned_numeric(&self) -> bool {
+        matches!(
+            self,
+            Self::Byte | Self::UShort | Self::UInt | Self::ULong | Self::VarUInt | Self::VarULong
+        )
     }
 }
 
