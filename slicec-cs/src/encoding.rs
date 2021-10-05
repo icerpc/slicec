@@ -215,8 +215,11 @@ pub fn encode_tagged_type(
 
     let mut args = vec![];
     args.push(tag.to_string());
-    // TODO: get tag format
-    args.push(format!("IceRpc.Slice.TagFormat.{}", "TAG_FORMAT"));
+
+    args.push(format!(
+        "IceRpc.Slice.TagFormat.{}",
+        member.data_type.tag_format(ast)
+    ));
     args.push(value);
     if !size_parameter.is_empty() {
         args.push("size: ".to_owned() + &size_parameter);

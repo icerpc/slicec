@@ -5,6 +5,7 @@ pub mod error;
 pub mod grammar;
 pub mod options;
 pub mod slice_file;
+pub mod tag_format;
 pub mod util;
 pub mod visitor;
 pub mod writer;

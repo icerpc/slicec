@@ -3,6 +3,7 @@
 use crate::ast::{Ast, Node};
 use crate::ref_from_node;
 use crate::slice_file::Location;
+use crate::tag_format::TagFormat;
 
 /// The lowest base trait in the compiler, which all symbols and types implement.
 pub trait Element {
@@ -152,6 +153,7 @@ implement_named_symbol_for!(Enumerator);
 pub trait Type {
     fn is_fixed_size(&self, ast: &Ast) -> bool;
     fn min_wire_size(&self, ast: &Ast) -> u32;
+    fn tag_format(&self, ast: &Ast) -> TagFormat;
     fn uses_classes(&self, ast: &Ast) -> bool;
 }
 
@@ -239,6 +241,14 @@ impl Type for Struct {
         size
     }
 
+    fn tag_format(&self, ast: &Ast) -> TagFormat {
+        if self.is_fixed_size(ast) {
+            TagFormat::VSize
+        } else {
+            TagFormat::FSize
+        }
+    }
+
     fn uses_classes(&self, ast: &Ast) -> bool {
         self.members(ast).iter().any(|m| {
             m.data_type
@@ -305,6 +315,10 @@ impl Type for Class {
                 .min_wire_size(ast);
         }
         size
+    }
+
+    fn tag_format(&self, _: &Ast) -> TagFormat {
+        TagFormat::Class
     }
 
     fn uses_classes(&self, ast: &Ast) -> bool {
@@ -442,7 +456,11 @@ impl Type for Interface {
         3
     }
 
-    fn uses_classes(&self, ast: &Ast) -> bool {
+    fn tag_format(&self, _: &Ast) -> TagFormat {
+        TagFormat::FSize
+    }
+
+    fn uses_classes(&self, _: &Ast) -> bool {
         false
     }
 }
@@ -530,7 +548,19 @@ impl Type for Enum {
         }
     }
 
-    fn uses_classes(&self, ast: &Ast) -> bool {
+    fn tag_format(&self, ast: &Ast) -> TagFormat {
+        if let Some(underlying) = &self.underlying {
+            underlying
+                .definition(ast)
+                .as_type()
+                .unwrap()
+                .tag_format(ast)
+        } else {
+            TagFormat::Size
+        }
+    }
+
+    fn uses_classes(&self, _: &Ast) -> bool {
         false
     }
 }
@@ -820,6 +850,10 @@ impl TypeRef {
     pub fn is_fixed_size(&self, ast: &Ast) -> bool {
         self.definition(ast).as_type().unwrap().is_fixed_size(ast)
     }
+
+    pub fn tag_format(&self, ast: &Ast) -> TagFormat {
+        self.definition(ast).as_type().unwrap().tag_format(ast)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -860,6 +894,18 @@ impl Type for Sequence {
         1
     }
 
+    fn tag_format(&self, ast: &Ast) -> TagFormat {
+        if self.element_type.is_fixed_size(ast) {
+            if self.element_type.min_wire_size(ast) == 1 {
+                TagFormat::OVSize
+            } else {
+                TagFormat::VSize
+            }
+        } else {
+            TagFormat::FSize
+        }
+    }
+
     fn uses_classes(&self, ast: &Ast) -> bool {
         self.element_type
             .definition(ast)
@@ -889,6 +935,14 @@ impl Type for Dictionary {
 
     fn min_wire_size(&self, _: &Ast) -> u32 {
         1
+    }
+
+    fn tag_format(&self, ast: &Ast) -> TagFormat {
+        if self.key_type.is_fixed_size(ast) || self.value_type.is_fixed_size(ast) {
+            TagFormat::FSize
+        } else {
+            TagFormat::VSize
+        }
     }
 
     fn uses_classes(&self, ast: &Ast) -> bool {
@@ -982,7 +1036,18 @@ impl Type for Primitive {
         }
     }
 
-    fn uses_classes(&self, ast: &Ast) -> bool {
+    fn tag_format(&self, _: &Ast) -> TagFormat {
+        match self {
+            Self::Bool | Self::Byte => TagFormat::F1,
+            Self::Short | Self::UShort => TagFormat::F2,
+            Self::Int | Self::UInt | Self::Float => TagFormat::F4,
+            Self::Long | Self::ULong | Self::Double => TagFormat::F8,
+            Self::VarInt | Self::VarUInt | Self::VarLong | Self::VarULong => TagFormat::VInt,
+            Self::String => TagFormat::OVSize,
+        }
+    }
+
+    fn uses_classes(&self, _: &Ast) -> bool {
         false
     }
 }

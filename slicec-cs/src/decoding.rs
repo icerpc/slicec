@@ -150,15 +150,11 @@ pub fn decode_tagged_member(
 ) -> CodeBlock {
     assert!(member.data_type.is_optional);
 
-    // TODO : add tag_format to Type trait
-    // member.tagged_format.unwrap()
-    let tag_format = "";
-
     format!(
         "{param} = decoder.DecodeType({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
         param = param,
         tag = tag,
-        tag_format = tag_format,
+        tag_format = member.data_type.tag_format(ast),
         decode_func = decode_func(&member.data_type, scope, ast)
     )
     .into()
