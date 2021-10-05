@@ -41,27 +41,19 @@ pub trait Symbol : Element {
 }
 
 macro_rules! implement_symbol_for {
-    ($a:ty) => {
-        impl Symbol for $a {
-            fn location(&self) -> &Location {
-                &self.location
+    ( $( $a:ty )* ) => {
+        $(
+            impl Symbol for $a {
+                fn location(&self) -> &Location {
+                    &self.location
+                }
             }
-        }
-    }
+        )*
+    };
 }
 
-implement_symbol_for!(Module);
-implement_symbol_for!(Struct);
-implement_symbol_for!(Interface);
-implement_symbol_for!(Enum);
 // ReturnType has its own custom implementation of Symbol, since it's an enum instead of a struct.
-implement_symbol_for!(Operation);
-implement_symbol_for!(Member);
-implement_symbol_for!(Enumerator);
-implement_symbol_for!(Identifier);
-implement_symbol_for!(TypeRef);
-implement_symbol_for!(Attribute);
-implement_symbol_for!(DocComment);
+implement_symbol_for!(Module Struct Interface Enum Operation Member Enumerator Identifier TypeRef Attribute DocComment);
 
 /// NamedSymbols are symbols that have an identifier attached to them.
 pub trait NamedSymbol : Symbol {
