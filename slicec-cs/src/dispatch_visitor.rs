@@ -1,7 +1,6 @@
 use crate::builders::{ContainerBuilder, FunctionBuilder};
 use crate::code_block::CodeBlock;
-use crate::code_map::{self, CodeMap};
-use crate::comments::*;
+use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;

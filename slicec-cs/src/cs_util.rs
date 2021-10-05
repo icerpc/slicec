@@ -3,7 +3,6 @@
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::{fix_case, CaseStyle, TypeContext};
-use slice::writer::Writer;
 
 // TODOAUSTIN move this function beneath the other functions.
 pub fn return_type_to_string(
@@ -392,7 +391,7 @@ pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
         .to_owned()
 }
 
-pub fn operation_format_type_to_string(operation: &Operation) -> String {
+pub fn operation_format_type_to_string(_: &Operation) -> String {
     // TODO: Austin - Implement this :)
     "default".to_owned()
 }

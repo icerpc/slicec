@@ -107,7 +107,6 @@ pub fn encode_type(
             type_ref,
             bit_sequence_index,
             for_nested_type,
-            scope,
             param,
             &code,
             ast,
@@ -335,7 +334,6 @@ pub fn encode_as_optional(
     bit_sequence_index: &mut i32,
     for_nested_type: bool,
     param: &str,
-    scope: &str,
     encode_type: &CodeBlock,
     ast: &Ast,
 ) -> CodeBlock {
@@ -466,7 +464,7 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         operation.parameters(ast)
     };
 
-    let (members, streamed_members): (Vec<&Member>, Vec<&Member>) =
+    let (members, _streamed_members): (Vec<&Member>, Vec<&Member>) =
         members.iter().partition(|m| !m.data_type.is_streamed);
 
     let (required_members, tagged_members) = get_sorted_members(&members);
