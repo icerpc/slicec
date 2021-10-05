@@ -232,7 +232,16 @@ pub fn encode_tagged_type(
         .to_string(),
     );
 
-    writeln!(code, "encoder.EncodeTagged({})", args.join(", "));
+    writeln!(
+        code,
+        "\
+if ({param} != null)
+{{
+    encoder.EncodeTagged({args})
+}}",
+        param = if read_only_memory { param + ".Span" } else { param },
+        args = args.join(", "),
+    );
 
     code
 }
