@@ -459,7 +459,13 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     for member in tagged_members {
         let tag = member.tag.unwrap();
         // TODO: scope and param
-        code.writeln(&decode_tagged_member(member, tag, "scope", "param", ast));
+        code.writeln(&decode_tagged_member(
+            member,
+            tag,
+            &ns,
+            &parameter_name(member, "iceP_", true),
+            ast,
+        ));
     }
 
     if let Some(stream_member) = stream_member {
@@ -481,7 +487,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
                 }
             }
             _ => {
-                // TODO: is this if backwards (copied from C++)
+                // TODO: is this if backwards? (copied from C++)
                 if return_type {
                     format!(
                         "\
