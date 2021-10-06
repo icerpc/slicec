@@ -38,13 +38,16 @@ impl<'a> Visitor for StructVisitor<'a> {
             })
             .collect::<Vec<String>>();
 
-        let mut constructor_body = CodeBlock::from_iter(members.iter().map(|m| {
-            format!(
-                "this.{} = {};",
-                fix_case(m.identifier(), CaseStyle::Pascal),
-                m.identifier()
-            )
-        }));
+        let mut constructor_body = members
+            .iter()
+            .map(|m| {
+                format!(
+                    "this.{} = {};",
+                    fix_case(m.identifier(), CaseStyle::Pascal),
+                    m.identifier()
+                )
+            })
+            .collect::<CodeBlock>();
 
         let mut data_members: CodeBlock = members
             .iter()

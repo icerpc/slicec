@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use std::primitive;
-
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::{fix_case, CaseStyle, TypeContext};

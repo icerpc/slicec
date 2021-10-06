@@ -66,6 +66,7 @@ impl ContainerBuilder {
                 .contents
                 .iter()
                 .map(|c| c.clone().indent().to_string())
+                .filter(|s| !s.is_empty())
                 .collect::<Vec<_>>()
                 .join("\n\n    "),
         )
@@ -193,10 +194,11 @@ impl FunctionBuilder {
         format!(
             "\
 {comments}
-{access} {return_type} {name}({parameters}){base} {body}",
+{access}{return_type:^return_width$}{name}({parameters}){base} {body}",
             comments = comments,
             access = self.access,
             return_type = self.return_type,
+            return_width = if self.return_type.len() == 0 { 1 } else { self.return_type.len() + 2 },
             name = self.name,
             parameters = self.parameters.join(", "),
             base = match self.base_arguments.len() {

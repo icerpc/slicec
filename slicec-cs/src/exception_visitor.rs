@@ -68,8 +68,8 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         );
 
         exception_class_builder
-            .add_block(one_shot_constructor(exception_def, false, false, ast))
-            .add_block(one_shot_constructor(exception_def, true, true, ast));
+            .add_block(one_shot_constructor(exception_def, false, ast))
+            .add_block(one_shot_constructor(exception_def, true, ast));
 
         // public parameter-less constructor
         if has_public_parameter_constructor {
@@ -191,8 +191,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
 fn one_shot_constructor(
     exception_def: &Exception,
-    add_message_parameter: bool,
-    add_inner_exception_parameter: bool,
+    add_message_and_exception_parameters: bool,
     ast: &Ast,
 ) -> CodeBlock {
     let exception_name = escape_identifier(exception_def, CaseStyle::Pascal);
@@ -200,6 +199,10 @@ fn one_shot_constructor(
     let ns = get_namespace(exception_def);
 
     let all_data_members = exception_def.all_data_members(ast);
+
+    if all_data_members.len() == 0 && !add_message_and_exception_parameters {
+        return CodeBlock::new();
+    }
 
     let message_parameter_name = escape_parameter_name(&all_data_members, "message");
     let inner_exception_parameter_name = escape_parameter_name(&all_data_members, "innerException");
@@ -233,7 +236,7 @@ fn one_shot_constructor(
         ),
     );
 
-    if add_message_parameter {
+    if add_message_and_exception_parameters {
         ctor_builder.add_parameter(
             "string?",
             &message_parameter_name,
@@ -246,7 +249,7 @@ fn one_shot_constructor(
     ctor_builder.add_parameters(&all_parameters);
     ctor_builder.add_base_arguments(&base_parameters);
 
-    if add_inner_exception_parameter {
+    if add_message_and_exception_parameters {
         ctor_builder.add_parameter(
             "global::System.Exception?",
             &inner_exception_parameter_name,
