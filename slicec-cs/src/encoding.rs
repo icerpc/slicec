@@ -46,13 +46,9 @@ pub fn encode_data_members(
     }
 
     // Encode tagged
-    let mut current_tag = -1; // sanity check to ensure tags are sorted
     for member in tagged_members {
-        let tag = member.tag.unwrap();
-        assert!((tag as i32) > current_tag);
-        current_tag = tag as i32;
         let param = format!("this.{}", field_name(member, field_type));
-        code.writeln(&encode_tagged_type(member, tag, scope, &param, true, ast));
+        code.writeln(&encode_tagged_type(member, scope, &param, true, ast));
     }
 
     code
@@ -123,13 +119,16 @@ pub fn encode_type(
 // TODO: should is_data_member be TypeContext instead of bool?
 pub fn encode_tagged_type(
     member: &Member,
-    tag: u32,
     scope: &str,
     param: &str,
     is_data_member: bool,
     ast: &Ast,
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
+
+    assert!(member.data_type.is_optional && member.tag.is_some());
+
+    let tag = member.tag.unwrap();
 
     let node = member.data_type.definition(ast);
 
@@ -243,7 +242,7 @@ pub fn encode_tagged_type(
         "\
 if ({param} != null)
 {{
-    encoder.EncodeTagged({args})
+    encoder.EncodeTagged({args});
 }}",
         param = if read_only_memory {
             param.to_owned() + ".Span"
@@ -402,57 +401,76 @@ pub fn encode_action(
 
     let node = type_def.definition(ast);
 
-    if type_def.is_optional {
-        match node {
-            Node::Interface(_, _) => {
+    let is_optional = type_def.is_optional;
+
+    let value = if type_def.is_optional {
+        if is_value_type(type_def, ast) {
+            "value!.Value"
+        } else {
+            "value!"
+        }
+    } else {
+        "value"
+    };
+
+    match node {
+        Node::Interface(_, _) => {
+            if is_optional {
                 write!(
                     code,
                     "(encoder, value) => encoder.EncodeNullableProxy(value?.Proxy)"
-                )
-            } // TODO: Node::Class (see C++ code)
-            _ => panic!("expected interface or class"),
-        }
-    } else {
-        match node {
-            Node::Interface(_, _) => {
-                write!(code, "(encoder, value) => encoder.EncodeProxy(value.Proxy)")
-            } // TODO: Node::Class
-            Node::Primitive(_, _) => {
-                write!(
-                    code,
-                    "(encoder, value) => encoder.Encode{}(value)",
-                    builtin_suffix(node)
-                )
-            }
-            Node::Enum(_, enum_def) => {
-                write!(
-                    code,
-                    "(encoder, value) => {helper}.Encode{name}(encoder, value)",
-                    helper = helper_name(enum_def, scope),
-                    name = enum_def.identifier()
-                )
-            }
-            Node::Dictionary(_, dictionary_def) => {
-                write!(
-                    code,
-                    "(encoder, dictionary) => {}",
-                    encode_dictionary(dictionary_def, scope, "dictionary", ast)
                 );
+            } else {
+                write!(code, "(encoder, value) => encoder.EncodeProxy(value.Proxy)");
             }
-            Node::Sequence(_, sequence_def) => {
-                // We generate the sequence encoder inline, so this function must not be called when
-                // the top-level object is not cached.
+        }
+        Node::Class(_, _) => {
+            if is_optional {
                 write!(
                     code,
-                    "(encoder, sequence) => {}",
-                    encode_sequence(sequence_def, scope, "sequence", is_read_only, is_param, ast)
-                )
+                    "(encoder, value) => encoder.EncodeNullableClass(value)"
+                );
+            } else {
+                write!(code, "(encoder, value) => encoder.EncodeClass(value)");
             }
-            Node::Struct(_, _) => {
-                write!(code, "(encoder, value) => value.Encode(encoder)")
-            }
-            _ => panic!(""),
         }
+        Node::Primitive(_, _) => {
+            write!(
+                code,
+                "(encoder, value) => encoder.Encode{builtin_type}({value})",
+                builtin_type = builtin_suffix(node),
+                value = value
+            )
+        }
+        Node::Enum(_, enum_def) => {
+            write!(
+                code,
+                "(encoder, value) => {helper}.Encode{name}(encoder, {value})",
+                helper = helper_name(enum_def, scope),
+                name = enum_def.identifier(),
+                value = value
+            )
+        }
+        Node::Dictionary(_, dictionary_def) => {
+            write!(
+                code,
+                "(encoder, value) => {}",
+                encode_dictionary(dictionary_def, scope, "dictionary", ast)
+            );
+        }
+        Node::Sequence(_, sequence_def) => {
+            // We generate the sequence encoder inline, so this function must not be called when
+            // the top-level object is not cached.
+            write!(
+                code,
+                "(encoder, value) => {}",
+                encode_sequence(sequence_def, scope, "sequence", is_read_only, is_param, ast)
+            )
+        }
+        Node::Struct(_, _) => {
+            write!(code, "(encoder, value) => value.Encode(encoder)")
+        }
+        _ => panic!("Unexpected node type {:?}", node),
     }
 
     code
@@ -508,11 +526,12 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in tagged_members {
-        let tag = member.tag.unwrap();
-        // TODO: scope and parameter
-        code.writeln(&encode_tagged_type(
-            member, tag, "scope", "param", false, ast,
-        ));
+        let param = if members.len() == 1 {
+            "value".to_owned()
+        } else {
+            "value.".to_owned() + &field_name(member, FieldType::NonMangled)
+        };
+        code.writeln(&encode_tagged_type(member, &ns, &param, false, ast));
     }
 
     code

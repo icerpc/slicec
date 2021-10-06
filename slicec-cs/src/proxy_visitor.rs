@@ -372,7 +372,7 @@ response.GetIceDecoderFactory(_defaultIceDecoderFactories),
     body.writeln(&format!(
         "\
 return Proxy.InvokeAsync(
-{});",
+    {});",
         args = invoke_args.join(",\n    ")
     ));
 

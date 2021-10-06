@@ -36,13 +36,10 @@ pub fn decode_data_members(
     }
 
     // Decode tagged members
-    let mut current_tag = -1; // sanity check to ensure tags are sorted
+
     for member in tagged_members {
-        let tag = member.tag.unwrap();
-        assert!((tag as i32) > current_tag);
-        current_tag = tag as i32;
         let param = format!("this.{}", field_name(member, field_type));
-        code.writeln(&decode_tagged_member(member, tag, scope, &param, ast));
+        code.writeln(&decode_tagged_member(member, scope, &param, ast));
     }
 
     if bit_sequence_size > 0 {
@@ -138,14 +135,10 @@ pub fn decode_member(
     code
 }
 
-pub fn decode_tagged_member(
-    member: &Member,
-    tag: u32,
-    scope: &str,
-    param: &str,
-    ast: &Ast,
-) -> CodeBlock {
-    assert!(member.data_type.is_optional);
+pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast) -> CodeBlock {
+    assert!(member.data_type.is_optional && member.tag.is_some());
+
+    let tag = member.tag.unwrap();
 
     format!(
         "{param} = decoder.DecodeType({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
@@ -347,59 +340,49 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     let node = type_ref.definition(ast);
 
-    if type_ref.is_optional {
-        match node {
-            Node::Interface(_, _) => {
-                write!(
-                    code,
-                    "decoder => IceRpc.IceDecoderPrxExtensions.DecodeNullablePrx<{}>(decoder)",
-                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
-                );
+    let is_optional = type_ref.is_optional;
+    let name = type_to_string(type_ref, scope, ast, TypeContext::Incoming);
+
+    match node {
+        Node::Interface(_, _) => {
+            if is_optional {
+                write!(code, "decoder => decoder.DecodeNullablePrx<{}>()", name);
+            } else {
+                write!(code, "decoder => new {}(decoder.DecodeProxy())", name);
             }
-            // TODO Node::Class(_, _)
-            _ => panic!("Node must be either an interface or class"),
         }
-    } else {
-        match node {
-            // Node::Class(_, ) => {} // TODO when we have class support
-            Node::Interface(_, _) => {
-                write!(
-                    code,
-                    "decoder = new {}(decoder.DecodeProxy())",
-                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
-                );
+        Node::Class(_, _) => {
+            if is_optional {
+                write!(code, "decoder => decoder.DecodeNullableClass<{}>()", name);
+            } else {
+                write!(code, "decoder => decoder.DecodeClass<{}>()", name);
             }
-            // TODO review logic here wrt Builtin && usesClasses() (see c++ code)
-            Node::Primitive(_, _) => {
-                write!(code, "decoder => decoder.Decode{}()", builtin_suffix(node));
-            }
-            Node::Sequence(_, sequence) => {
-                write!(code, "decoder => {}", decode_sequence(sequence, scope, ast));
-            }
-            Node::Dictionary(_, dictionary) => {
-                write!(
-                    code,
-                    "decoder => {}",
-                    decode_dictionary(dictionary, scope, ast)
-                );
-            }
-            Node::Enum(_, enum_def) => {
-                write!(
-                    code,
-                    "decoder => {}.Decode{}(decoder)",
-                    helper_name(enum_def, scope),
-                    enum_def.identifier()
-                );
-            }
-            Node::Struct(_, _) => {
-                write!(
-                    code,
-                    "decoder => new {}(decoder)",
-                    type_to_string(type_ref, scope, ast, TypeContext::Incoming)
-                );
-            }
-            _ => panic!("unexpected node type"),
         }
+        Node::Primitive(_, _) => {
+            write!(code, "decoder => decoder.Decode{}()", builtin_suffix(node));
+        }
+        Node::Sequence(_, sequence) => {
+            write!(code, "decoder => {}", decode_sequence(sequence, scope, ast));
+        }
+        Node::Dictionary(_, dictionary) => {
+            write!(
+                code,
+                "decoder => {}",
+                decode_dictionary(dictionary, scope, ast)
+            );
+        }
+        Node::Enum(_, enum_def) => {
+            write!(
+                code,
+                "decoder => {}.Decode{}(decoder)",
+                helper_name(enum_def, scope),
+                enum_def.identifier()
+            );
+        }
+        Node::Struct(_, _) => {
+            write!(code, "decoder => new {}(decoder)", name);
+        }
+        _ => panic!("unexpected node type"),
     }
 
     code
@@ -436,20 +419,27 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     if bit_sequence_size > 0 {
         writeln!(
             code,
-            "var bitSequence = decoder.DecodeBitSequence({})",
+            "var bitSequence = decoder.DecodeBitSequence({});",
             bit_sequence_size
         );
         bit_sequence_index = 0;
     }
 
     for member in required_members {
-        code.writeln(&decode_member(
+        let decode_member = decode_member(
             &member,
             &mut bit_sequence_index,
             &ns,
             &parameter_name(member, "iceP_", true),
             ast,
-        ));
+        );
+
+        writeln!(
+            code,
+            "{param_type} {decode}",
+            param_type = parameter_type(&member.data_type, false, ast),
+            decode = decode_member
+        )
     }
 
     if bit_sequence_size > 0 {
@@ -457,15 +447,15 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in tagged_members {
-        let tag = member.tag.unwrap();
-        // TODO: scope and param
-        code.writeln(&decode_tagged_member(
-            member,
-            tag,
-            &ns,
-            &parameter_name(member, "iceP_", true),
-            ast,
-        ));
+        let decode_member =
+            decode_tagged_member(member, &ns, &parameter_name(member, "iceP_", true), ast);
+
+        writeln!(
+            code,
+            "{param_type} {decode}",
+            param_type = parameter_type(&member.data_type, false, ast),
+            decode = decode_member
+        )
     }
 
     if let Some(stream_member) = stream_member {

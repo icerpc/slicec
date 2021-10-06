@@ -80,6 +80,11 @@ pub fn get_sorted_members<'a>(members: &[&'a Member]) -> (Vec<&'a Member>, Vec<&
         .collect::<Vec<_>>();
     tagged_members.sort_by_key(|m| m.tag.unwrap());
 
+    // Sanity check that the tagged members are sorted by tag
+    assert!(tagged_members
+        .windows(2)
+        .all(|member_pair| member_pair[0].tag.unwrap() < member_pair[1].tag.unwrap()));
+
     (required_members, tagged_members)
 }
 

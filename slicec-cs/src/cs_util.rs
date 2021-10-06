@@ -40,9 +40,9 @@ pub fn return_type_to_string(
 }
 
 // TODO look at ripping out scope
-pub fn type_to_string(typeref: &TypeRef, scope: &str, ast: &Ast, context: TypeContext) -> String {
-    let node = typeref.definition(ast);
-    match node {
+pub fn type_to_string(type_ref: &TypeRef, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    let node = type_ref.definition(ast);
+    let type_str = match node {
         Node::Struct(_, struct_def) => {
             escape_scoped_identifier(struct_def, CaseStyle::Pascal, scope)
         }
@@ -79,6 +79,12 @@ pub fn type_to_string(typeref: &TypeRef, scope: &str, ast: &Ast, context: TypeCo
         _ => {
             panic!("Node does not represent a type: '{:?}'!", node);
         }
+    };
+
+    if type_ref.is_optional {
+        type_str + "?"
+    } else {
+        type_str
     }
 }
 
