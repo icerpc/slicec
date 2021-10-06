@@ -167,19 +167,26 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             .add_comment("returns", "A new response payload.");
 
         if !returns_classes {
-            builder.add_parameter("IceEncoding", "encoding", "The encoding of the payload");
+            builder.add_parameter(
+                "IceEncoding",
+                "encoding",
+                None,
+                "The encoding of the payload",
+            );
         }
 
         if non_streamed_returns.len() == 1 {
             builder.add_parameter(
                 return_type,
                 "returnValue",
+                None,
                 "The return value to write into the new response payload.",
             );
         } else {
             builder.add_parameter(
                 return_type,
                 "returnValueTuple",
+                None,
                 "The return values to write into the new response payload.",
             );
         };

@@ -24,14 +24,6 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         let members = exception_def.members(ast);
 
-        // let mut data_members: CodeBlock = exception_def
-        //     .members(ast)
-        //     .iter()
-        //     .map(|m| data_member_declaration(m, FieldType::Exception, ast))
-        //     .collect::<Vec<_>>()
-        //     .join("\n\n")
-        //     .into();
-
         let has_public_parameter_constructor = exception_def
             .all_data_members(ast)
             .iter()
@@ -58,6 +50,23 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
             exception_class_builder.add_base("IceRpc.RemoteException".to_owned());
         }
 
+        exception_class_builder.add_block(
+            members
+                .iter()
+                .map(|m| data_member_declaration(m, FieldType::Exception, ast))
+                .collect::<Vec<_>>()
+                .join("\n\n")
+                .into(),
+        );
+
+        exception_class_builder.add_block(
+            format!(
+                "private static readonly string _iceTypeId = typeof({}).GetIceTypeId()!;",
+                exception_name
+            )
+            .into(),
+        );
+
         exception_class_builder
             .add_block(one_shot_constructor(exception_def, false, false, ast))
             .add_block(one_shot_constructor(exception_def, true, true, ast));
@@ -69,6 +78,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     .add_parameter(
                         "IceRpc.RetryPolicy?",
                         "retryPolicy",
+                        None,
                         "The retry policy for the exception",
                     )
                     .add_base_argument("retryPolicy")
@@ -78,7 +88,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         exception_class_builder.add_block(
             FunctionBuilder::new("public", "", &exception_name)
-                .add_parameter("Ice11Decoder", "decoder", "")
+                .add_parameter("Ice11Decoder", "decoder", None, "")
                 .add_base_argument("decoder")
                 .set_body(initialize_non_nullable_fields(
                     &members,
@@ -93,7 +103,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
             // TODO: emitEditorBrowsableNeverAttribute();
             exception_class_builder.add_block(
                 FunctionBuilder::new("public", "", &exception_name)
-                    .add_parameter("Ice20Decoder", "decoder", "")
+                    .add_parameter("Ice20Decoder", "decoder", None, "")
                     .add_base_argument("decoder")
                     .set_body(decode_data_members(
                         &members,
@@ -107,8 +117,8 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         // Remote exceptions are always "preserved".
         exception_class_builder.add_block(
-            FunctionBuilder::new("protected override ", "void", "IceDecode")
-                .add_parameter("Ice11Decoder", "decoder", "")
+            FunctionBuilder::new("protected override", "void", "IceDecode")
+                .add_parameter("Ice11Decoder", "decoder", None, "")
                 .set_body({
                     let mut code = CodeBlock::new();
                     code.writeln("decoder.IceStartSlice();");
@@ -129,8 +139,8 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         );
 
         exception_class_builder.add_block(
-            FunctionBuilder::new("protected override ", "void", "IceEncode")
-                .add_parameter("Ice11Encoder", "encoder", "")
+            FunctionBuilder::new("protected override", "void", "IceEncode")
+                .add_parameter("Ice11Encoder", "encoder", None, "")
                 .set_body({
                     let mut code = CodeBlock::new();
                     code.writeln("encoder.IceStartSlice(_iceTypeId);");
@@ -156,7 +166,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         if !has_base && !exception_def.uses_classes(ast) {
             exception_class_builder.add_block(
                 FunctionBuilder::new("protected override", "void", "IceEncode")
-                    .add_parameter("Ice20Encoder", "encoder", "")
+                    .add_parameter("Ice20Encoder", "encoder", None, "")
                     .set_body({
                         let mut code = CodeBlock::new();
                         code.writeln("encoder.EncodeString(_iceTypeId);");
@@ -227,6 +237,7 @@ fn one_shot_constructor(
         ctor_builder.add_parameter(
             "string?",
             &message_parameter_name,
+            None,
             "Message that describes the exception.",
         );
         ctor_builder.add_base_argument(&message_parameter_name);
@@ -238,7 +249,8 @@ fn one_shot_constructor(
     if add_inner_exception_parameter {
         ctor_builder.add_parameter(
             "global::System.Exception?",
-            &format!("{} = null", inner_exception_parameter_name),
+            &inner_exception_parameter_name,
+            Some("null"),
             "The exception that is the cause of the current exception.",
         );
         ctor_builder.add_base_argument(&inner_exception_parameter_name);
@@ -246,7 +258,8 @@ fn one_shot_constructor(
 
     ctor_builder.add_parameter(
         "IceRpc.RetryPolicy?",
-        &format!("{} = null", retry_policy_parameter_name),
+        &retry_policy_parameter_name,
+        Some("null"),
         "The retry policy for the exception.",
     );
     ctor_builder.add_base_argument(&retry_policy_parameter_name);

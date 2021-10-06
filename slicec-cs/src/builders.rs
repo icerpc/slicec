@@ -130,10 +130,19 @@ impl FunctionBuilder {
         &mut self,
         param_type: &str,
         param_name: &str,
+        default_value: Option<&str>,
         doc_comment: &str,
     ) -> &mut Self {
-        self.parameters
-            .push(param_type.to_owned() + " " + param_name);
+        self.parameters.push(format!(
+            "{param_type} {param_name}{default_value}",
+            param_type = param_type,
+            param_name = param_name,
+            default_value = match default_value {
+                Some(value) => format!(" = {}", value),
+                None => "".to_string(),
+            }
+        ));
+
         self.add_comment_with_attribute("param", "name", param_name, doc_comment)
     }
 

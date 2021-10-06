@@ -553,19 +553,26 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         );
 
         if !sends_classes {
-            builder.add_parameter("IceEncoding", "encoding", "The encoding of the payload.");
+            builder.add_parameter(
+                "IceEncoding",
+                "encoding",
+                None,
+                "The encoding of the payload.",
+            );
         }
 
         if params.len() == 1 {
             builder.add_parameter(
                 &to_tuple_type(&params, false, ast),
                 "arg",
+                None,
                 "The request argument.",
             );
         } else {
             builder.add_parameter(
                 &format!("in {}", to_tuple_type(&params, false, ast)),
                 "args",
+                None,
                 "The request arguments.",
             );
         }
