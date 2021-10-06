@@ -470,7 +470,9 @@ pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> Strin
             "({})",
             members
                 .into_iter()
-                .map(|m| parameter_type(&m.data_type, is_dispatch, ast) + " " + &field_name(&m, ""))
+                .map(|m| parameter_type(&m.data_type, is_dispatch, ast)
+                    + " "
+                    + &field_name(&m, FieldType::NonMangled))
                 .collect::<Vec<String>>()
                 .join(", ")
         ),

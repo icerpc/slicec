@@ -81,6 +81,8 @@ pub struct FunctionBuilder {
 
     body: CodeBlock,
 
+    base_arguments: Vec<String>,
+
     comments: Vec<CommentTag>,
 
     use_expression_body: bool,
@@ -96,6 +98,8 @@ impl FunctionBuilder {
             body: CodeBlock::new(),
 
             comments: Vec::new(),
+
+            base_arguments: Vec::new(),
 
             use_expression_body: false,
         }
@@ -140,6 +144,18 @@ impl FunctionBuilder {
         self
     }
 
+    pub fn add_base_argument(&mut self, argument: &str) -> &mut Self {
+        self.base_arguments.push(argument.to_owned());
+        self
+    }
+
+    pub fn add_base_arguments(&mut self, arguments: &[String]) -> &mut Self {
+        for arg in arguments {
+            self.base_arguments.push(arg.to_owned());
+        }
+        self
+    }
+
     pub fn set_body(&mut self, body: CodeBlock) -> &mut Self {
         self.body = body;
         self
@@ -168,12 +184,16 @@ impl FunctionBuilder {
         format!(
             "\
 {comments}
-{access} {return_type} {name}({parameters}) {body}",
+{access} {return_type} {name}({parameters}){base} {body}",
             comments = comments,
             access = self.access,
             return_type = self.return_type,
             name = self.name,
             parameters = self.parameters.join(", "),
+            base = match self.base_arguments.len() {
+                0 => "".to_string(),
+                _ => format!("\n    : base({})", self.base_arguments.join(", ")),
+            },
             body = body
         )
         .into()

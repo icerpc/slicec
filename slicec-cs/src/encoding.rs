@@ -7,7 +7,12 @@ use slice::util::*;
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
 
-pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
+pub fn encode_data_members(
+    members: &[&Member],
+    scope: &str,
+    field_type: FieldType,
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
 
     let (required_members, tagged_members) = get_sorted_members(members);
@@ -27,13 +32,14 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
     }
 
     for member in required_members {
-        // TODO: actually pass scope and param
+        let param = format!("this.{}", field_name(member, field_type));
+
         let encode_member = encode_type(
             &member.data_type,
             &mut bit_sequence_index,
             true,
-            "scope",
-            "param",
+            scope,
+            &param,
             ast,
         );
         code.writeln(&encode_member);
@@ -45,10 +51,8 @@ pub fn encode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
-        // TODO: scope and param
-        code.writeln(&encode_tagged_type(
-            member, tag, "scope", "param", true, ast,
-        ));
+        let param = format!("this.{}", field_name(member, field_type));
+        code.writeln(&encode_tagged_type(member, tag, scope, &param, true, ast));
     }
 
     code
@@ -486,7 +490,7 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         let param = if members.len() == 1 {
             "value".to_owned()
         } else {
-            "value.".to_owned() + &field_name(member, "")
+            "value.".to_owned() + &field_name(member, FieldType::NonMangled)
         };
         let encode_member = encode_type(
             &member.data_type,

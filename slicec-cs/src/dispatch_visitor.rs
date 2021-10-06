@@ -400,9 +400,9 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
         args.push(parameter_name(parameters.first().unwrap(), "iceP_", true));
     } else if parameters.len() > 1 {
         args.extend(
-            parameters
-                .iter()
-                .map(|parameter| "args.".to_owned() + &field_name(parameter, "")),
+            parameters.iter().map(|parameter| {
+                "args.".to_owned() + &field_name(parameter, FieldType::NonMangled)
+            }),
         );
     };
 
@@ -453,11 +453,9 @@ fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> 
     }
 
     if return_stream.is_some() {
-        returns.extend(
-            non_streamed_return_values
-                .iter()
-                .map(|return_value| "returnValue.".to_owned() + &field_name(return_value, "")),
-        );
+        returns.extend(non_streamed_return_values.iter().map(|return_value| {
+            "returnValue.".to_owned() + &field_name(return_value, FieldType::NonMangled)
+        }));
     } else {
         returns.push("returnValue".to_owned());
     };
@@ -483,7 +481,7 @@ fn stream_param_sender(operation: &Operation, encoding: &str, ast: &Ast) -> Code
         let stream_arg = if return_values.len() == 1 {
             "returnValue".to_owned()
         } else {
-            "returnValue.".to_owned() + &field_name(stream_parameter, "")
+            "returnValue.".to_owned() + &field_name(stream_parameter, FieldType::NonMangled)
         };
 
         let stream_type =

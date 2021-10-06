@@ -20,6 +20,8 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         let members = struct_def.members(ast);
 
+        let ns = get_namespace(struct_def);
+
         let constructor_parameters = members
             .iter()
             .map(|m| {
@@ -46,7 +48,7 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         let mut data_members: CodeBlock = members
             .iter()
-            .map(|m| struct_data_member(m, ast))
+            .map(|m| data_member_declaration(m, FieldType::NonMangled, ast))
             .collect::<Vec<_>>()
             .join("\n\n")
             .into();
@@ -85,33 +87,17 @@ impl<'a> Visitor for StructVisitor<'a> {
             access = if readonly { "public readonly" } else { "public" },
             constructor_parameters = constructor_parameters.join(", "),
             constructor_body = constructor_body.indent().indent(),
-            decoder_body = decode_data_members(&struct_def.members(ast), ast)
-                .indent()
-                .indent(),
-            encoder_body = encode_data_members(&struct_def.members(ast), ast)
-                .indent()
-                .indent(),
+            decoder_body =
+                decode_data_members(&struct_def.members(ast), &ns, FieldType::NonMangled, ast)
+                    .indent()
+                    .indent(),
+            encoder_body =
+                encode_data_members(&struct_def.members(ast), &ns, FieldType::NonMangled, ast)
+                    .indent()
+                    .indent(),
             data_members = data_members.indent()
         );
 
         self.code_map.insert(struct_def, struct_code.into());
     }
-}
-
-fn struct_data_member(data_member: &Member, ast: &Ast) -> String {
-    let type_string = type_to_string(
-        &data_member.data_type,
-        data_member.scope(),
-        ast,
-        TypeContext::DataMember,
-    );
-
-    format!(
-        "\
-{comment}
-public {type_string} {name};",
-        comment = "///TODO: comment",
-        type_string = type_string,
-        name = data_member.identifier()
-    )
 }

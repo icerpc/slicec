@@ -6,7 +6,12 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
 
-pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
+pub fn decode_data_members(
+    members: &[&Member],
+    scope: &str,
+    field_type: FieldType,
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
 
     let (required_members, tagged_members) = get_sorted_members(members);
@@ -25,16 +30,8 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
 
     // Decode required members
     for member in required_members {
-        // TODO: scope and param
-        let decode_member = decode_member(
-            &member,
-            &mut bit_sequence_index,
-            "scope",
-            // "this." + fixId(fieldName(member), baseTypes) //TODO: port this from C++ for param
-            "param",
-            ast,
-        );
-
+        let param = format!("this.{}", field_name(member, field_type));
+        let decode_member = decode_member(&member, &mut bit_sequence_index, scope, &param, ast);
         code.writeln(&decode_member);
     }
 
@@ -44,8 +41,8 @@ pub fn decode_data_members(members: &[&Member], ast: &Ast) -> CodeBlock {
         let tag = member.tag.unwrap();
         assert!((tag as i32) > current_tag);
         current_tag = tag as i32;
-        // TODO: scope and param
-        code.writeln(&decode_tagged_member(member, tag, "scope", "param", ast));
+        let param = format!("this.{}", field_name(member, field_type));
+        code.writeln(&decode_tagged_member(member, tag, scope, &param, ast));
     }
 
     if bit_sequence_size > 0 {
@@ -214,7 +211,7 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
 pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    // TOOD: check for generic "cs:generic:" attribute
+    // TODO: check for generic "cs:generic:" attribute
     // let generic = sequence.element_type.
     let generic_attribute: Option<&str> = None; // TODO: temporary
     let element_type = &sequence.element_type;

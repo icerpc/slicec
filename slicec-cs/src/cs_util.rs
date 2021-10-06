@@ -1,8 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use std::primitive;
+
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::{fix_case, CaseStyle, TypeContext};
+
+use crate::code_block::CodeBlock;
 
 // TODOAUSTIN move this function beneath the other functions.
 pub fn return_type_to_string(
@@ -257,13 +261,21 @@ pub fn escape_keyword(identifier: &str) -> String {
     (if CS_KEYWORDS.contains(&identifier) { "@" } else { "" }.to_owned()) + identifier
 }
 
+// TODOAUSTIN comment
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FieldType {
+    NonMangled,
+    Class,
+    Exception,
+}
+
 // TODOAUSTIN WE NEED TO HANDLE NAME MANGLING FOR CLASSES AND EXCEPTIONS!
 /// Checks if the provided identifier would shadow a base method in an object or exception, and
 /// escapes it if necessary by appending an 'Ice' prefix to the identifier.
 ///
 /// `kind` is the stringified C# type. Escaping is only performed on `object`es and `exception`s.
 /// TODOAUSTIN write a better comment
-pub fn mangle_name(identifier: &str, kind: &str) -> String {
+pub fn mangle_name(identifier: &str, field_type: FieldType) -> String {
     // The names of all the methods defined on the Object base class.
     const OBJECT_BASE_NAMES: [&str; 7] = [
         "Equals",
@@ -288,12 +300,12 @@ pub fn mangle_name(identifier: &str, kind: &str) -> String {
         "TargetSite",
     ];
 
-    let needs_mangling = match kind {
-        "exception" => {
+    let needs_mangling = match field_type {
+        FieldType::Exception => {
             OBJECT_BASE_NAMES.contains(&identifier) | EXCEPTION_BASE_NAMES.contains(&identifier)
         }
-        "class" => OBJECT_BASE_NAMES.contains(&identifier),
-        _ => false,
+        FieldType::Class => OBJECT_BASE_NAMES.contains(&identifier),
+        FieldType::NonMangled => false,
     };
 
     // If the name conflicts with a base method, add an "Ice" prefix to it.
@@ -354,7 +366,7 @@ pub fn helper_name(definition: &dyn NamedSymbol, scope: &str) -> String {
     escape_scoped_identifier(definition, CaseStyle::Pascal, scope) + "Helper"
 }
 
-pub fn field_name(member: &Member, field_type: &str) -> String {
+pub fn field_name(member: &Member, field_type: FieldType) -> String {
     let identifier = escape_identifier(member, CaseStyle::Pascal);
     mangle_name(&identifier, field_type)
 }
@@ -419,4 +431,75 @@ pub fn interface_name(interface_def: &Interface) -> String {
     } else {
         format!("I{}", identifier)
     }
+}
+
+pub fn data_member_declaration(data_member: &Member, field_type: FieldType, ast: &Ast) -> String {
+    let type_string = type_to_string(
+        &data_member.data_type,
+        data_member.scope(),
+        ast,
+        TypeContext::DataMember,
+    );
+
+    // TODO fix this. name should use field_name()
+
+    format!(
+        "\
+{comment}
+public {type_string} {name};",
+        comment = "///TODO: comment",
+        type_string = type_string,
+        name = field_name(data_member, field_type)
+    )
+}
+
+pub fn is_member_default_initialized(member: &Member, ast: &Ast) -> bool {
+    let data_type = &member.data_type;
+
+    if data_type.is_optional {
+        return true;
+    }
+
+    match data_type.definition(ast) {
+        Node::Struct(_, struct_def) => struct_def
+            .members(ast)
+            .iter()
+            .all(|m| is_member_default_initialized(m, ast)),
+        _ => is_value_type(data_type, ast),
+    }
+}
+
+pub fn initialize_non_nullable_fields(
+    members: &[&Member],
+    field_type: FieldType,
+    ast: &Ast,
+) -> CodeBlock {
+    // This helper should only be used for classes and exceptions
+    assert!(field_type == FieldType::Class || field_type == FieldType::Exception);
+
+    let mut code = CodeBlock::new();
+
+    for member in members {
+        let data_type = &member.data_type;
+        let data_node = data_type.definition(ast);
+        if data_type.is_optional {
+            continue;
+        }
+
+        let suppress = match data_node {
+            Node::Class(_, _)
+            | Node::Struct(_, _)
+            | Node::Sequence(_, _)
+            | Node::Dictionary(_, _) => true,
+            Node::Primitive(_, primitive) if matches!(primitive, Primitive::String) => true,
+            _ => false,
+        };
+
+        if suppress {
+            // This is to suppress compiler warnings for non-nullable fields.
+            writeln!(code, "this.{} = null!;", field_name(member, field_type));
+        }
+    }
+
+    code
 }
