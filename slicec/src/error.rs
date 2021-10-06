@@ -9,7 +9,7 @@ use std::mem;
 /// by this module. Errors should only be created when reporting them through an [`ErrorHandler`]
 /// with an `into` conversion.
 /// # Examples
-/// ```
+/// ```ignore
 /// handler.report_error("error!".into());              // just an error message
 /// handler.report_error(("error!", location).into());  // error message with explicit location
 /// handler.report_error(("error!", my_struct).into()); // error message and the symbol causing it.
@@ -88,7 +88,7 @@ impl ErrorHandler {
     ///
     /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
-    /// ```
+    /// ```ignore
     /// handler.report_error("error!".into());              // without location
     /// handler.report_error(("error!", location).into());  // with location
     /// ```
@@ -101,7 +101,7 @@ impl ErrorHandler {
     ///
     /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
-    /// ```
+    /// ```ignore
     /// handler.report_warning("warning!".into());              // without location
     /// handler.report_warning(("warning!", location).into());  // with location
     /// ```
@@ -114,7 +114,7 @@ impl ErrorHandler {
     ///
     /// It is recommended to construct the Error with an `into` conversion, instead of directly.
     /// # Examples
-    /// ```
+    /// ```ignore
     /// handler.report_note("note!".into());              // without location
     /// handler.report_note(("note!", location).into());  // with location
     /// ```
@@ -127,9 +127,9 @@ impl ErrorHandler {
         for error_holder in mem::take(&mut self.errors).into_iter() {
             // Unwrap the error into its fields, and get its error severity prefix.
             let (mut message, location, prefix) = match error_holder {
-                ErrorHolder::Error(error)   => { (error.message, error.location, "error: ") },
-                ErrorHolder::Warning(error) => { (error.message, error.location, "warning: ") },
-                ErrorHolder::Note(error)    => { (error.message, error.location, "note: ") },
+                ErrorHolder::Error(error) => (error.message, error.location, "error: "),
+                ErrorHolder::Warning(error) => (error.message, error.location, "warning: "),
+                ErrorHolder::Note(error) => (error.message, error.location, "note: "),
             };
             // Insert the prefix at the start of the message.
             message.insert_str(0, prefix);
