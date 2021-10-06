@@ -7,7 +7,6 @@ use slice::ast::Ast;
 use slice::grammar::*;
 use slice::util::*;
 use slice::visitor::Visitor;
-use std::iter::FromIterator;
 
 #[derive(Debug)]
 pub struct StructVisitor<'a> {
