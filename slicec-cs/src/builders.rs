@@ -79,13 +79,9 @@ pub struct FunctionBuilder {
     name: String,
     return_type: String,
     parameters: Vec<String>,
-
     body: CodeBlock,
-
     base_arguments: Vec<String>,
-
     comments: Vec<CommentTag>,
-
     use_expression_body: bool,
 }
 
@@ -97,11 +93,8 @@ impl FunctionBuilder {
             name: String::from(name),
             return_type: String::from(return_type),
             body: CodeBlock::new(),
-
             comments: Vec::new(),
-
             base_arguments: Vec::new(),
-
             use_expression_body: false,
         }
     }
@@ -198,7 +191,11 @@ impl FunctionBuilder {
             comments = comments,
             access = self.access,
             return_type = self.return_type,
-            return_width = if self.return_type.len() == 0 { 1 } else { self.return_type.len() + 2 },
+            return_width = if self.return_type.len() == 0 {
+                1
+            } else {
+                self.return_type.len() + 2
+            },
             name = self.name,
             parameters = self.parameters.join(", "),
             base = match self.base_arguments.len() {

@@ -2,9 +2,6 @@
 
 use std::fmt;
 
-use lazy_static::lazy_static;
-use regex::{Captures, Regex};
-
 #[derive(Clone, Debug)]
 pub struct CodeBlock {
     pub content: String,
@@ -16,39 +13,7 @@ impl CodeBlock {
     }
 
     pub fn write<T: fmt::Display + ?Sized>(&mut self, s: &T) {
-        lazy_static! {
-            // Match `<# condition statement #>` and anything that occurs before it
-            static ref RE: Regex = Regex::new(
-                r"(?s)(?P<before>.*?)<#\s+(?P<not>!)?(?P<bool>true|false)\s+(?P<statement>.*?)\s#>"
-            )
-            .unwrap();
-        }
-
-        let text = s.to_string();
-
-        let result = RE.replace_all(&text, |caps: &Captures| {
-            let before = caps.name("before").unwrap();
-
-            let has_not_symbol = caps.name("not").is_some();
-
-            let ok = match caps.name("bool").unwrap().as_str() {
-                "true" => !has_not_symbol,
-                "false" => has_not_symbol,
-                _ => panic!("unexpected bool value"),
-            };
-
-            if ok {
-                format!(
-                    "{before}{statement}",
-                    before = before.as_str(),
-                    statement = caps.name("statement").unwrap().as_str()
-                )
-            } else {
-                format!("{before}", before = before.as_str().trim_end())
-            }
-        });
-
-        self.content.push_str(&result);
+        self.content.push_str(&s.to_string());
     }
 
     pub fn writeln<T: fmt::Display + ?Sized>(&mut self, s: &T) {
