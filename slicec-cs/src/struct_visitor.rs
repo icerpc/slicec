@@ -62,7 +62,7 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         let struct_code = format!(
             r#"
-{access} partial struct {name} : global::System.IEquatable<{name}>
+{access} partial record struct {name}
 {{
     {data_members}
 
