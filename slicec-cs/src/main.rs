@@ -11,6 +11,7 @@ mod cs_writer;
 mod decoding;
 mod dispatch_visitor;
 mod encoding;
+mod enum_visitor;
 mod exception_visitor;
 mod proxy_visitor;
 mod struct_visitor;
@@ -20,6 +21,7 @@ use cs_options::CsOptions;
 use cs_validator::CsValidator;
 use cs_writer::CsWriter;
 use dispatch_visitor::DispatchVisitor;
+use enum_visitor::EnumVisitor;
 use exception_visitor::ExceptionVisitor;
 use proxy_visitor::ProxyVisitor;
 use slice::writer::Writer;
@@ -71,6 +73,9 @@ fn try_main() -> Result<(), ()> {
 
             let mut exception_visitor = ExceptionVisitor { code_map: &mut code_map };
             slice_file.visit_with(&mut exception_visitor, &data.ast);
+
+            let mut enum_visitor = EnumVisitor { code_map: &mut code_map };
+            slice_file.visit_with(&mut enum_visitor, &data.ast);
 
             {
                 let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();

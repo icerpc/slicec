@@ -1,11 +1,19 @@
+use crate::code_block::CodeBlock;
+use crate::code_map::CodeMap;
+use crate::cs_util::*;
+use slice::ast::Ast;
+use slice::grammar::*;
+use slice::util::*;
+use slice::visitor::Visitor;
+
 #[derive(Debug)]
-pub struct StructVisitor<'a> {
+pub struct EnumVisitor<'a> {
     pub code_map: &'a mut CodeMap,
 }
 
 impl<'a> Visitor for EnumVisitor<'a> {
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
-        let code = format(
+        let code = format!(
             "\
 {declaration}
 
@@ -14,7 +22,7 @@ impl<'a> Visitor for EnumVisitor<'a> {
             helper = enum_helper(enum_def, ast),
         );
 
-        self.code_map.insert(enum_def, code);
+        self.code_map.insert(enum_def, code.into());
     }
 }
 
@@ -25,17 +33,19 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // emitCommonAttributes();
     // emitCustomAttributes(p);
 
+    let name = escape_keyword(enum_def.identifier());
+
     let mut code = CodeBlock::new();
     write!(
         code,
         r#"
 public enum {name} : {underlying_type}
 {{
-    {{enum_values}}
+    {enum_values}
 }}
 "#,
-        ame = enum_def.identifier(),
-        underlying_type = underlying_type,
+        name = name,
+        underlying_type = underlying_type(enum_def, ast),
         enum_values = enum_values(enum_def, ast).indent()
     );
 
@@ -43,12 +53,12 @@ public enum {name} : {underlying_type}
 }
 
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
-    let code = CodeBlock::new();
+    let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
         let comment = "//TODO: get comment\n";
         code.add_block(
             format!(
-                "{}{} = {}",
+                "{}{} = {};",
                 comment,
                 enumerator.identifier(),
                 enumerator.value
@@ -60,7 +70,7 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 }
 
 fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
-    let escaped_identifier = escape_identifier(enum_def, CaseStyle::Pascal);
+    let name = escape_keyword(enum_def.identifier());
 
     // When the number of enumerators is smaller than the distance between the min and max
     // values, the values are not consecutive and we need to use a set to validate the value
@@ -89,30 +99,41 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
                 .iter()
                 .map(|e| e.value.to_string())
                 .collect::<Vec<String>>()
-                .join(",")
+                .join(", ")
         )
     } else {
         "".to_owned()
     };
 
     let as_enum = if enum_def.is_unchecked {
-        format!("({})value", escaped_identifier)
+        format!("({})value", name)
     } else {
         let check_enum = if use_set {
             "EnumeratorValues.Contains(value)".to_owned()
         } else {
-            // TODO: get the actual min and max values
+            let min_value = enum_def
+                .enumerators(ast)
+                .iter()
+                .map(|e| e.value)
+                .min()
+                .unwrap();
+            let max_value = enum_def
+                .enumerators(ast)
+                .iter()
+                .map(|e| e.value)
+                .max()
+                .unwrap();
             format!(
                 "{min_value} <= value && value <= {max_value}",
-                min_value = "min",
-                max_value = "max"
+                min_value = min_value,
+                max_value = max_value
             )
         };
 
         format!(
                 "{check_enum} ? ({escaped_identifier})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
                 check_enum = check_enum,
-                escaped_identifier = escaped_identifier,
+                escaped_identifier = name,
                 scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
             )
     };
@@ -141,27 +162,28 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // Enum helper class
     format!(
         r#"
-/// <summary>Helper class for marshaling and unmarshaling <see cref="{escaped_identifier}"/>.</summary>
+/// <summary>Helper class for marshaling and unmarshaling <see cref="{name}"/>.</summary>
 public static class {identifier}Helper
 {{{hash_set}
 
-    public static {escaped_identifier} As{identifier}(this {underlying_type} value) =>
+    public static {name} As{identifier}(this {underlying_type} value) =>
         {as_enum};
 
-    public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
+    public static {name} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
         {decode_enum};
 
-    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
+    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {name} value) =>
         {encode_enum};
 }}"#,
-        escaped_identifier = escaped_identifier,
+        name = name,
         identifier = enum_def.identifier(),
         underlying_type = underlying_type,
         hash_set = hash_set.replace("\n", "\n    "),
         as_enum = as_enum.replace("\n", "\n    "),
         decode_enum = decode_enum,
         encode_enum = encode_enum
-    ).into()
+    )
+    .into()
 }
 
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
