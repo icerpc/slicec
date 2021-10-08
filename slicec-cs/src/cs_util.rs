@@ -13,30 +13,34 @@ pub fn return_type_to_string(
     ast: &Ast,
     context: TypeContext,
 ) -> String {
-    let mut type_string = "global::System.Threading.Tasks.ValueTask".to_owned();
-    match return_type.len() {
-        0 => {}
-        1 => {
-            type_string += "<";
-            type_string += &type_to_string(&return_type[0].data_type, scope, ast, context);
-            type_string += ">";
+    let value_task = "global::System.Threading.Tasks.ValueTask";
+    match return_type {
+        [] => value_task.to_owned(),
+        [e] => {
+            format!(
+                "{}<{}>",
+                value_task,
+                &type_to_string(&e.data_type, scope, ast, context)
+            )
         }
         _ => {
-            type_string += "<(";
-            for return_element in return_type {
-                type_string += format!(
-                    "{} {}, ",
-                    type_to_string(&return_element.data_type, scope, ast, context),
-                    return_element.identifier(),
-                )
-                .as_str();
-            }
-            // Remove the trailing comma and space.
-            type_string.truncate(type_string.len() - 2);
-            type_string += ")>";
+            format!(
+                "{}<({})>",
+                value_task,
+                return_type
+                    .iter()
+                    .map(|e| {
+                        format!(
+                            "{} {}",
+                            type_to_string(&e.data_type, scope, ast, context),
+                            e.identifier()
+                        )
+                    })
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
         }
-    };
-    type_string
+    }
 }
 
 // TODO look at ripping out scope
