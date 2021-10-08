@@ -17,6 +17,7 @@ macro_rules! write_fmt {
 pub struct CsWriter<'a> {
     pub output: &'a mut Writer,
     pub code_map: &'a mut CodeMap,
+    pub empty_namespace_prefix: Option<String>,
 }
 
 impl Visitor for CsWriter<'_> {
@@ -45,14 +46,27 @@ impl Visitor for CsWriter<'_> {
     fn visit_module_start(&mut self, module_def: &Module, _: usize, _: &Ast) {
         let code_blocks = self.code_map.get(module_def);
 
-        // if code_blocks.is_none() {
-        //     return;
-        // }
+        if code_blocks.is_none() {
+            if let Some(prefix) = self.empty_namespace_prefix.clone() {
+                self.empty_namespace_prefix = Some(prefix + "." + module_def.identifier());
+            } else {
+                self.empty_namespace_prefix = Some(module_def.identifier().to_owned())
+            }
+
+            return;
+        }
 
         // TODO: Are there doc comments for C# modules?
         // write_comment(&mut self.output, module_def);
 
-        let content = format!("\nnamespace {}\n{{", module_def.identifier());
+        let module = if let Some(prefix) = self.empty_namespace_prefix.clone() {
+            self.empty_namespace_prefix = None;
+            prefix + "." + module_def.identifier()
+        } else {
+            module_def.identifier().to_owned()
+        };
+
+        let content = format!("\nnamespace {}\n{{", module);
         self.output.write(&content);
         self.output.indent_by(4);
 
@@ -66,6 +80,11 @@ impl Visitor for CsWriter<'_> {
     }
 
     fn visit_module_end(&mut self, module_def: &Module, _: usize, _: &Ast) {
+        let code_blocks = self.code_map.get(module_def);
+        if code_blocks.is_none() {
+            return;
+        }
+
         self.output.clear_line_separator();
         self.output.indent_by(-4);
         self.output.write("\n}");

@@ -74,7 +74,11 @@ fn try_main() -> Result<(), ()> {
 
             {
                 let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
-                let mut cs_writer = CsWriter { output: &mut output, code_map: &mut code_map };
+                let mut cs_writer = CsWriter {
+                    output: &mut output,
+                    code_map: &mut code_map,
+                    empty_namespace_prefix: None,
+                };
                 slice_file.visit_with(&mut cs_writer, &data.ast);
                 output.close()
             }
