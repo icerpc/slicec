@@ -70,7 +70,7 @@ impl Visitor for CsWriter<'_> {
         self.output.write(&content);
         self.output.indent_by(4);
 
-        for vec in code_blocks {
+        if let Some(vec) = code_blocks {
             for code in vec {
                 self.output.write("\n");
                 write_fmt!(self.output, "{}", code);

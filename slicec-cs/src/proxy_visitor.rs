@@ -93,7 +93,7 @@ public static implicit operator {base_impl}({prx_impl} prx) => new (prx.Proxy);"
         proxy_impl_builder.add_block(proxy_impl_static_methods(interface_def));
 
         if add_service_prx {
-            let f = format!(
+            proxy_impl_builder.add_block(
                 "\
 /// <inheritdoc/>
 public global::System.Threading.Tasks.Task<string[]> IceIdsAsync(
@@ -113,8 +113,8 @@ public global::System.Threading.Tasks.Task IcePingAsync(
     IceRpc.Invocation? invocation = null,
     global::System.Threading.CancellationToken cancel = default) =>
     new IceRpc.ServicePrx(Proxy).IcePingAsync(invocation, cancel);"
+                    .into(),
             );
-            proxy_impl_builder.add_block(f.into());
         }
 
         for operation in interface_def.all_base_operations(ast) {
@@ -448,14 +448,14 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
 }
 
 pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
-    match members.len() {
-        0 => panic!("tuple type with no members"),
-        1 => parameter_name(&members[0], "", true),
+    match members {
+        [] => panic!("tuple type with no members"),
+        [member] => parameter_name(member, "", true),
         _ => format!(
             "({})",
             members
-                .into_iter()
-                .map(|m| parameter_name(&m, prefix, true))
+                .iter()
+                .map(|m| parameter_name(m, prefix, true))
                 .collect::<Vec<String>>()
                 .join(", ")
         ),
@@ -463,16 +463,16 @@ pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
 }
 
 pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> String {
-    match members.len() {
-        0 => panic!("tuple type with no members"),
-        1 => parameter_type(&members[0].data_type, is_dispatch, ast),
+    match members {
+        [] => panic!("tuple type with no members"),
+        [member] => parameter_type(&member.data_type, is_dispatch, ast),
         _ => format!(
             "({})",
             members
-                .into_iter()
+                .iter()
                 .map(|m| parameter_type(&m.data_type, is_dispatch, ast)
                     + " "
-                    + &field_name(&m, FieldType::NonMangled))
+                    + &field_name(m, FieldType::NonMangled))
                 .collect::<Vec<String>>()
                 .join(", ")
         ),
@@ -533,7 +533,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     for operation in operations {
         let params: Vec<&Member> = operation.non_streamed_params(ast);
 
-        if params.len() == 0 {
+        if params.is_empty() {
             continue;
         }
 
@@ -628,7 +628,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     for operation in operations {
         let members = operation.return_members(ast);
 
-        if members.len() == 0 {
+        if members.is_empty() {
             continue;
         }
 

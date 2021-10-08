@@ -84,7 +84,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     for operation in operations {
         let non_streamed_parameters = operation.non_streamed_params(ast);
 
-        if non_streamed_parameters.len() == 0 {
+        if non_streamed_parameters.is_empty() {
             continue;
         }
 
@@ -142,7 +142,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     for operation in operations {
         let non_streamed_returns = operation.non_streamed_returns(ast);
 
-        if non_streamed_returns.len() == 0 {
+        if non_streamed_returns.is_empty() {
             continue;
         }
 
@@ -153,7 +153,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         let mut builder = FunctionBuilder::new(
             "public static",
             "global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>",
-            &operation_name,
+            operation_name,
         );
 
         builder
@@ -220,7 +220,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         builder.set_body(body.into());
 
-        class_builder.add_block(builder.build().into());
+        class_builder.add_block(builder.build());
     }
 
     class_builder.build().into()
@@ -384,7 +384,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
             writeln!(
                 code,
                 "var {var_name} = Request.{operation_name}(request);",
-                var_name = parameter_name(&parameters.first().unwrap(), "iceP_", true),
+                var_name = parameter_name(parameters.first().unwrap(), "iceP_", true),
                 operation_name = operation_name,
             )
         }

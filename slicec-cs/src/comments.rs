@@ -72,19 +72,17 @@ impl CsharpComment {
 
         // Replace comments like '<code>my code</code>' by 'my code'
         let re: regex::Regex = Regex::new(r"(?ms)<.+>\s?(?P<content>.+)\s?</.+>").unwrap();
-        comment.message = re
-            .replace_all(&mut comment.message, "${content}")
-            .to_string();
+        comment.message = re.replace_all(&comment.message, "${content}").to_string();
 
         // Replace comments like '{@link FooBar}' by 'FooBar'
         let re: regex::Regex = Regex::new(r"\{@link\s+(?P<link>\w+)\s?\}").unwrap();
-        comment.message = re.replace_all(&mut comment.message, "${link}").to_string();
+        comment.message = re.replace_all(&comment.message, "${link}").to_string();
 
         // TODO: ${see} should actually be replaced by the real Csharp identifier (see
         // csharpIdentifier in C++)
         let re: regex::Regex = Regex::new(r"\{@see\s+(?P<see>\w+)\s?\}").unwrap();
         comment.message = re
-            .replace_all(&mut comment.message, r#"<see cref="${see}"/>"#)
+            .replace_all(&comment.message, r#"<see cref="${see}"/>"#)
             .to_string();
 
         CsharpComment(comment)
@@ -113,7 +111,7 @@ impl fmt::Display for CsharpComment {
             writeln!(
                 f,
                 "{}",
-                CommentTag::new("param", "name", &identifier, description)
+                CommentTag::new("param", "name", identifier, description)
             )?;
         }
 

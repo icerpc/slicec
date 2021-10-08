@@ -393,7 +393,7 @@ pub fn is_reference_type(type_ref: &TypeRef, ast: &Ast) -> bool {
 
 pub fn escape_parameter_name(parameters: &[&Member], name: &str) -> String {
     if parameters.iter().any(|p| p.identifier() == name) {
-        return name.to_owned() + "_";
+        name.to_owned() + "_"
     } else {
         name.to_owned()
     }
@@ -408,7 +408,6 @@ pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
         .unwrap()
         .1
         .replace("::", ".")
-        .to_owned()
 }
 
 pub fn operation_format_type_to_string(_: &Operation) -> String {
@@ -417,7 +416,7 @@ pub fn operation_format_type_to_string(_: &Operation) -> String {
 }
 
 pub fn parameter_name(parameter: &Member, prefix: &str, escape_keywords: bool) -> String {
-    let name = prefix.to_owned() + &fix_case(&parameter.identifier(), CaseStyle::Camel);
+    let name = prefix.to_owned() + &fix_case(parameter.identifier(), CaseStyle::Camel);
 
     if escape_keywords {
         escape_keyword(&name)

@@ -31,7 +31,7 @@ pub fn decode_data_members(
     // Decode required members
     for member in required_members {
         let param = format!("this.{}", field_name(member, field_type));
-        let decode_member = decode_member(&member, &mut bit_sequence_index, scope, &param, ast);
+        let decode_member = decode_member(member, &mut bit_sequence_index, scope, &param, ast);
         code.writeln(&decode_member);
     }
 
@@ -427,7 +427,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
 
     for member in required_members {
         let decode_member = decode_member(
-            &member,
+            member,
             &mut bit_sequence_index,
             &ns,
             &parameter_name(member, "iceP_", true),
