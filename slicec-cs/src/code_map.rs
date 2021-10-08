@@ -24,7 +24,11 @@ impl CodeMap {
     }
 
     pub fn get(&self, module: &Module) -> Option<&Vec<CodeBlock>> {
-        let scope = module.scope().to_owned() + "::" + module.identifier();
-        self.module_map.get(&scope[2..])
+        let scope = format!(
+            "{}::{}",
+            if module.is_top_level() { "" } else { module.scope() },
+            module.identifier()
+        );
+        self.module_map.get(&scope)
     }
 }
