@@ -184,6 +184,10 @@ impl Module {
             .map(|id| ast.resolve_index(*id).as_named_symbol().unwrap())
             .collect()
     }
+
+    pub fn is_top_level(&self) -> bool {
+        self.scope() == "::"
+    }
 }
 
 #[derive(Clone, Debug)]

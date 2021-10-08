@@ -480,6 +480,7 @@ pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> Strin
 }
 
 pub fn parameter_type(type_ref: &TypeRef, is_dispatch: bool, ast: &Ast) -> String {
+    // TODO: is this really correct?
     let context = if is_dispatch {
         TypeContext::Incoming
     } else {
