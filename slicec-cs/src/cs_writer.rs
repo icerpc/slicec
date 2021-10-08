@@ -36,7 +36,6 @@ impl Visitor for CsWriter<'_> {
             version = env!("CARGO_PKG_VERSION"),
             file = slice_file.filename
         );
-        ds
     }
 
     fn visit_file_end(&mut self, _: &SliceFile, _: &Ast) {
