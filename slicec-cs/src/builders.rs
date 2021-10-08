@@ -191,7 +191,7 @@ impl FunctionBuilder {
             comments = comments,
             access = self.access,
             return_type = self.return_type,
-            return_width = if self.return_type.len() == 0 {
+            return_width = if self.return_type.is_empty() {
                 1
             } else {
                 self.return_type.len() + 2

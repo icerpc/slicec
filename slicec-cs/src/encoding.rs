@@ -157,16 +157,14 @@ pub fn encode_tagged_type(
         Node::Primitive(_, primitive_def) => {
             if primitive_def.is_fixed_size(ast) {
                 size_parameter = primitive_def.min_wire_size(ast).to_string();
-            } else {
-                if !matches!(primitive_def, Primitive::String) {
-                    if primitive_def.is_unsigned_numeric() {
-                        size_parameter = format!("IceRpc.GetVarULongEncodedSize({})", value)
-                    } else {
-                        size_parameter = format!("IceRpc.GetVarLongEncodedSize({})", value)
-                    }
+            } else if !matches!(primitive_def, Primitive::String) {
+                if primitive_def.is_unsigned_numeric() {
+                    size_parameter = format!("IceRpc.GetVarULongEncodedSize({})", value)
+                } else {
+                    size_parameter = format!("IceRpc.GetVarLongEncodedSize({})", value)
                 }
-                // else no size
             }
+            // else no size
         }
         Node::Struct(_, struct_def) => {
             if struct_def.is_fixed_size(ast) {

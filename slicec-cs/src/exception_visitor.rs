@@ -200,7 +200,7 @@ fn one_shot_constructor(
 
     let all_data_members = exception_def.all_data_members(ast);
 
-    if all_data_members.len() == 0 && !add_message_and_exception_parameters {
+    if all_data_members.is_empty() && !add_message_and_exception_parameters {
         return CodeBlock::new();
     }
 

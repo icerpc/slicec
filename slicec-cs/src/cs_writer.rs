@@ -49,7 +49,7 @@ impl Visitor for CsWriter<'_> {
         self.output.write(&content);
         self.output.indent_by(4);
 
-        for vec in self.code_map.get(module_def) {
+        if let Some(vec) = self.code_map.get(module_def) {
             for code in vec {
                 self.output.write("\n");
                 write_fmt!(self.output, "{}", code);
