@@ -32,19 +32,16 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // writeTypeDocComment(p, getDeprecateReason(p));
     // emitCommonAttributes();
     // emitCustomAttributes(p);
-
-    let name = escape_keyword(enum_def.identifier());
-
     let mut code = CodeBlock::new();
     write!(
         code,
         r#"
-public enum {name} : {underlying_type}
+public enum {escaped_identifier} : {underlying_type}
 {{
     {enum_values}
 }}
 "#,
-        name = name,
+        escaped_identifier = escape_keyword(enum_def.identifier()),
         underlying_type = underlying_type(enum_def, ast),
         enum_values = enum_values(enum_def, ast).indent()
     );
@@ -70,7 +67,7 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 }
 
 fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
-    let name = escape_keyword(enum_def.identifier());
+    let escaped_identifier = escape_keyword(enum_def.identifier());
 
     // When the number of enumerators is smaller than the distance between the min and max
     // values, the values are not consecutive and we need to use a set to validate the value
@@ -106,42 +103,30 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     };
 
     let as_enum = if enum_def.is_unchecked {
-        format!("({})value", name)
+        format!("({})value", escaped_identifier)
     } else {
         let check_enum = if use_set {
             "EnumeratorValues.Contains(value)".to_owned()
         } else {
-            let min_value = enum_def
-                .enumerators(ast)
-                .iter()
-                .map(|e| e.value)
-                .min()
-                .unwrap();
-            let max_value = enum_def
-                .enumerators(ast)
-                .iter()
-                .map(|e| e.value)
-                .max()
-                .unwrap();
             format!(
                 "{min_value} <= value && value <= {max_value}",
-                min_value = min_value,
-                max_value = max_value
+                min_value = enum_def.min_value(ast).unwrap(),
+                max_value = enum_def.max_value(ast).unwrap()
             )
         };
 
         format!(
                 "{check_enum} ? ({escaped_identifier})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
                 check_enum = check_enum,
-                escaped_identifier = name,
+                escaped_identifier = escaped_identifier,
                 scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
             )
     };
 
     // Enum decoding
     let decode_enum = format!(
-        "As{name}(decoder.{decode_method})",
-        name = enum_def.identifier(),
+        "As{identifier}(decoder.{decode_method})",
+        identifier = enum_def.identifier(),
         decode_method = if let Some(underlying) = &enum_def.underlying {
             format!("Decode{}()", builtin_suffix(underlying.definition(ast)))
         } else {
@@ -162,20 +147,20 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // Enum helper class
     format!(
         r#"
-/// <summary>Helper class for marshaling and unmarshaling <see cref="{name}"/>.</summary>
+/// <summary>Helper class for marshaling and unmarshaling <see cref="{escaped_identifier}"/>.</summary>
 public static class {identifier}Helper
 {{{hash_set}
 
-    public static {name} As{identifier}(this {underlying_type} value) =>
+    public static {escaped_identifier} As{identifier}(this {underlying_type} value) =>
         {as_enum};
 
-    public static {name} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
+    public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
         {decode_enum};
 
-    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {name} value) =>
+    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
         {encode_enum};
 }}"#,
-        name = name,
+        escaped_identifier = escaped_identifier,
         identifier = enum_def.identifier(),
         underlying_type = underlying_type,
         hash_set = hash_set.replace("\n", "\n    "),
