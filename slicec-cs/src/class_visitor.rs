@@ -7,7 +7,7 @@ use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
 use slice::ast::Ast;
-use slice::grammar::{Class, Member, NamedSymbol};
+use slice::grammar::{Class, Member};
 use slice::util::{CaseStyle, TypeContext};
 use slice::visitor::Visitor;
 
@@ -86,13 +86,12 @@ impl<'a> Visitor for ClassVisitor<'_> {
         let mut decode_constructor = FunctionBuilder::new("public", "", &class_name);
 
         if !has_base_class {
-            let silence_warnings = format!(
-                r#"[global::System.Diagnostics.CodeAnalysis.SuppressMessage(
+            let silence_warnings = r#"[global::System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Microsoft.Performance",
     "CA1801: Review unused parameters",
-    Justification="Special constructor used for Ice decoding")]"#
-            );
-            decode_constructor.add_attribute(&silence_warnings);
+    Justification="Special constructor used for Ice decoding")]"#;
+
+            decode_constructor.add_attribute(silence_warnings);
         }
 
         // TODO: add this attribute
@@ -169,7 +168,7 @@ fn primary_constructors(class_def: &Class, ast: &Ast) -> CodeBlock {
             writeln!(
                 code,
                 "this.{} = {};",
-                escape_identifier(*member, CaseStyle::Camel),
+                field_name(*member, FieldType::Class),
                 escape_identifier(*member, CaseStyle::Camel)
             );
         }
@@ -211,7 +210,7 @@ fn primary_constructors(class_def: &Class, ast: &Ast) -> CodeBlock {
                 writeln!(
                     code,
                     "this.{} = {};",
-                    escape_identifier(*member, CaseStyle::Camel),
+                    field_name(*member, FieldType::Class),
                     escape_identifier(*member, CaseStyle::Camel)
                 );
             }
@@ -233,7 +232,7 @@ fn add_members_to_constructor(
 ) {
     for member in members {
         let parameter_type =
-            type_to_string(&member.data_type, &namespace, ast, TypeContext::DataMember);
+            type_to_string(&member.data_type, namespace, ast, TypeContext::DataMember);
         let parameter_name = escape_identifier(*member, CaseStyle::Camel);
 
         // TODO get comment
