@@ -19,8 +19,7 @@ impl<'a> Visitor for StructVisitor<'a> {
         let readonly = struct_def.has_attribute("cs:readonly");
         let escaped_identifier = escape_keyword(struct_def.identifier());
         let members = struct_def.members(ast);
-
-        let ns = get_namespace(struct_def);
+        let namespace = get_namespace(struct_def);
 
         // TODO: this stuff from slice2cs
         // emitDeprecate(p, false, _out);
@@ -80,6 +79,7 @@ impl<'a> Visitor for StructVisitor<'a> {
         });
         builder.add_block(main_constructor.build());
 
+        // Decode constructor
         builder.add_block(
             FunctionBuilder::new("public", "", &escaped_identifier)
                 .add_comment(
@@ -91,21 +91,22 @@ impl<'a> Visitor for StructVisitor<'a> {
                 )
                 .add_parameter("IceRpc.IceDecoder", "decoder", None, "The decoder")
                 .set_body(decode_data_members(
-                    &struct_def.members(ast),
-                    &ns,
+                    &members,
+                    &namespace,
                     FieldType::NonMangled,
                     ast,
                 ))
                 .build(),
         );
 
+        // Encode method
         builder.add_block(
             FunctionBuilder::new("public readonly", "void", "Encode")
                 .add_comment("summary", "Encodes the fields of this struct")
                 .add_parameter("IceRpc.Encoder", "encoder", None, "The encoder")
                 .set_body(encode_data_members(
-                    &struct_def.members(ast),
-                    &ns,
+                    &members,
+                    &namespace,
                     FieldType::NonMangled,
                     ast,
                 ))
