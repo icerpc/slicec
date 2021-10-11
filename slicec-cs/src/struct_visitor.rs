@@ -85,7 +85,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                 .add_comment(
                     "summary",
                     &format!(
-                        r#"Constructs a new instance of <see cref="{}"/> from a decoder"#,
+                        r#"Constructs a new instance of <see cref="{}"/> from a decoder."#,
                         &escaped_identifier
                     ),
                 )
@@ -102,7 +102,7 @@ impl<'a> Visitor for StructVisitor<'a> {
         // Encode method
         builder.add_block(
             FunctionBuilder::new("public readonly", "void", "Encode")
-                .add_comment("summary", "Encodes the fields of this struct")
+                .add_comment("summary", "Encodes the fields of this struct.")
                 .add_parameter("IceRpc.Encoder", "encoder", None, "The encoder")
                 .set_body(encode_data_members(
                     &members,
