@@ -35,6 +35,7 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // emitCustomAttributes(p);
     let escaped_identifier = escape_keyword(enum_def.identifier());
     let mut builder = ContainerBuilder::new("public enum", &escaped_identifier);
+    // TODO add comment
     builder.add_block(enum_values(enum_def, ast));
     builder.build().into()
 }
@@ -42,16 +43,10 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
-        let comment = "//TODO: get comment\n";
-        code.add_block(
-            format!(
-                "{}{} = {};",
-                comment,
-                enumerator.identifier(),
-                enumerator.value
-            )
-            .into(),
-        );
+        let mut block = CodeBlock::new();
+        // TODO add comment
+        write!(block, "{} = {};", enumerator.identifier(), enumerator.value);
+        code.add_block(block);
     }
     code
 }
@@ -107,22 +102,21 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let as_enum = if enum_def.is_unchecked {
         format!("({})value", escaped_identifier)
     } else {
-        let check_enum = if use_set {
-            "EnumeratorValues.Contains(value)".to_owned()
-        } else {
-            format!(
-                "{min_value} <= value && value <= {max_value}",
-                min_value = enum_def.min_value(ast).unwrap(),
-                max_value = enum_def.max_value(ast).unwrap()
-            )
-        };
-
         format!(
-                "{check_enum} ? ({escaped_identifier})value : throw new IceRpc.InvalidDataException($\"invalid enumerator value '{{value}}' for {scoped}\")",
-                check_enum = check_enum,
-                escaped_identifier = escaped_identifier,
-                scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
-            )
+            r#"{check_enum} ?
+        ({escaped_identifier})value :
+        throw new IceRpc.InvalidDataException($"invalid enumerator value '{{value}}' for {scoped}")"#,
+            check_enum = match use_set {
+                true => "EnumeratorValues.Contains(value)".to_owned(),
+                false => format!(
+                    "{min_value} <= value && value <= {max_value}",
+                    min_value = enum_def.min_value(ast).unwrap(),
+                    max_value = enum_def.max_value(ast).unwrap()
+                ),
+            },
+            escaped_identifier = escaped_identifier,
+            scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
+        )
     };
 
     builder.add_block(
@@ -142,7 +136,7 @@ public static {escaped_identifier} As{identifier}(this {underlying_type} value) 
     builder.add_block(
         format!(
             r#"
-public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
+public static {escaped_identifier} Decode{identifier}(this IceRpc.IceDecoder decoder) =>
     As{identifier}({decode_enum});"#,
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,
@@ -157,31 +151,34 @@ public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder de
 
     // Enum encoding
     builder.add_block(
-        format!(r#"
-public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
+        format!(
+            r#"
+public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
     {encode_enum}"#,
-                identifier = enum_def.identifier(),
-                escaped_identifier = escaped_identifier,
-                encode_enum = match &enum_def.underlying {
-                    Some(underlying) => format!(
-                        "encoder.Encode{}",
-                        builtin_suffix(underlying.definition(ast))
-                    ),
-                    None => "encoder.EncodeSize((int)value)".to_owned(),
-                }).into());
+            identifier = enum_def.identifier(),
+            escaped_identifier = escaped_identifier,
+            encode_enum = match &enum_def.underlying {
+                Some(underlying) => format!(
+                    "encoder.Encode{}",
+                    builtin_suffix(underlying.definition(ast))
+                ),
+                None => "encoder.EncodeSize((int)value)".to_owned(),
+            }
+        )
+        .into(),
+    );
 
     builder.build().into()
 }
 
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
-    if let Some(typeref) = &enum_def.underlying {
-        type_to_string(
+    match &enum_def.underlying {
+        Some(typeref) => type_to_string(
             typeref,
             enum_def.scope.as_ref().unwrap(),
             ast,
             TypeContext::Nested,
-        )
-    } else {
-        "int".to_owned() // TODO we should make a builtin table to get names from.
+        ),
+        _ => "int".to_owned(), // TODO we should make a builtin table to get names from.
     }
 }
