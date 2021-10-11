@@ -13,7 +13,10 @@ impl CodeBlock {
     }
 
     pub fn write<T: fmt::Display + ?Sized>(&mut self, s: &T) {
-        self.content.push_str(&s.to_string());
+        let string = s.to_string();
+        if !string.trim_matches(char::is_whitespace).is_empty() {
+            self.content.push_str(&string);
+        }
     }
 
     pub fn writeln<T: fmt::Display + ?Sized>(&mut self, s: &T) {
@@ -36,8 +39,12 @@ impl CodeBlock {
         self
     }
 
-    pub fn add_block(&mut self, block: &Self) {
-        self.write(&format!("\n{}\n", block));
+    pub fn add_block<T: fmt::Display + ?Sized>(&mut self, s: &T) {
+        self.write(&format!("\n{}\n", s));
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.content.trim_matches(char::is_whitespace).is_empty()
     }
 }
 
@@ -52,6 +59,16 @@ impl std::iter::FromIterator<std::string::String> for CodeBlock {
         let mut code = CodeBlock::new();
         for i in iter {
             code.writeln(&i);
+        }
+        code
+    }
+}
+
+impl std::iter::FromIterator<CodeBlock> for CodeBlock {
+    fn from_iter<T: IntoIterator<Item = CodeBlock>>(iter: T) -> Self {
+        let mut code = CodeBlock::new();
+        for i in iter {
+            code.add_block(&i);
         }
         code
     }

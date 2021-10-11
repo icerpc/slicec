@@ -44,7 +44,11 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
         // TODO add comment
-        code.add_block(&format!("{} = {};", enumerator.identifier(), enumerator.value).into());
+        code.add_block(&format!(
+            "{} = {};",
+            enumerator.identifier(),
+            enumerator.value
+        ));
     }
     code
 }

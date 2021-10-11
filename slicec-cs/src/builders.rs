@@ -42,19 +42,15 @@ impl ContainerBuilder {
     }
 
     pub fn build(&self) -> String {
-        format!(
-            "\
-{comments}
-{container_type} {name}{bases}
-{{
-    {contents}
-}}",
-            comments = self
-                .comments
-                .iter()
-                .map(|c| c.to_string())
-                .collect::<Vec<_>>()
-                .join("\n\n\n"),
+        let mut code = CodeBlock::new();
+
+        for comment in &self.comments {
+            code.writeln(&comment.to_string());
+        }
+
+        writeln!(
+            code,
+            "{container_type} {name}{bases}",
             container_type = self.container_type,
             name = self.name,
             bases = if self.bases.is_empty() {
@@ -62,14 +58,17 @@ impl ContainerBuilder {
             } else {
                 format!(" : {bases}", bases = self.bases.join(", "))
             },
-            contents = self
-                .contents
-                .iter()
-                .map(|c| c.clone().indent().to_string())
-                .filter(|s| !s.is_empty())
-                .collect::<Vec<_>>()
-                .join("\n\n    "),
-        )
+        );
+
+        let mut body_content: CodeBlock = self.contents.iter().cloned().collect();
+
+        if body_content.is_empty() {
+            code.writeln("{{\n}}");
+        } else {
+            writeln!(code, "{{\n    {body}\n}}", body = body_content.indent());
+        }
+
+        code.to_string()
     }
 }
 
@@ -177,42 +176,45 @@ impl FunctionBuilder {
     }
 
     pub fn build(&mut self) -> CodeBlock {
-        let body = if self.use_expression_body {
-            format!("=>\n    {};", self.body.indent())
-        } else {
-            format!("\n{{\n    {}\n}}", self.body.indent())
-        };
+        let mut code = CodeBlock::new();
 
-        let comments: CodeBlock = self
-            .comments
-            .iter()
-            .map(|c| c.to_string())
-            .collect::<Vec<_>>()
-            .join("\n")
-            .into();
+        for comment in &self.comments {
+            code.writeln(&comment.to_string());
+        }
 
-        format!(
-            "\
-{comments}
-{attributes}
-{access}{return_type:^return_width$}{name}({parameters}){base} {body}",
-            comments = comments,
-            attributes = self.attributes.join("\n"),
+        for attribute in &self.attributes {
+            code.writeln(&attribute);
+        }
+
+        write!(
+            code,
+            "{access}{return_type}{name}({parameters}){base}",
             access = self.access,
-            return_type = self.return_type,
-            return_width = if self.return_type.is_empty() {
-                1
+            return_type = if self.return_type.is_empty() {
+                " ".to_owned()
             } else {
-                self.return_type.len() + 2
+                format!(" {} ", self.return_type)
             },
             name = self.name,
             parameters = self.parameters.join(", "),
             base = match self.base_arguments.len() {
                 0 => "".to_string(),
                 _ => format!("\n    : base({})", self.base_arguments.join(", ")),
-            },
-            body = body
-        )
-        .into()
+            }
+        );
+
+        if self.body.is_empty() {
+            if self.use_expression_body {
+                code.writeln("=> {{}};")
+            } else {
+                code.writeln("\n{\n}");
+            }
+        } else if self.use_expression_body {
+            writeln!(code, "=>\n    {};", self.body.indent());
+        } else {
+            writeln!(code, "\n{{\n    {body}\n}}", body = self.body.indent());
+        }
+
+        code
     }
 }

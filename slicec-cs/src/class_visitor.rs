@@ -76,7 +76,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
         // Class static TypeId string
         class_builder.add_block(
             format!(
-                "public static{} readonly string IceTypeId = typeof({}).GetIceTypedId()!",
+                "public static{} readonly string IceTypeId = typeof({}).GetIceTypeId()!;",
                 if has_base_class { " new" } else { "" },
                 class_name,
             )
@@ -227,7 +227,7 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
 
     if is_preserved && !is_base_preserved {
         let ice_unknown_slices = "protected override global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo> IceUnknownSlices { get; set; } = global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo>.Empty;".to_owned();
-        code.add_block(&ice_unknown_slices.into());
+        code.add_block(&ice_unknown_slices);
     }
 
     let encode_class = FunctionBuilder::new("protected override", "void", "IceEncode")
