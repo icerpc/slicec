@@ -1140,7 +1140,10 @@ impl Attribute {
         location: Location,
     ) -> Self {
         // Combine the prefix and directive together to make searching qualified directives easier.
-        let qualified_directive = prefix.clone().unwrap_or("".to_owned()) + &directive;
+        let qualified_directive = match &prefix {
+            Some(prefix) => format!("{}:{}", prefix, directive),
+            _ => directive.clone(),
+        };
         Attribute { prefix, directive, qualified_directive, arguments, location }
     }
 }

@@ -53,7 +53,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         exception_class_builder.add_block(
             members
                 .iter()
-                .map(|m| data_member_declaration(m, FieldType::Exception, ast))
+                .map(|m| data_member_declaration(m, false, FieldType::Exception, ast))
                 .collect::<Vec<_>>()
                 .join("\n\n")
                 .into(),

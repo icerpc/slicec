@@ -439,7 +439,12 @@ pub fn interface_name(interface_def: &Interface) -> String {
     }
 }
 
-pub fn data_member_declaration(data_member: &Member, field_type: FieldType, ast: &Ast) -> String {
+pub fn data_member_declaration(
+    data_member: &Member,
+    is_readonly: bool,
+    field_type: FieldType,
+    ast: &Ast,
+) -> String {
     let type_string = type_to_string(
         &data_member.data_type,
         data_member.scope(),
@@ -452,8 +457,9 @@ pub fn data_member_declaration(data_member: &Member, field_type: FieldType, ast:
     format!(
         "\
 {comment}
-public {type_string} {name};",
+public {readonly}{type_string} {name};",
         comment = "///TODO: comment",
+        readonly = if is_readonly { "readonly " } else { "" },
         type_string = type_string,
         name = field_name(data_member, field_type)
     )
