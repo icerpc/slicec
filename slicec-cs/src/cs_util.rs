@@ -404,9 +404,8 @@ pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
     // TODO: not all types need to remove just one "::" (we use this currently for operations)
     named_symbol
         .scope()
-        .rsplit_once("::")
+        .strip_prefix("::")
         .unwrap()
-        .1
         .replace("::", ".")
 }
 

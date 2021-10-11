@@ -51,9 +51,8 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 
 fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let escaped_identifier = escape_keyword(enum_def.identifier());
-
-    let helper_identifier = format!("{}Helper", enum_def.identifier());
-    let mut builder = ContainerBuilder::new("public static class", &helper_identifier);
+    let ns = get_namespace(enum_def);
+    let mut builder = ContainerBuilder::new("public static class", &helper_name(enum_def, &ns));
 
     builder.add_comment(
         "summary",
@@ -97,13 +96,14 @@ public static readonly global::System.Collections.Generic.HashSet<{underlying}> 
         );
     }
 
-    let as_enum = if enum_def.is_unchecked {
-        format!("({})value", escaped_identifier)
+    let mut as_enum: CodeBlock = if enum_def.is_unchecked {
+        format!("({})value", escaped_identifier).into()
     } else {
         format!(
-            r#"{check_enum} ?
-        ({escaped_identifier})value :
-        throw new IceRpc.InvalidDataException($"invalid enumerator value '{{value}}' for {scoped}")"#,
+            r#"
+{check_enum} ?
+    ({escaped_identifier})value :
+    throw new IceRpc.InvalidDataException($"invalid enumerator value '{{value}}' for {scoped}")"#,
             check_enum = match use_set {
                 true => "EnumeratorValues.Contains(value)".to_owned(),
                 false => format!(
@@ -113,8 +113,9 @@ public static readonly global::System.Collections.Generic.HashSet<{underlying}> 
                 ),
             },
             escaped_identifier = escaped_identifier,
-            scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, ""),
+            scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, &ns),
         )
+        .into()
     };
 
     builder.add_block(
@@ -125,7 +126,7 @@ public static {escaped_identifier} As{identifier}(this {underlying_type} value) 
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,
             underlying_type = underlying_type,
-            as_enum = as_enum
+            as_enum = as_enum.indent()
         )
         .into(),
     );
