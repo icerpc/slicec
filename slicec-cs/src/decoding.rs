@@ -83,7 +83,7 @@ pub fn decode_member(
             }
             _ => {
                 assert!(*bit_sequence_index >= 0);
-                write!(code, "bitSequence[{}]", *bit_sequence_index);
+                write!(code, "bitSequence[{}] ? ", *bit_sequence_index);
                 *bit_sequence_index += 1;
                 // keep going
             }
