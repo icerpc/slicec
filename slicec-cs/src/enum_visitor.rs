@@ -43,10 +43,8 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
-        let mut block = CodeBlock::new();
         // TODO add comment
-        write!(block, "{} = {};", enumerator.identifier(), enumerator.value);
-        code.add_block(block);
+        code.add_block(format!("{} = {};", enumerator.identifier(), enumerator.value).into());
     }
     code
 }
