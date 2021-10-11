@@ -82,6 +82,7 @@ pub struct FunctionBuilder {
     body: CodeBlock,
     base_arguments: Vec<String>,
     comments: Vec<CommentTag>,
+    attributes: Vec<String>,
     use_expression_body: bool,
 }
 
@@ -94,9 +95,15 @@ impl FunctionBuilder {
             return_type: String::from(return_type),
             body: CodeBlock::new(),
             comments: Vec::new(),
+            attributes: Vec::new(),
             base_arguments: Vec::new(),
             use_expression_body: false,
         }
+    }
+
+    pub fn add_attribute(&mut self, attribute: &str) -> &mut Self {
+        self.attributes.push(attribute.to_owned());
+        self
     }
 
     pub fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
@@ -187,8 +194,10 @@ impl FunctionBuilder {
         format!(
             "\
 {comments}
+{attributes}
 {access}{return_type:^return_width$}{name}({parameters}){base} {body}",
             comments = comments,
+            attributes = self.attributes.join("\n"),
             access = self.access,
             return_type = self.return_type,
             return_width = if self.return_type.is_empty() {

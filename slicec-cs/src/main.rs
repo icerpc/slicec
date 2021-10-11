@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 mod builders;
+mod class_visitor;
 mod code_block;
 mod code_map;
 mod comments;
@@ -16,6 +17,7 @@ mod exception_visitor;
 mod proxy_visitor;
 mod struct_visitor;
 
+use class_visitor::ClassVisitor;
 use code_map::CodeMap;
 use cs_options::CsOptions;
 use cs_validator::CsValidator;
@@ -76,6 +78,9 @@ fn try_main() -> Result<(), ()> {
 
             let mut enum_visitor = EnumVisitor { code_map: &mut code_map };
             slice_file.visit_with(&mut enum_visitor, &data.ast);
+
+            let mut class_visitor = ClassVisitor { code_map: &mut code_map };
+            slice_file.visit_with(&mut class_visitor, &data.ast);
 
             {
                 let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();

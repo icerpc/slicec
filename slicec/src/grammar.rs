@@ -287,11 +287,35 @@ impl Class {
         Class { identifier, members, base, scope: None, attributes, comment, location }
     }
 
+    pub fn all_data_members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
+        let mut members = self.members(ast);
+
+        if let Some(base) = &self.base {
+            let mut base_members = ref_from_node!(Node::Exception, ast, base.definition.unwrap())
+                .all_data_members(ast);
+
+            members.append(&mut base_members);
+        }
+
+        members
+    }
+
     pub fn members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
         self.members
             .iter()
             .map(|id| ref_from_node!(Node::Member, ast, *id))
             .collect()
+    }
+
+    pub fn base<'a>(&self, ast: &'a Ast) -> Option<&'a Exception> {
+        match self.base {
+            Some(ref base) => Some(ref_from_node!(
+                Node::Exception,
+                ast,
+                base.definition.unwrap()
+            )),
+            None => None,
+        }
     }
 }
 

@@ -36,7 +36,7 @@ impl CodeBlock {
         self
     }
 
-    pub fn add_block(&mut self, block: Self) {
+    pub fn add_block(&mut self, block: &Self) {
         self.write(&format!("\n{}\n", block));
     }
 }
