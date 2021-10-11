@@ -19,8 +19,26 @@ impl<'a> Visitor for ClassVisitor<'_> {
     fn visit_class_start(&mut self, class_def: &Class, _: usize, ast: &Ast) {
         let class_name = escape_identifier(class_def, CaseStyle::Pascal);
         let namespace = get_namespace(class_def);
-        let members = class_def.members(ast);
         let has_base_class = class_def.base(ast).is_some();
+
+        let members = class_def.members(ast);
+        let base_members = if let Some(base) = class_def.base(ast) {
+            base.all_data_members(ast)
+        } else {
+            vec![]
+        };
+
+        let non_default_members = members
+            .iter()
+            .cloned()
+            .filter(|m| !is_member_default_initialized(m, ast))
+            .collect::<Vec<_>>();
+
+        let non_default_base_members = base_members
+            .iter()
+            .cloned()
+            .filter(|m| !is_member_default_initialized(m, ast))
+            .collect::<Vec<_>>();
 
         // TODO:
         // writeTypeDocComment(p, getDeprecateReason(p));
@@ -55,6 +73,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
                 .into(),
         );
 
+        // Class static TypeId string
         class_builder.add_block(
             format!(
                 "public static{} readonly string IceTypeId = typeof({}).GetIceTypedId()!",
@@ -72,17 +91,42 @@ impl<'a> Visitor for ClassVisitor<'_> {
                 format!(
                 "private static readonly int _compactTypeId = typeof({}).GetIceCompactTypeId()!.Value;",
                 class_name
-            )
-                .into(),
-            );
+            ).into());
         }
 
-        // One-shot ctor and secondary ctor with all non-default initialized parameters
-        class_builder.add_block(primary_constructors(class_def, ast));
+        let constructor_summary = format!(
+            r#"Constructs a new instance of <see cref="{}"/>."#,
+            class_name
+        );
+
+        // One-shot ctor (may be parameterless)
+        class_builder.add_block(constructor(
+            &class_name,
+            &constructor_summary,
+            &namespace,
+            &members,
+            &base_members,
+            ast,
+        ));
+
+        // Second public constructor for all data members minus those with a default initializer
+        // This constructor is only generated if necessary
+        if non_default_members.len() + non_default_base_members.len()
+            < members.len() + base_members.len()
+        {
+            class_builder.add_block(constructor(
+                &class_name,
+                &constructor_summary,
+                &namespace,
+                &non_default_members,
+                &non_default_base_members,
+                ast,
+            ));
+        }
 
         // public constructor used for decoding
         // the decoder parameter is used to distinguish this ctor from the parameterless ctor that
-        // users may want to add to the partial class; it's not used otherwise.
+        // users may want to add to the partial class. It's not used otherwise.
         let mut decode_constructor = FunctionBuilder::new("public", "", &class_name);
 
         if !has_base_class {
@@ -115,122 +159,29 @@ impl<'a> Visitor for ClassVisitor<'_> {
     }
 }
 
-fn primary_constructors(class_def: &Class, ast: &Ast) -> CodeBlock {
+fn constructor(
+    escaped_name: &str,
+    summary_comment: &str,
+    namespace: &str,
+    members: &[&Member],
+    base_members: &[&Member],
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let class_name = escape_identifier(class_def, CaseStyle::Pascal);
-    let namespace = get_namespace(class_def);
-    let members = class_def.members(ast);
-    let all_members = class_def.all_data_members(ast);
+    let mut builder = FunctionBuilder::new("public", "", escaped_name);
 
-    let base_members = if let Some(base) = class_def.base(ast) {
-        base.all_data_members(ast)
-    } else {
-        vec![]
-    };
+    builder.add_comment("summary", summary_comment);
 
-    let all_mandatory_members = all_members
-        .iter()
-        .cloned()
-        .filter(|m| !is_member_default_initialized(m, ast))
-        .collect::<Vec<_>>();
-
-    let summary_comment = format!(
-        r#"Constructs a new instance of <see cref="{}"/>."#,
-        class_name
-    );
-
-    if all_members.is_empty() {
-        // There is always at least another constructor, so we need to generate the parameterless
-        // constructor.
-        return FunctionBuilder::new("public", "", &class_name)
-            .add_comment("summary", &summary_comment)
-            .build();
-    }
-
-    // "One-shot" constructor
-    let mut one_shot_builder = FunctionBuilder::new("public", "", &class_name);
-
-    one_shot_builder.add_comment("summary", &summary_comment);
-
-    add_members_to_constructor(&mut one_shot_builder, &all_members, &namespace, ast);
-
-    one_shot_builder.add_base_arguments(
+    builder.add_base_arguments(
         &base_members
             .iter()
+            .filter(|m| !is_member_default_initialized(m, ast))
             .map(|m| escape_identifier(*m, CaseStyle::Camel))
             .collect::<Vec<String>>(),
     );
 
-    one_shot_builder.set_body({
-        let mut code = CodeBlock::new();
-        for member in &members {
-            writeln!(
-                code,
-                "this.{} = {};",
-                field_name(*member, FieldType::Class),
-                escape_identifier(*member, CaseStyle::Camel)
-            );
-        }
-        code
-    });
-
-    code.add_block(&one_shot_builder.build());
-
-    // Second public constructor for all data members minus those with a default initializer.
-    // Can be parameterless.
-
-    if all_mandatory_members.len() < all_members.len() {
-        let non_default_members = members
-            .iter()
-            .filter(|m| !is_member_default_initialized(m, ast));
-
-        let mut constructor_builder = FunctionBuilder::new("public", "", &class_name);
-
-        constructor_builder.add_comment("summary", &summary_comment);
-
-        add_members_to_constructor(
-            &mut constructor_builder,
-            &all_mandatory_members,
-            &namespace,
-            ast,
-        );
-
-        constructor_builder.add_base_arguments(
-            &base_members
-                .iter()
-                .filter(|m| !is_member_default_initialized(m, ast))
-                .map(|m| escape_identifier(*m, CaseStyle::Camel))
-                .collect::<Vec<String>>(),
-        );
-
-        constructor_builder.set_body({
-            let mut code = CodeBlock::new();
-            for member in non_default_members {
-                writeln!(
-                    code,
-                    "this.{} = {};",
-                    field_name(*member, FieldType::Class),
-                    escape_identifier(*member, CaseStyle::Camel)
-                );
-            }
-            code
-        });
-
-        code.add_block(&constructor_builder.build());
-    }
-    // else, it's identical to the first ctor.
-
-    code
-}
-
-fn add_members_to_constructor(
-    builder: &mut FunctionBuilder,
-    members: &[&Member],
-    namespace: &str,
-    ast: &Ast,
-) {
-    for member in members {
+    for member in members.iter().chain(base_members.iter()) {
         let parameter_type =
             type_to_string(&member.data_type, namespace, ast, TypeContext::DataMember);
         let parameter_name = escape_identifier(*member, CaseStyle::Camel);
@@ -242,6 +193,23 @@ fn add_members_to_constructor(
         let comment = "";
         builder.add_parameter(&parameter_type, &parameter_name, None, comment);
     }
+
+    builder.set_body({
+        let mut code = CodeBlock::new();
+        for member in members {
+            writeln!(
+                code,
+                "this.{} = {};",
+                field_name(member, FieldType::Class),
+                escape_identifier(*member, CaseStyle::Camel)
+            );
+        }
+        code
+    });
+
+    code.add_block(&builder.build());
+
+    code
 }
 
 fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
