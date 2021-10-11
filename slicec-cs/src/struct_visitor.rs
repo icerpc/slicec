@@ -85,7 +85,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                 .add_comment(
                     "summary",
                     &format!(
-                        r#"Constructs a new instance of <see cref="{}"/> from a decoder"#,
+                        r#"Constructs a new instance of <see cref="{}"/> from a decoder."#,
                         &escaped_identifier
                     ),
                 )
