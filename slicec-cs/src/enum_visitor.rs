@@ -1,3 +1,4 @@
+use crate::builders::ContainerBuilder;
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::cs_util::*;
@@ -32,21 +33,10 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     // writeTypeDocComment(p, getDeprecateReason(p));
     // emitCommonAttributes();
     // emitCustomAttributes(p);
-    let mut code = CodeBlock::new();
-    write!(
-        code,
-        r#"
-public enum {escaped_identifier} : {underlying_type}
-{{
-    {enum_values}
-}}
-"#,
-        escaped_identifier = escape_keyword(enum_def.identifier()),
-        underlying_type = underlying_type(enum_def, ast),
-        enum_values = enum_values(enum_def, ast).indent()
-    );
-
-    code
+    let escaped_identifier = escape_keyword(enum_def.identifier());
+    let mut builder = ContainerBuilder::new("public enum", &escaped_identifier);
+    builder.add_block(enum_values(enum_def, ast));
+    builder.build().into()
 }
 
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
@@ -69,6 +59,17 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let escaped_identifier = escape_keyword(enum_def.identifier());
 
+    let helper_identifier = format!("{}Helper", enum_def.identifier());
+    let mut builder = ContainerBuilder::new("public static class", &helper_identifier);
+
+    builder.add_comment(
+        "summary",
+        &format!(
+            r#"Helper class for marshaling and unmarshaling <see cref="{}"/>."#,
+            escaped_identifier
+        ),
+    );
+
     // When the number of enumerators is smaller than the distance between the min and max
     // values, the values are not consecutive and we need to use a set to validate the value
     // during unmarshaling.
@@ -85,22 +86,23 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 
     let underlying_type = underlying_type(enum_def, ast);
 
-    let hash_set = if use_set {
-        format!(
-            "\
+    if use_set {
+        builder.add_block(
+            format!(
+                "\
 \npublic static readonly global::System.Collections.Generic.HashSet<{underlying}> EnumeratorValues =
     new global::System.Collections.Generic.HashSet<{underlying}> {{ {enum_values} }};",
-            underlying = underlying_type,
-            enum_values = enum_def
-                .enumerators(ast)
-                .iter()
-                .map(|e| e.value.to_string())
-                .collect::<Vec<String>>()
-                .join(", ")
-        )
-    } else {
-        "".to_owned()
-    };
+                underlying = underlying_type,
+                enum_values = enum_def
+                    .enumerators(ast)
+                    .iter()
+                    .map(|e| e.value.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            )
+            .into(),
+        );
+    }
 
     let as_enum = if enum_def.is_unchecked {
         format!("({})value", escaped_identifier)
@@ -123,52 +125,52 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
             )
     };
 
+    builder.add_block(
+        format!(
+            r#"
+public static {escaped_identifier} As{identifier}(this {underlying_type} value) =>
+    {as_enum};"#,
+            identifier = enum_def.identifier(),
+            escaped_identifier = escaped_identifier,
+            underlying_type = underlying_type,
+            as_enum = as_enum
+        )
+        .into(),
+    );
+
     // Enum decoding
-    let decode_enum = format!(
-        "As{identifier}(decoder.{decode_method})",
-        identifier = enum_def.identifier(),
-        decode_method = if let Some(underlying) = &enum_def.underlying {
-            format!("Decode{}()", builtin_suffix(underlying.definition(ast)))
-        } else {
-            "DecodeSize()".to_owned()
-        }
+    builder.add_block(
+        format!(
+            r#"
+public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
+    As{identifier}({decode_enum});"#,
+            identifier = enum_def.identifier(),
+            escaped_identifier = escaped_identifier,
+            decode_enum = match &enum_def.underlying {
+                Some(underlying) =>
+                    format!("Decode{}()", builtin_suffix(underlying.definition(ast))),
+                _ => "DecodeSize()".to_owned(),
+            }
+        )
+        .into(),
     );
 
     // Enum encoding
-    let encode_enum = if let Some(underlying) = &enum_def.underlying {
-        format!(
-            "encoder.Encode{}",
-            builtin_suffix(underlying.definition(ast))
-        )
-    } else {
-        "encoder.EncodeSize((int)value)".to_owned()
-    };
+    builder.add_block(
+        format!(r#"
+public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
+    {encode_enum}"#,
+                identifier = enum_def.identifier(),
+                escaped_identifier = escaped_identifier,
+                encode_enum = match &enum_def.underlying {
+                    Some(underlying) => format!(
+                        "encoder.Encode{}",
+                        builtin_suffix(underlying.definition(ast))
+                    ),
+                    None => "encoder.EncodeSize((int)value)".to_owned(),
+                }).into());
 
-    // Enum helper class
-    format!(
-        r#"
-/// <summary>Helper class for marshaling and unmarshaling <see cref="{escaped_identifier}"/>.</summary>
-public static class {identifier}Helper
-{{{hash_set}
-
-    public static {escaped_identifier} As{identifier}(this {underlying_type} value) =>
-        {as_enum};
-
-    public static {escaped_identifier} Decode{identifier} (this IceRpc.IceDecoder decoder) =>
-        {decode_enum};
-
-    public static void Encode{identifier} (this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
-        {encode_enum};
-}}"#,
-        escaped_identifier = escaped_identifier,
-        identifier = enum_def.identifier(),
-        underlying_type = underlying_type,
-        hash_set = hash_set.replace("\n", "\n    "),
-        as_enum = as_enum.replace("\n", "\n    "),
-        decode_enum = decode_enum,
-        encode_enum = encode_enum
-    )
-    .into()
+    builder.build().into()
 }
 
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
