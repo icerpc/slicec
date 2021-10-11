@@ -54,12 +54,7 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         for member in &members {
             main_constructor.add_parameter(
-                &type_to_string(
-                    &member.data_type,
-                    struct_def.scope(),
-                    ast,
-                    TypeContext::DataMember,
-                ),
+                &type_to_string(&member.data_type, &namespace, ast, TypeContext::DataMember),
                 member.identifier(),
                 None,
                 "", // TODO add parameter comment
@@ -89,7 +84,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                         &escaped_identifier
                     ),
                 )
-                .add_parameter("IceRpc.IceDecoder", "decoder", None, "The decoder")
+                .add_parameter("IceRpc.IceDecoder", "decoder", None, "The decoder.")
                 .set_body(decode_data_members(
                     &members,
                     &namespace,
@@ -103,7 +98,7 @@ impl<'a> Visitor for StructVisitor<'a> {
         builder.add_block(
             FunctionBuilder::new("public readonly", "void", "Encode")
                 .add_comment("summary", "Encodes the fields of this struct.")
-                .add_parameter("IceRpc.Encoder", "encoder", None, "The encoder")
+                .add_parameter("IceRpc.Encoder", "encoder", None, "The encoder.")
                 .set_body(encode_data_members(
                     &members,
                     &namespace,
