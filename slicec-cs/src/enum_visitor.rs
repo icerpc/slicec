@@ -83,7 +83,7 @@ fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
         builder.add_block(
             format!(
                 "\
-\npublic static readonly global::System.Collections.Generic.HashSet<{underlying}> EnumeratorValues =
+public static readonly global::System.Collections.Generic.HashSet<{underlying}> EnumeratorValues =
     new global::System.Collections.Generic.HashSet<{underlying}> {{ {enum_values} }};",
                 underlying = underlying_type,
                 enum_values = enum_def
