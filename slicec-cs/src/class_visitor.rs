@@ -49,7 +49,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
         class_builder.add_block(
             members
                 .iter()
-                .map(|m| data_member_declaration(m, FieldType::Class, ast))
+                .map(|m| data_member_declaration(m, false, FieldType::Class, ast))
                 .collect::<Vec<_>>()
                 .join("\n\n")
                 .into(),
