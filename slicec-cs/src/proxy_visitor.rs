@@ -123,7 +123,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
                 &operation.return_members(ast),
                 interface_def.scope(),
                 ast,
-                TypeContext::Outgoing,
+                TypeContext::Incoming,
             );
             let invocation_params = get_invocation_params(operation, ast);
 
@@ -238,7 +238,7 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let ns = get_namespace(operation);
     let operation_name = escape_identifier(operation, CaseStyle::Pascal);
     let async_operation_name = operation_name.clone() + "Async";
-    let return_task = operation_return_task(operation, false, ast);
+    let return_task = operation_return_task(operation, &ns, false, ast, TypeContext::Incoming);
     let oneway = operation.has_attribute("oneway");
 
     let parameters = operation.non_streamed_params(ast);
@@ -384,7 +384,7 @@ return Proxy.InvokeAsync(
 
 fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
-
+    let ns = get_namespace(interface_def);
     let operations = interface_def.operations(ast);
 
     for operation in operations {
@@ -406,7 +406,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
             "{doc_comment}{deprecate_reason}\n{return} {name}({params});\n",
             doc_comment = operation_doc_comment(operation, false, ast),
             deprecate_reason = deprecate_reason,
-            return = operation_return_task(operation, false, ast),
+            return = operation_return_task(operation, &ns, false, ast, TypeContext::Incoming),
             name = async_name,
             params = get_invocation_params(operation, ast).join(", ")
         )
@@ -415,7 +415,13 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
     code
 }
 
-pub fn operation_return_task(operation: &Operation, is_dispatch: bool, ast: &Ast) -> String {
+pub fn operation_return_task(
+    operation: &Operation,
+    scope: &str,
+    is_dispatch: bool,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
     let return_members = operation.return_members(ast);
     if return_members.is_empty() {
         if is_dispatch {
@@ -424,7 +430,7 @@ pub fn operation_return_task(operation: &Operation, is_dispatch: bool, ast: &Ast
             "global::System.Threading.Tasks.Task".to_owned()
         }
     } else {
-        let return_type = operation_return_type(operation, is_dispatch, ast);
+        let return_type = operation_return_type(operation, scope, is_dispatch, ast, context);
         if is_dispatch {
             format!("global::System.Threading.Tasks.ValueTask<{}>", return_type)
         } else {
@@ -433,7 +439,13 @@ pub fn operation_return_task(operation: &Operation, is_dispatch: bool, ast: &Ast
     }
 }
 
-pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast) -> String {
+pub fn operation_return_type(
+    operation: &Operation,
+    scope: &str,
+    is_dispatch: bool,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
     let has_marshaled_result = false; // TODO: do we still want to keep this?
 
     if is_dispatch && has_marshaled_result {
@@ -441,10 +453,10 @@ pub fn operation_return_type(operation: &Operation, is_dispatch: bool, ast: &Ast
     }
 
     let return_members = operation.return_members(ast);
-    match return_members.len() {
-        0 => "void".to_owned(),
-        1 => parameter_type(&return_members[0].data_type, is_dispatch, ast),
-        _ => to_tuple_type(&return_members, is_dispatch, ast),
+    match return_members.as_slice() {
+        [] => "void".to_owned(),
+        [member] => type_to_string(&member.data_type, scope, ast, context),
+        _ => to_tuple_type(&return_members, scope, ast, context),
     }
 }
 
@@ -463,32 +475,21 @@ pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
     }
 }
 
-pub fn to_tuple_type(members: &[&Member], is_dispatch: bool, ast: &Ast) -> String {
+pub fn to_tuple_type(members: &[&Member], scope: &str, ast: &Ast, context: TypeContext) -> String {
     match members {
         [] => panic!("tuple type with no members"),
-        [member] => parameter_type(&member.data_type, is_dispatch, ast),
+        [member] => type_to_string(&member.data_type, scope, ast, context),
         _ => format!(
             "({})",
             members
                 .iter()
-                .map(|m| parameter_type(&m.data_type, is_dispatch, ast)
+                .map(|m| type_to_string(&m.data_type, scope, ast, context)
                     + " "
                     + &field_name(m, FieldType::NonMangled))
                 .collect::<Vec<String>>()
                 .join(", ")
         ),
     }
-}
-
-pub fn parameter_type(type_ref: &TypeRef, is_dispatch: bool, ast: &Ast) -> String {
-    // TODO: is this really correct?
-    let context = if is_dispatch {
-        TypeContext::Incoming
-    } else {
-        TypeContext::Outgoing
-    };
-
-    type_to_string(type_ref, type_ref.scope(), ast, context)
 }
 
 pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
@@ -518,6 +519,7 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
 }
 
 fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(interface_def);
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
@@ -565,14 +567,17 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         if params.len() == 1 {
             builder.add_parameter(
-                &to_tuple_type(&params, false, ast),
+                &to_tuple_type(&params, &ns, ast, TypeContext::Outgoing),
                 "arg",
                 None,
                 "The request argument.",
             );
         } else {
             builder.add_parameter(
-                &format!("in {}", to_tuple_type(&params, false, ast)),
+                &format!(
+                    "in {}",
+                    to_tuple_type(&params, &ns, ast, TypeContext::Outgoing)
+                ),
                 "args",
                 None,
                 "The request arguments.",
@@ -614,6 +619,7 @@ IceRpc.Payload.{name}(
 }
 
 fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(interface_def);
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
@@ -641,7 +647,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         class_builder.add_block(format!(
             r#"
-/// <summary>The <see cref="ResponseDecodeFunc{{T}}"/> for the return value {name} type of operation.</summary>
+/// <summary>The <see cref="ResponseDecodeFunc{{T}}"/> for the return value type of operation {name}.</summary>
 public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, IceRpc.IInvoker? invoker) =>
     response.ToReturnValue(
         invoker,
@@ -649,7 +655,7 @@ public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, Ice
         {response_decode_func})"#,
             name = operation.identifier(),
             escaped_name = escape_identifier(operation, CaseStyle::Pascal),
-            return_type = to_tuple_type(&members, false, ast),
+            return_type = to_tuple_type(&members, &ns, ast, TypeContext::Incoming),
             decoder = decoder,
             response_decode_func = response_decode_func(operation, ast).indent()
         ).into());
@@ -680,7 +686,7 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     {encode}
 }}",
             _in = if params.len() == 1 { "" } else { "in " },
-            param_type = to_tuple_type(&params, true, ast),
+            param_type = to_tuple_type(&params, &ns, ast, TypeContext::Outgoing),
             encode = encode_operation(operation, false, ast).indent()
         )
         .into()
