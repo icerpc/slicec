@@ -28,13 +28,12 @@ impl<'a> Visitor for EnumVisitor<'a> {
 }
 
 fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
-    // write_comment(&mut self.output, enum_def);
-    // TODO: from slice2cs
+    // TODO: doc comment and deprecate reason
     // writeTypeDocComment(p, getDeprecateReason(p));
-    // emitCommonAttributes();
-    // emitCustomAttributes(p);
+
     let escaped_identifier = escape_keyword(enum_def.identifier());
     let mut builder = ContainerBuilder::new("public enum", &escaped_identifier);
+    builder.add_custom_attributes(enum_def);
     // TODO add comment
     builder.add_block(enum_values(enum_def, ast));
     builder.build().into()

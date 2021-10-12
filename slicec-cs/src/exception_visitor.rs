@@ -29,16 +29,16 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
             .iter()
             .all(|m| is_member_default_initialized(m, ast));
 
-        // TODO: generate doc and attributes
+        // TODO: generate doc and deprecate attribute
         // writeTypeDocComment(p, getDeprecateReason(p));
         // emitDeprecate(p, false, _out);
 
-        // emitCommonAttributes();
-        // emitTypeIdAttribute(p->scoped());
-        // emitCustomAttributes(p);
-
         let mut exception_class_builder =
             ContainerBuilder::new("public partial class", &exception_name);
+
+        exception_class_builder
+            .add_type_id_attribute(exception_def)
+            .add_custom_attributes(exception_def);
 
         if let Some(base) = exception_def.base(ast) {
             exception_class_builder.add_base(escape_scoped_identifier(

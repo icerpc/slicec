@@ -46,23 +46,24 @@ impl<'a> Visitor for ProxyVisitor<'_> {
             .map(|b| escape_scoped_identifier(b, CaseStyle::Pascal, interface_def.scope()))
             .collect();
 
-        // writeProxyDocComment(p, getDeprecateReason(p));
-        // emitTypeIdAttribute(p->scoped());
-        // emitCustomAttributes(p);
-        // TODO: above doc comments and attributes
+        // TODO:  doc comments and deprecate attribute
+        // writeProxyDocComment(p, getDeprecateReason(p));;
 
         let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", "///TODO:")
+            .add_type_id_attribute(interface_def)
+            .add_custom_attributes(interface_def)
             .add_bases(&prx_bases)
             .add_block(proxy_interface_operations(interface_def, ast))
             .build();
 
-        // TODO: add type id attribute and custom attribtues
         let mut proxy_impl_builder =
             ContainerBuilder::new("public readonly partial record struct", &prx_impl);
 
         proxy_impl_builder.add_bases(&prx_impl_bases)
             .add_comment("summary", &format!(r#"Typed proxy record struct. It implements <see cref="{}"/> by sending requests to a remote IceRPC service."#, prx_interface))
+            .add_type_id_attribute(interface_def)
+            .add_custom_attributes(interface_def)
             .add_block(request_class(interface_def, ast))
             .add_block(response_class(interface_def, ast))
             .add_block(format!(r#"

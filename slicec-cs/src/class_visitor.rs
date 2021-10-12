@@ -40,18 +40,15 @@ impl<'a> Visitor for ClassVisitor<'_> {
             .filter(|m| !is_member_default_initialized(m, ast))
             .collect::<Vec<_>>();
 
-        // TODO:
+        // TODO: generate doc and deprecate attribute
         // writeTypeDocComment(p, getDeprecateReason(p));
 
-        // emitCommonAttributes();
-        // emitTypeIdAttribute(p->scoped());
-        // if (p->compactId() >= 0)
-        // {
-        //     emitCompactTypeIdAttribute(p->compactId());
-        // }
-        // emitCustomAttributes(p);
-
         let mut class_builder = ContainerBuilder::new("public partial class", &class_name);
+
+        class_builder
+            .add_type_id_attribute(class_def)
+            .add_compact_type_id_attribute(class_def)
+            .add_custom_attributes(class_def);
 
         if let Some(base) = class_def.base(ast) {
             class_builder.add_base(escape_scoped_identifier(

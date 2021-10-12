@@ -22,11 +22,12 @@ impl<'a> Visitor for DispatchVisitor<'_> {
         let mut interface_builder =
             ContainerBuilder::new("public partial interface", &interface_name);
 
-        // TODO: add doc comments and attributes
+        // TODO: add doc comments and deprecate attribute
         // writeServantDocComment(p, getDeprecateReason(p));
-        // emitCommonAttributes();
-        // emitTypeIdAttribute(p->scoped());
-        // emitCustomAttributes(p);
+
+        interface_builder
+            .add_type_id_attribute(interface_def)
+            .add_custom_attributes(interface_def);
 
         interface_builder.add_bases(
             &bases

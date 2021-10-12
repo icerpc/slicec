@@ -1,5 +1,12 @@
+use slice::grammar::{Class, NamedSymbol};
+
+use crate::attributes::{compact_id_attribute, custom_attributes, type_id_attribute};
 use crate::code_block::CodeBlock;
 use crate::comments::CommentTag;
+
+trait Builder {
+    fn build(&self) -> String;
+}
 
 #[derive(Clone, Debug)]
 pub struct ContainerBuilder {
@@ -21,6 +28,25 @@ impl ContainerBuilder {
             attributes: vec![],
             comments: vec![],
         }
+    }
+
+    pub fn add_type_id_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        self.add_attribute(&type_id_attribute(named_symbol));
+        self
+    }
+
+    pub fn add_compact_type_id_attribute(&mut self, class_def: &Class) -> &mut Self {
+        if let Some(attribute) = compact_id_attribute(class_def) {
+            self.add_attribute(&attribute);
+        }
+        self
+    }
+
+    pub fn add_custom_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        for attribute in custom_attributes(named_symbol) {
+            self.add_attribute(&attribute);
+        }
+        self
     }
 
     pub fn add_attribute(&mut self, attribute: &str) -> &mut Self {

@@ -4,6 +4,7 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::{fix_case, CaseStyle, TypeContext};
 
+use crate::attributes::custom_attributes;
 use crate::code_block::CodeBlock;
 
 // TODOAUSTIN move this function beneath the other functions.
@@ -457,18 +458,18 @@ pub fn data_member_declaration(
     field_type: FieldType,
     ast: &Ast,
 ) -> String {
-    let type_string = type_to_string(
-        &data_member.data_type,
-        data_member.scope(),
-        ast,
-        TypeContext::DataMember,
-    );
+    let data_type = &data_member.data_type;
+
+    let type_string = type_to_string(data_type, data_member.scope(), ast, TypeContext::DataMember);
+    let mut prelude = vec![];
+    // TODO get doc comment and deprecate attribute
+    prelude.extend(custom_attributes(data_member));
 
     format!(
         "\
-{comment}
+{prelude}
 public {readonly}{type_string} {name};",
-        comment = "///TODO: comment",
+        prelude = prelude.join("\n"),
         readonly = if is_readonly { "readonly " } else { "" },
         type_string = type_string,
         name = field_name(data_member, field_type)

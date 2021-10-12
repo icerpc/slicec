@@ -21,11 +21,6 @@ impl<'a> Visitor for StructVisitor<'a> {
         let members = struct_def.members(ast);
         let namespace = get_namespace(struct_def);
 
-        // TODO: this stuff from slice2cs
-        // emitDeprecate(p, false, _out);
-        // emitCommonAttributes();
-        // emitCustomAttributes(p);
-
         let mut builder = ContainerBuilder::new(
             &format!(
                 "{access} partial record struct",
@@ -33,6 +28,11 @@ impl<'a> Visitor for StructVisitor<'a> {
             ),
             &escaped_identifier,
         );
+
+        // TODO: add deprecate
+        // emitDeprecate(p, false, _out);
+
+        builder.add_custom_attributes(struct_def);
 
         builder.add_block(
             members

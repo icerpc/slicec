@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+mod attributes;
 mod builders;
 mod class_visitor;
 mod code_block;

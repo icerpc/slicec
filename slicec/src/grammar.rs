@@ -273,6 +273,7 @@ pub struct Class {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub compact_id: Option<u32>,
 }
 
 impl Class {
@@ -284,7 +285,16 @@ impl Class {
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
-        Class { identifier, members, base, scope: None, attributes, comment, location }
+        Class {
+            identifier,
+            members,
+            base,
+            scope: None,
+            attributes,
+            comment,
+            location,
+            compact_id: None, // TODO: parse compact id
+        }
     }
 
     pub fn all_data_members<'a>(&self, ast: &'a Ast) -> Vec<&'a Member> {
