@@ -28,7 +28,7 @@ use enum_visitor::EnumVisitor;
 use exception_visitor::ExceptionVisitor;
 use proxy_visitor::ProxyVisitor;
 use slice::writer::Writer;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;
 
