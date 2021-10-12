@@ -406,18 +406,13 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
     // TODO: if operation.has_marshaled_result() {}
     // else {
 
-    let mut args = vec![];
-
-    if parameters.len() == 1 {
-        args.push(parameter_name(parameters.first().unwrap(), "iceP_", true));
-    } else if parameters.len() > 1 {
-        args.extend(
-            parameters.iter().map(|parameter| {
-                "args.".to_owned() + &field_name(parameter, FieldType::NonMangled)
-            }),
-        );
+    let mut args = match parameters.as_slice() {
+        [parameter] => vec![parameter_name(parameter, "iceP_", true)],
+        _ => parameters
+            .iter()
+            .map(|parameter| format!("args.{}", &field_name(parameter, FieldType::NonMangled)))
+            .collect(),
     };
-
     args.push("dispatch".to_owned());
     args.push("cancel".to_owned());
 
