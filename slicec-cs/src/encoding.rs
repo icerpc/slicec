@@ -79,16 +79,24 @@ pub fn encode_type(
         Node::Struct(_, _) => {
             writeln!(code, "{}.Encode(encoder);", param)
         }
-        Node::Sequence(_, sequence_def) => code.writeln(&encode_sequence(
-            sequence_def,
-            scope,
-            param,
-            !for_nested_type,
-            !for_nested_type,
-            ast,
-        )),
+        Node::Sequence(_, sequence_def) => writeln!(
+            code,
+            "{};",
+            encode_sequence(
+                sequence_def,
+                scope,
+                param,
+                !for_nested_type,
+                !for_nested_type,
+                ast,
+            ),
+        ),
         Node::Dictionary(_, dictionary_def) => {
-            code.writeln(&encode_dictionary(dictionary_def, scope, param, ast))
+            writeln!(
+                code,
+                "{};",
+                encode_dictionary(dictionary_def, scope, param, ast)
+            )
         }
         Node::Enum(_, enum_def) => {
             writeln!(

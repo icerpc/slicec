@@ -114,7 +114,9 @@ pub fn decode_member(
             );
         }
         Node::Dictionary(_, dictionary) => code.write(&decode_dictionary(dictionary, scope, ast)),
-        Node::Sequence(_, sequence) => code.write(&decode_sequence(sequence, scope, ast)),
+        Node::Sequence(_, sequence) => {
+            code.write(&decode_sequence(data_type, sequence, scope, ast))
+        }
         Node::Enum(_, enum_def) => {
             write!(
                 code,
@@ -201,17 +203,19 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
     code
 }
 
-pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock {
+pub fn decode_sequence(
+    type_ref: &TypeRef,
+    sequence: &Sequence,
+    scope: &str,
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
-
-    // TODO: check for generic "cs:generic:" attribute
-    // let generic = sequence.element_type.
-    let generic_attribute: Option<&str> = None; // TODO: temporary
     let element_type = &sequence.element_type;
     let element_node = element_type.definition(ast);
 
-    if let Some(generic_attribute) = generic_attribute {
-        let mut args: String;
+    if let Some(generic_attribute) = type_ref.find_attribute("cs:generic") {
+        let args: String;
+        assert!(!generic_attribute.is_empty());
 
         match element_node {
             Node::Primitive(_, primitive)
@@ -263,15 +267,14 @@ pub fn decode_sequence(sequence: &Sequence, scope: &str, ast: &Ast) -> CodeBlock
             }
         }
 
-        if generic_attribute == "Stack" {
-            args = format!("(global::System.Linq.Enumerable.Reverse{})", args);
-        }
-
         write!(
             code,
             "new {}({})",
-            type_to_string(element_type, scope, ast, TypeContext::Incoming),
-            args
+            type_to_string(type_ref, scope, ast, TypeContext::Incoming),
+            match generic_attribute.first().unwrap().as_str() {
+                "Stack" => format!("global::System.Linq.Enumerable.Reverse({})", args),
+                _ => args,
+            }
         );
     } else {
         // generic arg for the decoder
@@ -362,7 +365,11 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
             write!(code, "decoder => decoder.Decode{}()", builtin_suffix(node));
         }
         Node::Sequence(_, sequence) => {
-            write!(code, "decoder => {}", decode_sequence(sequence, scope, ast));
+            write!(
+                code,
+                "decoder => {}",
+                decode_sequence(type_ref, sequence, scope, ast)
+            );
         }
         Node::Dictionary(_, dictionary) => {
             write!(
