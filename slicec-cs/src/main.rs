@@ -86,7 +86,7 @@ fn try_main() -> Result<(), ()> {
 
             {
                 let path = match &slice_options.output_dir {
-                    Some(output_dir) => Path::new(".").join(output_dir),
+                    Some(output_dir) => PathBuf::from(".").join(output_dir),
                     _ => PathBuf::from("."),
                 }
                 .join(format!("{}.cs", &slice_file.filename))
