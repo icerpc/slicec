@@ -10,7 +10,8 @@ use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoded_result::{encoded_result_struct, has_encoded_result};
 use crate::encoding::*;
-use crate::proxy_visitor::{operation_params, operation_return_task, to_tuple_type};
+use crate::member_util::*;
+use crate::operation_util::*;
 
 pub struct DispatchVisitor<'a> {
     pub code_map: &'a mut CodeMap,

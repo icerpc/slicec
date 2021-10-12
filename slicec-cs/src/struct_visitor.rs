@@ -4,6 +4,7 @@ use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
+use crate::member_util::*;
 use slice::ast::Ast;
 use slice::grammar::*;
 use slice::util::*;

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::code_block::CodeBlock;
-use crate::cs_util::*;
+use crate::member_util::escape_parameter_name;
 use slice::ast::Ast;
 use slice::grammar::{DocComment, NamedSymbol, Operation};
 use slice::writer::Writer;

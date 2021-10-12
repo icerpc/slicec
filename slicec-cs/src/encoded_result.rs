@@ -7,9 +7,11 @@ use slice::util::{CaseStyle, TypeContext};
 use crate::builders::{ContainerBuilder, FunctionBuilder};
 use crate::code_block::CodeBlock;
 use crate::cs_util::{
-    escape_identifier, escape_parameter_name, escape_scoped_identifier, get_namespace,
-    operation_format_type_to_string, parameter_name, type_to_string,
+    escape_identifier, escape_scoped_identifier, get_namespace, operation_format_type_to_string,
+    parameter_name, type_to_string,
 };
+use crate::member_util::escape_parameter_name;
+
 use crate::dispatch_visitor::response_encode_action;
 
 // TODO: should this move to slice library that and take a language prefix parameter?

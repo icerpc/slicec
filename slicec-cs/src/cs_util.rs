@@ -4,9 +4,6 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::{fix_case, CaseStyle, TypeContext};
 
-use crate::attributes::custom_attributes;
-use crate::code_block::CodeBlock;
-
 // TODOAUSTIN move this function beneath the other functions.
 pub fn return_type_to_string(
     return_type: &[&Member],
@@ -387,11 +384,6 @@ pub fn helper_name(definition: &dyn NamedSymbol, scope: &str) -> String {
     escape_scoped_identifier(definition, CaseStyle::Pascal, scope) + "Helper"
 }
 
-pub fn field_name(member: &Member, field_type: FieldType) -> String {
-    let identifier = escape_identifier(member, CaseStyle::Pascal);
-    mangle_name(&identifier, field_type)
-}
-
 pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {
     match type_ref.definition(ast) {
         Node::Primitive(_, primitive) => !matches!(primitive, Primitive::String),
@@ -402,14 +394,6 @@ pub fn is_value_type(type_ref: &TypeRef, ast: &Ast) -> bool {
 
 pub fn is_reference_type(type_ref: &TypeRef, ast: &Ast) -> bool {
     !is_value_type(type_ref, ast)
-}
-
-pub fn escape_parameter_name(parameters: &[&Member], name: &str) -> String {
-    if parameters.iter().any(|p| p.identifier() == name) {
-        name.to_owned() + "_"
-    } else {
-        name.to_owned()
-    }
 }
 
 pub fn get_namespace(named_symbol: &dyn NamedSymbol) -> String {
@@ -450,79 +434,4 @@ pub fn interface_name(interface_def: &Interface) -> String {
     } else {
         format!("I{}", identifier)
     }
-}
-
-pub fn data_member_declaration(
-    data_member: &Member,
-    is_readonly: bool,
-    field_type: FieldType,
-    ast: &Ast,
-) -> String {
-    let data_type = &data_member.data_type;
-
-    let type_string = type_to_string(data_type, data_member.scope(), ast, TypeContext::DataMember);
-    let mut prelude = vec![];
-    // TODO get doc comment and deprecate attribute
-    prelude.extend(custom_attributes(data_member));
-
-    format!(
-        "\
-{prelude}
-public {readonly}{type_string} {name};",
-        prelude = prelude.join("\n"),
-        readonly = if is_readonly { "readonly " } else { "" },
-        type_string = type_string,
-        name = field_name(data_member, field_type)
-    )
-}
-
-pub fn is_member_default_initialized(member: &Member, ast: &Ast) -> bool {
-    let data_type = &member.data_type;
-
-    if data_type.is_optional {
-        return true;
-    }
-
-    match data_type.definition(ast) {
-        Node::Struct(_, struct_def) => struct_def
-            .members(ast)
-            .iter()
-            .all(|m| is_member_default_initialized(m, ast)),
-        _ => is_value_type(data_type, ast),
-    }
-}
-
-pub fn initialize_non_nullable_fields(
-    members: &[&Member],
-    field_type: FieldType,
-    ast: &Ast,
-) -> CodeBlock {
-    // This helper should only be used for classes and exceptions
-    assert!(field_type == FieldType::Class || field_type == FieldType::Exception);
-
-    let mut code = CodeBlock::new();
-
-    for member in members {
-        let data_type = &member.data_type;
-        let data_node = data_type.definition(ast);
-        if data_type.is_optional {
-            continue;
-        }
-
-        let suppress = match data_node {
-            Node::Class(_, _)
-            | Node::Struct(_, _)
-            | Node::Sequence(_, _)
-            | Node::Dictionary(_, _) => true,
-            Node::Primitive(_, primitive) if matches!(primitive, Primitive::String) => true,
-            _ => false,
-        };
-
-        if suppress {
-            // This is to suppress compiler warnings for non-nullable fields.
-            writeln!(code, "this.{} = null!;", field_name(member, field_type));
-        }
-    }
-
-    code
 }

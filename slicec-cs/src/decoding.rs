@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::proxy_visitor::to_argument_tuple;
+use crate::member_util::{field_name, to_argument_tuple};
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;

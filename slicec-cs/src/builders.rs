@@ -1,3 +1,5 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
 use slice::grammar::{Class, NamedSymbol};
 
 use crate::attributes::{compact_id_attribute, custom_attributes, type_id_attribute};

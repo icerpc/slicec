@@ -6,6 +6,7 @@ use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
+use crate::member_util::*;
 use slice::ast::Ast;
 use slice::grammar::{Class, Member};
 use slice::util::{CaseStyle, TypeContext};
