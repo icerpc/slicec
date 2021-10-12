@@ -4,7 +4,7 @@ use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
-use crate::proxy_visitor::{get_invocation_params, operation_return_task, to_tuple_type};
+use crate::proxy_visitor::{operation_params, operation_return_task, to_tuple_type};
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -96,6 +96,8 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             "request.GetIceDecoderFactory(_defaultIceDecoderFactories)"
         };
 
+        let ns = get_namespace(operation);
+
         let code = format!(
             "\
 ///<summary>Decodes the argument{s} of operation {operation_name}.</summary>
@@ -104,7 +106,7 @@ public static {return_type} {operation_name}(IceRpc.IncomingRequest request) =>
         {decoder_factory},
         {decode_func});",
             s = if non_streamed_parameters.len() == 1 { "" } else { "s" },
-            return_type = to_tuple_type(&non_streamed_parameters, true, ast),
+            return_type = to_tuple_type(&non_streamed_parameters, &ns, ast, TypeContext::Outgoing),
             operation_name = operation_name,
             decoder_factory = decoder_factory,
             decode_func = request_decode_func(operation, ast).indent().indent(),
@@ -146,9 +148,10 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             continue;
         }
 
+        let ns = get_namespace(operation);
         let operation_name = &escape_identifier(operation, CaseStyle::Pascal);
         let returns_classes = operation.returns_classes(ast);
-        let return_type = &to_tuple_type(&non_streamed_returns, false, ast);
+        let return_type = &to_tuple_type(&non_streamed_returns, &ns, ast, TypeContext::Outgoing);
 
         let mut builder = FunctionBuilder::new(
             "public static",
@@ -274,7 +277,7 @@ fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
             "({encoder} encoder, {_in}{tuple_type} value) => {{ {encode_action} }}",
             encoder = encoder_class,
             _in = if returns.len() == 1 { "" } else { "in " },
-            tuple_type = to_tuple_type(&returns, false, ast),
+            tuple_type = to_tuple_type(&returns, &ns, ast, TypeContext::Outgoing),
             encode_action = encode_operation(operation, true, ast),
         )
         .into()
@@ -282,14 +285,15 @@ fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
 }
 
 fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
+    let ns = get_namespace(operation);
     format!(
         "\
 {comment}
 public {return_task} {name}Async({parameters});",
         comment = "///TODO:",
-        return_task = operation_return_task(operation, true, ast),
+        return_task = operation_return_task(operation, &ns, true, ast),
         name = escape_identifier(operation, CaseStyle::Pascal),
-        parameters = get_invocation_params(operation, ast).join(", ")
+        parameters = operation_params(operation, true, ast).join(", ")
     )
     .into()
 }

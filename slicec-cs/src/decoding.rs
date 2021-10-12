@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::proxy_visitor::{parameter_type, to_argument_tuple};
+use crate::proxy_visitor::to_argument_tuple;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -444,7 +444,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         writeln!(
             code,
             "{param_type} {decode}",
-            param_type = parameter_type(&member.data_type, false, ast),
+            param_type = type_to_string(&member.data_type, &ns, ast, TypeContext::Incoming),
             decode = decode_member
         )
     }
@@ -460,18 +460,19 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         writeln!(
             code,
             "{param_type} {decode}",
-            param_type = parameter_type(&member.data_type, false, ast),
+            param_type = type_to_string(&member.data_type, &ns, ast, TypeContext::Incoming),
             decode = decode_member
         )
     }
 
     if let Some(stream_member) = stream_member {
-        let stream_param_type = parameter_type(&stream_member.data_type, false, ast);
+        let stream_param_type =
+            type_to_string(&stream_member.data_type, &ns, ast, TypeContext::Incoming);
 
         writeln!(
             code,
             "{param_type} {param_name}",
-            param_type = parameter_type(&stream_member.data_type, false, ast),
+            param_type = type_to_string(&stream_member.data_type, &ns, ast, TypeContext::Incoming),
             param_name = parameter_name(stream_member, "iceP_", true)
         );
 
