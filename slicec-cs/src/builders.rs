@@ -208,8 +208,8 @@ impl FunctionBuilder {
             },
             name = self.name,
             parameters = self.parameters.join(", "),
-            base = match self.base_arguments.len() {
-                0 => "".to_string(),
+            base = match self.base_arguments.as_slice() {
+                [] => "".to_string(),
                 _ => format!("\n    : base({})", self.base_arguments.join(", ")),
             }
         );
