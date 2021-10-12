@@ -214,7 +214,8 @@ pub fn decode_sequence(
     let element_node = element_type.definition(ast);
 
     if let Some(generic_attribute) = type_ref.find_attribute("cs:generic") {
-        let mut args: String;
+        let args: String;
+        assert!(!generic_attribute.is_empty());
 
         match element_node {
             Node::Primitive(_, primitive)
@@ -266,15 +267,14 @@ pub fn decode_sequence(
             }
         }
 
-        if generic_attribute.first().unwrap() == "Stack" {
-            args = format!("global::System.Linq.Enumerable.Reverse({})", args);
-        }
-
         write!(
             code,
             "new {}({})",
             type_to_string(type_ref, scope, ast, TypeContext::Incoming),
-            args
+            match generic_attribute.first().unwrap().as_str() {
+                "Stack" => format!("global::System.Linq.Enumerable.Reverse({})", args),
+                _ => args,
+            }
         );
     } else {
         // generic arg for the decoder
