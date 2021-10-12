@@ -125,7 +125,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
                 ast,
                 TypeContext::Incoming,
             );
-            let invocation_params = get_invocation_params(operation, ast);
+            let invocation_params = operation_params(operation, false, ast);
 
             let mut proxy_params = operation
                 .parameters(ast)
@@ -238,7 +238,7 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let ns = get_namespace(operation);
     let operation_name = escape_identifier(operation, CaseStyle::Pascal);
     let async_operation_name = operation_name.clone() + "Async";
-    let return_task = operation_return_task(operation, &ns, false, ast, TypeContext::Incoming);
+    let return_task = operation_return_task(operation, &ns, false, ast);
     let oneway = operation.has_attribute("oneway");
 
     let parameters = operation.non_streamed_params(ast);
@@ -251,7 +251,7 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let void_return = operation.return_type.is_empty();
 
     let mut builder = FunctionBuilder::new("public", &return_task, &async_operation_name);
-    builder.add_parameters(&get_invocation_params(operation, ast));
+    builder.add_parameters(&operation_params(operation, false, ast));
 
     let mut body = CodeBlock::new();
 
@@ -406,9 +406,9 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
             "{doc_comment}{deprecate_reason}\n{return} {name}({params});\n",
             doc_comment = operation_doc_comment(operation, false, ast),
             deprecate_reason = deprecate_reason,
-            return = operation_return_task(operation, &ns, false, ast, TypeContext::Incoming),
+            return = operation_return_task(operation, &ns, false, ast),
             name = async_name,
-            params = get_invocation_params(operation, ast).join(", ")
+            params = operation_params(operation, false, ast).join(", ")
         )
     }
 
@@ -420,7 +420,6 @@ pub fn operation_return_task(
     scope: &str,
     is_dispatch: bool,
     ast: &Ast,
-    context: TypeContext,
 ) -> String {
     let return_members = operation.return_members(ast);
     if return_members.is_empty() {
@@ -430,7 +429,17 @@ pub fn operation_return_task(
             "global::System.Threading.Tasks.Task".to_owned()
         }
     } else {
-        let return_type = operation_return_type(operation, scope, is_dispatch, ast, context);
+        let return_type = operation_return_type(
+            operation,
+            scope,
+            is_dispatch,
+            ast,
+            if is_dispatch {
+                TypeContext::Outgoing
+            } else {
+                TypeContext::Incoming
+            },
+        );
         if is_dispatch {
             format!("global::System.Threading.Tasks.ValueTask<{}>", return_type)
         } else {
@@ -492,7 +501,7 @@ pub fn to_tuple_type(members: &[&Member], scope: &str, ast: &Ast, context: TypeC
     }
 }
 
-pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
+pub fn operation_params(operation: &Operation, is_dispatch: bool, ast: &Ast) -> Vec<String> {
     let mut params = Vec::new();
 
     let operation_parameters = operation.parameters(ast);
@@ -501,15 +510,31 @@ pub fn get_invocation_params(operation: &Operation, ast: &Ast) -> Vec<String> {
         params.push(format!(
             "{attributes}{param_type} {param_name}",
             attributes = "", // TOOD: getParamAttributes(p)
-            param_type = type_to_string(&p.data_type, p.scope(), ast, TypeContext::Outgoing),
+            param_type = type_to_string(
+                &p.data_type,
+                p.scope(),
+                ast,
+                if is_dispatch {
+                    TypeContext::Incoming
+                } else {
+                    TypeContext::Outgoing
+                }
+            ),
             param_name = parameter_name(p, "", true)
         ))
     }
 
-    params.push(format!(
-        "IceRpc.Invocation? {} = null",
-        escape_parameter_name(&operation_parameters, "invocation")
-    ));
+    params.push(if is_dispatch {
+        format!(
+            "IceRpc.Dispatch? {} = null",
+            escape_parameter_name(&operation_parameters, "dispatch")
+        )
+    } else {
+        format!(
+            "IceRpc.Invocation? {} = null",
+            escape_parameter_name(&operation_parameters, "invocation")
+        )
+    });
     params.push(format!(
         "global::System.Threading.CancellationToken {} = default",
         escape_parameter_name(&operation_parameters, "cancel")

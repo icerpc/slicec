@@ -4,7 +4,7 @@ use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
-use crate::proxy_visitor::{get_invocation_params, operation_return_task, to_tuple_type};
+use crate::proxy_visitor::{operation_params, operation_return_task, to_tuple_type};
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -291,9 +291,9 @@ fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
 {comment}
 public {return_task} {name}Async({parameters});",
         comment = "///TODO:",
-        return_task = operation_return_task(operation, &ns, true, ast, TypeContext::Incoming),
+        return_task = operation_return_task(operation, &ns, true, ast),
         name = escape_identifier(operation, CaseStyle::Pascal),
-        parameters = get_invocation_params(operation, ast).join(", ")
+        parameters = operation_params(operation, true, ast).join(", ")
     )
     .into()
 }
