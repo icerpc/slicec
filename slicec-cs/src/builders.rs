@@ -207,6 +207,12 @@ impl FunctionBuilder {
         self
     }
 
+    pub fn add_never_editor_browsable_attribute(&mut self) -> &mut Self {
+        self.add_attribute(
+            "global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)");
+        self
+    }
+
     pub fn use_expression_body(&mut self, use_expression_body: bool) -> &mut Self {
         self.use_expression_body = use_expression_body;
         self

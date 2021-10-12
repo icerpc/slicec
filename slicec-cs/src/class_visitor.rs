@@ -132,17 +132,17 @@ impl<'a> Visitor for ClassVisitor<'_> {
             );
         }
 
-        // TODO: add this attribute
-        // emitEditorBrowsableNeverAttribute();
         decode_constructor.add_parameter("Ice11Decoder", "decoder", None, "");
         if has_base_class {
             decode_constructor.add_base_argument("decoder");
         }
-        decode_constructor.set_body(initialize_non_nullable_fields(
-            &members,
-            FieldType::Class,
-            ast,
-        ));
+        decode_constructor
+            .set_body(initialize_non_nullable_fields(
+                &members,
+                FieldType::Class,
+                ast,
+            ))
+            .add_never_editor_browsable_attribute();
 
         class_builder.add_block(decode_constructor.build());
 

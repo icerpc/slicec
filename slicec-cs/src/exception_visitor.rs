@@ -95,12 +95,12 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     FieldType::Exception,
                     ast,
                 ))
+                .add_never_editor_browsable_attribute()
                 .build(),
         );
 
         if !has_base && !exception_def.uses_classes(ast) {
             // public constructor used for Ice 2.0 decoding
-            // TODO: emitEditorBrowsableNeverAttribute();
             exception_class_builder.add_block(
                 FunctionBuilder::new("public", "", &exception_name)
                     .add_parameter("Ice20Decoder", "decoder", None, "")
