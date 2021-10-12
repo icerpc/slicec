@@ -61,7 +61,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         let mut proxy_impl_builder =
             ContainerBuilder::new("public readonly partial record struct", &prx_impl);
 
-        proxy_impl_builder.add_bases(&prx_bases)
+        proxy_impl_builder.add_bases(&prx_impl_bases)
             .add_comment("summary", &format!(r#"Typed proxy record struct. It implements <see cref="{}"/> by sending requests to a remote IceRPC service."#, prx_interface))
             .add_block(request_class(interface_def, ast))
             .add_block(response_class(interface_def, ast))
@@ -74,7 +74,7 @@ private static readonly DefaultIceDecoderFactories _defaultIceDecoderFactories =
 /// <summary>The proxy to the remote service.</summary>
 public IceRpc.Proxy Proxy {{ get; init; }}"#,
             interface_name = interface_def.identifier(),
-            prx_impl = interface_name(interface_def)
+            prx_impl = prx_impl
         ).into());
 
         for base_impl in all_base_impl {
@@ -82,7 +82,7 @@ public IceRpc.Proxy Proxy {{ get; init; }}"#,
                 format!(
                     r#"
 /// <summary>Implicit conversion to <see cref="{base_impl}"/>.</summary>
-public static implicit operator {base_impl}({prx_impl} prx) => new (prx.Proxy);"#,
+public static implicit operator {base_impl}({prx_impl} prx) => new(prx.Proxy);"#,
                     base_impl = base_impl,
                     prx_impl = prx_impl
                 )
@@ -176,7 +176,7 @@ public {return_task} {async_name}({invocation_params}) =>
 
 fn proxy_impl_static_methods(interface_def: &Interface) -> CodeBlock {
     format!(
-        r#"/// <summary>Creates a new <see=cref="{prx_impl}"/> from the give connection and path.</summary>
+        r#"/// <summary>Creates a new <see cref="{prx_impl}"/> from the give connection and path.</summary>
 /// <param name="connection">The connection. If it's an outgoing connection, the endpoint of the new proxy is
 /// <see cref="Connection.RemoteEndpoint"/>; otherwise, the new proxy has no endpoint.</param>
 /// <param name="path">The path of the proxy. If null, the path is set to <see cref="DefaultPath"/>.</param>
@@ -184,9 +184,9 @@ fn proxy_impl_static_methods(interface_def: &Interface) -> CodeBlock {
 /// the server's invoker.</param>
 /// <returns>The new proxy.</returns>
 public static {prx_impl} FromConnection(
-IceRpc.Connection connection,
-string? path = null,
-IceRpc.IInvoker? invoker = null) =>
+    IceRpc.Connection connection,
+    string? path = null,
+    IceRpc.IInvoker? invoker = null) =>
     new(IceRpc.Proxy.FromConnection(connection, path ?? DefaultPath, invoker));
 
 /// <summary>Creates a new <see cref="{prx_impl}"/> with the given path and protocol.</summary>
@@ -200,7 +200,8 @@ public static {prx_impl} FromPath(string path, IceRpc.Protocol protocol = IceRpc
 /// <param name="s">The string representation of the proxy.</param>
 /// <param name="invoker">The invoker of the new proxy.</param>
 /// <returns>The new proxy</returns>
-/// <exception cref="global::System.FormatException"><c>s</c> does not contain a valid string representation of a proxy.</exception>
+/// <exception cref="global::System.FormatException"><c>s</c> does not contain a valid string representation of a proxy.
+/// </exception>
 public static {prx_impl} Parse(string s, IceRpc.IInvoker? invoker = null) => new(IceRpc.Proxy.Parse(s, invoker));
 
 /// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
@@ -228,7 +229,7 @@ public {prx_impl}(IceRpc.Proxy proxy) => Proxy = proxy;
 
 /// <inheritdoc/>
 public override string ToString() => Proxy.ToString();"#,
-        prx_impl = interface_name(interface_def)
+        prx_impl = format!("{}Prx", interface_name(interface_def).chars().skip(1).collect::<String>())
     ).into()
 }
 
@@ -355,7 +356,7 @@ response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 
     invoke_args.push("invocation".to_owned());
 
-    if !operation.is_idempotent() {
+    if operation.is_idempotent() {
         invoke_args.push("idempotent: true".to_owned());
     }
 
