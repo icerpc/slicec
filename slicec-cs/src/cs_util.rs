@@ -58,7 +58,9 @@ pub fn type_to_string(type_ref: &TypeRef, scope: &str, ast: &Ast, context: TypeC
             escape_scoped_identifier(interface_def, CaseStyle::Pascal, scope) + "Prx"
         }
         Node::Enum(_, enum_def) => escape_scoped_identifier(enum_def, CaseStyle::Pascal, scope),
-        Node::Sequence(_, sequence) => sequence_type_to_string(sequence, scope, ast, context),
+        Node::Sequence(_, sequence) => {
+            sequence_type_to_string(type_ref, sequence, scope, ast, context)
+        }
         Node::Dictionary(_, dictionary) => {
             dictionary_type_to_string(dictionary, scope, ast, context)
         }
@@ -93,6 +95,7 @@ pub fn type_to_string(type_ref: &TypeRef, scope: &str, ast: &Ast, context: TypeC
 }
 
 fn sequence_type_to_string(
+    type_ref: &TypeRef,
     sequence: &Sequence,
     scope: &str,
     ast: &Ast,
@@ -104,9 +107,19 @@ fn sequence_type_to_string(
         TypeContext::DataMember | TypeContext::Nested => {
             format!("global::System.Collections.Generic.IList<{}>", element_type)
         }
-        TypeContext::Incoming => {
-            format!("{}[]", element_type)
-        }
+        TypeContext::Incoming => match type_ref.find_attribute("cs:generic") {
+            Some(args) => {
+                let prefix = match args.first().unwrap().as_str() {
+                    "List" | "LinkedList" | "Queue" | "Stack" => {
+                        "global::System.Collections.Generic."
+                    }
+                    _ => "",
+                };
+                println!("prefix: {} args: {}", prefix, args.first().unwrap());
+                format!("{}{}", prefix, args.first().unwrap())
+            }
+            None => format!("{}[]", element_type),
+        },
         TypeContext::Outgoing => {
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
             let element_node = sequence.element_type.definition(ast);
