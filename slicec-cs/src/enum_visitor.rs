@@ -33,6 +33,7 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 
     let escaped_identifier = escape_keyword(enum_def.identifier());
     let mut builder = ContainerBuilder::new("public enum", &escaped_identifier);
+    builder.add_base(underlying_type(enum_def, ast));
     builder.add_custom_attributes(enum_def);
     // TODO add comment
     builder.add_block(enum_values(enum_def, ast));
@@ -44,7 +45,7 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     for enumerator in enum_def.enumerators(ast) {
         // TODO add comment
         code.add_block(&format!(
-            "{} = {};",
+            "{} = {},",
             enumerator.identifier(),
             enumerator.value
         ));
@@ -156,7 +157,7 @@ public static {escaped_identifier} Decode{identifier}(this IceRpc.IceDecoder dec
         format!(
             r#"
 public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
-    {encode_enum}"#,
+    {encode_enum}(({underlying_type})value);"#,
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,
             encode_enum = match &enum_def.underlying {
@@ -164,8 +165,9 @@ public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_i
                     "encoder.Encode{}",
                     builtin_suffix(underlying.definition(ast))
                 ),
-                None => "encoder.EncodeSize((int)value)".to_owned(),
-            }
+                None => "encoder.EncodeSize".to_owned(),
+            },
+            underlying_type = underlying_type
         )
         .into(),
     );
