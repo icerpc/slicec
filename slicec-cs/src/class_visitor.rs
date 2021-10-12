@@ -80,10 +80,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
             .into(),
         );
 
-        // TODO: get compact id
-        let compact_id = -1;
-
-        if compact_id >= 0 {
+        if class_def.compact_id.is_some() {
             class_builder.add_block(
                 format!(
                 "private static readonly int _compactTypeId = typeof({}).GetIceCompactTypeId()!.Value;",
@@ -233,9 +230,8 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
             let mut code = CodeBlock::new();
 
             let mut start_slice_args = vec!["IceTypeId"];
-            // TODO no way to get class compact id yet
-            let compact_id = -1;
-            if compact_id >= 0 {
+
+            if class_def.compact_id.is_some() {
                 start_slice_args.push("_compactTypeId");
             }
 
