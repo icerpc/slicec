@@ -115,7 +115,6 @@ fn sequence_type_to_string(
                     }
                     _ => "",
                 };
-                println!("prefix: {} args: {}", prefix, args.first().unwrap());
                 format!("{}{}", prefix, args.first().unwrap())
             }
             None => format!("{}[]", element_type),
