@@ -142,7 +142,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
                 FieldType::Class,
                 ast,
             ))
-            .set_editor_browsable_never();
+            .add_never_editor_browsable_attribute();
 
         class_builder.add_block(decode_constructor.build());
 

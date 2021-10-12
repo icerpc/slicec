@@ -95,7 +95,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     FieldType::Exception,
                     ast,
                 ))
-                .set_editor_browsable_never()
+                .add_never_editor_browsable_attribute()
                 .build(),
         );
 
