@@ -207,7 +207,7 @@ impl FunctionBuilder {
         self
     }
 
-    pub fn set_editor_browsable_never(&mut self) -> &mut Self {
+    pub fn add_never_editor_browsable_attribute(&mut self) -> &mut Self {
         self.add_attribute(
             "global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)");
         self
