@@ -6,6 +6,7 @@ use crate::code_map::CodeMap;
 use crate::comments::*;
 use crate::cs_util::*;
 use crate::decoding::*;
+use crate::encoded_result::{encoded_result_struct_name, has_encoded_result};
 use crate::encoding::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
@@ -456,13 +457,12 @@ pub fn operation_return_type(
     ast: &Ast,
     context: TypeContext,
 ) -> String {
-    let has_marshaled_result = false; // TODO: do we still want to keep this?
+    let return_members = operation.return_members(ast);
 
-    if is_dispatch && has_marshaled_result {
-        return "".to_owned();
+    if !return_members.is_empty() && is_dispatch && has_encoded_result(operation) {
+        return encoded_result_struct_name(operation, scope);
     }
 
-    let return_members = operation.return_members(ast);
     match return_members.as_slice() {
         [] => "void".to_owned(),
         [member] => type_to_string(&member.data_type, scope, ast, context),

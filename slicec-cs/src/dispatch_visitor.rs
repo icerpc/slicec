@@ -1,14 +1,16 @@
+use slice::ast::{Ast, Node};
+use slice::grammar::*;
+use slice::util::*;
+use slice::visitor::Visitor;
+
 use crate::builders::{ContainerBuilder, FunctionBuilder};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::cs_util::*;
 use crate::decoding::*;
+use crate::encoded_result::{encoded_result_struct, has_encoded_result};
 use crate::encoding::*;
 use crate::proxy_visitor::{operation_params, operation_return_task, to_tuple_type};
-use slice::ast::{Ast, Node};
-use slice::grammar::*;
-use slice::util::*;
-use slice::visitor::Visitor;
 
 pub struct DispatchVisitor<'a> {
     pub code_map: &'a mut CodeMap,
@@ -45,9 +47,7 @@ private static readonly DefaultIceDecoderFactories _defaultIceDecoderFactories =
 ", interface_name).into());
 
         for operation in interface_def.operations(ast) {
-            // TODO:
-            // writeReturnValueStruct(op);
-            // writeMethodDeclaration(op);
+            interface_builder.add_block(encoded_result_struct(operation, ast));
             interface_builder.add_block(operation_declaration(operation, ast));
         }
 
@@ -253,7 +253,7 @@ fn request_decode_func(operation: &Operation, ast: &Ast) -> CodeBlock {
     }
 }
 
-fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
+pub fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     let ns = get_namespace(operation);
 
     // We only want the non-streamed returns
@@ -403,47 +403,81 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
         }
     };
 
-    // TODO: if operation.has_marshaled_result() {}
-    // else {
+    if has_encoded_result(operation) {
+        // TODO: support for stream param with encoded result?
 
-    let mut args = match parameters.as_slice() {
-        [parameter] => vec![parameter_name(parameter, "iceP_", true)],
-        _ => parameters
-            .iter()
-            .map(|parameter| format!("args.{}", &field_name(parameter, FieldType::NonMangled)))
-            .collect(),
-    };
-    args.push("dispatch".to_owned());
-    args.push("cancel".to_owned());
+        let mut args = vec![];
 
-    writeln!(
-        code,
-        "{return_value}await target.{operation_name}({args}).ConfigureAwait(false);",
-        return_value = if !return_parameters.is_empty() {
-            "var returnValue = "
+        match parameters.as_slice() {
+            [p] => {
+                args.push(parameter_name(p, "iceP_", true));
+            }
+            _ => {
+                for p in parameters {
+                    args.push("args.".to_owned() + &field_name(p, FieldType::NonMangled));
+                }
+            }
+        }
+        // TODO: should these be escaped?
+        args.push("dispatch".to_owned());
+        args.push("cancel".to_owned());
+
+        writeln!(
+            code,
+            "var returnValue = await target.{name}({args}).ConfigureAwait(false);",
+            name = operation_name,
+            args = args.join(", ")
+        );
+
+        let encoding = if operation.returns_classes(ast) {
+            "IceRpc.Encoding.Ice11"
         } else {
-            ""
-        },
-        operation_name = operation_name,
-        args = args.join(", ")
-    );
+            "request.GetIceEncoding()"
+        };
 
-    let encoding = if operation.returns_classes(ast) {
-        "IceRpc.Encoding.Ice11"
+        writeln!(
+            code,
+            "return ({encoding}, returnValue,Payload, null)",
+            encoding = encoding
+        );
     } else {
-        code.writeln("var payloadEncoding = request.GetIceEncoding();");
-        "payloadEncoding"
-    };
+        let mut args = match parameters.as_slice() {
+            [parameter] => vec![parameter_name(parameter, "iceP_", true)],
+            _ => parameters
+                .iter()
+                .map(|parameter| format!("args.{}", &field_name(parameter, FieldType::NonMangled)))
+                .collect(),
+        };
+        args.push("dispatch".to_owned());
+        args.push("cancel".to_owned());
 
-    writeln!(
-        code,
-        "return ({encoding}, {payload}, {stream});",
-        encoding = encoding,
-        payload = dispatch_return_payload(operation, encoding, ast),
-        stream = stream_param_sender(operation, encoding, ast)
-    );
+        writeln!(
+            code,
+            "{return_value}await target.{operation_name}({args}).ConfigureAwait(false);",
+            return_value = if !return_parameters.is_empty() {
+                "var returnValue = "
+            } else {
+                ""
+            },
+            operation_name = operation_name,
+            args = args.join(", ")
+        );
 
-    // }
+        let encoding = if operation.returns_classes(ast) {
+            "IceRpc.Encoding.Ice11"
+        } else {
+            code.writeln("var payloadEncoding = request.GetIceEncoding();");
+            "payloadEncoding"
+        };
+
+        writeln!(
+            code,
+            "return ({encoding}, {payload}, {stream});",
+            encoding = encoding,
+            payload = dispatch_return_payload(operation, encoding, ast),
+            stream = stream_param_sender(operation, encoding, ast)
+        );
+    }
 
     code
 }

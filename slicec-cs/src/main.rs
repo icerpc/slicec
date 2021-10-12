@@ -12,6 +12,7 @@ mod cs_validator;
 mod cs_writer;
 mod decoding;
 mod dispatch_visitor;
+mod encoded_result;
 mod encoding;
 mod enum_visitor;
 mod exception_visitor;

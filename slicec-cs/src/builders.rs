@@ -116,6 +116,7 @@ pub struct FunctionBuilder {
     return_type: String,
     parameters: Vec<String>,
     body: CodeBlock,
+    base_constructor: String,
     base_arguments: Vec<String>,
     comments: Vec<CommentTag>,
     attributes: Vec<String>,
@@ -132,6 +133,7 @@ impl FunctionBuilder {
             body: CodeBlock::new(),
             comments: Vec::new(),
             attributes: Vec::new(),
+            base_constructor: String::from("base"),
             base_arguments: Vec::new(),
             use_expression_body: false,
         }
@@ -190,6 +192,16 @@ impl FunctionBuilder {
         self
     }
 
+    /// Calls this(arg1, arg2, ...) instead of base(arg1, arg2, ...)
+    pub fn use_this_base_constructor(&mut self, use_this_base_constructor: bool) -> &mut Self {
+        self.base_constructor = if use_this_base_constructor {
+            "this".to_owned()
+        } else {
+            "base".to_owned()
+        };
+        self
+    }
+
     pub fn add_base_argument(&mut self, argument: &str) -> &mut Self {
         self.base_arguments.push(argument.to_owned());
         self
@@ -242,7 +254,11 @@ impl FunctionBuilder {
             parameters = self.parameters.join(", "),
             base = match self.base_arguments.as_slice() {
                 [] => "".to_string(),
-                _ => format!("\n    : base({})", self.base_arguments.join(", ")),
+                _ => format!(
+                    "\n    : {}({})",
+                    self.base_constructor,
+                    self.base_arguments.join(", ")
+                ),
             }
         );
 
