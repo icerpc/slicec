@@ -48,12 +48,15 @@ impl CodeBlock {
     }
 }
 
+/// Formats a CodeBlock for display. Whitespace characters are removed from the beginning and end.
 impl fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.content.trim_matches(char::is_whitespace))
     }
 }
 
+/// Converts an iterator of std::string::String into a CodeBlock. Each string is separated by a
+/// single newline.
 impl std::iter::FromIterator<std::string::String> for CodeBlock {
     fn from_iter<T: IntoIterator<Item = std::string::String>>(iter: T) -> Self {
         let mut code = CodeBlock::new();
@@ -64,6 +67,8 @@ impl std::iter::FromIterator<std::string::String> for CodeBlock {
     }
 }
 
+/// Converts an iterator of CodeBlocks into a single CodeBlock. Each of the individual CodeBlocks is
+/// is stringified and spaced with an empty line between them.
 impl std::iter::FromIterator<CodeBlock> for CodeBlock {
     fn from_iter<T: IntoIterator<Item = CodeBlock>>(iter: T) -> Self {
         let mut code = CodeBlock::new();
@@ -74,12 +79,16 @@ impl std::iter::FromIterator<CodeBlock> for CodeBlock {
     }
 }
 
+/// Allows for converting a String into a Codeblock.
+/// eg. let code_block: CodeBlock = format!("{}", "Hello, World!").into();
 impl From<String> for CodeBlock {
     fn from(s: String) -> Self {
         CodeBlock { content: s }
     }
 }
 
+/// Allows for converting a &str into a Codeblock.
+/// eg. let code_block: CodeBlock = "Hello, World!".into();
 impl From<&str> for CodeBlock {
     fn from(s: &str) -> Self {
         CodeBlock { content: s.to_owned() }

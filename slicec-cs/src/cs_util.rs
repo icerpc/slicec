@@ -464,8 +464,6 @@ pub fn data_member_declaration(
         TypeContext::DataMember,
     );
 
-    // TODO fix this. name should use field_name()
-
     format!(
         "\
 {comment}
