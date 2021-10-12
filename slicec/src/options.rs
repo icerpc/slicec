@@ -29,7 +29,7 @@ pub struct SliceOptions {
     #[structopt(long)]
     pub validate: bool,
 
-    /// Output directory for generated code, default to current working directory.
+    /// Output directory for generated code, defaults to the current working directory.
     #[structopt(long)]
     pub output_dir: Option<String>,
 }
