@@ -15,7 +15,7 @@ pub fn type_id_attribute(named_symbol: &dyn NamedSymbol) -> String {
 pub fn compact_id_attribute(class_def: &Class) -> Option<String> {
     class_def
         .compact_id
-        .map(|id| format!(r#"IceRpc.Slice.CompactTypeId("{}")"#, id))
+        .map(|id| format!(r#"IceRpc.Slice.CompactTypeId({})"#, id))
 }
 
 pub fn custom_attributes(named_symbol: &dyn NamedSymbol) -> Vec<String> {
