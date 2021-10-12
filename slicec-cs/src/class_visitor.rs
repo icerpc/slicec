@@ -130,12 +130,12 @@ impl<'a> Visitor for ClassVisitor<'_> {
         let mut decode_constructor = FunctionBuilder::new("public", "", &class_name);
 
         if !has_base_class {
-            let silence_warnings = r#"[global::System.Diagnostics.CodeAnalysis.SuppressMessage(
+            decode_constructor.add_attribute(
+                r#"global::System.Diagnostics.CodeAnalysis.SuppressMessage(
     "Microsoft.Performance",
     "CA1801: Review unused parameters",
-    Justification="Special constructor used for Ice decoding")]"#;
-
-            decode_constructor.add_attribute(silence_warnings);
+    Justification="Special constructor used for Ice decoding")"#,
+            );
         }
 
         // TODO: add this attribute

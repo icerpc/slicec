@@ -7,6 +7,7 @@ pub struct ContainerBuilder {
     name: String,
     bases: Vec<String>,
     contents: Vec<CodeBlock>,
+    attributes: Vec<String>,
     comments: Vec<CommentTag>,
 }
 
@@ -17,8 +18,14 @@ impl ContainerBuilder {
             name: name.to_owned(),
             bases: vec![],
             contents: vec![],
+            attributes: vec![],
             comments: vec![],
         }
+    }
+
+    pub fn add_attribute(&mut self, attribute: &str) -> &mut Self {
+        self.attributes.push(attribute.to_owned());
+        self
     }
 
     pub fn add_base(&mut self, base: String) -> &mut Self {
@@ -46,6 +53,10 @@ impl ContainerBuilder {
 
         for comment in &self.comments {
             code.writeln(&comment.to_string());
+        }
+
+        for attribute in &self.attributes {
+            code.writeln(&format!("[{}]", attribute));
         }
 
         writeln!(
@@ -183,7 +194,7 @@ impl FunctionBuilder {
         }
 
         for attribute in &self.attributes {
-            code.writeln(&attribute);
+            code.writeln(&format!("[{}]", attribute));
         }
 
         write!(
