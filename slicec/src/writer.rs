@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::io::BufWriter;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct Writer {
@@ -15,7 +16,7 @@ pub struct Writer {
 }
 
 impl Writer {
-    pub fn new(path: &str) -> io::Result<Self> {
+    pub fn new(path: &Path) -> io::Result<Self> {
         let file = File::create(path)?;
 
         Ok(Writer {

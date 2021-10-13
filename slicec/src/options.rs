@@ -28,4 +28,8 @@ pub struct SliceOptions {
     /// Validates input files without generating code for them.
     #[structopt(long)]
     pub validate: bool,
+
+    /// Output directory for generated code, defaults to the current working directory.
+    #[structopt(long)]
+    pub output_dir: Option<String>,
 }

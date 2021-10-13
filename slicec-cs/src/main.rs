@@ -31,6 +31,7 @@ use enum_visitor::EnumVisitor;
 use exception_visitor::ExceptionVisitor;
 use proxy_visitor::ProxyVisitor;
 use slice::writer::Writer;
+use std::path::PathBuf;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;
 
@@ -87,7 +88,14 @@ fn try_main() -> Result<(), ()> {
             slice_file.visit_with(&mut class_visitor, &data.ast);
 
             {
-                let mut output = Writer::new(&format!("{}.cs", slice_file.filename)).unwrap();
+                let path = match &slice_options.output_dir {
+                    Some(output_dir) => PathBuf::from(output_dir),
+                    _ => PathBuf::from("."),
+                }
+                .join(format!("{}.cs", &slice_file.filename))
+                .to_owned();
+
+                let mut output = Writer::new(&path).unwrap();
                 let mut cs_writer = CsWriter {
                     output: &mut output,
                     code_map: &mut code_map,
