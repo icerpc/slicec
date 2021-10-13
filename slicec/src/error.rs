@@ -137,16 +137,19 @@ impl ErrorHandler {
             if let Some(loc) = location {
                 // Specify the location where the error starts on its own line after the message.
                 message = format!(
-                    "{}\n@ '{}' ({},{}):\n",
+                    "{}\n@ '{}' ({},{})",
                     message, &loc.file, loc.start.0, loc.start.1
                 );
 
                 // If the location spans between two positions, add a snippet from the slice file.
                 if loc.start != loc.end {
+                    message += ":\n";
                     let file = slice_files
                         .get(&loc.file)
                         .expect("Slice file not in file map!");
                     message += &file.get_snippet(loc.start, loc.end);
+                } else {
+                    message += "\n";
                 }
             }
             // Print the message to stderr.
