@@ -59,14 +59,21 @@ impl<'a> TableBuilder<'a> {
             let original = ast.resolve_index(*original_index).as_named_symbol().unwrap();
             let redefinition = ast.resolve_index(index).as_named_symbol().unwrap();
 
-            self.error_handler.report_error((
-                format!("cannot reuse identifier `{}` in this scope", redefinition.identifier()),
-                redefinition,
-            ).into());
-            self.error_handler.report_note((
-                format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
-                original,
-            ).into());
+            // TODO this isn't technically correct.
+            // We need a way of storing multiple modules with the same name in the lookup table.
+
+            // If both definitions are modules with the same scoped identifiers, it's okay.
+            // This isn't a redefinition, just re-opening a module.
+            if !(original.kind() == "module" && redefinition.kind() == "module") {
+                self.error_handler.report_error((
+                    format!("cannot reuse identifier `{}` in this scope", redefinition.identifier()),
+                    redefinition,
+                ).into());
+                self.error_handler.report_note((
+                    format!("{} `{}` was originally defined here", original.kind(), original.identifier()),
+                    original,
+                ).into());
+            }
         } else {
             self.lookup_table.insert(scoped_identifier, index);
         }
