@@ -150,7 +150,7 @@ impl ErrorHandler {
                 }
             }
             // Print the message to stderr.
-            eprintln!("{}\n", message);
+            eprintln!("{}", message);
         }
     }
 
