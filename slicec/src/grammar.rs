@@ -301,7 +301,7 @@ impl Class {
         let mut members = self.members(ast);
 
         if let Some(base) = &self.base {
-            let mut base_members = ref_from_node!(Node::Exception, ast, base.definition.unwrap())
+            let mut base_members = ref_from_node!(Node::Class, ast, base.definition.unwrap())
                 .all_data_members(ast);
 
             members.append(&mut base_members);
@@ -317,10 +317,10 @@ impl Class {
             .collect()
     }
 
-    pub fn base<'a>(&self, ast: &'a Ast) -> Option<&'a Exception> {
+    pub fn base<'a>(&self, ast: &'a Ast) -> Option<&'a Class> {
         match self.base {
             Some(ref base) => Some(ref_from_node!(
-                Node::Exception,
+                Node::Class,
                 ast,
                 base.definition.unwrap()
             )),
@@ -331,28 +331,11 @@ impl Class {
 
 impl Type for Class {
     fn is_fixed_size(&self, ast: &Ast) -> bool {
-        for member in self.members(ast) {
-            let data_type = ast
-                .resolve_index(member.data_type.definition.unwrap())
-                .as_type();
-            if !data_type.unwrap().is_fixed_size(ast) {
-                return false;
-            }
-        }
-        true
+        false
     }
 
     fn min_wire_size(&self, ast: &Ast) -> u32 {
-        let mut size = 0;
-        for member in self.members(ast) {
-            size += member
-                .data_type
-                .definition(ast)
-                .as_type()
-                .unwrap()
-                .min_wire_size(ast);
-        }
-        size
+        1
     }
 
     fn tag_format(&self, _: &Ast) -> TagFormat {
@@ -360,13 +343,7 @@ impl Type for Class {
     }
 
     fn uses_classes(&self, ast: &Ast) -> bool {
-        self.members(ast).iter().any(|m| {
-            m.data_type
-                .definition(ast)
-                .as_type()
-                .unwrap()
-                .uses_classes(ast)
-        })
+        true
     }
 }
 
@@ -427,7 +404,7 @@ impl Exception {
     // TODO: Since Exception doesn't implement the Type trait we need to implement this manually.
     // It would be nice to have a shared trait (MemberHolder)
     pub fn uses_classes(&self, ast: &Ast) -> bool {
-        self.members(ast).iter().any(|m| {
+        self.all_data_members(ast).iter().any(|m| {
             m.data_type
                 .definition(ast)
                 .as_type()
@@ -483,12 +460,13 @@ impl Interface {
 
     pub fn all_base_operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
         let mut operations = self
-            .bases(ast)
+            .all_bases(ast)
             .iter()
-            .map(|base| base.all_operations(ast))
+            .map(|base| base.operations(ast))
             .flatten()
             .collect::<Vec<_>>();
 
+        operations.sort_by_key(|op| op.identifier());
         operations.dedup_by_key(|op| op.identifier());
 
         operations
@@ -497,6 +475,7 @@ impl Interface {
     pub fn all_operations<'a>(&self, ast: &'a Ast) -> Vec<&'a Operation> {
         let mut operations = self.all_base_operations(ast);
         operations.extend_from_slice(&self.operations(ast));
+        operations.sort_by_key(|op| op.identifier());
         operations.dedup_by_key(|op| op.identifier());
 
         operations
