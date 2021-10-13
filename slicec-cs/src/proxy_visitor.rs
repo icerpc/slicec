@@ -20,18 +20,15 @@ pub struct ProxyVisitor<'a> {
 
 impl<'a> Visitor for ProxyVisitor<'_> {
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, ast: &Ast) {
-        let prx_interface = format!("{}Prx", interface_name(interface_def)); // IFooPrx
-        let prx_impl: String = prx_interface.chars().skip(1).collect(); // IFooPrx -> FooPrx
+        let prx_interface = proxy_name(interface_def); // IFooPrx
+        let prx_impl: String = proxy_impl_name(interface_def); // FooPrx
 
         let all_bases: Vec<&Interface> = interface_def.all_bases(ast);
         let bases: Vec<&Interface> = interface_def.bases(ast);
 
         let mut prx_impl_bases: Vec<String> = vec![prx_interface.clone(), "IPrx".to_owned()];
 
-        let mut all_base_impl: Vec<String> = all_bases
-            .iter()
-            .map(|b| interface_name(b).chars().skip(1).collect::<String>() + "Prx")
-            .collect();
+        let mut all_base_impl: Vec<String> = all_bases.iter().map(|b| proxy_impl_name(b)).collect();
 
         let mut add_service_prx = false;
         if !all_bases.iter().any(|b| b.scope() == "::IceRpc::Service")
@@ -141,10 +138,12 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             ));
             proxy_params.push(escape_parameter_name(&operation.parameters(ast), "cancel"));
 
-            // TODO: base interface
-            // InterfaceDefPtr baseInterface = InterfaceDefPtr::dynamicCast(operation->container());
-            // string basePrxImpl = getUnqualified(getNamespace(baseInterface) + "." +
-            // interfaceName(baseInterface).substr(1) + "Prx", ns);
+            let base_interface = interface_def
+                .bases(ast)
+                .iter()
+                .find(|base| base.scoped_identifier() == operation.scope())
+                .cloned()
+                .unwrap();
 
             proxy_impl_builder.add_block(
                 format!(
@@ -155,7 +154,7 @@ public {return_task} {async_name}({invocation_params}) =>
                     return_task = return_task,
                     async_name = async_name,
                     invocation_params = invocation_params.join(", "),
-                    base_prx_impl = "TODO",
+                    base_prx_impl = proxy_impl_name(base_interface),
                     proxy_params = proxy_params.join(", ")
                 )
                 .into(),

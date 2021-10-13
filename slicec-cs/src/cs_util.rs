@@ -435,3 +435,11 @@ pub fn interface_name(interface_def: &Interface) -> String {
         format!("I{}", identifier)
     }
 }
+
+pub fn proxy_name(interface_def: &Interface) -> String {
+    interface_name(interface_def) + "Prx"
+}
+
+pub fn proxy_impl_name(interface_def: &Interface) -> String {
+    proxy_name(interface_def).chars().skip(1).collect()
+}
