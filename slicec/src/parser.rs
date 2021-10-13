@@ -135,21 +135,55 @@ impl SliceParser {
     fn module_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
         let identifier = match_nodes!(input.into_children();
-            [_, identifier(ident)] => ident,
+            [_, scoped_identifier(ident)] => ident,
         );
         Ok((identifier, location))
     }
 
     fn module_def(input: PestNode) -> PestResult<usize> {
-        let module_def = match_nodes!(input.children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), module_start(module_start), definition(contents)..] => {
                 let (identifier, location) = module_start;
                 let (attributes, comment) = prelude;
-                Module::new(identifier, contents.collect(), attributes, comment, location)
+
+                // Split the identifier in case it uses nested module syntax. We iterate over them
+                // in reverse since we construct them in inner-to-outermost order.
+                let mut modules = identifier.value.rsplit("::");
+
+                // Mutably borrow the AST, for inserting the modules into.
+                let ast = &mut input.user_data().borrow_mut().ast;
+
+                // Construct the inner-most module first.
+                let mut last_module = ast.add_element(Module::new(
+                    // There must be at least one module identifier, so it's safe to unwrap here.
+                    Identifier {
+                        value: modules.next().unwrap().to_owned(),
+                        location: identifier.location.clone(),
+                    },
+                    contents.collect(),
+                    attributes,
+                    comment,
+                    location.clone(),
+                ));
+
+                // Construct any enclosing modules.
+                for module in modules {
+                    last_module = ast.add_element(Module::new(
+                        Identifier {
+                            value: module.to_owned(),
+                            location: identifier.location.clone(),
+                        },
+                        vec![last_module],
+                        vec![],
+                        None,
+                        location.clone(),
+                    ));
+                }
+
+                // Return the index of the outer-most module.
+                last_module
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(module_def))
+        ))
     }
 
     fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
