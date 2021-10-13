@@ -31,7 +31,7 @@ use enum_visitor::EnumVisitor;
 use exception_visitor::ExceptionVisitor;
 use proxy_visitor::ProxyVisitor;
 use slice::writer::Writer;
-use std::path::PathBuf;
+use std::path::Path;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;
 
@@ -89,8 +89,8 @@ fn try_main() -> Result<(), ()> {
 
             {
                 let path = match &slice_options.output_dir {
-                    Some(output_dir) => PathBuf::from(output_dir),
-                    _ => PathBuf::from("."),
+                    Some(output_dir) => Path::new(output_dir),
+                    _ => Path::new("."),
                 }
                 .join(format!("{}.cs", &slice_file.filename))
                 .to_owned();
