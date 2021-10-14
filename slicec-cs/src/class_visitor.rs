@@ -1,8 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{
+    AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
+};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
+use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
@@ -41,12 +44,11 @@ impl<'a> Visitor for ClassVisitor<'_> {
             .filter(|m| !is_member_default_initialized(m, ast))
             .collect::<Vec<_>>();
 
-        // TODO: generate doc and deprecate attribute
-        // writeTypeDocComment(p, getDeprecateReason(p));
-
         let mut class_builder = ContainerBuilder::new("public partial class", &class_name);
 
         class_builder
+            .add_comment("summary", &doc_comment_message(class_def))
+            .add_obsolete_attribute(class_def)
             .add_type_id_attribute(class_def)
             .add_compact_type_id_attribute(class_def)
             .add_custom_attributes(class_def);
@@ -122,7 +124,8 @@ impl<'a> Visitor for ClassVisitor<'_> {
         // public constructor used for decoding
         // the decoder parameter is used to distinguish this ctor from the parameterless ctor that
         // users may want to add to the partial class. It's not used otherwise.
-        let mut decode_constructor = FunctionBuilder::new("public", "", &class_name);
+        let mut decode_constructor =
+            FunctionBuilder::new("public", "", &class_name, FunctionType::BlockBody);
 
         if !has_base_class {
             decode_constructor.add_attribute(
@@ -133,9 +136,9 @@ impl<'a> Visitor for ClassVisitor<'_> {
             );
         }
 
-        decode_constructor.add_parameter("Ice11Decoder", "decoder", None, "");
+        decode_constructor.add_parameter("Ice11Decoder", "decoder", None, None);
         if has_base_class {
-            decode_constructor.add_base_argument("decoder");
+            decode_constructor.add_base_parameter("decoder");
         }
         decode_constructor
             .set_body(initialize_non_nullable_fields(
@@ -164,11 +167,11 @@ fn constructor(
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let mut builder = FunctionBuilder::new("public", "", escaped_name);
+    let mut builder = FunctionBuilder::new("public", "", escaped_name, FunctionType::BlockBody);
 
     builder.add_comment("summary", summary_comment);
 
-    builder.add_base_arguments(
+    builder.add_base_parameters(
         &base_members
             .iter()
             .filter(|m| !is_member_default_initialized(m, ast))
@@ -181,12 +184,12 @@ fn constructor(
             type_to_string(&member.data_type, namespace, ast, TypeContext::DataMember);
         let parameter_name = escape_identifier(*member, CaseStyle::Camel);
 
-        // TODO get comment
-        // CommentInfo comment = processComment(member, "");
-        // writeDocCommentLines(_out, comment.summaryLines, "param", "name", paramName(member, "",
-        // false));
-        let comment = "";
-        builder.add_parameter(&parameter_type, &parameter_name, None, comment);
+        builder.add_parameter(
+            &parameter_type,
+            &parameter_name,
+            None,
+            Some(&doc_comment_message(*member)),
+        );
     }
 
     builder.set_body({
@@ -225,59 +228,69 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
         code.add_block(&ice_unknown_slices);
     }
 
-    let encode_class = FunctionBuilder::new("protected override", "void", "IceEncode")
-        .add_parameter("Ice11Encoder", "encoder", None, "")
-        .set_body({
-            let mut code = CodeBlock::new();
+    let encode_class = FunctionBuilder::new(
+        "protected override",
+        "void",
+        "IceEncode",
+        FunctionType::BlockBody,
+    )
+    .add_parameter("Ice11Encoder", "encoder", None, None)
+    .set_body({
+        let mut code = CodeBlock::new();
 
-            let mut start_slice_args = vec!["IceTypeId"];
+        let mut start_slice_args = vec!["IceTypeId"];
 
-            if class_def.compact_id.is_some() {
-                start_slice_args.push("_compactTypeId");
-            }
+        if class_def.compact_id.is_some() {
+            start_slice_args.push("_compactTypeId");
+        }
 
-            writeln!(
-                code,
-                "encoder.IceStartSlice({});",
-                start_slice_args.join(", ")
-            );
+        writeln!(
+            code,
+            "encoder.IceStartSlice({});",
+            start_slice_args.join(", ")
+        );
 
-            code.writeln(&encode_data_members(
-                &members,
-                &namespace,
-                FieldType::Class,
-                ast,
-            ));
+        code.writeln(&encode_data_members(
+            &members,
+            &namespace,
+            FieldType::Class,
+            ast,
+        ));
 
-            if has_base_class {
-                code.writeln("encoder.IceEndSlice(false);");
-                code.writeln("base.IceEncode(encoder);");
-            } else {
-                code.writeln("encoder.IceEndSlice(true);"); // last slice
-            }
+        if has_base_class {
+            code.writeln("encoder.IceEndSlice(false);");
+            code.writeln("base.IceEncode(encoder);");
+        } else {
+            code.writeln("encoder.IceEndSlice(true);"); // last slice
+        }
 
-            code
-        })
-        .build();
+        code
+    })
+    .build();
 
-    let decode_class = FunctionBuilder::new("protected override", "void", "IceDecode")
-        .add_parameter("Ice11Decoder", "decoder", None, "")
-        .set_body({
-            let mut code = CodeBlock::new();
-            code.writeln("decoder.IceStartSlice();");
-            code.writeln(&decode_data_members(
-                &members,
-                &namespace,
-                FieldType::Class,
-                ast,
-            ));
-            code.writeln("decoder.IceEndSlice();");
-            if has_base_class {
-                code.writeln("base.IceDecode(decoder);");
-            }
-            code
-        })
-        .build();
+    let decode_class = FunctionBuilder::new(
+        "protected override",
+        "void",
+        "IceDecode",
+        FunctionType::BlockBody,
+    )
+    .add_parameter("Ice11Decoder", "decoder", None, None)
+    .set_body({
+        let mut code = CodeBlock::new();
+        code.writeln("decoder.IceStartSlice();");
+        code.writeln(&decode_data_members(
+            &members,
+            &namespace,
+            FieldType::Class,
+            ast,
+        ));
+        code.writeln("decoder.IceEndSlice();");
+        if has_base_class {
+            code.writeln("base.IceDecode(decoder);");
+        }
+        code
+    })
+    .build();
 
     code.add_block(&encode_class);
     code.add_block(&decode_class);

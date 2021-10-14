@@ -4,8 +4,9 @@ use slice::ast::{Ast, Node};
 use slice::grammar::{Member, NamedSymbol, Primitive, ScopedSymbol};
 use slice::util::{CaseStyle, TypeContext};
 
-use crate::attributes::custom_attributes;
+use crate::attributes::{custom_attributes, obsolete_attribute};
 use crate::code_block::CodeBlock;
+use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
 
 pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
@@ -62,15 +63,28 @@ pub fn data_member_declaration(
     let data_type = &data_member.data_type;
 
     let type_string = type_to_string(data_type, data_member.scope(), ast, TypeContext::DataMember);
-    let mut prelude = vec![];
-    // TODO get doc comment and deprecate attribute
-    prelude.extend(custom_attributes(data_member));
+    let mut prelude = CodeBlock::new();
+
+    prelude.writeln(&CommentTag::new(
+        "summary",
+        "",
+        "",
+        &doc_comment_message(data_member),
+    ));
+    prelude.writeln(
+        &custom_attributes(data_member)
+            .into_iter()
+            .collect::<CodeBlock>(),
+    );
+    if let Some(obsolete) = obsolete_attribute(data_member, true) {
+        prelude.writeln(&obsolete);
+    }
 
     format!(
         "\
 {prelude}
 public {readonly}{type_string} {name};",
-        prelude = prelude.join("\n"),
+        prelude = prelude,
         readonly = if is_readonly { "readonly " } else { "" },
         type_string = type_string,
         name = field_name(data_member, field_type)

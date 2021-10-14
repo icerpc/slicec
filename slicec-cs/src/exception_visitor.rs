@@ -1,8 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{
+    AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
+};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
+use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
@@ -30,14 +33,12 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
             .iter()
             .all(|m| is_member_default_initialized(m, ast));
 
-        // TODO: generate doc and deprecate attribute
-        // writeTypeDocComment(p, getDeprecateReason(p));
-        // emitDeprecate(p, false, _out);
-
         let mut exception_class_builder =
             ContainerBuilder::new("public partial class", &exception_name);
 
         exception_class_builder
+            .add_comment("summary", &doc_comment_message(exception_def))
+            .add_obsolete_attribute(exception_def)
             .add_type_id_attribute(exception_def)
             .add_custom_attributes(exception_def);
 
@@ -75,22 +76,22 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         // public parameter-less constructor
         if has_public_parameter_constructor {
             exception_class_builder.add_block(
-                FunctionBuilder::new("public", "", &exception_name)
+                FunctionBuilder::new("public", "", &exception_name, FunctionType::BlockBody)
                     .add_parameter(
                         "IceRpc.RetryPolicy?",
                         "retryPolicy",
                         None,
-                        "The retry policy for the exception",
+                        Some("The retry policy for the exception"),
                     )
-                    .add_base_argument("retryPolicy")
+                    .add_base_parameter("retryPolicy")
                     .build(),
             );
         }
 
         exception_class_builder.add_block(
-            FunctionBuilder::new("public", "", &exception_name)
-                .add_parameter("Ice11Decoder", "decoder", None, "")
-                .add_base_argument("decoder")
+            FunctionBuilder::new("public", "", &exception_name, FunctionType::BlockBody)
+                .add_parameter("Ice11Decoder", "decoder", None, None)
+                .add_base_parameter("decoder")
                 .set_body(initialize_non_nullable_fields(
                     &members,
                     FieldType::Exception,
@@ -103,9 +104,9 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
         if !has_base && !exception_def.uses_classes(ast) {
             // public constructor used for Ice 2.0 decoding
             exception_class_builder.add_block(
-                FunctionBuilder::new("public", "", &exception_name)
-                    .add_parameter("Ice20Decoder", "decoder", None, "")
-                    .add_base_argument("decoder")
+                FunctionBuilder::new("public", "", &exception_name, FunctionType::BlockBody)
+                    .add_parameter("Ice20Decoder", "decoder", None, None)
+                    .add_base_parameter("decoder")
                     .set_body(decode_data_members(
                         &members,
                         &ns,
@@ -118,70 +119,85 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         // Remote exceptions are always "preserved".
         exception_class_builder.add_block(
-            FunctionBuilder::new("protected override", "void", "IceDecode")
-                .add_parameter("Ice11Decoder", "decoder", None, "")
-                .set_body({
-                    let mut code = CodeBlock::new();
-                    code.writeln("decoder.IceStartSlice();");
-                    code.writeln(&decode_data_members(
-                        &members,
-                        &ns,
-                        FieldType::Exception,
-                        ast,
-                    ));
-                    code.writeln("decoder.IceEndSlice();");
+            FunctionBuilder::new(
+                "protected override",
+                "void",
+                "IceDecode",
+                FunctionType::BlockBody,
+            )
+            .add_parameter("Ice11Decoder", "decoder", None, None)
+            .set_body({
+                let mut code = CodeBlock::new();
+                code.writeln("decoder.IceStartSlice();");
+                code.writeln(&decode_data_members(
+                    &members,
+                    &ns,
+                    FieldType::Exception,
+                    ast,
+                ));
+                code.writeln("decoder.IceEndSlice();");
 
-                    if has_base {
-                        code.writeln("base.IceDecode(decoder);");
-                    }
-                    code
-                })
-                .build(),
+                if has_base {
+                    code.writeln("base.IceDecode(decoder);");
+                }
+                code
+            })
+            .build(),
         );
 
         exception_class_builder.add_block(
-            FunctionBuilder::new("protected override", "void", "IceEncode")
-                .add_parameter("Ice11Encoder", "encoder", None, "")
+            FunctionBuilder::new(
+                "protected override",
+                "void",
+                "IceEncode",
+                FunctionType::BlockBody,
+            )
+            .add_parameter("Ice11Encoder", "encoder", None, None)
+            .set_body({
+                let mut code = CodeBlock::new();
+                code.writeln("encoder.IceStartSlice(_iceTypeId);");
+                code.writeln(&encode_data_members(
+                    &members,
+                    &ns,
+                    FieldType::Exception,
+                    ast,
+                ));
+
+                if has_base {
+                    code.writeln("encoder.IceEndSlice(lastSlice: false);");
+                    code.writeln("base.IceEncode(encoder);");
+                } else {
+                    code.writeln("encoder.IceEndSlice(lastSlice: true);")
+                }
+
+                code
+            })
+            .build(),
+        );
+
+        if !has_base && !exception_def.uses_classes(ast) {
+            exception_class_builder.add_block(
+                FunctionBuilder::new(
+                    "protected override",
+                    "void",
+                    "IceEncode",
+                    FunctionType::BlockBody,
+                )
+                .add_parameter("Ice20Encoder", "encoder", None, None)
                 .set_body({
                     let mut code = CodeBlock::new();
-                    code.writeln("encoder.IceStartSlice(_iceTypeId);");
+                    code.writeln("encoder.EncodeString(_iceTypeId);");
+                    code.writeln("encoder.EncodeString(Message);");
+                    code.writeln("Origin.Encode(encoder);");
                     code.writeln(&encode_data_members(
                         &members,
                         &ns,
                         FieldType::Exception,
                         ast,
                     ));
-
-                    if has_base {
-                        code.writeln("encoder.IceEndSlice(lastSlice: false);");
-                        code.writeln("base.IceEncode(encoder);");
-                    } else {
-                        code.writeln("encoder.IceEndSlice(lastSlice: true);")
-                    }
-
                     code
                 })
                 .build(),
-        );
-
-        if !has_base && !exception_def.uses_classes(ast) {
-            exception_class_builder.add_block(
-                FunctionBuilder::new("protected override", "void", "IceEncode")
-                    .add_parameter("Ice20Encoder", "encoder", None, "")
-                    .set_body({
-                        let mut code = CodeBlock::new();
-                        code.writeln("encoder.EncodeString(_iceTypeId);");
-                        code.writeln("encoder.EncodeString(Message);");
-                        code.writeln("Origin.Encode(encoder);");
-                        code.writeln(&encode_data_members(
-                            &members,
-                            &ns,
-                            FieldType::Exception,
-                            ast,
-                        ));
-                        code
-                    })
-                    .build(),
             );
         }
 
@@ -227,7 +243,8 @@ fn one_shot_constructor(
         vec![]
     };
 
-    let mut ctor_builder = FunctionBuilder::new("public", "", &exception_name);
+    let mut ctor_builder =
+        FunctionBuilder::new("public", "", &exception_name, FunctionType::BlockBody);
 
     ctor_builder.add_comment(
         "summary",
@@ -242,31 +259,31 @@ fn one_shot_constructor(
             "string?",
             &message_parameter_name,
             None,
-            "Message that describes the exception.",
+            Some("Message that describes the exception."),
         );
-        ctor_builder.add_base_argument(&message_parameter_name);
+        ctor_builder.add_base_parameter(&message_parameter_name);
     }
 
     ctor_builder.add_parameters(&all_parameters);
-    ctor_builder.add_base_arguments(&base_parameters);
+    ctor_builder.add_base_parameters(&base_parameters);
 
     if add_message_and_exception_parameters {
         ctor_builder.add_parameter(
             "global::System.Exception?",
             &inner_exception_parameter_name,
             Some("null"),
-            "The exception that is the cause of the current exception.",
+            Some("The exception that is the cause of the current exception."),
         );
-        ctor_builder.add_base_argument(&inner_exception_parameter_name);
+        ctor_builder.add_base_parameter(&inner_exception_parameter_name);
     }
 
     ctor_builder.add_parameter(
         "IceRpc.RetryPolicy?",
         &retry_policy_parameter_name,
         Some("null"),
-        "The retry policy for the exception.",
+        Some("The retry policy for the exception."),
     );
-    ctor_builder.add_base_argument(&retry_policy_parameter_name);
+    ctor_builder.add_base_parameter(&retry_policy_parameter_name);
 
     // ctor impl
     let mut ctor_body = CodeBlock::new();

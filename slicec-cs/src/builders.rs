@@ -1,13 +1,53 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::grammar::{Class, NamedSymbol};
+use slice::ast::Ast;
+use slice::grammar::{Class, NamedSymbol, Operation, ScopedSymbol};
+use slice::util::TypeContext;
 
-use crate::attributes::{compact_id_attribute, custom_attributes, type_id_attribute};
+use crate::attributes::{
+    compact_id_attribute, custom_attributes, obsolete_attribute, type_id_attribute,
+};
 use crate::code_block::CodeBlock;
-use crate::comments::CommentTag;
+use crate::comments::{operation_parameter_doc_comment, CommentTag};
+use crate::cs_util::{parameter_name, type_to_string};
+use crate::member_util::escape_parameter_name;
 
 trait Builder {
     fn build(&self) -> String;
+}
+
+pub trait AttributeBuilder {
+    fn add_attribute(&mut self, attributes: &str) -> &mut Self;
+
+    fn add_type_id_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        self.add_attribute(&type_id_attribute(named_symbol));
+        self
+    }
+
+    fn add_compact_type_id_attribute(&mut self, class_def: &Class) -> &mut Self {
+        if let Some(attribute) = compact_id_attribute(class_def) {
+            self.add_attribute(&attribute);
+        }
+        self
+    }
+
+    fn add_custom_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        for attribute in custom_attributes(named_symbol) {
+            self.add_attribute(&attribute);
+        }
+        self
+    }
+
+    fn add_obsolete_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        if let Some(attribute) = obsolete_attribute(named_symbol, false) {
+            self.add_attribute(&attribute);
+        }
+        self
+    }
+}
+
+pub trait CommentBuilder {
+    fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self;
 }
 
 #[derive(Clone, Debug)]
@@ -32,30 +72,6 @@ impl ContainerBuilder {
         }
     }
 
-    pub fn add_type_id_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        self.add_attribute(&type_id_attribute(named_symbol));
-        self
-    }
-
-    pub fn add_compact_type_id_attribute(&mut self, class_def: &Class) -> &mut Self {
-        if let Some(attribute) = compact_id_attribute(class_def) {
-            self.add_attribute(&attribute);
-        }
-        self
-    }
-
-    pub fn add_custom_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        for attribute in custom_attributes(named_symbol) {
-            self.add_attribute(&attribute);
-        }
-        self
-    }
-
-    pub fn add_attribute(&mut self, attribute: &str) -> &mut Self {
-        self.attributes.push(attribute.to_owned());
-        self
-    }
-
     pub fn add_base(&mut self, base: String) -> &mut Self {
         self.bases.push(base);
         self
@@ -68,11 +84,6 @@ impl ContainerBuilder {
 
     pub fn add_block(&mut self, content: CodeBlock) -> &mut Self {
         self.contents.push(content);
-        self
-    }
-
-    pub fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
-        self.comments.push(CommentTag::new(tag, "", "", content));
         self
     }
 
@@ -111,6 +122,27 @@ impl ContainerBuilder {
     }
 }
 
+impl AttributeBuilder for ContainerBuilder {
+    fn add_attribute(&mut self, attribute: &str) -> &mut Self {
+        self.attributes.push(attribute.to_owned());
+        self
+    }
+}
+
+impl CommentBuilder for ContainerBuilder {
+    fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
+        self.comments.push(CommentTag::new(tag, "", "", content));
+        self
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum FunctionType {
+    Declaration,
+    BlockBody,
+    ExpressionBody,
+}
+
 #[derive(Clone, Debug)]
 pub struct FunctionBuilder {
     access: String,
@@ -122,11 +154,17 @@ pub struct FunctionBuilder {
     base_arguments: Vec<String>,
     comments: Vec<CommentTag>,
     attributes: Vec<String>,
-    use_expression_body: bool,
+    function_type: FunctionType,
+    inherit_doc: bool,
 }
 
 impl FunctionBuilder {
-    pub fn new(access: &str, return_type: &str, name: &str) -> FunctionBuilder {
+    pub fn new(
+        access: &str,
+        return_type: &str,
+        name: &str,
+        function_type: FunctionType,
+    ) -> FunctionBuilder {
         FunctionBuilder {
             parameters: Vec::new(),
             access: String::from(access),
@@ -137,13 +175,9 @@ impl FunctionBuilder {
             attributes: Vec::new(),
             base_constructor: String::from("base"),
             base_arguments: Vec::new(),
-            use_expression_body: false,
+            function_type,
+            inherit_doc: false,
         }
-    }
-
-    pub fn add_attribute(&mut self, attribute: &str) -> &mut Self {
-        self.attributes.push(attribute.to_owned());
-        self
     }
 
     pub fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
@@ -172,7 +206,7 @@ impl FunctionBuilder {
         param_type: &str,
         param_name: &str,
         default_value: Option<&str>,
-        doc_comment: &str,
+        doc_comment: Option<&str>,
     ) -> &mut Self {
         self.parameters.push(format!(
             "{param_type} {param_name}{default_value}",
@@ -184,7 +218,11 @@ impl FunctionBuilder {
             }
         ));
 
-        self.add_comment_with_attribute("param", "name", param_name, doc_comment)
+        if let Some(comment) = doc_comment {
+            self.add_comment_with_attribute("param", "name", param_name, comment);
+        }
+
+        self
     }
 
     pub fn add_parameters(&mut self, parameters: &[String]) -> &mut Self {
@@ -194,22 +232,18 @@ impl FunctionBuilder {
         self
     }
 
-    /// Calls this(arg1, arg2, ...) instead of base(arg1, arg2, ...)
-    pub fn use_this_base_constructor(&mut self, use_this_base_constructor: bool) -> &mut Self {
-        self.base_constructor = if use_this_base_constructor {
-            "this".to_owned()
-        } else {
-            "base".to_owned()
-        };
+    /// Set the base constructor (used when there are base parameters). The default is base
+    pub fn set_base_constructor(&mut self, base_constructor: &str) -> &mut Self {
+        self.base_constructor = base_constructor.to_owned();
         self
     }
 
-    pub fn add_base_argument(&mut self, argument: &str) -> &mut Self {
+    pub fn add_base_parameter(&mut self, argument: &str) -> &mut Self {
         self.base_arguments.push(argument.to_owned());
         self
     }
 
-    pub fn add_base_arguments(&mut self, arguments: &[String]) -> &mut Self {
+    pub fn add_base_parameters(&mut self, arguments: &[String]) -> &mut Self {
         for arg in arguments {
             self.base_arguments.push(arg.to_owned());
         }
@@ -221,61 +255,150 @@ impl FunctionBuilder {
         self
     }
 
+    pub fn set_inherit_doc(&mut self, inherit_doc: bool) -> &mut Self {
+        self.inherit_doc = inherit_doc;
+        self
+    }
+
     pub fn add_never_editor_browsable_attribute(&mut self) -> &mut Self {
         self.add_attribute(
             "global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)");
         self
     }
 
-    pub fn use_expression_body(&mut self, use_expression_body: bool) -> &mut Self {
-        self.use_expression_body = use_expression_body;
+    pub fn add_operation_parameters(
+        &mut self,
+        operation: &Operation,
+        context: TypeContext,
+        ast: &Ast,
+    ) -> &mut Self {
+        let parameters = operation.parameters(ast);
+
+        for parameter in &parameters {
+            // The attributes are a space separated list of attributes.
+            // eg. [attribute1] [attribute2]
+            let parameter_attributes = parameter.find_attribute("cs:attribute").map_or_else(
+                || "".to_owned(),
+                |vec| {
+                    vec.iter()
+                        .map(|a| format!("[{}]", a))
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                },
+            );
+
+            let parameter_type =
+                type_to_string(&parameter.data_type, parameter.scope(), ast, context);
+
+            let parameter_name = parameter_name(parameter, "", true);
+
+            // TODO: it would be better if we could use parameter.comment() to get the parameter
+            // comment instead
+            let parameter_comment =
+                operation_parameter_doc_comment(operation, parameter.identifier());
+
+            self.add_parameter(
+                &format!("{}{}", parameter_attributes, &parameter_type),
+                &parameter_name,
+                None,
+                parameter_comment,
+            );
+        }
+
+        match context {
+            TypeContext::Incoming => {
+                self.add_parameter(
+                    "IceRpc.Dispatch?",
+                    &escape_parameter_name(&parameters, "dispatch"),
+                    Some("null"),
+                    Some("The dispatch properties"),
+                );
+            }
+            TypeContext::Outgoing => {
+                self.add_parameter(
+                    "IceRpc.Dispatch?",
+                    &escape_parameter_name(&parameters, "invocation"),
+                    Some("null"),
+                    Some("The invocation properties."),
+                );
+            }
+            _ => panic!("Unexpected context value"),
+        }
+
+        self.add_parameter(
+            "global::System.Threading.CancellationToken ?",
+            &escape_parameter_name(&parameters, "cancel"),
+            Some("default"),
+            Some("A cancellation token that receives the cancellation requests."),
+        );
+
         self
     }
 
     pub fn build(&mut self) -> CodeBlock {
         let mut code = CodeBlock::new();
 
-        for comment in &self.comments {
-            code.writeln(&comment.to_string());
+        if self.inherit_doc {
+            code.writeln("/// <inheritdoc/>")
+        } else {
+            for comment in &self.comments {
+                code.writeln(&comment.to_string());
+            }
         }
 
         for attribute in &self.attributes {
             code.writeln(&format!("[{}]", attribute));
         }
 
-        write!(
-            code,
-            "{access}{return_type}{name}({parameters}){base}",
-            access = self.access,
-            return_type = if self.return_type.is_empty() {
-                " ".to_owned()
-            } else {
-                format!(" {} ", self.return_type)
-            },
-            name = self.name,
-            parameters = self.parameters.join(", "),
-            base = match self.base_arguments.as_slice() {
-                [] => "".to_string(),
-                _ => format!(
-                    "\n    : {}({})",
-                    self.base_constructor,
-                    self.base_arguments.join(", ")
-                ),
-            }
-        );
+        // CodeBlock ignores whitespace only writes so there's no issue of over-padding here.
+        write!(code, "{} ", self.access);
+        write!(code, "{} ", self.return_type);
+        write!(code, "{}({})", self.name, self.parameters.join(", "));
 
-        if self.body.is_empty() {
-            if self.use_expression_body {
-                code.writeln("=> {{}};")
-            } else {
-                code.writeln("\n{\n}");
+        match self.base_arguments.as_slice() {
+            [] | [_] => {}
+            _ => write!(
+                code,
+                "\n    : {}({})",
+                self.base_constructor,
+                self.base_arguments.join(", ")
+            ),
+        }
+
+        match self.function_type {
+            FunctionType::Declaration => {
+                code.writeln(";");
             }
-        } else if self.use_expression_body {
-            writeln!(code, "=>\n    {};", self.body.indent());
-        } else {
-            writeln!(code, "\n{{\n    {body}\n}}", body = self.body.indent());
+            FunctionType::ExpressionBody => {
+                if self.body.is_empty() {
+                    code.writeln(" => {{}};");
+                } else {
+                    writeln!(code, " =>\n    {};", self.body.indent());
+                }
+            }
+            FunctionType::BlockBody => {
+                if self.body.is_empty() {
+                    code.writeln("\n{\n}");
+                } else {
+                    writeln!(code, "\n{{\n    {}\n}}", self.body.indent());
+                }
+            }
         }
 
         code
+    }
+}
+
+impl AttributeBuilder for FunctionBuilder {
+    fn add_attribute(&mut self, attribute: &str) -> &mut Self {
+        self.attributes.push(attribute.to_owned());
+        self
+    }
+}
+
+impl CommentBuilder for FunctionBuilder {
+    fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
+        self.comments.push(CommentTag::new(tag, "", "", content));
+        self
     }
 }

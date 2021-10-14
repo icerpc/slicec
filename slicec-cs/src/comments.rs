@@ -1,21 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::code_block::CodeBlock;
-use crate::member_util::escape_parameter_name;
-use slice::ast::Ast;
 use slice::grammar::{DocComment, NamedSymbol, Operation};
-use slice::writer::Writer;
 use std::fmt;
 
 use regex::Regex;
-
-/// Helper method that checks if a named symbol has a comment written on it, and if so, formats
-/// it as a C# style doc comment and writes it to the underlying output.
-pub fn write_comment(writer: &mut Writer, named_symbol: &dyn NamedSymbol) {
-    if let Some(comment) = named_symbol.comment() {
-        writer.write(&CsharpComment::new(comment).to_string());
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct CommentTag {
@@ -134,49 +122,25 @@ impl fmt::Display for CsharpComment {
     }
 }
 
-pub fn operation_doc_comment(operation: &Operation, dispatch: bool, ast: &Ast) -> CodeBlock {
-    // let summary =
-    //     CommentTag { tag: "summary", attribute_name: "", attribute_value: "", content: "" };
-    // "".to_owned()
+pub fn doc_comment_message(named_symbol: &dyn NamedSymbol) -> String {
+    named_symbol
+        .comment()
+        .map_or_else(|| "".to_owned(), |c| CsharpComment::new(c).0.message)
+}
 
-    let mut code = CodeBlock::new();
-
-    if let Some(comment) = &operation.comment {
-        let parsed_comment = CsharpComment::new(comment);
-        code.writeln(&CommentTag::new(
-            "summary",
-            "",
-            "",
-            &parsed_comment.0.message,
-        ));
-
-        // TODO: write params (see writeParamDocComment in C++)
-    }
-
-    if dispatch {
-        code.writeln(&CommentTag::new(
-            "param",
-            "name",
-            &escape_parameter_name(&operation.parameters(ast), "dispatch"),
-            "The dispatch properties",
-        ))
-    } else {
-        code.writeln(&CommentTag::new(
-            "param",
-            "name",
-            &escape_parameter_name(&operation.parameters(ast), "invocation"),
-            "The invocation properties.",
-        ));
-    }
-
-    code.writeln(&CommentTag::new(
-        "param",
-        "name",
-        &escape_parameter_name(&operation.parameters(ast), "cancel"),
-        "A cancellation token that receives the cancellation requests.",
-    ));
-
-    // TODO: return types (see C++)
-
-    code
+// TODO: the `DocComment` message for an operation parameter should be the same as the `DocComment`
+// for the operation param
+pub fn operation_parameter_doc_comment<'a>(
+    operation: &'a Operation,
+    parameter_name: &str,
+) -> Option<&'a str> {
+    operation.comment().map(|comment| {
+        comment
+            .params
+            .iter()
+            .find(|(param, _)| param == parameter_name)
+            .unwrap()
+            .1
+            .as_str()
+    })
 }

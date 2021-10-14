@@ -1,7 +1,9 @@
-use crate::builders::ContainerBuilder;
+use crate::builders::{AttributeBuilder, CommentBuilder, ContainerBuilder};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
+use crate::comments::doc_comment_message;
 use crate::cs_util::*;
+
 use slice::ast::Ast;
 use slice::grammar::*;
 use slice::util::*;
@@ -28,24 +30,23 @@ impl<'a> Visitor for EnumVisitor<'a> {
 }
 
 fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
-    // TODO: doc comment and deprecate reason
-    // writeTypeDocComment(p, getDeprecateReason(p));
-
     let escaped_identifier = escape_keyword(enum_def.identifier());
-    let mut builder = ContainerBuilder::new("public enum", &escaped_identifier);
-    builder.add_base(underlying_type(enum_def, ast));
-    builder.add_custom_attributes(enum_def);
-    // TODO add comment
-    builder.add_block(enum_values(enum_def, ast));
-    builder.build().into()
+    ContainerBuilder::new("public enum", &escaped_identifier)
+        .add_comment("summary", &doc_comment_message(enum_def))
+        .add_obsolete_attribute(enum_def)
+        .add_custom_attributes(enum_def)
+        .add_base(underlying_type(enum_def, ast))
+        .add_block(enum_values(enum_def, ast))
+        .build()
+        .into()
 }
 
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
-        // TODO add comment
         code.add_block(&format!(
-            "{} = {},",
+            "{}\n{} = {},",
+            doc_comment_message(enumerator),
             enumerator.identifier(),
             enumerator.value
         ));
