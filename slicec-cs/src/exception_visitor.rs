@@ -38,9 +38,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         exception_class_builder
             .add_comment("summary", &doc_comment_message(exception_def))
-            .add_obsolete_attribute(exception_def)
-            .add_type_id_attribute(exception_def)
-            .add_custom_attributes(exception_def);
+            .add_container_attributes(exception_def);
 
         if let Some(base) = exception_def.base(ast) {
             exception_class_builder.add_base(escape_scoped_identifier(
@@ -184,19 +182,17 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     FunctionType::BlockBody,
                 )
                 .add_parameter("Ice20Encoder", "encoder", None, None)
-                .set_body({
-                    let mut code = CodeBlock::new();
-                    code.writeln("encoder.EncodeString(_iceTypeId);");
-                    code.writeln("encoder.EncodeString(Message);");
-                    code.writeln("Origin.Encode(encoder);");
-                    code.writeln(&encode_data_members(
-                        &members,
-                        &ns,
-                        FieldType::Exception,
-                        ast,
-                    ));
-                    code
-                })
+                .set_body(
+                    format!(
+                        "\
+encoder.EncodeString(_iceTypeId);
+encoder.EncodeString(Message);
+Origin.Encode(encoder);
+{}",
+                        &encode_data_members(&members, &ns, FieldType::Exception, ast,)
+                    )
+                    .into(),
+                )
                 .build(),
             );
         }

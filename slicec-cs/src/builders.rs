@@ -44,6 +44,15 @@ pub trait AttributeBuilder {
         }
         self
     }
+
+    /// Adds the "standard" set of attributes to a "container type". eg struct, class, enum,
+    /// exception
+    fn add_container_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
+        self.add_type_id_attribute(named_symbol);
+        self.add_obsolete_attribute(named_symbol);
+        self.add_custom_attributes(named_symbol);
+        self
+    }
 }
 
 pub trait CommentBuilder {

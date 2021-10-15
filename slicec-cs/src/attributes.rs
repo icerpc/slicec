@@ -26,7 +26,7 @@ pub fn custom_attributes(named_symbol: &dyn NamedSymbol) -> Vec<String> {
 
 pub fn obsolete_attribute(named_symbol: &dyn NamedSymbol, check_parent: bool) -> Option<String> {
     get_deprecate_reason(named_symbol, check_parent)
-        .map(|r| format!(r#"[global::System.Obsolete("{}")]"#, r))
+        .map(|r| format!(r#"global::System.Obsolete("{}")"#, r))
 }
 
 pub fn get_deprecate_reason(named_symbol: &dyn NamedSymbol, _check_parent: bool) -> Option<String> {

@@ -57,9 +57,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
 
         let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", &summary_message)
-            .add_type_id_attribute(interface_def)
-            .add_custom_attributes(interface_def)
-            .add_obsolete_attribute(interface_def)
+            .add_container_attributes(interface_def)
             .add_bases(&prx_bases)
             .add_block(proxy_interface_operations(interface_def, ast))
             .build();
@@ -420,6 +418,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
                 FunctionType::Declaration,
             )
             .add_obsolete_attribute(operation)
+            .add_custom_attributes(operation)
             .add_comment("summary", &doc_comment_message(operation))
             .add_operation_parameters(operation, TypeContext::Outgoing, ast)
             .build(),

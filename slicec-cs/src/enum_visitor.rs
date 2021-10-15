@@ -1,7 +1,7 @@
 use crate::builders::{AttributeBuilder, CommentBuilder, ContainerBuilder};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
-use crate::comments::doc_comment_message;
+use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
 
 use slice::ast::Ast;
@@ -33,8 +33,7 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let escaped_identifier = escape_keyword(enum_def.identifier());
     ContainerBuilder::new("public enum", &escaped_identifier)
         .add_comment("summary", &doc_comment_message(enum_def))
-        .add_obsolete_attribute(enum_def)
-        .add_custom_attributes(enum_def)
+        .add_container_attributes(enum_def)
         .add_base(underlying_type(enum_def, ast))
         .add_block(enum_values(enum_def, ast))
         .build()
@@ -44,12 +43,13 @@ fn enum_declaration(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     for enumerator in enum_def.enumerators(ast) {
-        code.add_block(&format!(
+        // Use CodeBlock here in case the comment is empty. It automatically whitespace
+        code.add_block(&CodeBlock::from(format!(
             "{}\n{} = {},",
-            doc_comment_message(enumerator),
+            CommentTag::new("summary", "", "", &doc_comment_message(enumerator)),
             enumerator.identifier(),
             enumerator.value
-        ));
+        )));
     }
     code
 }

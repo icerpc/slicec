@@ -48,10 +48,8 @@ impl<'a> Visitor for ClassVisitor<'_> {
 
         class_builder
             .add_comment("summary", &doc_comment_message(class_def))
-            .add_obsolete_attribute(class_def)
-            .add_type_id_attribute(class_def)
-            .add_compact_type_id_attribute(class_def)
-            .add_custom_attributes(class_def);
+            .add_container_attributes(class_def)
+            .add_compact_type_id_attribute(class_def);
 
         if let Some(base) = class_def.base(ast) {
             class_builder.add_base(escape_scoped_identifier(
