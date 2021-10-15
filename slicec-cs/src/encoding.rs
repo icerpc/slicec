@@ -6,7 +6,7 @@ use slice::util::*;
 
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::member_util::*;
+use crate::traits::*;
 
 pub fn encode_data_members(
     members: &[&Member],
@@ -33,7 +33,7 @@ pub fn encode_data_members(
     }
 
     for member in required_members {
-        let param = format!("this.{}", field_name(member, field_type));
+        let param = format!("this.{}", member.field_name(field_type));
 
         let encode_member = encode_type(
             &member.data_type,
@@ -48,7 +48,7 @@ pub fn encode_data_members(
 
     // Encode tagged
     for member in tagged_members {
-        let param = format!("this.{}", field_name(member, field_type));
+        let param = format!("this.{}", member.field_name(field_type));
         code.writeln(&encode_tagged_type(member, scope, &param, true, ast));
     }
 
@@ -74,8 +74,13 @@ pub fn encode_type(
         Node::Class(_, _) => {
             writeln!(code, "encoder.EncodeClass({});", param)
         }
-        Node::Primitive(_, _) => {
-            writeln!(code, "encoder.Encode{}({});", builtin_suffix(node), param)
+        Node::Primitive(_, primitive) => {
+            writeln!(
+                code,
+                "encoder.Encode{}({});",
+                primitive.type_suffix(),
+                param
+            )
         }
         Node::Struct(_, _) => {
             writeln!(code, "{}.Encode(encoder);", param)
@@ -103,7 +108,7 @@ pub fn encode_type(
             writeln!(
                 code,
                 "{helper}.Encode{name}(encoder, {param});",
-                helper = helper_name(enum_def, scope),
+                helper = enum_def.helper_name(scope),
                 name = node.as_named_symbol().unwrap().identifier(),
                 param = param
             );
@@ -152,7 +157,7 @@ pub fn encode_tagged_type(
         _ => false,
     };
 
-    let value = if is_value_type(&member.data_type, ast) && !read_only_memory {
+    let value = if member.data_type.is_value_type(ast) && !read_only_memory {
         format!("{}.Value", param)
     } else {
         param.to_owned()
@@ -285,7 +290,7 @@ pub fn encode_sequence(
         args.push(value.to_owned());
 
         if sequence_def.element_type.encode_using_bit_sequence(ast)
-            && is_reference_type(&sequence_def.element_type, ast)
+            && sequence_def.element_type.is_reference_type(ast)
         {
             assert!(sequence_def.element_type.is_optional);
             args.push("withBitSequence: true".to_owned());
@@ -324,7 +329,7 @@ pub fn encode_dictionary(
 
     let with_bit_sequence = dictionary_def.value_type.encode_using_bit_sequence(ast);
 
-    if with_bit_sequence && is_reference_type(&dictionary_def.value_type, ast) {
+    if with_bit_sequence && dictionary_def.value_type.is_reference_type(ast) {
         args.push("withBitSequence: true".to_owned());
     }
     args.push(encode_action(&dictionary_def.key_type, scope, false, false, ast).to_string());
@@ -411,7 +416,7 @@ pub fn encode_action(
     let is_optional = type_def.is_optional;
 
     let value = if type_def.is_optional {
-        if is_value_type(type_def, ast) {
+        if type_def.is_value_type(ast) {
             "value!.Value"
         } else {
             "value!"
@@ -441,11 +446,11 @@ pub fn encode_action(
                 write!(code, "(encoder, value) => encoder.EncodeClass(value)");
             }
         }
-        Node::Primitive(_, _) => {
+        Node::Primitive(_, primitive) => {
             write!(
                 code,
                 "(encoder, value) => encoder.Encode{builtin_type}({value})",
-                builtin_type = builtin_suffix(node),
+                builtin_type = primitive.type_suffix(),
                 value = value
             )
         }
@@ -453,7 +458,7 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {helper}.Encode{name}(encoder, {value})",
-                helper = helper_name(enum_def, scope),
+                helper = enum_def.helper_name(scope),
                 name = enum_def.identifier(),
                 value = value
             )
@@ -485,7 +490,7 @@ pub fn encode_action(
 
 pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
-    let ns = get_namespace(operation);
+    let namespace = &operation.namespace();
 
     let members = if return_type {
         operation.return_members(ast)
@@ -515,13 +520,13 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         let param = if members.len() == 1 {
             "value".to_owned()
         } else {
-            "value.".to_owned() + &field_name(member, FieldType::NonMangled)
+            "value.".to_owned() + &member.field_name(FieldType::NonMangled)
         };
         let encode_member = encode_type(
             &member.data_type,
             &mut bit_sequence_index,
             true,
-            &ns,
+            namespace,
             &param,
             ast,
         );
@@ -536,9 +541,9 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         let param = if members.len() == 1 {
             "value".to_owned()
         } else {
-            "value.".to_owned() + &field_name(member, FieldType::NonMangled)
+            "value.".to_owned() + &member.field_name(FieldType::NonMangled)
         };
-        code.writeln(&encode_tagged_type(member, &ns, &param, false, ast));
+        code.writeln(&encode_tagged_type(member, namespace, &param, false, ast));
     }
 
     code

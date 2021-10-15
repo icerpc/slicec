@@ -2,49 +2,13 @@
 
 use slice::ast::{Ast, Node};
 use slice::grammar::{Member, NamedSymbol, Primitive, ScopedSymbol};
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 
 use crate::attributes::{custom_attributes, obsolete_attribute};
 use crate::code_block::CodeBlock;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
-
-pub fn to_argument_tuple(members: &[&Member], prefix: &str) -> String {
-    match members {
-        [] => panic!("tuple type with no members"),
-        [member] => parameter_name(member, "", true),
-        _ => format!(
-            "({})",
-            members
-                .iter()
-                .map(|m| parameter_name(m, prefix, true))
-                .collect::<Vec<String>>()
-                .join(", ")
-        ),
-    }
-}
-
-pub fn to_tuple_type(members: &[&Member], scope: &str, ast: &Ast, context: TypeContext) -> String {
-    match members {
-        [] => panic!("tuple type with no members"),
-        [member] => type_to_string(&member.data_type, scope, ast, context),
-        _ => format!(
-            "({})",
-            members
-                .iter()
-                .map(|m| type_to_string(&m.data_type, scope, ast, context)
-                    + " "
-                    + &field_name(m, FieldType::NonMangled))
-                .collect::<Vec<String>>()
-                .join(", ")
-        ),
-    }
-}
-
-pub fn field_name(member: &Member, field_type: FieldType) -> String {
-    let identifier = escape_identifier(member, CaseStyle::Pascal);
-    mangle_name(&identifier, field_type)
-}
+use crate::traits::*;
 
 pub fn escape_parameter_name(parameters: &[&Member], name: &str) -> String {
     if parameters.iter().any(|p| p.identifier() == name) {
@@ -62,7 +26,7 @@ pub fn data_member_declaration(
 ) -> String {
     let data_type = &data_member.data_type;
 
-    let type_string = type_to_string(data_type, data_member.scope(), ast, TypeContext::DataMember);
+    let type_string = data_type.type_to_string(data_member.scope(), ast, TypeContext::DataMember);
     let mut prelude = CodeBlock::new();
 
     prelude.writeln(&CommentTag::new(
@@ -77,7 +41,7 @@ pub fn data_member_declaration(
             .collect::<CodeBlock>(),
     );
     if let Some(obsolete) = obsolete_attribute(data_member, true) {
-        prelude.writeln(&obsolete);
+        prelude.writeln(&format!("[{}]", obsolete));
     }
 
     format!(
@@ -87,24 +51,8 @@ public {readonly}{type_string} {name};",
         prelude = prelude,
         readonly = if is_readonly { "readonly " } else { "" },
         type_string = type_string,
-        name = field_name(data_member, field_type)
+        name = data_member.field_name(field_type)
     )
-}
-
-pub fn is_member_default_initialized(member: &Member, ast: &Ast) -> bool {
-    let data_type = &member.data_type;
-
-    if data_type.is_optional {
-        return true;
-    }
-
-    match data_type.definition(ast) {
-        Node::Struct(_, struct_def) => struct_def
-            .members(ast)
-            .iter()
-            .all(|m| is_member_default_initialized(m, ast)),
-        _ => is_value_type(data_type, ast),
-    }
 }
 
 pub fn initialize_non_nullable_fields(
@@ -135,7 +83,7 @@ pub fn initialize_non_nullable_fields(
 
         if suppress {
             // This is to suppress compiler warnings for non-nullable fields.
-            writeln!(code, "this.{} = null!;", field_name(member, field_type));
+            writeln!(code, "this.{} = null!;", member.field_name(field_type));
         }
     }
 

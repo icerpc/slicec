@@ -9,8 +9,8 @@ use crate::attributes::{
 };
 use crate::code_block::CodeBlock;
 use crate::comments::{operation_parameter_doc_comment, CommentTag};
-use crate::cs_util::{parameter_name, type_to_string};
 use crate::member_util::escape_parameter_name;
+use crate::traits::*;
 
 trait Builder {
     fn build(&self) -> String;
@@ -297,9 +297,11 @@ impl FunctionBuilder {
             );
 
             let parameter_type =
-                type_to_string(&parameter.data_type, parameter.scope(), ast, context);
+                parameter
+                    .data_type
+                    .type_to_string(parameter.scope(), ast, context);
 
-            let parameter_name = parameter_name(parameter, "", true);
+            let parameter_name = parameter.as_parameter_name("", true);
 
             // TODO: it would be better if we could use parameter.comment() to get the parameter
             // comment instead
