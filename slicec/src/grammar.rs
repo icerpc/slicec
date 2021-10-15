@@ -301,8 +301,8 @@ impl Class {
         let mut members = self.members(ast);
 
         if let Some(base) = &self.base {
-            let mut base_members = ref_from_node!(Node::Class, ast, base.definition.unwrap())
-                .all_data_members(ast);
+            let mut base_members =
+                ref_from_node!(Node::Class, ast, base.definition.unwrap()).all_data_members(ast);
 
             members.append(&mut base_members);
         }
@@ -319,22 +319,18 @@ impl Class {
 
     pub fn base<'a>(&self, ast: &'a Ast) -> Option<&'a Class> {
         match self.base {
-            Some(ref base) => Some(ref_from_node!(
-                Node::Class,
-                ast,
-                base.definition.unwrap()
-            )),
+            Some(ref base) => Some(ref_from_node!(Node::Class, ast, base.definition.unwrap())),
             None => None,
         }
     }
 }
 
 impl Type for Class {
-    fn is_fixed_size(&self, ast: &Ast) -> bool {
+    fn is_fixed_size(&self, _: &Ast) -> bool {
         false
     }
 
-    fn min_wire_size(&self, ast: &Ast) -> u32 {
+    fn min_wire_size(&self, _: &Ast) -> u32 {
         1
     }
 
@@ -342,7 +338,7 @@ impl Type for Class {
         TagFormat::Class
     }
 
-    fn uses_classes(&self, ast: &Ast) -> bool {
+    fn uses_classes(&self, _: &Ast) -> bool {
         true
     }
 }
