@@ -6,18 +6,20 @@ use slice::grammar::{Operation, ScopedSymbol};
 use slice::util::{CaseStyle, TypeContext};
 
 pub trait CsOperation {
+    /// Returns true if the operation has the `cs:encoded-result` attribute. False otherwise.
     fn has_encoded_result(&self) -> bool;
+
+    /// The name of the generated encoded result type.
     fn encoded_result_struct(&self, scope: &str) -> String;
+
+    /// The Slice format type of the operation
     fn format_type(&self) -> String;
+
+    /// The operation return task.
     fn return_task(&self, scope: &str, is_dispatch: bool, ast: &Ast) -> String;
 }
 
 impl CsOperation for Operation {
-    fn format_type(&self) -> String {
-        // TODO: Austin - Implement this :)
-        "default".to_owned()
-    }
-
     // TODO: should this move to slice library that and take a language prefix parameter?
     // parameter
     fn has_encoded_result(&self) -> bool {
@@ -28,6 +30,11 @@ impl CsOperation for Operation {
 
     fn encoded_result_struct(&self, scope: &str) -> String {
         self.escape_scoped_identifier(CaseStyle::Pascal, scope) + "EncodedReturnValue"
+    }
+
+    fn format_type(&self) -> String {
+        // TODO: Austin - Implement this :)
+        "default".to_owned()
     }
 
     fn return_task(&self, scope: &str, is_dispatch: bool, ast: &Ast) -> String {

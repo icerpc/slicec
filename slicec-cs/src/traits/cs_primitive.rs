@@ -3,6 +3,7 @@
 use slice::grammar::Primitive;
 
 pub trait CsPrimitiveInfo {
+    /// The primitive's type stuff used as the suffix to encoder and decoder operations.
     fn type_suffix(&self) -> &'static str;
 }
 
