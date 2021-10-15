@@ -68,11 +68,11 @@ impl MemberListInfo for [&Member] {
     fn to_tuple_type(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
         match self {
             [] => panic!("tuple type with no members"),
-            [member] => member.data_type.type_to_string(scope, ast, context),
+            [member] => member.data_type.to_type_string(scope, ast, context),
             _ => format!(
                 "({})",
                 self.iter()
-                    .map(|m| m.data_type.type_to_string(scope, ast, context)
+                    .map(|m| m.data_type.to_type_string(scope, ast, context)
                         + " "
                         + &m.field_name(FieldType::NonMangled))
                     .collect::<Vec<String>>()
@@ -89,7 +89,7 @@ impl MemberListInfo for [&Member] {
                 format!(
                     "{}<{}>",
                     value_task,
-                    &e.data_type.type_to_string(scope, ast, context)
+                    &e.data_type.to_type_string(scope, ast, context)
                 )
             }
             _ => {
@@ -100,7 +100,7 @@ impl MemberListInfo for [&Member] {
                         .map(|e| {
                             format!(
                                 "{} {}",
-                                &e.data_type.type_to_string(scope, ast, context),
+                                &e.data_type.to_type_string(scope, ast, context),
                                 e.identifier()
                             )
                         })

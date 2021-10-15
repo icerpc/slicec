@@ -26,7 +26,7 @@ pub fn data_member_declaration(
 ) -> String {
     let data_type = &data_member.data_type;
 
-    let type_string = data_type.type_to_string(data_member.scope(), ast, TypeContext::DataMember);
+    let type_string = data_type.to_type_string(data_member.scope(), ast, TypeContext::DataMember);
     let mut prelude = CodeBlock::new();
 
     prelude.writeln(&CommentTag::new(

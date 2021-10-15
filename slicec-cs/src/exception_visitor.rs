@@ -224,7 +224,7 @@ fn one_shot_constructor(
         .map(|m| {
             let member_type = m
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::DataMember);
+                .to_type_string(namespace, ast, TypeContext::DataMember);
             let member_name = m.escape_identifier(CaseStyle::Camel);
             format!("{} {}", member_type, member_name)
         })

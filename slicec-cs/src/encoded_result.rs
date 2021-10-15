@@ -66,7 +66,7 @@ immediately encodes the return value of operation {operation_name}."#,
         [p] => {
             constructor_builder.add_parameter(
                 &p.data_type
-                    .type_to_string(&namespace, ast, TypeContext::Outgoing),
+                    .to_type_string(&namespace, ast, TypeContext::Outgoing),
                 "returnValue",
                 None,
                 None,
@@ -77,7 +77,7 @@ immediately encodes the return value of operation {operation_name}."#,
                 let parameter_type =
                     parameter
                         .data_type
-                        .type_to_string(&namespace, ast, TypeContext::Outgoing);
+                        .to_type_string(&namespace, ast, TypeContext::Outgoing);
                 let parameter_name = parameter.as_parameter_name("", true);
 
                 constructor_builder.add_parameter(&parameter_type, &parameter_name, None, None);

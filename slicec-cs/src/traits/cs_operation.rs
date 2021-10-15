@@ -74,7 +74,7 @@ fn operation_return_type(
 
     match return_members.as_slice() {
         [] => "void".to_owned(),
-        [member] => member.data_type.type_to_string(scope, ast, context),
+        [member] => member.data_type.to_type_string(scope, ast, context),
         _ => return_members.to_tuple_type(scope, ast, context),
     }
 }

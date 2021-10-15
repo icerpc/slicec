@@ -186,7 +186,7 @@ public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_i
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
     match &enum_def.underlying {
         Some(typeref) => {
-            typeref.type_to_string(enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+            typeref.to_type_string(enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
         }
         _ => "int".to_owned(), // TODO we should make a builtin table to get names from.
     }

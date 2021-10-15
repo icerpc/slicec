@@ -388,7 +388,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
     request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func})
     ",
-                        stream_type = stream_parameter.data_type.type_to_string(
+                        stream_type = stream_parameter.data_type.to_type_string(
                             namespace,
                             ast,
                             TypeContext::Outgoing
@@ -542,7 +542,7 @@ fn stream_param_sender(operation: &Operation, encoding: &str, ast: &Ast) -> Code
         let stream_type =
             stream_parameter
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::Outgoing);
+                .to_type_string(namespace, ast, TypeContext::Outgoing);
 
         match node {
         Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {

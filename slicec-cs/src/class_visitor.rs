@@ -178,7 +178,7 @@ fn constructor(
         let parameter_type =
             member
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::DataMember);
+                .to_type_string(namespace, ast, TypeContext::DataMember);
         let parameter_name = member.escape_identifier(CaseStyle::Camel);
 
         builder.add_parameter(

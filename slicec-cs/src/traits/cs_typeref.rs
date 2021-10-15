@@ -7,18 +7,30 @@ use slice::util::{CaseStyle, TypeContext};
 use super::cs_named_symbol::CsNamedSymbol;
 
 pub trait CsTypeRef {
-    /// The C# mapped type for this type reference.
-    fn type_to_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
-
     /// Is the type a reference type (eg. Class)
     fn is_reference_type(&self, ast: &Ast) -> bool;
 
     /// Is the type a value type (eg. Struct)
     fn is_value_type(&self, ast: &Ast) -> bool;
+
+    /// The C# mapped type for this type reference.
+    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
 }
 
 impl CsTypeRef for TypeRef {
-    fn type_to_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    fn is_reference_type(&self, ast: &Ast) -> bool {
+        !self.is_value_type(ast)
+    }
+
+    fn is_value_type(&self, ast: &Ast) -> bool {
+        match self.definition(ast) {
+            Node::Primitive(_, primitive) => !matches!(primitive, Primitive::String),
+            Node::Enum(_, _) | Node::Struct(_, _) | Node::Interface(_, _) => true,
+            _ => false,
+        }
+    }
+
+    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
         let node = self.definition(ast);
         let type_str = match node {
             Node::Struct(_, struct_def) => {
@@ -69,18 +81,6 @@ impl CsTypeRef for TypeRef {
             type_str
         }
     }
-
-    fn is_reference_type(&self, ast: &Ast) -> bool {
-        !self.is_value_type(ast)
-    }
-
-    fn is_value_type(&self, ast: &Ast) -> bool {
-        match self.definition(ast) {
-            Node::Primitive(_, primitive) => !matches!(primitive, Primitive::String),
-            Node::Enum(_, _) | Node::Struct(_, _) | Node::Interface(_, _) => true,
-            _ => false,
-        }
-    }
 }
 
 /// Helper method to convert a sequence type into a string
@@ -93,7 +93,7 @@ fn sequence_type_to_string(
 ) -> String {
     let element_type = sequence
         .element_type
-        .type_to_string(scope, ast, TypeContext::Nested);
+        .to_type_string(scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
@@ -135,10 +135,10 @@ fn dictionary_type_to_string(
 ) -> String {
     let key_type = &dictionary
         .key_type
-        .type_to_string(scope, ast, TypeContext::Nested);
+        .to_type_string(scope, ast, TypeContext::Nested);
     let value_type = dictionary
         .value_type
-        .type_to_string(scope, ast, TypeContext::Nested);
+        .to_type_string(scope, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {

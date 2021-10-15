@@ -61,7 +61,7 @@ pub fn decode_member(
     let data_type = &member.data_type;
 
     let node = data_type.definition(ast);
-    let type_string = data_type.type_to_string(scope, ast, TypeContext::Incoming);
+    let type_string = data_type.to_type_string(scope, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
@@ -184,7 +184,7 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
             write!(
                 decode_value,
                 " as {}",
-                value_type.type_to_string(scope, ast, TypeContext::Incoming)
+                value_type.to_type_string(scope, ast, TypeContext::Incoming)
             );
         }
         _ => {}
@@ -221,7 +221,7 @@ pub fn decode_sequence(
                 // faster than unmarshaling the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    element_type.type_to_string(scope, ast, TypeContext::Incoming)
+                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() && enum_def.is_unchecked => {
@@ -229,14 +229,14 @@ pub fn decode_sequence(
                 // faster than unmarshaling the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    element_type.type_to_string(scope, ast, TypeContext::Incoming)
+                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
                 let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
                 args = format!(
                     "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                    enum_type_name = element_type.type_to_string( scope, ast, TypeContext::Incoming),
+                    enum_type_name = element_type.to_type_string( scope, ast, TypeContext::Incoming),
                     helper = enum_def.helper_name(scope),
                     name = enum_def.identifier(),
                     underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
@@ -266,7 +266,7 @@ pub fn decode_sequence(
         write!(
             code,
             "new {}({})",
-            type_ref.type_to_string(scope, ast, TypeContext::Incoming),
+            type_ref.to_type_string(scope, ast, TypeContext::Incoming),
             match generic_attribute.first().unwrap().as_str() {
                 "Stack" => format!("global::System.Linq.Enumerable.Reverse({})", args),
                 _ => args,
@@ -282,18 +282,18 @@ pub fn decode_sequence(
             Node::Primitive(_, primitive)
                 if (primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)) =>
             {
-                generic_arg = element_type.type_to_string(scope, ast, TypeContext::Incoming);
+                generic_arg = element_type.to_type_string(scope, ast, TypeContext::Incoming);
                 decoder_args = "".to_owned();
             }
             Node::Enum(_, enum_def) if (enum_def.underlying.is_some() && enum_def.is_unchecked) => {
-                generic_arg = element_type.type_to_string(scope, ast, TypeContext::Incoming);
+                generic_arg = element_type.to_type_string(scope, ast, TypeContext::Incoming);
                 decoder_args = "".to_owned();
             }
             Node::Enum(_, enum_def) if (enum_def.underlying.is_some()) => {
                 let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
                 generic_arg = "".to_owned();
                 decoder_args = format!("decoder.DecodeArray(({enum_type} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                                enum_type = element_type.type_to_string( scope, ast, TypeContext::Incoming),
+                                enum_type = element_type.to_type_string( scope, ast, TypeContext::Incoming),
                                 helper = enum_def.helper_name(scope),
                                 name = enum_def.identifier(),
                                 underlying_type = underlying_type.as_named_symbol().unwrap().identifier());
@@ -340,7 +340,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     let node = type_ref.definition(ast);
 
     let is_optional = type_ref.is_optional;
-    let name = type_ref.type_to_string(scope, ast, TypeContext::Incoming);
+    let name = type_ref.to_type_string(scope, ast, TypeContext::Incoming);
 
     match node {
         Node::Interface(_, _) => {
@@ -446,7 +446,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             "{param_type} {decode}",
             param_type = member
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::Incoming),
+                .to_type_string(namespace, ast, TypeContext::Incoming),
             decode = decode_member
         )
     }
@@ -468,7 +468,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             "{param_type} {decode}",
             param_type = member
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::Incoming),
+                .to_type_string(namespace, ast, TypeContext::Incoming),
             decode = decode_member
         )
     }
@@ -477,7 +477,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
         let stream_param_type =
             stream_member
                 .data_type
-                .type_to_string(namespace, ast, TypeContext::Incoming);
+                .to_type_string(namespace, ast, TypeContext::Incoming);
 
         writeln!(
             code,
@@ -485,7 +485,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             param_type =
                 stream_member
                     .data_type
-                    .type_to_string(namespace, ast, TypeContext::Incoming),
+                    .to_type_string(namespace, ast, TypeContext::Incoming),
             param_name = stream_member.as_parameter_name("iceP_", true)
         );
 

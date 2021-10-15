@@ -299,7 +299,7 @@ impl FunctionBuilder {
             let parameter_type =
                 parameter
                     .data_type
-                    .type_to_string(parameter.scope(), ast, context);
+                    .to_type_string(parameter.scope(), ast, context);
 
             let parameter_name = parameter.as_parameter_name("", true);
 

@@ -335,7 +335,7 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
 {payload_encoding},
 {encode_action}
 )",
-                stream_type = stream_parameter.data_type.type_to_string(
+                stream_type = stream_parameter.data_type.to_type_string(
                     namespace,
                     ast,
                     TypeContext::Outgoing
@@ -365,7 +365,7 @@ response,
 invoker,
 response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 {decode_func})",
-                    stream_type = stream_return.data_type.type_to_string(
+                    stream_type = stream_return.data_type.to_type_string(
                         namespace,
                         ast,
                         TypeContext::Incoming
