@@ -3,9 +3,12 @@ use slice::grammar::*;
 use slice::util::*;
 use slice::visitor::Visitor;
 
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{
+    AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
+};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
+use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoded_result::{encoded_result_struct, has_encoded_result};
@@ -25,12 +28,17 @@ impl<'a> Visitor for DispatchVisitor<'_> {
         let mut interface_builder =
             ContainerBuilder::new("public partial interface", &interface_name);
 
-        // TODO: add doc comments and deprecate attribute
-        // writeServantDocComment(p, getDeprecateReason(p));
+        let summary_comment = format!(
+            r#"Interface used to implement services for Slice interface {}. <seealso cref="{}"/>.
+{}"#,
+            interface_def.identifier(),
+            proxy_name(interface_def),
+            doc_comment_message(interface_def)
+        );
 
         interface_builder
-            .add_type_id_attribute(interface_def)
-            .add_custom_attributes(interface_def);
+            .add_comment("summary", &summary_comment)
+            .add_container_attributes(interface_def);
 
         interface_builder.add_bases(
             &bases
@@ -159,13 +167,14 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             "public static",
             "global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>",
             operation_name,
+            FunctionType::ExpressionBody,
         );
 
         builder
             .add_comment(
                 "summary",
                 &format!(
-                    "Creates a respons payload for operation {}.",
+                    "Creates a response payload for operation {}.",
                     &operation_name
                 ),
             )
@@ -176,7 +185,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
                 "IceEncoding",
                 "encoding",
                 None,
-                "The encoding of the payload",
+                Some("The encoding of the payload"),
             );
         }
 
@@ -185,18 +194,16 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
                 return_type,
                 "returnValue",
                 None,
-                "The return value to write into the new response payload.",
+                Some("The return value to write into the new response payload."),
             );
         } else {
             builder.add_parameter(
                 return_type,
                 "returnValueTuple",
                 None,
-                "The return values to write into the new response payload.",
+                Some("The return values to write into the new response payload."),
             );
         };
-
-        builder.use_expression_body(true);
 
         let body = format!(
             "\
@@ -287,17 +294,17 @@ pub fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
 }
 
 fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
+    // TODO: operation obsolete deprecation
     let ns = get_namespace(operation);
-    format!(
-        "\
-{comment}
-public {return_task} {name}Async({parameters});",
-        comment = "///TODO:",
-        return_task = operation_return_task(operation, &ns, true, ast),
-        name = escape_identifier(operation, CaseStyle::Pascal),
-        parameters = operation_params(operation, true, ast).join(", ")
+    FunctionBuilder::new(
+        "public",
+        &operation_return_task(operation, &ns, true, ast),
+        &(escape_identifier(operation, CaseStyle::Pascal) + "Async"),
+        FunctionType::Declaration,
     )
-    .into()
+    .add_comment("summary", &doc_comment_message(operation))
+    .add_operation_parameters(operation, TypeContext::Incoming, ast)
+    .build()
 }
 
 fn operation_dispatch(interface_def: &Interface, operation: &Operation, ast: &Ast) -> CodeBlock {

@@ -1,6 +1,9 @@
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{
+    AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
+};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
+use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
@@ -30,10 +33,9 @@ impl<'a> Visitor for StructVisitor<'a> {
             &escaped_identifier,
         );
 
-        // TODO: add deprecate
-        // emitDeprecate(p, false, _out);
-
-        builder.add_custom_attributes(struct_def);
+        builder
+            .add_comment("summary", &doc_comment_message(struct_def))
+            .add_container_attributes(struct_def);
 
         builder.add_block(
             members
@@ -44,7 +46,8 @@ impl<'a> Visitor for StructVisitor<'a> {
                 .into(),
         );
 
-        let mut main_constructor = FunctionBuilder::new("public", "", &escaped_identifier);
+        let mut main_constructor =
+            FunctionBuilder::new("public", "", &escaped_identifier, FunctionType::BlockBody);
         main_constructor.add_comment(
             "summary",
             &format!(
@@ -58,7 +61,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                 &type_to_string(&member.data_type, &namespace, ast, TypeContext::DataMember),
                 member.identifier(),
                 None,
-                "", // TODO add parameter comment
+                Some(&doc_comment_message(*member)),
             );
         }
         main_constructor.set_body({
@@ -77,7 +80,7 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         // Decode constructor
         builder.add_block(
-            FunctionBuilder::new("public", "", &escaped_identifier)
+            FunctionBuilder::new("public", "", &escaped_identifier, FunctionType::BlockBody)
                 .add_comment(
                     "summary",
                     &format!(
@@ -85,7 +88,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                         &escaped_identifier
                     ),
                 )
-                .add_parameter("IceRpc.IceDecoder", "decoder", None, "The decoder.")
+                .add_parameter("IceRpc.IceDecoder", "decoder", None, Some("The decoder."))
                 .set_body(decode_data_members(
                     &members,
                     &namespace,
@@ -97,9 +100,9 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         // Encode method
         builder.add_block(
-            FunctionBuilder::new("public readonly", "void", "Encode")
+            FunctionBuilder::new("public readonly", "void", "Encode", FunctionType::BlockBody)
                 .add_comment("summary", "Encodes the fields of this struct.")
-                .add_parameter("IceRpc.Encoder", "encoder", None, "The encoder.")
+                .add_parameter("IceRpc.Encoder", "encoder", None, Some("The encoder."))
                 .set_body(encode_data_members(
                     &members,
                     &namespace,

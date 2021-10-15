@@ -4,7 +4,7 @@ use slice::ast::Ast;
 use slice::grammar::{Operation, ScopedSymbol};
 use slice::util::{CaseStyle, TypeContext};
 
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType};
 use crate::code_block::CodeBlock;
 use crate::cs_util::{
     escape_identifier, escape_scoped_identifier, get_namespace, operation_format_type_to_string,
@@ -64,7 +64,8 @@ pub fn encoded_result_struct(operation: &Operation, ast: &Ast) -> CodeBlock {
         ),
     );
 
-    let mut constructor_builder = FunctionBuilder::new("public", "", &struct_name);
+    let mut constructor_builder =
+        FunctionBuilder::new("public", "", &struct_name, FunctionType::BlockBody);
 
     constructor_builder.add_comment(
         "summary",
@@ -82,7 +83,7 @@ immediately encodes the return value of operation {operation_name}."#,
                 &type_to_string(&p.data_type, &namespace, ast, TypeContext::Outgoing),
                 "returnValue",
                 None,
-                "",
+                None,
             );
         }
         _ => {
@@ -91,7 +92,7 @@ immediately encodes the return value of operation {operation_name}."#,
                     type_to_string(&parameter.data_type, &namespace, ast, TypeContext::Outgoing);
                 let parameter_name = parameter_name(parameter, "", true);
 
-                constructor_builder.add_parameter(&parameter_type, &parameter_name, None, "");
+                constructor_builder.add_parameter(&parameter_type, &parameter_name, None, None);
             }
         }
     }
@@ -101,15 +102,14 @@ immediately encodes the return value of operation {operation_name}."#,
             "IceRpc.Dispatch",
             &escape_parameter_name(&parameters, "dispatch"),
             None,
-            "",
+            None,
         );
     }
 
-    constructor_builder.use_this_base_constructor(true);
+    constructor_builder.set_base_constructor("this");
 
     let create_payload = format!(
-        "\
-{encoding}.{method}(
+        "{encoding}.{method}(
     {return_value},
     {response_encode_action},
     classFormat: {class_format})",
@@ -127,7 +127,7 @@ immediately encodes the return value of operation {operation_name}."#,
         class_format = operation_format_type_to_string(operation),
     );
 
-    constructor_builder.add_base_argument(&create_payload);
+    constructor_builder.add_base_parameter(&create_payload);
 
     container_builder.add_block(constructor_builder.build());
 

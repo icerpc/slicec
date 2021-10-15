@@ -1,6 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::builders::{ContainerBuilder, FunctionBuilder};
+use crate::builders::{
+    AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
+};
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::comments::*;
@@ -45,13 +47,17 @@ impl<'a> Visitor for ProxyVisitor<'_> {
             .map(|b| escape_scoped_identifier(b, CaseStyle::Pascal, interface_def.scope()))
             .collect();
 
-        // TODO:  doc comments and deprecate attribute
-        // writeProxyDocComment(p, getDeprecateReason(p));;
+        let summary_message = format!(
+            r#"The client-side interface for Slice interface {}. <seealso cref="{}"/>.
+{}"#,
+            interface_def.identifier(),
+            interface_name(interface_def),
+            doc_comment_message(interface_def)
+        );
 
         let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
-            .add_comment("summary", "///TODO:")
-            .add_type_id_attribute(interface_def)
-            .add_custom_attributes(interface_def)
+            .add_comment("summary", &summary_message)
+            .add_container_attributes(interface_def)
             .add_bases(&prx_bases)
             .add_block(proxy_interface_operations(interface_def, ast))
             .build();
@@ -125,13 +131,13 @@ public global::System.Threading.Tasks.Task IcePingAsync(
                 ast,
                 TypeContext::Incoming,
             );
-            let invocation_params = operation_params(operation, false, ast);
 
             let mut proxy_params = operation
                 .parameters(ast)
                 .iter()
                 .map(|p| parameter_name(p, "", true))
                 .collect::<Vec<_>>();
+
             proxy_params.push(escape_parameter_name(
                 &operation.parameters(ast),
                 "invocation",
@@ -145,20 +151,26 @@ public global::System.Threading.Tasks.Task IcePingAsync(
                 .cloned()
                 .unwrap();
 
-            proxy_impl_builder.add_block(
+            let mut builder = FunctionBuilder::new(
+                "public",
+                &return_task,
+                &async_name,
+                FunctionType::ExpressionBody,
+            );
+            builder.set_inherit_doc(true);
+            builder.add_operation_parameters(operation, TypeContext::Outgoing, ast);
+
+            builder.set_body(
                 format!(
-                    "\
-/// <inheritdoc/>
-public {return_task} {async_name}({invocation_params}) =>
-    new {base_prx_impl}(Proxy).{async_name}({proxy_params})",
-                    return_task = return_task,
-                    async_name = async_name,
-                    invocation_params = invocation_params.join(", "),
+                    "new {base_prx_impl}(Proxy).{async_name}({proxy_params})",
                     base_prx_impl = proxy_impl_name(base_interface),
+                    async_name = async_name,
                     proxy_params = proxy_params.join(", ")
                 )
                 .into(),
             );
+
+            proxy_impl_builder.add_block(builder.build());
         }
 
         for operation in interface_def.operations(ast) {
@@ -241,7 +253,7 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let operation_name = escape_identifier(operation, CaseStyle::Pascal);
     let async_operation_name = operation_name.clone() + "Async";
     let return_task = operation_return_task(operation, &ns, false, ast);
-    let oneway = operation.has_attribute("oneway");
+    let is_oneway = operation.has_attribute("oneway");
 
     let parameters = operation.non_streamed_params(ast);
     let stream_return = operation.stream_return(ast);
@@ -252,8 +264,14 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let sends_classes = operation.sends_classes(ast);
     let void_return = operation.return_type.is_empty();
 
-    let mut builder = FunctionBuilder::new("public", &return_task, &async_operation_name);
-    builder.add_parameters(&operation_params(operation, false, ast));
+    let mut builder = FunctionBuilder::new(
+        "public",
+        &return_task,
+        &async_operation_name,
+        FunctionType::BlockBody,
+    );
+    builder.set_inherit_doc(true);
+    builder.add_operation_parameters(operation, TypeContext::Outgoing, ast);
 
     let mut body = CodeBlock::new();
 
@@ -362,7 +380,7 @@ response.GetIceDecoderFactory(_defaultIceDecoderFactories),
         invoke_args.push("idempotent: true".to_owned());
     }
 
-    if void_return && oneway {
+    if void_return && is_oneway {
         invoke_args.push("oneway: true".to_owned());
     }
 
@@ -390,28 +408,21 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
     let operations = interface_def.operations(ast);
 
     for operation in operations {
-        let operation_name = escape_identifier(operation, CaseStyle::Pascal);
-        let async_name = operation_name + "Async";
+        // TODO: add returns doc comments (see C++) and obsolete attribute
 
-        let deprecate_reason = match &operation.comment {
-            Some(comment) if comment.deprecate_reason.is_some() => {
-                format!(
-                    r#"[global::System::Obsolete("{}")]"#,
-                    comment.deprecate_reason.as_ref().unwrap()
-                )
-            }
-            _ => "".to_owned(),
-        };
-
-        writeln!(
-            code,
-            "{doc_comment}{deprecate_reason}\n{return} {name}({params});\n",
-            doc_comment = operation_doc_comment(operation, false, ast),
-            deprecate_reason = deprecate_reason,
-            return = operation_return_task(operation, &ns, false, ast),
-            name = async_name,
-            params = operation_params(operation, false, ast).join(", ")
-        )
+        code.add_block(
+            &FunctionBuilder::new(
+                "",
+                &operation_return_task(operation, &ns, false, ast),
+                &(escape_identifier(operation, CaseStyle::Pascal) + "Async"),
+                FunctionType::Declaration,
+            )
+            .add_obsolete_attribute(operation)
+            .add_custom_attributes(operation)
+            .add_comment("summary", &doc_comment_message(operation))
+            .add_operation_parameters(operation, TypeContext::Outgoing, ast)
+            .build(),
+        );
     }
 
     code
@@ -445,6 +456,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             "public static",
             "global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>",
             &escape_identifier(operation, CaseStyle::Pascal),
+            FunctionType::ExpressionBody,
         );
 
         builder.add_comment(
@@ -460,7 +472,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
                 "IceEncoding",
                 "encoding",
                 None,
-                "The encoding of the payload.",
+                Some("The encoding of the payload."),
             );
         }
 
@@ -469,7 +481,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
                 &to_tuple_type(&params, &ns, ast, TypeContext::Outgoing),
                 "arg",
                 None,
-                "The request argument.",
+                Some("The request argument."),
             );
         } else {
             builder.add_parameter(
@@ -479,7 +491,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
                 ),
                 "args",
                 None,
-                "The request arguments.",
+                Some("The request arguments."),
             );
         }
 
@@ -509,7 +521,7 @@ IceRpc.Payload.{name}(
         )
         .into();
 
-        builder.use_expression_body(true).set_body(body);
+        builder.set_body(body);
 
         class_builder.add_block(builder.build());
     }
@@ -551,7 +563,7 @@ public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, Ice
     response.ToReturnValue(
         invoker,
         {decoder},
-        {response_decode_func})"#,
+        {response_decode_func});"#,
             name = operation.identifier(),
             escaped_name = escape_identifier(operation, CaseStyle::Pascal),
             return_type = to_tuple_type(&members, &ns, ast, TypeContext::Incoming),
