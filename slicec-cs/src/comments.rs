@@ -9,17 +9,31 @@ use regex::Regex;
 pub struct CommentTag {
     tag: String,
     content: String,
-    attribute_name: String,
-    attribute_value: String,
+    attribute_name: Option<String>,
+    attribute_value: Option<String>,
 }
 
 impl CommentTag {
-    pub fn new(tag: &str, attribute_name: &str, attribute_value: &str, content: &str) -> Self {
+    pub fn new(tag: &str, content: &str) -> Self {
         Self {
-            tag: tag.to_string(),
-            content: content.to_string(),
-            attribute_name: attribute_name.to_string(),
-            attribute_value: attribute_value.to_string(),
+            tag: tag.to_owned(),
+            content: content.to_owned(),
+            attribute_name: None,
+            attribute_value: None,
+        }
+    }
+
+    pub fn with_tag_attribute(
+        tag: &str,
+        attribute_name: &str,
+        attribute_value: &str,
+        content: &str,
+    ) -> Self {
+        Self {
+            tag: tag.to_owned(),
+            content: content.to_owned(),
+            attribute_name: Some(attribute_name.to_owned()),
+            attribute_value: Some(attribute_value.to_owned()),
         }
     }
 }
@@ -31,10 +45,9 @@ impl fmt::Display for CommentTag {
             return Ok(());
         }
 
-        let attribute = if self.attribute_name.is_empty() {
-            "".to_owned()
-        } else {
-            format!(r#" {}="{}""#, self.attribute_name, self.attribute_value)
+        let attribute = match (&self.attribute_name, &self.attribute_value) {
+            (Some(name), Some(value)) => format!(r#" {}="{}""#, name, value),
+            _ => "".to_owned(),
         };
 
         write!(
@@ -82,15 +95,11 @@ impl fmt::Display for CsharpComment {
         let comment = &self.0;
 
         // Write the comment's summary message.
-        writeln!(
-            f,
-            "{}",
-            CommentTag::new("summary", "", "", &comment.message)
-        )?;
+        writeln!(f, "{}", CommentTag::new("summary", &comment.message))?;
 
         // Write deprecate reason if present
         if let Some(reason) = &comment.deprecate_reason {
-            writeln!(f, "{}", CommentTag::new("para", "", "", reason))?;
+            writeln!(f, "{}", CommentTag::new("para", reason))?;
         }
 
         // Write each of the comment's parameter fields.
@@ -99,13 +108,13 @@ impl fmt::Display for CsharpComment {
             writeln!(
                 f,
                 "{}",
-                CommentTag::new("param", "name", identifier, description)
+                CommentTag::with_tag_attribute("param", "name", identifier, description)
             )?;
         }
 
         // Write the comment's returns message if it has one.
         if let Some(returns) = &comment.returns {
-            writeln!(f, "{}", CommentTag::new("returns", "", "", returns))?;
+            writeln!(f, "{}", CommentTag::new("returns", returns))?;
         }
 
         // Write each of the comment's exception fields.
@@ -114,7 +123,7 @@ impl fmt::Display for CsharpComment {
             writeln!(
                 f,
                 "{}",
-                CommentTag::new("exceptions", "cref", exception, description)
+                CommentTag::with_tag_attribute("exceptions", "cref", exception, description)
             )?;
         }
 

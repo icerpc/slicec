@@ -46,7 +46,7 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
         // Use CodeBlock here in case the comment is empty. It automatically whitespace
         code.add_block(&CodeBlock::from(format!(
             "{}\n{} = {},",
-            CommentTag::new("summary", "", "", &doc_comment_message(enumerator)),
+            CommentTag::new("summary", &doc_comment_message(enumerator)),
             enumerator.identifier(),
             enumerator.value
         )));
