@@ -3,7 +3,7 @@
 use super::{CsNamedSymbol, CsTypeRef, MemberListInfo};
 use slice::ast::Ast;
 use slice::grammar::{Operation, ScopedSymbol};
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 
 pub trait CsOperation {
     /// Returns true if the operation has the `cs:encoded-result` attribute. False otherwise.
@@ -29,7 +29,7 @@ impl CsOperation for Operation {
     }
 
     fn encoded_result_struct(&self, scope: &str) -> String {
-        self.escape_scoped_identifier(CaseStyle::Pascal, scope) + "EncodedReturnValue"
+        self.escape_scoped_identifier(scope) + "EncodedReturnValue"
     }
 
     fn format_type(&self) -> String {

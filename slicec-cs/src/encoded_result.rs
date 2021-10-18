@@ -2,7 +2,7 @@
 
 use slice::ast::Ast;
 use slice::grammar::Operation;
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 
 use crate::builders::{CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType};
 use crate::code_block::CodeBlock;
@@ -12,7 +12,7 @@ use crate::traits::*;
 use crate::dispatch_visitor::response_encode_action;
 
 pub fn encoded_result_struct(operation: &Operation, ast: &Ast) -> CodeBlock {
-    let operation_name = operation.escape_identifier(CaseStyle::Pascal);
+    let operation_name = operation.escape_identifier();
     let struct_name = format!("{}EncodedReturnValue", operation_name);
     // TODO: this should really be the parent interface (we just don't have access to it yet)
     let namespace = operation.namespace();

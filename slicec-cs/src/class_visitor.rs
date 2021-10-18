@@ -13,7 +13,7 @@ use crate::member_util::*;
 use crate::traits::*;
 use slice::ast::Ast;
 use slice::grammar::{Class, Member};
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 use slice::visitor::Visitor;
 
 pub struct ClassVisitor<'a> {
@@ -22,7 +22,7 @@ pub struct ClassVisitor<'a> {
 
 impl<'a> Visitor for ClassVisitor<'_> {
     fn visit_class_start(&mut self, class_def: &Class, _: usize, ast: &Ast) {
-        let class_name = class_def.escape_identifier(CaseStyle::Pascal);
+        let class_name = class_def.escape_identifier();
         let namespace = class_def.namespace();
         let has_base_class = class_def.base(ast).is_some();
 
@@ -54,7 +54,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
             .add_container_attributes(class_def);
 
         if let Some(base) = class_def.base(ast) {
-            class_builder.add_base(base.escape_scoped_identifier(CaseStyle::Pascal, &namespace));
+            class_builder.add_base(base.escape_scoped_identifier(&namespace));
         } else {
             class_builder.add_base("IceRpc.AnyClass".to_owned());
         }
@@ -171,7 +171,7 @@ fn constructor(
         &base_members
             .iter()
             .filter(|m| !m.is_default_initialized(ast))
-            .map(|m| m.escape_identifier(CaseStyle::Camel))
+            .map(|m| m.parameter_name())
             .collect::<Vec<String>>(),
     );
 
@@ -180,7 +180,7 @@ fn constructor(
             member
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::DataMember);
-        let parameter_name = member.escape_identifier(CaseStyle::Camel);
+        let parameter_name = member.parameter_name();
 
         builder.add_parameter(
             &parameter_type,
@@ -197,7 +197,7 @@ fn constructor(
                 code,
                 "this.{} = {};",
                 member.field_name(FieldType::Class),
-                member.escape_identifier(CaseStyle::Camel)
+                member.parameter_name()
             );
         }
         code

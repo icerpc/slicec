@@ -121,7 +121,7 @@ public static readonly global::System.Collections.Generic.HashSet<{underlying}> 
                 ),
             },
             escaped_identifier = escaped_identifier,
-            scoped = enum_def.escape_scoped_identifier(CaseStyle::Pascal, namespace),
+            scoped = enum_def.escape_scoped_identifier(namespace),
         )
         .into()
     };

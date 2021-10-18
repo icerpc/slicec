@@ -2,7 +2,7 @@
 
 use slice::ast::{Ast, Node};
 use slice::grammar::{Dictionary, Primitive, ScopedSymbol, Sequence, TypeRef};
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 
 use super::cs_named_symbol::CsNamedSymbol;
 
@@ -33,19 +33,13 @@ impl CsTypeRef for TypeRef {
     fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
         let node = self.definition(ast);
         let type_str = match node {
-            Node::Struct(_, struct_def) => {
-                struct_def.escape_scoped_identifier(CaseStyle::Pascal, scope)
-            }
-            Node::Class(_, class_def) => {
-                class_def.escape_scoped_identifier(CaseStyle::Pascal, scope)
-            }
-            Node::Exception(_, exception_def) => {
-                exception_def.escape_scoped_identifier(CaseStyle::Pascal, scope)
-            }
+            Node::Struct(_, struct_def) => struct_def.escape_scoped_identifier(scope),
+            Node::Class(_, class_def) => class_def.escape_scoped_identifier(scope),
+            Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(scope),
             Node::Interface(_, interface_def) => {
-                interface_def.escape_scoped_identifier(CaseStyle::Pascal, scope) + "Prx"
+                interface_def.escape_scoped_identifier(scope) + "Prx"
             }
-            Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(CaseStyle::Pascal, scope),
+            Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(scope),
             Node::Sequence(_, sequence) => {
                 sequence_type_to_string(self, sequence, scope, ast, context)
             }

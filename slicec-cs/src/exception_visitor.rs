@@ -13,7 +13,7 @@ use crate::member_util::*;
 use crate::traits::*;
 use slice::ast::Ast;
 use slice::grammar::Exception;
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 use slice::visitor::Visitor;
 
 pub struct ExceptionVisitor<'a> {
@@ -22,7 +22,7 @@ pub struct ExceptionVisitor<'a> {
 
 impl<'a> Visitor for ExceptionVisitor<'_> {
     fn visit_exception_start(&mut self, exception_def: &Exception, _: usize, ast: &Ast) {
-        let exception_name = exception_def.escape_identifier(CaseStyle::Pascal);
+        let exception_name = exception_def.escape_identifier();
         let has_base = exception_def.base.is_some();
 
         let namespace = &exception_def.namespace();
@@ -43,8 +43,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
             .add_container_attributes(exception_def);
 
         if let Some(base) = exception_def.base(ast) {
-            exception_class_builder
-                .add_base(base.escape_scoped_identifier(CaseStyle::Pascal, namespace));
+            exception_class_builder.add_base(base.escape_scoped_identifier(namespace));
         } else {
             exception_class_builder.add_base("IceRpc.RemoteException".to_owned());
         }
@@ -206,7 +205,7 @@ fn one_shot_constructor(
     add_message_and_exception_parameters: bool,
     ast: &Ast,
 ) -> CodeBlock {
-    let exception_name = exception_def.escape_identifier(CaseStyle::Pascal);
+    let exception_name = exception_def.escape_identifier();
 
     let namespace = &exception_def.namespace();
 
@@ -226,7 +225,7 @@ fn one_shot_constructor(
             let member_type = m
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::DataMember);
-            let member_name = m.escape_identifier(CaseStyle::Camel);
+            let member_name = m.parameter_name();
             format!("{} {}", member_type, member_name)
         })
         .collect::<Vec<_>>();
@@ -234,7 +233,7 @@ fn one_shot_constructor(
     let base_parameters = if let Some(base) = exception_def.base(ast) {
         base.all_data_members(ast)
             .iter()
-            .map(|m| m.escape_identifier(CaseStyle::Pascal))
+            .map(|m| m.escape_identifier())
             .collect::<Vec<_>>()
     } else {
         vec![]
@@ -286,7 +285,7 @@ fn one_shot_constructor(
     let mut ctor_body = CodeBlock::new();
     for member in exception_def.members(ast) {
         let member_name = member.field_name(FieldType::Exception);
-        let parameter_name = member.escape_identifier(CaseStyle::Camel);
+        let parameter_name = member.parameter_name();
 
         writeln!(ctor_body, "this.{} = {};", member_name, parameter_name);
     }

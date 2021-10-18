@@ -46,7 +46,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         // prx bases
         let prx_bases: Vec<String> = bases
             .into_iter()
-            .map(|b| b.escape_scoped_identifier(CaseStyle::Pascal, interface_def.scope()))
+            .map(|b| b.escape_scoped_identifier(interface_def.scope()))
             .collect();
 
         let summary_message = format!(
@@ -127,7 +127,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
         }
 
         for operation in interface_def.all_base_operations(ast) {
-            let async_name = operation.escape_identifier(CaseStyle::Pascal) + "Async";
+            let async_name = operation.escape_identifier() + "Async";
             let return_task = operation.return_members(ast).to_return_type(
                 interface_def.scope(),
                 ast,
@@ -252,7 +252,7 @@ public override string ToString() => Proxy.ToString();"#,
 /// The actual implementation of the proxy operation.
 fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let namespace = &operation.namespace();
-    let operation_name = operation.escape_identifier(CaseStyle::Pascal);
+    let operation_name = operation.escape_identifier();
     let async_operation_name = operation_name.clone() + "Async";
     let return_task = operation.return_task(namespace, false, ast);
     let is_oneway = operation.has_attribute("oneway");
@@ -422,7 +422,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
             &FunctionBuilder::new(
                 "",
                 &operation.return_task(namespace, false, ast),
-                &(operation.escape_identifier(CaseStyle::Pascal) + "Async"),
+                &(operation.escape_identifier() + "Async"),
                 FunctionType::Declaration,
             )
             .add_container_attributes(interface_def)
@@ -462,7 +462,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         let mut builder = FunctionBuilder::new(
             "public static",
             "global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>",
-            &operation.escape_identifier(CaseStyle::Pascal),
+            &operation.escape_identifier(),
             FunctionType::ExpressionBody,
         );
 
@@ -572,7 +572,7 @@ public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, Ice
         {decoder},
         {response_decode_func});"#,
             name = operation.identifier(),
-            escaped_name = operation.escape_identifier( CaseStyle::Pascal),
+            escaped_name = operation.escape_identifier(),
             return_type = members.to_tuple_type( namespace, ast, TypeContext::Incoming),
             decoder = decoder,
             response_decode_func = response_decode_func(operation, ast).indent()

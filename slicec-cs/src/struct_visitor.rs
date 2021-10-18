@@ -23,7 +23,7 @@ pub struct StructVisitor<'a> {
 impl<'a> Visitor for StructVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, ast: &Ast) {
         let readonly = struct_def.has_attribute("cs:readonly");
-        let escaped_identifier = struct_def.escape_identifier(CaseStyle::Pascal);
+        let escaped_identifier = struct_def.escape_identifier();
         let members = struct_def.members(ast);
         let namespace = struct_def.namespace();
 
@@ -75,7 +75,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                     code,
                     "this.{} = {};",
                     member.field_name(FieldType::NonMangled),
-                    member.escape_identifier(CaseStyle::Camel),
+                    member.parameter_name(),
                 );
             }
             code

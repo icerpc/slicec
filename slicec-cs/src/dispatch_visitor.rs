@@ -43,7 +43,7 @@ impl<'a> Visitor for DispatchVisitor<'_> {
         interface_builder.add_bases(
             &bases
                 .iter()
-                .map(|base| base.escape_scoped_identifier(CaseStyle::Pascal, base.scope()))
+                .map(|base| base.escape_scoped_identifier(base.scope()))
                 .collect::<Vec<_>>(),
         );
 
@@ -98,7 +98,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             continue;
         }
 
-        let operation_name = operation.escape_identifier(CaseStyle::Pascal);
+        let operation_name = operation.escape_identifier();
 
         let decoder_factory = if operation.sends_classes(ast) {
             "request.GetIceDecoderFactory(_defaultIceDecoderFactories.Ice11DecoderFactory)"
@@ -160,7 +160,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         }
 
         let namespace = &operation.namespace();
-        let operation_name = &operation.escape_identifier(CaseStyle::Pascal);
+        let operation_name = &operation.escape_identifier();
         let returns_classes = operation.returns_classes(ast);
         let return_type =
             &non_streamed_returns.to_tuple_type(namespace, ast, TypeContext::Outgoing);
@@ -307,7 +307,7 @@ fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
     FunctionBuilder::new(
         "public",
         &operation.return_task(namespace, true, ast),
-        &(operation.escape_identifier(CaseStyle::Pascal) + "Async"),
+        &(operation.escape_identifier() + "Async"),
         FunctionType::Declaration,
     )
     .add_comment("summary", &doc_comment_message(operation))
@@ -316,7 +316,7 @@ fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
 }
 
 fn operation_dispatch(interface_def: &Interface, operation: &Operation, ast: &Ast) -> CodeBlock {
-    let operation_name = &operation.escape_identifier(CaseStyle::Pascal);
+    let operation_name = &operation.escape_identifier();
     let internal_name = format!("IceD{}Async", &operation_name);
 
     format!(
@@ -341,7 +341,7 @@ protected static async global::System.Threading.Tasks.ValueTask<(IceEncoding, gl
 
 fn operation_dispatch_body(operation: &Operation, ast: &Ast) -> CodeBlock {
     let namespace = &operation.namespace();
-    let operation_name = &operation.escape_identifier(CaseStyle::Pascal);
+    let operation_name = &operation.escape_identifier();
     let parameters = operation.parameters(ast);
     let stream_parameter = operation.stream_parameter(ast);
     let return_parameters = operation.return_members(ast);
@@ -521,7 +521,7 @@ fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> 
         1 if return_stream.is_some() => format!("{}.CreateEmptyPayload()", encoding),
         _ => format!(
             "Response.{operation_name}({args})",
-            operation_name = operation.escape_identifier(CaseStyle::Pascal),
+            operation_name = operation.escape_identifier(),
             args = returns.join(", ")
         ),
     }

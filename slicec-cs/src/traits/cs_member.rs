@@ -24,7 +24,7 @@ impl CsMemberInfo for Member {
     }
 
     fn field_name(&self, field_type: FieldType) -> String {
-        mangle_name(&self.escape_identifier(CaseStyle::Pascal), field_type)
+        mangle_name(&self.escape_identifier(), field_type)
     }
 
     fn is_default_initialized(&self, ast: &Ast) -> bool {

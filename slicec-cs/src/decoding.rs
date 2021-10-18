@@ -106,7 +106,7 @@ pub fn decode_member(
             write!(
                 code,
                 "new {}(decoder)",
-                struct_def.escape_scoped_identifier(CaseStyle::Pascal, scope),
+                struct_def.escape_scoped_identifier(scope),
             );
         }
         Node::Dictionary(_, dictionary) => code.write(&decode_dictionary(dictionary, scope, ast)),
