@@ -67,8 +67,6 @@ pub fn data_member_declaration(
 
     prelude.writeln(&CommentTag::new(
         "summary",
-        "",
-        "",
         &doc_comment_message(data_member),
     ));
     prelude.writeln(

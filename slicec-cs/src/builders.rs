@@ -140,7 +140,7 @@ impl AttributeBuilder for ContainerBuilder {
 
 impl CommentBuilder for ContainerBuilder {
     fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
-        self.comments.push(CommentTag::new(tag, "", "", content));
+        self.comments.push(CommentTag::new(tag, content));
         self
     }
 }
@@ -190,7 +190,7 @@ impl FunctionBuilder {
     }
 
     pub fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
-        self.comments.push(CommentTag::new(tag, "", "", content));
+        self.comments.push(CommentTag::new(tag, content));
         self
     }
 
@@ -201,7 +201,7 @@ impl FunctionBuilder {
         attribute_value: &str,
         content: &str,
     ) -> &mut Self {
-        self.comments.push(CommentTag::new(
+        self.comments.push(CommentTag::with_tag_attribute(
             tag,
             attribute_name,
             attribute_value,
@@ -407,7 +407,7 @@ impl AttributeBuilder for FunctionBuilder {
 
 impl CommentBuilder for FunctionBuilder {
     fn add_comment(&mut self, tag: &str, content: &str) -> &mut Self {
-        self.comments.push(CommentTag::new(tag, "", "", content));
+        self.comments.push(CommentTag::new(tag, content));
         self
     }
 }
