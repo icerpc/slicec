@@ -301,7 +301,7 @@ impl FunctionBuilder {
                     .data_type
                     .to_type_string(parameter.scope(), ast, context);
 
-            let parameter_name = parameter.parameter_name("");
+            let parameter_name = parameter.parameter_name();
 
             // TODO: it would be better if we could use parameter.comment() to get the parameter
             // comment instead

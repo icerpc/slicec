@@ -78,7 +78,7 @@ immediately encodes the return value of operation {operation_name}."#,
                     parameter
                         .data_type
                         .to_type_string(&namespace, ast, TypeContext::Outgoing);
-                let parameter_name = parameter.parameter_name("");
+                let parameter_name = parameter.parameter_name();
 
                 constructor_builder.add_parameter(&parameter_type, &parameter_name, None, None);
             }

@@ -7,15 +7,19 @@ use slice::grammar::{Member, NamedSymbol};
 use slice::util::{fix_case, CaseStyle, TypeContext};
 
 pub trait CsMemberInfo {
-    fn parameter_name(&self, prefix: &str) -> String;
+    fn parameter_name(&self) -> String;
+    fn parameter_name_with_prefix(&self, prefix: &str) -> String;
     fn field_name(&self, field_type: FieldType) -> String;
     fn is_default_initialized(&self, ast: &Ast) -> bool;
 }
 
 impl CsMemberInfo for Member {
-    fn parameter_name(&self, prefix: &str) -> String {
-        let name = prefix.to_owned() + &fix_case(self.identifier(), CaseStyle::Camel);
+    fn parameter_name(&self) -> String {
+        escape_keyword(&fix_case(self.identifier(), CaseStyle::Camel))
+    }
 
+    fn parameter_name_with_prefix(&self, prefix: &str) -> String {
+        let name = prefix.to_owned() + &fix_case(self.identifier(), CaseStyle::Camel);
         escape_keyword(&name)
     }
 
@@ -50,11 +54,11 @@ impl MemberListInfo for [&Member] {
     fn to_argument_tuple(&self, prefix: &str) -> String {
         match self {
             [] => panic!("tuple type with no members"),
-            [member] => member.parameter_name(""),
+            [member] => member.parameter_name(),
             _ => format!(
                 "({})",
                 self.iter()
-                    .map(|m| m.parameter_name(prefix))
+                    .map(|m| m.parameter_name_with_prefix(prefix))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
