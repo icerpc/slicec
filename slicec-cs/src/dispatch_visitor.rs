@@ -375,7 +375,7 @@ fn operation_dispatch_body(operation: &Operation, ast: &Ast) -> CodeBlock {
         [] => {}
         [_] if stream_parameter.is_some() => {
             let stream_parameter = stream_parameter.unwrap();
-            let name = stream_parameter.as_parameter_name("iceP_", true);
+            let name = stream_parameter.parameter_name("iceP_");
             let stream_assignment = match stream_parameter.data_type.definition(ast) {
                 Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
                     "IceRpc.Slice.StreamParamReceiver.ToByteStream(request)".to_owned()
@@ -403,7 +403,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
             writeln!(
                 code,
                 "var {var_name} = Request.{operation_name}(request);",
-                var_name = parameter.as_parameter_name("iceP_", true),
+                var_name = parameter.parameter_name("iceP_"),
                 operation_name = operation_name,
             )
         }
@@ -424,7 +424,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
 
         match parameters.as_slice() {
             [p] => {
-                args.push(p.as_parameter_name("iceP_", true));
+                args.push(p.parameter_name("iceP_"));
             }
             _ => {
                 for p in parameters {
@@ -456,7 +456,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
         );
     } else {
         let mut args = match parameters.as_slice() {
-            [parameter] => vec![parameter.as_parameter_name("iceP_", true)],
+            [parameter] => vec![parameter.parameter_name("iceP_")],
             _ => parameters
                 .iter()
                 .map(|parameter| format!("args.{}", &parameter.field_name(FieldType::NonMangled)))

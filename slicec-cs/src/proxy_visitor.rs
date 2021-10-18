@@ -136,7 +136,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             let mut proxy_params = operation
                 .parameters(ast)
                 .iter()
-                .map(|p| p.as_parameter_name("", true))
+                .map(|p| p.parameter_name(""))
                 .collect::<Vec<_>>();
 
             proxy_params.push(escape_parameter_name(
@@ -322,7 +322,7 @@ if {invocation}?.RequestFeatures.Get<IceRpc.Features.CompressPayload>() == null)
 
     // Stream parameter (if any)
     if let Some(stream_parameter) = operation.stream_parameter(ast) {
-        let stream_parameter_name = stream_parameter.as_parameter_name("", true);
+        let stream_parameter_name = stream_parameter.parameter_name("");
         match stream_parameter.data_type.definition(ast) {
             Node::Primitive(_, b) if matches!(b, Primitive::Byte) => invoke_args.push(format!(
                 "new IceRpc.Slice.ByteStreamParamSender({})",

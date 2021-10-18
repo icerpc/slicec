@@ -437,7 +437,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             member,
             &mut bit_sequence_index,
             namespace,
-            &member.as_parameter_name("iceP_", true),
+            &member.parameter_name("iceP_"),
             ast,
         );
 
@@ -456,12 +456,8 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in tagged_members {
-        let decode_member = decode_tagged_member(
-            member,
-            namespace,
-            &member.as_parameter_name("iceP_", true),
-            ast,
-        );
+        let decode_member =
+            decode_tagged_member(member, namespace, &member.parameter_name("iceP_"), ast);
 
         writeln!(
             code,
@@ -486,7 +482,7 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
                 stream_member
                     .data_type
                     .to_type_string(namespace, ast, TypeContext::Incoming),
-            param_name = stream_member.as_parameter_name("iceP_", true)
+            param_name = stream_member.parameter_name("iceP_")
         );
 
         let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
@@ -529,7 +525,7 @@ IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
             code,
             "{param_type} {param_name} = {create_stream_param}",
             param_type = stream_param_type,
-            param_name = stream_member.as_parameter_name("iceP_", true),
+            param_name = stream_member.parameter_name("iceP_"),
             create_stream_param = create_stream_param.indent()
         );
     }

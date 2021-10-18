@@ -17,12 +17,13 @@ pub trait CsNamedSymbol {
     /// one.
     fn escape_scoped_identifier(&self, case: CaseStyle, scope: &str) -> String;
 
-    /// The helper name for this NamedSymbol
+    /// The helper name
     fn helper_name(&self, scope: &str) -> String;
 
-    /// The C# namespace of this NamedSymbol
+    /// The C# namespace
     fn namespace(&self) -> String;
 
+    /// The C# Type Id attribute.
     fn type_id_attribute(&self) -> String;
 }
 

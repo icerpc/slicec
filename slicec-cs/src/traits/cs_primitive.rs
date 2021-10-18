@@ -9,7 +9,6 @@ pub trait CsPrimitiveInfo {
 
 impl CsPrimitiveInfo for Primitive {
     fn type_suffix(&self) -> &'static str {
-        // TODO: can we just stringify the primitive?
         match self {
             Primitive::Bool => "Bool",
             Primitive::Byte => "Byte",
