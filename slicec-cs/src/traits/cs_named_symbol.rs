@@ -22,12 +22,9 @@ pub trait CsNamedSymbol {
 
     /// The C# namespace
     fn namespace(&self) -> String;
-
-    /// The C# Type Id attribute.
-    fn type_id_attribute(&self) -> String;
 }
 
-impl<T: NamedSymbol + 'static> CsNamedSymbol for T {
+impl<T: NamedSymbol + ?Sized> CsNamedSymbol for T {
     /// Escapes and returns the definition's identifier, without any scoping.
     /// If the identifier is a C# keyword, a '@' prefix is appended to it.
     fn escape_identifier(&self, case: CaseStyle) -> String {
@@ -63,13 +60,5 @@ impl<T: NamedSymbol + 'static> CsNamedSymbol for T {
         // TODO: check metadata
         // TODO: not all types need to remove just one "::" (we use this currently for operations)
         self.scope().strip_prefix("::").unwrap().replace("::", ".")
-    }
-
-    fn type_id_attribute(&self) -> String {
-        format!(
-            r#"IceRpc.Slice.TypeId("{}::{}")"#,
-            self.scope(),
-            self.identifier()
-        )
     }
 }

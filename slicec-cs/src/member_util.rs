@@ -4,7 +4,6 @@ use slice::ast::{Ast, Node};
 use slice::grammar::{Member, NamedSymbol, Primitive, ScopedSymbol};
 use slice::util::TypeContext;
 
-use crate::attributes::{custom_attributes, obsolete_attribute};
 use crate::code_block::CodeBlock;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
@@ -36,11 +35,12 @@ pub fn data_member_declaration(
         &doc_comment_message(data_member),
     ));
     prelude.writeln(
-        &custom_attributes(data_member)
+        &data_member
+            .custom_attributes()
             .into_iter()
             .collect::<CodeBlock>(),
     );
-    if let Some(obsolete) = obsolete_attribute(data_member, true) {
+    if let Some(obsolete) = data_member.obsolete_attribute(true) {
         prelude.writeln(&format!("[{}]", obsolete));
     }
 

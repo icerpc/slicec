@@ -37,6 +37,7 @@ impl<'a> Visitor for DispatchVisitor<'_> {
 
         interface_builder
             .add_comment("summary", &summary_comment)
+            .add_type_id_attribute(interface_def)
             .add_container_attributes(interface_def);
 
         interface_builder.add_bases(

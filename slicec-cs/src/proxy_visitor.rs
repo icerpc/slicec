@@ -59,6 +59,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
 
         let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", &summary_message)
+            .add_type_id_attribute(interface_def)
             .add_container_attributes(interface_def)
             .add_bases(&prx_bases)
             .add_block(proxy_interface_operations(interface_def, ast))
@@ -70,7 +71,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         proxy_impl_builder.add_bases(&prx_impl_bases)
             .add_comment("summary", &format!(r#"Typed proxy record struct. It implements <see cref="{}"/> by sending requests to a remote IceRPC service."#, prx_interface))
             .add_type_id_attribute(interface_def)
-            .add_custom_attributes(interface_def)
+            .add_container_attributes(interface_def)
             .add_block(request_class(interface_def, ast))
             .add_block(response_class(interface_def, ast))
             .add_block(format!(r#"
@@ -424,8 +425,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
                 &(operation.escape_identifier(CaseStyle::Pascal) + "Async"),
                 FunctionType::Declaration,
             )
-            .add_obsolete_attribute(operation)
-            .add_custom_attributes(operation)
+            .add_container_attributes(interface_def)
             .add_comment("summary", &doc_comment_message(operation))
             .add_operation_parameters(operation, TypeContext::Outgoing, ast)
             .build(),

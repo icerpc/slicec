@@ -39,6 +39,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
 
         exception_class_builder
             .add_comment("summary", &doc_comment_message(exception_def))
+            .add_type_id_attribute(exception_def)
             .add_container_attributes(exception_def);
 
         if let Some(base) = exception_def.base(ast) {
