@@ -117,7 +117,7 @@ public static {return_type} {operation_name}(IceRpc.IncomingRequest request) =>
         {decode_func});",
             s = if non_streamed_parameters.len() == 1 { "" } else { "s" },
             return_type =
-                non_streamed_parameters.to_tuple_type(namespace, ast, TypeContext::Outgoing),
+                non_streamed_parameters.to_tuple_type(namespace, ast, TypeContext::Incoming),
             operation_name = operation_name,
             decoder_factory = decoder_factory,
             decode_func = request_decode_func(operation, ast).indent().indent(),
@@ -439,7 +439,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
 
         writeln!(
             code,
-            "var returnValue = await target.{name}({args}).ConfigureAwait(false);",
+            "var returnValue = await target.{name}Async({args}).ConfigureAwait(false);",
             name = operation_name,
             args = args.join(", ")
         );
@@ -468,7 +468,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
 
         writeln!(
             code,
-            "{return_value}await target.{operation_name}({args}).ConfigureAwait(false);",
+            "{return_value}await target.{operation_name}Async({args}).ConfigureAwait(false);",
             return_value = if !return_parameters.is_empty() {
                 "var returnValue = "
             } else {
