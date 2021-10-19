@@ -6,11 +6,10 @@ use crate::builders::{
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::comments::*;
-use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoding::*;
 use crate::member_util::*;
-use crate::operation_util::*;
+use crate::traits::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;
@@ -22,15 +21,18 @@ pub struct ProxyVisitor<'a> {
 
 impl<'a> Visitor for ProxyVisitor<'_> {
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, ast: &Ast) {
-        let prx_interface = proxy_name(interface_def); // IFooPrx
-        let prx_impl: String = proxy_impl_name(interface_def); // FooPrx
+        let prx_interface = interface_def.proxy_name(); // IFooPrx
+        let prx_impl: String = interface_def.proxy_implementation_name(); // FooPrx
 
         let all_bases: Vec<&Interface> = interface_def.all_bases(ast);
         let bases: Vec<&Interface> = interface_def.bases(ast);
 
         let mut prx_impl_bases: Vec<String> = vec![prx_interface.clone(), "IPrx".to_owned()];
 
-        let mut all_base_impl: Vec<String> = all_bases.iter().map(|b| proxy_impl_name(b)).collect();
+        let mut all_base_impl: Vec<String> = all_bases
+            .iter()
+            .map(|b| b.proxy_implementation_name())
+            .collect();
 
         let mut add_service_prx = false;
         if !all_bases.iter().any(|b| b.scope() == "::IceRpc::Service")
@@ -44,19 +46,20 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         // prx bases
         let prx_bases: Vec<String> = bases
             .into_iter()
-            .map(|b| escape_scoped_identifier(b, CaseStyle::Pascal, interface_def.scope()))
+            .map(|b| b.escape_scoped_identifier(interface_def.scope()))
             .collect();
 
         let summary_message = format!(
             r#"The client-side interface for Slice interface {}. <seealso cref="{}"/>.
 {}"#,
             interface_def.identifier(),
-            interface_name(interface_def),
+            interface_def.interface_name(),
             doc_comment_message(interface_def)
         );
 
         let proxy_interface = ContainerBuilder::new("public partial interface", &prx_interface)
             .add_comment("summary", &summary_message)
+            .add_type_id_attribute(interface_def)
             .add_container_attributes(interface_def)
             .add_bases(&prx_bases)
             .add_block(proxy_interface_operations(interface_def, ast))
@@ -68,7 +71,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         proxy_impl_builder.add_bases(&prx_impl_bases)
             .add_comment("summary", &format!(r#"Typed proxy record struct. It implements <see cref="{}"/> by sending requests to a remote IceRPC service."#, prx_interface))
             .add_type_id_attribute(interface_def)
-            .add_custom_attributes(interface_def)
+            .add_container_attributes(interface_def)
             .add_block(request_class(interface_def, ast))
             .add_block(response_class(interface_def, ast))
             .add_block(format!(r#"
@@ -124,9 +127,8 @@ public global::System.Threading.Tasks.Task IcePingAsync(
         }
 
         for operation in interface_def.all_base_operations(ast) {
-            let async_name = escape_identifier(operation, CaseStyle::Pascal) + "Async";
-            let return_task = return_type_to_string(
-                &operation.return_members(ast),
+            let async_name = operation.escape_identifier() + "Async";
+            let return_task = operation.return_members(ast).to_return_type(
                 interface_def.scope(),
                 ast,
                 TypeContext::Incoming,
@@ -135,7 +137,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             let mut proxy_params = operation
                 .parameters(ast)
                 .iter()
-                .map(|p| parameter_name(p, "", true))
+                .map(|p| p.parameter_name())
                 .collect::<Vec<_>>();
 
             proxy_params.push(escape_parameter_name(
@@ -163,7 +165,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             builder.set_body(
                 format!(
                     "new {base_prx_impl}(Proxy).{async_name}({proxy_params})",
-                    base_prx_impl = proxy_impl_name(base_interface),
+                    base_prx_impl = base_interface.proxy_implementation_name(),
                     async_name = async_name,
                     proxy_params = proxy_params.join(", ")
                 )
@@ -243,16 +245,16 @@ public {prx_impl}(IceRpc.Proxy proxy) => Proxy = proxy;
 
 /// <inheritdoc/>
 public override string ToString() => Proxy.ToString();"#,
-        prx_impl = format!("{}Prx", interface_name(interface_def).chars().skip(1).collect::<String>())
+        prx_impl = interface_def.proxy_implementation_name()
     ).into()
 }
 
 /// The actual implementation of the proxy operation.
 fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
-    let ns = get_namespace(operation);
-    let operation_name = escape_identifier(operation, CaseStyle::Pascal);
+    let namespace = &operation.namespace();
+    let operation_name = operation.escape_identifier();
     let async_operation_name = operation_name.clone() + "Async";
-    let return_task = operation_return_task(operation, &ns, false, ast);
+    let return_task = operation.return_task(namespace, false, ast);
     let is_oneway = operation.has_attribute("oneway");
 
     let parameters = operation.non_streamed_params(ast);
@@ -302,7 +304,7 @@ if {invocation}?.RequestFeatures.Get<IceRpc.Features.CompressPayload>() == null)
     if parameters.is_empty() {
         invoke_args.push(format!("{}.CreateEmptyPayload()", payload_encoding));
     } else {
-        let mut request_helper_args = vec![to_argument_tuple(&parameters, "")];
+        let mut request_helper_args = vec![parameters.to_argument_tuple("")];
 
         if !sends_classes {
             request_helper_args.insert(0, payload_encoding.clone());
@@ -321,7 +323,7 @@ if {invocation}?.RequestFeatures.Get<IceRpc.Features.CompressPayload>() == null)
 
     // Stream parameter (if any)
     if let Some(stream_parameter) = operation.stream_parameter(ast) {
-        let stream_parameter_name = parameter_name(stream_parameter, "", true);
+        let stream_parameter_name = stream_parameter.parameter_name();
         match stream_parameter.data_type.definition(ast) {
             Node::Primitive(_, b) if matches!(b, Primitive::Byte) => invoke_args.push(format!(
                 "new IceRpc.Slice.ByteStreamParamSender({})",
@@ -334,12 +336,15 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
 {payload_encoding},
 {encode_action}
 )",
-                stream_type =
-                    type_to_string(&stream_parameter.data_type, &ns, ast, TypeContext::Outgoing),
+                stream_type = stream_parameter.data_type.to_type_string(
+                    namespace,
+                    ast,
+                    TypeContext::Outgoing
+                ),
                 stream_parameter = stream_parameter_name,
                 payload_encoding = payload_encoding,
                 encode_action =
-                    encode_action(&stream_parameter.data_type, &ns, true, true, ast).indent()
+                    encode_action(&stream_parameter.data_type, namespace, true, true, ast).indent()
             )),
         }
     } else {
@@ -361,9 +366,12 @@ response,
 invoker,
 response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 {decode_func})",
-                    stream_type =
-                        type_to_string(&stream_return.data_type, &ns, ast, TypeContext::Incoming),
-                    decode_func = decode_func(&stream_return.data_type, &ns, ast).indent()
+                    stream_type = stream_return.data_type.to_type_string(
+                        namespace,
+                        ast,
+                        TypeContext::Incoming
+                    ),
+                    decode_func = decode_func(&stream_return.data_type, namespace, ast).indent()
                 )
             }
         };
@@ -404,7 +412,7 @@ return Proxy.InvokeAsync(
 
 fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
-    let ns = get_namespace(interface_def);
+    let namespace = &interface_def.namespace();
     let operations = interface_def.operations(ast);
 
     for operation in operations {
@@ -413,12 +421,11 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
         code.add_block(
             &FunctionBuilder::new(
                 "",
-                &operation_return_task(operation, &ns, false, ast),
-                &(escape_identifier(operation, CaseStyle::Pascal) + "Async"),
+                &operation.return_task(namespace, false, ast),
+                &(operation.escape_identifier() + "Async"),
                 FunctionType::Declaration,
             )
-            .add_obsolete_attribute(operation)
-            .add_custom_attributes(operation)
+            .add_container_attributes(interface_def)
             .add_comment("summary", &doc_comment_message(operation))
             .add_operation_parameters(operation, TypeContext::Outgoing, ast)
             .build(),
@@ -429,7 +436,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
 }
 
 fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
-    let ns = get_namespace(interface_def);
+    let namespace = &interface_def.namespace();
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
@@ -455,7 +462,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         let mut builder = FunctionBuilder::new(
             "public static",
             "global::System.ReadOnlyMemory<global::System.ReadOnlyMemory<byte>>",
-            &escape_identifier(operation, CaseStyle::Pascal),
+            &operation.escape_identifier(),
             FunctionType::ExpressionBody,
         );
 
@@ -478,7 +485,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         if params.len() == 1 {
             builder.add_parameter(
-                &to_tuple_type(&params, &ns, ast, TypeContext::Outgoing),
+                &params.to_tuple_type(namespace, ast, TypeContext::Outgoing),
                 "arg",
                 None,
                 Some("The request argument."),
@@ -487,7 +494,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             builder.add_parameter(
                 &format!(
                     "in {}",
-                    to_tuple_type(&params, &ns, ast, TypeContext::Outgoing)
+                    params.to_tuple_type(namespace, ast, TypeContext::Outgoing)
                 ),
                 "args",
                 None,
@@ -517,7 +524,7 @@ IceRpc.Payload.{name}(
             },
             args = if params.len() == 1 { "arg" } else { "in args" },
             encode_action = request_encode_action(operation, ast).indent(),
-            class_format = operation_format_type_to_string(operation)
+            class_format = operation.format_type()
         )
         .into();
 
@@ -530,7 +537,7 @@ IceRpc.Payload.{name}(
 }
 
 fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
-    let ns = get_namespace(interface_def);
+    let namespace = &interface_def.namespace();
     let operations = interface_def.operations(ast);
 
     if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
@@ -541,7 +548,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
     class_builder.add_comment(
         "summary",
-    &format!(r#"Holds a <see cref="IceRpc.Gen.ResponseDecodeFunc{{T}}"/> for each non-void remote operation defined in <see cref="{}Prx"/>."#, interface_name(interface_def)));
+    &format!(r#"Holds a <see cref="IceRpc.Gen.ResponseDecodeFunc{{T}}"/> for each non-void remote operation defined in <see cref="{}Prx"/>."#, interface_def.interface_name()));
 
     for operation in operations {
         let members = operation.return_members(ast);
@@ -565,8 +572,8 @@ public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, Ice
         {decoder},
         {response_decode_func});"#,
             name = operation.identifier(),
-            escaped_name = escape_identifier(operation, CaseStyle::Pascal),
-            return_type = to_tuple_type(&members, &ns, ast, TypeContext::Incoming),
+            escaped_name = operation.escape_identifier(),
+            return_type = members.to_tuple_type( namespace, ast, TypeContext::Incoming),
             decoder = decoder,
             response_decode_func = response_decode_func(operation, ast).indent()
         ).into());
@@ -577,7 +584,7 @@ public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, Ice
 
 fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     // TODO: scope
-    let ns = get_namespace(operation);
+    let namespace = &operation.namespace();
 
     // We only want the non-streamed params
     let params: Vec<&Member> = operation.non_streamed_params(ast);
@@ -588,7 +595,13 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
         && get_bit_sequence_size(&params, ast) == 0
         && params.first().unwrap().tag.is_none()
     {
-        encode_action(&params.first().unwrap().data_type, &ns, true, true, ast)
+        encode_action(
+            &params.first().unwrap().data_type,
+            namespace,
+            true,
+            true,
+            ast,
+        )
     } else {
         format!(
             "\
@@ -597,7 +610,7 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     {encode}
 }}",
             _in = if params.len() == 1 { "" } else { "in " },
-            param_type = to_tuple_type(&params, &ns, ast, TypeContext::Outgoing),
+            param_type = params.to_tuple_type(namespace, ast, TypeContext::Outgoing),
             encode = encode_operation(operation, false, ast).indent()
         )
         .into()
@@ -605,7 +618,7 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
 }
 
 fn response_decode_func(operation: &Operation, ast: &Ast) -> CodeBlock {
-    let ns = get_namespace(operation);
+    let namespace = &operation.namespace();
     // vec of members
     let members = operation.return_members(ast);
 
@@ -618,7 +631,7 @@ fn response_decode_func(operation: &Operation, ast: &Ast) -> CodeBlock {
         && get_bit_sequence_size(&members, ast) == 0
         && members.first().unwrap().tag.is_none()
     {
-        decode_func(&members.first().unwrap().data_type, &ns, ast)
+        decode_func(&members.first().unwrap().data_type, namespace, ast)
     } else {
         format!(
             "decoder => {{ {decode} }}",

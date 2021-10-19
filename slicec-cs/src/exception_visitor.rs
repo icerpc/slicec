@@ -10,9 +10,10 @@ use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
 use crate::member_util::*;
+use crate::traits::*;
 use slice::ast::Ast;
 use slice::grammar::Exception;
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 use slice::visitor::Visitor;
 
 pub struct ExceptionVisitor<'a> {
@@ -21,31 +22,28 @@ pub struct ExceptionVisitor<'a> {
 
 impl<'a> Visitor for ExceptionVisitor<'_> {
     fn visit_exception_start(&mut self, exception_def: &Exception, _: usize, ast: &Ast) {
-        let exception_name = escape_identifier(exception_def, CaseStyle::Pascal);
+        let exception_name = exception_def.escape_identifier();
         let has_base = exception_def.base.is_some();
 
-        let ns = get_namespace(exception_def);
+        let namespace = &exception_def.namespace();
 
         let members = exception_def.members(ast);
 
         let has_public_parameter_constructor = exception_def
             .all_data_members(ast)
             .iter()
-            .all(|m| is_member_default_initialized(m, ast));
+            .all(|m| m.is_default_initialized(ast));
 
         let mut exception_class_builder =
             ContainerBuilder::new("public partial class", &exception_name);
 
         exception_class_builder
             .add_comment("summary", &doc_comment_message(exception_def))
+            .add_type_id_attribute(exception_def)
             .add_container_attributes(exception_def);
 
         if let Some(base) = exception_def.base(ast) {
-            exception_class_builder.add_base(escape_scoped_identifier(
-                base,
-                CaseStyle::Pascal,
-                &ns,
-            ));
+            exception_class_builder.add_base(base.escape_scoped_identifier(namespace));
         } else {
             exception_class_builder.add_base("IceRpc.RemoteException".to_owned());
         }
@@ -107,7 +105,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     .add_base_parameter("decoder")
                     .set_body(decode_data_members(
                         &members,
-                        &ns,
+                        namespace,
                         FieldType::Exception,
                         ast,
                     ))
@@ -129,7 +127,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                 code.writeln("decoder.IceStartSlice();");
                 code.writeln(&decode_data_members(
                     &members,
-                    &ns,
+                    namespace,
                     FieldType::Exception,
                     ast,
                 ));
@@ -156,7 +154,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                 code.writeln("encoder.IceStartSlice(_iceTypeId);");
                 code.writeln(&encode_data_members(
                     &members,
-                    &ns,
+                    namespace,
                     FieldType::Exception,
                     ast,
                 ));
@@ -189,7 +187,7 @@ encoder.EncodeString(_iceTypeId);
 encoder.EncodeString(Message);
 Origin.Encode(encoder);
 {}",
-                        &encode_data_members(&members, &ns, FieldType::Exception, ast,)
+                        &encode_data_members(&members, namespace, FieldType::Exception, ast,)
                     )
                     .into(),
                 )
@@ -207,9 +205,9 @@ fn one_shot_constructor(
     add_message_and_exception_parameters: bool,
     ast: &Ast,
 ) -> CodeBlock {
-    let exception_name = escape_identifier(exception_def, CaseStyle::Pascal);
+    let exception_name = exception_def.escape_identifier();
 
-    let ns = get_namespace(exception_def);
+    let namespace = &exception_def.namespace();
 
     let all_data_members = exception_def.all_data_members(ast);
 
@@ -224,8 +222,10 @@ fn one_shot_constructor(
     let all_parameters = all_data_members
         .iter()
         .map(|m| {
-            let member_type = type_to_string(&m.data_type, &ns, ast, TypeContext::DataMember);
-            let member_name = escape_identifier(*m, CaseStyle::Camel);
+            let member_type = m
+                .data_type
+                .to_type_string(namespace, ast, TypeContext::DataMember);
+            let member_name = m.parameter_name();
             format!("{} {}", member_type, member_name)
         })
         .collect::<Vec<_>>();
@@ -233,7 +233,7 @@ fn one_shot_constructor(
     let base_parameters = if let Some(base) = exception_def.base(ast) {
         base.all_data_members(ast)
             .iter()
-            .map(|m| escape_identifier(*m, CaseStyle::Pascal))
+            .map(|m| m.escape_identifier())
             .collect::<Vec<_>>()
     } else {
         vec![]
@@ -284,8 +284,8 @@ fn one_shot_constructor(
     // ctor impl
     let mut ctor_body = CodeBlock::new();
     for member in exception_def.members(ast) {
-        let member_name = field_name(member, FieldType::Exception);
-        let parameter_name = escape_identifier(member, CaseStyle::Camel);
+        let member_name = member.field_name(FieldType::Exception);
+        let parameter_name = member.parameter_name();
 
         writeln!(ctor_body, "this.{} = {};", member_name, parameter_name);
     }

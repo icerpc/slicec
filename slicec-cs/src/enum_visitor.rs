@@ -3,9 +3,11 @@ use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
+use crate::traits::*;
 
-use slice::ast::Ast;
+use slice::ast::{Ast, Node};
 use slice::grammar::*;
+use slice::ref_from_node;
 use slice::util::*;
 use slice::visitor::Visitor;
 
@@ -56,8 +58,9 @@ fn enum_values(enum_def: &Enum, ast: &Ast) -> CodeBlock {
 
 fn enum_helper(enum_def: &Enum, ast: &Ast) -> CodeBlock {
     let escaped_identifier = escape_keyword(enum_def.identifier());
-    let ns = get_namespace(enum_def);
-    let mut builder = ContainerBuilder::new("public static class", &helper_name(enum_def, &ns));
+    let namespace = &enum_def.namespace();
+    let mut builder =
+        ContainerBuilder::new("public static class", &enum_def.helper_name(namespace));
 
     builder.add_comment(
         "summary",
@@ -118,7 +121,7 @@ public static readonly global::System.Collections.Generic.HashSet<{underlying}> 
                 ),
             },
             escaped_identifier = escaped_identifier,
-            scoped = escape_scoped_identifier(enum_def, CaseStyle::Pascal, &ns),
+            scoped = enum_def.escape_scoped_identifier(namespace),
         )
         .into()
     };
@@ -145,8 +148,11 @@ public static {escaped_identifier} Decode{identifier}(this IceRpc.IceDecoder dec
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,
             decode_enum = match &enum_def.underlying {
-                Some(underlying) =>
-                    format!("Decode{}()", builtin_suffix(underlying.definition(ast))),
+                Some(underlying) => format!(
+                    "Decode{}()",
+                    ref_from_node!(Node::Primitive, ast, underlying.definition.unwrap())
+                        .type_suffix()
+                ),
                 _ => "DecodeSize()".to_owned(),
             }
         )
@@ -164,7 +170,8 @@ public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_i
             encode_enum = match &enum_def.underlying {
                 Some(underlying) => format!(
                     "encoder.Encode{}",
-                    builtin_suffix(underlying.definition(ast))
+                    ref_from_node!(Node::Primitive, ast, underlying.definition.unwrap())
+                        .type_suffix()
                 ),
                 None => "encoder.EncodeSize".to_owned(),
             },
@@ -178,12 +185,9 @@ public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_i
 
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
     match &enum_def.underlying {
-        Some(typeref) => type_to_string(
-            typeref,
-            enum_def.scope.as_ref().unwrap(),
-            ast,
-            TypeContext::Nested,
-        ),
+        Some(typeref) => {
+            typeref.to_type_string(enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
+        }
         _ => "int".to_owned(), // TODO we should make a builtin table to get names from.
     }
 }

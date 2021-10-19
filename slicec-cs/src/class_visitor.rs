@@ -10,9 +10,10 @@ use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
 use crate::member_util::*;
+use crate::traits::*;
 use slice::ast::Ast;
 use slice::grammar::{Class, Member};
-use slice::util::{CaseStyle, TypeContext};
+use slice::util::TypeContext;
 use slice::visitor::Visitor;
 
 pub struct ClassVisitor<'a> {
@@ -21,8 +22,8 @@ pub struct ClassVisitor<'a> {
 
 impl<'a> Visitor for ClassVisitor<'_> {
     fn visit_class_start(&mut self, class_def: &Class, _: usize, ast: &Ast) {
-        let class_name = escape_identifier(class_def, CaseStyle::Pascal);
-        let namespace = get_namespace(class_def);
+        let class_name = class_def.escape_identifier();
+        let namespace = class_def.namespace();
         let has_base_class = class_def.base(ast).is_some();
 
         let members = class_def.members(ast);
@@ -35,28 +36,25 @@ impl<'a> Visitor for ClassVisitor<'_> {
         let non_default_members = members
             .iter()
             .cloned()
-            .filter(|m| !is_member_default_initialized(m, ast))
+            .filter(|m| !m.is_default_initialized(ast))
             .collect::<Vec<_>>();
 
         let non_default_base_members = base_members
             .iter()
             .cloned()
-            .filter(|m| !is_member_default_initialized(m, ast))
+            .filter(|m| !m.is_default_initialized(ast))
             .collect::<Vec<_>>();
 
         let mut class_builder = ContainerBuilder::new("public partial class", &class_name);
 
         class_builder
             .add_comment("summary", &doc_comment_message(class_def))
-            .add_container_attributes(class_def)
-            .add_compact_type_id_attribute(class_def);
+            .add_type_id_attribute(class_def)
+            .add_compact_type_id_attribute(class_def)
+            .add_container_attributes(class_def);
 
         if let Some(base) = class_def.base(ast) {
-            class_builder.add_base(escape_scoped_identifier(
-                base,
-                CaseStyle::Pascal,
-                &namespace,
-            ));
+            class_builder.add_base(base.escape_scoped_identifier(&namespace));
         } else {
             class_builder.add_base("IceRpc.AnyClass".to_owned());
         }
@@ -172,15 +170,17 @@ fn constructor(
     builder.add_base_parameters(
         &base_members
             .iter()
-            .filter(|m| !is_member_default_initialized(m, ast))
-            .map(|m| escape_identifier(*m, CaseStyle::Camel))
+            .filter(|m| !m.is_default_initialized(ast))
+            .map(|m| m.parameter_name())
             .collect::<Vec<String>>(),
     );
 
     for member in members.iter().chain(base_members.iter()) {
         let parameter_type =
-            type_to_string(&member.data_type, namespace, ast, TypeContext::DataMember);
-        let parameter_name = escape_identifier(*member, CaseStyle::Camel);
+            member
+                .data_type
+                .to_type_string(namespace, ast, TypeContext::DataMember);
+        let parameter_name = member.parameter_name();
 
         builder.add_parameter(
             &parameter_type,
@@ -196,8 +196,8 @@ fn constructor(
             writeln!(
                 code,
                 "this.{} = {};",
-                field_name(member, FieldType::Class),
-                escape_identifier(*member, CaseStyle::Camel)
+                member.field_name(FieldType::Class),
+                member.parameter_name()
             );
         }
         code
@@ -211,7 +211,7 @@ fn constructor(
 fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let namespace = get_namespace(class_def);
+    let namespace = &class_def.namespace();
     let members = class_def.members(ast);
     let has_base_class = class_def.base(ast).is_some();
 
@@ -250,7 +250,7 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
 
         code.writeln(&encode_data_members(
             &members,
-            &namespace,
+            namespace,
             FieldType::Class,
             ast,
         ));
@@ -278,7 +278,7 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
         code.writeln("decoder.IceStartSlice();");
         code.writeln(&decode_data_members(
             &members,
-            &namespace,
+            namespace,
             FieldType::Class,
             ast,
         ));

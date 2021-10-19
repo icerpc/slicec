@@ -40,7 +40,7 @@ impl<'a> Validator<'a> {
                     }
                     Primitive::Short => {
                         lower_bound = -32_768i64;
-                        upper_bound =  32_767i64;
+                        upper_bound = 32_767i64;
                     }
                     Primitive::UShort => {
                         lower_bound = 0i64;
@@ -48,7 +48,7 @@ impl<'a> Validator<'a> {
                     }
                     Primitive::Int | Primitive::VarInt => {
                         lower_bound = -2_147_483_648i64;
-                        upper_bound =  2_147_483_647i64;
+                        upper_bound = 2_147_483_647i64;
                     }
                     Primitive::UInt | Primitive::VarUInt => {
                         // Nothing to do, this is already the default.
@@ -124,9 +124,8 @@ impl<'a> Visitor for Validator<'a> {
                     enumerator.value,
                     enumerator.identifier(),
                 );
-                self.error_handler.report_error(
-                    (error_message, enumerator).into()
-                );
+                self.error_handler
+                    .report_error((error_message, enumerator).into());
 
                 let original_id = *used_values.get(&enumerator.value).unwrap();
                 let original = ast.resolve_index(original_id).as_named_symbol().unwrap();
@@ -135,9 +134,8 @@ impl<'a> Visitor for Validator<'a> {
                     enumerator.value,
                     original.identifier(),
                 );
-                self.error_handler.report_note(
-                    (note_message, original).into()
-                );
+                self.error_handler
+                    .report_note((note_message, original).into());
             } else {
                 used_values.insert(enumerator.value, *id);
             }

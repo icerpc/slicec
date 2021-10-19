@@ -1,0 +1,157 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+use slice::ast::{Ast, Node};
+use slice::grammar::{Dictionary, Primitive, ScopedSymbol, Sequence, TypeRef};
+use slice::util::TypeContext;
+
+use super::cs_named_symbol::CsNamedSymbol;
+
+pub trait CsTypeRef {
+    /// Is the type a reference type (eg. Class)
+    fn is_reference_type(&self, ast: &Ast) -> bool;
+
+    /// Is the type a value type (eg. Struct)
+    fn is_value_type(&self, ast: &Ast) -> bool;
+
+    /// The C# mapped type for this type reference.
+    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
+}
+
+impl CsTypeRef for TypeRef {
+    fn is_reference_type(&self, ast: &Ast) -> bool {
+        !self.is_value_type(ast)
+    }
+
+    fn is_value_type(&self, ast: &Ast) -> bool {
+        match self.definition(ast) {
+            Node::Primitive(_, primitive) => !matches!(primitive, Primitive::String),
+            Node::Enum(_, _) | Node::Struct(_, _) | Node::Interface(_, _) => true,
+            _ => false,
+        }
+    }
+
+    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
+        let node = self.definition(ast);
+        let type_str = match node {
+            Node::Struct(_, struct_def) => struct_def.escape_scoped_identifier(scope),
+            Node::Class(_, class_def) => class_def.escape_scoped_identifier(scope),
+            Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(scope),
+            Node::Interface(_, interface_def) => {
+                interface_def.escape_scoped_identifier(scope) + "Prx"
+            }
+            Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(scope),
+            Node::Sequence(_, sequence) => {
+                sequence_type_to_string(self, sequence, scope, ast, context)
+            }
+            Node::Dictionary(_, dictionary) => {
+                dictionary_type_to_string(dictionary, scope, ast, context)
+            }
+            Node::Primitive(_, primitive) => match primitive {
+                Primitive::Bool => "bool",
+                Primitive::Byte => "byte",
+                Primitive::Short => "short",
+                Primitive::UShort => "ushort",
+                Primitive::Int => "int",
+                Primitive::UInt => "uint",
+                Primitive::VarInt => "int",
+                Primitive::VarUInt => "uint",
+                Primitive::Long => "long",
+                Primitive::ULong => "ulong",
+                Primitive::VarLong => "long",
+                Primitive::VarULong => "ulong",
+                Primitive::Float => "float",
+                Primitive::Double => "double",
+                Primitive::String => "string",
+            }
+            .to_owned(),
+            _ => {
+                panic!("Node does not represent a type: '{:?}'!", node);
+            }
+        };
+
+        if self.is_optional {
+            type_str + "?"
+        } else {
+            type_str
+        }
+    }
+}
+
+/// Helper method to convert a sequence type into a string
+fn sequence_type_to_string(
+    type_ref: &TypeRef,
+    sequence: &Sequence,
+    scope: &str,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
+    let element_type = sequence
+        .element_type
+        .to_type_string(scope, ast, TypeContext::Nested);
+
+    match context {
+        TypeContext::DataMember | TypeContext::Nested => {
+            format!("global::System.Collections.Generic.IList<{}>", element_type)
+        }
+        TypeContext::Incoming => match type_ref.find_attribute("cs:generic") {
+            Some(args) => {
+                let prefix = match args.first().unwrap().as_str() {
+                    "List" | "LinkedList" | "Queue" | "Stack" => {
+                        "global::System.Collections.Generic."
+                    }
+                    _ => "",
+                };
+                format!("{}{}", prefix, args.first().unwrap())
+            }
+            None => format!("{}[]", element_type),
+        },
+        TypeContext::Outgoing => {
+            // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
+            let element_node = sequence.element_type.definition(ast);
+            if element_node.as_type().unwrap().is_fixed_size(ast) {
+                format!(
+                    "global::System.Collections.Generic.IEnumerable<{}>",
+                    element_type
+                )
+            } else {
+                format!("global::System.ReadOnlyMemory<{}>", element_type)
+            }
+        }
+    }
+}
+
+/// Helper method to convert a dictionary type into a string
+fn dictionary_type_to_string(
+    dictionary: &Dictionary,
+    scope: &str,
+    ast: &Ast,
+    context: TypeContext,
+) -> String {
+    let key_type = &dictionary
+        .key_type
+        .to_type_string(scope, ast, TypeContext::Nested);
+    let value_type = dictionary
+        .value_type
+        .to_type_string(scope, ast, TypeContext::Nested);
+
+    match context {
+        TypeContext::DataMember | TypeContext::Nested => {
+            format!(
+                "global::System.Collections.Generic.IDictionary<{}, {}>",
+                key_type, value_type,
+            )
+        }
+        TypeContext::Incoming => {
+            format!(
+                "global::System.Collections.Generic.Dictionary<{}, {}>",
+                key_type, value_type,
+            )
+        }
+        TypeContext::Outgoing => {
+            format!(
+                "global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{}, {}>>",
+                key_type, value_type,
+            )
+        }
+    }
+}

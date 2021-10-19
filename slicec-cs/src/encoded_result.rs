@@ -1,39 +1,24 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Ast;
-use slice::grammar::{Operation, ScopedSymbol};
-use slice::util::{CaseStyle, TypeContext};
+use slice::grammar::Operation;
+use slice::util::TypeContext;
 
 use crate::builders::{CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType};
 use crate::code_block::CodeBlock;
-use crate::cs_util::{
-    escape_identifier, escape_scoped_identifier, get_namespace, operation_format_type_to_string,
-    parameter_name, type_to_string,
-};
 use crate::member_util::escape_parameter_name;
+use crate::traits::*;
 
 use crate::dispatch_visitor::response_encode_action;
 
-// TODO: should this move to slice library that and take a language prefix parameter?
-// parameter
-pub fn has_encoded_result(operation_def: &Operation) -> bool {
-    operation_def.has_attribute("cs:encoded-result")
-    // || interface_def.has_attribute("cs:encoded-result")
-    // TODO: also check the operation's parent interface once we can access it
-}
-
-pub fn encoded_result_struct_name(operation_def: &Operation, scope: &str) -> String {
-    escape_scoped_identifier(operation_def, CaseStyle::Pascal, scope) + "EncodedReturnValue"
-}
-
 pub fn encoded_result_struct(operation: &Operation, ast: &Ast) -> CodeBlock {
-    let operation_name = escape_identifier(operation, CaseStyle::Pascal);
+    let operation_name = operation.escape_identifier();
     let struct_name = format!("{}EncodedReturnValue", operation_name);
     // TODO: this should really be the parent interface (we just don't have access to it yet)
-    let namespace = get_namespace(operation);
+    let namespace = operation.namespace();
 
     // Should we assert instead?
-    if !has_encoded_result(operation) {
+    if !operation.has_encoded_result() {
         return "".into();
     }
 
@@ -80,7 +65,8 @@ immediately encodes the return value of operation {operation_name}."#,
     match operation.return_members(ast).as_slice() {
         [p] => {
             constructor_builder.add_parameter(
-                &type_to_string(&p.data_type, &namespace, ast, TypeContext::Outgoing),
+                &p.data_type
+                    .to_type_string(&namespace, ast, TypeContext::Outgoing),
                 "returnValue",
                 None,
                 None,
@@ -89,8 +75,10 @@ immediately encodes the return value of operation {operation_name}."#,
         _ => {
             for parameter in operation.return_members(ast) {
                 let parameter_type =
-                    type_to_string(&parameter.data_type, &namespace, ast, TypeContext::Outgoing);
-                let parameter_name = parameter_name(parameter, "", true);
+                    parameter
+                        .data_type
+                        .to_type_string(&namespace, ast, TypeContext::Outgoing);
+                let parameter_name = parameter.parameter_name();
 
                 constructor_builder.add_parameter(&parameter_type, &parameter_name, None, None);
             }
@@ -124,7 +112,7 @@ immediately encodes the return value of operation {operation_name}."#,
             "returnValueTuple"
         },
         response_encode_action = response_encode_action(operation, ast),
-        class_format = operation_format_type_to_string(operation),
+        class_format = operation.format_type(),
     );
 
     constructor_builder.add_base_parameter(&create_payload);

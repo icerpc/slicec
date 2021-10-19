@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-mod attributes;
 mod builders;
 mod class_visitor;
 mod code_block;
@@ -17,9 +16,9 @@ mod encoding;
 mod enum_visitor;
 mod exception_visitor;
 mod member_util;
-mod operation_util;
 mod proxy_visitor;
 mod struct_visitor;
+mod traits;
 
 use class_visitor::ClassVisitor;
 use code_map::CodeMap;

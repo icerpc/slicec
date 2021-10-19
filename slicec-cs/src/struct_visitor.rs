@@ -4,10 +4,12 @@ use crate::builders::{
 use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::comments::doc_comment_message;
-use crate::cs_util::*;
+use crate::cs_util::FieldType;
 use crate::decoding::*;
 use crate::encoding::*;
 use crate::member_util::*;
+use crate::traits::{CsMemberInfo, CsNamedSymbol, CsTypeRef};
+
 use slice::ast::Ast;
 use slice::grammar::*;
 use slice::util::*;
@@ -21,9 +23,9 @@ pub struct StructVisitor<'a> {
 impl<'a> Visitor for StructVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct, _: usize, ast: &Ast) {
         let readonly = struct_def.has_attribute("cs:readonly");
-        let escaped_identifier = escape_keyword(struct_def.identifier());
+        let escaped_identifier = struct_def.escape_identifier();
         let members = struct_def.members(ast);
-        let namespace = get_namespace(struct_def);
+        let namespace = struct_def.namespace();
 
         let mut builder = ContainerBuilder::new(
             &format!(
@@ -58,7 +60,9 @@ impl<'a> Visitor for StructVisitor<'a> {
 
         for member in &members {
             main_constructor.add_parameter(
-                &type_to_string(&member.data_type, &namespace, ast, TypeContext::DataMember),
+                &member
+                    .data_type
+                    .to_type_string(&namespace, ast, TypeContext::DataMember),
                 member.identifier(),
                 None,
                 Some(&doc_comment_message(*member)),
@@ -70,8 +74,8 @@ impl<'a> Visitor for StructVisitor<'a> {
                 writeln!(
                     code,
                     "this.{} = {};",
-                    field_name(*member, FieldType::NonMangled),
-                    escape_identifier(*member, CaseStyle::Camel),
+                    member.field_name(FieldType::NonMangled),
+                    member.parameter_name(),
                 );
             }
             code

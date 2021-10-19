@@ -4,13 +4,10 @@ use slice::ast::Ast;
 use slice::grammar::{Class, NamedSymbol, Operation, ScopedSymbol};
 use slice::util::TypeContext;
 
-use crate::attributes::{
-    compact_id_attribute, custom_attributes, obsolete_attribute, type_id_attribute,
-};
 use crate::code_block::CodeBlock;
 use crate::comments::{operation_parameter_doc_comment, CommentTag};
-use crate::cs_util::{parameter_name, type_to_string};
 use crate::member_util::escape_parameter_name;
+use crate::traits::*;
 
 trait Builder {
     fn build(&self) -> String;
@@ -20,37 +17,29 @@ pub trait AttributeBuilder {
     fn add_attribute(&mut self, attributes: &str) -> &mut Self;
 
     fn add_type_id_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        self.add_attribute(&type_id_attribute(named_symbol));
+        self.add_attribute(&named_symbol.type_id_attribute());
         self
     }
 
     fn add_compact_type_id_attribute(&mut self, class_def: &Class) -> &mut Self {
-        if let Some(attribute) = compact_id_attribute(class_def) {
-            self.add_attribute(&attribute);
+        if let Some(compact_id) = class_def.compact_id {
+            self.add_attribute(&format!("IceRpc.Slice.CompactTypeId({})", compact_id));
         }
         self
     }
 
-    fn add_custom_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        for attribute in custom_attributes(named_symbol) {
-            self.add_attribute(&attribute);
-        }
-        self
-    }
-
-    fn add_obsolete_attribute(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        if let Some(attribute) = obsolete_attribute(named_symbol, false) {
-            self.add_attribute(&attribute);
-        }
-        self
-    }
-
-    /// Adds the "standard" set of attributes to a "container type". eg struct, class, enum,
-    /// exception
+    /// Adds multiple "container" attributes.
+    /// - The obsolete attribute
+    /// - Any custom attributes
     fn add_container_attributes(&mut self, named_symbol: &dyn NamedSymbol) -> &mut Self {
-        self.add_type_id_attribute(named_symbol);
-        self.add_obsolete_attribute(named_symbol);
-        self.add_custom_attributes(named_symbol);
+        if let Some(attribute) = named_symbol.obsolete_attribute(false) {
+            self.add_attribute(&attribute);
+        }
+
+        for attribute in named_symbol.custom_attributes() {
+            self.add_attribute(&attribute);
+        }
+
         self
     }
 }
@@ -297,9 +286,11 @@ impl FunctionBuilder {
             );
 
             let parameter_type =
-                type_to_string(&parameter.data_type, parameter.scope(), ast, context);
+                parameter
+                    .data_type
+                    .to_type_string(parameter.scope(), ast, context);
 
-            let parameter_name = parameter_name(parameter, "", true);
+            let parameter_name = parameter.parameter_name();
 
             // TODO: it would be better if we could use parameter.comment() to get the parameter
             // comment instead
