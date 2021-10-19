@@ -109,7 +109,9 @@ pub fn decode_member(
                 struct_def.escape_scoped_identifier(scope),
             );
         }
-        Node::Dictionary(_, dictionary) => code.write(&decode_dictionary(dictionary, scope, ast)),
+        Node::Dictionary(_, dictionary) => {
+            code.write(&decode_dictionary(data_type, dictionary, scope, ast))
+        }
         Node::Sequence(_, sequence) => {
             code.write(&decode_sequence(data_type, sequence, scope, ast))
         }
@@ -148,21 +150,18 @@ pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast
     .into()
 }
 
-pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) -> CodeBlock {
+pub fn decode_dictionary(
+    type_ref: &TypeRef,
+    dictionary_def: &Dictionary,
+    scope: &str,
+    ast: &Ast,
+) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    // TOOD: check for generic "cs:generic:" attribute
-    // let generic = sequence.element_type.
     let value_type = &dictionary_def.value_type;
     let value_node = value_type.definition(ast);
-    let generic_attribute: Option<&str> = None; // TODO: temporary
 
     let with_bit_sequence = value_type.encode_using_bit_sequence(ast);
-
-    let method = match generic_attribute {
-        Some(_) => "DecodeSortedDictionary",
-        None => "DecodeDictionary",
-    };
 
     let mut args = vec![format!("minKeySize: {}", dictionary_def.key_type.min_wire_size(ast))];
 
@@ -193,7 +192,11 @@ pub fn decode_dictionary(dictionary_def: &Dictionary, scope: &str, ast: &Ast) ->
     write!(
         code,
         "decoder.{method}({args})",
-        method = method,
+        method = match type_ref.find_attribute("cs:generic") {
+            Some(attributes) if attributes.first().unwrap() == "SortedDictionary" =>
+                "DecodeSortedDictionary",
+            _ => "DecodeDictionary",
+        },
         args = args.join(", ")
     );
     code
@@ -375,7 +378,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
             write!(
                 code,
                 "decoder => {}",
-                decode_dictionary(dictionary, scope, ast)
+                decode_dictionary(type_ref, dictionary, scope, ast)
             );
         }
         Node::Enum(_, enum_def) => {

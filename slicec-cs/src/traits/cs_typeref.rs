@@ -44,7 +44,7 @@ impl CsTypeRef for TypeRef {
                 sequence_type_to_string(self, sequence, scope, ast, context)
             }
             Node::Dictionary(_, dictionary) => {
-                dictionary_type_to_string(dictionary, scope, ast, context)
+                dictionary_type_to_string(self, dictionary, scope, ast, context)
             }
             Node::Primitive(_, primitive) => match primitive {
                 Primitive::Bool => "bool",
@@ -122,6 +122,7 @@ fn sequence_type_to_string(
 
 /// Helper method to convert a dictionary type into a string
 fn dictionary_type_to_string(
+    type_ref: &TypeRef,
     dictionary: &Dictionary,
     scope: &str,
     ast: &Ast,
@@ -141,12 +142,25 @@ fn dictionary_type_to_string(
                 key_type, value_type,
             )
         }
-        TypeContext::Incoming => {
-            format!(
+        TypeContext::Incoming => match type_ref.find_attribute("cs:generic") {
+            Some(args) => {
+                let prefix = match args.first().unwrap().as_str() {
+                    "SortedDictionary" => "global::System.Collections.Generic.",
+                    _ => "",
+                };
+                format!(
+                    "{}{}<{}, {}>",
+                    prefix,
+                    args.first().unwrap(),
+                    key_type,
+                    value_type
+                )
+            }
+            None => format!(
                 "global::System.Collections.Generic.Dictionary<{}, {}>",
                 key_type, value_type,
-            )
-        }
+            ),
+        },
         TypeContext::Outgoing => {
             format!(
                 "global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<{}, {}>>",
