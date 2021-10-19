@@ -4,7 +4,7 @@ use slice::grammar::NamedSymbol;
 use slice::util::{fix_case, CaseStyle};
 
 use crate::cs_util::{escape_keyword, fix_scope};
-pub trait CsNamedSymbol {
+pub trait CsNamedSymbol: NamedSymbol {
     /// Escapes and returns the definition's identifier, without any scoping.
     /// If the identifier is a C# keyword, a '@' prefix is appended to it.
     fn escape_identifier(&self) -> String;

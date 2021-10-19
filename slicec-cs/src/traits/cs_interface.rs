@@ -11,13 +11,13 @@ pub trait CsInterfaceInfo {
     fn interface_name(&self) -> String;
 
     /// Name of the generated implementation struct for this Slice interface's proxy.
-    /// eg. If teh slice interface is `Foo`, the C# proxy implementation is `FooPrx`.
+    /// eg. If the slice interface is `Foo`, the C# proxy implementation is `FooPrx`.
     fn proxy_implementation_name(&self) -> String {
         self.proxy_name().chars().skip(1).collect()
     }
 
     /// The name of the generated C# proxy struct for this Slice interface.
-    /// eg. If teh slice interface is `Foo`, the C# proxy is `IFooPrx`.
+    /// eg. If the slice interface is `Foo`, the C# proxy is `IFooPrx`.
     fn proxy_name(&self) -> String {
         self.interface_name() + "Prx"
     }
