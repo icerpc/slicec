@@ -97,10 +97,18 @@ impl SliceParser {
     ) -> (Ast, HashMap<String, SliceFile>, ErrorHandler) {
         let mut parser = SliceParser::new();
 
-        for path in find_slice_files(&options.sources) {
+        let source_files = find_slice_files(&options.sources);
+        let mut reference_files = find_slice_files(&options.references);
+        // Remove duplicate reference files, or files that are already being parsed as source.
+        // This ensures that a file isn't parsed twice, which would cause redefinition errors.
+        reference_files.retain(|file| !source_files.contains(file));
+        reference_files.sort();
+        reference_files.dedup();
+
+        for path in source_files {
             parser.try_parse_file(&path, true);
         }
-        for path in find_slice_files(&options.references) {
+        for path in reference_files {
             parser.try_parse_file(&path, false);
         }
 
