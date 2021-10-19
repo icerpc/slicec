@@ -344,7 +344,7 @@ fn operation_dispatch_body(operation: &Operation, ast: &Ast) -> CodeBlock {
         code.writeln("request.StreamReadingComplete();");
     }
 
-    if !operation.is_idempotent() {
+    if !operation.is_idempotent {
         code.writeln("request.CheckNonIdempotent();");
     }
 

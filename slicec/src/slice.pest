@@ -24,7 +24,7 @@ enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 return_type = !{ void_kw | typename | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
-operation_start = ${ return_type ~ ws+ ~ identifier }
+operation_start = ${ idempotent_modifier ~ return_type ~ ws+ ~ identifier }
 operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
 
 data_member = ${ prelude ~ ws* ~ member ~ ws* ~ ";" }
@@ -93,6 +93,7 @@ block_doc_comment = @{ "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
 
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 
+idempotent_modifier = { (idempotent_kw ~ ws+)? }
 unchecked_modifier = { (unchecked_kw ~ ws+)? }
 
 module_kw = { "module" }
@@ -125,4 +126,5 @@ string_kw = { "string" }
 tag_kw = { "tag" }
 // extends_kw = { "extends" | ":" } TODO add this when we have a parser that handles whitespace.
 extends_kw = { ":" }
+idempotent_kw = { "idempotent" }
 unchecked_kw = { "unchecked" }

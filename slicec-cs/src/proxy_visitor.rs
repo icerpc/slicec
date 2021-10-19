@@ -376,7 +376,7 @@ response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 
     invoke_args.push("invocation".to_owned());
 
-    if operation.is_idempotent() {
+    if operation.is_idempotent {
         invoke_args.push("idempotent: true".to_owned());
     }
 

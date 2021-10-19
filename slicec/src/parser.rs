@@ -431,10 +431,10 @@ impl SliceParser {
         ))
     }
 
-    fn operation_start(input: PestNode) -> PestResult<(Vec<usize>, Identifier)> {
+    fn operation_start(input: PestNode) -> PestResult<(bool, Vec<usize>, Identifier)> {
         Ok(match_nodes!(input.into_children();
-            [return_type(return_type), identifier(identifier)] => {
-                (return_type, identifier)
+            [idempotent_modifier(idempotent), return_type(return_type), identifier(identifier)] => {
+                (idempotent, return_type, identifier)
             }
         ))
     }
@@ -444,13 +444,29 @@ impl SliceParser {
         let operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
-                let (return_type, identifier) = operation_start;
-                Operation::new(return_type, identifier, Vec::new(), attributes, comment, location)
+                let (idempotent, return_type, identifier) = operation_start;
+                Operation::new(
+                    return_type,
+                    identifier,
+                    Vec::new(),
+                    idempotent,
+                    attributes,
+                    comment,
+                    location,
+                )
             },
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters)] => {
                 let (attributes, comment) = prelude;
-                let (return_type, identifier) = operation_start;
-                Operation::new(return_type, identifier, parameters, attributes, comment, location)
+                let (idempotent, return_type, identifier) = operation_start;
+                Operation::new(
+                    return_type,
+                    identifier,
+                    parameters,
+                    idempotent,
+                    attributes,
+                    comment,
+                    location,
+                )
             },
         );
 
@@ -817,6 +833,13 @@ impl SliceParser {
         }
     }
 
+    fn idempotent_modifier(input: PestNode) -> PestResult<bool> {
+        Ok(match_nodes!(input.into_children();
+            []                => false,
+            [idempotent_kw(_)] => true
+        ))
+    }
+
     fn unchecked_modifier(input: PestNode) -> PestResult<bool> {
         Ok(match_nodes!(input.into_children();
             []                => false,
@@ -925,6 +948,10 @@ impl SliceParser {
     }
 
     fn extends_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn idempotent_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

@@ -619,6 +619,7 @@ pub struct Operation {
     pub return_type: Vec<usize>,
     pub parameters: Vec<usize>,
     pub identifier: Identifier,
+    pub is_idempotent: bool,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -630,6 +631,7 @@ impl Operation {
         return_type: Vec<usize>,
         identifier: Identifier,
         parameters: Vec<usize>,
+        is_idempotent: bool,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
@@ -638,6 +640,7 @@ impl Operation {
             return_type,
             parameters,
             identifier,
+            is_idempotent,
             scope: None,
             attributes,
             comment,
@@ -751,11 +754,6 @@ impl Operation {
         } else {
             false
         }
-    }
-
-    pub fn is_idempotent(&self) -> bool {
-        // TODO: implement
-        false
     }
 }
 
