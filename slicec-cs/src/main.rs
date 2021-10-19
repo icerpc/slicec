@@ -63,7 +63,7 @@ fn try_main() -> Result<(), ()> {
     )?;
 
     if !slice_options.validate {
-        for slice_file in data.slice_files.values() {
+        for slice_file in data.slice_files.values().filter(|file| file.is_source) {
             // TODO: actually check for the error
 
             let mut code_map = CodeMap::new();
