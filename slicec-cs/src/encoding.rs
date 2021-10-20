@@ -234,10 +234,10 @@ pub fn encode_tagged_type(
         "IceRpc.Slice.TagFormat.{}",
         member.data_type.tag_format(ast)
     ));
-    args.push(value);
     if !size_parameter.is_empty() {
         args.push("size: ".to_owned() + &size_parameter);
     }
+    args.push(value);
     args.push(
         encode_action(
             &member.data_type,
@@ -417,7 +417,7 @@ pub fn encode_action(
 
     let value = if type_def.is_optional {
         if type_def.is_value_type(ast) {
-            "value!.Value"
+            "value"
         } else {
             "value!"
         }

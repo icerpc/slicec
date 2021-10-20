@@ -141,7 +141,7 @@ pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast
     let tag = member.tag.unwrap();
 
     format!(
-        "{param} = decoder.DecodeType({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
+        "{param} = decoder.DecodeTagged({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
         param = param,
         tag = tag,
         tag_format = member.data_type.tag_format(ast),
