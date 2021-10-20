@@ -268,18 +268,19 @@ impl Type for Struct {
 pub struct Class {
     pub identifier: Identifier,
     pub members: Vec<usize>,
+    pub compact_id: Option<u32>,
     pub base: Option<TypeRef>,
     pub scope: Option<String>,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
-    pub compact_id: Option<u32>,
 }
 
 impl Class {
     pub fn new(
         identifier: Identifier,
         members: Vec<usize>,
+        compact_id: Option<u32>,
         base: Option<TypeRef>,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
@@ -288,12 +289,12 @@ impl Class {
         Class {
             identifier,
             members,
+            compact_id,
             base,
             scope: None,
             attributes,
             comment,
             location,
-            compact_id: None, // TODO: parse compact id
         }
     }
 
