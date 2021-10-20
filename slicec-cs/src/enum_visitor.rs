@@ -143,17 +143,17 @@ public static {escaped_identifier} As{identifier}(this {underlying_type} value) 
     builder.add_block(
         format!(
             r#"
-public static {escaped_identifier} Decode{identifier}(this IceRpc.IceDecoder decoder) =>
+public static {escaped_identifier} Decode{identifier}(this IceDecoder decoder) =>
     As{identifier}({decode_enum});"#,
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,
             decode_enum = match &enum_def.underlying {
                 Some(underlying) => format!(
-                    "Decode{}()",
+                    "decoder.Decode{}()",
                     ref_from_node!(Node::Primitive, ast, underlying.definition.unwrap())
                         .type_suffix()
                 ),
-                _ => "DecodeSize()".to_owned(),
+                _ => "decoder.DecodeSize()".to_owned(),
             }
         )
         .into(),
