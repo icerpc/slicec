@@ -54,7 +54,7 @@ impl MemberListInfo for [&Member] {
     fn to_argument_tuple(&self, prefix: &str) -> String {
         match self {
             [] => panic!("tuple type with no members"),
-            [member] => member.parameter_name(),
+            [member] => member.parameter_name_with_prefix(prefix),
             _ => format!(
                 "({})",
                 self.iter()

@@ -316,7 +316,7 @@ impl FunctionBuilder {
             }
             TypeContext::Outgoing => {
                 self.add_parameter(
-                    "IceRpc.Dispatch?",
+                    "IceRpc.Invocation?",
                     &escape_parameter_name(&parameters, "invocation"),
                     Some("null"),
                     Some("The invocation properties."),
@@ -326,7 +326,7 @@ impl FunctionBuilder {
         }
 
         self.add_parameter(
-            "global::System.Threading.CancellationToken ?",
+            "global::System.Threading.CancellationToken",
             &escape_parameter_name(&parameters, "cancel"),
             Some("default"),
             Some("A cancellation token that receives the cancellation requests."),

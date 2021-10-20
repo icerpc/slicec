@@ -467,7 +467,7 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {}",
-                encode_dictionary(dictionary_def, scope, "dictionary", ast)
+                encode_dictionary(dictionary_def, scope, "value", ast)
             );
         }
         Node::Sequence(_, sequence_def) => {
@@ -476,7 +476,7 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {}",
-                encode_sequence(sequence_def, scope, "sequence", is_read_only, is_param, ast)
+                encode_sequence(sequence_def, scope, "value", is_read_only, is_param, ast)
             )
         }
         Node::Struct(_, _) => {
@@ -510,7 +510,7 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     if bit_sequence_size > 0 {
         writeln!(
             code,
-            "var bitSequence = encoder.EncodeBitSequence({})",
+            "var bitSequence = encoder.EncodeBitSequence({});",
             bit_sequence_size
         );
         bit_sequence_index = 0;

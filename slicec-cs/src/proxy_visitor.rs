@@ -209,8 +209,8 @@ public static {prx_impl} FromConnection(
 /// <param name="path">The path for the proxy.</param>
 /// <param name="protocol">The proxy protocol.</param>
 /// <returns>The new proxy.</returns>
-public static {prx_impl} FromPath(string path, IceRpc.Protocol protocol = IceRpc.Protocol.Ice2) =>
-    new(IceRpc.Proxy.FromPath(path, protocol));
+public static {prx_impl} FromPath(string path, IceRpc.Protocol? protocol = null) =>
+    new(IceRpc.Proxy.FromPath(path, protocol ?? IceRpc.Protocol.Ice2));
 
 /// <summary>Creates a new <see cref="{prx_impl}"/> from a string and invoker.</summary>
 /// <param name="s">The string representation of the proxy.</param>
@@ -513,18 +513,16 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         let body: CodeBlock = format!(
             "\
-IceRpc.Payload.{name}(
+encoding.{name}(
     {args},
-    {encode_action},
-    {class_format})",
+    {encode_action})",
             name = if params.len() == 1 {
                 "CreatePayloadFromSingleArg"
             } else {
                 "CreatePayloadFromArgs"
             },
             args = if params.len() == 1 { "arg" } else { "in args" },
-            encode_action = request_encode_action(operation, ast).indent(),
-            class_format = operation.format_type()
+            encode_action = request_encode_action(operation, ast).indent()
         )
         .into();
 
@@ -566,7 +564,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
         class_builder.add_block(format!(
             r#"
 /// <summary>The <see cref="ResponseDecodeFunc{{T}}"/> for the return value type of operation {name}.</summary>
-public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, IceRpc.IInvoker? invoker) =>
+public static {return_type} {escaped_name}(IceRpc.IncomingResponse response, IceRpc.IInvoker? invoker, IceRpc.Slice.StreamParamReceiver? streamParamReceiver) =>
     response.ToReturnValue(
         invoker,
         {decoder},
@@ -605,7 +603,7 @@ fn request_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     } else {
         format!(
             "\
-(IceRpc.IceEncoder encoder, {_in}{param_type} value) =>
+(IceEncoder encoder, {_in}{param_type} value) =>
 {{
     {encode}
 }}",

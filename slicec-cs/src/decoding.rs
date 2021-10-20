@@ -537,7 +537,7 @@ IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
         );
     }
 
-    writeln!(code, "return {}", all_members.to_argument_tuple("iceP_"));
+    writeln!(code, "return {};", all_members.to_argument_tuple("iceP_"));
 
     code
 }

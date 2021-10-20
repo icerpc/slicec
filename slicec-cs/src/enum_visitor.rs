@@ -163,7 +163,7 @@ public static {escaped_identifier} Decode{identifier}(this IceRpc.IceDecoder dec
     builder.add_block(
         format!(
             r#"
-public static void Encode{identifier}(this IceRpc.IceEncoder encoder, {escaped_identifier} value) =>
+public static void Encode{identifier}(this IceEncoder encoder, {escaped_identifier} value) =>
     {encode_enum}(({underlying_type})value);"#,
             identifier = enum_def.identifier(),
             escaped_identifier = escaped_identifier,

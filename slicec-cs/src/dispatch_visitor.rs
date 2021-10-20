@@ -211,8 +211,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             "\
 {encoding}.{encoding_operation}(
     {return_arg},
-    {encode_action},
-    {class_format})",
+    {encode_action})",
             encoding = if returns_classes {
                 "IceRpc.Encoding.Ice11"
             } else {
@@ -228,8 +227,7 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
             } else {
                 "returnValueTuple"
             },
-            encode_action = response_encode_action(operation, ast),
-            class_format = operation.format_type()
+            encode_action = response_encode_action(operation, ast)
         );
 
         builder.set_body(body.into());
@@ -255,7 +253,7 @@ fn request_decode_func(operation: &Operation, ast: &Ast) -> CodeBlock {
         format!(
             "decoder =>
 {{
-    {};
+    {}
 }}",
             decode_operation(operation, false, ast).indent()
         )
