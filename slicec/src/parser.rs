@@ -259,11 +259,11 @@ impl SliceParser {
         Ok(ast.add_element(struct_def))
     }
 
-    fn class_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef>)> {
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
-            [_, identifier(identifier)] => (identifier, location, None),
-            [_, identifier(identifier), _, inheritance_list(mut bases)] => {
+            [_, identifier(identifier), compact_id(compact_id)] => (identifier, compact_id, location, None),
+            [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(mut bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     let error_handler = &mut input.user_data().borrow_mut().error_handler;
@@ -272,7 +272,7 @@ impl SliceParser {
                         location.clone()
                     ).into());
                 }
-                (identifier, location, Some(bases.remove(0)))
+                (identifier, compact_id, location, Some(bases.remove(0)))
             }
         ))
     }
@@ -280,9 +280,9 @@ impl SliceParser {
     fn class_def(input: PestNode) -> PestResult<usize> {
         let class_def = match_nodes!(input.children();
             [prelude(prelude), class_start(class_start), data_member(members)..] => {
-                let (identifier, location, base) = class_start;
+                let (identifier, compact_id, location, base) = class_start;
                 let (attributes, comment) = prelude;
-                Class::new(identifier, members.collect(), base, attributes, comment, location)
+                Class::new(identifier, members.collect(), compact_id, base, attributes, comment, location)
             },
         );
         let ast = &mut input.user_data().borrow_mut().ast;
@@ -403,8 +403,9 @@ impl SliceParser {
         Ok(match_nodes!(input.children();
             [void_kw(_)] => Vec::new(),
             [return_tuple(tuple)] => tuple,
-            [typename(data_type)] => {
+            [stream_modifier(is_streamed), typename(mut data_type)] => {
                 let identifier = Identifier { value: "".to_owned(), location: location.clone() };
+                data_type.is_streamed = is_streamed;
                 // TODO add tag support here!!!
                 let member = Member::new(
                     data_type,
@@ -566,9 +567,10 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<usize> {
         let location = from_span(&input);
         let parameter = match_nodes!(input.children();
-            [prelude(prelude), member(member)] => {
+            [prelude(prelude), stream_modifier(is_streamed), member(member)] => {
                 let (attributes, comment) = prelude;
                 let (tag, mut data_type, identifier) = member;
+                data_type.is_streamed = is_streamed;
 
                 // Forward the member's attributes to the data type.
                 // TODO: in the future we should only forward type metadata by filtering metadata.
@@ -841,9 +843,38 @@ impl SliceParser {
         }
     }
 
+    fn compact_id(input: PestNode) -> PestResult<Option<u32>> {
+        Ok(match_nodes!(input.into_children();
+            []               => None,
+            [integer(value)] => {
+                // compact ids must fit in an i32 and be non-negative.
+                if value < 0 || value > i32::MAX.into() {
+                    // TODO let location = from_span(&input);
+                    // TODO let error_string = if integer < 0 {
+                    // TODO     format!("ID is out of range: {}. Compact IDs must be positive", integer)
+                    // TODO } else {
+                    // TODO     format!(
+                    // TODO         "ID is out of range: {}. Compact IDs must be less than {}",
+                    // TODO         integer, i32::MAX
+                    // TODO     )
+                    // TODO };
+                    // TODO report an error here!
+                }
+                Some(value as u32)
+            }
+        ))
+    }
+
+    fn stream_modifier(input: PestNode) -> PestResult<bool> {
+        Ok(match_nodes!(input.into_children();
+            []             => false,
+            [stream_kw(_)] => true
+        ))
+    }
+
     fn idempotent_modifier(input: PestNode) -> PestResult<bool> {
         Ok(match_nodes!(input.into_children();
-            []                => false,
+            []                 => false,
             [idempotent_kw(_)] => true
         ))
     }
@@ -952,6 +983,10 @@ impl SliceParser {
     }
 
     fn tag_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn stream_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

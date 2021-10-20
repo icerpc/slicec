@@ -10,7 +10,7 @@ module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 struct_start = ${ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
 
-class_start = ${ class_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
+class_start = ${ class_kw ~ ws+ ~ identifier ~ ws* ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
 
 exception_start = ${ exception_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
@@ -22,7 +22,7 @@ interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typename )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
-return_type = !{ void_kw | typename | return_tuple }
+return_type = ${ void_kw | stream_modifier ~ typename | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
 operation_start = ${ idempotent_modifier ~ return_type ~ ws+ ~ identifier }
 operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
@@ -32,7 +32,7 @@ member = ${ (tag ~ ws*)? ~ typename ~ ws+ ~ identifier }
 tag = !{ tag_kw ~ "(" ~ integer ~ ")" }
 
 parameter_list = !{ ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
-parameter = ${ prelude ~ ws* ~ member }
+parameter = ${ prelude ~ ws* ~ stream_modifier ~ member }
 
 enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
 enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
@@ -93,6 +93,8 @@ block_doc_comment = @{ "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
 
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 
+compact_id = { ("(" ~ integer ~ ")")? }
+stream_modifier = { (stream_kw ~ ws+)? }
 idempotent_modifier = { (idempotent_kw ~ ws+)? }
 unchecked_modifier = { (unchecked_kw ~ ws+)? }
 
@@ -124,7 +126,7 @@ double_kw = { "double" }
 string_kw = { "string" }
 
 tag_kw = { "tag" }
-// extends_kw = { "extends" | ":" } TODO add this when we have a parser that handles whitespace.
+stream_kw = { "stream" }
 extends_kw = { ":" }
 idempotent_kw = { "idempotent" }
 unchecked_kw = { "unchecked" }
