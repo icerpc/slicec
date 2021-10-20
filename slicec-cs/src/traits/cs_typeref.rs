@@ -94,15 +94,15 @@ fn sequence_type_to_string(
             format!("global::System.Collections.Generic.IList<{}>", element_type)
         }
         TypeContext::Incoming => match type_ref.find_attribute("cs:generic") {
-            Some(args) => {
-                let prefix = match args.first().unwrap().as_str() {
-                    "List" | "LinkedList" | "Queue" | "Stack" => {
-                        "global::System.Collections.Generic."
-                    }
-                    _ => "",
-                };
-                format!("{}{}", prefix, args.first().unwrap())
-            }
+            Some(args) => match args.first().unwrap().as_str() {
+                value @ "List" | value @ "LinkedList" | value @ "Queue" | value @ "Stack" => {
+                    format!(
+                        "global::System.Collections.Generic.{}<{}>",
+                        value, element_type
+                    )
+                }
+                value @ _ => format!("{}<{}>", value, element_type),
+            },
             None => format!("{}[]", element_type),
         },
         TypeContext::Outgoing => {
