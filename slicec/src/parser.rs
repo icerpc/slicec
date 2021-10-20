@@ -406,11 +406,26 @@ impl SliceParser {
             [stream_modifier(is_streamed), typename(mut data_type)] => {
                 let identifier = Identifier { value: "".to_owned(), location: location.clone() };
                 data_type.is_streamed = is_streamed;
-                // TODO add tag support here!!!
                 let member = Member::new(
                     data_type,
                     identifier,
                     None,
+                    MemberType::ReturnElement,
+                    Vec::new(),
+                    None,
+                    location,
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                vec![ast.add_element(member)]
+            },
+            [stream_modifier(is_streamed), tag(tag), typename(mut data_type)] => {
+                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
+                data_type.is_streamed = is_streamed;
+                let member = Member::new(
+                    data_type,
+                    identifier,
+                    Some(tag),
                     MemberType::ReturnElement,
                     Vec::new(),
                     None,
