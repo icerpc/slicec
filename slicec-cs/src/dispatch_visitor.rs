@@ -212,20 +212,17 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 {encoding}.{encoding_operation}(
     {return_arg},
     {encode_action})",
-            encoding = if returns_classes {
-                "IceRpc.Encoding.Ice11"
-            } else {
-                "encoding"
+            encoding = match returns_classes {
+                true => "Ice11Encoding",
+                _ => "encoding",
             },
-            encoding_operation = if non_streamed_returns.len() == 1 {
-                "CreatePayloadFromSingleReturnValue"
-            } else {
-                "CreatePayloadFromReturnValueTuple"
+            encoding_operation = match non_streamed_returns.len() {
+                1 => "CreatePayloadFromSingleReturnValue",
+                _ => "CreatePayloadFromReturnValueTuple",
             },
-            return_arg = if non_streamed_returns.len() == 1 {
-                "returnValue"
-            } else {
-                "returnValueTuple"
+            return_arg = match non_streamed_returns.len() {
+                1 => "returnValue",
+                _ => "returnValueTuple",
             },
             encode_action = response_encode_action(operation, ast)
         );

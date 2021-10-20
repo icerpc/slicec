@@ -513,13 +513,16 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
         let body: CodeBlock = format!(
             "\
-encoding.{name}(
+{encoding}.{name}(
     {args},
     {encode_action})",
-            name = if params.len() == 1 {
-                "CreatePayloadFromSingleArg"
-            } else {
-                "CreatePayloadFromArgs"
+            encoding = match sends_classes {
+                false => "encoding",
+                _ => "Ice11Encoding",
+            },
+            name = match params.len() {
+                1 => "CreatePayloadFromSingleArg",
+                _ => "CreatePayloadFromArgs",
             },
             args = if params.len() == 1 { "arg" } else { "in args" },
             encode_action = request_encode_action(operation, ast).indent()

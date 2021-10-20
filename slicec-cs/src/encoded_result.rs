@@ -24,15 +24,6 @@ pub fn encoded_result_struct(operation: &Operation, ast: &Ast) -> CodeBlock {
 
     let parameters = operation.return_members(ast);
 
-    let (dispatch_parameter, encoding) = if operation.returns_classes(ast) {
-        (false, "IceRpc.Encoding.Ice11".to_owned())
-    } else {
-        (
-            true,
-            escape_parameter_name(&parameters, "dispatch") + ".GetIceEncoding()",
-        )
-    };
-
     let mut container_builder = ContainerBuilder::new(
         "public readonly record struct",
         &format!(
@@ -85,7 +76,9 @@ immediately encodes the return value of operation {operation_name}."#,
         }
     }
 
-    if dispatch_parameter {
+    let returns_classes = operation.returns_classes(ast);
+
+    if returns_classes {
         constructor_builder.add_parameter(
             "IceRpc.Dispatch",
             &escape_parameter_name(&parameters, "dispatch"),
@@ -101,15 +94,20 @@ immediately encodes the return value of operation {operation_name}."#,
     {return_value},
     {response_encode_action},
     classFormat: {class_format})",
-        encoding = encoding,
+        encoding = match returns_classes {
+            true => "Ice11Encoding".to_owned(),
+            _ => format!(
+                "{}.GetIceEncoding()",
+                escape_parameter_name(&parameters, "dispatch")
+            ),
+        },
         method = match parameters.as_slice() {
             [_] => "CreatePayloadFromSingleReturnValue",
             _ => "CreatePayloadFromReturnValueTuple",
         },
-        return_value = if parameters.len() == 1 {
-            "returnValue"
-        } else {
-            "returnValueTuple"
+        return_value = match parameters.len() {
+            1 => "returnValue",
+            _ => "returnValueTuple",
         },
         response_encode_action = response_encode_action(operation, ast),
         class_format = operation.format_type(),

@@ -183,11 +183,12 @@ pub fn decode_dictionary(
             write!(
                 decode_value,
                 " as {}",
-                value_type.to_type_string(scope, ast, TypeContext::Incoming)
+                value_type.to_type_string(scope, ast, TypeContext::Nested)
             );
         }
         _ => {}
     }
+    args.push(decode_value.to_string());
 
     write!(
         code,
