@@ -14,7 +14,7 @@ pub struct SliceOptions {
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[structopt(short = "R", long)]
+    #[structopt(short = "R", long, number_of_values = 1, multiple = true)]
     pub references: Vec<String>,
 
     /// Prints additional debugging information to the console.
