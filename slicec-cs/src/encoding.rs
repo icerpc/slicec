@@ -67,6 +67,12 @@ pub fn encode_type(
 
     let node = type_ref.definition(ast);
 
+    let value = if type_ref.is_optional && type_ref.is_value_type(ast) {
+        format!("{}.Value", param)
+    } else {
+        param.to_owned()
+    };
+
     match node {
         Node::Interface(_, _) => {
             writeln!(code, "encoder.EncodeProxy({}.Proxy);", param)
@@ -79,11 +85,11 @@ pub fn encode_type(
                 code,
                 "encoder.Encode{}({});",
                 primitive.type_suffix(),
-                param
+                value
             )
         }
         Node::Struct(_, _) => {
-            writeln!(code, "{}.Encode(encoder);", param)
+            writeln!(code, "{}.Encode(encoder);", value)
         }
         Node::Sequence(_, sequence_def) => writeln!(
             code,
@@ -110,7 +116,7 @@ pub fn encode_type(
                 "{helper}.Encode{name}(encoder, {param});",
                 helper = enum_def.helper_name(scope),
                 name = node.as_named_symbol().unwrap().identifier(),
-                param = param
+                param = value
             );
         }
         _ => panic!("Node does not represent a type: {:?}", node),
@@ -173,9 +179,9 @@ pub fn encode_tagged_type(
                 size_parameter = primitive_def.min_wire_size(ast).to_string();
             } else if !matches!(primitive_def, Primitive::String) {
                 if primitive_def.is_unsigned_numeric() {
-                    size_parameter = format!("IceRpc.GetVarULongEncodedSize({})", value)
+                    size_parameter = format!("IceEncoder.GetVarULongEncodedSize({})", value)
                 } else {
-                    size_parameter = format!("IceRpc.GetVarLongEncodedSize({})", value)
+                    size_parameter = format!("IceEncoder.GetVarLongEncodedSize({})", value)
                 }
             }
             // else no size

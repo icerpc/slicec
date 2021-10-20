@@ -76,7 +76,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                     .add_parameter(
                         "IceRpc.RetryPolicy?",
                         "retryPolicy",
-                        None,
+                        Some("null"),
                         Some("The retry policy for the exception"),
                     )
                     .add_base_parameter("retryPolicy")
@@ -233,7 +233,7 @@ fn one_shot_constructor(
     let base_parameters = if let Some(base) = exception_def.base(ast) {
         base.all_data_members(ast)
             .iter()
-            .map(|m| m.escape_identifier())
+            .map(|m| m.parameter_name())
             .collect::<Vec<_>>()
     } else {
         vec![]
