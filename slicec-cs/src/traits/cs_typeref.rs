@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::{Ast, Node};
-use slice::grammar::{Dictionary, Primitive, ScopedSymbol, Sequence, TypeRef};
+use slice::grammar::*;
 use slice::util::TypeContext;
 
 use super::cs_named_symbol::CsNamedSymbol;
@@ -107,16 +107,26 @@ fn sequence_type_to_string(
         },
         TypeContext::Outgoing => {
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
-            let element_node = sequence.element_type.definition(ast);
-            if element_node.as_type().unwrap().is_fixed_size(ast) {
+            if is_fixed_size_numeric_sequence(sequence, ast) {
+                format!("global::System.ReadOnlyMemory<{}>", element_type)
+            } else {
                 format!(
                     "global::System.Collections.Generic.IEnumerable<{}>",
                     element_type
                 )
-            } else {
-                format!("global::System.ReadOnlyMemory<{}>", element_type)
             }
         }
+    }
+}
+
+fn is_fixed_size_numeric_sequence(sequence: &Sequence, ast: &Ast) -> bool {
+    match sequence.element_type.definition(ast) {
+        Node::Primitive(_, primitive) if primitive.is_fixed_size(ast) => true,
+        Node::Enum(_, enum_def) => match &enum_def.underlying {
+            Some(t) if t.is_fixed_size(ast) => true,
+            _ => false,
+        },
+        _ => false,
     }
 }
 

@@ -276,63 +276,58 @@ pub fn decode_sequence(
             }
         );
     } else {
-        // generic arg for the decoder
-        let generic_arg: String;
-        // the args for DecodeArray()
-        let decoder_args: String;
-
         match element_node {
-            Node::Primitive(_, primitive)
-                if (primitive.is_numeric_or_bool() && primitive.is_fixed_size(ast)) =>
-            {
-                generic_arg = element_type.to_type_string(scope, ast, TypeContext::Incoming);
-                decoder_args = "".to_owned();
+            Node::Primitive(_, primitive) if primitive.is_fixed_size(ast) => {
+                write!(
+                    code,
+                    "decoder.DecodeArray<{}>()",
+                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                )
             }
-            Node::Enum(_, enum_def) if (enum_def.underlying.is_some() && enum_def.is_unchecked) => {
-                generic_arg = element_type.to_type_string(scope, ast, TypeContext::Incoming);
-                decoder_args = "".to_owned();
-            }
-            Node::Enum(_, enum_def) if (enum_def.underlying.is_some()) => {
-                let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
-                generic_arg = "".to_owned();
-                decoder_args = format!("decoder.DecodeArray(({enum_type} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                                enum_type = element_type.to_type_string( scope, ast, TypeContext::Incoming),
-                                helper = enum_def.helper_name(scope),
-                                name = enum_def.identifier(),
-                                underlying_type = underlying_type.as_named_symbol().unwrap().identifier());
-            }
-            _ => {
-                generic_arg = "".to_owned();
-                if element_type.is_optional && element_type.encode_using_bit_sequence(ast) {
-                    decoder_args = format!(
-                        "{}{}",
-                        if element_type.is_reference_type(ast) {
-                            "withBitSequence: true, "
-                        } else {
-                            ""
-                        },
-                        decode_func(element_type, scope, ast)
-                    );
+            Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
+                if enum_def.is_unchecked {
+                    write!(
+                        code,
+                        "decoder.DecodeArray<{}>()",
+                        element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                    )
                 } else {
-                    decoder_args = format!(
-                        "minElementSize:{}, {}",
-                        element_type.min_wire_size(ast),
-                        decode_func(element_type, scope, ast)
-                    );
+                    write!(
+                        code,
+                        "decoder.DecodeArray(({enum_type} e) => _ = {helper}.As{name}(({underlying_type})e))",
+                        enum_type = element_type.to_type_string(scope, ast, TypeContext::Incoming),
+                        helper = enum_def.helper_name(scope),
+                        name = enum_def.identifier(),
+                        underlying_type = enum_def.underlying.as_ref().unwrap().to_type_string(
+                            enum_def.scope.as_ref().unwrap(),
+                            ast,
+                            TypeContext::Nested));
                 }
             }
+            _ => {
+                write!(
+                    code,
+                    "decoder.DecodeSequence({}).ToArray()",
+                    if element_type.is_optional && element_type.encode_using_bit_sequence(ast) {
+                        format!(
+                            "{}{}",
+                            if element_type.is_reference_type(ast) {
+                                "withBitSequence: true, "
+                            } else {
+                                ""
+                            },
+                            decode_func(element_type, scope, ast)
+                        )
+                    } else {
+                        format!(
+                            "minElementSize:{}, {}",
+                            element_type.min_wire_size(ast),
+                            decode_func(element_type, scope, ast)
+                        )
+                    }
+                );
+            }
         }
-
-        write!(
-            code,
-            "decoder.DecodeArray{generic_arg}({args})",
-            generic_arg = if generic_arg.is_empty() {
-                "".to_owned()
-            } else {
-                format!("<{}>", generic_arg)
-            },
-            args = decoder_args,
-        )
     }
 
     code
