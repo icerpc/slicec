@@ -77,14 +77,9 @@ immediately encodes the return value of operation {operation_name}."#,
     }
 
     let returns_classes = operation.returns_classes(ast);
-
+    let dispatch_parameter = escape_parameter_name(&parameters, "dispatch");
     if returns_classes {
-        constructor_builder.add_parameter(
-            "IceRpc.Dispatch",
-            &escape_parameter_name(&parameters, "dispatch"),
-            None,
-            None,
-        );
+        constructor_builder.add_parameter("IceRpc.Dispatch", &dispatch_parameter, None, None);
     }
 
     constructor_builder.set_base_constructor("this");
@@ -96,10 +91,7 @@ immediately encodes the return value of operation {operation_name}."#,
     classFormat: {class_format})",
         encoding = match returns_classes {
             true => "Ice11Encoding".to_owned(),
-            _ => format!(
-                "{}.GetIceEncoding()",
-                escape_parameter_name(&parameters, "dispatch")
-            ),
+            _ => format!("{}.GetIceEncoding()", dispatch_parameter),
         },
         method = match parameters.as_slice() {
             [_] => "CreatePayloadFromSingleReturnValue",
