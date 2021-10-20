@@ -39,7 +39,7 @@ enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
 
 inheritance_list = !{ ( typename ~ "," ~ inheritance_list ) | ( typename ~ ","? ) }
 
-identifier = @{ "\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
+identifier = @{ "\\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
 global_identifier = @{ ( "::" ~ identifier )+ }
 scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
 
