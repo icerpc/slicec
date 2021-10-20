@@ -101,7 +101,7 @@ fn sequence_type_to_string(
                         value, element_type
                     )
                 }
-                value @ _ => format!("{}<{}>", value, element_type),
+                value => format!("{}<{}>", value, element_type),
             },
             None => format!("{}[]", element_type),
         },
@@ -122,10 +122,7 @@ fn sequence_type_to_string(
 fn is_fixed_size_numeric_sequence(sequence: &Sequence, ast: &Ast) -> bool {
     match sequence.element_type.definition(ast) {
         Node::Primitive(_, primitive) if primitive.is_fixed_size(ast) => true,
-        Node::Enum(_, enum_def) => match &enum_def.underlying {
-            Some(t) if t.is_fixed_size(ast) => true,
-            _ => false,
-        },
+        Node::Enum(_, enum_def) => matches!(&enum_def.underlying, Some(t) if t.is_fixed_size(ast)),
         _ => false,
     }
 }

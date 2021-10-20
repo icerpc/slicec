@@ -71,10 +71,7 @@ pub fn initialize_non_nullable_fields(
         }
 
         let suppress = match data_node {
-            Node::Class(_, _)
-            | Node::Struct(_, _)
-            | Node::Sequence(_, _)
-            | Node::Dictionary(_, _) => true,
+            Node::Class(..) | Node::Sequence(..) | Node::Dictionary(..) => true,
             Node::Primitive(_, primitive) if matches!(primitive, Primitive::String) => true,
             _ => false,
         };
