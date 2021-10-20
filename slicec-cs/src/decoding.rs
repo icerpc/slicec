@@ -338,7 +338,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     let node = type_ref.definition(ast);
 
-    // For value types the type declaration includes ? at the end
+    // For value types the type declaration includes ? at the end, but the type name does not.
     let type_name = match type_ref.is_optional && type_ref.is_value_type(ast) {
         true => {
             let mut non_optional = type_ref.clone();
