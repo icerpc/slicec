@@ -111,7 +111,7 @@ impl ContainerBuilder {
         let mut body_content: CodeBlock = self.contents.iter().cloned().collect();
 
         if body_content.is_empty() {
-            code.writeln("{{\n}}");
+            code.writeln("{\n}");
         } else {
             writeln!(code, "{{\n    {body}\n}}", body = body_content.indent());
         }
