@@ -38,7 +38,7 @@ pub trait AttributeBuilder {
 
         for attribute in named_symbol.custom_attributes() {
             // The custom attribute value is always quoted in Slice and we unquote it here
-            // [cs:attribute("System.Flags")] -> [System.Flags]
+            // [cs:attribute("System.Flags")] would become [System.Flags]
             debug_assert!(attribute.starts_with("\"") && attribute.ends_with("\""));
             self.add_attribute(
                 &attribute
