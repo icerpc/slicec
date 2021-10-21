@@ -124,13 +124,8 @@ public global::System.Threading.Tasks.Task IcePingAsync(
         }
 
         for operation in interface_def.all_base_operations(ast) {
-            let async_name = operation.escape_identifier() + "Async";
-            let return_task = operation.return_members(ast).to_return_type(
-                interface_def.scope(),
-                ast,
-                TypeContext::Incoming,
-            );
-
+            let async_name = format!("{}Async", operation.escape_identifier());
+            let return_task = operation.return_task(&operation.namespace(), false, ast);
             let mut proxy_params = operation
                 .parameters(ast)
                 .iter()
@@ -144,9 +139,13 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             proxy_params.push(escape_parameter_name(&operation.parameters(ast), "cancel"));
 
             let base_interface = interface_def
-                .bases(ast)
+                .all_bases(ast)
                 .iter()
-                .find(|base| base.scoped_identifier() == operation.scope())
+                .find(|base| {
+                    base.all_operations(ast)
+                        .iter()
+                        .any(|op| op.scope() == operation.scope())
+                })
                 .cloned()
                 .unwrap();
 
