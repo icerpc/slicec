@@ -44,10 +44,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         }
 
         // prx bases
-        let prx_bases: Vec<String> = bases
-            .into_iter()
-            .map(|b| b.escape_scoped_identifier(interface_def.scope()))
-            .collect();
+        let prx_bases: Vec<String> = bases.into_iter().map(|b| b.proxy_name()).collect();
 
         let summary_message = format!(
             r#"The client-side interface for Slice interface {}. <seealso cref="{}"/>.
