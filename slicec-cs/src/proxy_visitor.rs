@@ -124,51 +124,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
         }
 
         for operation in interface_def.all_base_operations(ast) {
-            let async_name = format!("{}Async", operation.escape_identifier());
-            let return_task = operation.return_task(&operation.namespace(), false, ast);
-            let mut proxy_params = operation
-                .parameters(ast)
-                .iter()
-                .map(|p| p.parameter_name())
-                .collect::<Vec<_>>();
-
-            proxy_params.push(escape_parameter_name(
-                &operation.parameters(ast),
-                "invocation",
-            ));
-            proxy_params.push(escape_parameter_name(&operation.parameters(ast), "cancel"));
-
-            let base_interface = interface_def
-                .all_bases(ast)
-                .iter()
-                .find(|base| {
-                    base.all_operations(ast)
-                        .iter()
-                        .any(|op| op.scope() == operation.scope())
-                })
-                .cloned()
-                .unwrap();
-
-            let mut builder = FunctionBuilder::new(
-                "public",
-                &return_task,
-                &async_name,
-                FunctionType::ExpressionBody,
-            );
-            builder.set_inherit_doc(true);
-            builder.add_operation_parameters(operation, TypeContext::Outgoing, ast);
-
-            builder.set_body(
-                format!(
-                    "new {base_prx_impl}(Proxy).{async_name}({proxy_params})",
-                    base_prx_impl = base_interface.proxy_implementation_name(),
-                    async_name = async_name,
-                    proxy_params = proxy_params.join(", ")
-                )
-                .into(),
-            );
-
-            proxy_impl_builder.add_block(builder.build());
+            proxy_impl_builder.add_block(proxy_base_operation_impl(interface_def, operation, ast));
         }
 
         for operation in interface_def.operations(ast) {
@@ -402,6 +358,58 @@ return Proxy.InvokeAsync(
     ));
 
     builder.set_body(body);
+
+    builder.build()
+}
+
+fn proxy_base_operation_impl(
+    interface_def: &Interface,
+    operation: &Operation,
+    ast: &Ast,
+) -> CodeBlock {
+    let async_name = format!("{}Async", operation.escape_identifier());
+    let return_task = operation.return_task(&operation.namespace(), false, ast);
+    let mut operation_params = operation
+        .parameters(ast)
+        .iter()
+        .map(|p| p.parameter_name())
+        .collect::<Vec<_>>();
+
+    operation_params.push(escape_parameter_name(
+        &operation.parameters(ast),
+        "invocation",
+    ));
+    operation_params.push(escape_parameter_name(&operation.parameters(ast), "cancel"));
+
+    let base_interface = interface_def
+        .all_bases(ast)
+        .iter()
+        .find(|base| {
+            base.operations(ast)
+                .iter()
+                .any(|op| op.scope() == operation.scope())
+        })
+        .cloned()
+        .unwrap();
+
+    let mut builder = FunctionBuilder::new(
+        "public",
+        &return_task,
+        &async_name,
+        FunctionType::ExpressionBody,
+    );
+    builder.set_inherit_doc(true);
+    builder.add_operation_parameters(operation, TypeContext::Outgoing, ast);
+
+    builder.set_body(
+        format!(
+            "new {base_prx_impl}(Proxy).{async_name}({operation_params})",
+            base_prx_impl = base_interface.proxy_implementation_name(),
+            async_name = async_name,
+            operation_params = operation_params.join(", ")
+        )
+        .into(),
+    );
 
     builder.build()
 }
