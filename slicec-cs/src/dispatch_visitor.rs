@@ -40,12 +40,7 @@ impl<'a> Visitor for DispatchVisitor<'_> {
             .add_type_id_attribute(interface_def)
             .add_container_attributes(interface_def);
 
-        interface_builder.add_bases(
-            &bases
-                .iter()
-                .map(|base| base.escape_scoped_identifier(base.scope()))
-                .collect::<Vec<_>>(),
-        );
+        interface_builder.add_bases(&bases.iter().map(|b| b.interface_name()).collect::<Vec<_>>());
 
         interface_builder
             .add_block(request_class(interface_def, ast))
