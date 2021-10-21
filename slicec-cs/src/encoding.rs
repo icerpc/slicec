@@ -163,7 +163,7 @@ pub fn encode_tagged_type(
         _ => false,
     };
 
-    let value = if member.data_type.is_value_type(ast) && !read_only_memory {
+    let value = if member.data_type.is_value_type(ast) {
         format!("{}.Value", param)
     } else {
         param.to_owned()
@@ -421,14 +421,9 @@ pub fn encode_action(
 
     let is_optional = type_def.is_optional;
 
-    let value = if type_def.is_optional {
-        if type_def.is_value_type(ast) {
-            "value"
-        } else {
-            "value!"
-        }
-    } else {
-        "value"
+    let value = match (type_def.is_optional, type_def.is_value_type(ast)) {
+        (true, false) => "value!",
+        _ => "value",
     };
 
     match node {
@@ -523,20 +518,17 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in required_members {
-        let param = if members.len() == 1 {
-            "value".to_owned()
-        } else {
-            "value.".to_owned() + &member.field_name(FieldType::NonMangled)
-        };
-        let encode_member = encode_type(
+        code.writeln(&encode_type(
             &member.data_type,
             &mut bit_sequence_index,
             true,
             namespace,
-            &param,
+            &match members.as_slice() {
+                [_] => "value".to_owned(),
+                _ => format!("value.{}", &member.field_name(FieldType::NonMangled)),
+            },
             ast,
-        );
-        code.writeln(&encode_member);
+        ));
     }
 
     if bit_sequence_size > 0 {
@@ -544,12 +536,16 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in tagged_members {
-        let param = if members.len() == 1 {
-            "value".to_owned()
-        } else {
-            "value.".to_owned() + &member.field_name(FieldType::NonMangled)
-        };
-        code.writeln(&encode_tagged_type(member, namespace, &param, false, ast));
+        code.writeln(&encode_tagged_type(
+            member,
+            namespace,
+            &match members.as_slice() {
+                [_] => "value".to_owned(),
+                _ => format!("value.{}", &member.field_name(FieldType::NonMangled)),
+            },
+            false,
+            ast,
+        ));
     }
 
     code
