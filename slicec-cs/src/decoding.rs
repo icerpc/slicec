@@ -341,9 +341,9 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     // For value types the type declaration includes ? at the end, but the type name does not.
     let type_name = match type_ref.is_optional && type_ref.is_value_type(ast) {
         true => {
-            let mut non_optional = type_ref.clone();
-            non_optional.is_optional = false;
-            non_optional.to_type_string(scope, ast, TypeContext::Incoming)
+            type_ref
+                .clone_with_optional(false)
+                .to_type_string(scope, ast, TypeContext::Incoming)
         }
         _ => type_ref.to_type_string(scope, ast, TypeContext::Incoming),
     };
@@ -496,23 +496,17 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             stream_member
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::Incoming);
-
-        writeln!(
-            code,
-            "{param_type} {param_name}",
-            param_type =
-                stream_member
-                    .data_type
-                    .to_type_string(namespace, ast, TypeContext::Incoming),
-            param_name = stream_member.parameter_name_with_prefix("iceP_")
-        );
+        let param_type = stream_member
+            .data_type
+            .clone_with_streamed(false)
+            .to_type_string(namespace, ast, TypeContext::Incoming);
 
         let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
             Node::Primitive(_, primitive) if matches!(primitive, Primitive::Byte) => {
                 if return_type {
                     "streamParamReceiver!.ToByteStream();".into()
                 } else {
-                    "IceRpc.StreamParamReceiver.ToByteStream(dispatch);".into()
+                    "IceRpc.Slice.StreamParamReceiver.ToByteStream(request);".into()
                 }
             }
             _ => {
@@ -520,23 +514,32 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
                 if return_type {
                     format!(
                         "\
-streamParamReceiver!.ToAsyncEnumerable<{stream_param_type}>(
-    connection,
+streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
+    response,
     invoker,
-    payloadEncoding,
+    response.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
-                        stream_param_type = stream_param_type,
-                        decode_func = decode_func(&stream_member.data_type, namespace, ast)
+                        param_type = param_type,
+                        decode_func = decode_func(
+                            &stream_member.data_type.clone_with_streamed(false),
+                            namespace,
+                            ast
+                        )
                     )
                     .into()
                 } else {
                     format!(
                         "\
-IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
-    dispatch,
+IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{param_type}>(
+    request,
+    request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
-                        stream_param_type = stream_param_type,
-                        decode_func = decode_func(&stream_member.data_type, namespace, ast)
+                        param_type = param_type,
+                        decode_func = decode_func(
+                            &stream_member.data_type.clone_with_streamed(false),
+                            namespace,
+                            ast
+                        )
                     )
                     .into()
                 }
@@ -545,8 +548,8 @@ IceRpc.StreamParamReceiver.ToAsyncEnumerable<{stream_param_type}>(
 
         writeln!(
             code,
-            "{param_type} {param_name} = {create_stream_param}",
-            param_type = stream_param_type,
+            "{stream_param_type} {param_name} = {create_stream_param}",
+            stream_param_type = stream_param_type,
             param_name = stream_member.parameter_name_with_prefix("iceP_"),
             create_stream_param = create_stream_param.indent()
         );

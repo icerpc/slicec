@@ -66,9 +66,14 @@ private static readonly DefaultIceDecoderFactories _defaultIceDecoderFactories =
 
 fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let bases = interface_def.bases(ast);
-    let operations = interface_def.operations(ast);
+    let operations = interface_def
+        .operations(ast)
+        .iter()
+        .filter(|o| o.has_non_streamed_params(ast))
+        .cloned()
+        .collect::<Vec<_>>();
 
-    if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
+    if operations.is_empty() {
         return "".into();
     }
 
@@ -87,11 +92,7 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     );
 
     for operation in operations {
-        let non_streamed_parameters = operation.non_streamed_params(ast);
-
-        if non_streamed_parameters.is_empty() {
-            continue;
-        }
+        let parameters = operation.parameters(ast);
 
         let operation_name = operation.escape_identifier();
 
@@ -110,9 +111,8 @@ public static {return_type} {operation_name}(IceRpc.IncomingRequest request) =>
     request.ToArgs(
         {decoder_factory},
         {decode_func});",
-            s = if non_streamed_parameters.len() == 1 { "" } else { "s" },
-            return_type =
-                non_streamed_parameters.to_tuple_type(namespace, ast, TypeContext::Incoming),
+            s = if parameters.len() == 1 { "" } else { "s" },
+            return_type = parameters.to_tuple_type(namespace, ast, TypeContext::Incoming),
             operation_name = operation_name,
             decoder_factory = decoder_factory,
             decode_func = request_decode_func(operation, ast).indent().indent(),
@@ -379,16 +379,19 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
     request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func})
     ",
-                        stream_type = stream_parameter.data_type.to_type_string(
+                        stream_type = stream_parameter
+                            .data_type
+                            .clone_with_streamed(false)
+                            .to_type_string(namespace, ast, TypeContext::Outgoing),
+                        decode_func = decode_func(
+                            &stream_parameter.data_type.clone_with_streamed(false),
                             namespace,
-                            ast,
-                            TypeContext::Outgoing
-                        ),
-                        decode_func = decode_func(&stream_parameter.data_type, namespace, ast)
+                            ast
+                        )
                     )
                 }
             };
-            writeln!(code, "{} = {}", name, stream_assignment);
+            writeln!(code, "var {} = {};", name, stream_assignment);
         }
         [parameter] => {
             writeln!(
@@ -488,8 +491,6 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
 }
 
 fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> CodeBlock {
-    let return_values = operation.return_members(ast);
-    let return_stream = operation.stream_return(ast);
     let non_streamed_return_values = operation.non_streamed_returns(ast);
 
     let mut returns = vec![];
@@ -498,17 +499,20 @@ fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> 
         returns.push(encoding.to_owned());
     }
 
-    if return_stream.is_some() {
-        returns.extend(non_streamed_return_values.iter().map(|return_value| {
-            "returnValue.".to_owned() + &return_value.field_name(FieldType::NonMangled)
-        }));
-    } else {
-        returns.push("returnValue".to_owned());
-    };
+    returns.push(match operation.return_members(ast).len() {
+        1 => "returnValue".to_owned(),
+        _ => format!(
+            "({})",
+            non_streamed_return_values
+                .iter()
+                .map(|r| format!("returnValue.{}", &r.field_name(FieldType::NonMangled)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+    });
 
-    match return_values.len() {
+    match non_streamed_return_values.len() {
         0 => format!("{}.CreateEmptyPayload()", encoding),
-        1 if return_stream.is_some() => format!("{}.CreateEmptyPayload()", encoding),
         _ => format!(
             "Response.{operation_name}({args})",
             operation_name = operation.escape_identifier(),
@@ -521,32 +525,43 @@ fn dispatch_return_payload(operation: &Operation, encoding: &str, ast: &Ast) -> 
 fn stream_param_sender(operation: &Operation, encoding: &str, ast: &Ast) -> CodeBlock {
     let namespace = &operation.namespace();
     let return_values = operation.return_members(ast);
-    if let Some(stream_parameter) = operation.stream_parameter(ast) {
-        let node = stream_parameter.data_type.definition(ast);
 
-        let stream_arg = if return_values.len() == 1 {
-            "returnValue".to_owned()
-        } else {
-            "returnValue.".to_owned() + &stream_parameter.field_name(FieldType::NonMangled)
-        };
+    match operation.stream_return(ast) {
+        None => "null".into(),
+        Some(stream_return) => {
+            let node = stream_return.data_type.definition(ast);
 
-        let stream_type =
-            stream_parameter
+            let stream_arg = if return_values.len() == 1 {
+                "returnValue".to_owned()
+            } else {
+                format!(
+                    "returnValue.{}",
+                    &stream_return.field_name(FieldType::NonMangled)
+                )
+            };
+
+            let stream_type = stream_return
                 .data_type
+                .clone_with_streamed(false)
                 .to_type_string(namespace, ast, TypeContext::Outgoing);
 
-        match node {
-        Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
-            format!("new IceRpc.Slice.ByteStreamParamSender({})", stream_arg).into()
+            match node {
+            Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
+                format!("new IceRpc.Slice.ByteStreamParamSender({})", stream_arg).into()
+            }
+            _ => format!("\
+new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>({stream_arg}, {encoding}, {encode_action})",
+                         stream_type = stream_type,
+                         stream_arg = stream_arg,
+                         encoding = encoding,
+                         encode_action = encode_action(
+                             &stream_return.data_type.clone_with_streamed(false),
+                             namespace,
+                             false,
+                             false,
+                             ast),
+            ).into()
+            }
         }
-        _ => format!("\
-    new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>({stream_arg}, {encoding} {decode_func})",
-        stream_type = stream_type,
-        stream_arg = stream_arg,
-        encoding = encoding,
-        decode_func = decode_func(&stream_parameter.data_type, namespace, ast)).into()
-    }
-    } else {
-        "null".into()
     }
 }

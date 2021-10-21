@@ -875,6 +875,18 @@ impl TypeRef {
         }
     }
 
+    pub fn clone_with_optional(&self, optional: bool) -> Self {
+        let mut cloned = self.clone();
+        cloned.is_optional = optional;
+        cloned
+    }
+
+    pub fn clone_with_streamed(&self, streamed: bool) -> Self {
+        let mut cloned = self.clone();
+        cloned.is_streamed = streamed;
+        cloned
+    }
+
     pub fn definition<'a>(&self, ast: &'a Ast) -> &'a Node {
         ast.resolve_index(self.definition.unwrap())
     }
