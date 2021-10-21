@@ -37,7 +37,16 @@ pub trait AttributeBuilder {
         }
 
         for attribute in named_symbol.custom_attributes() {
-            self.add_attribute(&attribute);
+            // The custom attribute value is always quoted in Slice and we unquote it here
+            // [cs:attribute("System.Flags")] -> [System.Flags]
+            debug_assert!(attribute.starts_with("\"") && attribute.ends_with("\""));
+            self.add_attribute(
+                &attribute
+                    .strip_prefix("\"")
+                    .unwrap()
+                    .strip_suffix("\"")
+                    .unwrap(),
+            );
         }
 
         self
