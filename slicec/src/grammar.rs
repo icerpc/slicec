@@ -446,7 +446,11 @@ impl Interface {
         let mut bases = self
             .bases(ast)
             .iter()
-            .flat_map(|base| base.bases(ast))
+            .flat_map(|base| {
+                let mut interfaces = base.all_bases(ast);
+                interfaces.push(base);
+                interfaces
+            })
             .collect::<Vec<_>>();
 
         bases.sort_by_key(|b| b.scoped_identifier());
@@ -459,13 +463,11 @@ impl Interface {
         let mut operations = self
             .all_bases(ast)
             .iter()
-            .map(|base| base.operations(ast))
-            .flatten()
+            .flat_map(|base| base.all_operations(ast))
             .collect::<Vec<_>>();
 
         operations.sort_by_key(|op| op.identifier());
         operations.dedup_by_key(|op| op.identifier());
-
         operations
     }
 
