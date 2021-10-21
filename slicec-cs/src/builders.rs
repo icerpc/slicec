@@ -356,7 +356,7 @@ impl FunctionBuilder {
         write!(code, "{}({})", self.name, self.parameters.join(", "));
 
         match self.base_arguments.as_slice() {
-            [] | [_] => {}
+            [] => {}
             _ => write!(
                 code,
                 "\n    : {}({})",

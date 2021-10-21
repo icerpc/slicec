@@ -70,7 +70,7 @@ impl CsTypeRef for TypeRef {
         };
 
         if self.is_optional {
-            type_str + "?"
+            format!("{}?", type_str)
         } else {
             type_str
         }

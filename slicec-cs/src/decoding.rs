@@ -120,7 +120,7 @@ pub fn decode_member(
                 code,
                 "{}.Decode{}(decoder)",
                 enum_def.helper_name(scope),
-                type_string,
+                enum_def.identifier(),
             );
         }
         _ => panic!("Node does not represent a type: {:?}", node),
@@ -141,7 +141,7 @@ pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast
     let tag = member.tag.unwrap();
 
     format!(
-        "{param} = decoder.DecodeType({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
+        "{param} = decoder.DecodeTagged({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
         param = param,
         tag = tag,
         tag_format = member.data_type.tag_format(ast),
@@ -338,22 +338,37 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     let node = type_ref.definition(ast);
 
-    let is_optional = type_ref.is_optional;
-    let name = type_ref.to_type_string(scope, ast, TypeContext::Incoming);
+    // For value types the type declaration includes ? at the end, but the type name does not.
+    let type_name = match type_ref.is_optional && type_ref.is_value_type(ast) {
+        true => {
+            let mut non_optional = type_ref.clone();
+            non_optional.is_optional = false;
+            non_optional.to_type_string(scope, ast, TypeContext::Incoming)
+        }
+        _ => type_ref.to_type_string(scope, ast, TypeContext::Incoming),
+    };
 
     match node {
         Node::Interface(_, _) => {
-            if is_optional {
-                write!(code, "decoder => decoder.DecodeNullablePrx<{}>()", name);
+            if type_ref.is_optional {
+                write!(
+                    code,
+                    "decoder => decoder.DecodeNullablePrx<{}>()",
+                    type_name
+                );
             } else {
-                write!(code, "decoder => new {}(decoder.DecodeProxy())", name);
+                write!(code, "decoder => new {}(decoder.DecodeProxy())", type_name);
             }
         }
         Node::Class(_, _) => {
-            if is_optional {
-                write!(code, "decoder => decoder.DecodeNullableClass<{}>()", name);
+            if type_ref.is_optional {
+                write!(
+                    code,
+                    "decoder => decoder.DecodeNullableClass<{}>()",
+                    type_name
+                );
             } else {
-                write!(code, "decoder => decoder.DecodeClass<{}>()", name);
+                write!(code, "decoder => decoder.DecodeClass<{}>()", type_name);
             }
         }
         Node::Primitive(_, primitive) => {
@@ -386,9 +401,13 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
             );
         }
         Node::Struct(_, _) => {
-            write!(code, "decoder => new {}(decoder)", name);
+            write!(code, "decoder => new {}(decoder)", type_name);
         }
         _ => panic!("unexpected node type"),
+    }
+
+    if type_ref.is_optional && type_ref.is_value_type(ast) {
+        write!(code, " as {}?", type_name);
     }
 
     code

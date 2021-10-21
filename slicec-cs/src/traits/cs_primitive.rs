@@ -19,7 +19,7 @@ impl CsPrimitiveInfo for Primitive {
             Primitive::VarInt => "VarInt",
             Primitive::VarUInt => "VarUInt",
             Primitive::Long => "Long",
-            Primitive::ULong => "",
+            Primitive::ULong => "ULong",
             Primitive::VarLong => "VarLong",
             Primitive::VarULong => "VarULong",
             Primitive::Float => "Float",
