@@ -84,19 +84,9 @@ immediately encodes the return value of operation {operation_name}."#,
 
     constructor_builder.set_base_constructor("this");
 
-    let create_payload = format!(
-        "{encoding}.{method}(
-    {return_value},
-    {response_encode_action}{class_format})",
-        encoding = match returns_classes {
-            true => "Ice11Encoding".to_owned(),
-            _ => format!("{}.GetIceEncoding()", dispatch_parameter),
-        },
-        method = match parameters.as_slice() {
-            [_] => "CreatePayloadFromSingleReturnValue",
-            _ => "CreatePayloadFromReturnValueTuple",
-        },
-        return_value = match parameters.len() {
+    let mut payload_args = vec![
+        // the return value
+        match parameters.len() {
             1 => "returnValue".to_owned(),
             _ => format!(
                 "({})",
@@ -107,16 +97,28 @@ immediately encodes the return value of operation {operation_name}."#,
                     .join(", ")
             ),
         },
-        response_encode_action = response_encode_action(operation, ast),
-        class_format = match operation.format_type().as_str() {
-            "default" => "".to_owned(),
-            value => format!("classFormat: {}", value),
+        // the encode action
+        response_encode_action(operation, ast).to_string(),
+    ];
+
+    if returns_classes {
+        payload_args.push(operation.format_type());
+    };
+
+    let create_payload = format!(
+        "{encoding}.{create_payload_method}({payload_args})",
+        encoding = match returns_classes {
+            true => "Ice11Encoding".to_owned(),
+            _ => format!("{}.GetIceEncoding()", dispatch_parameter),
         },
+        create_payload_method = match parameters.as_slice() {
+            [_] => "CreatePayloadFromSingleReturnValue",
+            _ => "CreatePayloadFromReturnValueTuple",
+        },
+        payload_args = payload_args.join(", ")
     );
 
     constructor_builder.add_base_parameter(&create_payload);
-
     container_builder.add_block(constructor_builder.build());
-
     container_builder.build().into()
 }
