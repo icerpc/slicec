@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::{Ast, Node};
-use slice::grammar::{Member, NamedSymbol, Primitive, ScopedSymbol};
+use slice::grammar::{Member, NamedSymbol, Primitive};
 use slice::util::TypeContext;
 
 use crate::code_block::CodeBlock;
@@ -25,7 +25,8 @@ pub fn data_member_declaration(
 ) -> String {
     let data_type = &data_member.data_type;
 
-    let type_string = data_type.to_type_string(data_member.scope(), ast, TypeContext::DataMember);
+    let type_string =
+        data_type.to_type_string(&data_member.namespace(), ast, TypeContext::DataMember);
     let mut prelude = CodeBlock::new();
 
     prelude.writeln(&CommentTag::new(

@@ -10,7 +10,7 @@ use crate::traits::*;
 
 pub fn encode_data_members(
     members: &[&Member],
-    scope: &str,
+    namespace: &str,
     field_type: FieldType,
     ast: &Ast,
 ) -> CodeBlock {
@@ -39,7 +39,7 @@ pub fn encode_data_members(
             &member.data_type,
             &mut bit_sequence_index,
             true,
-            scope,
+            namespace,
             &param,
             ast,
         );
@@ -49,7 +49,7 @@ pub fn encode_data_members(
     // Encode tagged
     for member in tagged_members {
         let param = format!("this.{}", member.field_name(field_type));
-        code.writeln(&encode_tagged_type(member, scope, &param, true, ast));
+        code.writeln(&encode_tagged_type(member, namespace, &param, true, ast));
     }
 
     code
@@ -59,7 +59,7 @@ pub fn encode_type(
     type_ref: &TypeRef,
     bit_sequence_index: &mut i32,
     for_nested_type: bool,
-    scope: &str,
+    namespace: &str,
     param: &str,
     ast: &Ast,
 ) -> CodeBlock {
@@ -96,7 +96,7 @@ pub fn encode_type(
             "{};",
             encode_sequence(
                 sequence_def,
-                scope,
+                namespace,
                 param,
                 !for_nested_type,
                 !for_nested_type,
@@ -107,14 +107,14 @@ pub fn encode_type(
             writeln!(
                 code,
                 "{};",
-                encode_dictionary(dictionary_def, scope, param, ast)
+                encode_dictionary(dictionary_def, namespace, param, ast)
             )
         }
         Node::Enum(_, enum_def) => {
             writeln!(
                 code,
                 "{helper}.Encode{name}(encoder, {param});",
-                helper = enum_def.helper_name(scope),
+                helper = enum_def.helper_name(namespace),
                 name = node.as_named_symbol().unwrap().identifier(),
                 param = value
             );
@@ -139,7 +139,7 @@ pub fn encode_type(
 // TODO: should is_data_member be TypeContext instead of bool?
 pub fn encode_tagged_type(
     member: &Member,
-    scope: &str,
+    namespace: &str,
     param: &str,
     is_data_member: bool,
     ast: &Ast,
@@ -247,7 +247,7 @@ pub fn encode_tagged_type(
     args.push(
         encode_action(
             &member.data_type,
-            scope,
+            namespace,
             !is_data_member,
             !is_data_member,
             ast,
@@ -275,7 +275,7 @@ if ({param} != null)
 
 pub fn encode_sequence(
     sequence_def: &Sequence,
-    scope: &str,
+    namespace: &str,
     value: &str,
     is_param: bool,
     is_read_only: bool,
@@ -305,7 +305,7 @@ pub fn encode_sequence(
         args.push(
             encode_action(
                 &sequence_def.element_type,
-                scope,
+                namespace,
                 is_read_only,
                 is_param,
                 ast,
@@ -325,7 +325,7 @@ pub fn encode_sequence(
 
 pub fn encode_dictionary(
     dictionary_def: &Dictionary,
-    scope: &str,
+    namespace: &str,
     param: &str,
     ast: &Ast,
 ) -> CodeBlock {
@@ -338,8 +338,8 @@ pub fn encode_dictionary(
     if with_bit_sequence && dictionary_def.value_type.is_reference_type(ast) {
         args.push("withBitSequence: true".to_owned());
     }
-    args.push(encode_action(&dictionary_def.key_type, scope, false, false, ast).to_string());
-    args.push(encode_action(&dictionary_def.value_type, scope, false, false, ast).to_string());
+    args.push(encode_action(&dictionary_def.key_type, namespace, false, false, ast).to_string());
+    args.push(encode_action(&dictionary_def.value_type, namespace, false, false, ast).to_string());
 
     write!(
         code,
@@ -410,7 +410,7 @@ else
 
 pub fn encode_action(
     type_def: &TypeRef,
-    scope: &str,
+    namespace: &str,
     is_read_only: bool,
     is_param: bool,
     ast: &Ast,
@@ -459,7 +459,7 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {helper}.Encode{name}(encoder, {value})",
-                helper = enum_def.helper_name(scope),
+                helper = enum_def.helper_name(namespace),
                 name = enum_def.identifier(),
                 value = value
             )
@@ -468,7 +468,7 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {}",
-                encode_dictionary(dictionary_def, scope, "value", ast)
+                encode_dictionary(dictionary_def, namespace, "value", ast)
             );
         }
         Node::Sequence(_, sequence_def) => {
@@ -477,7 +477,14 @@ pub fn encode_action(
             write!(
                 code,
                 "(encoder, value) => {}",
-                encode_sequence(sequence_def, scope, "value", is_read_only, is_param, ast)
+                encode_sequence(
+                    sequence_def,
+                    namespace,
+                    "value",
+                    is_read_only,
+                    is_param,
+                    ast
+                )
             )
         }
         Node::Struct(_, _) => {

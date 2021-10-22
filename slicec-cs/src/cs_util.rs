@@ -138,22 +138,3 @@ pub fn mangle_name(identifier: &str, field_type: FieldType) -> String {
     // If the name conflicts with a base method, add an "Ice" prefix to it.
     (if needs_mangling { "Ice" } else { "" }).to_owned() + identifier
 }
-
-/// TODO write a comment here!
-/// THIS IS ONLY FOR NON_BUILTIN TYPES! NO PRIMITIVES, NO SEQUENCES, and NO DICTIONARIES!
-pub fn fix_scope(scoped_identifier: &str, current_scope: &str) -> String {
-    let scope_prefix = current_scope.to_owned() + ".";
-    // Check if `scoped_identifier` starts with `current_scope`, and strip it off.
-    if let Some(unscoped_identifier) = scoped_identifier.strip_prefix(&scope_prefix) {
-        // If the identifier is now fully unscoped, return the fully unscoped identifier.
-        if !unscoped_identifier.contains('.') {
-            return unscoped_identifier.to_owned();
-        }
-    }
-
-    if scoped_identifier.starts_with("IceRpc") {
-        scoped_identifier.to_owned()
-    } else {
-        "global::".to_owned() + scoped_identifier
-    }
-}

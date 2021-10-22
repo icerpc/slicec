@@ -179,9 +179,7 @@ public static void Encode{identifier}(this IceEncoder encoder, {escaped_identifi
 
 fn underlying_type(enum_def: &Enum, ast: &Ast) -> String {
     match &enum_def.underlying {
-        Some(typeref) => {
-            typeref.to_type_string(enum_def.scope.as_ref().unwrap(), ast, TypeContext::Nested)
-        }
+        Some(typeref) => typeref.to_type_string(&enum_def.namespace(), ast, TypeContext::Nested),
         _ => "int".to_owned(), // TODO we should make a builtin table to get names from.
     }
 }

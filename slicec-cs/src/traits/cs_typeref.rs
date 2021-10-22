@@ -14,7 +14,7 @@ pub trait CsTypeRef {
     fn is_value_type(&self, ast: &Ast) -> bool;
 
     /// The C# mapped type for this type reference.
-    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
+    fn to_type_string(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
 }
 
 impl CsTypeRef for TypeRef {
@@ -30,20 +30,20 @@ impl CsTypeRef for TypeRef {
         }
     }
 
-    fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    fn to_type_string(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String {
         let type_str = match self.definition(ast) {
-            Node::Struct(_, struct_def) => struct_def.escape_scoped_identifier(scope),
-            Node::Class(_, class_def) => class_def.escape_scoped_identifier(scope),
-            Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(scope),
+            Node::Struct(_, struct_def) => struct_def.escape_scoped_identifier(namespace),
+            Node::Class(_, class_def) => class_def.escape_scoped_identifier(namespace),
+            Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(namespace),
+            Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(namespace),
             Node::Interface(_, interface_def) => {
-                interface_def.escape_scoped_identifier(scope) + "Prx"
+                interface_def.escape_scoped_identifier(namespace) + "Prx"
             }
-            Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(scope),
             Node::Sequence(_, sequence) => {
-                sequence_type_to_string(self, sequence, scope, ast, context)
+                sequence_type_to_string(self, sequence, namespace, ast, context)
             }
             Node::Dictionary(_, dictionary) => {
-                dictionary_type_to_string(self, dictionary, scope, ast, context)
+                dictionary_type_to_string(self, dictionary, namespace, ast, context)
             }
             Node::Primitive(_, primitive) => match primitive {
                 Primitive::Bool => "bool",
@@ -88,13 +88,13 @@ impl CsTypeRef for TypeRef {
 fn sequence_type_to_string(
     type_ref: &TypeRef,
     sequence: &Sequence,
-    scope: &str,
+    namespace: &str,
     ast: &Ast,
     context: TypeContext,
 ) -> String {
     let element_type = sequence
         .element_type
-        .to_type_string(scope, ast, TypeContext::Nested);
+        .to_type_string(namespace, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {
@@ -138,16 +138,16 @@ fn is_fixed_size_numeric_sequence(sequence: &Sequence, ast: &Ast) -> bool {
 fn dictionary_type_to_string(
     type_ref: &TypeRef,
     dictionary: &Dictionary,
-    scope: &str,
+    namespace: &str,
     ast: &Ast,
     context: TypeContext,
 ) -> String {
     let key_type = &dictionary
         .key_type
-        .to_type_string(scope, ast, TypeContext::Nested);
+        .to_type_string(namespace, ast, TypeContext::Nested);
     let value_type = dictionary
         .value_type
-        .to_type_string(scope, ast, TypeContext::Nested);
+        .to_type_string(namespace, ast, TypeContext::Nested);
 
     match context {
         TypeContext::DataMember | TypeContext::Nested => {

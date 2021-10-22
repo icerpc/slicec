@@ -8,7 +8,7 @@ use slice::util::*;
 
 pub fn decode_data_members(
     members: &[&Member],
-    scope: &str,
+    namespace: &str,
     field_type: FieldType,
     ast: &Ast,
 ) -> CodeBlock {
@@ -31,7 +31,7 @@ pub fn decode_data_members(
     // Decode required members
     for member in required_members {
         let param = format!("this.{}", member.field_name(field_type));
-        let decode_member = decode_member(member, &mut bit_sequence_index, scope, &param, ast);
+        let decode_member = decode_member(member, &mut bit_sequence_index, namespace, &param, ast);
         code.writeln(&decode_member);
     }
 
@@ -39,7 +39,7 @@ pub fn decode_data_members(
 
     for member in tagged_members {
         let param = format!("this.{}", member.field_name(field_type));
-        code.writeln(&decode_tagged_member(member, scope, &param, ast));
+        code.writeln(&decode_tagged_member(member, namespace, &param, ast));
     }
 
     if bit_sequence_size > 0 {
@@ -53,7 +53,7 @@ pub fn decode_data_members(
 pub fn decode_member(
     member: &Member,
     bit_sequence_index: &mut i32,
-    scope: &str,
+    namespace: &str,
     param: &str,
     ast: &Ast,
 ) -> CodeBlock {
@@ -61,7 +61,7 @@ pub fn decode_member(
     let data_type = &member.data_type;
 
     let node = data_type.definition(ast);
-    let type_string = data_type.to_type_string(scope, ast, TypeContext::Incoming);
+    let type_string = data_type.to_type_string(namespace, ast, TypeContext::Incoming);
 
     write!(code, "{} = ", param);
 
@@ -106,20 +106,20 @@ pub fn decode_member(
             write!(
                 code,
                 "new {}(decoder)",
-                struct_def.escape_scoped_identifier(scope),
+                struct_def.escape_scoped_identifier(namespace),
             );
         }
         Node::Dictionary(_, dictionary) => {
-            code.write(&decode_dictionary(data_type, dictionary, scope, ast))
+            code.write(&decode_dictionary(data_type, dictionary, namespace, ast))
         }
         Node::Sequence(_, sequence) => {
-            code.write(&decode_sequence(data_type, sequence, scope, ast))
+            code.write(&decode_sequence(data_type, sequence, namespace, ast))
         }
         Node::Enum(_, enum_def) => {
             write!(
                 code,
                 "{}.Decode{}(decoder)",
-                enum_def.helper_name(scope),
+                enum_def.helper_name(namespace),
                 enum_def.identifier(),
             );
         }
@@ -135,7 +135,7 @@ pub fn decode_member(
     code
 }
 
-pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast) -> CodeBlock {
+pub fn decode_tagged_member(member: &Member, namespace: &str, param: &str, ast: &Ast) -> CodeBlock {
     assert!(member.data_type.is_optional && member.tag.is_some());
 
     let tag = member.tag.unwrap();
@@ -145,7 +145,7 @@ pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast
         param = param,
         tag = tag,
         tag_format = member.data_type.tag_format(ast),
-        decode_func = decode_func(&member.data_type, scope, ast)
+        decode_func = decode_func(&member.data_type, namespace, ast)
     )
     .into()
 }
@@ -153,7 +153,7 @@ pub fn decode_tagged_member(member: &Member, scope: &str, param: &str, ast: &Ast
 pub fn decode_dictionary(
     type_ref: &TypeRef,
     dictionary_def: &Dictionary,
-    scope: &str,
+    namespace: &str,
     ast: &Ast,
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
@@ -174,16 +174,16 @@ pub fn decode_dictionary(
     }
 
     // decode key
-    args.push(decode_func(&dictionary_def.key_type, scope, ast).to_string());
+    args.push(decode_func(&dictionary_def.key_type, namespace, ast).to_string());
 
     // decode value
-    let mut decode_value = decode_func(value_type, scope, ast);
+    let mut decode_value = decode_func(value_type, namespace, ast);
     match value_node {
         Node::Sequence(_, _) | Node::Dictionary(_, _) => {
             write!(
                 decode_value,
                 " as {}",
-                value_type.to_type_string(scope, ast, TypeContext::Nested)
+                value_type.to_type_string(namespace, ast, TypeContext::Nested)
             );
         }
         _ => {}
@@ -206,7 +206,7 @@ pub fn decode_dictionary(
 pub fn decode_sequence(
     type_ref: &TypeRef,
     sequence: &Sequence,
-    scope: &str,
+    namespace: &str,
     ast: &Ast,
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
@@ -225,7 +225,7 @@ pub fn decode_sequence(
                 // faster than unmarshaling the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                    element_type.to_type_string(namespace, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() && enum_def.is_unchecked => {
@@ -233,15 +233,15 @@ pub fn decode_sequence(
                 // faster than unmarshaling the collection elements one by one.
                 args = format!(
                     "decoder.DecodeArray<{}>()",
-                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                    element_type.to_type_string(namespace, ast, TypeContext::Incoming)
                 );
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
                 let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
                 args = format!(
                     "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                    enum_type_name = element_type.to_type_string( scope, ast, TypeContext::Incoming),
-                    helper = enum_def.helper_name(scope),
+                    enum_type_name = element_type.to_type_string(namespace, ast, TypeContext::Incoming),
+                    helper = enum_def.helper_name(namespace),
                     name = enum_def.identifier(),
                     underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
                 );
@@ -255,13 +255,13 @@ pub fn decode_sequence(
                         } else {
                             ""
                         },
-                        decode_func(element_type, scope, ast)
+                        decode_func(element_type, namespace, ast)
                     );
                 } else {
                     args = format!(
                         "decoder.DecodeSequence(minElementSize: {}, {})",
                         element_type.min_wire_size(ast),
-                        decode_func(element_type, scope, ast)
+                        decode_func(element_type, namespace, ast)
                     );
                 }
             }
@@ -270,7 +270,7 @@ pub fn decode_sequence(
         write!(
             code,
             "new {}({})",
-            type_ref.to_type_string(scope, ast, TypeContext::Incoming),
+            type_ref.to_type_string(namespace, ast, TypeContext::Incoming),
             match generic_attribute.first().unwrap().as_str() {
                 "Stack" => format!("global::System.Linq.Enumerable.Reverse({})", args),
                 _ => args,
@@ -282,7 +282,7 @@ pub fn decode_sequence(
                 write!(
                     code,
                     "decoder.DecodeArray<{}>()",
-                    element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                    element_type.to_type_string(namespace, ast, TypeContext::Incoming)
                 )
             }
             Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
@@ -290,17 +290,17 @@ pub fn decode_sequence(
                     write!(
                         code,
                         "decoder.DecodeArray<{}>()",
-                        element_type.to_type_string(scope, ast, TypeContext::Incoming)
+                        element_type.to_type_string(namespace, ast, TypeContext::Incoming)
                     )
                 } else {
                     write!(
                         code,
                         "decoder.DecodeArray(({enum_type} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                        enum_type = element_type.to_type_string(scope, ast, TypeContext::Incoming),
-                        helper = enum_def.helper_name(scope),
+                        enum_type = element_type.to_type_string(namespace, ast, TypeContext::Incoming),
+                        helper = enum_def.helper_name(namespace),
                         name = enum_def.identifier(),
                         underlying_type = enum_def.underlying.as_ref().unwrap().to_type_string(
-                            enum_def.scope.as_ref().unwrap(),
+                            namespace,
                             ast,
                             TypeContext::Nested));
                 }
@@ -317,13 +317,13 @@ pub fn decode_sequence(
                             } else {
                                 ""
                             },
-                            decode_func(element_type, scope, ast)
+                            decode_func(element_type, namespace, ast)
                         )
                     } else {
                         format!(
                             "minElementSize:{}, {}",
                             element_type.min_wire_size(ast),
-                            decode_func(element_type, scope, ast)
+                            decode_func(element_type, namespace, ast)
                         )
                     }
                 );
@@ -334,14 +334,16 @@ pub fn decode_sequence(
     code
 }
 
-pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
+pub fn decode_func(type_ref: &TypeRef, namespace: &str, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
     let node = type_ref.definition(ast);
 
     // For value types the type declaration includes ? at the end, but the type name does not.
     let type_name = match type_ref.is_optional && type_ref.is_value_type(ast) {
-        true => clone_as_non_optional(type_ref).to_type_string(scope, ast, TypeContext::Incoming),
-        _ => type_ref.to_type_string(scope, ast, TypeContext::Incoming),
+        true => {
+            clone_as_non_optional(type_ref).to_type_string(namespace, ast, TypeContext::Incoming)
+        }
+        _ => type_ref.to_type_string(namespace, ast, TypeContext::Incoming),
     };
 
     match node {
@@ -378,21 +380,21 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
             write!(
                 code,
                 "decoder => {}",
-                decode_sequence(type_ref, sequence, scope, ast)
+                decode_sequence(type_ref, sequence, namespace, ast)
             );
         }
         Node::Dictionary(_, dictionary) => {
             write!(
                 code,
                 "decoder => {}",
-                decode_dictionary(type_ref, dictionary, scope, ast)
+                decode_dictionary(type_ref, dictionary, namespace, ast)
             );
         }
         Node::Enum(_, enum_def) => {
             write!(
                 code,
                 "decoder => {}.Decode{}(decoder)",
-                enum_def.helper_name(scope),
+                enum_def.helper_name(namespace),
                 enum_def.identifier()
             );
         }

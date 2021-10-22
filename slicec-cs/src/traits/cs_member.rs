@@ -46,8 +46,8 @@ impl CsMemberInfo for Member {
 
 pub trait MemberListInfo {
     fn to_argument_tuple(&self, prefix: &str) -> String;
-    fn to_tuple_type(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
-    fn to_return_type(&self, scope: &str, ast: &Ast, context: TypeContext) -> String;
+    fn to_tuple_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
+    fn to_return_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
 }
 
 impl MemberListInfo for [&Member] {
@@ -65,14 +65,14 @@ impl MemberListInfo for [&Member] {
         }
     }
 
-    fn to_tuple_type(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    fn to_tuple_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String {
         match self {
             [] => panic!("tuple type with no members"),
-            [member] => member.data_type.to_type_string(scope, ast, context),
+            [member] => member.data_type.to_type_string(namespace, ast, context),
             _ => format!(
                 "({})",
                 self.iter()
-                    .map(|m| m.data_type.to_type_string(scope, ast, context)
+                    .map(|m| m.data_type.to_type_string(namespace, ast, context)
                         + " "
                         + &m.field_name(FieldType::NonMangled))
                     .collect::<Vec<String>>()
@@ -81,7 +81,7 @@ impl MemberListInfo for [&Member] {
         }
     }
 
-    fn to_return_type(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
+    fn to_return_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String {
         let value_task = "global::System.Threading.Tasks.ValueTask";
         match self {
             [] => value_task.to_owned(),
@@ -89,7 +89,7 @@ impl MemberListInfo for [&Member] {
                 format!(
                     "{}<{}>",
                     value_task,
-                    &e.data_type.to_type_string(scope, ast, context)
+                    &e.data_type.to_type_string(namespace, ast, context)
                 )
             }
             _ => {
@@ -100,7 +100,7 @@ impl MemberListInfo for [&Member] {
                         .map(|e| {
                             format!(
                                 "{} {}",
-                                &e.data_type.to_type_string(scope, ast, context),
+                                &e.data_type.to_type_string(namespace, ast, context),
                                 e.identifier()
                             )
                         })

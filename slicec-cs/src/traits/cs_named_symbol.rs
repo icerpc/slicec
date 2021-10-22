@@ -3,7 +3,7 @@
 use slice::grammar::NamedSymbol;
 use slice::util::{fix_case, CaseStyle};
 
-use crate::cs_util::{escape_keyword, fix_scope};
+use crate::cs_util::escape_keyword;
 pub trait CsNamedSymbol: NamedSymbol {
     /// Escapes and returns the definition's identifier, without any scoping.
     /// If the identifier is a C# keyword, a '@' prefix is appended to it.
@@ -15,10 +15,10 @@ pub trait CsNamedSymbol: NamedSymbol {
     ///
     /// If scope is non-empty, this also qualifies the identifier's scope relative to the provided
     /// one.
-    fn escape_scoped_identifier(&self, scope: &str) -> String;
+    fn escape_scoped_identifier(&self, namespace: &str) -> String;
 
     /// The helper name
-    fn helper_name(&self, scope: &str) -> String;
+    fn helper_name(&self, namespace: &str) -> String;
 
     /// The C# namespace
     fn namespace(&self) -> String;
@@ -37,28 +37,40 @@ impl<T: NamedSymbol + ?Sized> CsNamedSymbol for T {
     ///
     /// If scope is non-empty, this also qualifies the identifier's scope relative to the provided
     /// one.
-    fn escape_scoped_identifier(&self, scope: &str) -> String {
-        let mut scoped_identifier = String::new();
-
-        // Escape any keywords in the scope identifiers.
-        // We skip the first scope segment, since it is always an empty string because all scopes
-        // start with '::' (to represent global scope).
-        for segment in self.scope().split("::").skip(1) {
-            scoped_identifier += &(escape_keyword(&fix_case(segment, CaseStyle::Pascal)) + ".");
+    fn escape_scoped_identifier(&self, namespace: &str) -> String {
+        if self.namespace() == namespace {
+            self.escape_identifier()
+        } else {
+            format!("global::{}.{}", namespace, self.escape_identifier())
         }
-        scoped_identifier += &self.escape_identifier();
-        fix_scope(&scoped_identifier, scope)
     }
 
     /// The helper name for this NamedSymbol
-    fn helper_name(&self, scope: &str) -> String {
-        self.escape_scoped_identifier(scope) + "Helper"
+    fn helper_name(&self, namespace: &str) -> String {
+        self.escape_scoped_identifier(namespace) + "Helper"
     }
 
     /// The C# namespace of this NamedSymbol
     fn namespace(&self) -> String {
         // TODO: check metadata
         // TODO: not all types need to remove just one "::" (we use this currently for operations)
-        self.scope().strip_prefix("::").unwrap().replace("::", ".")
+        let tokens = self
+            .scope()
+            .strip_prefix("::")
+            .unwrap()
+            .split("::")
+            .map(|segment| escape_keyword(&fix_case(segment, CaseStyle::Pascal)))
+            .collect::<Vec<_>>();
+
+        // TODO: Workaround for operation scope
+        let drop = match self.kind() {
+            "operation" => match tokens.last().unwrap().as_str() {
+                "_return" => 3,
+                _ => 1,
+            },
+            _ => 0,
+        };
+
+        tokens[0..tokens.len() - drop].join(".")
     }
 }
