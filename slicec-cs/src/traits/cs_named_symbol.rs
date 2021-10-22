@@ -37,8 +37,9 @@ impl<T: NamedSymbol + ?Sized> CsNamedSymbol for T {
     ///
     /// If scope is non-empty, this also qualifies the identifier's scope relative to the provided
     /// one.
-    fn escape_scoped_identifier(&self, namespace: &str) -> String {
-        if self.namespace() == namespace {
+    fn escape_scoped_identifier(&self, current_namespace: &str) -> String {
+        let namespace = self.namespace();
+        if current_namespace == namespace {
             self.escape_identifier()
         } else {
             format!("global::{}.{}", namespace, self.escape_identifier())
@@ -68,6 +69,7 @@ impl<T: NamedSymbol + ?Sized> CsNamedSymbol for T {
                 "_return" => 3,
                 _ => 1,
             },
+            "data member" => 1,
             _ => 0,
         };
 
