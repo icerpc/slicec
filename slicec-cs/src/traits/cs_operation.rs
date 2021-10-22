@@ -1,8 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::{CsNamedSymbol, CsTypeRef, MemberListInfo};
+use crate::traits::*;
 use slice::ast::Ast;
-use slice::grammar::{Operation, ScopedSymbol};
+use slice::grammar::{Interface, Operation, ScopedSymbol};
 use slice::util::TypeContext;
 
 pub trait CsOperation {
@@ -10,13 +11,13 @@ pub trait CsOperation {
     fn has_encoded_result(&self) -> bool;
 
     /// The name of the generated encoded result type.
-    fn encoded_result_struct(&self, scope: &str) -> String;
+    fn encoded_result_struct(&self, interface_def: &Interface) -> String;
 
     /// The Slice format type of the operation
     fn format_type(&self) -> String;
 
     /// The operation return task.
-    fn return_task(&self, scope: &str, is_dispatch: bool, ast: &Ast) -> String;
+    fn return_task(&self, interface_def: &Interface, is_dispatch: bool, ast: &Ast) -> String;
 }
 
 impl CsOperation for Operation {
@@ -28,8 +29,12 @@ impl CsOperation for Operation {
         // TODO: also check the operation's parent interface once we can access it
     }
 
-    fn encoded_result_struct(&self, scope: &str) -> String {
-        self.escape_scoped_identifier(scope) + "EncodedReturnValue"
+    fn encoded_result_struct(&self, interface_def: &Interface) -> String {
+        format!(
+            "{}.{}EncodedReturnValue",
+            interface_def.interface_name(),
+            self.escape_identifier()
+        )
     }
 
     fn format_type(&self) -> String {
@@ -37,7 +42,7 @@ impl CsOperation for Operation {
         "default".to_owned()
     }
 
-    fn return_task(&self, scope: &str, is_dispatch: bool, ast: &Ast) -> String {
+    fn return_task(&self, interface_def: &Interface, is_dispatch: bool, ast: &Ast) -> String {
         let return_members = self.return_members(ast);
         if return_members.is_empty() {
             if is_dispatch {
@@ -48,7 +53,7 @@ impl CsOperation for Operation {
         } else {
             let return_type = operation_return_type(
                 self,
-                scope,
+                interface_def,
                 is_dispatch,
                 ast,
                 if is_dispatch {
@@ -68,7 +73,7 @@ impl CsOperation for Operation {
 
 fn operation_return_type(
     operation: &Operation,
-    scope: &str,
+    interface_def: &Interface,
     is_dispatch: bool,
     ast: &Ast,
     context: TypeContext,
@@ -76,12 +81,13 @@ fn operation_return_type(
     let return_members = operation.return_members(ast);
 
     if !return_members.is_empty() && is_dispatch && operation.has_encoded_result() {
-        return operation.encoded_result_struct(scope);
+        return operation.encoded_result_struct(interface_def);
     }
 
+    let ns = interface_def.namespace();
     match return_members.as_slice() {
         [] => "void".to_owned(),
-        [member] => member.data_type.to_type_string(scope, ast, context),
-        _ => return_members.to_tuple_type(scope, ast, context),
+        [member] => member.data_type.to_type_string(&ns, ast, context),
+        _ => return_members.to_tuple_type(&ns, ast, context),
     }
 }

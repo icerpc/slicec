@@ -128,7 +128,7 @@ public global::System.Threading.Tasks.Task IcePingAsync(
         }
 
         for operation in interface_def.operations(ast) {
-            proxy_impl_builder.add_block(proxy_operation_impl(operation, ast));
+            proxy_impl_builder.add_block(proxy_operation_impl(interface_def, operation, ast));
         }
 
         // Generate abstract methods and documentation
@@ -202,11 +202,11 @@ public override string ToString() => Proxy.ToString();"#,
 }
 
 /// The actual implementation of the proxy operation.
-fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
+fn proxy_operation_impl(interface_def: &Interface, operation: &Operation, ast: &Ast) -> CodeBlock {
     let namespace = &operation.namespace();
     let operation_name = operation.escape_identifier();
     let async_operation_name = operation_name.clone() + "Async";
-    let return_task = operation.return_task(namespace, false, ast);
+    let return_task = operation.return_task(interface_def, false, ast);
     let is_oneway = operation.has_attribute("oneway");
 
     let parameters = operation.non_streamed_params(ast);
@@ -361,7 +361,7 @@ fn proxy_base_operation_impl(
     ast: &Ast,
 ) -> CodeBlock {
     let async_name = format!("{}Async", operation.escape_identifier());
-    let return_task = operation.return_task(&operation.namespace(), false, ast);
+    let return_task = operation.return_task(interface_def, false, ast);
     let mut operation_params = operation
         .parameters(ast)
         .iter()
@@ -409,7 +409,6 @@ fn proxy_base_operation_impl(
 
 fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
-    let namespace = &interface_def.namespace();
     let operations = interface_def.operations(ast);
 
     for operation in operations {
@@ -418,7 +417,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
         code.add_block(
             &FunctionBuilder::new(
                 "",
-                &operation.return_task(namespace, false, ast),
+                &operation.return_task(interface_def, false, ast),
                 &(operation.escape_identifier() + "Async"),
                 FunctionType::Declaration,
             )

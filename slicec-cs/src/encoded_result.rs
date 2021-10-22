@@ -78,7 +78,7 @@ immediately encodes the return value of operation {operation_name}."#,
 
     let returns_classes = operation.returns_classes(ast);
     let dispatch_parameter = escape_parameter_name(&parameters, "dispatch");
-    if returns_classes {
+    if !returns_classes {
         constructor_builder.add_parameter("IceRpc.Dispatch", &dispatch_parameter, None, None);
     }
 
@@ -87,8 +87,7 @@ immediately encodes the return value of operation {operation_name}."#,
     let create_payload = format!(
         "{encoding}.{method}(
     {return_value},
-    {response_encode_action},
-    classFormat: {class_format})",
+    {response_encode_action}{class_format})",
         encoding = match returns_classes {
             true => "Ice11Encoding".to_owned(),
             _ => format!("{}.GetIceEncoding()", dispatch_parameter),
@@ -98,11 +97,21 @@ immediately encodes the return value of operation {operation_name}."#,
             _ => "CreatePayloadFromReturnValueTuple",
         },
         return_value = match parameters.len() {
-            1 => "returnValue",
-            _ => "returnValueTuple",
+            1 => "returnValue".to_owned(),
+            _ => format!(
+                "({})",
+                parameters
+                    .iter()
+                    .map(|p| p.parameter_name())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
         },
         response_encode_action = response_encode_action(operation, ast),
-        class_format = operation.format_type(),
+        class_format = match operation.format_type().as_str() {
+            "default" => "".to_owned(),
+            value => format!("classFormat: {}", value),
+        },
     );
 
     constructor_builder.add_base_parameter(&create_payload);
