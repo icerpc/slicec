@@ -18,16 +18,10 @@ pub struct EnumVisitor<'a> {
 
 impl<'a> Visitor for EnumVisitor<'a> {
     fn visit_enum_start(&mut self, enum_def: &Enum, _: usize, ast: &Ast) {
-        let code = format!(
-            "\
-{declaration}
-
-{helper}",
-            declaration = enum_declaration(enum_def, ast),
-            helper = enum_helper(enum_def, ast),
-        );
-
-        self.code_map.insert(enum_def, code.into());
+        let mut code = CodeBlock::new();
+        code.add_block(&enum_declaration(enum_def, ast));
+        code.add_block(&enum_helper(enum_def, ast));
+        self.code_map.insert(enum_def, code);
     }
 }
 
@@ -97,7 +91,7 @@ public static readonly global::System.Collections.Generic.HashSet<{underlying}> 
                     .enumerators(ast)
                     .iter()
                     .map(|e| e.value.to_string())
-                    .collect::<Vec<String>>()
+                    .collect::<Vec<_>>()
                     .join(", ")
             )
             .into(),
