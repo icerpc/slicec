@@ -216,7 +216,7 @@ fn proxy_operation_impl(operation: &Operation, ast: &Ast) -> CodeBlock {
     let cancel_parameter = escape_parameter_name(&operation.parameters(ast), "cancel");
 
     let sends_classes = operation.sends_classes(ast);
-    let void_return = operation.return_type.is_empty();
+    let void_return = !operation.has_non_streamed_return(ast);
 
     let mut builder = FunctionBuilder::new(
         "public",
@@ -276,6 +276,7 @@ if {invocation}?.RequestFeatures.Get<IceRpc.Features.CompressPayload>() == null)
     // Stream parameter (if any)
     if let Some(stream_parameter) = operation.stream_parameter(ast) {
         let stream_parameter_name = stream_parameter.parameter_name();
+        let stream_type = clone_as_non_streamed(&stream_parameter.data_type);
         match stream_parameter.data_type.definition(ast) {
             Node::Primitive(_, b) if matches!(b, Primitive::Byte) => invoke_args.push(format!(
                 "new IceRpc.Slice.ByteStreamParamSender({})",
@@ -288,15 +289,10 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
 {payload_encoding},
 {encode_action}
 )",
-                stream_type = stream_parameter.data_type.to_type_string(
-                    namespace,
-                    ast,
-                    TypeContext::Outgoing
-                ),
+                stream_type = stream_type.to_type_string(namespace, ast, TypeContext::Outgoing),
                 stream_parameter = stream_parameter_name,
                 payload_encoding = payload_encoding,
-                encode_action =
-                    encode_action(&stream_parameter.data_type, namespace, true, true, ast).indent()
+                encode_action = encode_action(&stream_type, namespace, true, true, ast).indent()
             )),
         }
     } else {
@@ -311,6 +307,7 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
                 "streamParamReceiver!.ToByteStream()".to_owned()
             }
             _ => {
+                let stream_type = clone_as_non_streamed(&stream_return.data_type);
                 format!(
                     "\
 streamParamReceiver!.ToAsyncEnumerable<{stream_type}>(
@@ -318,12 +315,8 @@ response,
 invoker,
 response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 {decode_func})",
-                    stream_type = stream_return.data_type.to_type_string(
-                        namespace,
-                        ast,
-                        TypeContext::Incoming
-                    ),
-                    decode_func = decode_func(&stream_return.data_type, namespace, ast).indent()
+                    stream_type = stream_type.to_type_string(namespace, ast, TypeContext::Incoming),
+                    decode_func = decode_func(&stream_type, namespace, ast).indent()
                 )
             }
         };
@@ -441,9 +434,14 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
 
 fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let namespace = &interface_def.namespace();
-    let operations = interface_def.operations(ast);
+    let operations = interface_def
+        .operations(ast)
+        .iter()
+        .filter(|o| o.has_non_streamed_params(ast))
+        .cloned()
+        .collect::<Vec<_>>();
 
-    if !operations.iter().any(|o| o.has_non_streamed_params(ast)) {
+    if operations.is_empty() {
         return "".into();
     }
 
@@ -543,9 +541,14 @@ fn request_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
 fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let namespace = &interface_def.namespace();
-    let operations = interface_def.operations(ast);
+    let operations = interface_def
+        .operations(ast)
+        .iter()
+        .filter(|o| o.has_non_streamed_return(ast))
+        .cloned()
+        .collect::<Vec<_>>();
 
-    if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
+    if operations.is_empty() {
         return "".into();
     }
 

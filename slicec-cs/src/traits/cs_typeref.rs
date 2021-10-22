@@ -31,8 +31,7 @@ impl CsTypeRef for TypeRef {
     }
 
     fn to_type_string(&self, scope: &str, ast: &Ast, context: TypeContext) -> String {
-        let node = self.definition(ast);
-        let type_str = match node {
+        let type_str = match self.definition(ast) {
             Node::Struct(_, struct_def) => struct_def.escape_scoped_identifier(scope),
             Node::Class(_, class_def) => class_def.escape_scoped_identifier(scope),
             Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(scope),
@@ -64,12 +63,20 @@ impl CsTypeRef for TypeRef {
                 Primitive::String => "string",
             }
             .to_owned(),
-            _ => {
+            node => {
                 panic!("Node does not represent a type: '{:?}'!", node);
             }
         };
 
-        if self.is_optional {
+        if self.is_streamed {
+            match type_str.as_str() {
+                "byte" => "global::System.IO.Stream".to_owned(),
+                _ => format!(
+                    "global::System.Collections.Generic.IAsyncEnumerable<{}>",
+                    type_str
+                ),
+            }
+        } else if self.is_optional {
             format!("{}?", type_str)
         } else {
             type_str
