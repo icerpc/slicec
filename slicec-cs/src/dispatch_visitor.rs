@@ -366,6 +366,7 @@ fn operation_dispatch_body(operation: &Operation, ast: &Ast) -> CodeBlock {
         [] => {}
         [_] if stream_parameter.is_some() => {
             let stream_parameter = stream_parameter.unwrap();
+            let stream_type = clone_as_non_streamed(&stream_parameter.data_type);
             let name = stream_parameter.parameter_name_with_prefix("iceP_");
             let stream_assignment = match stream_parameter.data_type.definition(ast) {
                 Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
@@ -379,15 +380,9 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
     request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func})
     ",
-                        stream_type = stream_parameter
-                            .data_type
-                            .clone_with_streamed(false)
-                            .to_type_string(namespace, ast, TypeContext::Outgoing),
-                        decode_func = decode_func(
-                            &stream_parameter.data_type.clone_with_streamed(false),
-                            namespace,
-                            ast
-                        )
+                        stream_type =
+                            stream_type.to_type_string(namespace, ast, TypeContext::Outgoing),
+                        decode_func = decode_func(&stream_type, namespace, ast)
                     )
                 }
             };
@@ -540,27 +535,25 @@ fn stream_param_sender(operation: &Operation, encoding: &str, ast: &Ast) -> Code
                 )
             };
 
-            let stream_type = stream_return
-                .data_type
-                .clone_with_streamed(false)
-                .to_type_string(namespace, ast, TypeContext::Outgoing);
-
             match node {
-            Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
-                format!("new IceRpc.Slice.ByteStreamParamSender({})", stream_arg).into()
-            }
-            _ => format!("\
+                Node::Primitive(_, b) if matches!(b, Primitive::Byte) => {
+                    format!("new IceRpc.Slice.ByteStreamParamSender({})", stream_arg).into()
+                }
+                _ => {
+                    let stream_type = clone_as_non_streamed(&stream_return.data_type);
+                    format!("\
 new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>({stream_arg}, {encoding}, {encode_action})",
-                         stream_type = stream_type,
-                         stream_arg = stream_arg,
-                         encoding = encoding,
-                         encode_action = encode_action(
-                             &stream_return.data_type.clone_with_streamed(false),
-                             namespace,
-                             false,
-                             false,
-                             ast),
-            ).into()
+                             stream_type = stream_type.to_type_string(namespace, ast, TypeContext::Outgoing),
+                             stream_arg = stream_arg,
+                             encoding = encoding,
+                             encode_action = encode_action(
+                                 &stream_type,
+                                 namespace,
+                                 false,
+                                 false,
+                                 ast),
+                    ).into()
+                }
             }
         }
     }

@@ -2,6 +2,7 @@
 
 use crate::ast::Ast;
 use crate::grammar::Member;
+use crate::grammar::TypeRef;
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -111,4 +112,16 @@ macro_rules! is_some {
             None
         }
     }};
+}
+
+pub fn clone_as_non_optional(type_ref: &TypeRef) -> TypeRef {
+    let mut cloned = type_ref.clone();
+    cloned.is_optional = false;
+    cloned
+}
+
+pub fn clone_as_non_streamed(type_ref: &TypeRef) -> TypeRef {
+    let mut cloned = type_ref.clone();
+    cloned.is_streamed = false;
+    cloned
 }

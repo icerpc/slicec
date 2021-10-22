@@ -340,11 +340,7 @@ pub fn decode_func(type_ref: &TypeRef, scope: &str, ast: &Ast) -> CodeBlock {
 
     // For value types the type declaration includes ? at the end, but the type name does not.
     let type_name = match type_ref.is_optional && type_ref.is_value_type(ast) {
-        true => {
-            type_ref
-                .clone_with_optional(false)
-                .to_type_string(scope, ast, TypeContext::Incoming)
-        }
+        true => clone_as_non_optional(type_ref).to_type_string(scope, ast, TypeContext::Incoming),
         _ => type_ref.to_type_string(scope, ast, TypeContext::Incoming),
     };
 
@@ -496,10 +492,8 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
             stream_member
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::Incoming);
-        let param_type = stream_member
-            .data_type
-            .clone_with_streamed(false)
-            .to_type_string(namespace, ast, TypeContext::Incoming);
+        let param_type = clone_as_non_streamed(&stream_member.data_type);
+        let param_type_str = param_type.to_type_string(namespace, ast, TypeContext::Incoming);
 
         let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
             Node::Primitive(_, primitive) if matches!(primitive, Primitive::Byte) => {
@@ -519,12 +513,8 @@ streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
     invoker,
     response.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
-                        param_type = param_type,
-                        decode_func = decode_func(
-                            &stream_member.data_type.clone_with_streamed(false),
-                            namespace,
-                            ast
-                        )
+                        param_type = param_type_str,
+                        decode_func = decode_func(&param_type, namespace, ast)
                     )
                     .into()
                 } else {
@@ -534,12 +524,8 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{param_type}>(
     request,
     request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
-                        param_type = param_type,
-                        decode_func = decode_func(
-                            &stream_member.data_type.clone_with_streamed(false),
-                            namespace,
-                            ast
-                        )
+                        param_type = param_type_str,
+                        decode_func = decode_func(&param_type, namespace, ast)
                     )
                     .into()
                 }
