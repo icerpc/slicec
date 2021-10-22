@@ -52,7 +52,7 @@ private static readonly DefaultIceDecoderFactories _defaultIceDecoderFactories =
 
         for operation in interface_def.operations(ast) {
             interface_builder.add_block(encoded_result_struct(operation, ast));
-            interface_builder.add_block(operation_declaration(operation, ast));
+            interface_builder.add_block(operation_declaration(interface_def, operation, ast));
         }
 
         for operation in interface_def.operations(ast) {
@@ -291,12 +291,11 @@ pub fn response_encode_action(operation: &Operation, ast: &Ast) -> CodeBlock {
     }
 }
 
-fn operation_declaration(operation: &Operation, ast: &Ast) -> CodeBlock {
+fn operation_declaration(interface_def: &Interface, operation: &Operation, ast: &Ast) -> CodeBlock {
     // TODO: operation obsolete deprecation
-    let namespace = &operation.namespace();
     FunctionBuilder::new(
         "public",
-        &operation.return_task(namespace, true, ast),
+        &operation.return_task(interface_def, true, ast),
         &(operation.escape_identifier() + "Async"),
         FunctionType::Declaration,
     )
@@ -440,7 +439,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
 
         writeln!(
             code,
-            "return ({encoding}, returnValue,Payload, null)",
+            "return ({encoding}, returnValue.Payload, null);",
             encoding = encoding
         );
     } else {
