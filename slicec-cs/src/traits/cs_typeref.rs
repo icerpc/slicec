@@ -4,6 +4,7 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::TypeContext;
 
+use super::cs_interface::CsInterfaceInfo;
 use super::cs_named_symbol::CsNamedSymbol;
 
 pub trait CsTypeRef {
@@ -37,7 +38,7 @@ impl CsTypeRef for TypeRef {
             Node::Exception(_, exception_def) => exception_def.escape_scoped_identifier(namespace),
             Node::Enum(_, enum_def) => enum_def.escape_scoped_identifier(namespace),
             Node::Interface(_, interface_def) => {
-                interface_def.escape_scoped_identifier(namespace) + "Prx"
+                interface_def.scoped_proxy_implementation_name(namespace)
             }
             Node::Sequence(_, sequence) => {
                 sequence_type_to_string(self, sequence, namespace, ast, context)

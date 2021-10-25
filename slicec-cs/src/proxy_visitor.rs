@@ -21,6 +21,7 @@ pub struct ProxyVisitor<'a> {
 
 impl<'a> Visitor for ProxyVisitor<'_> {
     fn visit_interface_start(&mut self, interface_def: &Interface, _: usize, ast: &Ast) {
+        let namespace = interface_def.namespace();
         let prx_interface = interface_def.proxy_name(); // IFooPrx
         let prx_impl: String = interface_def.proxy_implementation_name(); // FooPrx
 
@@ -31,7 +32,7 @@ impl<'a> Visitor for ProxyVisitor<'_> {
 
         let mut all_base_impl: Vec<String> = all_bases
             .iter()
-            .map(|b| b.proxy_implementation_name())
+            .map(|b| b.scoped_proxy_implementation_name(&namespace))
             .collect();
 
         let mut add_service_prx = false;
@@ -44,7 +45,10 @@ impl<'a> Visitor for ProxyVisitor<'_> {
         }
 
         // prx bases
-        let prx_bases: Vec<String> = bases.into_iter().map(|b| b.proxy_name()).collect();
+        let prx_bases: Vec<String> = bases
+            .into_iter()
+            .map(|b| b.scoped_proxy_name(&namespace))
+            .collect();
 
         let summary_message = format!(
             r#"The client-side interface for Slice interface {}. <seealso cref="{}"/>.
@@ -205,7 +209,7 @@ public override string ToString() => Proxy.ToString();"#,
 fn proxy_operation_impl(interface_def: &Interface, operation: &Operation, ast: &Ast) -> CodeBlock {
     let namespace = &operation.namespace();
     let operation_name = operation.escape_identifier();
-    let async_operation_name = operation_name.clone() + "Async";
+    let async_operation_name = operation.escape_identifier_with_suffix("Async");
     let return_task = operation.return_task(interface_def, false, ast);
     let is_oneway = operation.has_attribute("oneway");
 
@@ -360,7 +364,7 @@ fn proxy_base_operation_impl(
     operation: &Operation,
     ast: &Ast,
 ) -> CodeBlock {
-    let async_name = format!("{}Async", operation.escape_identifier());
+    let async_name = operation.escape_identifier_with_suffix("Async");
     let return_task = operation.return_task(interface_def, false, ast);
     let mut operation_params = operation
         .parameters(ast)
@@ -418,7 +422,7 @@ fn proxy_interface_operations(interface_def: &Interface, ast: &Ast) -> CodeBlock
             &FunctionBuilder::new(
                 "",
                 &operation.return_task(interface_def, false, ast),
-                &(operation.escape_identifier() + "Async"),
+                &operation.escape_identifier_with_suffix("Async"),
                 FunctionType::Declaration,
             )
             .add_container_attributes(interface_def)
