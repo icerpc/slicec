@@ -1,9 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::cs_named_symbol::CsNamedSymbol;
 use slice::grammar::{Interface, NamedSymbol};
 use slice::util::{fix_case, CaseStyle};
 
-pub trait CsInterfaceInfo {
+pub trait CsInterfaceInfo: CsNamedSymbol {
     /// The name of the generated C# interface for this Slice interface.
     /// eg. If the slice interface is `Foo`, the C# interface is `IFoo`.
     /// The name is always prefixed with `I` and the first letter is always
@@ -20,6 +21,24 @@ pub trait CsInterfaceInfo {
     /// eg. If the slice interface is `Foo`, the C# proxy is `IFooPrx`.
     fn proxy_name(&self) -> String {
         self.interface_name() + "Prx"
+    }
+
+    fn scoped_proxy_name(&self, current_namespace: &str) -> String {
+        let namespace = self.namespace();
+        if namespace == current_namespace {
+            self.proxy_name()
+        } else {
+            format!("global::{}.{}", namespace, self.proxy_name())
+        }
+    }
+
+    fn scoped_proxy_implementation_name(&self, current_namespace: &str) -> String {
+        let namespace = self.namespace();
+        if namespace == current_namespace {
+            self.proxy_implementation_name()
+        } else {
+            format!("global::{}.{}", namespace, self.proxy_implementation_name())
+        }
     }
 }
 

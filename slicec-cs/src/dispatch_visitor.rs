@@ -296,7 +296,7 @@ fn operation_declaration(interface_def: &Interface, operation: &Operation, ast: 
     FunctionBuilder::new(
         "public",
         &operation.return_task(interface_def, true, ast),
-        &(operation.escape_identifier() + "Async"),
+        &(operation.escape_identifier_with_suffix("Async")),
         FunctionType::Declaration,
     )
     .add_comment("summary", &doc_comment_message(operation))
