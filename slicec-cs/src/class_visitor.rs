@@ -4,11 +4,11 @@ use crate::builders::{
     AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
 };
 use crate::code_block::CodeBlock;
-use crate::code_map::CodeMap;
 use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
+use crate::generated_code::GeneratedCode;
 use crate::member_util::*;
 use crate::slicec_ext::*;
 use slice::ast::Ast;
@@ -17,7 +17,7 @@ use slice::util::TypeContext;
 use slice::visitor::Visitor;
 
 pub struct ClassVisitor<'a> {
-    pub code_map: &'a mut CodeMap,
+    pub generated_code: &'a mut GeneratedCode,
 }
 
 impl<'a> Visitor for ClassVisitor<'_> {
@@ -148,8 +148,8 @@ impl<'a> Visitor for ClassVisitor<'_> {
 
         class_builder.add_block(encode_and_decode(class_def, ast));
 
-        self.code_map
-            .insert(class_def, class_builder.build().into());
+        self.generated_code
+            .insert_scoped(class_def, class_builder.build().into());
     }
 }
 
