@@ -48,10 +48,25 @@ impl CodeBlock {
     }
 }
 
-/// Formats a CodeBlock for display. Whitespace characters are removed from the beginning and end.
+/// Formats a CodeBlock for display. Whitespace characters are removed from the beginning, the end,
+/// and from lines that only contain whitespaces.
 impl fmt::Display for CodeBlock {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.content.trim_matches(char::is_whitespace))
+        write!(
+            f,
+            "{}",
+            self.content
+                .lines()
+                .map(
+                    |line| match line.trim_matches(char::is_whitespace).is_empty() {
+                        true => "",
+                        _ => line.trim_end_matches(char::is_whitespace),
+                    },
+                )
+                .collect::<Vec<_>>()
+                .join("\n")
+                .trim_matches(char::is_whitespace)
+        )
     }
 }
 
