@@ -65,7 +65,7 @@ impl<'a> Visitor for ClassVisitor<'_> {
                 .iter()
                 .map(|m| data_member_declaration(m, false, FieldType::Class, ast))
                 .collect::<Vec<_>>()
-                .join("\n\n")
+                .join("\n")
                 .into(),
         );
 
