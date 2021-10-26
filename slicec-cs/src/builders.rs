@@ -7,7 +7,7 @@ use slice::util::TypeContext;
 use crate::code_block::CodeBlock;
 use crate::comments::{operation_parameter_doc_comment, CommentTag};
 use crate::member_util::escape_parameter_name;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 trait Builder {
     fn build(&self) -> String;

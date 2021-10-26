@@ -4,10 +4,10 @@ use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::TypeContext;
 
-use super::cs_interface::CsInterfaceInfo;
-use super::cs_named_symbol::CsNamedSymbol;
+use super::interface_ext::InterfaceExt;
+use super::named_symbol_ext::NamedSymbolExt;
 
-pub trait CsTypeRef {
+pub trait TypeRefExt {
     /// Is the type a reference type (eg. Class)
     fn is_reference_type(&self, ast: &Ast) -> bool;
 
@@ -18,7 +18,7 @@ pub trait CsTypeRef {
     fn to_type_string(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
 }
 
-impl CsTypeRef for TypeRef {
+impl TypeRefExt for TypeRef {
     fn is_reference_type(&self, ast: &Ast) -> bool {
         !self.is_value_type(ast)
     }

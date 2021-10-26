@@ -8,7 +8,7 @@ use crate::cs_util::FieldType;
 use crate::decoding::*;
 use crate::encoding::*;
 use crate::member_util::*;
-use crate::traits::{CsMemberInfo, CsNamedSymbol, CsTypeRef};
+use crate::slicec_ext::{MemberExt, NamedSymbolExt, TypeRefExt};
 
 use slice::ast::Ast;
 use slice::grammar::*;

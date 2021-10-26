@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use super::cs_named_symbol::CsNamedSymbol;
+use super::named_symbol_ext::NamedSymbolExt;
 use slice::grammar::{Interface, NamedSymbol};
 use slice::util::{fix_case, CaseStyle};
 
-pub trait CsInterfaceInfo: CsNamedSymbol {
+pub trait InterfaceExt: NamedSymbolExt {
     /// The name of the generated C# interface for this Slice interface.
     /// eg. If the slice interface is `Foo`, the C# interface is `IFoo`.
     /// The name is always prefixed with `I` and the first letter is always
@@ -42,7 +42,7 @@ pub trait CsInterfaceInfo: CsNamedSymbol {
     }
 }
 
-impl CsInterfaceInfo for Interface {
+impl InterfaceExt for Interface {
     fn interface_name(&self) -> String {
         let identifier = fix_case(self.identifier(), CaseStyle::Pascal);
         let mut chars = identifier.chars();

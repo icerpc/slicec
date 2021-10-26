@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::cs_util::escape_keyword;
 use slice::grammar::NamedSymbol;
 use slice::util::{fix_case, CaseStyle};
 
-use crate::cs_util::escape_keyword;
-pub trait CsNamedSymbol: NamedSymbol {
+pub trait NamedSymbolExt: NamedSymbol {
     /// Escapes and returns the definition's identifier, without any scoping.
     /// If the identifier is a C# keyword, a '@' prefix is appended to it.
     fn escape_identifier(&self) -> String;
@@ -27,7 +27,10 @@ pub trait CsNamedSymbol: NamedSymbol {
     fn namespace(&self) -> String;
 }
 
-impl<T: NamedSymbol + ?Sized> CsNamedSymbol for T {
+impl<T> NamedSymbolExt for T
+where
+    T: NamedSymbol + ?Sized,
+{
     /// Escapes and returns the definition's identifier, without any scoping.
     /// If the identifier is a C# keyword, a '@' prefix is appended to it.
     fn escape_identifier(&self) -> String {

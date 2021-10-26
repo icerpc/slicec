@@ -2,7 +2,7 @@
 
 use slice::grammar::NamedSymbol;
 
-pub trait CsAttribute {
+pub trait AttributeExt {
     fn custom_attributes(&self) -> Vec<String>;
     fn obsolete_attribute(&self, check_parent: bool) -> Option<String>;
 
@@ -10,7 +10,7 @@ pub trait CsAttribute {
     fn type_id_attribute(&self) -> String;
 }
 
-impl<T: NamedSymbol + ?Sized> CsAttribute for T {
+impl<T: NamedSymbol + ?Sized> AttributeExt for T {
     fn custom_attributes(&self) -> Vec<String> {
         if let Some(attributes) = self.find_attribute("cs:attribute") {
             attributes.to_vec()

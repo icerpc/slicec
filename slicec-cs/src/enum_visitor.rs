@@ -3,7 +3,7 @@ use crate::code_block::CodeBlock;
 use crate::code_map::CodeMap;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 use slice::ast::{Ast, Node};
 use slice::grammar::*;

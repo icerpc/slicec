@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;

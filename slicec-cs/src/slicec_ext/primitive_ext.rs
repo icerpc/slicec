@@ -2,12 +2,12 @@
 
 use slice::grammar::Primitive;
 
-pub trait CsPrimitiveInfo {
+pub trait PrimitiveExt {
     /// The primitive's type stuff used as the suffix to encoder and decoder operations.
     fn type_suffix(&self) -> &'static str;
 }
 
-impl CsPrimitiveInfo for Primitive {
+impl PrimitiveExt for Primitive {
     fn type_suffix(&self) -> &'static str {
         match self {
             Primitive::Bool => "Bool",
