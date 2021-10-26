@@ -13,7 +13,7 @@ use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoded_result::encoded_result_struct;
 use crate::encoding::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 pub struct DispatchVisitor<'a> {
     pub code_map: &'a mut CodeMap,

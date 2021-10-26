@@ -7,7 +7,7 @@ use slice::util::TypeContext;
 use crate::code_block::CodeBlock;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 pub fn escape_parameter_name(parameters: &[&Member], name: &str) -> String {
     if parameters.iter().any(|p| p.identifier() == name) {

@@ -9,7 +9,7 @@ use crate::comments::*;
 use crate::decoding::*;
 use crate::encoding::*;
 use crate::member_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 use slice::ast::{Ast, Node};
 use slice::grammar::*;
 use slice::util::*;

@@ -1,19 +1,19 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use super::{CsNamedSymbol, CsTypeRef};
+use super::{NamedSymbolExt, TypeRefExt};
 use crate::cs_util::{escape_keyword, mangle_name, FieldType};
 use slice::ast::{Ast, Node};
 use slice::grammar::{Member, NamedSymbol};
 use slice::util::{fix_case, CaseStyle, TypeContext};
 
-pub trait CsMemberInfo {
+pub trait MemberExt {
     fn parameter_name(&self) -> String;
     fn parameter_name_with_prefix(&self, prefix: &str) -> String;
     fn field_name(&self, field_type: FieldType) -> String;
     fn is_default_initialized(&self, ast: &Ast) -> bool;
 }
 
-impl CsMemberInfo for Member {
+impl MemberExt for Member {
     fn parameter_name(&self) -> String {
         escape_keyword(&fix_case(self.identifier(), CaseStyle::Camel))
     }
@@ -44,13 +44,13 @@ impl CsMemberInfo for Member {
     }
 }
 
-pub trait MemberListInfo {
+pub trait MemberSliceExt {
     fn to_argument_tuple(&self, prefix: &str) -> String;
     fn to_tuple_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
     fn to_return_type(&self, namespace: &str, ast: &Ast, context: TypeContext) -> String;
 }
 
-impl MemberListInfo for [&Member] {
+impl MemberSliceExt for [&Member] {
     fn to_argument_tuple(&self, prefix: &str) -> String {
         match self {
             [] => panic!("tuple type with no members"),

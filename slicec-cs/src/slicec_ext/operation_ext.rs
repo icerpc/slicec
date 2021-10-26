@@ -1,12 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use super::{CsNamedSymbol, CsTypeRef, MemberListInfo};
-use crate::traits::*;
+use super::{MemberSliceExt, NamedSymbolExt, TypeRefExt};
+use crate::slicec_ext::*;
 use slice::ast::Ast;
 use slice::grammar::{Interface, Operation, ScopedSymbol};
 use slice::util::TypeContext;
 
-pub trait CsOperation {
+pub trait OperationExt {
     /// Returns true if the operation has the `cs:encoded-result` attribute. False otherwise.
     fn has_encoded_result(&self) -> bool;
 
@@ -20,7 +20,7 @@ pub trait CsOperation {
     fn return_task(&self, interface_def: &Interface, is_dispatch: bool, ast: &Ast) -> String;
 }
 
-impl CsOperation for Operation {
+impl OperationExt for Operation {
     // TODO: should this move to slice library that and take a language prefix parameter?
     // parameter
     fn has_encoded_result(&self) -> bool {

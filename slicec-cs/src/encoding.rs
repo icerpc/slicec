@@ -6,7 +6,7 @@ use slice::util::*;
 
 use crate::code_block::CodeBlock;
 use crate::cs_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 pub fn encode_data_members(
     members: &[&Member],

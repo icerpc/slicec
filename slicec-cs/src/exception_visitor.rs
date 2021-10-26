@@ -10,7 +10,7 @@ use crate::cs_util::*;
 use crate::decoding::decode_data_members;
 use crate::encoding::encode_data_members;
 use crate::member_util::*;
-use crate::traits::*;
+use crate::slicec_ext::*;
 use slice::ast::Ast;
 use slice::grammar::Exception;
 use slice::util::TypeContext;

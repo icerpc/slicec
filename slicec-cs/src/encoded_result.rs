@@ -7,7 +7,7 @@ use slice::util::TypeContext;
 use crate::builders::{CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType};
 use crate::code_block::CodeBlock;
 use crate::member_util::escape_parameter_name;
-use crate::traits::*;
+use crate::slicec_ext::*;
 
 use crate::dispatch_visitor::response_encode_action;
 
