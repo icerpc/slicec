@@ -30,7 +30,8 @@ use generated_code::GeneratedCode;
 use module_visitor::ModuleVisitor;
 use proxy_visitor::ProxyVisitor;
 use slice::slice_file::SliceFile;
-use slice::writer::Writer;
+use std::fs::File;
+use std::io::prelude::*;
 use std::path::Path;
 use struct_visitor::StructVisitor;
 use structopt::StructOpt;
@@ -96,22 +97,37 @@ fn try_main() -> Result<(), ()> {
                 .join(format!("{}.cs", &slice_file.filename))
                 .to_owned();
 
-                let mut output = Writer::new(&path).unwrap();
-                output.write(
-                    &generated_code
+                let mut file = match File::create(&path) {
+                    Ok(file) => file,
+                    Err(err) => {
+                        data.error_handler.report_error(
+                            format!("failed to create file {}: {}", &path.display(), err).into(),
+                        );
+                        continue;
+                    }
+                };
+
+                match file.write_all(
+                    generated_code
                         .code_blocks
-                        .iter()
-                        .cloned()
+                        .into_iter()
                         .collect::<CodeBlock>()
-                        .to_string(),
-                );
-                output.close()
+                        .into_string()
+                        .as_bytes(),
+                ) {
+                    Ok(_) => (),
+                    Err(err) => {
+                        data.error_handler.report_error(
+                            format!("failed to write to file {}: {}", &path.display(), err).into(),
+                        );
+                        continue;
+                    }
+                }
             }
         }
     }
 
-    let _ = slice::handle_errors(true, &mut data.error_handler, &data.slice_files);
-    Ok(())
+    slice::handle_errors(true, &mut data.error_handler, &data.slice_files)
 }
 
 fn preamble(slice_file: &SliceFile) -> CodeBlock {

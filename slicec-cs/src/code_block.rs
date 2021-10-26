@@ -46,6 +46,11 @@ impl CodeBlock {
     pub fn is_empty(&self) -> bool {
         self.content.trim_matches(char::is_whitespace).is_empty()
     }
+
+    pub fn into_string(self) -> String {
+        // Do not return content here as we want the the format function to be applied first
+        self.to_string()
+    }
 }
 
 /// Formats a CodeBlock for display. Whitespace characters are removed from the beginning, the end,
