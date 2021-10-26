@@ -7,16 +7,16 @@ use crate::builders::{
     AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
 };
 use crate::code_block::CodeBlock;
-use crate::code_map::CodeMap;
 use crate::comments::doc_comment_message;
 use crate::cs_util::*;
 use crate::decoding::*;
 use crate::encoded_result::encoded_result_struct;
 use crate::encoding::*;
+use crate::generated_code::GeneratedCode;
 use crate::slicec_ext::*;
 
 pub struct DispatchVisitor<'a> {
-    pub code_map: &'a mut CodeMap,
+    pub generated_code: &'a mut GeneratedCode,
 }
 
 impl<'a> Visitor for DispatchVisitor<'_> {
@@ -59,8 +59,8 @@ private static readonly DefaultIceDecoderFactories _defaultIceDecoderFactories =
             interface_builder.add_block(operation_dispatch(interface_def, operation, ast));
         }
 
-        self.code_map
-            .insert(interface_def, interface_builder.build().into());
+        self.generated_code
+            .insert_scoped(interface_def, interface_builder.build().into());
     }
 }
 

@@ -4,10 +4,10 @@ use crate::builders::{
     AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
 };
 use crate::code_block::CodeBlock;
-use crate::code_map::CodeMap;
 use crate::comments::*;
 use crate::decoding::*;
 use crate::encoding::*;
+use crate::generated_code::GeneratedCode;
 use crate::member_util::*;
 use crate::slicec_ext::*;
 use slice::ast::{Ast, Node};
@@ -16,7 +16,7 @@ use slice::util::*;
 use slice::visitor::Visitor;
 
 pub struct ProxyVisitor<'a> {
-    pub code_map: &'a mut CodeMap,
+    pub generated_code: &'a mut GeneratedCode,
 }
 
 impl<'a> Visitor for ProxyVisitor<'_> {
@@ -142,7 +142,8 @@ public global::System.Threading.Tasks.Task IcePingAsync(
             proxy_impl = proxy_impl_builder.build()
         );
 
-        self.code_map.insert(interface_def, code.into())
+        self.generated_code
+            .insert_scoped(interface_def, code.into())
     }
 }
 

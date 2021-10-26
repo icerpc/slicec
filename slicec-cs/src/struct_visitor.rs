@@ -2,11 +2,11 @@ use crate::builders::{
     AttributeBuilder, CommentBuilder, ContainerBuilder, FunctionBuilder, FunctionType,
 };
 use crate::code_block::CodeBlock;
-use crate::code_map::CodeMap;
 use crate::comments::doc_comment_message;
 use crate::cs_util::FieldType;
 use crate::decoding::*;
 use crate::encoding::*;
+use crate::generated_code::GeneratedCode;
 use crate::member_util::*;
 use crate::slicec_ext::{MemberExt, NamedSymbolExt, TypeRefExt};
 
@@ -17,7 +17,7 @@ use slice::visitor::Visitor;
 
 #[derive(Debug)]
 pub struct StructVisitor<'a> {
-    pub code_map: &'a mut CodeMap,
+    pub generated_code: &'a mut GeneratedCode,
 }
 
 impl<'a> Visitor for StructVisitor<'a> {
@@ -116,6 +116,7 @@ impl<'a> Visitor for StructVisitor<'a> {
                 .build(),
         );
 
-        self.code_map.insert(struct_def, builder.build().into());
+        self.generated_code
+            .insert_scoped(struct_def, builder.build().into());
     }
 }

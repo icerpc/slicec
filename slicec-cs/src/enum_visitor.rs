@@ -1,8 +1,8 @@
 use crate::builders::{AttributeBuilder, CommentBuilder, ContainerBuilder};
 use crate::code_block::CodeBlock;
-use crate::code_map::CodeMap;
 use crate::comments::{doc_comment_message, CommentTag};
 use crate::cs_util::*;
+use crate::generated_code::GeneratedCode;
 use crate::slicec_ext::*;
 
 use slice::ast::{Ast, Node};
@@ -13,7 +13,7 @@ use slice::visitor::Visitor;
 
 #[derive(Debug)]
 pub struct EnumVisitor<'a> {
-    pub code_map: &'a mut CodeMap,
+    pub generated_code: &'a mut GeneratedCode,
 }
 
 impl<'a> Visitor for EnumVisitor<'a> {
@@ -21,7 +21,7 @@ impl<'a> Visitor for EnumVisitor<'a> {
         let mut code = CodeBlock::new();
         code.add_block(&enum_declaration(enum_def, ast));
         code.add_block(&enum_helper(enum_def, ast));
-        self.code_map.insert(enum_def, code);
+        self.generated_code.insert_scoped(enum_def, code);
     }
 }
 
