@@ -136,5 +136,9 @@ pub fn mangle_name(identifier: &str, field_type: FieldType) -> String {
     };
 
     // If the name conflicts with a base method, add an "Ice" prefix to it.
-    (if needs_mangling { "Ice" } else { "" }).to_owned() + identifier
+    if needs_mangling {
+        format!("Ice{}", identifier)
+    } else {
+        identifier.to_owned()
+    }
 }

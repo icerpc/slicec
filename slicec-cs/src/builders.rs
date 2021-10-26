@@ -289,8 +289,8 @@ impl FunctionBuilder {
                 |vec| {
                     vec.iter()
                         .map(|a| format!("[{}]", a))
-                        .collect::<Vec<String>>()
-                        .join(" ")
+                        .collect::<Vec<_>>()
+                        .join("\n")
                 },
             );
 
