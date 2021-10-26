@@ -36,14 +36,8 @@ use structopt::StructOpt;
 
 pub fn main() {
     std::process::exit(match try_main() {
-        Ok(()) => {
-            println!("SUCCESS");
-            0
-        }
-        Err(()) => {
-            println!("FAILED");
-            1
-        }
+        Ok(()) => 0,
+        Err(()) => 1,
     })
 }
 
