@@ -188,6 +188,16 @@ impl Module {
     pub fn is_top_level(&self) -> bool {
         self.scope() == "::"
     }
+
+    pub fn submodules<'a>(&self, ast: &'a Ast) -> Vec<&'a Module> {
+        self.contents
+            .iter()
+            .filter_map(|index| match ast.resolve_index(*index) {
+                Node::Module(_, m) => Some(m),
+                _ => None,
+            })
+            .collect()
+    }
 }
 
 #[derive(Clone, Debug)]

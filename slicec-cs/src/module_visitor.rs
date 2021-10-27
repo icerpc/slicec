@@ -26,22 +26,21 @@ impl Visitor for ModuleVisitor<'_> {
         top_level_modules.dedup_by_key(|m| m.identifier());
 
         for module in top_level_modules {
-            self.generated_code
-                .code_blocks
-                .push(self.module_code_block(module, None, ast));
+            let code_block = self.module_code_block(module, None, ast);
+            self.generated_code.code_blocks.push(code_block);
         }
     }
 }
 
 impl ModuleVisitor<'_> {
     fn module_code_block(
-        &self,
+        &mut self,
         module: &Module,
         module_prefix: Option<String>,
         ast: &Ast,
     ) -> CodeBlock {
-        let submodules = submodules(module, ast);
-        let code_blocks = self.generated_code.get_scoped(module);
+        let submodules = module.submodules(ast);
+        let code_blocks = self.generated_code.remove_scoped(module);
 
         let module_identifier = match &module_prefix {
             Some(prefix) => format!("{}.{}", prefix, module.identifier()),
@@ -63,7 +62,7 @@ impl ModuleVisitor<'_> {
             let mut builder = ContainerBuilder::new("namespace", &module_identifier);
 
             for code in vec {
-                builder.add_block(code.to_owned());
+                builder.add_block(code);
             }
 
             builder.add_block(submodules_code);
@@ -72,17 +71,4 @@ impl ModuleVisitor<'_> {
             submodules_code
         }
     }
-}
-
-// TODO: not sure if this will be necessary with the new version of the compiler. If it is we can
-// move to an extension trait
-fn submodules<'a>(module: &Module, ast: &'a Ast) -> Vec<&'a Module> {
-    module
-        .contents
-        .iter()
-        .filter_map(|index| match ast.resolve_index(*index) {
-            Node::Module(_, m) => Some(m),
-            _ => None,
-        })
-        .collect()
 }

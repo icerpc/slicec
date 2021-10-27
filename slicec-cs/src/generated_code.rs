@@ -27,12 +27,13 @@ impl GeneratedCode {
         };
     }
 
-    pub fn get_scoped(&self, module: &Module) -> Option<&Vec<CodeBlock>> {
+    /// Removes (and returns) the code blocks for the given module.
+    pub fn remove_scoped(&mut self, module: &Module) -> Option<Vec<CodeBlock>> {
         let scope = format!(
             "{}::{}",
             if module.is_top_level() { "" } else { module.scope() },
             module.identifier()
         );
-        self.scoped_code_blocks.get(&scope)
+        self.scoped_code_blocks.remove(&scope)
     }
 }
