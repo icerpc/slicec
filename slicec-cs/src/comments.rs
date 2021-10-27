@@ -123,7 +123,7 @@ impl fmt::Display for CsharpComment {
             writeln!(
                 f,
                 "{}",
-                CommentTag::with_tag_attribute("exceptions", "cref", exception, description)
+                CommentTag::with_tag_attribute("exception", "cref", exception, description)
             )?;
         }
 

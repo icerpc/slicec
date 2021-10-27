@@ -75,10 +75,10 @@ pub fn encode_type(
 
     match node {
         Node::Interface(_, _) => {
-            writeln!(code, "encoder.EncodeProxy({}.Proxy);", param)
+            writeln!(code, "encoder.EncodeProxy({}.Proxy);", value)
         }
         Node::Class(_, _) => {
-            writeln!(code, "encoder.EncodeClass({});", param)
+            writeln!(code, "encoder.EncodeClass({});", value)
         }
         Node::Primitive(_, primitive) => {
             writeln!(
@@ -95,6 +95,7 @@ pub fn encode_type(
             code,
             "{};",
             encode_sequence(
+                type_ref,
                 sequence_def,
                 namespace,
                 param,
@@ -274,6 +275,7 @@ if ({param} != null)
 }
 
 pub fn encode_sequence(
+    type_ref: &TypeRef,
     sequence_def: &Sequence,
     namespace: &str,
     value: &str,
@@ -283,7 +285,7 @@ pub fn encode_sequence(
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let has_custom_type = false; // TODO: get from sequence metadata
+    let has_custom_type = matches!(type_ref.find_attribute("cs:generic"), Some(_));
     let mut args = Vec::new();
 
     if sequence_def.is_element_fixed_sized_numeric(ast) && (is_read_only && !has_custom_type) {
@@ -370,15 +372,6 @@ pub fn encode_as_optional(
         }
         _ => {
             assert!(*bit_sequence_index >= 0);
-            let read_only_memory = if let Node::Sequence(_, sequence_def) = node {
-                let has_custom_type = sequence_def.element_type.has_attribute("cs:generic:");
-                sequence_def.is_element_fixed_sized_numeric(ast)
-                    && !has_custom_type
-                    && !for_nested_type
-            } else {
-                false
-            };
-
             // A null T[]? or List<T>? is implicitly converted into a default aka null
             // ReadOnlyMemory<T> or ReadOnlySpan<T>. Furthermore, the span of a default
             // ReadOnlyMemory<T> is a default ReadOnlySpan<T>, which is distinct from
@@ -387,7 +380,7 @@ pub fn encode_as_optional(
             writeln!(
                 code,
                 "\
-if ({param}{as_span} != null)
+if ({param} != null)
 {{
     {encode_type}
 }}
@@ -396,8 +389,14 @@ else
     bitSequence[{bit_sequence_index}] = false;
 }}
 ",
-                param = param,
-                as_span = if read_only_memory { ".Span" } else { "" },
+                param = match node {
+                    Node::Sequence(_, sequence_def)
+                        if sequence_def.is_element_fixed_sized_numeric(ast)
+                            && !!matches!(type_ref.find_attribute("cs:generic"), Some(_))
+                            && !for_nested_type =>
+                        format!("{}.Span", param),
+                    _ => param.to_owned(),
+                },
                 encode_type = encode_type,
                 bit_sequence_index = *bit_sequence_index
             );
@@ -409,7 +408,7 @@ else
 }
 
 pub fn encode_action(
-    type_def: &TypeRef,
+    type_ref: &TypeRef,
     namespace: &str,
     is_read_only: bool,
     is_param: bool,
@@ -417,11 +416,11 @@ pub fn encode_action(
 ) -> CodeBlock {
     let mut code = CodeBlock::new();
 
-    let node = type_def.definition(ast);
+    let node = type_ref.definition(ast);
 
-    let is_optional = type_def.is_optional;
+    let is_optional = type_ref.is_optional;
 
-    let value = match (type_def.is_optional, type_def.is_value_type(ast)) {
+    let value = match (type_ref.is_optional, type_ref.is_value_type(ast)) {
         (true, false) => "value!",
         _ => "value",
     };
@@ -478,6 +477,7 @@ pub fn encode_action(
                 code,
                 "(encoder, value) => {}",
                 encode_sequence(
+                    type_ref,
                     sequence_def,
                     namespace,
                     "value",
@@ -501,13 +501,10 @@ pub fn encode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     let namespace = &operation.namespace();
 
     let members = if return_type {
-        operation.return_members(ast)
+        operation.non_streamed_returns(ast)
     } else {
-        operation.parameters(ast)
+        operation.non_streamed_params(ast)
     };
-
-    let (members, _streamed_members): (Vec<&Member>, Vec<&Member>) =
-        members.iter().partition(|m| !m.data_type.is_streamed);
 
     let (required_members, tagged_members) = get_sorted_members(&members);
 
