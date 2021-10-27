@@ -215,6 +215,7 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
     let members = class_def.members(ast);
     let has_base_class = class_def.base(ast).is_some();
 
+    // TODO check preserve-slice metadata
     // const bool basePreserved = p->inheritsMetadata("preserve-slice");
     // const bool preserved = p->hasMetadata("preserve-slice");
 
@@ -222,8 +223,9 @@ fn encode_and_decode(class_def: &Class, ast: &Ast) -> CodeBlock {
     let is_preserved = false;
 
     if is_preserved && !is_base_preserved {
-        let ice_unknown_slices = "protected override global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo> IceUnknownSlices { get; set; } = global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo>.Empty;".to_owned();
-        code.add_block(&ice_unknown_slices);
+        code.add_block("\
+protected override global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo> IceUnknownSlices { get; set; } =
+    global::System.Collections.Immutable.ImmutableList<IceRpc.Slice.SliceInfo>.Empty;");
     }
 
     let encode_class = FunctionBuilder::new(
