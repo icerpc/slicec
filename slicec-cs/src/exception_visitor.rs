@@ -53,7 +53,7 @@ impl<'a> Visitor for ExceptionVisitor<'_> {
                 .iter()
                 .map(|m| data_member_declaration(m, false, FieldType::Exception, ast))
                 .collect::<Vec<_>>()
-                .join("\n\n")
+                .join("\n")
                 .into(),
         );
 

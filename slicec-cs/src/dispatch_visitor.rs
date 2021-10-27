@@ -127,9 +127,14 @@ public static {return_type} {operation_name}(IceRpc.IncomingRequest request) =>
 fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
     let bases = interface_def.bases(ast);
 
-    let operations = interface_def.operations(ast);
+    let operations = interface_def
+        .operations(ast)
+        .iter()
+        .filter(|o| o.has_non_streamed_return(ast))
+        .cloned()
+        .collect::<Vec<_>>();
 
-    if !operations.iter().any(|o| o.has_non_streamed_return(ast)) {
+    if operations.is_empty() {
         return "".into();
     }
 
@@ -149,10 +154,6 @@ fn response_class(interface_def: &Interface, ast: &Ast) -> CodeBlock {
 
     for operation in operations {
         let non_streamed_returns = operation.non_streamed_returns(ast);
-
-        if non_streamed_returns.is_empty() {
-            continue;
-        }
 
         let namespace = &operation.namespace();
         let operation_name = &operation.escape_identifier();
@@ -420,7 +421,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
                 }
             }
         }
-        // TODO: should these be escaped?
+
         args.push("dispatch".to_owned());
         args.push("cancel".to_owned());
 
