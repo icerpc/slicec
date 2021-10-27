@@ -36,20 +36,16 @@ pub fn decode_data_members(
     }
 
     // Decode tagged members
-
     for member in tagged_members {
         let param = format!("this.{}", member.field_name(field_type));
         code.writeln(&decode_tagged_member(member, namespace, &param, ast));
     }
 
-    if bit_sequence_size > 0 {
-        assert_eq!(bit_sequence_index, bit_sequence_size);
-    }
+    assert!(bit_sequence_size == 0 || bit_sequence_index == bit_sequence_size);
 
     code
 }
 
-// TODO: scope and param (scope should be passed in to type_to_string)
 pub fn decode_member(
     member: &Member,
     bit_sequence_index: &mut i32,
@@ -129,7 +125,6 @@ pub fn decode_member(
     if data_type.is_optional {
         code.write(" : null");
     }
-
     code.write(";");
 
     code
@@ -137,13 +132,10 @@ pub fn decode_member(
 
 pub fn decode_tagged_member(member: &Member, namespace: &str, param: &str, ast: &Ast) -> CodeBlock {
     assert!(member.data_type.is_optional && member.tag.is_some());
-
-    let tag = member.tag.unwrap();
-
     format!(
         "{param} = decoder.DecodeTagged({tag}, IceRpc.Slice.TagFormat.{tag_format}, {decode_func});",
         param = param,
-        tag = tag,
+        tag = member.tag.unwrap(),
         tag_format = member.data_type.tag_format(ast),
         decode_func = decode_func(&member.data_type, namespace, ast)
     )
@@ -156,8 +148,6 @@ pub fn decode_dictionary(
     namespace: &str,
     ast: &Ast,
 ) -> CodeBlock {
-    let mut code = CodeBlock::new();
-
     let value_type = &dictionary_def.value_type;
     let value_node = value_type.definition(ast);
 
@@ -190,6 +180,7 @@ pub fn decode_dictionary(
     }
     args.push(decode_value.to_string());
 
+    let mut code = CodeBlock::new();
     write!(
         code,
         "decoder.{method}({args})",
@@ -228,23 +219,24 @@ pub fn decode_sequence(
                     element_type.to_type_string(namespace, ast, TypeContext::Incoming)
                 );
             }
-            Node::Enum(_, enum_def) if enum_def.underlying.is_some() && enum_def.is_unchecked => {
+            Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
                 // We always read an array even when mapped to a collection, as it's expected to be
                 // faster than unmarshaling the collection elements one by one.
-                args = format!(
-                    "decoder.DecodeArray<{}>()",
-                    element_type.to_type_string(namespace, ast, TypeContext::Incoming)
-                );
-            }
-            Node::Enum(_, enum_def) if enum_def.underlying.is_some() => {
-                let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
-                args = format!(
-                    "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
-                    enum_type_name = element_type.to_type_string(namespace, ast, TypeContext::Incoming),
-                    helper = enum_def.helper_name(namespace),
-                    name = enum_def.identifier(),
-                    underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
-                );
+                if enum_def.is_unchecked {
+                    args = format!(
+                        "decoder.DecodeArray<{}>()",
+                        element_type.to_type_string(namespace, ast, TypeContext::Incoming)
+                    );
+                } else {
+                    let underlying_type = enum_def.underlying.as_ref().unwrap().definition(ast);
+                    args = format!(
+                        "decoder.DecodeArray(({enum_type_name} e) => _ = {helper}.As{name}(({underlying_type})e))",
+                        enum_type_name = element_type.to_type_string(namespace, ast, TypeContext::Incoming),
+                        helper = enum_def.helper_name(namespace),
+                        name = enum_def.identifier(),
+                        underlying_type = underlying_type.as_named_symbol().unwrap().identifier(),
+                    );
+                }
             }
             _ => {
                 if element_type.is_optional && element_type.encode_using_bit_sequence(ast) {
@@ -411,27 +403,23 @@ pub fn decode_func(type_ref: &TypeRef, namespace: &str, ast: &Ast) -> CodeBlock 
     code
 }
 
-pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> CodeBlock {
+pub fn decode_operation(operation: &Operation, dispatch: bool, ast: &Ast) -> CodeBlock {
     let mut code = CodeBlock::new();
 
     let namespace = &operation.namespace();
 
-    let (all_members, non_streamed_members) = if return_type {
-        (
-            operation.return_members(ast),
-            operation.non_streamed_returns(ast),
-        )
-    } else {
+    let (all_members, non_streamed_members, stream_member) = if dispatch {
         (
             operation.parameters(ast),
             operation.non_streamed_params(ast),
+            operation.stream_parameter(ast),
         )
-    };
-
-    let stream_member = if return_type {
-        operation.stream_return(ast)
     } else {
-        operation.stream_parameter(ast)
+        (
+            operation.return_members(ast),
+            operation.non_streamed_returns(ast),
+            operation.stream_return(ast),
+        )
     };
 
     let (required_members, tagged_members) = get_sorted_members(&non_streamed_members);
@@ -449,43 +437,37 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
     }
 
     for member in required_members {
-        let decode_member = decode_member(
-            member,
-            &mut bit_sequence_index,
-            namespace,
-            &member.parameter_name_with_prefix("iceP_"),
-            ast,
-        );
-
         writeln!(
             code,
             "{param_type} {decode}",
             param_type = member
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::Incoming),
-            decode = decode_member
+            decode = decode_member(
+                member,
+                &mut bit_sequence_index,
+                namespace,
+                &member.parameter_name_with_prefix("iceP_"),
+                ast,
+            )
         )
     }
 
-    if bit_sequence_size > 0 {
-        assert_eq!(bit_sequence_index, bit_sequence_size);
-    }
+    assert!(bit_sequence_size == -1 || bit_sequence_index == bit_sequence_size);
 
     for member in tagged_members {
-        let decode_member = decode_tagged_member(
-            member,
-            namespace,
-            &member.parameter_name_with_prefix("iceP_"),
-            ast,
-        );
-
         writeln!(
             code,
             "{param_type} {decode}",
             param_type = member
                 .data_type
                 .to_type_string(namespace, ast, TypeContext::Incoming),
-            decode = decode_member
+            decode = decode_tagged_member(
+                member,
+                namespace,
+                &member.parameter_name_with_prefix("iceP_"),
+                ast,
+            )
         )
     }
 
@@ -499,21 +481,19 @@ pub fn decode_operation(operation: &Operation, return_type: bool, ast: &Ast) -> 
 
         let mut create_stream_param: CodeBlock = match stream_member.data_type.definition(ast) {
             Node::Primitive(_, primitive) if matches!(primitive, Primitive::Byte) => {
-                if return_type {
-                    "streamParamReceiver!.ToByteStream();".into()
-                } else {
+                if dispatch {
                     "IceRpc.Slice.StreamParamReceiver.ToByteStream(request);".into()
+                } else {
+                    "streamParamReceiver!.ToByteStream();".into()
                 }
             }
             _ => {
-                // TODO: is this if backwards? (copied from C++)
-                if return_type {
+                if dispatch {
                     format!(
                         "\
-streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
-    response,
-    invoker,
-    response.GetIceDecoderFactory(_defaultIceDecoderFactories),
+IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{param_type}>(
+    request,
+    request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
                         param_type = param_type_str,
                         decode_func = decode_func(&param_type, namespace, ast)
@@ -522,9 +502,10 @@ streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
                 } else {
                     format!(
                         "\
-IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{param_type}>(
-    request,
-    request.GetIceDecoderFactory(_defaultIceDecoderFactories),
+streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
+    response,
+    invoker,
+    response.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
                         param_type = param_type_str,
                         decode_func = decode_func(&param_type, namespace, ast)
