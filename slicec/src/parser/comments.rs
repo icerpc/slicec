@@ -1,4 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
+// TODO, this needs to be rewritten, I literallt copy & pasted it from the old implementation.
+
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
 use crate::slice_file::Location;
@@ -9,18 +12,18 @@ use pest_derive::Parser as PestParser;
 type PestPair<'i> = Pair<'i, Rule>;
 
 #[derive(Debug, PestParser)]
-#[grammar = "comment.pest"]
+#[grammar = "parser/comments.pest"]
 pub struct CommentParser;
 
 impl CommentParser {
     pub fn parse_doc_comment(raw_comment: &str, location: Location) -> DocComment {
         // Create an empty comment that the parser will populate as it traverses the parse tree.
         let mut comment = DocComment {
-            message: String::new(),
-            references: Vec::new(),
+            overview: String::new(),
+            see_also: Vec::new(),
             params: Vec::new(),
-            throws: Vec::new(),
             returns: None,
+            throws: Vec::new(),
             deprecate_reason: None,
             location,
         };
@@ -47,7 +50,7 @@ impl CommentParser {
         // Comments are parsed line by line, but field descriptions can span multiple lines.
         // This string references the most recent field description, so that following lines can
         // append text to it. At the start it references the comment's message before any fields.
-        let mut current_string = &mut comment.message;
+        let mut current_string = &mut comment.overview;
 
         for token in parse_tree.into_inner() {
             match token.as_rule() {
@@ -226,12 +229,12 @@ impl CommentParser {
                                 // Add a new see field to the comment, with an empty description.
                                 let identifier =
                                     subtoken.as_str().trim_end_matches(Self::is_padding);
-                                comment.references.push(identifier.to_owned());
+                                comment.see_also.push(identifier.to_owned());
                                 // Re-point the current string reference to point to the identifier
                                 // string. References shouldn't have
                                 // additional text, but there's no where else logical
                                 // to append the text to.
-                                current_string = comment.references.last_mut().unwrap();
+                                current_string = comment.see_also.last_mut().unwrap();
                             }
                             Rule::message => {
                                 // The grammar rules make it impossible for a message to not follow

@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
+// TODO this entire file needs to be looked over again.
 
-use crate::ast::Ast;
 use crate::grammar::Member;
-use crate::grammar::TypeRef;
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -56,72 +55,24 @@ pub fn fix_case(s: &str, case: CaseStyle) -> String {
     }
 }
 
-pub fn get_bit_sequence_size(members: &[&Member], ast: &Ast) -> i32 {
-    let mut size: i32 = 0;
-    for member in members {
-        if member.data_type.encode_using_bit_sequence(ast) && member.tag.is_none() {
-            size += 1;
-        }
-    }
-    size
+pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
+    members.iter()
+        .filter(|member| member.tag().is_none() && member.data_type().is_bit_sequence_encodable())
+        .count()
 }
 
 /// Takes a slice of Member references and returns two vectors. One containing the required members
 /// and the other containing the tagged members. The tagged vector is sorted by it's tags.
-pub fn get_sorted_members<'a>(members: &[&'a Member]) -> (Vec<&'a Member>, Vec<&'a Member>) {
-    let required_members = members
-        .iter()
-        .filter(|m| m.tag.is_none())
+pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
+    let required_members = members.iter()
+        .filter(|member| member.tag().is_none())
         .cloned()
         .collect::<Vec<_>>();
-    let mut tagged_members = members
-        .iter()
-        .filter(|m| m.tag.is_some())
+    let mut tagged_members = members.iter()
+        .filter(|member| member.tag().is_some())
         .cloned()
         .collect::<Vec<_>>();
-    tagged_members.sort_by_key(|m| m.tag.unwrap());
-
-    // Sanity check that the tagged members are sorted by tag
-    assert!(tagged_members
-        .windows(2)
-        .all(|member_pair| member_pair[0].tag.unwrap() < member_pair[1].tag.unwrap()));
+    tagged_members.sort_by_key(|member| member.tag().unwrap());
 
     (required_members, tagged_members)
-}
-
-/// Compare the TypeRef's underlying type
-#[macro_export]
-macro_rules! is_underlying_type {
-    ($type_ref:expr, $ast:expr, $of_type:path) => {{
-        let node = $ast.resolve_index($type_ref.definition.unwrap());
-        if let $of_type(_, _) = node {
-            true
-        } else {
-            false
-        }
-    }};
-}
-/// Gets a Node of the give type as an Optional<$t> from node $n
-/// e.g. is_some!(Node::Primitive, a_node)
-#[macro_export]
-macro_rules! is_some {
-    ($t:path, $n:expr) => {{
-        if let $t(_, p) = $n {
-            Some(p)
-        } else {
-            None
-        }
-    }};
-}
-
-pub fn clone_as_non_optional(type_ref: &TypeRef) -> TypeRef {
-    let mut cloned = type_ref.clone();
-    cloned.is_optional = false;
-    cloned
-}
-
-pub fn clone_as_non_streamed(type_ref: &TypeRef) -> TypeRef {
-    let mut cloned = type_ref.clone();
-    cloned.is_streamed = false;
-    cloned
 }

@@ -1,8 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
+// TODO rewrite this with better error handling in mind.
+// This was just copy & pasted from the original implementation and can be improved alot.
 
 main = { SOI ~ file_attributes ~ module_def* ~ EOI }
 
-definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def }
+definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | type_alias }
 
 module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
@@ -10,7 +12,7 @@ module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 struct_start = ${ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
 
-class_start = ${ class_kw ~ ws+ ~ identifier ~ ws* ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
+class_start = ${ class_kw ~ ws+ ~ identifier ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
 
 exception_start = ${ exception_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
@@ -19,34 +21,32 @@ exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member* ~ "}" }
 interface_start = ${ interface_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 
-enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typename )? }
+enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typeref )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
-return_type = ${ void_kw | stream_modifier ~ (tag ~ ws*)? ~ typename | return_tuple }
+return_type = !{ void_kw | stream_modifier ~ (tag ~ ws*)? ~ typeref | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
 operation_start = ${ idempotent_modifier ~ return_type ~ ws+ ~ identifier }
 operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
 
 data_member = ${ prelude ~ ws* ~ member ~ ws* ~ ";" }
-member = ${ (tag ~ ws*)? ~ typename ~ ws+ ~ identifier }
+member = ${ (tag ~ ws*)? ~ typeref ~ ws+ ~ identifier }
 tag = !{ tag_kw ~ "(" ~ integer ~ ")" }
 
 parameter_list = !{ ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
-parameter = ${ prelude ~ ws* ~ stream_modifier ~ member }
+parameter = ${ prelude ~ stream_modifier ~ ws* ~ member }
 
 enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
 enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
 
-inheritance_list = !{ ( typename ~ "," ~ inheritance_list ) | ( typename ~ ","? ) }
+inheritance_list = !{ ( typeref ~ "," ~ inheritance_list ) | ( typeref ~ ","? ) }
 
-identifier = @{ "\\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
-global_identifier = @{ ( "::" ~ identifier )+ }
-scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
+type_alias = ${ prelude ~ ws* ~ type_alias_kw ~ ws+ ~ identifier ~ ws* ~ "=" ~ ws* ~ typeref ~ ws* ~ ";" }
 
-typename = ${ local_attributes ~ ws* ~ (primitive | sequence | dictionary | global_identifier | scoped_identifier) ~ (ws* ~ "?")? }
+typeref = ${ local_attributes ~ ws* ~ (primitive | sequence | dictionary | global_identifier | scoped_identifier) ~ (ws* ~ "?")? }
 
-sequence = !{ sequence_kw ~ "<" ~ typename ~ ">" }
-dictionary = !{ dictionary_kw ~ "<" ~ typename ~ "," ~ typename ~ ">" }
+sequence = !{ sequence_kw ~ "<" ~ typeref ~ ">" }
+dictionary = !{ dictionary_kw ~ "<" ~ typeref ~ "," ~ typeref ~ ">" }
 
 primitive = {
     bool_kw     |
@@ -65,6 +65,10 @@ primitive = {
     double_kw   |
     string_kw
 }
+
+identifier = @{ "\\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
+global_identifier = @{ ( "::" ~ identifier )+ }
+scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
 
 prelude = !{ local_attributes ~ doc_comment ~ local_attributes }
 
@@ -104,6 +108,7 @@ class_kw = { "class" }
 exception_kw = { "exception" }
 interface_kw = { "interface" }
 enum_kw = { "enum" }
+type_alias_kw = { "typealias" }
 
 sequence_kw = { "sequence" }
 dictionary_kw = { "dictionary" }
