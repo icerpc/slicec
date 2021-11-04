@@ -2,14 +2,7 @@
 
 use super::slice::*;
 use super::traits::*;
-use super::util::TagFormat;
 use crate::ptr_util::OwnedPtr;
-
-// TODO in hindsight, most of this is useless.
-// We should drop all the pass-through methods, these are only ever going to be used for type-matching.
-// No one in their right mind will keep this wrapper around for actual use.
-// Without passthrough methods, I think we can eliminate the 'Types' wrapper all together and just
-// use Elements. Also, it will be so simple, we can likely drop the macros entirely.
 
 macro_rules! generate_definition_wrapper {
     ($($variant:ident),*) => {
@@ -41,45 +34,9 @@ macro_rules! generate_elements_wrapper {
             $($variant(&'a $variant),)*
         }
 
-        impl<'a> Element for Elements<'a> {
-            fn kind(&self) -> &'static str {
-                match self {
-                    $(Self::$variant(x) => x.kind(),)*
-                }
-            }
-        }
-
-        impl<'a> AsElements for Elements<'a> {
-            fn concrete_element(&self) -> Elements {
-                panic!("Cannot re-wrap elements wrapper") //TODO write a better message here
-            }
-
-            fn concrete_element_mut(&mut self) -> ElementsMut {
-                panic!("Cannot re-wrap elements wrapper") //TODO write a better message here
-            }
-        }
-
         #[derive(Debug)]
         pub enum ElementsMut<'a> {
             $($variant(&'a mut $variant),)*
-        }
-
-        impl<'a> Element for ElementsMut<'a> {
-            fn kind(&self) -> &'static str {
-                match self {
-                    $(Self::$variant(x) => x.kind(),)*
-                }
-            }
-        }
-
-        impl<'a> AsElements for ElementsMut<'a> {
-            fn concrete_element(&self) -> Elements {
-                panic!("Cannot re-wrap elements wrapper") //TODO write a better message here
-            }
-
-            fn concrete_element_mut(&mut self) -> ElementsMut {
-                panic!("Cannot re-wrap elements wrapper") //TODO write a better message here
-            }
         }
     };
 }
@@ -91,117 +48,9 @@ macro_rules! generate_types_wrapper {
             $($variant(&'a $variant),)*
         }
 
-        impl<'a> Element for Types<'a> {
-            fn kind(&self) -> &'static str {
-                match self {
-                    $(Self::$variant(x) => x.kind(),)*
-                }
-            }
-        }
-
-        impl<'a> Type for Types<'a> {
-            fn is_fixed_size(&self) -> bool {
-                match self {
-                    $(Self::$variant(x) => x.is_fixed_size(),)*
-                }
-            }
-
-            fn min_wire_size(&self) -> u32 {
-                match self {
-                    $(Self::$variant(x) => x.min_wire_size(),)*
-                }
-            }
-
-            fn uses_classes(&self) -> bool {
-                match self {
-                    $(Self::$variant(x) => x.uses_classes(),)*
-                }
-            }
-
-            fn tag_format(&self) -> TagFormat {
-                match self {
-                    $(Self::$variant(x) => x.tag_format(),)*
-                }
-            }
-        }
-
-        impl<'a> AsElements for Types<'a> {
-            fn concrete_element(&self) -> Elements {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-
-            fn concrete_element_mut(&mut self) -> ElementsMut {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-        }
-
-        impl<'a> AsTypes for Types<'a> {
-            fn concrete_type(&self) -> Types {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-
-            fn concrete_type_mut(&mut self) -> TypesMut {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-        }
-
         #[derive(Debug)]
         pub enum TypesMut<'a> {
             $($variant(&'a mut $variant),)*
-        }
-
-        impl<'a> Element for TypesMut<'a> {
-            fn kind(&self) -> &'static str {
-                match self {
-                    $(Self::$variant(x) => x.kind(),)*
-                }
-            }
-        }
-
-        impl<'a> Type for TypesMut<'a> {
-            fn is_fixed_size(&self) -> bool {
-                match self {
-                    $(Self::$variant(x) => x.is_fixed_size(),)*
-                }
-            }
-
-            fn min_wire_size(&self) -> u32 {
-                match self {
-                    $(Self::$variant(x) => x.min_wire_size(),)*
-                }
-            }
-
-            fn uses_classes(&self) -> bool {
-                match self {
-                    $(Self::$variant(x) => x.uses_classes(),)*
-                }
-            }
-
-            fn tag_format(&self) -> TagFormat {
-                match self {
-                    $(Self::$variant(x) => x.tag_format(),)*
-                }
-            }
-        }
-
-        impl<'a> AsElements for TypesMut<'a> {
-            fn concrete_element(&self) -> Elements {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-
-            fn concrete_element_mut(&mut self) -> ElementsMut {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-        }
-
-        impl<'a> AsTypes for TypesMut<'a> {
-            fn concrete_type(&self) -> Types {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
-
-            fn concrete_type_mut(&mut self) -> TypesMut {
-                panic!("Cannot re-wrap types wrapper") //TODO write a better message here
-            }
         }
     };
 }
