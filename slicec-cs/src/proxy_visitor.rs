@@ -296,7 +296,7 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>(
                 stream_type = stream_type.to_type_string(namespace, TypeContext::Outgoing),
                 stream_parameter = stream_parameter_name,
                 payload_encoding = payload_encoding,
-                encode_action = encode_action(&stream_type, namespace, true, true).indent()
+                encode_action = encode_action(stream_type, namespace, true, true).indent()
             )),
         }
     } else {
@@ -320,7 +320,7 @@ invoker,
 response.GetIceDecoderFactory(_defaultIceDecoderFactories),
 {decode_func})",
                     stream_type = stream_type.to_type_string(namespace, TypeContext::Incoming),
-                    decode_func = decode_func(&stream_type, namespace).indent()
+                    decode_func = decode_func(stream_type, namespace).indent()
                 )
             }
         };

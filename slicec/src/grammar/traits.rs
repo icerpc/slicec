@@ -51,8 +51,8 @@ pub trait Attributable: Symbol {
     }
 
     fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&Vec<String>> {
-        self.get_raw_attribute(directive, recurse).and_then(
-            |attribute| Some(&attribute.arguments)
+        self.get_raw_attribute(directive, recurse).map(
+            |attribute| &attribute.arguments
         )
     }
 

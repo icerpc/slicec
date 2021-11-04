@@ -622,12 +622,10 @@ impl Enum {
         );
 
         // There might not be a minimum value if the enum is empty.
-        if let Some(min) = values.clone().min() {
-            // The existence of a `min` guarantees a `max` exists too, so it's safe to unwrap it.
-            Some((min, values.max().unwrap()))
-        } else {
-            None
-        }
+        values.clone().min().map(|min| (
+            min,
+            values.max().unwrap() // Having a `min` guarantees a `max` exists too, so it's safe to unwrap this.
+        ))
     }
 }
 

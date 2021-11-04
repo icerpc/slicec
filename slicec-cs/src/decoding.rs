@@ -471,7 +471,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{param_type}>(
     request.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
                         param_type = param_type_str,
-                        decode_func = decode_func(&param_type, namespace)
+                        decode_func = decode_func(param_type, namespace)
                     )
                     .into()
                 } else {
@@ -483,7 +483,7 @@ streamParamReceiver!.ToAsyncEnumerable<{param_type}>(
     response.GetIceDecoderFactory(_defaultIceDecoderFactories),
     {decode_func});",
                         param_type = param_type_str,
-                        decode_func = decode_func(&param_type, namespace)
+                        decode_func = decode_func(param_type, namespace)
                     )
                     .into()
                 }

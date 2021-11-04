@@ -382,7 +382,7 @@ IceRpc.Slice.StreamParamReceiver.ToAsyncEnumerable<{stream_type}>(
     ",
                         stream_type =
                             stream_type.to_type_string(namespace, TypeContext::Outgoing),
-                        decode_func = decode_func(&stream_type, namespace)
+                        decode_func = decode_func(stream_type, namespace)
                     )
                 }
             };
@@ -546,7 +546,7 @@ new IceRpc.Slice.AsyncEnumerableStreamParamSender<{stream_type}>({stream_arg}, {
                              stream_arg = stream_arg,
                              encoding = encoding,
                              encode_action = encode_action(
-                                 &stream_type,
+                                 stream_type,
                                  namespace,
                                  false,
                                  false),
