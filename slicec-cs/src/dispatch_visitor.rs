@@ -249,7 +249,7 @@ fn request_decode_func(operation: &Operation) -> CodeBlock {
 {{
     {}
 }}",
-            decode_operation(operation, false).indent()
+            decode_operation(operation, true).indent()
         )
         .into()
     }

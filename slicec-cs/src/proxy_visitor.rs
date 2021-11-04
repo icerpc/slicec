@@ -644,7 +644,7 @@ fn response_decode_func(operation: &Operation) -> CodeBlock {
     } else {
         format!(
             "decoder => {{ {decode} }}",
-            decode = decode_operation(operation, true).indent()
+            decode = decode_operation(operation, false).indent()
         )
         .into()
     }
