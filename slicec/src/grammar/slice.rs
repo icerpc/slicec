@@ -691,6 +691,7 @@ pub struct TypeAlias {
     pub identifier: Identifier,
     pub underlying: TypeRef,
     pub parent: WeakPtr<Module>,
+    pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
@@ -700,34 +701,15 @@ impl TypeAlias {
     pub(crate) fn new(
         identifier: Identifier,
         underlying: TypeRef,
+        scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        TypeAlias { identifier, underlying, attributes, parent, comment, location }
+        TypeAlias { identifier, underlying, parent, scope, attributes, comment, location }
     }
 }
-
-// The `implement_trait_for` macros expect structs to store all it's data as fields on itself,
-// but TypeAliases store data in their underlying `TypeRef`, so we need to manually implement
-// some traits to forward to the underlying `TypeRef`, instead of being able to use macros.
-
-impl ScopedSymbol for TypeAlias {
-    fn module_scope(&self) -> &str {
-        self.underlying.module_scope()
-    }
-
-    fn parser_scope(&self) -> &str {
-        self.underlying.parser_scope()
-    }
-
-    fn raw_scope(&self) -> &Scope {
-        self.underlying.raw_scope()
-    }
-}
-
-impl Entity for TypeAlias {}
 
 impl AsTypes for TypeAlias {
     fn concrete_type(&self) -> Types {
@@ -758,10 +740,7 @@ impl Type for TypeAlias {
 }
 
 implement_Element_for!(TypeAlias, "type alias");
-implement_Symbol_for!(TypeAlias);
-implement_Named_Symbol_for!(TypeAlias);
-implement_Attributable_for!(TypeAlias);
-implement_Commentable_for!(TypeAlias);
+implement_Entity_for!(TypeAlias);
 implement_Contained_for!(TypeAlias, Module);
 
 #[derive(Clone, Debug)]

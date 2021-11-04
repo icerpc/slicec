@@ -649,10 +649,11 @@ impl SliceParser {
 
     fn type_alias(input: PestNode) -> PestResult<TypeAlias> {
         let location = from_span(&input);
+        let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier), typeref(type_ref)] => {
                 let (attributes, comment) = prelude;
-                TypeAlias::new(identifier, type_ref, attributes, comment, location)
+                TypeAlias::new(identifier, type_ref, scope, attributes, comment, location)
             },
         ))
     }
