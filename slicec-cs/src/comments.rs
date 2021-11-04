@@ -70,7 +70,7 @@ impl CsharpComment {
     pub fn new(comment: &DocComment) -> Self {
         // process comment here
         // replace @link @see, etc.
-        let mut comment = (*comment).clone();
+        let mut comment = comment.clone();
 
         // Replace comments like '<code>my code</code>' by 'my code'
         let re: regex::Regex = Regex::new(r"(?ms)<.+>\s?(?P<content>.+)\s?</.+>").unwrap();

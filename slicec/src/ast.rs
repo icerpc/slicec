@@ -165,7 +165,6 @@ impl Ast {
     ///
     /// # Arguments
     ///
-    /// * primitive_cache - A borrow of the AST's [primitive_cache], to search through.
     /// * identifier - The slice keyword corresponding to the primitive type.
     ///
     /// # Panics
