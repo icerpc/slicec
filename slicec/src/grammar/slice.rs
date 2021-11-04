@@ -768,6 +768,26 @@ impl<T: Element + ?Sized> TypeRef<T> {
     pub fn definition(&self) -> &T {
         self.definition.borrow()
     }
+
+    pub fn downcast<U: Element + 'static>(self) -> Result<TypeRef<U>, TypeRef<T>> {
+        let definition = if self.definition.is_initialized() {
+            match self.definition.clone().downcast::<U>() {
+                Ok(ptr) => ptr,
+                Err(_) => return Err(self),
+            }
+        } else {
+            WeakPtr::create_uninitialized()
+        };
+
+        Ok(TypeRef {
+            type_string: self.type_string,
+            definition,
+            is_optional: self.is_optional,
+            scope: self.scope,
+            attributes: self.attributes,
+            location: self.location,
+        })
+    }
 }
 
 impl<T: Element + ?Sized + Type> TypeRef<T> {
