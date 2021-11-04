@@ -148,7 +148,7 @@ fn response_class(interface_def: &Interface) -> CodeBlock {
 
     class_builder.add_comment(
         "summary",
-        "Provides static methods that read the arguments of requests.",
+        "Provides static methods that read the arguments of responses.",
     );
 
     for operation in operations {

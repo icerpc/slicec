@@ -172,7 +172,7 @@ impl Class {
         let mut members = self.members();
         // Recursively add inherited data members from super-classes.
         if let Some(base_class) = self.base_class() {
-            members.extend(base_class.members());
+            members.extend(base_class.all_members());
         }
         members
     }
@@ -246,7 +246,7 @@ impl Exception {
         let mut members = self.members();
         // Recursively add inherited data members from super-exceptions.
         if let Some(base_class) = self.base_exception() {
-            members.extend(base_class.members());
+            members.extend(base_class.all_members());
         }
         members
     }
@@ -366,7 +366,7 @@ impl Interface {
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {
         let mut bases = self.bases.iter()
-            .flat_map(|type_ref| type_ref.definition().base_interfaces())
+            .flat_map(|type_ref| type_ref.definition().all_base_interfaces())
             .collect::<Vec<&Interface>>();
 
         // Dedup only works on sorted collections, so we have to sort the bases first.
@@ -1000,7 +1000,7 @@ impl Type for Primitive {
     }
 
     fn uses_classes(&self) -> bool {
-        !matches!(self, Self::AnyClass)
+        matches!(self, Self::AnyClass)
     }
 
     fn tag_format(&self) -> TagFormat {

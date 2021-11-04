@@ -56,6 +56,8 @@ impl ParameterExt for Parameter {
             } else {
                 format!("global::System.Collections.Generic.IAsyncEnumerable<{}>", type_str)
             }
+        } else if self.data_type().is_optional {
+            type_str + "?"
         } else {
             type_str
         }

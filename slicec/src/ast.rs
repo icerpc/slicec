@@ -175,7 +175,7 @@ impl Ast {
     /// # Examples
     /// ```
     /// let ast = Ast::new();
-    /// let ulong = Ast::lookup_type(&ast.primitive_cache, "ulong");
+    /// let ulong = ast::lookup_primitive("ulong");
     /// ```
     pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive> {
         self.primitive_cache.get(identifier)

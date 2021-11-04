@@ -22,7 +22,7 @@ impl OperationExt for Operation {
     // TODO: should this move to slice library that and take a language prefix parameter?
     // parameter
     fn has_encoded_result(&self) -> bool {
-        let attribute = "cs:encoded_result";
+        let attribute = "cs:encoded-result";
 
         self.has_attribute(attribute, false) ||
         self.parent().unwrap().has_attribute(attribute, false)

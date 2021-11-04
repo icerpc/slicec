@@ -24,7 +24,7 @@ interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typeref )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
-return_type = !{ void_kw | stream_modifier ~ (tag ~ ws*)? ~ typeref | return_tuple }
+return_type = ${ void_kw | stream_modifier ~ (tag ~ ws*)? ~ typeref | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
 operation_start = ${ idempotent_modifier ~ return_type ~ ws+ ~ identifier }
 operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
