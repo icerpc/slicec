@@ -49,17 +49,15 @@ pub trait ParameterExt {
 
 impl ParameterExt for Parameter {
     fn to_type_string(&self, namespace: &str, context: TypeContext) -> String {
-        let type_str = self.data_type().to_non_optional_type_string(namespace, context);
         if self.is_streamed {
+            let type_str = self.data_type().to_non_optional_type_string(namespace, context);
             if type_str == "byte" {
                 "global::System.IO.Stream".to_owned()
             } else {
                 format!("global::System.Collections.Generic.IAsyncEnumerable<{}>", type_str)
             }
-        } else if self.data_type().is_optional {
-            type_str + "?"
         } else {
-            type_str
+            self.data_type().to_type_string(namespace, context)
         }
     }
 }

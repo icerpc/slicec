@@ -1,7 +1,4 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
-// TODO, this needs to be rewritten, I literallt copy & pasted it from the old implementation.
-
-// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
 use crate::slice_file::Location;

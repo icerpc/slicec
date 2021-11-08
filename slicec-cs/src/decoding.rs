@@ -451,7 +451,7 @@ pub fn decode_operation(operation: &Operation, dispatch: bool) -> CodeBlock {
     if let Some(stream_member) = stream_member {
         let param_type = stream_member.data_type();
         let param_type_str = param_type.to_type_string(namespace, TypeContext::Incoming);
-        // Call to_type_string on the parameter itself to get it's stream qualifier.
+        // Call to_type_string on the parameter itself to get its stream qualifier.
         let stream_type_str = stream_member.to_type_string(namespace, TypeContext::Incoming);
 
         let mut create_stream_param: CodeBlock = match param_type.concrete_type() {

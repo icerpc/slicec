@@ -45,7 +45,7 @@ impl<'ast> TypePatcher<'ast> {
         let mut lookup = Ast::lookup_type(self.lookup_table, &type_ref.type_string, &type_ref.scope);
         while let Some(definition) = lookup {
             // If the type is an alias, clone the alias' attributes to the type_ref being patched.
-            // Then unwrap the alias, and continue the loop on it's underlying definition.
+            // Then unwrap the alias, and continue the loop on its underlying definition.
             // TODO this entire process is not great: recursive aliases will loop forever!!!
             // This also violates rust's borrowing rules for self-referential types!
             if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {
@@ -72,7 +72,7 @@ impl<'ast> TypePatcher<'ast> {
         let mut lookup = Ast::lookup_type(self.lookup_table, &type_ref.type_string, &type_ref.scope);
         while let Some(definition) = lookup {
             // If the type is an alias, clone the alias' attributes to the type_ref being patched.
-            // Then unwrap the alias, and continue the loop on it's underlying definition.
+            // Then unwrap the alias, and continue the loop on its underlying definition.
             // TODO this entire process is not great: recursive aliases will loop forever!!!
             // This also violates rust's borrowing rules for self-referential types!
             if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {

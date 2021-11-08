@@ -16,8 +16,8 @@ use crate::slice_file::SliceFile;
 /// These methods are purely for the visitor's use, and shouldn't be called directly.
 /// To actually visit an element, call `visit_with` on the element.
 ///
-/// When a container is visited, first it's `visit_x_start` method is called, then it's
-/// contents are recursively visited, and finally, it's `visit_x_end` method is called.
+/// When a container is visited, first its `visit_x_start` method is called, then its
+/// contents are recursively visited, and finally, its `visit_x_end` method is called.
 /// For example, calling `visit_with` on a module containing a single struct would invoke:
 /// - visit_module_start
 ///     - visit_struct_start

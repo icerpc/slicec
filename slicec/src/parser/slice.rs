@@ -141,7 +141,7 @@ impl SliceParser {
                 // We iterate in reverse, since we construct them in inner-to-outermost order.
                 let mut modules = identifier.value.rsplit("::");
 
-                // Pop the scope of the inner-most module (the module can't be in it's own scope).
+                // Pop the scope of the inner-most module (the module can't be in its own scope).
                 pop_scope(&input);
                 // Construct the inner-most module first.
                 let mut last_module = Module::new(

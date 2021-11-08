@@ -99,7 +99,7 @@ impl Struct {
 
 impl Type for Struct {
     fn is_fixed_size(&self) -> bool {
-        // A struct is fixed size if and only if all it's members are fixed size.
+        // A struct is fixed size if and only if all its members are fixed size.
         self.members().iter()
             .all(|member| member.data_type.is_fixed_size())
     }
@@ -607,9 +607,9 @@ impl Enum {
     }
 
     pub fn underlying_type(&self) -> &Primitive {
-        // If the enum has an underlying type, return a reference to it's definition.
+        // If the enum has an underlying type, return a reference to its definition.
         // Otherwise, enums have a backing type of `int` by default. Since `int` is a type
-        // defined by the compiler, we fetch it's definition directly from the global AST.
+        // defined by the compiler, we fetch its definition directly from the global AST.
         self.underlying.as_ref().map_or(
             crate::borrow_ast().lookup_primitive("int").borrow(),
             |data_type| data_type.definition(),

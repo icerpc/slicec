@@ -12,7 +12,7 @@ use std::collections::HashMap;
 /// slice elements defined by, and used by, the slice files passed into the compiler.
 ///
 /// There is a single instance of the AST per-compile, which is created during initialization.
-/// The parser parses each file into it's top level modules, and then moves
+/// The parser parses each file into its top level modules, and then moves
 /// these modules directly into the shared AST.
 ///
 /// In addition, the AST owns all anonymous types, which are created in the AST as the parser needs them,
@@ -103,7 +103,7 @@ impl Ast {
         let entity_ptr = downgrade_as!(module_ptr, dyn Entity);
         self.entity_lookup_table.insert(module_ptr.borrow().parser_scoped_identifier(), entity_ptr);
 
-        // Recursively visit it's contents and add them into the lookup table too.
+        // Recursively visit its contents and add them into the lookup table too.
         let mut visitor = LookupTableBuilder {
             type_lookup_table: &mut self.type_lookup_table,
             entity_lookup_table: &mut self.entity_lookup_table,
@@ -160,7 +160,7 @@ impl Ast {
         self.primitive_cache.insert(identifier, primitive_ptr);
     }
 
-    /// Looks up a [Primitive] type in the AST, by it's slice keyword (Ex: `varulong`).
+    /// Looks up a [Primitive] type in the AST, by its slice keyword (Ex: `varulong`).
     /// If the primitive exists, it returns a reference to the `OwnedPtr` holding it.
     ///
     /// # Arguments
@@ -185,11 +185,11 @@ impl Ast {
     // =============================================================================================
     // These lookup functions are associated functions instead of methods so that the AST can be
     // mutated without locking down access to them.
-    // Methods require borrowing the entire AST, which is impossible if some of it's contents have
+    // Methods require borrowing the entire AST, which is impossible if some of its contents have
     // been mutably borrowed somewhere else (such as while visiting, or patching).
     // =============================================================================================
 
-    /// Looks up a [Type] in the AST, by it's **module** scoped identifier.
+    /// Looks up a [Type] in the AST, by its **module** scoped identifier.
     /// The behavior of this function depends on whether the scoped identifier is global or relative.
     ///
     /// Global identifiers begin with '::' and must be an exact match to return a type.
@@ -272,7 +272,7 @@ impl Ast {
         None
     }
 
-    /// Looks up an [Entity] in the AST, by it's **parser** scoped identifier.
+    /// Looks up an [Entity] in the AST, by its **parser** scoped identifier.
     /// The behavior of this function depends on whether the scoped identifier is global or relative.
     ///
     /// Global identifiers begin with '::' and must be an exact match to return an entity.

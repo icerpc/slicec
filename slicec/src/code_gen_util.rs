@@ -62,7 +62,7 @@ pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
 }
 
 /// Takes a slice of Member references and returns two vectors. One containing the required members
-/// and the other containing the tagged members. The tagged vector is sorted by it's tags.
+/// and the other containing the tagged members. The tagged vector is sorted by its tags.
 pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
     let required_members = members.iter()
         .filter(|member| member.tag().is_none())

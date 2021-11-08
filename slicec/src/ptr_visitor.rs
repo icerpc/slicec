@@ -16,8 +16,8 @@ use crate::ptr_util::OwnedPtr;
 /// These methods are purely for the visitor's use, and shouldn't be called directly.
 /// To actually visit an element, call `visit_ptr_with` on the element's pointer.
 ///
-/// When a container is visited, first it's `visit_x_start` method is called, then it's
-/// contents are recursively visited, and finally, it's `visit_x_end` method is called.
+/// When a container is visited, first its `visit_x_start` method is called, then its
+/// contents are recursively visited, and finally, its `visit_x_end` method is called.
 /// For example, calling `visit_ptr_with` on a module containing a single struct would invoke:
 /// - visit_module_start
 ///     - visit_struct_start
@@ -267,7 +267,7 @@ pub trait PtrVisitor {
 }
 
 impl OwnedPtr<Module> {
-    /// Uses the provided `visitor` to visit a [Module] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [Module] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_module_start`, then recursively visits
     /// the contents of the module, and finally calls `visitor.visit_module_end`.
@@ -298,7 +298,7 @@ impl OwnedPtr<Module> {
 }
 
 impl OwnedPtr<Struct> {
-    /// Uses the provided `visitor` to visit a [Struct] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [Struct] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_struct_start`, then recursively visits
     /// the contents of the struct, and finally calls `visitor.visit_struct_end`.
@@ -321,7 +321,7 @@ impl OwnedPtr<Struct> {
 }
 
 impl OwnedPtr<Class> {
-    /// Uses the provided `visitor` to visit a [Class] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [Class] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_class_start`, then recursively visits
     /// the contents of the class, and finally calls `visitor.visit_class_end`.
@@ -344,7 +344,7 @@ impl OwnedPtr<Class> {
 }
 
 impl OwnedPtr<Exception> {
-    /// Uses the provided `visitor` to visit an [Exception] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit an [Exception] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_exception_start`, then recursively visits
     /// the contents of the exception, and finally calls `visitor.visit_exception_end`.
@@ -367,7 +367,7 @@ impl OwnedPtr<Exception> {
 }
 
 impl OwnedPtr<Interface> {
-    /// Uses the provided `visitor` to visit an [Interface] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit an [Interface] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_interface_start`, then recursively visits
     /// the contents of the interface, and finally calls `visitor.visit_interface_end`.
@@ -390,7 +390,7 @@ impl OwnedPtr<Interface> {
 }
 
 impl OwnedPtr<Enum> {
-    /// Uses the provided `visitor` to visit an [Enum] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit an [Enum] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_enum_start`, then recursively visits
     /// the contents of the enum, and finally calls `visitor.visit_enum_end`.
@@ -413,7 +413,7 @@ impl OwnedPtr<Enum> {
 }
 
 impl OwnedPtr<Operation> {
-    /// Uses the provided `visitor` to visit an [Operation] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit an [Operation] through its enclosing [OwnedPtr].
     ///
     /// This function first calls `visitor.visit_operation_start`, then recursively visits
     /// the contents of the operation, and finally calls `visitor.visit_operation_end`.
@@ -439,7 +439,7 @@ impl OwnedPtr<Operation> {
 }
 
 impl OwnedPtr<TypeAlias> {
-    /// Uses the provided `visitor` to visit a [TypeAlias] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [TypeAlias] through its enclosing [OwnedPtr].
     ///
     /// This function delegates to `visitor.visit_type_alias`.
     ///
@@ -457,7 +457,7 @@ impl OwnedPtr<TypeAlias> {
 }
 
 impl OwnedPtr<DataMember> {
-    /// Uses the provided `visitor` to visit a [DataMember] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [DataMember] through its enclosing [OwnedPtr].
     ///
     /// This function delegates to `visitor.visit_data_member`.
     ///
@@ -475,7 +475,7 @@ impl OwnedPtr<DataMember> {
 }
 
 impl OwnedPtr<Parameter> {
-    /// Uses the provided `visitor` to visit a [Parameter] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit a [Parameter] through its enclosing [OwnedPtr].
     ///
     /// This function delegates to `visitor.visit_parameter` for parameters,
     /// and `visitor.visit_return_member` for return members. It handles both
@@ -499,7 +499,7 @@ impl OwnedPtr<Parameter> {
 }
 
 impl OwnedPtr<Enumerator> {
-    /// Uses the provided `visitor` to visit an [Enumerator] through it's enclosing [OwnedPtr].
+    /// Uses the provided `visitor` to visit an [Enumerator] through its enclosing [OwnedPtr].
     ///
     /// This function delegates to `visitor.visit_enumerator`.
     ///
