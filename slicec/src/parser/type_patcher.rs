@@ -51,7 +51,12 @@ impl<'ast> TypePatcher<'ast> {
             if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {
                 let alias_ref = &type_alias.underlying;
                 type_ref.attributes.extend_from_slice(alias_ref.attributes());
-                lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
+
+                if alias_ref.definition.is_initialized() {
+                    lookup = Some(&alias_ref.definition);
+                } else {
+                    lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
+                }
             } else {
                 type_ref.definition = definition.clone();
                 return;
@@ -78,7 +83,12 @@ impl<'ast> TypePatcher<'ast> {
             if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {
                 let alias_ref = &type_alias.underlying;
                 type_ref.attributes.extend_from_slice(alias_ref.attributes());
-                lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
+
+                if alias_ref.definition.is_initialized() {
+                    lookup = Some(&alias_ref.definition);
+                } else {
+                    lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
+                }
             } else {
                 // Make sure the definition's type is the correct type for the reference.
                 if let Ok(converted) = definition.clone().downcast::<T>() {
