@@ -175,7 +175,7 @@ impl Ast {
     /// # Examples
     /// ```
     /// let ast = Ast::new();
-    /// let ulong = ast::lookup_primitive("ulong");
+    /// let ulong = ast.lookup_type("ulong");
     /// ```
     pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive> {
         self.primitive_cache.get(identifier).unwrap_or_else(||
@@ -268,6 +268,10 @@ impl Ast {
             // It's safe to unwrap here, since we know that `parents` is not empty.
             parents = parents.split_last().unwrap().1;
         }
+        // Try checking at global scope, without any parent scopes.
+        if let Some(result) = type_lookup_table.get(&identifier.to_owned()) {
+            return Some(result);
+        }
 
         // We couldn't find the type in any enclosing scope.
         None
@@ -349,6 +353,10 @@ impl Ast {
             // Remove the last parent's scope before trying again.
             // It's safe to unwrap here, since we know that `parents` is not empty.
             parents = parents.split_last().unwrap().1;
+        }
+        // Try checking at global scope, without any parent scopes.
+        if let Some(result) = entity_lookup_table.get(&identifier.to_owned()) {
+            return Some(result);
         }
 
         // We couldn't find the entity in any enclosing scope.
