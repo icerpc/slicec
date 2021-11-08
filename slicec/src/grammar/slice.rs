@@ -860,7 +860,9 @@ impl Sequence {
 
         // If the elements are enums with an underlying type, check the underlying type instead.
         if let Types::Enum(enum_def) = definition {
-            definition = enum_def.underlying_type().concrete_type()
+            if let Some(underlying) = &enum_def.underlying {
+                definition = underlying.concrete_type()
+            }
         }
 
         if let Types::Primitive(primitive) = definition {
