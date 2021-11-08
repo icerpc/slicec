@@ -178,8 +178,9 @@ impl Ast {
     /// let ulong = ast::lookup_primitive("ulong");
     /// ```
     pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive> {
-        self.primitive_cache.get(identifier)
-            .expect(&format!("No Primitive type exists with the name '{}'", identifier))
+        self.primitive_cache.get(identifier).unwrap_or_else(||
+            panic!("No Primitive type exists with the name '{}'", identifier)
+        )
     }
 
     // =============================================================================================

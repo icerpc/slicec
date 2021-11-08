@@ -90,7 +90,7 @@ fn sequence_type_to_string(
         },
         TypeContext::Outgoing => {
             // If the underlying type is of fixed size, we map to `ReadOnlyMemory` instead.
-            if is_fixed_size_numeric_sequence(sequence) {
+            if sequence.has_fixed_size_numeric_elements() {
                 format!("global::System.ReadOnlyMemory<{}>", element_type)
             } else {
                 format!(
@@ -99,14 +99,6 @@ fn sequence_type_to_string(
                 )
             }
         }
-    }
-}
-
-fn is_fixed_size_numeric_sequence(sequence: &Sequence) -> bool {
-    match sequence.element_type.concrete_type() {
-        Types::Primitive(primitive) if primitive.is_fixed_size() => true,
-        Types::Enum(enum_def) => matches!(&enum_def.underlying, Some(t) if t.is_fixed_size()),
-        _ => false,
     }
 }
 

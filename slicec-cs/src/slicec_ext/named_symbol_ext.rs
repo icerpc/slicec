@@ -26,7 +26,7 @@ pub trait NamedSymbolExt: NamedSymbol {
     /// The C# namespace
     fn namespace(&self) -> String;
 
-    /// The C# Type Id attribute. Returns None if no type id attribute is required.
+    /// The C# Type Id attribute.
     fn type_id_attribute(&self) -> String;
 }
 
