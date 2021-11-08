@@ -277,7 +277,7 @@ pub fn encode_sequence(
     let has_custom_type = matches!(type_ref.get_attribute("cs:generic", false), Some(_));
     let mut args = Vec::new();
 
-    if sequence_def.has_fixed_size_numeric_elements() && (is_read_only && !has_custom_type) {
+    if sequence_def.has_fixed_size_numeric_elements() && (is_read_only || !has_custom_type) {
         if is_param && is_read_only && !has_custom_type {
             args.push(format!("{}.Span", value));
         } else {
