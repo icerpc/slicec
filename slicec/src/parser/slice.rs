@@ -146,14 +146,14 @@ impl SliceParser {
                 // Construct the inner-most module first.
                 let mut last_module = Module::new(
                     // There must be at least one module identifier, so it's safe to unwrap here.
-                    Identifier {
-                        value: modules.next().unwrap().to_owned(),
-                        location: identifier.location.clone(),
-                   },
-                   get_scope(&input),
-                   attributes,
-                   comment,
-                   location.clone(),
+                    Identifier::new(
+                        modules.next().unwrap().to_owned(),
+                        identifier.location.clone(),
+                    ),
+                    get_scope(&input),
+                    attributes,
+                    comment,
+                    location.clone(),
                 );
                 // Add the definitions into the inner-most module.
                 for definition in definitions {
@@ -165,14 +165,11 @@ impl SliceParser {
                     // Pop the module's scope, and then construct it.
                     pop_scope(&input);
                     let mut new_module = Module::new(
-                        Identifier {
-                            value: module.to_owned(),
-                            location: identifier.location.clone(),
-                       },
-                       get_scope(&input),
-                       Vec::new(),
-                       None,
-                       location.clone(),
+                        Identifier::new(module.to_owned(), identifier.location.clone()),
+                        get_scope(&input),
+                        Vec::new(),
+                        None,
+                        location.clone(),
                     );
                     // Add the inner module to the outer module, than swap their variables.
                     new_module.add_definition(Definition::Module(OwnedPtr::new(last_module)));
@@ -401,7 +398,7 @@ impl SliceParser {
             [void_kw(_)] => Vec::new(),
             [return_tuple(tuple)] => tuple,
             [stream_modifier(is_streamed), typeref(data_type)] => {
-                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
+                let identifier = Identifier::new("".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
                     data_type,
@@ -415,7 +412,7 @@ impl SliceParser {
                 ))]
             },
             [stream_modifier(is_streamed), tag(tag), typeref(data_type)] => {
-                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
+                let identifier = Identifier::new("".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
                     data_type,
@@ -730,24 +727,15 @@ impl SliceParser {
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier {
-            value: input.as_str().to_owned(),
-            location: from_span(&input),
-        })
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier {
-            value: input.as_str().to_owned(),
-            location: from_span(&input),
-        })
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier {
-            value: input.as_str().to_owned(),
-            location: from_span(&input),
-        })
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {
