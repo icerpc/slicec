@@ -144,13 +144,11 @@ pub fn operation_parameter_doc_comment<'a>(
     operation: &'a Operation,
     parameter_name: &str,
 ) -> Option<&'a str> {
-    operation.comment().map(|comment| {
+    operation.comment().and_then(|comment| {
         comment
             .params
             .iter()
             .find(|(param, _)| param == parameter_name)
-            .unwrap()
-            .1
-            .as_str()
+            .map(|(_, description)| description.as_str())
     })
 }
