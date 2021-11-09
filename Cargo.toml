@@ -3,5 +3,4 @@
 
 members = [
     "slicec",
-    "slicec-cs",
 ]
