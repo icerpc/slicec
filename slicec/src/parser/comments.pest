@@ -1,3 +1,6 @@
+// TODO rewrite this with better error handling in mind.
+// This was just copy & pasted from the original implementation and can be improved alot.
+
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 main = { SOI ~ comment ~ EOI }

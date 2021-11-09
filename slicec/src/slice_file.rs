@@ -1,51 +1,33 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::Attribute;
-use std::path::Path;
+use crate::grammar::{Attribute, Module};
+use crate::ptr_util::WeakPtr;
 
-/// Describes a single position, or a span over two positions in a slice file.
 #[derive(Clone, Debug)]
 pub struct Location {
-    /// The starting position, stored as a tuple of line number, and column number, in that order.
     pub start: (usize, usize),
-    /// The ending position, stored as a tuple of line number, and column number, in that order.
     pub end: (usize, usize),
-    /// The path of the slice file this location is in.
     pub file: String,
 }
 
-/// Stores information about a single slice file, and its contents.
-#[derive(Debug)]
 pub struct SliceFile {
-    /// The filename of the slice file (without its '.ice' extension).
     pub filename: String,
-    /// The path of the slice file, relative to where the compiler was run from
-    /// (including its '.ice' extension).
     pub relative_path: String,
-    /// The raw text contained in the slice file.
     pub raw_text: String,
-    /// The AST indices of all the top-level definitions contained in the slice file,
-    /// in the order they were defined.
-    pub contents: Vec<usize>,
-    /// Stores any file attribute defined on the file.
+    pub contents: Vec<WeakPtr<Module>>,
     pub attributes: Vec<Attribute>,
-    /// True if the slice file is a source file (which code should be generated for),
-    /// or false if it's a reference file.
     pub is_source: bool,
-    /// Stores the starting position of every line in the file. We compute these when the SliceFile
-    /// is first created and cache them here, to speed up snippet extraction and line referencing.
     line_positions: Vec<usize>,
 }
 
 impl SliceFile {
-    /// Creates a new slice file
-    pub(crate) fn new(
+    pub fn new(
         relative_path: String,
         raw_text: String,
-        contents: Vec<usize>,
+        contents: Vec<WeakPtr<Module>>,
         attributes: Vec<Attribute>,
-        is_source: bool,
-    ) -> Self {
+        is_source: bool
+    ) -> SliceFile {
         // Store the starting position of each line the file.
         // Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.
@@ -70,7 +52,7 @@ impl SliceFile {
         }
 
         // Extract the name of the slice file without its extension.
-        let filename = Path::new(&relative_path)
+        let filename = std::path::Path::new(&relative_path)
             .file_stem()
             .unwrap()
             .to_os_string()

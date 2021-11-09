@@ -1,22 +1,19 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::{Ast, Node};
-use crate::comment_parser::CommentParser;
-use crate::error::ErrorHandler;
+use super::comments::CommentParser;
+use crate::ast::Ast;
 use crate::grammar::*;
-use crate::mut_ref_from_node;
-use crate::options::SliceOptions;
 use crate::slice_file::{Location, SliceFile};
+use crate::upcast_weak_as;
+use crate::ptr_util::{OwnedPtr, WeakPtr};
+use std::cell::RefCell;
+use std::default::Default;
+use std::fs;
+
 use pest::error::ErrorVariant as PestErrorVariant;
 use pest_consume::{match_nodes, Error as PestError, Parser as PestParser};
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::fs;
-use std::io;
-use std::path::PathBuf;
 
 type PestResult<T> = Result<T, PestError<Rule>>;
-type PestNode<'a, 'b> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData>>;
+type PestNode<'a, 'b, 'ast> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData<'ast>>>;
 
 fn from_span(input: &PestNode) -> Location {
     let span = input.as_span();
@@ -27,135 +24,71 @@ fn from_span(input: &PestNode) -> Location {
     }
 }
 
-fn find_slice_files(paths: &Vec<String>) -> Vec<String> {
-    let mut slice_paths = Vec::new();
-    for path in paths {
-        match find_slice_files_in_path(PathBuf::from(path)) {
-            Ok(child_paths) => slice_paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{}': {}", path, err),
-        }
-    }
-
-    let mut string_paths = slice_paths.into_iter()
-        .map(|path| path.to_str().unwrap().to_owned())
-        .collect::<Vec<_>>();
-
-    string_paths.sort();
-    string_paths.dedup();
-    string_paths
+fn get_scope(input: &PestNode) -> Scope {
+    input.user_data().borrow().current_scope.clone()
 }
 
-fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
-    // If the path is a directory, recursively search it for more slice files.
-    if fs::metadata(&path)?.is_dir() {
-        find_slice_files_in_directory(path.read_dir()?)
-    } else
-    // If the path is not a directory, check if it ends with 'ice'.
-    if path.extension().filter(|ext| ext.to_str() == Some("ice")).is_some() {
-        Ok(vec![path])
-    } else {
-        Ok(vec![])
-    }
+fn push_scope(input: &PestNode, identifier: &str, is_module: bool) {
+    let scope = &mut input.user_data().borrow_mut().current_scope;
+    scope.push_scope(identifier, is_module);
 }
 
-fn find_slice_files_in_directory(dir: fs::ReadDir) -> io::Result<Vec<PathBuf>> {
-    let mut paths = Vec::new();
-    for child in dir {
-        let child_path = child?.path();
-        match find_slice_files_in_path(child_path.clone()) {
-            Ok(child_paths) => paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{}': {}", child_path.display(), err),
-        }
-    }
-    Ok(paths)
+fn pop_scope(input: &PestNode) {
+    let scope = &mut input.user_data().borrow_mut().current_scope;
+    scope.pop_scope();
 }
 
-#[derive(Debug, Default)]
-struct ParserData {
-    ast: Ast,
-    error_handler: ErrorHandler,
+#[derive(Debug)]
+struct ParserData<'ast> {
+    ast: &'ast mut Ast,
     current_file: String,
     current_enum_value: i64,
-}
-
-impl ParserData {
-    fn new() -> Self {
-        Self::default()
-    }
+    current_scope: Scope,
 }
 
 #[derive(PestParser)]
-#[grammar = "slice.pest"]
-pub(crate) struct SliceParser {
-    slice_files: HashMap<String, SliceFile>,
-    user_data: RefCell<ParserData>,
-}
+#[grammar = "parser/slice.pest"]
+pub(super) struct SliceParser;
 
 impl SliceParser {
-    pub(crate) fn parse_files(
-        options: &SliceOptions,
-    ) -> (Ast, HashMap<String, SliceFile>, ErrorHandler) {
-        let mut parser = SliceParser::new();
-
-        let source_files = find_slice_files(&options.sources);
-        let mut reference_files = find_slice_files(&options.references);
-        // Remove duplicate reference files, or files that are already being parsed as source.
-        // This ensures that a file isn't parsed twice, which would cause redefinition errors.
-        reference_files.retain(|file| !source_files.contains(file));
-        reference_files.sort();
-        reference_files.dedup();
-
-        for path in source_files {
-            parser.try_parse_file(&path, true);
-        }
-        for path in reference_files {
-            parser.try_parse_file(&path, false);
-        }
-
-        let data = parser.user_data.into_inner();
-        (data.ast, parser.slice_files, data.error_handler)
-    }
-
-    fn new() -> Self {
-        SliceParser {
-            slice_files: HashMap::new(),
-            user_data: RefCell::new(ParserData::new()),
-        }
-    }
-
-    fn try_parse_file(&mut self, file: &str, is_source: bool) {
-        match self.parse_file(file, is_source) {
+    pub fn try_parse_file(&self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
+        match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => {
-                self.slice_files.insert(file.to_owned(), slice_file);
+                Some(slice_file)
             }
             Err(message) => {
-                let data = &mut self.user_data.borrow_mut();
-                data.error_handler.report_error(message.into());
+                crate::report_error(message, None);
+                None
             }
         }
     }
 
-    fn parse_file(&mut self, file: &str, is_source: bool) -> Result<SliceFile, String> {
-        // We use an explicit scope to ensure the mutable borrow is dropped before parsing starts.
-        {
-            // Mutably borrow the ParserData struct, to set its current file.
-            let data = &mut self.user_data.borrow_mut();
-            data.current_file = file.to_owned();
-        }
+    fn parse_file(&self, file: &str, is_source: bool, ast: &mut Ast) -> Result<SliceFile, String> {
+        let user_data = RefCell::new(ParserData {
+            ast,
+            current_file: file.to_owned(),
+            current_enum_value: 0,
+            current_scope: Scope::default(),
+        });
 
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
-        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &self.user_data)
+        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &user_data)
             .map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
         let (file_attributes, file_contents) =
             SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+
+        let top_level_modules = file_contents.into_iter().map(|module_def| {
+            ast.add_module(module_def)
+        }).collect::<Vec<_>>();
+
         Ok(SliceFile::new(
             file.to_owned(),
             raw_text,
-            file_contents,
+            top_level_modules,
             file_attributes,
             is_source,
         ))
@@ -164,76 +97,86 @@ impl SliceParser {
 
 #[pest_consume::parser]
 impl SliceParser {
-    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<usize>)> {
+    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<Module>)> {
         let module_ids = match_nodes!(input.into_children();
-            [file_attributes(attributes), module_def(ids).., EOI(_)] => {
-                (attributes, ids.collect())
+            [file_attributes(attributes), module_def(modules).., EOI(_)] => {
+                (attributes, modules.collect())
             }
         );
         Ok(module_ids)
     }
 
-    fn definition(input: PestNode) -> PestResult<usize> {
-        let definition_id = match_nodes!(input.into_children();
-            [module_def(id)]    => id,
-            [struct_def(id)]    => id,
-            [class_def(id)]     => id,
-            [exception_def(id)] => id,
-            [interface_def(id)] => id,
-            [enum_def(id)]      => id,
-        );
-        Ok(definition_id)
+    fn definition(input: PestNode) -> PestResult<Definition> {
+        Ok(match_nodes!(input.into_children();
+            [module_def(module_def)]       => Definition::Module(OwnedPtr::new(module_def)),
+            [struct_def(struct_def)]       => Definition::Struct(OwnedPtr::new(struct_def)),
+            [class_def(class_def)]         => Definition::Class(OwnedPtr::new(class_def)),
+            [exception_def(exception_def)] => Definition::Exception(OwnedPtr::new(exception_def)),
+            [interface_def(interface_def)] => Definition::Interface(OwnedPtr::new(interface_def)),
+            [enum_def(enum_def)]           => Definition::Enum(OwnedPtr::new(enum_def)),
+            [type_alias(type_alias)]       => Definition::TypeAlias(OwnedPtr::new(type_alias)),
+        ))
     }
 
     fn module_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.into_children();
+        let identifier = match_nodes!(input.children();
             [_, scoped_identifier(ident)] => ident,
         );
+
+        // Split the identifier in case it uses nested module syntax, and push a scope for each.
+        for module_identifier in identifier.value.split("::") {
+            push_scope(&input, module_identifier, true);
+        }
         Ok((identifier, location))
     }
 
-    fn module_def(input: PestNode) -> PestResult<usize> {
+    fn module_def(input: PestNode) -> PestResult<Module> {
         Ok(match_nodes!(input.children();
-            [prelude(prelude), module_start(module_start), definition(contents)..] => {
+            [prelude(prelude), module_start(module_start), definition(definitions)..] => {
                 let (identifier, location) = module_start;
                 let (attributes, comment) = prelude;
 
-                // Split the identifier in case it uses nested module syntax. We iterate over them
-                // in reverse since we construct them in inner-to-outermost order.
+                // Split the identifier in case it uses nested module syntax.
+                // We iterate in reverse, since we construct them in inner-to-outermost order.
                 let mut modules = identifier.value.rsplit("::");
 
-                // Mutably borrow the AST, for inserting the modules into.
-                let ast = &mut input.user_data().borrow_mut().ast;
-
+                // Pop the scope of the inner-most module (the module can't be in its own scope).
+                pop_scope(&input);
                 // Construct the inner-most module first.
-                let mut last_module = ast.add_element(Module::new(
+                let mut last_module = Module::new(
                     // There must be at least one module identifier, so it's safe to unwrap here.
-                    Identifier {
-                        value: modules.next().unwrap().to_owned(),
-                        location: identifier.location.clone(),
-                    },
-                    contents.collect(),
+                    Identifier::new(
+                        modules.next().unwrap().to_owned(),
+                        identifier.location.clone(),
+                    ),
+                    get_scope(&input),
                     attributes,
                     comment,
                     location.clone(),
-                ));
+                );
+                // Add the definitions into the inner-most module.
+                for definition in definitions {
+                    last_module.add_definition(definition);
+                }
 
                 // Construct any enclosing modules.
                 for module in modules {
-                    last_module = ast.add_element(Module::new(
-                        Identifier {
-                            value: module.to_owned(),
-                            location: identifier.location.clone(),
-                        },
-                        vec![last_module],
-                        vec![],
+                    // Pop the module's scope, and then construct it.
+                    pop_scope(&input);
+                    let mut new_module = Module::new(
+                        Identifier::new(module.to_owned(), identifier.location.clone()),
+                        get_scope(&input),
+                        Vec::new(),
                         None,
                         location.clone(),
-                    ));
+                    );
+                    // Add the inner module to the outer module, than swap their variables.
+                    new_module.add_definition(Definition::Module(OwnedPtr::new(last_module)));
+                    last_module = new_module;
                 }
 
-                // Return the index of the outer-most module.
+                // Return the outer-most module.
                 last_module
             },
         ))
@@ -241,273 +184,326 @@ impl SliceParser {
 
     fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.into_children();
+        let identifier = match_nodes!(input.children();
             [_, identifier(ident)] => ident,
         );
+        push_scope(&input, &identifier.value, false);
         Ok((identifier, location))
     }
 
-    fn struct_def(input: PestNode) -> PestResult<usize> {
-        let struct_def = match_nodes!(input.children();
+    fn struct_def(input: PestNode) -> PestResult<Struct> {
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), struct_start(struct_start), data_member(members)..] => {
                 let (identifier, location) = struct_start;
                 let (attributes, comment) = prelude;
-                Struct::new(identifier, members.collect(), attributes, comment, location)
+                let mut struct_def = Struct::new(identifier, scope, attributes, comment, location);
+                for member in members {
+                    struct_def.add_member(member);
+                }
+                pop_scope(&input);
+                struct_def
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(struct_def))
+        ))
     }
 
-    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef>)> {
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
-            [_, identifier(identifier), compact_id(compact_id)] => (identifier, compact_id, location, None),
-            [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(mut bases)] => {
+            [_, identifier(identifier), compact_id(compact_id)] => {
+                push_scope(&input, &identifier.value, false);
+                (identifier, compact_id, location, None)
+            },
+            [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
-                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
-                    error_handler.report_error((
-                        format!("classes can only inherit from a single base class"),
-                        location.clone()
-                    ).into());
+                    //TODO let error_handler = &mut input.user_data().borrow_mut().error_handler;
+                    //TODO error_handler.report_error((
+                    //TODO     format!("classes can only inherit from a single base class"),
+                    //TODO     location.clone()
+                    //TODO ).into());
                 }
-                (identifier, compact_id, location, Some(bases.remove(0)))
+                let base = bases.into_iter().nth(0).unwrap().downcast::<Class>().unwrap();
+
+                push_scope(&input, &identifier.value, false);
+                (identifier, compact_id, location, Some(base))
             }
         ))
     }
 
-    fn class_def(input: PestNode) -> PestResult<usize> {
-        let class_def = match_nodes!(input.children();
+    fn class_def(input: PestNode) -> PestResult<Class> {
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), class_start(class_start), data_member(members)..] => {
                 let (identifier, compact_id, location, base) = class_start;
                 let (attributes, comment) = prelude;
-                Class::new(identifier, members.collect(), compact_id, base, attributes, comment, location)
+                let mut class = Class::new(identifier, compact_id, base, scope, attributes, comment, location);
+                for member in members {
+                    class.add_member(member);
+                }
+                pop_scope(&input);
+                class
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(class_def))
+        ))
     }
 
-    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef>)> {
+    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
-            [_, identifier(identifier)] => (identifier, location, None),
-            [_, identifier(identifier), _, inheritance_list(mut bases)] => {
+            [_, identifier(identifier)] => {
+                push_scope(&input, &identifier.value, false);
+                (identifier, location, None)
+            },
+            [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
-                    error_handler.report_error((
-                        format!("exceptions can only inherit from a single base exception"),
-                        location.clone()
-                    ).into());
+                    //TODO let error_handler = &mut input.user_data().borrow_mut().error_handler;
+                    //TODO error_handler.report_error((
+                    //TODO     format!("exceptions can only inherit from a single base exception"),
+                    //TODO     location.clone()
+                    //TODO ).into());
                 }
-                (identifier, location, Some(bases.remove(0)))
+                let base = bases.into_iter().nth(0).unwrap().downcast::<Exception>().unwrap();
+
+                push_scope(&input, &identifier.value, false);
+                (identifier, location, Some(base))
             }
         ))
     }
 
-    fn exception_def(input: PestNode) -> PestResult<usize> {
-        let exception_def = match_nodes!(input.children();
+    fn exception_def(input: PestNode) -> PestResult<Exception> {
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), exception_start(exception_start), data_member(members)..] => {
                 let (identifier, location, base) = exception_start;
                 let (attributes, comment) = prelude;
-                Exception::new(identifier, members.collect(), base, attributes, comment, location)
+                let mut exception = Exception::new(identifier, base, scope, attributes, comment, location);
+                for member in members {
+                    exception.add_member(member);
+                }
+                pop_scope(&input);
+                exception
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(exception_def))
-    }
-
-    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef>)> {
-        let location = from_span(&input);
-        Ok(match_nodes!(input.into_children();
-            [_, identifier(identifier)] => (identifier, location, Vec::new()),
-            [_, identifier(identifier), _, inheritance_list(bases)] => (identifier, location, bases)
         ))
     }
 
-    fn interface_def(input: PestNode) -> PestResult<usize> {
-        let interface_def = match_nodes!(input.children();
+    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
+        let location = from_span(&input);
+        Ok(match_nodes!(input.children();
+            [_, identifier(identifier)] => {
+                push_scope(&input, &identifier.value, false);
+                (identifier, location, Vec::new())
+            },
+            [_, identifier(identifier), _, inheritance_list(bases)] => {
+                let mut bases_vector = Vec::new();
+                for base in bases {
+                    bases_vector.push(base.downcast::<Interface>().unwrap())
+                }
+                push_scope(&input, &identifier.value, false);
+                (identifier, location, bases_vector)
+            }
+        ))
+    }
+
+    fn interface_def(input: PestNode) -> PestResult<Interface> {
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
                 let (identifier, location, bases) = interface_start;
                 let (attributes, comment) = prelude;
-                Interface::new(
+                let mut interface = Interface::new(
                     identifier,
-                    operations.collect(),
                     bases,
+                    scope,
                     attributes,
                     comment,
                     location,
-                )
+                );
+                for operation in operations {
+                    interface.add_operation(operation);
+                }
+                pop_scope(&input);
+                interface
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(interface_def))
+        ))
     }
 
-    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Location, Option<TypeRef>)> {
+    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
         // Reset the current enumerator value back to 0.
         input.user_data().borrow_mut().current_enum_value = 0;
 
         let location = from_span(&input);
-        Ok(match_nodes!(input.into_children();
-            [unchecked_modifier(unchecked), _, identifier(ident)] => {
-                (unchecked, ident, location, None)
+        Ok(match_nodes!(input.children();
+            [unchecked_modifier(unchecked), _, identifier(identifier)] => {
+                push_scope(&input, &identifier.value, false);
+                (unchecked, identifier, location, None)
             },
-            [unchecked_modifier(unchecked), _, identifier(ident), _, typename(underlying)] => {
-                (unchecked, ident, location, Some(underlying))
+            [unchecked_modifier(unchecked), _, identifier(identifier), _, typeref(type_ref)] => {
+                let underlying = match type_ref.downcast::<Primitive>() {
+                    Ok(primitive_ref) => primitive_ref,
+                    _ => panic!("MUST BE A PRIMITIVE TODO"),
+                };
+                push_scope(&input, &identifier.value, false);
+                (unchecked, identifier, location, Some(underlying))
             },
         ))
     }
 
-    fn enum_def(input: PestNode) -> PestResult<usize> {
-        let enum_def = match_nodes!(input.children();
+    fn enum_def(input: PestNode) -> PestResult<Enum> {
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), enum_start(enum_start), enumerator_list(enumerators)] => {
                 let (is_unchecked, identifier, location, underlying) = enum_start;
                 let (attributes, comment) = prelude;
-                Enum::new(
+                let mut enum_def = Enum::new(
                     identifier,
-                    enumerators,
-                    is_unchecked,
                     underlying,
+                    is_unchecked,
+                    scope,
                     attributes,
                     comment,
                     location,
-                )
+                );
+                for enumerator in enumerators {
+                    enum_def.add_enumerator(enumerator);
+                }
+                pop_scope(&input);
+                enum_def
             },
             [prelude(prelude), enum_start(enum_start)] => {
                 let (is_unchecked, identifier, location, underlying) = enum_start;
                 let (attributes, comment) = prelude;
+                pop_scope(&input);
                 Enum::new(
                     identifier,
-                    Vec::new(),
-                    is_unchecked,
                     underlying,
+                    is_unchecked,
+                    scope,
                     attributes,
                     comment,
                     location,
                 )
             },
-        );
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(enum_def))
+        ))
     }
 
     // Parses an operation's return type. There are 3 possible syntaxes for a return type:
     //   A void return type, specified by the `void` keyword.
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
-    fn return_type(input: PestNode) -> PestResult<Vec<usize>> {
+    fn return_type(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
         let location = from_span(&input);
+        let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [void_kw(_)] => Vec::new(),
             [return_tuple(tuple)] => tuple,
-            [stream_modifier(is_streamed), typename(mut data_type)] => {
-                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
-                data_type.is_streamed = is_streamed;
-                let member = Member::new(
-                    data_type,
+            [stream_modifier(is_streamed), typeref(data_type)] => {
+                let identifier = Identifier::new("".to_owned(), location.clone());
+                vec![OwnedPtr::new(Parameter::new(
                     identifier,
+                    data_type,
                     None,
-                    MemberType::ReturnElement,
+                    is_streamed,
+                    true,
+                    scope,
                     Vec::new(),
                     None,
                     location,
-                );
-
-                let ast = &mut input.user_data().borrow_mut().ast;
-                vec![ast.add_element(member)]
+                ))]
             },
-            [stream_modifier(is_streamed), tag(tag), typename(mut data_type)] => {
-                let identifier = Identifier { value: "".to_owned(), location: location.clone() };
-                data_type.is_streamed = is_streamed;
-                let member = Member::new(
-                    data_type,
+            [stream_modifier(is_streamed), tag(tag), typeref(data_type)] => {
+                let identifier = Identifier::new("".to_owned(), location.clone());
+                vec![OwnedPtr::new(Parameter::new(
                     identifier,
+                    data_type,
                     Some(tag),
-                    MemberType::ReturnElement,
+                    is_streamed,
+                    true,
+                    scope,
                     Vec::new(),
                     None,
                     location,
-                );
-
-                let ast = &mut input.user_data().borrow_mut().ast;
-                vec![ast.add_element(member)]
+                ))]
             },
         ))
     }
 
     // Parses a return type that is written in return tuple syntax.
-    fn return_tuple(input: PestNode) -> PestResult<Vec<usize>> {
+    fn return_tuple(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
         // TODO we need to enforce there being more than 1 element here!
         Ok(match_nodes!(input.children();
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
             [parameter_list(return_elements)] => {
-                let ast = &mut input.user_data().borrow_mut().ast;
-                for id in return_elements.iter() {
-                    let return_element = mut_ref_from_node!(Node::Member, ast, *id);
-                    return_element.member_type = MemberType::ReturnElement;
-                }
-                return_elements
+                return_elements.into_iter().map(
+                    |mut parameter| { parameter.is_returned = true; OwnedPtr::new(parameter) }
+                ).collect::<Vec<_>>()
             },
         ))
     }
 
-    fn operation_start(input: PestNode) -> PestResult<(bool, Vec<usize>, Identifier)> {
-        Ok(match_nodes!(input.into_children();
-            [idempotent_modifier(idempotent), return_type(return_type), identifier(identifier)] => {
-                (idempotent, return_type, identifier)
+    fn operation_start(input: PestNode) -> PestResult<(bool, Vec<OwnedPtr<Parameter>>, Identifier)> {
+        Ok(match_nodes!(input.children();
+            [idempotent_modifier(is_idempotent), return_type(return_type), identifier(identifier)] => {
+                push_scope(&input, &identifier.value, false);
+                (is_idempotent, return_type, identifier)
             }
         ))
     }
 
-    fn operation(input: PestNode) -> PestResult<usize> {
+    fn operation(input: PestNode) -> PestResult<Operation> {
         let location = from_span(&input);
-        let operation = match_nodes!(input.children();
+        let scope = get_scope(&input);
+        let mut operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
-                let (idempotent, return_type, identifier) = operation_start;
-                Operation::new(
-                    return_type,
-                    identifier,
-                    Vec::new(),
-                    idempotent,
-                    attributes,
-                    comment,
-                    location,
-                )
+                let (is_idempotent, mut return_type, identifier) = operation_start;
+
+                // If there is a single return type, clone the operation's attributes onto it.
+                if return_type.len() == 1 {
+                    unsafe {
+                        let return_attributes = &mut return_type.first_mut().unwrap().borrow_mut().data_type.attributes;
+                        return_attributes.extend_from_slice(&attributes);
+                    }
+                }
+
+                pop_scope(&input);
+                Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location)
             },
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters)] => {
                 let (attributes, comment) = prelude;
-                let (idempotent, return_type, identifier) = operation_start;
-                Operation::new(
-                    return_type,
-                    identifier,
-                    parameters,
-                    idempotent,
-                    attributes,
-                    comment,
-                    location,
-                )
+                let (is_idempotent, mut return_type, identifier) = operation_start;
+
+                // If there is a single return type, clone the operation's attributes onto it.
+                if return_type.len() == 1 {
+                    unsafe {
+                        let return_attributes = &mut return_type.first_mut().unwrap().borrow_mut().data_type.attributes;
+                        return_attributes.extend_from_slice(&attributes);
+                    }
+                }
+
+                let mut operation = Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location);
+                for parameter in parameters {
+                    operation.add_parameter(parameter);
+                }
+                pop_scope(&input);
+                operation
             },
         );
 
         // Forward the operations's attributes to the return type, if it returns a single type.
         // TODO: in the future we should only forward type metadata by filtering metadata.
-        let ast = &mut input.user_data().borrow_mut().ast;
         if operation.return_type.len() == 1 {
-            let return_member = mut_ref_from_node!(Node::Member, ast, operation.return_type[0]);
-            return_member.data_type.attributes = operation.attributes.clone();
+            // TODO don't do this.
+            unsafe { operation.return_type[0].borrow_mut().attributes = operation.attributes.clone(); }
         }
-
-        Ok(ast.add_element(operation))
+        Ok(operation)
     }
 
-    fn data_member(input: PestNode) -> PestResult<usize> {
+    fn data_member(input: PestNode) -> PestResult<DataMember> {
         let location = from_span(&input);
-        let data_member = match_nodes!(input.children();
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), member(member)] => {
                 let (attributes, comment) = prelude;
                 let (tag, mut data_type, identifier) = member;
@@ -516,28 +512,25 @@ impl SliceParser {
                 // TODO: in the future we should only forward type metadata by filtering metadata.
                 data_type.attributes = attributes.clone();
 
-                Member::new(
-                    data_type,
+                DataMember::new(
                     identifier,
+                    data_type,
                     tag,
-                    MemberType::DataMember,
+                    scope,
                     attributes,
                     comment,
                     location,
                 )
             },
-        );
-
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(data_member))
+        ))
     }
 
     fn member(input: PestNode) -> PestResult<(Option<u32>, TypeRef, Identifier)> {
         Ok(match_nodes!(input.into_children();
-            [tag(tag), typename(data_type), identifier(identifier)] => {
+            [tag(tag), typeref(data_type), identifier(identifier)] => {
                 (Some(tag), data_type, identifier)
             },
-            [typename(data_type), identifier(identifier)] => {
+            [typeref(data_type), identifier(identifier)] => {
                 (None, data_type, identifier)
             }
         ))
@@ -548,106 +541,105 @@ impl SliceParser {
             [_, integer(integer)] => {
                 // tags must fit in an i32 and be non-negative.
                 if integer < 0 || integer > i32::MAX.into() {
-                    let location = from_span(&input);
-                    let error_string = if integer < 0 {
-                        format!("tag is out of range: {}. Tag values must be positive", integer)
-                    } else {
-                        format!(
-                            "tag is out of range: {}. Tag values must be less than {}",
-                            integer, i32::MAX
-                        )
-                    };
-                    let error_handler = &mut input.user_data().borrow_mut().error_handler;
-                    error_handler.report_error((error_string, location).into());
+                    // TODO let location = from_span(&input);
+                    // TODO let error_string = if integer < 0 {
+                    // TODO     format!("tag is out of range: {}. Tag values must be positive", integer)
+                    // TODO } else {
+                    // TODO     format!(
+                    // TODO         "tag is out of range: {}. Tag values must be less than {}",
+                    // TODO         integer, i32::MAX
+                    // TODO     )
+                    // TODO };
+                    // TODO report an error here!
                 }
                 integer as u32
             }
         ))
     }
 
-    fn parameter_list(input: PestNode) -> PestResult<Vec<usize>> {
+    fn parameter_list(input: PestNode) -> PestResult<Vec<Parameter>> {
         Ok(match_nodes!(input.into_children();
-            [parameter(parameter_id)] => {
-                vec![parameter_id]
+            [parameter(parameter)] => {
+                vec![parameter]
             },
-            [parameter(parameter_id), parameter_list(mut list)] => {
+            [parameter(parameter), parameter_list(mut list)] => {
                 // The parameter comes before the parameter_list when parsing, so we have to
                 // insert the new parameter at the front of the list.
-                list.insert(0, parameter_id);
+                list.insert(0, parameter);
                 list
             },
         ))
     }
 
-    fn parameter(input: PestNode) -> PestResult<usize> {
+    fn parameter(input: PestNode) -> PestResult<Parameter> {
         let location = from_span(&input);
-        let parameter = match_nodes!(input.children();
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
             [prelude(prelude), stream_modifier(is_streamed), member(member)] => {
                 let (attributes, comment) = prelude;
                 let (tag, mut data_type, identifier) = member;
-                data_type.is_streamed = is_streamed;
 
                 // Forward the member's attributes to the data type.
                 // TODO: in the future we should only forward type metadata by filtering metadata.
                 data_type.attributes = attributes.clone();
 
-                Member::new(
-                    data_type,
+                Parameter::new(
                     identifier,
+                    data_type,
                     tag,
-                    MemberType::Parameter,
+                    is_streamed,
+                    false,
+                    scope,
                     attributes,
                     comment,
                     location,
                 )
             },
-        );
-
-        let ast = &mut input.user_data().borrow_mut().ast;
-        Ok(ast.add_element(parameter))
+        ))
     }
 
-    fn enumerator_list(input: PestNode) -> PestResult<Vec<usize>> {
+    fn enumerator_list(input: PestNode) -> PestResult<Vec<Enumerator>> {
         Ok(match_nodes!(input.into_children();
-            [enumerator(enumerator_id)] => {
-                vec![enumerator_id]
+            [enumerator(enumerator)] => {
+                vec![enumerator]
             },
-            [enumerator(enumerator_id), enumerator_list(mut list)] => {
+            [enumerator(enumerator), enumerator_list(mut list)] => {
                 // The enumerator comes before the enumerator_list when parsing, so we have to
                 // insert the new enumerator at the front of the list.
-                list.insert(0, enumerator_id);
+                list.insert(0, enumerator);
                 list
             },
         ))
     }
 
-    fn enumerator(input: PestNode) -> PestResult<usize> {
+    fn enumerator(input: PestNode) -> PestResult<Enumerator> {
         let location = from_span(&input);
+        let scope = get_scope(&input);
         let mut next_enum_value = input.user_data().borrow().current_enum_value;
 
-        let enumerator_def = match_nodes!(input.children();
+        let enumerator = match_nodes!(input.children();
             [prelude(prelude), identifier(ident)] => {
                 let (attributes, comment) = prelude;
-                Enumerator::new(ident, next_enum_value, attributes, comment, location)
+                Enumerator::new(ident, next_enum_value, scope, attributes, comment, location)
             },
             [prelude(prelude), identifier(ident), integer(value)] => {
                 next_enum_value = value;
                 let (attributes, comment) = prelude;
-                Enumerator::new(ident, value, attributes, comment, location)
+                Enumerator::new(ident, value, scope, attributes, comment, location)
             },
         );
 
         let parser_data = &mut input.user_data().borrow_mut();
         parser_data.current_enum_value = next_enum_value + 1;
-        Ok(parser_data.ast.add_element(enumerator_def))
+        Ok(enumerator)
     }
 
     fn inheritance_list(input: PestNode) -> PestResult<Vec<TypeRef>> {
         Ok(match_nodes!(input.into_children();
-            [typename(typeref)] => {
+            [typeref(typeref)] => {
                 vec![typeref]
             },
-            [typename(typeref), inheritance_list(mut list)] => {
+            [typeref(typeref), inheritance_list(mut list)] => {
                 // The typename comes before the inheritance_list when parsing, so we have to
                 // insert the new typename at the front of the list.
                 list.insert(0, typeref);
@@ -656,28 +648,18 @@ impl SliceParser {
         ))
     }
 
-    fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            from_span(&input),
+    fn type_alias(input: PestNode) -> PestResult<TypeAlias> {
+        let location = from_span(&input);
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
+            [prelude(prelude), _, identifier(identifier), typeref(type_ref)] => {
+                let (attributes, comment) = prelude;
+                TypeAlias::new(identifier, type_ref, scope, attributes, comment, location)
+            },
         ))
     }
 
-    fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            from_span(&input),
-        ))
-    }
-
-    fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            from_span(&input),
-        ))
-    }
-
-    fn typename(input: PestNode) -> PestResult<TypeRef> {
+    fn typeref(input: PestNode) -> PestResult<TypeRef> {
         let location = from_span(&input);
         let mut nodes = input.children();
 
@@ -694,24 +676,27 @@ impl SliceParser {
             .collect();
 
         let is_optional = input.as_str().ends_with('?');
-        let mut type_ref = TypeRef::new(type_name, is_optional, attributes, location);
+        let scope = get_scope(&input);
+        let mut type_ref: TypeRef<dyn Type> =
+            TypeRef::new(type_name, is_optional, scope, attributes, location);
 
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
             Rule::primitive => {
-                let primitive = Self::primitive(type_node).unwrap();
-                let ast = &input.user_data().borrow_mut().ast;
-                type_ref.definition = Some(ast.resolve_primitive(primitive).index());
+                type_ref.definition =
+                    upcast_weak_as!(Self::primitive(type_node).unwrap(), dyn Type);
             }
             Rule::sequence => {
+                // Store the sequence in the AST's anonymous types vector.
                 let sequence = Self::sequence(type_node).unwrap();
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_ref.definition = Some(ast.add_element(sequence));
+                type_ref.definition = ast.add_anonymous_type(sequence).downgrade();
             }
             Rule::dictionary => {
+                // Store the dictionary in the AST's anonymous types vector.
                 let dictionary = Self::dictionary(type_node).unwrap();
                 let ast = &mut input.user_data().borrow_mut().ast;
-                type_ref.definition = Some(ast.add_element(dictionary));
+                type_ref.definition = ast.add_anonymous_type(dictionary).downgrade();
             }
             // Nothing to do, we wait until after we've generated a lookup table to patch user
             // defined types.
@@ -722,38 +707,35 @@ impl SliceParser {
 
     fn sequence(input: PestNode) -> PestResult<Sequence> {
         Ok(match_nodes!(input.into_children();
-            [_, typename(element_type)] => {
-                Sequence::new(element_type)
+            [_, typeref(element_type)] => {
+                Sequence { element_type }
             },
         ))
     }
 
     fn dictionary(input: PestNode) -> PestResult<Dictionary> {
         Ok(match_nodes!(input.into_children();
-            [_, typename(key_type), typename(value_type)] => {
-                Dictionary::new(key_type, value_type)
+            [_, typeref(key_type), typeref(value_type)] => {
+                Dictionary { key_type, value_type }
             },
         ))
     }
 
-    fn primitive(input: PestNode) -> PestResult<Primitive> {
-        Ok(match_nodes!(input.into_children();
-            [bool_kw(_)]     => Primitive::Bool,
-            [byte_kw(_)]     => Primitive::Byte,
-            [short_kw(_)]    => Primitive::Short,
-            [ushort_kw(_)]   => Primitive::UShort,
-            [int_kw(_)]      => Primitive::Int,
-            [uint_kw(_)]     => Primitive::UInt,
-            [varint_kw(_)]   => Primitive::VarInt,
-            [varuint_kw(_)]  => Primitive::VarUInt,
-            [long_kw(_)]     => Primitive::Long,
-            [ulong_kw(_)]    => Primitive::ULong,
-            [varlong_kw(_)]  => Primitive::VarLong,
-            [varulong_kw(_)] => Primitive::VarULong,
-            [float_kw(_)]    => Primitive::Float,
-            [double_kw(_)]   => Primitive::Double,
-            [string_kw(_)]   => Primitive::String
-        ))
+    fn primitive(input: PestNode) -> PestResult<WeakPtr<Primitive>> {
+        // Look the primitive up in the AST's primitive cache.
+        Ok(input.user_data().borrow().ast.lookup_primitive(input.as_str()).downgrade())
+    }
+
+    fn identifier(input: PestNode) -> PestResult<Identifier> {
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+    }
+
+    fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+    }
+
+    fn global_identifier(input: PestNode) -> PestResult<Identifier> {
+        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
     }
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {
@@ -852,7 +834,9 @@ impl SliceParser {
         match int {
             Ok(int) => Ok(int),
             Err(err) => Err(PestError::new_from_span(
-                PestErrorVariant::CustomError { message: format!("Malformed integer: {}", err) },
+                PestErrorVariant::CustomError {
+                    message: format!("Failed to parse integer: {}", err),
+                },
                 input.as_span(),
             )),
         }
@@ -882,14 +866,14 @@ impl SliceParser {
 
     fn stream_modifier(input: PestNode) -> PestResult<bool> {
         Ok(match_nodes!(input.into_children();
-            []             => false,
+            []                => false,
             [stream_kw(_)] => true
         ))
     }
 
     fn idempotent_modifier(input: PestNode) -> PestResult<bool> {
         Ok(match_nodes!(input.into_children();
-            []                 => false,
+            []                => false,
             [idempotent_kw(_)] => true
         ))
     }
@@ -922,6 +906,10 @@ impl SliceParser {
     }
 
     fn enum_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn type_alias_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
