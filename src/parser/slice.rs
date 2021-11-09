@@ -223,9 +223,10 @@ impl SliceParser {
                     //TODO     location.clone()
                     //TODO ).into());
                 }
-                let base = bases.into_iter().nth(0).unwrap().downcast::<Class>().unwrap();
 
                 push_scope(&input, &identifier.value, false);
+
+                let base = bases.into_iter().next().unwrap().downcast::<Class>().unwrap();
                 (identifier, compact_id, location, Some(base))
             }
         ))
@@ -263,9 +264,10 @@ impl SliceParser {
                     //TODO     location.clone()
                     //TODO ).into());
                 }
-                let base = bases.into_iter().nth(0).unwrap().downcast::<Exception>().unwrap();
 
                 push_scope(&input, &identifier.value, false);
+
+                let base = bases.into_iter().next().unwrap().downcast::<Exception>().unwrap();
                 (identifier, location, Some(base))
             }
         ))
@@ -340,7 +342,7 @@ impl SliceParser {
             },
             [unchecked_modifier(unchecked), _, identifier(identifier), _, typeref(type_ref)] => {
                 let underlying = match type_ref.downcast::<Primitive>() {
-                    Ok(primitive_ref) => primitive_ref,
+                    Ok(primtive_def) => primtive_def,
                     _ => panic!("MUST BE A PRIMITIVE TODO"),
                 };
                 push_scope(&input, &identifier.value, false);
@@ -457,31 +459,13 @@ impl SliceParser {
         let mut operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start)] => {
                 let (attributes, comment) = prelude;
-                let (is_idempotent, mut return_type, identifier) = operation_start;
-
-                // If there is a single return type, clone the operation's attributes onto it.
-                if return_type.len() == 1 {
-                    unsafe {
-                        let return_attributes = &mut return_type.first_mut().unwrap().borrow_mut().data_type.attributes;
-                        return_attributes.extend_from_slice(&attributes);
-                    }
-                }
-
+                let (is_idempotent, return_type, identifier) = operation_start;
                 pop_scope(&input);
                 Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location)
             },
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters)] => {
                 let (attributes, comment) = prelude;
-                let (is_idempotent, mut return_type, identifier) = operation_start;
-
-                // If there is a single return type, clone the operation's attributes onto it.
-                if return_type.len() == 1 {
-                    unsafe {
-                        let return_attributes = &mut return_type.first_mut().unwrap().borrow_mut().data_type.attributes;
-                        return_attributes.extend_from_slice(&attributes);
-                    }
-                }
-
+                let (is_idempotent, return_type, identifier) = operation_start;
                 let mut operation = Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location);
                 for parameter in parameters {
                     operation.add_parameter(parameter);

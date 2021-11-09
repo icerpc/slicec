@@ -624,7 +624,8 @@ impl Enum {
         // There might not be a minimum value if the enum is empty.
         values.clone().min().map(|min| (
             min,
-            values.max().unwrap() // Having a `min` guarantees a `max` exists too, so it's safe to unwrap this.
+            values.max().unwrap() // A 'min' guarantees a 'max' exists too, so unwrap is safe.
+
         ))
     }
 }
@@ -860,9 +861,7 @@ impl Sequence {
 
         // If the elements are enums with an underlying type, check the underlying type instead.
         if let Types::Enum(enum_def) = definition {
-            if let Some(underlying) = &enum_def.underlying {
-                definition = underlying.concrete_type()
-            }
+            definition = enum_def.underlying_type().concrete_type()
         }
 
         if let Types::Primitive(primitive) = definition {

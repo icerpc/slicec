@@ -35,76 +35,28 @@ pub fn fix_case(s: &str, case: CaseStyle) -> String {
     }
 
     match case {
-        CaseStyle::Camel => camel_case(s),
-        CaseStyle::Pascal => pascal_case(s),
-        CaseStyle::Snake => snake_case(s),
+        CaseStyle::Camel => s.to_owned(), // strings are in camel-case by default.
+        CaseStyle::Pascal => {
+            let mut chars = s.chars();
+            // We already handled empty strings, so unwrap is safe; there must be at least 1 char.
+            let first_letter = chars.next().unwrap();
+
+            // We capitalize the first letter and convert it to an owned string, then append the
+            // rest of the original string to it. The 'chars' iterator skipped over the first char
+            // when we called 'next', and so only contains the rest of the string.
+            //
+            // We need to 'collect' here, since 'to_uppercase' returns an iterator. 1 lowercase
+            // grapheme can produce multiple graphemes when capitalized in UTF8.
+            first_letter.to_uppercase().collect::<String>() + chars.as_str()
+        }
+        CaseStyle::Snake => {
+            s.to_owned() // TODOAUSTIN I need to actually write this logic.
+        }
     }
 }
 
-fn camel_case(s: &str) -> String {
-    let mut next_is_upper = false;
-    s.chars()
-        .enumerate()
-        .filter_map(|(i, c)| {
-            if i == 0 {
-                Some(c.to_lowercase().collect::<Vec<_>>())
-            } else if c == '_' {
-                next_is_upper = true;
-                None
-            } else if next_is_upper {
-                next_is_upper = false;
-                Some(c.to_uppercase().collect::<Vec<_>>())
-            } else {
-                Some(vec![c])
-            }
-        })
-        .flatten()
-        .collect::<String>()
-}
-
-fn pascal_case(s: &str) -> String {
-    let mut next_is_upper = false;
-    s.chars()
-        .enumerate()
-        .filter_map(|(i, c)| {
-            if i == 0 {
-                Some(c.to_uppercase().collect::<Vec<_>>())
-            } else if c == '_' {
-                next_is_upper = true;
-                None
-            } else if next_is_upper {
-                next_is_upper = false;
-                Some(c.to_uppercase().collect::<Vec<_>>())
-            } else {
-                Some(vec![c])
-            }
-        })
-        .flatten()
-        .collect::<String>()
-}
-
-fn snake_case(s: &str) -> String {
-    s.chars()
-        .enumerate()
-        .filter_map(|(i, c)| {
-            if c.is_uppercase() {
-                let mut chars = vec![];
-                if i > 0 {
-                    chars.push('_');
-                }
-                chars.extend(c.to_lowercase());
-                Some(chars)
-            } else {
-                Some(vec![c])
-            }
-        })
-        .flatten()
-        .collect::<String>()
-}
-
 pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
-    members
-        .iter()
+    members.iter()
         .filter(|member| member.tag().is_none() && member.data_type().is_bit_sequence_encodable())
         .count()
 }
@@ -112,13 +64,11 @@ pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
 /// Takes a slice of Member references and returns two vectors. One containing the required members
 /// and the other containing the tagged members. The tagged vector is sorted by its tags.
 pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
-    let required_members = members
-        .iter()
+    let required_members = members.iter()
         .filter(|member| member.tag().is_none())
         .cloned()
         .collect::<Vec<_>>();
-    let mut tagged_members = members
-        .iter()
+    let mut tagged_members = members.iter()
         .filter(|member| member.tag().is_some())
         .cloned()
         .collect::<Vec<_>>();
