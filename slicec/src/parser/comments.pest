@@ -25,4 +25,4 @@ invalid_field = { "@" ~ identifier? ~ message? }
 space = { (" " | "\t")+ }
 newline = _{ "\r\n" | "\n" | "\r" }
 separator = _{ " " | "\t" | "\r" | "\n" }
-padding = _{ (" " | "\t" | "*")* }
+padding = _{ (" " | "\t" | "*" | "///")* }
