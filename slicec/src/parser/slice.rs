@@ -297,7 +297,7 @@ impl SliceParser {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 let mut bases_vector = Vec::new();
                 for base in bases {
-                    bases_vector.push(base.downcast::<Interface>().unwrap())
+                    bases_vector.push(base.downcast::<Interface>().unwrap());
                 }
                 push_scope(&input, &identifier.value, false);
                 (identifier, location, bases_vector)
