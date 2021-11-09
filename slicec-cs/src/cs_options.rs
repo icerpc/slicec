@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::options::SliceOptions;
+use slice::command_line::SliceOptions;
 use structopt::StructOpt;
 
 // Note: StructOpt uses the doc-comments of fields to populate the '--help' output of slicec-cs.
@@ -18,4 +18,4 @@ pub struct CsOptions {
 
 /// Short description of slicec-cs that is displayed in its help dialogue.
 const DESCRIPTION: &str = "The slice compiler for C#.
-                           Generates C# code from Slice files for use with icerpc.";
+                           Generates C# code from Slice files for use with IceRpc.";

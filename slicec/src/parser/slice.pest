@@ -1,0 +1,137 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+// TODO rewrite this with better error handling in mind.
+// This was just copy & pasted from the original implementation and can be improved alot.
+
+main = { SOI ~ file_attributes ~ module_def* ~ EOI }
+
+definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | type_alias }
+
+module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
+module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
+
+struct_start = ${ struct_kw ~ ws+ ~ identifier }
+struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
+
+class_start = ${ class_kw ~ ws+ ~ identifier ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
+class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
+
+exception_start = ${ exception_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
+exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member* ~ "}" }
+
+interface_start = ${ interface_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
+interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
+
+enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typeref )? }
+enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
+
+return_type = ${ void_kw | stream_modifier ~ (tag ~ ws*)? ~ typeref | return_tuple }
+return_tuple = !{ "(" ~ parameter_list ~ ")" }
+operation_start = ${ idempotent_modifier ~ return_type ~ ws+ ~ identifier }
+operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ ";" }
+
+data_member = ${ prelude ~ ws* ~ member ~ ws* ~ ";" }
+member = ${ (tag ~ ws*)? ~ typeref ~ ws+ ~ identifier }
+tag = !{ tag_kw ~ "(" ~ integer ~ ")" }
+
+parameter_list = !{ ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
+parameter = ${ prelude ~ stream_modifier ~ ws* ~ member }
+
+enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
+enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
+
+inheritance_list = !{ ( typeref ~ "," ~ inheritance_list ) | ( typeref ~ ","? ) }
+
+type_alias = ${ prelude ~ ws* ~ type_alias_kw ~ ws+ ~ identifier ~ ws* ~ "=" ~ ws* ~ typeref ~ ws* ~ ";" }
+
+typeref = ${ local_attributes ~ ws* ~ (primitive | sequence | dictionary | global_identifier | scoped_identifier) ~ (ws* ~ "?")? }
+
+sequence = !{ sequence_kw ~ "<" ~ typeref ~ ">" }
+dictionary = !{ dictionary_kw ~ "<" ~ typeref ~ "," ~ typeref ~ ">" }
+
+primitive = {
+    bool_kw     |
+    byte_kw     |
+    short_kw    |
+    ushort_kw   |
+    int_kw      |
+    uint_kw     |
+    varint_kw   |
+    varuint_kw  |
+    long_kw     |
+    ulong_kw    |
+    varlong_kw  |
+    varulong_kw |
+    float_kw    |
+    double_kw   |
+    string_kw
+}
+
+identifier = @{ "\\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
+global_identifier = @{ ( "::" ~ identifier )+ }
+scoped_identifier = @{ identifier ~ ( "::" ~ identifier )* }
+
+prelude = !{ local_attributes ~ doc_comment ~ local_attributes }
+
+file_attributes = !{ ("[[" ~ attribute ~ "]]")* }
+local_attributes = !{ ("[" ~ attribute ~ "]")* }
+attribute = !{ attribute_directive ~ ( "(" ~ attribute_arguments? ~ ")" )? }
+attribute_directive = ${ attribute_identifier ~ (":" ~ attribute_identifier)? }
+attribute_identifier = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
+attribute_argument = @{
+    "\"" ~ (!"\"" ~ ANY)* ~ "\"" |          // Add support for escaped characters in the future.
+    (ASCII_ALPHANUMERIC | "_" | "-" | ":" | "<" | ">")+
+}
+attribute_arguments = !{ ( attribute_argument ~ "," ~ attribute_arguments) | ( attribute_argument ~ ","? ) }
+
+// "WHITESPACE" and "COMMENT" are special rules that Pest will implicitely allow to appear in between any other rules.
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+COMMENT = _{ line_comment | block_comment }
+// "ws" is used for rules where we have to explicitely handle whitespace.
+ws = _{ WHITESPACE | COMMENT }
+doc_comment = { ( line_doc_comment+ | block_doc_comment )? }
+
+line_comment = @{ !"///" ~ "//" ~ ( !NEWLINE ~ ANY )* }
+line_doc_comment = @{ "///" ~ ( !NEWLINE ~ ANY )* }
+block_comment = @{ !"/**" ~ "/*" ~ ( !"*/" ~ ANY )* ~ "*/" }
+block_doc_comment = @{ "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
+
+integer = @{ "-"? ~ ASCII_DIGIT+ }
+
+compact_id = { ("(" ~ integer ~ ")")? }
+stream_modifier = { (stream_kw ~ ws+)? }
+idempotent_modifier = { (idempotent_kw ~ ws+)? }
+unchecked_modifier = { (unchecked_kw ~ ws+)? }
+
+module_kw = { "module" }
+struct_kw = { "struct" }
+class_kw = { "class" }
+exception_kw = { "exception" }
+interface_kw = { "interface" }
+enum_kw = { "enum" }
+type_alias_kw = { "typealias" }
+
+sequence_kw = { "sequence" }
+dictionary_kw = { "dictionary" }
+
+void_kw = { "void" ~ !ASCII_ALPHA }
+bool_kw = { "bool" ~ !ASCII_ALPHA }
+byte_kw = { "byte" ~ !ASCII_ALPHA }
+short_kw = { "short" ~ !ASCII_ALPHA }
+ushort_kw = { "ushort" ~ !ASCII_ALPHA }
+int_kw = { "int" ~ !ASCII_ALPHA }
+uint_kw = { "uint" ~ !ASCII_ALPHA }
+varint_kw = { "varint" ~ !ASCII_ALPHA }
+varuint_kw = { "varuint" ~ !ASCII_ALPHA }
+long_kw = { "long" ~ !ASCII_ALPHA }
+ulong_kw = { "ulong" ~ !ASCII_ALPHA }
+varlong_kw = { "varlong" ~ !ASCII_ALPHA }
+varulong_kw = { "varulong" ~ !ASCII_ALPHA }
+float_kw = { "float" ~ !ASCII_ALPHA }
+double_kw = { "double" ~ !ASCII_ALPHA }
+string_kw = { "string" ~ !ASCII_ALPHA }
+
+tag_kw = { "tag" ~ !ASCII_ALPHA }
+stream_kw = { "stream" ~ !ASCII_ALPHA }
+extends_kw = { ":" }
+idempotent_kw = { "idempotent" ~ !ASCII_ALPHA }
+unchecked_kw = { "unchecked" ~ !ASCII_ALPHA }

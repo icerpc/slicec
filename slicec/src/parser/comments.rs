@@ -1,27 +1,28 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
-use crate::util::Location;
-use pest::Parser;
+use crate::slice_file::Location;
 use pest::iterators::Pair;
+use pest::Parser;
 use pest_derive::Parser as PestParser;
 
 type PestPair<'i> = Pair<'i, Rule>;
 
 #[derive(Debug, PestParser)]
-#[grammar = "comment.pest"]
+#[grammar = "parser/comments.pest"]
 pub struct CommentParser;
 
 impl CommentParser {
     pub fn parse_doc_comment(raw_comment: &str, location: Location) -> DocComment {
         // Create an empty comment that the parser will populate as it traverses the parse tree.
         let mut comment = DocComment {
-            message: String::new(),
-            references: Vec::new(),
+            overview: String::new(),
+            see_also: Vec::new(),
             params: Vec::new(),
-            throws: Vec::new(),
             returns: None,
-            location
+            throws: Vec::new(),
+            deprecate_reason: None,
+            location,
         };
 
         // Attempt to parse the raw string as a comment (via the `main` rule in `comment.pest`).
@@ -46,19 +47,25 @@ impl CommentParser {
         // Comments are parsed line by line, but field descriptions can span multiple lines.
         // This string references the most recent field description, so that following lines can
         // append text to it. At the start it references the comment's message before any fields.
-        let mut current_string = &mut comment.message;
+        let mut current_string = &mut comment.overview;
 
         for token in parse_tree.into_inner() {
             match token.as_rule() {
                 Rule::message => {
                     // Remove any trailing padding from the message, and append it to the current
                     // field being written into the comment.
-                    current_string.push_str(token.as_str().trim_end_matches(Self::is_padding).trim_start_matches(char::is_whitespace));
+                    current_string.push_str(
+                        token
+                            .as_str()
+                            .trim_end_matches(Self::is_padding)
+                            .trim_start_matches(char::is_whitespace),
+                    );
                     current_string.push('\n');
                 }
                 Rule::param_field => {
-                    // Iterate through the subtokens. Any of them can be missing, but they will always be in
-                    // the following order when present: space, identifier, message.
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
                     for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
@@ -68,23 +75,31 @@ impl CommentParser {
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
 
-                                // Add a new parameter field to the comment, with an empty description.
-                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
+                                // Add a new parameter field to the comment, with an empty
+                                // description.
+                                let identifier =
+                                    subtoken.as_str().trim_end_matches(Self::is_padding);
                                 comment.params.push((identifier.to_owned(), String::new()));
-                                // Re-point the current string reference to point to the parameter's description
-                                // string, so that any following text (even following lines) is appended to it.
+                                // Re-point the current string reference to point to the parameter's
+                                // description string, so that any
+                                // following text (even following lines) is appended to it.
                                 current_string = &mut comment.params.last_mut().unwrap().1;
                             }
                             Rule::message => {
-                                // The grammar rules make it impossible for a message to not follow identifiers.
+                                // The grammar rules make it impossible for a message to not follow
+                                // identifiers.
                                 debug_assert!(has_identifier);
                                 // Add the message onto the parameter's description.
-                                *current_string += subtoken.as_str().trim_end_matches(Self::is_padding).trim_start_matches(char::is_whitespace);
+                                *current_string += subtoken
+                                    .as_str()
+                                    .trim_end_matches(Self::is_padding)
+                                    .trim_start_matches(char::is_whitespace);
                                 current_string.push('\n');
                             }
                             _ => panic!("matched impossible token: {:?}", subtoken),
@@ -97,8 +112,9 @@ impl CommentParser {
                     }
                 }
                 Rule::return_field => {
-                    // Iterate through the subtokens. Any of them can be missing, but they will always be in
-                    // the following order when present: space, message.
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // message.
                     let mut has_space = false;
                     let mut has_message = false;
                     for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
@@ -108,20 +124,26 @@ impl CommentParser {
                             }
                             Rule::message => {
                                 has_message = true;
-                                // Issue an error if there's no whitespace between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
 
-                                // Issue an error if a return field was already specified in the comment.
+                                // Issue an error if a return field was already specified in the
+                                // comment.
                                 if comment.returns.is_some() {
                                     // TODO issue an error.
                                 }
 
-                                let return_message = subtoken.as_str().trim_end_matches(Self::is_padding).trim_start_matches(char::is_whitespace);
+                                let return_message = subtoken
+                                    .as_str()
+                                    .trim_end_matches(Self::is_padding)
+                                    .trim_start_matches(char::is_whitespace);
                                 comment.returns = Some(return_message.to_owned());
-                                // Re-point the current string reference to point to the return message string
-                                // so that any following text (even following lines) is appended to it.
+                                // Re-point the current string reference to point to the return
+                                // message string so that any
+                                // following text (even following lines) is appended to it.
                                 current_string = comment.returns.as_mut().unwrap();
                                 current_string.push('\n');
                             }
@@ -135,8 +157,9 @@ impl CommentParser {
                     }
                 }
                 Rule::throws_field => {
-                    // Iterate through the subtokens. Any of them can be missing, but they will always be in
-                    // the following order when present: space, identifier, message.
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
                     for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
@@ -146,23 +169,30 @@ impl CommentParser {
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
 
                                 // Add a new throws field to the comment, with an empty description.
-                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
+                                let identifier =
+                                    subtoken.as_str().trim_end_matches(Self::is_padding);
                                 comment.throws.push((identifier.to_owned(), String::new()));
-                                // Re-point the current string reference to point to the throws' description
-                                // string, so that any following text (even following lines) is appended to it.
+                                // Re-point the current string reference to point to the throws'
+                                // description string, so that any
+                                // following text (even following lines) is appended to it.
                                 current_string = &mut comment.throws.last_mut().unwrap().1;
                             }
                             Rule::message => {
-                                // The grammar rules make it impossible for a message to not follow identifiers.
+                                // The grammar rules make it impossible for a message to not follow
+                                // identifiers.
                                 debug_assert!(has_identifier);
                                 // Add the message onto the throws' description.
-                                *current_string += subtoken.as_str().trim_end_matches(Self::is_padding).trim_start_matches(char::is_whitespace);
+                                *current_string += subtoken
+                                    .as_str()
+                                    .trim_end_matches(Self::is_padding)
+                                    .trim_start_matches(char::is_whitespace);
                                 current_string.push('\n');
                             }
                             _ => panic!("matched impossible token: {:?}", subtoken),
@@ -175,8 +205,9 @@ impl CommentParser {
                     }
                 }
                 Rule::see_field => {
-                    // Iterate through the subtokens. Any of them can be missing, but they will always be in
-                    // the following order when present: space, identifier, message.
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // identifier, message.
                     let mut has_space = false;
                     let mut has_identifier = false;
                     for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
@@ -186,24 +217,29 @@ impl CommentParser {
                             }
                             Rule::identifier => {
                                 has_identifier = true;
-                                // Issue an error if there's no whitespace between the identifier and tag.
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
                                 if !has_space {
                                     // TODO issue an error about missing a space.
                                 }
 
                                 // Add a new see field to the comment, with an empty description.
-                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
-                                comment.references.push(identifier.to_owned());
-                                // Re-point the current string reference to point to the identifier string.
-                                // References shouldn't have additional text, but there's no where else logical
+                                let identifier =
+                                    subtoken.as_str().trim_end_matches(Self::is_padding);
+                                comment.see_also.push(identifier.to_owned());
+                                // Re-point the current string reference to point to the identifier
+                                // string. References shouldn't have
+                                // additional text, but there's no where else logical
                                 // to append the text to.
-                                current_string = comment.references.last_mut().unwrap();
+                                current_string = comment.see_also.last_mut().unwrap();
                             }
                             Rule::message => {
-                                // The grammar rules make it impossible for a message to not follow identifiers.
+                                // The grammar rules make it impossible for a message to not follow
+                                // identifiers.
                                 debug_assert!(has_identifier);
-                                // Issue an error; references shouldn't have additional descriptions.
-                                // TODO issue the error.
+                                // Issue an error; references shouldn't have additional
+                                // descriptions. TODO issue the
+                                // error.
                             }
                             _ => panic!("matched impossible token: {:?}", subtoken),
                         }
