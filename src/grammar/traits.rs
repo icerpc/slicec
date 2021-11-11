@@ -63,7 +63,7 @@ pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + ScopedSymbol + Attributable + Commentable {}
+pub trait Entity: NamedSymbol + Attributable + Commentable {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;
