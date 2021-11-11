@@ -52,6 +52,18 @@ macro_rules! generate_types_wrapper {
         pub enum TypesMut<'a> {
             $($variant(&'a mut $variant),)*
         }
+
+        $(
+        impl AsTypes for $variant {
+            fn concrete_type(&self) -> Types {
+                Types::$variant(self)
+            }
+
+            fn concrete_type_mut(&mut self) -> TypesMut {
+                TypesMut::$variant(self)
+            }
+        }
+        )*
     };
 }
 
@@ -64,22 +76,6 @@ macro_rules! implement_as_elements {
 
             fn concrete_element_mut(&mut self) -> ElementsMut {
                 ElementsMut::$type(self)
-            }
-        }
-    };
-}
-
-macro_rules! implement_as_types {
-    ($type:ident) => {
-        implement_as_elements!($type);
-
-        impl AsTypes for $type {
-            fn concrete_type(&self) -> Types {
-                Types::$type(self)
-            }
-
-            fn concrete_type_mut(&mut self) -> TypesMut {
-                TypesMut::$type(self)
             }
         }
     };
@@ -109,19 +105,19 @@ generate_types_wrapper!(
 );
 
 implement_as_elements!(Module);
-implement_as_types!(Struct);
-implement_as_types!(Class);
+implement_as_elements!(Struct);
+implement_as_elements!(Class);
 implement_as_elements!(Exception);
 implement_as_elements!(DataMember);
-implement_as_types!(Interface);
+implement_as_elements!(Interface);
 implement_as_elements!(Operation);
 implement_as_elements!(Parameter);
-implement_as_types!(Enum);
+implement_as_elements!(Enum);
 implement_as_elements!(Enumerator);
 implement_as_elements!(TypeAlias); //TODO rethink type-aliases.
-implement_as_types!(Sequence);
-implement_as_types!(Dictionary);
-implement_as_types!(Primitive);
+implement_as_elements!(Sequence);
+implement_as_elements!(Dictionary);
+implement_as_elements!(Primitive);
 implement_as_elements!(Identifier);
 implement_as_elements!(Attribute);
 
