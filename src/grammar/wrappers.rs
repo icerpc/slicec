@@ -135,13 +135,3 @@ impl<T: Element + ?Sized> AsElements for TypeRef<T> {
         panic!() // TODO write a message here!
     }
 }
-
-impl<T: Type + ?Sized> AsTypes for TypeRef<T> {
-    fn concrete_type(&self) -> Types {
-        self.definition().concrete_type()
-    }
-
-    fn concrete_type_mut(&mut self) -> TypesMut {
-        panic!() // TODO write a message here!
-    }
-}

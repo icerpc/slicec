@@ -366,7 +366,7 @@ impl Interface {
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {
         let mut bases = self.bases.iter()
-            .flat_map(|type_ref| type_ref.definition().all_base_interfaces())
+            .flat_map(|type_ref| type_ref.all_base_interfaces())
             .collect::<Vec<&Interface>>();
 
         // Dedup only works on sorted collections, so we have to sort the bases first.
@@ -716,7 +716,7 @@ impl AsTypes for TypeAlias {
     }
 
     fn concrete_type_mut(&mut self) -> TypesMut {
-        self.underlying.concrete_type_mut()
+        panic!("This has always been broken apparently");
     }
 }
 
@@ -795,6 +795,20 @@ impl<T: Element + ?Sized + Type> TypeRef<T> {
     pub fn is_bit_sequence_encodable(&self) -> bool {
         self.is_optional && self.min_wire_size() == 0
     }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    fn min_wire_size(&self) -> u32 {
+        let underlying = self.definition();
+        if self.is_optional {
+            match underlying.concrete_type() {
+                // TODO explain why classes and interfaces still take up 1 byte.
+                Types::Class(_) | Types::Interface(_) => 1,
+                _ => 0,
+            }
+        } else {
+            underlying.min_wire_size()
+        }
+    }
 }
 
 impl<T: Element + ?Sized> Attributable for TypeRef<T> {
@@ -816,33 +830,11 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
     }
 }
 
-// Technically, `TypeRef` is NOT a type; It represents somewhere that a type is referenced.
-// But, for convenience, we implement type on it, so that users of the API can call methods on
-// the underlying type without having to first call `.definition()` all the time.
-impl<T: Element + ?Sized + Type> Type for TypeRef<T> {
-    fn is_fixed_size(&self) -> bool {
-        self.definition().is_fixed_size()
-    }
+impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {
+    type Target = T;
 
-    fn min_wire_size(&self) -> u32 {
-        let underlying = self.definition();
-        if self.is_optional {
-            match underlying.concrete_type() {
-                // TODO explain why classes and interfaces still take up 1 byte.
-                Types::Class(_) | Types::Interface(_) => 1,
-                _ => 0,
-            }
-        } else {
-            underlying.min_wire_size()
-        }
-    }
-
-    fn uses_classes(&self) -> bool {
-        self.definition().uses_classes()
-    }
-
-    fn tag_format(&self) -> TagFormat {
-        self.definition().tag_format()
+    fn deref(&self) -> &Self::Target {
+        self.definition()
     }
 }
 
