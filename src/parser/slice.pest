@@ -63,7 +63,8 @@ primitive = {
     varulong_kw |
     float_kw    |
     double_kw   |
-    string_kw
+    string_kw   |
+    any_class_kw
 }
 
 identifier = @{ "\\"? ~ ASCII_ALPHA ~ ( "_" | ASCII_ALPHANUMERIC )* }
@@ -129,6 +130,7 @@ varulong_kw = { "varulong" ~ !ASCII_ALPHA }
 float_kw = { "float" ~ !ASCII_ALPHA }
 double_kw = { "double" ~ !ASCII_ALPHA }
 string_kw = { "string" ~ !ASCII_ALPHA }
+any_class_kw = { "AnyClass" ~ !ASCII_ALPHA }
 
 tag_kw = { "tag" ~ !ASCII_ALPHA }
 stream_kw = { "stream" ~ !ASCII_ALPHA }

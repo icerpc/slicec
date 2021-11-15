@@ -342,7 +342,7 @@ impl SliceParser {
             },
             [unchecked_modifier(unchecked), _, identifier(identifier), _, typeref(type_ref)] => {
                 let underlying = match type_ref.downcast::<Primitive>() {
-                    Ok(primtive_def) => primtive_def,
+                    Ok(primitive_def) => primitive_def,
                     _ => panic!("MUST BE A PRIMITIVE TODO"),
                 };
                 push_scope(&input, &identifier.value, false);
@@ -976,6 +976,10 @@ impl SliceParser {
     }
 
     fn string_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn any_class_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

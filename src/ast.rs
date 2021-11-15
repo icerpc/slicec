@@ -77,6 +77,7 @@ impl Ast {
             ("float", OwnedPtr::new(Primitive::Float)),
             ("double", OwnedPtr::new(Primitive::Double)),
             ("string", OwnedPtr::new(Primitive::String)),
+            ("AnyClass", OwnedPtr::new(Primitive::AnyClass)),
         ]);
 
         // Create an empty AST (apart from the primitive cache).
