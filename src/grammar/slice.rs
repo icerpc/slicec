@@ -742,7 +742,7 @@ implement_Element_for!(TypeAlias, "type alias");
 implement_Entity_for!(TypeAlias);
 implement_Contained_for!(TypeAlias, Module);
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
     pub type_string: String,
     pub definition: WeakPtr<T>,
@@ -770,28 +770,28 @@ impl<T: Element + ?Sized> TypeRef<T> {
         self.definition.borrow()
     }
 
-    pub fn downcast<U: Element + 'static>(self) -> Result<TypeRef<U>, TypeRef<T>> {
+    pub(crate) fn downcast<U: Element + 'static>(&self) -> Result<TypeRef<U>, ()> {
         let definition = if self.definition.is_initialized() {
             match self.definition.clone().downcast::<U>() {
                 Ok(ptr) => ptr,
-                Err(_) => return Err(self),
+                Err(_) => return Err(()),
             }
         } else {
             WeakPtr::create_uninitialized()
         };
 
         Ok(TypeRef {
-            type_string: self.type_string,
+            type_string: self.type_string.clone(),
             definition,
-            is_optional: self.is_optional,
-            scope: self.scope,
-            attributes: self.attributes,
-            location: self.location,
+            is_optional: self.is_optional.clone(),
+            scope: self.scope.clone(),
+            attributes: self.attributes.clone(),
+            location: self.location.clone(),
         })
     }
 }
 
-impl<T: Element + ?Sized + Type> TypeRef<T> {
+impl<T: Type + ?Sized> TypeRef<T> {
     pub fn is_bit_sequence_encodable(&self) -> bool {
         self.is_optional && self.min_wire_size() == 0
     }
