@@ -27,19 +27,45 @@ macro_rules! generate_definition_wrapper {
     };
 }
 
-macro_rules! generate_elements_wrapper {
+generate_definition_wrapper!(
+    Module, Struct, Class, Exception, Interface, Enum, TypeAlias
+);
+
+macro_rules! generate_entities_wrapper {
     ($($variant:ident),*) => {
         #[derive(Debug)]
-        pub enum Elements<'a> {
+        pub enum Entities<'a> {
             $($variant(&'a $variant),)*
         }
 
         #[derive(Debug)]
-        pub enum ElementsMut<'a> {
+        pub enum EntitiesMut<'a> {
             $($variant(&'a mut $variant),)*
         }
+
+        $(
+        impl AsEntities for $variant {
+            fn concrete_entity(&self) -> Entities {
+                Entities::$variant(self)
+            }
+
+            fn concrete_entity_mut(&mut self) -> EntitiesMut {
+                EntitiesMut::$variant(self)
+            }
+        }
+        )*
     };
 }
+
+pub trait AsEntities {
+    fn concrete_entity(&self) -> Entities;
+    fn concrete_entity_mut(&mut self) -> EntitiesMut;
+}
+
+generate_entities_wrapper!(
+    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
+    Enumerator, TypeAlias
+);
 
 macro_rules! generate_types_wrapper {
     ($($variant:ident),*) => {
@@ -64,26 +90,22 @@ macro_rules! generate_types_wrapper {
             }
         }
         )*
-    };
-}
 
-macro_rules! implement_as_elements {
-    ($type:ident) => {
-        impl AsElements for $type {
-            fn concrete_element(&self) -> Elements {
-                Elements::$type(self)
-            }
+        #[derive(Debug)]
+        pub enum TypeRefs {
+            $($variant(TypeRef<$variant>),)*
+        }
 
-            fn concrete_element_mut(&mut self) -> ElementsMut {
-                ElementsMut::$type(self)
+        impl TypeRef<dyn Type> {
+            pub fn concrete_typeref(&self) -> TypeRefs {
+                match self.definition().concrete_type() {
+                    $(Types::$variant(_) => TypeRefs::$variant(
+                        self.downcast::<$variant>().ok().unwrap(),
+                    ),)*
+                }
             }
         }
     };
-}
-
-pub trait AsElements {
-    fn concrete_element(&self) -> Elements;
-    fn concrete_element_mut(&mut self) -> ElementsMut;
 }
 
 pub trait AsTypes {
@@ -91,43 +113,6 @@ pub trait AsTypes {
     fn concrete_type_mut(&mut self) -> TypesMut;
 }
 
-generate_definition_wrapper!(
-    Module, Struct, Class, Exception, Interface, Enum, TypeAlias
-);
-
-generate_elements_wrapper!(
-    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
-    Enumerator, TypeAlias, TypeRef, Sequence, Dictionary, Primitive, Identifier, Attribute
-);
-
 generate_types_wrapper!(
     Struct, Class, Interface, Enum, Sequence, Dictionary, Primitive
 );
-
-implement_as_elements!(Module);
-implement_as_elements!(Struct);
-implement_as_elements!(Class);
-implement_as_elements!(Exception);
-implement_as_elements!(DataMember);
-implement_as_elements!(Interface);
-implement_as_elements!(Operation);
-implement_as_elements!(Parameter);
-implement_as_elements!(Enum);
-implement_as_elements!(Enumerator);
-implement_as_elements!(TypeAlias); //TODO rethink type-aliases.
-implement_as_elements!(Sequence);
-implement_as_elements!(Dictionary);
-implement_as_elements!(Primitive);
-implement_as_elements!(Identifier);
-implement_as_elements!(Attribute);
-
-// Since `TypeRef` has a generic type parameter, we implement the as_wrapper methods by hand.
-impl<T: Element + ?Sized> AsElements for TypeRef<T> {
-    fn concrete_element(&self) -> Elements {
-        self.definition().concrete_element()
-    }
-
-    fn concrete_element_mut(&mut self) -> ElementsMut {
-        panic!() // TODO write a message here!
-    }
-}

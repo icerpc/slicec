@@ -3,10 +3,10 @@
 use super::comments::DocComment;
 use super::slice::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
-use super::wrappers::{AsElements, AsTypes};
+use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Location;
 
-pub trait Element: std::fmt::Debug + AsElements {
+pub trait Element: std::fmt::Debug {
     fn kind(&self) -> &'static str;
 }
 
@@ -63,7 +63,7 @@ pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + Attributable + Commentable {}
+pub trait Entity: NamedSymbol + Attributable + Commentable + AsEntities {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;
