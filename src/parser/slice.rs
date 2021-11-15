@@ -771,7 +771,17 @@ impl SliceParser {
     }
 
     fn attribute_argument(input: PestNode) -> PestResult<String> {
-        Ok(input.as_str().to_owned())
+        let argument = input.as_str();
+        // If the argument was wrapped in quotes, remove them.
+        if argument.starts_with('"') && argument.ends_with('"') {
+            let mut chars = argument.chars();
+            // Skip the first and last characters (they're just quotes).
+            chars.next();
+            chars.next_back();
+            Ok(chars.collect::<String>())
+        } else {
+            Ok(argument.to_owned())
+        }
     }
 
     fn attribute_arguments(input: PestNode) -> PestResult<Vec<String>> {
