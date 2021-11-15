@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::downgrade_as;
-use crate::upcast_owned_as;
+// TODO this file needs some cleanup now.
+
+use crate::{downgrade_as, upcast_owned_as, upcast_weak_as};
 
 use crate::grammar::*;
 use crate::ptr_visitor::PtrVisitor;
@@ -47,48 +48,45 @@ pub struct Ast {
     /// as primitives are not scope-sensative, unlike other anonymous types.
     pub(crate) primitive_cache: HashMap<&'static str, OwnedPtr<Primitive>>,
 
-    /// This lookup table stores [WeakPtr]s for every **user defined** [Type] stored in the AST.
-    /// **Module** scoped identifiers are used as keys for each [Type]'s pointer.
-    ///
-    /// [Primitive] types must be looked up from the [primitive_cache],
-    /// and it's impossible to lookup anonymous types.
-    pub(crate) type_lookup_table: HashMap<String, WeakPtr<dyn Type>>,
+    /// This lookup table stores [WeakPtr]s for every user defined entity that is defined in global
+    /// or module scope. Each [Entity]'s **module** scoped identifier is used as its key in the table.
+    pub(crate) module_scoped_lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
 
-    /// This lookup table stores [WeakPtr]s for every [Entity] stored in the AST.
-    /// **Parser** scoped identifiers are used as keys for each [Entity]'s pointer.
-    pub(crate) entity_lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
+    /// This lookup table stores [WeakPtr]s for every user defined entity that is stored in the AST.
+    /// Each [Entity]'s **parser** scoped identifier is used as its key in the table.
+    pub(crate) parser_scoped_lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
 }
 
 impl Ast {
     pub(crate) fn new() -> Ast {
-        // Create an empty AST.
-        let mut new_ast = Ast {
-            ast: Vec::new(),
-            anonymous_types: Vec::new(),
-            primitive_cache: HashMap::new(),
-            type_lookup_table: HashMap::new(),
-            entity_lookup_table: HashMap::new(),
-        };
-
-        // Create an instance of each primitive and add them directly into the AST.
         // Primitive types are built in to the compiler. Since they aren't defined in Slice,
         // we 'define' them here when the AST is created, to ensure they're always available.
-        new_ast.add_cached_primitive("bool", Primitive::Bool);
-        new_ast.add_cached_primitive("byte", Primitive::Byte);
-        new_ast.add_cached_primitive("short", Primitive::Short);
-        new_ast.add_cached_primitive("ushort", Primitive::UShort);
-        new_ast.add_cached_primitive("int", Primitive::Int);
-        new_ast.add_cached_primitive("uint", Primitive::UInt);
-        new_ast.add_cached_primitive("varint", Primitive::VarInt);
-        new_ast.add_cached_primitive("varuint", Primitive::VarUInt);
-        new_ast.add_cached_primitive("long", Primitive::Long);
-        new_ast.add_cached_primitive("ulong", Primitive::ULong);
-        new_ast.add_cached_primitive("varlong", Primitive::VarLong);
-        new_ast.add_cached_primitive("varulong", Primitive::VarULong);
-        new_ast.add_cached_primitive("float", Primitive::Float);
-        new_ast.add_cached_primitive("double", Primitive::Double);
-        new_ast.add_cached_primitive("string", Primitive::String);
-        new_ast
+        let primitive_cache = HashMap::from([
+            ("bool", OwnedPtr::new(Primitive::Bool)),
+            ("byte", OwnedPtr::new(Primitive::Byte)),
+            ("short", OwnedPtr::new(Primitive::Short)),
+            ("ushort", OwnedPtr::new(Primitive::UShort)),
+            ("int", OwnedPtr::new(Primitive::Int)),
+            ("uint", OwnedPtr::new(Primitive::UInt)),
+            ("varint", OwnedPtr::new(Primitive::VarInt)),
+            ("varuint", OwnedPtr::new(Primitive::VarUInt)),
+            ("long", OwnedPtr::new(Primitive::Long)),
+            ("ulong", OwnedPtr::new(Primitive::ULong)),
+            ("varlong", OwnedPtr::new(Primitive::VarLong)),
+            ("varulong", OwnedPtr::new(Primitive::VarULong)),
+            ("float", OwnedPtr::new(Primitive::Float)),
+            ("double", OwnedPtr::new(Primitive::Double)),
+            ("string", OwnedPtr::new(Primitive::String)),
+        ]);
+
+        // Create an empty AST (apart from the primitive cache).
+        Ast {
+            ast: Vec::new(),
+            anonymous_types: Vec::new(),
+            primitive_cache,
+            module_scoped_lookup_table: HashMap::new(),
+            parser_scoped_lookup_table: HashMap::new(),
+        }
     }
 
     /// Moves a [Module] into the AST, and returns a [WeakPtr] to it.
@@ -99,15 +97,14 @@ impl Ast {
         // Move the module onto the heap so it can be referenced via pointer.
         let mut module_ptr = OwnedPtr::new(module_def);
 
-        // Add the module into the AST's entity lookup table.
-        let entity_ptr = downgrade_as!(module_ptr, dyn Entity);
-        self.entity_lookup_table.insert(module_ptr.borrow().parser_scoped_identifier(), entity_ptr);
-
-        // Recursively visit its contents and add them into the lookup table too.
+        // Create a visitor for adding the module's contents into the AST's lookup tables.
         let mut visitor = LookupTableBuilder {
-            type_lookup_table: &mut self.type_lookup_table,
-            entity_lookup_table: &mut self.entity_lookup_table,
+            module_scoped_lookup_table: &mut self.module_scoped_lookup_table,
+            parser_scoped_lookup_table: &mut self.parser_scoped_lookup_table,
         };
+
+        // Add the module into the lookup tables, then recursively add it's contents too.
+        //
         // This is always safe; no other references to the module can exist because we own it,
         // and haven't dereferenced any of the pointers to it that we've constructed.
         unsafe { module_ptr.visit_ptr_with(&mut visitor); }
@@ -141,46 +138,35 @@ impl Ast {
         self.anonymous_types.last().unwrap()
     }
 
-    /// Moves a [Primitive] into the AST.
-    ///
-    /// This is invoked by the AST during initialization, once per primitive.
-    /// The provided `identifier` and `primitive` are placed in the AST's [primitive_cache] as a key-value pair.
-    ///
-    /// # Arguments
-    ///
-    /// * identifier - The slice keyword corresponding to the primitive type (Ex: `varulong`).
-    /// * primitive - An instance of the primitive to add into the AST.
-    fn add_cached_primitive(&mut self, identifier: &'static str, primitive: Primitive) {
-        // Move the primitive onto the heap, so it can referenced via pointer.
-        let primitive_ptr = OwnedPtr::new(primitive);
+    fn lookup_entity<'ast>(
+        lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+        identifier: &str,
+        mut scopes: &[String],
+    ) -> Option<&'ast WeakPtr<dyn Entity>> {
+        // If the identifier starts with '::', it's a global identifier, which can be looked up directly.
+        if let Some(unprefixed) = identifier.strip_prefix("::") {
+            return lookup_table.get(unprefixed);
+        }
 
-        // Insert an entry in the lookup table for the type, and cache the primitive's instance.
-        let weak_ptr = downgrade_as!(primitive_ptr, dyn Type);
-        self.type_lookup_table.insert(identifier.to_owned(), weak_ptr);
-        self.primitive_cache.insert(identifier, primitive_ptr);
-    }
+        // For relative paths, we check each enclosing scope, starting from the bottom
+        // (most specific scope), and working our way up to global scope.
+        while !scopes.is_empty() {
+            let candidate = scopes.join("::") + "::" + identifier;
+            if let Some(result) = lookup_table.get(&candidate) {
+                return Some(result);
+            }
+            // Remove the last parent's scope before trying again.
+            // It's safe to unwrap here, since we know that `scopes` is not empty.
+            scopes = scopes.split_last().unwrap().1;
+        }
 
-    /// Looks up a [Primitive] type in the AST, by its slice keyword (Ex: `varulong`).
-    /// If the primitive exists, it returns a reference to the `OwnedPtr` holding it.
-    ///
-    /// # Arguments
-    ///
-    /// * identifier - The slice keyword corresponding to the primitive type.
-    ///
-    /// # Panics
-    ///
-    /// If the provided `identifier` doesn't correspond to a Slice primitive type.
-    /// This almost definitely indicates a mistake in the compiler's logic.
-    ///
-    /// # Examples
-    /// ```
-    /// let ast = Ast::new();
-    /// let ulong = ast.lookup_type("ulong");
-    /// ```
-    pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive> {
-        self.primitive_cache.get(identifier).unwrap_or_else(||
-            panic!("No Primitive type exists with the name '{}'", identifier)
-        )
+        // Check for the entity at global scope (without any parent scopes).
+        if let Some(result) = lookup_table.get(&identifier.to_owned()) {
+            return Some(result);
+        }
+
+        // The entity couldn't be found.
+        None
     }
 
     // =============================================================================================
@@ -190,177 +176,59 @@ impl Ast {
     // been mutably borrowed somewhere else (such as while visiting, or patching).
     // =============================================================================================
 
-    /// Looks up a [Type] in the AST, by its **module** scoped identifier.
-    /// The behavior of this function depends on whether the scoped identifier is global or relative.
-    ///
-    /// Global identifiers begin with '::' and must be an exact match to return a type.
-    ///
-    /// Relative identifiers don't begin with '::'. This function tries to resolve relative identifiers
-    /// with an inner -> outer approach. It first tries to find the type in the current scope, but if the type
-    /// can't be found, it checks one scope higher, and so on, until global scope is reached.
-    ///
-    /// If the type can't be found, this returns `None`, otherwise it returns a borrowed [WeakPtr] to the type.
-    ///
-    /// # Arguments
-    ///
-    /// * type_lookup_table - A borrow of the AST's [type_lookup_table], to search through.
-    /// * identifier - The scoped identifier of the type to lookup. Can be either globally or relatively scoped.
-    /// * scope - The scope to begin the lookup in. This is only used to resolve relatively scoped types.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let slice_file = "
-    ///     module Foo
-    ///     {
-    ///         struct MyStruct {}
-    ///         struct OnlyInFoo {}
-    ///
-    ///         module Bar
-    ///         {
-    ///             struct MyStruct {}
-    ///         }
-    ///     }
-    /// ";
-    ///
-    /// let parser = parser::SliceParser::new();
-    /// parser.parse_string(slice_file)?;
-    /// let ast = parser.ast;
-    ///
-    /// let foo_scope = Scope::new("Foo");
-    /// let bar_scope = Scope::new("Foo::Bar");
-    ///
-    /// ast.lookup_type("::Foo::MyStruct",      bar_scope); // Returns 'Foo::MyStruct'.
-    /// ast.lookup_type("::Foo::Bar::MyStruct", bar_scope); // Returns 'Foo::Bar::MyStruct'.
-    /// ast.lookup_type("::Bar::MyStruct",      bar_scope); // Returns 'None'.
-    ///
-    /// ast.lookup_type("MyStruct",  foo_scope); // Returns 'Foo::MyStruct'.
-    /// ast.lookup_type("MyStruct",  bar_scope); // Returns 'Foo::Bar::MyStruct'.
-    /// ast.lookup_type("OnlyInFoo", bar_scope); // Returns 'Foo::OnlyInFoo'.
-    ///
-    /// ast.lookup_type("Bar::MyStruct", foo_scope); // Returns 'Foo::Bar::MyStruct'.
-    /// ast.lookup_type("Bar::MyStruct", bar_scope); // Returns 'Foo::Bar::MyStruct'.
-    /// ast.lookup_type("Foo::MyStruct", bar_scope); // Returns 'Foo::MyStruct'.
-    ///
-    /// ast.lookup_type("Bar::FakeStruct", foo_scope); // Returns 'None'.
-    /// ```
-    pub fn lookup_type<'ast>(
-        type_lookup_table: &'ast HashMap<String, WeakPtr<dyn Type>>,
-        identifier: &str,
-        scope: &Scope,
-    ) -> Option<&'ast WeakPtr<dyn Type>> {
-        // Paths starting with '::' are absolute paths, which can be directly looked up.
-        if let Some(unprefixed) = identifier.strip_prefix("::") {
-            return type_lookup_table.get(unprefixed);
-        }
-
-        // Types are looked up by module scope, since types can only be defined inside modules.
-        let mut parents: &[String] = &scope.module_scope;
-
-        // For relative paths, we check each enclosing scope, starting from the bottom
-        // (most specified scope), and working our way up to global scope.
-        while !parents.is_empty() {
-            let candidate = parents.join("::") + "::" + identifier;
-            if let Some(result) = type_lookup_table.get(&candidate) {
-                return Some(result);
-            }
-            // Remove the last parent's scope before trying again.
-            // It's safe to unwrap here, since we know that `parents` is not empty.
-            parents = parents.split_last().unwrap().1;
-        }
-        // Try checking at global scope, without any parent scopes.
-        if let Some(result) = type_lookup_table.get(&identifier.to_owned()) {
-            return Some(result);
-        }
-
-        // We couldn't find the type in any enclosing scope.
-        None
-    }
-
-    /// Looks up an [Entity] in the AST, by its **parser** scoped identifier.
-    /// The behavior of this function depends on whether the scoped identifier is global or relative.
-    ///
-    /// Global identifiers begin with '::' and must be an exact match to return an entity.
-    ///
-    /// Relative identifiers don't begin with '::'. This function tries to resolve relative identifiers
-    /// with an inner -> outer approach. It first tries to find the entity in the current scope, but if the entity
-    /// can't be found, it checks one scope higher, and so on, until global scope is reached.
-    ///
-    /// If the entity can't be found, this returns `None`, otherwise it returns a borrowed [WeakPtr] to the entity.
-    ///
-    /// # Arguments
-    ///
-    /// * entity_lookup_table - A borrow of the AST's [entity_lookup_table], to search through.
-    /// * identifier - The scoped identifier of the entity to lookup. Can be either globally or relatively scoped.
-    /// * scope - The scope to begin the lookup in. This is only used to resolve relatively scoped entities.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let slice_file = "
-    ///     module Foo
-    ///     {
-    ///         module Cat {}
-    ///
-    ///         module Bar {
-    ///             module Cat {}
-    ///         }
-    ///     }
-    /// ";
-    ///
-    /// let parser = parser::SliceParser::new();
-    /// parser.parse_string(slice_file);
-    /// let ast = parser.ast;
-    ///
-    /// let foo_scope = Scope::new("Foo");
-    /// let bar_scope = Scope::new("Foo::Bar");
-    ///
-    /// ast.lookup_entity("::Foo",      bar_scope); // Returns 'Foo'.
-    /// ast.lookup_entity("::Foo::Bar", bar_scope); // Returns 'Foo::Bar'.
-    /// ast.lookup_entity("::Bar",      bar_scope); // Returns 'None'.
-    ///
-    /// ast.lookup_entity("Cat", foo_scope);  // Returns 'Foo::Cat'.
-    /// ast.lookup_entity("Cat", bar_scope);  // Returns 'Foo::Bar::Cat'.
-    /// ast.lookup_entity("Foo", bar_scope);  // Returns 'Foo'.
-    ///
-    /// ast.lookup_entity("Bar::Cat", foo_scope); // Returns 'Foo::Bar::Cat'.
-    /// ast.lookup_entity("Bar::Cat", bar_scope); // Returns 'Foo::Bar::Cat'.
-    /// ast.lookup_entity("Foo::Cat", bar_scope); // Returns 'Foo::Cat'.
-    ///
-    /// ast.lookup_entity("Dog"); // Returns 'None'.
-    /// ```
-    pub fn lookup_entity<'ast>(
-        entity_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+    pub fn lookup_module_scoped_entity<'ast>(
+        module_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         identifier: &str,
         scope: &Scope,
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        // Paths starting with '::' are absolute paths, which can be directly looked up.
-        if let Some(unprefixed) = identifier.strip_prefix("::") {
-            return entity_lookup_table.get(unprefixed);
-        }
+        Ast::lookup_entity(module_scoped_lookup_table, identifier, &scope.module_scope)
+    }
 
-        // Entites are looked up by parser scope, since entities can be defined anywhere, not
-        // just inside modules. Ex: A parameter in an operation.
-        let mut parents: &[String] = &scope.parser_scope;
+    pub fn lookup_parser_scoped_entity<'ast>(
+        parser_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+        identifier: &str,
+        scope: &Scope,
+    ) -> Option<&'ast WeakPtr<dyn Entity>> {
+        Ast::lookup_entity(parser_scoped_lookup_table, identifier, &scope.parser_scope)
+    }
 
-        // For relative paths, we check each enclosing scope, starting from the bottom
-        // (most specified scope), and working our way up to global scope.
-        while !parents.is_empty() {
-            let candidate = parents.join("::") + "::" + identifier;
-            if let Some(result) = entity_lookup_table.get(&candidate) {
-                return Some(result);
+    pub fn lookup_type<'ast>(
+        module_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+        primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
+        identifier: &str,
+        scope: &Scope
+    ) -> Result<WeakPtr<dyn Type>, Option<WeakPtr<dyn Entity>>> {
+        if let Some(primitive_ptr) = primitive_cache.get(identifier) {
+            Ok(downgrade_as!(primitive_ptr, dyn Type))
+        } else if let Some(entity_ptr) =
+        Self::lookup_module_scoped_entity(module_scoped_lookup_table, identifier, scope) {
+            match entity_ptr.borrow().concrete_entity() {
+                Entities::Struct(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Struct>().ok().unwrap(), dyn Type))
+                }
+                Entities::Class(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Class>().ok().unwrap(), dyn Type))
+                }
+                Entities::Interface(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Interface>().ok().unwrap(), dyn Type))
+                }
+                Entities::Enum(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Enum>().ok().unwrap(), dyn Type))
+                }
+                Entities::TypeAlias(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<TypeAlias>().ok().unwrap(), dyn Type))
+                }
+                _ => Err(Some(entity_ptr.clone()))
             }
-            // Remove the last parent's scope before trying again.
-            // It's safe to unwrap here, since we know that `parents` is not empty.
-            parents = parents.split_last().unwrap().1;
+        } else {
+            Err(None)
         }
-        // Try checking at global scope, without any parent scopes.
-        if let Some(result) = entity_lookup_table.get(&identifier.to_owned()) {
-            return Some(result);
-        }
+    }
 
-        // We couldn't find the entity in any enclosing scope.
-        None
+    pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive>{
+        self.primitive_cache.get(identifier).unwrap_or_else(||
+            panic!("No primitive type exists with the name '{}'", identifier)
+        )
     }
 }
 
@@ -375,93 +243,89 @@ impl Ast {
 ///
 /// It is only used internally by the [Ast].
 struct LookupTableBuilder<'ast> {
-    /// Mutable reference to the AST's [Ast::type_lookup_table].
+    /// Mutable reference to the AST's [Ast::module_scoped_lookup_table].
     ///
-    /// Whenever the builder visits a slice element that implements [Type],
-    /// it inserts a corresponding entry into this table.
-    /// Each entry consists of the type's **module** scoped identifier and a [WeakPtr] to the element.
-    ///
-    /// Since this builder finds types by visiting through modules, it will only ever find user-defined
-    /// types. Builtin types like [Primitive]s, [Sequence]s, and [Dictionary]s will not be indexed.
-    type_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Type>>,
+    /// Whenever the builder visits a slice [Entity] that is defined at global or module scope, it
+    /// inserts a corresponding entry into this table. Each entry consists of the entity's
+    /// **module** scoped identifier, and a [WeakPtr] to the entity.
+    module_scoped_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Entity>>,
 
-    /// Mutable reference to the AST's [Ast::entity_lookup_table].
+    /// Mutable reference to the AST's [Ast::parser_scoped_lookup_table].
     ///
-    /// Whenever the builder visits a slice element that implements [Entity],
-    /// it inserts a corresponding entry into this table.
-    /// Each entry consists of the entity's **parser** scoped identifier and a [WeakPtr] to the element.
-    entity_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Entity>>,
+    /// Whenever the builder visits a slice [Entity], it inserts a corresponding entry into this table.
+    /// Each entry consists of the entity's **parser** scoped identifier, and a [WeakPtr] to the entity.
+    parser_scoped_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Entity>>,
 }
 
 impl<'ast> LookupTableBuilder<'ast> {
-    /// Adds an entry into the AST's [type_lookup_table] corresponding to the provided definition.
-    /// The definition must implement both [Type] *and* [Entity], as this method is only for
-    /// user-defined types (which all implement [Entity]).
-    fn add_type_entry<T: Type + Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
+    /// Adds an entry into the AST's [module_scoped_lookup_table] for the provided definition.
+    fn add_module_scoped_entry<T: Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
         let identifier = definition.borrow().module_scoped_identifier();
-        let weak_ptr = downgrade_as!(definition, dyn Type + 'static);
-        self.type_lookup_table.insert(identifier, weak_ptr);
+        let weak_ptr = downgrade_as!(definition, dyn Entity);
+        self.module_scoped_lookup_table.insert(identifier, weak_ptr);
     }
 
-    /// Adds an entry into the AST's [entity_lookup_table] corresponding to the provided definition.
-    fn add_entity_entry<T: Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
+    /// Adds an entry into the AST's [parser_scoped_lookup_table] for the provided definition.
+    fn add_parser_scoped_entry<T: Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
         let identifier = definition.borrow().parser_scoped_identifier();
         let weak_ptr = downgrade_as!(definition, dyn Entity);
-        self.entity_lookup_table.insert(identifier, weak_ptr);
+        self.parser_scoped_lookup_table.insert(identifier, weak_ptr);
     }
 }
 
 impl<'ast> PtrVisitor for LookupTableBuilder<'ast> {
     unsafe fn visit_module_start(&mut self, module_ptr: &mut OwnedPtr<Module>) {
-        self.add_entity_entry(module_ptr);
+        self.add_module_scoped_entry(module_ptr);
+        self.add_parser_scoped_entry(module_ptr);
     }
 
     unsafe fn visit_struct_start(&mut self, struct_ptr: &mut OwnedPtr<Struct>) {
-        self.add_type_entry(struct_ptr);
-        self.add_entity_entry(struct_ptr);
+        self.add_module_scoped_entry(struct_ptr);
+        self.add_parser_scoped_entry(struct_ptr);
     }
 
     unsafe fn visit_class_start(&mut self, class_ptr: &mut OwnedPtr<Class>) {
-        self.add_type_entry(class_ptr);
-        self.add_entity_entry(class_ptr);
+        self.add_module_scoped_entry(class_ptr);
+        self.add_parser_scoped_entry(class_ptr);
     }
 
     unsafe fn visit_exception_start(&mut self, exception_ptr: &mut OwnedPtr<Exception>) {
-        self.add_entity_entry(exception_ptr);
+        self.add_module_scoped_entry(exception_ptr);
+        self.add_parser_scoped_entry(exception_ptr);
     }
 
     unsafe fn visit_interface_start(&mut self, interface_ptr: &mut OwnedPtr<Interface>) {
-        self.add_type_entry(interface_ptr);
-        self.add_entity_entry(interface_ptr);
+        self.add_module_scoped_entry(interface_ptr);
+        self.add_parser_scoped_entry(interface_ptr);
     }
 
     unsafe fn visit_enum_start(&mut self, enum_ptr: &mut OwnedPtr<Enum>) {
-        self.add_type_entry(enum_ptr);
-        self.add_entity_entry(enum_ptr);
-    }
-
-    unsafe fn visit_operation_start(&mut self, operation_ptr: &mut OwnedPtr<Operation>) {
-        self.add_entity_entry(operation_ptr);
+        self.add_module_scoped_entry(enum_ptr);
+        self.add_parser_scoped_entry(enum_ptr);
     }
 
     unsafe fn visit_type_alias(&mut self, type_alias_ptr: &mut OwnedPtr<TypeAlias>) {
-        self.add_type_entry(type_alias_ptr);
-        self.add_entity_entry(type_alias_ptr);
+        self.add_module_scoped_entry(type_alias_ptr);
+        self.add_parser_scoped_entry(type_alias_ptr);
+    }
+
+    unsafe fn visit_operation_start(&mut self, operation_ptr: &mut OwnedPtr<Operation>) {
+        self.add_parser_scoped_entry(operation_ptr);
     }
 
     unsafe fn visit_data_member(&mut self, data_member_ptr: &mut OwnedPtr<DataMember>) {
-        self.add_entity_entry(data_member_ptr);
+        self.add_parser_scoped_entry(data_member_ptr);
     }
 
     unsafe fn visit_parameter(&mut self, parameter_ptr: &mut OwnedPtr<Parameter>) {
-        self.add_entity_entry(parameter_ptr);
+        self.add_parser_scoped_entry(parameter_ptr);
     }
 
     unsafe fn visit_return_member(&mut self, parameter_ptr: &mut OwnedPtr<Parameter>) {
-        self.add_entity_entry(parameter_ptr);
+        self.add_parser_scoped_entry(parameter_ptr);
     }
 
     unsafe fn visit_enumerator(&mut self, enumerator_ptr: &mut OwnedPtr<Enumerator>) {
-        self.add_entity_entry(enumerator_ptr);
+        self.add_parser_scoped_entry(enumerator_ptr);
     }
 }

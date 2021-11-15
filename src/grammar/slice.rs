@@ -366,7 +366,7 @@ impl Interface {
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {
         let mut bases = self.bases.iter()
-            .flat_map(|type_ref| type_ref.definition().all_base_interfaces())
+            .flat_map(|type_ref| type_ref.all_base_interfaces())
             .collect::<Vec<&Interface>>();
 
         // Dedup only works on sorted collections, so we have to sort the bases first.
@@ -716,7 +716,7 @@ impl AsTypes for TypeAlias {
     }
 
     fn concrete_type_mut(&mut self) -> TypesMut {
-        self.underlying.concrete_type_mut()
+        panic!("This has always been broken apparently");
     }
 }
 
@@ -742,7 +742,7 @@ implement_Element_for!(TypeAlias, "type alias");
 implement_Entity_for!(TypeAlias);
 implement_Contained_for!(TypeAlias, Module);
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
     pub type_string: String,
     pub definition: WeakPtr<T>,
@@ -770,30 +770,44 @@ impl<T: Element + ?Sized> TypeRef<T> {
         self.definition.borrow()
     }
 
-    pub fn downcast<U: Element + 'static>(self) -> Result<TypeRef<U>, TypeRef<T>> {
+    pub(crate) fn downcast<U: Element + 'static>(&self) -> Result<TypeRef<U>, ()> {
         let definition = if self.definition.is_initialized() {
             match self.definition.clone().downcast::<U>() {
                 Ok(ptr) => ptr,
-                Err(_) => return Err(self),
+                Err(_) => return Err(()),
             }
         } else {
             WeakPtr::create_uninitialized()
         };
 
         Ok(TypeRef {
-            type_string: self.type_string,
+            type_string: self.type_string.clone(),
             definition,
             is_optional: self.is_optional,
-            scope: self.scope,
-            attributes: self.attributes,
-            location: self.location,
+            scope: self.scope.clone(),
+            attributes: self.attributes.clone(),
+            location: self.location.clone(),
         })
     }
 }
 
-impl<T: Element + ?Sized + Type> TypeRef<T> {
+impl<T: Type + ?Sized> TypeRef<T> {
     pub fn is_bit_sequence_encodable(&self) -> bool {
         self.is_optional && self.min_wire_size() == 0
+    }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    fn min_wire_size(&self) -> u32 {
+        let underlying = self.definition();
+        if self.is_optional {
+            match underlying.concrete_type() {
+                // TODO explain why classes and interfaces still take up 1 byte.
+                Types::Class(_) | Types::Interface(_) => 1,
+                _ => 0,
+            }
+        } else {
+            underlying.min_wire_size()
+        }
     }
 }
 
@@ -816,33 +830,11 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
     }
 }
 
-// Technically, `TypeRef` is NOT a type; It represents somewhere that a type is referenced.
-// But, for convenience, we implement type on it, so that users of the API can call methods on
-// the underlying type without having to first call `.definition()` all the time.
-impl<T: Element + ?Sized + Type> Type for TypeRef<T> {
-    fn is_fixed_size(&self) -> bool {
-        self.definition().is_fixed_size()
-    }
+impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {
+    type Target = T;
 
-    fn min_wire_size(&self) -> u32 {
-        let underlying = self.definition();
-        if self.is_optional {
-            match underlying.concrete_type() {
-                // TODO explain why classes and interfaces still take up 1 byte.
-                Types::Class(_) | Types::Interface(_) => 1,
-                _ => 0,
-            }
-        } else {
-            underlying.min_wire_size()
-        }
-    }
-
-    fn uses_classes(&self) -> bool {
-        self.definition().uses_classes()
-    }
-
-    fn tag_format(&self) -> TagFormat {
-        self.definition().tag_format()
+    fn deref(&self) -> &Self::Target {
+        self.definition()
     }
 }
 
@@ -1059,7 +1051,7 @@ pub struct Identifier {
 impl Identifier {
     pub fn new(value: String, location: Location) -> Identifier {
         Identifier {
-            value: value.trim_start_matches("\\").to_owned(), // Remove possible leading '\'.
+            value: value.trim_start_matches('\\').to_owned(), // Remove possible leading '\'.
             raw_value: value,
             location,
         }

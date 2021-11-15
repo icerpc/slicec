@@ -26,7 +26,7 @@ impl SliceFile {
         raw_text: String,
         contents: Vec<WeakPtr<Module>>,
         attributes: Vec<Attribute>,
-        is_source: bool
+        is_source: bool,
     ) -> SliceFile {
         // Store the starting position of each line the file.
         // Slice supports '\n', '\r', and '\r\n' as newlines.

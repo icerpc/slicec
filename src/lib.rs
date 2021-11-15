@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod ast;
-pub mod command_line;
 pub mod code_gen_util;
+pub mod command_line;
 pub mod error;
 pub mod grammar;
 pub mod parser;
+pub mod ptr_util;
 pub mod ptr_visitor;
 pub mod slice_file;
-pub mod ptr_util;
 pub mod validator;
 pub mod visitor;
 

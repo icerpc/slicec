@@ -1,13 +1,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::upcast_weak_as;
+
 use crate::ast::Ast;
 use crate::grammar::*;
-use crate::ptr_visitor::PtrVisitor;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_visitor::PtrVisitor;
 use std::collections::HashMap;
 
 pub(super) fn patch_types(ast: &mut Ast) {
-    let mut patcher = TypePatcher { lookup_table: &ast.type_lookup_table };
+    let mut patcher = TypePatcher {
+        primitive_cache: &ast.primitive_cache,
+        module_scoped_lookup_table: &ast.module_scoped_lookup_table,
+    };
 
     for module in &mut ast.ast {
         unsafe { module.visit_ptr_with(&mut patcher); }
@@ -31,7 +36,8 @@ pub(super) fn patch_types(ast: &mut Ast) {
 }
 
 struct TypePatcher<'ast> {
-    lookup_table: &'ast HashMap<String, WeakPtr<dyn Type>>,
+    primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
+    module_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
 }
 
 impl<'ast> TypePatcher<'ast> {
@@ -41,30 +47,77 @@ impl<'ast> TypePatcher<'ast> {
             return;
         }
 
-        // Lookup the type in the AST's lookup tables, and if it exists, patch it in.
-        let mut lookup = Ast::lookup_type(self.lookup_table, &type_ref.type_string, &type_ref.scope);
-        while let Some(definition) = lookup {
-            // If the type is an alias, clone the alias' attributes to the type_ref being patched.
-            // Then unwrap the alias, and continue the loop on its underlying definition.
-            // TODO this entire process is not great: recursive aliases will loop forever!!!
-            // This also violates rust's borrowing rules for self-referential types!
-            if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {
-                let alias_ref = &type_alias.underlying;
-                type_ref.attributes.extend_from_slice(alias_ref.attributes());
-
-                if alias_ref.definition.is_initialized() {
-                    lookup = Some(&alias_ref.definition);
-                } else {
-                    lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
+        // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
+        // Since only user-defined types need to be patched, we lookup by entity instead of by type.
+        let lookup = Ast::lookup_module_scoped_entity(
+            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope,
+        );
+        if let Some(definition) = lookup {
+            match definition.borrow().concrete_entity() {
+                Entities::Struct(_) => {
+                    type_ref.definition = upcast_weak_as!(
+                        definition.clone().downcast::<Struct>().ok().unwrap(), dyn Type
+                    );
+                    return;
                 }
-            } else {
-                type_ref.definition = definition.clone();
-                return;
+                Entities::Class(_) => {
+                    type_ref.definition = upcast_weak_as!(
+                        definition.clone().downcast::<Class>().ok().unwrap(), dyn Type
+                    );
+                    return;
+                }
+                Entities::Interface(_) => {
+                    type_ref.definition = upcast_weak_as!(
+                        definition.clone().downcast::<Interface>().ok().unwrap(), dyn Type
+                    );
+                    return;
+                }
+                Entities::Enum(_) => {
+                    type_ref.definition = upcast_weak_as!(
+                        definition.clone().downcast::<Enum>().ok().unwrap(), dyn Type
+                    );
+                    return;
+                }
+                Entities::TypeAlias(type_alias) => {
+                    let alias_ref = &type_alias.underlying;
+                    type_ref.attributes.extend_from_slice(alias_ref.attributes());
+
+                    if alias_ref.definition.is_initialized() {
+                        type_ref.definition = alias_ref.definition.clone();
+                        return;
+                    }
+
+                    let mut alias_lookup = Ast::lookup_type(
+                        self.module_scoped_lookup_table,
+                        self.primitive_cache,
+                        &alias_ref.type_string,
+                        &alias_ref.scope,
+                    );
+
+                    while let Ok(underlying) = &alias_lookup {
+                        if let Ok(underlying_alias) = underlying.clone().downcast::<TypeAlias>() {
+                            let underlying_ref = &underlying_alias.borrow().underlying;
+                            type_ref.attributes.extend_from_slice(underlying_ref.attributes());
+                            alias_lookup = Ast::lookup_type(
+                                self.module_scoped_lookup_table,
+                                self.primitive_cache,
+                                &underlying_ref.type_string,
+                                &underlying_ref.scope,
+                            );
+                        } else {
+                            type_ref.definition = underlying.clone();
+                            return;
+                        }
+                    }
+                },
+                _ => panic!("Encountered unpatchable type: {}", definition.borrow().kind())
             }
         }
 
-        // Reaching this code means that the type lookup failed.
-        // TODO report an error here!
+        crate::report_error(format!(
+            "No entity with the identifier '{}' could be found in this scope.",
+            &type_ref.type_string,
+        ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
     }
 
     fn resolve_typed_definition<T: Element + 'static>(&self, type_ref: &mut TypeRef<T>) {
@@ -73,36 +126,26 @@ impl<'ast> TypePatcher<'ast> {
             return;
         }
 
-        // Lookup the type in the AST's lookup tables, and if it exists, try to patch it in.
-        let mut lookup = Ast::lookup_type(self.lookup_table, &type_ref.type_string, &type_ref.scope);
-        while let Some(definition) = lookup {
-            // If the type is an alias, clone the alias' attributes to the type_ref being patched.
-            // Then unwrap the alias, and continue the loop on its underlying definition.
-            // TODO this entire process is not great: recursive aliases will loop forever!!!
-            // This also violates rust's borrowing rules for self-referential types!
-            if let Elements::TypeAlias(type_alias) = definition.borrow().concrete_element() {
-                let alias_ref = &type_alias.underlying;
-                type_ref.attributes.extend_from_slice(alias_ref.attributes());
+        // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
+        let lookup = Ast::lookup_module_scoped_entity(
+            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope
+        );
 
-                if alias_ref.definition.is_initialized() {
-                    lookup = Some(&alias_ref.definition);
-                } else {
-                    lookup = Ast::lookup_type(self.lookup_table, &alias_ref.type_string, &alias_ref.scope);
-                }
+        if let Some(definition) = lookup {
+            if let Ok(converted) = definition.clone().downcast::<T>() {
+                type_ref.definition = converted;
             } else {
-                // Make sure the definition's type is the correct type for the reference.
-                if let Ok(converted) = definition.clone().downcast::<T>() {
-                    type_ref.definition = converted;
-                } else {
-                    // The definition exists, but is the incorrect type.
-                    // TODO throw an error here.
-                }
-                return;
+                crate::report_error(format!(
+                    "The Entity '{}' is not a valid type for this definition.",
+                    &type_ref.type_string,
+                ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
             }
+        } else {
+            crate::report_error(format!(
+                "No entity with the identifier '{}' could be found in this scope.",
+                &type_ref.type_string,
+            ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
         }
-
-        // Reaching this code means that the type lookup failed.
-        // TODO report an error here!
     }
 }
 

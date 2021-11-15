@@ -2,9 +2,9 @@
 use super::comments::CommentParser;
 use crate::ast::Ast;
 use crate::grammar::*;
+use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
 use crate::upcast_weak_as;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
 use std::cell::RefCell;
 use std::default::Default;
 use std::fs;
