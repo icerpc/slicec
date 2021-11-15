@@ -79,6 +79,7 @@ impl<'ast> TypePatcher<'ast> {
                     return;
                 }
                 Entities::TypeAlias(type_alias) => {
+                    // TODO this can probably be simplified into a single loop.
                     let alias_ref = &type_alias.underlying;
                     type_ref.attributes.extend_from_slice(alias_ref.attributes());
 
@@ -98,6 +99,12 @@ impl<'ast> TypePatcher<'ast> {
                         if let Ok(underlying_alias) = underlying.clone().downcast::<TypeAlias>() {
                             let underlying_ref = &underlying_alias.borrow().underlying;
                             type_ref.attributes.extend_from_slice(underlying_ref.attributes());
+
+                            if underlying_ref.definition.is_initialized() {
+                                type_ref.definition = underlying_ref.definition.clone();
+                                return;
+                            }
+
                             alias_lookup = Ast::lookup_type(
                                 self.module_scoped_lookup_table,
                                 self.primitive_cache,
