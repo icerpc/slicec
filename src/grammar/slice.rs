@@ -783,7 +783,7 @@ impl<T: Element + ?Sized> TypeRef<T> {
         Ok(TypeRef {
             type_string: self.type_string.clone(),
             definition,
-            is_optional: self.is_optional.clone(),
+            is_optional: self.is_optional,
             scope: self.scope.clone(),
             attributes: self.attributes.clone(),
             location: self.location.clone(),
@@ -1051,7 +1051,7 @@ pub struct Identifier {
 impl Identifier {
     pub fn new(value: String, location: Location) -> Identifier {
         Identifier {
-            value: value.trim_start_matches("\\").to_owned(), // Remove possible leading '\'.
+            value: value.trim_start_matches('\\').to_owned(), // Remove possible leading '\'.
             raw_value: value,
             location,
         }

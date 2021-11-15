@@ -4,8 +4,8 @@ use crate::upcast_weak_as;
 
 use crate::ast::Ast;
 use crate::grammar::*;
-use crate::ptr_visitor::PtrVisitor;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_visitor::PtrVisitor;
 use std::collections::HashMap;
 
 pub(super) fn patch_types(ast: &mut Ast) {
@@ -50,7 +50,7 @@ impl<'ast> TypePatcher<'ast> {
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         // Since only user-defined types need to be patched, we lookup by entity instead of by type.
         let lookup = Ast::lookup_module_scoped_entity(
-            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope
+            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope,
         );
         if let Some(definition) = lookup {
             match definition.borrow().concrete_entity() {
@@ -88,10 +88,10 @@ impl<'ast> TypePatcher<'ast> {
                     }
 
                     let mut alias_lookup = Ast::lookup_type(
-                        &self.module_scoped_lookup_table,
-                        &self.primitive_cache,
+                        self.module_scoped_lookup_table,
+                        self.primitive_cache,
                         &alias_ref.type_string,
-                        &alias_ref.scope
+                        &alias_ref.scope,
                     );
 
                     while let Ok(underlying) = &alias_lookup {
@@ -99,10 +99,10 @@ impl<'ast> TypePatcher<'ast> {
                             let underlying_ref = &underlying_alias.borrow().underlying;
                             type_ref.attributes.extend_from_slice(underlying_ref.attributes());
                             alias_lookup = Ast::lookup_type(
-                                &self.module_scoped_lookup_table,
-                                &self.primitive_cache,
+                                self.module_scoped_lookup_table,
+                                self.primitive_cache,
                                 &underlying_ref.type_string,
-                                &underlying_ref.scope
+                                &underlying_ref.scope,
                             );
                         } else {
                             type_ref.definition = underlying.clone();
