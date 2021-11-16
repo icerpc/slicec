@@ -853,17 +853,21 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn has_fixed_size_numeric_elements(&self) -> bool {
-        let mut definition = self.element_type.concrete_type();
-
-        // If the elements are enums with an underlying type, check the underlying type instead.
-        if let Types::Enum(enum_def) = definition {
-            definition = enum_def.underlying_type().concrete_type()
-        }
-
-        if let Types::Primitive(primitive) = definition {
-            primitive.is_numeric_or_bool() && primitive.is_fixed_size()
-        } else {
+        if self.element_type.is_optional {
             false
+        } else {
+            let mut definition = self.element_type.concrete_type();
+
+            // If the elements are enums with an underlying type, check the underlying type instead.
+            if let Types::Enum(enum_def) = definition {
+                definition = enum_def.underlying_type().concrete_type()
+            }
+
+            if let Types::Primitive(primitive) = definition {
+                primitive.is_numeric_or_bool() && primitive.is_fixed_size()
+            } else {
+                false
+            }
         }
     }
 }
