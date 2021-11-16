@@ -815,6 +815,7 @@ impl<T: Type + ?Sized> TypeRef<T> {
             match underlying.concrete_type() {
                 // TODO explain why classes and interfaces still take up 1 byte.
                 Types::Class(_) | Types::Interface(_) => 1,
+                Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => 1,
                 _ => 0,
             }
         } else {
