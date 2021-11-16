@@ -365,9 +365,13 @@ impl Interface {
     }
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {
-        let mut bases = self.bases.iter()
-            .flat_map(|type_ref| type_ref.all_base_interfaces())
-            .collect::<Vec<&Interface>>();
+        let mut bases = self.base_interfaces();
+        bases.extend(
+            self.bases
+                .iter()
+                .flat_map(|type_ref| type_ref.all_base_interfaces())
+                .collect::<Vec<&Interface>>(),
+        );
 
         // Dedup only works on sorted collections, so we have to sort the bases first.
         bases.sort_by_key(|base| base.module_scoped_identifier());
