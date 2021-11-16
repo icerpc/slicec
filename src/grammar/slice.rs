@@ -636,7 +636,10 @@ impl Enum {
 
 impl Type for Enum {
     fn is_fixed_size(&self) -> bool {
-        self.underlying_type().is_fixed_size()
+        match &self.underlying {
+            Some(underlying) => underlying.is_fixed_size(),
+            _ => false
+        }
     }
 
     fn min_wire_size(&self) -> u32 {
