@@ -804,6 +804,11 @@ impl<T: Type + ?Sized> TypeRef<T> {
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
+    fn is_fixed_size(&self) -> bool {
+        true
+    }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
     fn min_wire_size(&self) -> u32 {
         let underlying = self.definition();
         if self.is_optional {
