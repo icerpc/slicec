@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Hash, PartialEq, Eq)]
 pub struct Scope {
     pub raw_module_scope: String,
     pub module_scope: Vec<String>,
