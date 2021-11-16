@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 // TODO this entire file needs to be looked over again.
 
-use crate::grammar::Member;
+use crate::grammar::{Element, Member, TypeRef};
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -124,4 +124,10 @@ pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<
     tagged_members.sort_by_key(|member| member.tag().unwrap());
 
     (required_members, tagged_members)
+}
+
+pub fn clone_as_non_optional<T: Element + ?Sized>(type_ref: &TypeRef<T>) -> TypeRef<T> {
+    let mut cloned = type_ref.clone();
+    cloned.is_optional = false;
+    cloned
 }
