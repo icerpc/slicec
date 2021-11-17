@@ -945,10 +945,10 @@ impl Type for Dictionary {
     }
 
     fn tag_format(&self) -> TagFormat {
-        if self.key_type.is_fixed_size() || self.value_type.is_fixed_size() {
-            TagFormat::FSize
-        } else {
+        if self.key_type.is_fixed_size() && self.value_type.is_fixed_size() {
             TagFormat::VSize
+        } else {
+            TagFormat::FSize
         }
     }
 }
