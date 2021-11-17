@@ -809,12 +809,12 @@ impl<T: Type + ?Sized> TypeRef<T> {
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
-    fn is_fixed_size(&self) -> bool {
+    pub fn is_fixed_size(&self) -> bool {
         !self.is_optional && T::is_fixed_size(self)
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
-    fn min_wire_size(&self) -> u32 {
+    pub fn min_wire_size(&self) -> u32 {
         if self.is_optional {
             match self.definition().concrete_type() {
                 // TODO explain why classes and interfaces still take up 1 byte.
