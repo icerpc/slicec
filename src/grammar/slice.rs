@@ -815,16 +815,15 @@ impl<T: Type + ?Sized> TypeRef<T> {
 
     // This intentionally shadows the trait method of the same name on `Type`.
     fn min_wire_size(&self) -> u32 {
-        let underlying = self.definition();
         if self.is_optional {
-            match underlying.concrete_type() {
+            match self.definition().concrete_type() {
                 // TODO explain why classes and interfaces still take up 1 byte.
                 Types::Class(_) | Types::Interface(_) => 1,
                 Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => 1,
                 _ => 0,
             }
         } else {
-            underlying.min_wire_size()
+            T::min_wire_size(self)
         }
     }
 }
