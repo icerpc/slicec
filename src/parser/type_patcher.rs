@@ -124,7 +124,7 @@ impl<'ast> TypePatcher<'ast> {
         crate::report_error(format!(
             "No entity with the identifier '{}' could be found in this scope.",
             &type_ref.type_string,
-        ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
+        ), Some(type_ref.location()));
     }
 
     fn resolve_typed_definition<T: Element + 'static>(&self, type_ref: &mut TypeRef<T>) {
@@ -145,13 +145,13 @@ impl<'ast> TypePatcher<'ast> {
                 crate::report_error(format!(
                     "The Entity '{}' is not a valid type for this definition.",
                     &type_ref.type_string,
-                ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
+                ), Some(type_ref.location()));
             }
         } else {
             crate::report_error(format!(
                 "No entity with the identifier '{}' could be found in this scope.",
                 &type_ref.type_string,
-            ), Some(type_ref.location().clone())); //TODO make it take a location by reference.
+            ), Some(type_ref.location()));
         }
     }
 }
