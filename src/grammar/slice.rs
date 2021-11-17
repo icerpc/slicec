@@ -169,11 +169,12 @@ impl Class {
     }
 
     pub fn all_members(&self) -> Vec<&DataMember> {
-        let mut members = self.members();
+        let mut members = vec![];
         // Recursively add inherited data members from super-classes.
         if let Some(base_class) = self.base_class() {
             members.extend(base_class.all_members());
         }
+        members.extend(self.members());
         members
     }
 
@@ -243,11 +244,12 @@ impl Exception {
     }
 
     pub fn all_members(&self) -> Vec<&DataMember> {
-        let mut members = self.members();
+        let mut members = vec![];
         // Recursively add inherited data members from super-exceptions.
         if let Some(base_class) = self.base_exception() {
             members.extend(base_class.all_members());
         }
+        members.extend(self.members());
         members
     }
 
