@@ -96,7 +96,7 @@ macro_rules! generate_types_wrapper {
             $($variant(TypeRef<$variant>),)*
         }
 
-        impl TypeRef<dyn Type> {
+        impl<T: Type + ?Sized> TypeRef<T> {
             pub fn concrete_typeref(&self) -> TypeRefs {
                 match self.definition().concrete_type() {
                     $(Types::$variant(_) => TypeRefs::$variant(
