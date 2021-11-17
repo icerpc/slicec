@@ -645,7 +645,10 @@ impl Type for Enum {
     }
 
     fn min_wire_size(&self) -> u32 {
-        self.underlying_type().min_wire_size()
+        match &self.underlying {
+            Some(underlying) => underlying.min_wire_size(),
+            _ => 1
+        }
     }
 
     fn uses_classes(&self) -> bool {
