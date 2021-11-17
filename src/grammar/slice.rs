@@ -111,17 +111,21 @@ impl Type for Struct {
             .sum()
     }
 
+    fn uses_classes(&self) -> bool {
+        self.members().iter()
+            .any(|member| member.data_type.uses_classes())
+    }
+
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> TagFormat {
         if self.is_fixed_size() {
             TagFormat::VSize
         } else {
             TagFormat::FSize
         }
-    }
-
-    fn uses_classes(&self) -> bool {
-        self.members().iter()
-            .any(|member| member.data_type.uses_classes())
     }
 }
 
@@ -194,6 +198,10 @@ impl Type for Class {
     }
 
     fn uses_classes(&self) -> bool {
+        true
+    }
+
+    fn is_class_type(&self) -> bool {
         true
     }
 
@@ -393,6 +401,10 @@ impl Type for Interface {
     }
 
     fn uses_classes(&self) -> bool {
+        false
+    }
+
+    fn is_class_type(&self) -> bool {
         false
     }
 
@@ -655,6 +667,10 @@ impl Type for Enum {
         false
     }
 
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> TagFormat {
         self.underlying.as_ref().map_or(
             TagFormat::Size,                    // Default value if `underlying` == None
@@ -743,6 +759,10 @@ impl Type for TypeAlias {
 
     fn uses_classes(&self) -> bool {
         self.underlying.uses_classes()
+    }
+
+    fn is_class_type(&self) -> bool {
+        self.underlying.is_class_type()
     }
 
     fn tag_format(&self) -> TagFormat {
@@ -913,6 +933,10 @@ impl Type for Sequence {
         self.element_type.uses_classes()
     }
 
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> TagFormat {
         if self.element_type.is_fixed_size() {
             if self.element_type.min_wire_size() == 1 {
@@ -946,6 +970,10 @@ impl Type for Dictionary {
     fn uses_classes(&self) -> bool {
         // It is illegal for key types to use classes, so we only have to check the value type.
         self.value_type.uses_classes()
+    }
+
+    fn is_class_type(&self) -> bool {
+        false
     }
 
     fn tag_format(&self) -> TagFormat {
@@ -1029,6 +1057,10 @@ impl Type for Primitive {
     }
 
     fn uses_classes(&self) -> bool {
+        matches!(self, Self::AnyClass)
+    }
+
+    fn is_class_type(&self) -> bool {
         matches!(self, Self::AnyClass)
     }
 
