@@ -805,7 +805,7 @@ impl<T: Type + ?Sized> TypeRef<T> {
 
     // This intentionally shadows the trait method of the same name on `Type`.
     fn is_fixed_size(&self) -> bool {
-        !self.is_optional
+        !self.is_optional && T::is_fixed_size(self)
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
