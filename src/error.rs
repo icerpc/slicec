@@ -30,7 +30,7 @@ impl ErrorReporter {
 
     pub fn report_error(&mut self,
         message: String,
-        location: Option<Location>,
+        location: Option<&Location>,
         severity: ErrorLevel)
     {
         match severity {
@@ -41,7 +41,7 @@ impl ErrorReporter {
                 //TODO:  Report the error and exit immediately.
             }
         };
-        self.errors.push(Error { message, location, severity })
+        self.errors.push(Error { message, location: location.cloned(), severity })
     }
 
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.

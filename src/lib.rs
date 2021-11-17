@@ -39,23 +39,23 @@ pub unsafe fn borrow_mut_ast() -> &'static mut Ast {
     &mut *global_state::AST.get().unwrap().get()
 }
 
-pub fn report_note(message: String, location: Option<Location>) {
+pub fn report_note(message: String, location: Option<&Location>) {
     report_error_impl(message, location, ErrorLevel::Note);
 }
 
-pub fn report_warning(message: String, location: Option<Location>) {
+pub fn report_warning(message: String, location: Option<&Location>) {
     report_error_impl(message, location, ErrorLevel::Warning);
 }
 
-pub fn report_error(message: String, location: Option<Location>) {
+pub fn report_error(message: String, location: Option<&Location>) {
     report_error_impl(message, location, ErrorLevel::Error);
 }
 
-pub fn report_critical(message: String, location: Option<Location>) {
+pub fn report_critical(message: String, location: Option<&Location>) {
     report_error_impl(message, location, ErrorLevel::Critical);
 }
 
-fn report_error_impl(message: String, location: Option<Location>, severity: ErrorLevel) {
+fn report_error_impl(message: String, location: Option<&Location>, severity: ErrorLevel) {
     let error_reporter = unsafe { &mut *global_state::ERROR_REPORTER.get().unwrap().get() };
     error_reporter.report_error(message, location, severity);
 }
