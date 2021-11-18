@@ -846,6 +846,15 @@ impl<T: Type + ?Sized> TypeRef<T> {
             T::min_wire_size(self)
         }
     }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn is_class_type(&self) -> bool {
+        match self.definition().concrete_type() {
+            Types::Class(_) => true,
+            Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => true,
+            _ => false,
+        }
+    }
 }
 
 impl<T: Element + ?Sized> Clone for TypeRef<T> {
