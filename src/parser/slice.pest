@@ -10,13 +10,13 @@ module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 
 struct_start = ${ struct_kw ~ ws+ ~ identifier }
-struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member* ~ "}" }
+struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member_list ~ "}" }
 
 class_start = ${ class_kw ~ ws+ ~ identifier ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
-class_def = !{ prelude ~ class_start ~ "{" ~ data_member* ~ "}" }
+class_def = !{ prelude ~ class_start ~ "{" ~ data_member_list ~ "}" }
 
 exception_start = ${ exception_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
-exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member* ~ "}" }
+exception_def = !{ prelude ~ exception_start ~ "{" ~ data_member_list ~ "}" }
 
 interface_start = ${ interface_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
 interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
@@ -24,19 +24,20 @@ interface_def = !{ prelude ~ interface_start ~ "{" ~ operation* ~ "}" }
 enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extends_kw ~ ws* ~ typeref )? }
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
-return_type = ${ local_attributes ~ stream_modifier ~ (tag ~ ws*)? ~ typeref | return_tuple }
+return_type = ${ local_attributes ~ ws* ~ tag_modifier ~ stream_modifier ~ typeref | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
 
 operation_start = ${ idempotent_modifier ~ identifier}
 operation_return = !{ ( "->" ~ return_type )? }
-operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list? ~ ")" ~ operation_return ~ ";" }
+operation = !{ prelude ~ operation_start ~ "(" ~ parameter_list ~ ")" ~ operation_return ~ ";" }
 
-data_member = ${ prelude ~ ws* ~ member ~ ws* ~ ";" }
-member = ${ (tag ~ ws*)? ~ typeref ~ ws+ ~ identifier }
+data_member_list = !{ ( (data_member ~ "," ~ data_member_list) | data_member )? }
+data_member = !{ prelude ~ identifier ~ ":" ~ tag_modifier ~ typeref }
+parameter_list = !{ ( (parameter ~ "," ~ parameter_list) | parameter )? }
+parameter = !{ prelude ~ identifier ~ ":" ~ tag_modifier ~ stream_modifier ~ typeref }
+
 tag = !{ tag_kw ~ "(" ~ integer ~ ")" }
-
-parameter_list = !{ ( parameter ~ "," ~ parameter_list) | ( parameter ~ ","? ) }
-parameter = ${ prelude ~ stream_modifier ~ ws* ~ member }
+tag_modifier = { (tag ~ ws*)? }
 
 enumerator_list = !{ ( enumerator ~ "," ~ enumerator_list ) | ( enumerator ~ ","? ) }
 enumerator = !{ prelude ~ identifier ~ ( "=" ~ integer )? }
@@ -101,7 +102,7 @@ block_doc_comment = @{ "/**" ~ ( !"*/" ~ ANY )* ~ "*/" }
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 
 compact_id = { ("(" ~ integer ~ ")")? }
-stream_modifier = { (stream_kw ~ ws+)? }
+stream_modifier = ${ (stream_kw ~ ws+)? }
 idempotent_modifier = { (idempotent_kw ~ ws+)? }
 unchecked_modifier = { (unchecked_kw ~ ws+)? }
 

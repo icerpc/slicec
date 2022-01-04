@@ -194,7 +194,7 @@ impl SliceParser {
     fn struct_def(input: PestNode) -> PestResult<Struct> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
-            [prelude(prelude), struct_start(struct_start), data_member(members)..] => {
+            [prelude(prelude), struct_start(struct_start), data_member_list(members)] => {
                 let (identifier, location) = struct_start;
                 let (attributes, comment) = prelude;
                 let mut struct_def = Struct::new(identifier, scope, attributes, comment, location);
@@ -235,7 +235,7 @@ impl SliceParser {
     fn class_def(input: PestNode) -> PestResult<Class> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
-            [prelude(prelude), class_start(class_start), data_member(members)..] => {
+            [prelude(prelude), class_start(class_start), data_member_list(members)] => {
                 let (identifier, compact_id, location, base) = class_start;
                 let (attributes, comment) = prelude;
                 let mut class = Class::new(identifier, compact_id, base, scope, attributes, comment, location);
@@ -276,7 +276,7 @@ impl SliceParser {
     fn exception_def(input: PestNode) -> PestResult<Exception> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
-            [prelude(prelude), exception_start(exception_start), data_member(members)..] => {
+            [prelude(prelude), exception_start(exception_start), data_member_list(members)] => {
                 let (identifier, location, base) = exception_start;
                 let (attributes, comment) = prelude;
                 let mut exception = Exception::new(identifier, base, scope, attributes, comment, location);
@@ -397,26 +397,12 @@ impl SliceParser {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [return_tuple(tuple)] => tuple,
-            [local_attributes(attributes), stream_modifier(is_streamed), typeref(data_type)] => {
+            [local_attributes(attributes), tag_modifier(tag), stream_modifier(is_streamed), typeref(data_type)] => {
                 let identifier = Identifier::new("".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
                     data_type,
-                    None,
-                    is_streamed,
-                    true,
-                    scope,
-                    attributes,
-                    None,
-                    location,
-                ))]
-            },
-            [local_attributes(attributes), stream_modifier(is_streamed), tag(tag), typeref(data_type)] => {
-                let identifier = Identifier::new("".to_owned(), location.clone());
-                vec![OwnedPtr::new(Parameter::new(
-                    identifier,
-                    data_type,
-                    Some(tag),
+                    tag,
                     is_streamed,
                     true,
                     scope,
@@ -462,12 +448,6 @@ impl SliceParser {
         let location = from_span(&input);
         let scope = get_scope(&input);
         let operation = match_nodes!(input.children();
-            [prelude(prelude), operation_start(operation_start), operation_return(return_type)] => {
-                let (attributes, comment) = prelude;
-                let (is_idempotent, identifier) = operation_start;
-                pop_scope(&input);
-                Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location)
-            },
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
                 let (is_idempotent, identifier) = operation_start;
@@ -482,13 +462,25 @@ impl SliceParser {
         Ok(operation)
     }
 
+    fn data_member_list(input: PestNode) -> PestResult<Vec<DataMember>> {
+        Ok(match_nodes!(input.into_children();
+            [] => Vec::new(),
+            [data_member(data_member)] => vec![data_member],
+            [data_member(data_member), data_member_list(mut list)] => {
+                // The data_member comes before the data_member_list when parsing, so we have to
+                // insert the new data member at the front of the list.
+                list.insert(0, data_member);
+                list
+            },
+        ))
+    }
+
     fn data_member(input: PestNode) -> PestResult<DataMember> {
         let location = from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
-            [prelude(prelude), member(member)] => {
+            [prelude(prelude), identifier(identifier), tag_modifier(tag), typeref(mut data_type)] => {
                 let (attributes, comment) = prelude;
-                let (tag, mut data_type, identifier) = member;
 
                 // Forward the member's attributes to the data type.
                 // TODO: in the future we should only forward type metadata by filtering metadata.
@@ -507,14 +499,42 @@ impl SliceParser {
         ))
     }
 
-    fn member(input: PestNode) -> PestResult<(Option<u32>, TypeRef, Identifier)> {
+    fn parameter_list(input: PestNode) -> PestResult<Vec<Parameter>> {
         Ok(match_nodes!(input.into_children();
-            [tag(tag), typeref(data_type), identifier(identifier)] => {
-                (Some(tag), data_type, identifier)
+            [] => Vec::new(),
+            [parameter(parameter)] => vec![parameter],
+            [parameter(parameter), parameter_list(mut list)] => {
+                // The parameter comes before the parameter_list when parsing, so we have to
+                // insert the new parameter at the front of the list.
+                list.insert(0, parameter);
+                list
             },
-            [typeref(data_type), identifier(identifier)] => {
-                (None, data_type, identifier)
-            }
+        ))
+    }
+
+    fn parameter(input: PestNode) -> PestResult<Parameter> {
+        let location = from_span(&input);
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
+            [prelude(prelude), identifier(identifier), tag_modifier(tag), stream_modifier(is_streamed), typeref(mut data_type)] => {
+                let (attributes, comment) = prelude;
+
+                // Forward the member's attributes to the data type.
+                // TODO: in the future we should only forward type metadata by filtering metadata.
+                data_type.attributes = attributes.clone();
+
+                Parameter::new(
+                    identifier,
+                    data_type,
+                    tag,
+                    is_streamed,
+                    false,
+                    scope,
+                    attributes,
+                    comment,
+                    location,
+                )
+            },
         ))
     }
 
@@ -539,44 +559,10 @@ impl SliceParser {
         ))
     }
 
-    fn parameter_list(input: PestNode) -> PestResult<Vec<Parameter>> {
-        Ok(match_nodes!(input.into_children();
-            [parameter(parameter)] => {
-                vec![parameter]
-            },
-            [parameter(parameter), parameter_list(mut list)] => {
-                // The parameter comes before the parameter_list when parsing, so we have to
-                // insert the new parameter at the front of the list.
-                list.insert(0, parameter);
-                list
-            },
-        ))
-    }
-
-    fn parameter(input: PestNode) -> PestResult<Parameter> {
-        let location = from_span(&input);
-        let scope = get_scope(&input);
+    fn tag_modifier(input: PestNode) -> PestResult<Option<u32>> {
         Ok(match_nodes!(input.children();
-            [prelude(prelude), stream_modifier(is_streamed), member(member)] => {
-                let (attributes, comment) = prelude;
-                let (tag, mut data_type, identifier) = member;
-
-                // Forward the member's attributes to the data type.
-                // TODO: in the future we should only forward type metadata by filtering metadata.
-                data_type.attributes = attributes.clone();
-
-                Parameter::new(
-                    identifier,
-                    data_type,
-                    tag,
-                    is_streamed,
-                    false,
-                    scope,
-                    attributes,
-                    comment,
-                    location,
-                )
-            },
+            [] => None,
+            [tag(tag)] => Some(tag),
         ))
     }
 
