@@ -389,15 +389,13 @@ impl SliceParser {
         ))
     }
 
-    // Parses an operation's return type. There are 3 possible syntaxes for a return type:
-    //   A void return type, specified by the `void` keyword.
+    // Parses an operation's return type. There are 2 possible syntaxes for a return type:
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
     fn return_type(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
         let location = from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
-            [void_kw(_)] => Vec::new(),
             [return_tuple(tuple)] => tuple,
             [stream_modifier(is_streamed), typeref(data_type)] => {
                 let identifier = Identifier::new("".to_owned(), location.clone());
@@ -444,12 +442,19 @@ impl SliceParser {
         ))
     }
 
-    fn operation_start(input: PestNode) -> PestResult<(bool, Vec<OwnedPtr<Parameter>>, Identifier)> {
+    fn operation_start(input: PestNode) -> PestResult<(bool, Identifier)> {
         Ok(match_nodes!(input.children();
-            [idempotent_modifier(is_idempotent), return_type(return_type), identifier(identifier)] => {
+            [idempotent_modifier(is_idempotent), identifier(identifier)] => {
                 push_scope(&input, &identifier.value, false);
-                (is_idempotent, return_type, identifier)
-            }
+                (is_idempotent, identifier)
+            },
+        ))
+    }
+
+    fn operation_return(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
+        Ok(match_nodes!(input.children();
+            [] => Vec::new(),
+            [return_type(return_type)] => return_type,
         ))
     }
 
@@ -457,15 +462,15 @@ impl SliceParser {
         let location = from_span(&input);
         let scope = get_scope(&input);
         let mut operation = match_nodes!(input.children();
-            [prelude(prelude), operation_start(operation_start)] => {
+            [prelude(prelude), operation_start(operation_start), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
-                let (is_idempotent, return_type, identifier) = operation_start;
+                let (is_idempotent, identifier) = operation_start;
                 pop_scope(&input);
                 Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location)
             },
-            [prelude(prelude), operation_start(operation_start), parameter_list(parameters)] => {
+            [prelude(prelude), operation_start(operation_start), parameter_list(parameters), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
-                let (is_idempotent, return_type, identifier) = operation_start;
+                let (is_idempotent, identifier) = operation_start;
                 let mut operation = Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location);
                 for parameter in parameters {
                     operation.add_parameter(parameter);
@@ -912,10 +917,6 @@ impl SliceParser {
     }
 
     fn dictionary_kw(input: PestNode) -> PestResult<()> {
-        Ok(())
-    }
-
-    fn void_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
