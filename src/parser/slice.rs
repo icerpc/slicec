@@ -397,7 +397,7 @@ impl SliceParser {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [return_tuple(tuple)] => tuple,
-            [stream_modifier(is_streamed), typeref(data_type)] => {
+            [local_attributes(attributes), stream_modifier(is_streamed), typeref(data_type)] => {
                 let identifier = Identifier::new("".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
@@ -406,12 +406,12 @@ impl SliceParser {
                     is_streamed,
                     true,
                     scope,
-                    Vec::new(),
+                    attributes,
                     None,
                     location,
                 ))]
             },
-            [stream_modifier(is_streamed), tag(tag), typeref(data_type)] => {
+            [local_attributes(attributes), stream_modifier(is_streamed), tag(tag), typeref(data_type)] => {
                 let identifier = Identifier::new("".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
@@ -420,7 +420,7 @@ impl SliceParser {
                     is_streamed,
                     true,
                     scope,
-                    Vec::new(),
+                    attributes,
                     None,
                     location,
                 ))]
@@ -461,7 +461,7 @@ impl SliceParser {
     fn operation(input: PestNode) -> PestResult<Operation> {
         let location = from_span(&input);
         let scope = get_scope(&input);
-        let mut operation = match_nodes!(input.children();
+        let operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
                 let (is_idempotent, identifier) = operation_start;
@@ -479,13 +479,6 @@ impl SliceParser {
                 operation
             },
         );
-
-        // Forward the operations's attributes to the return type, if it returns a single type.
-        // TODO: in the future we should only forward type metadata by filtering metadata.
-        if operation.return_type.len() == 1 {
-            // TODO don't do this.
-            unsafe { operation.return_type[0].borrow_mut().attributes = operation.attributes.clone(); }
-        }
         Ok(operation)
     }
 
