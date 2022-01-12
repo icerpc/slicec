@@ -742,7 +742,8 @@ impl Type for Trait {
     }
 
     fn min_wire_size(&self) -> u32 {
-        // TODO check if this is reasonable. Write an explanation if so.
+        // Traits are encoded as a type-id followed by the concrete struct.
+        // The min wire size is an empty type-id (1 byte) and empty struct.
         1
     }
 
@@ -755,7 +756,7 @@ impl Type for Trait {
     }
 
     fn tag_format(&self) -> TagFormat {
-        TagFormat::FSize
+        unimplemented!("Tag formats are only used with the 1.1 encoding. Traits are 2.0 only.")
     }
 }
 
