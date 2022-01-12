@@ -182,22 +182,23 @@ impl SliceParser {
         ))
     }
 
-    fn struct_start(input: PestNode) -> PestResult<(Identifier, Location)> {
+    fn struct_start(input: PestNode) -> PestResult<(bool, Identifier, Location)> {
         let location = from_span(&input);
-        let identifier = match_nodes!(input.children();
-            [_, identifier(ident)] => ident,
-        );
-        push_scope(&input, &identifier.value, false);
-        Ok((identifier, location))
+        Ok(match_nodes!(input.children();
+            [compact_modifier(is_compact), _, identifier(identifier)] => {
+                push_scope(&input, &identifier.value, false);
+                (is_compact, identifier, location)
+            }
+        ))
     }
 
     fn struct_def(input: PestNode) -> PestResult<Struct> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), struct_start(struct_start), data_member_list(members)] => {
-                let (identifier, location) = struct_start;
+                let (is_compact, identifier, location) = struct_start;
                 let (attributes, comment) = prelude;
-                let mut struct_def = Struct::new(identifier, scope, attributes, comment, location);
+                let mut struct_def = Struct::new(identifier, is_compact, scope, attributes, comment, location);
                 for member in members {
                     struct_def.add_member(member);
                 }
@@ -849,9 +850,16 @@ impl SliceParser {
         ))
     }
 
+    fn compact_modifier(input: PestNode) -> PestResult<bool> {
+        Ok(match_nodes!(input.into_children();
+            []              => false,
+            [compact_kw(_)] => true
+        ))
+    }
+
     fn idempotent_modifier(input: PestNode) -> PestResult<bool> {
         Ok(match_nodes!(input.into_children();
-            []                => false,
+            []                 => false,
             [idempotent_kw(_)] => true
         ))
     }
@@ -972,6 +980,10 @@ impl SliceParser {
     }
 
     fn extends_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn compact_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

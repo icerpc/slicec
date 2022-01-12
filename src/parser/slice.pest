@@ -9,7 +9,7 @@ definition = { module_def | struct_def | class_def | exception_def | interface_d
 module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
 
-struct_start = ${ struct_kw ~ ws+ ~ identifier }
+struct_start = ${ compact_modifier ~ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member_list ~ "}" }
 
 class_start = ${ class_kw ~ ws+ ~ identifier ~ compact_id ~ ( ws* ~ extends_kw ~ ws* ~ inheritance_list)? }
@@ -103,6 +103,7 @@ integer = @{ "-"? ~ ASCII_DIGIT+ }
 
 compact_id = { ("(" ~ integer ~ ")")? }
 stream_modifier = ${ (stream_kw ~ ws+)? }
+compact_modifier = { (compact_kw ~ ws+)? }
 idempotent_modifier = { (idempotent_kw ~ ws+)? }
 unchecked_modifier = { (unchecked_kw ~ ws+)? }
 
@@ -137,5 +138,6 @@ any_class_kw = { "AnyClass" ~ !ASCII_ALPHA }
 tag_kw = { "tag" ~ !ASCII_ALPHA }
 stream_kw = { "stream" ~ !ASCII_ALPHA }
 extends_kw = { ":" }
+compact_kw = { "compact" ~ !ASCII_ALPHA }
 idempotent_kw = { "idempotent" ~ !ASCII_ALPHA }
 unchecked_kw = { "unchecked" ~ !ASCII_ALPHA }

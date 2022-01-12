@@ -66,6 +66,7 @@ implement_Container_for!(Module, Definition, contents);
 pub struct Struct {
     pub identifier: Identifier,
     pub members: Vec<OwnedPtr<DataMember>>,
+    pub is_compact: bool,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
@@ -76,6 +77,7 @@ pub struct Struct {
 impl Struct {
     pub(crate) fn new(
         identifier: Identifier,
+        is_compact: bool,
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
@@ -83,7 +85,7 @@ impl Struct {
     ) -> Self {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Struct { identifier, members, parent, scope, attributes, comment, location }
+        Struct { identifier, members, is_compact, parent, scope, attributes, comment, location }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -443,7 +445,7 @@ impl Operation {
     ) -> Self {
         let parameters = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Operation { identifier, return_type, is_idempotent, parameters, parent, scope, attributes, comment, location }
+        Operation { identifier, return_type, parameters, is_idempotent, parent, scope, attributes, comment, location }
     }
 
     pub(crate) fn add_parameter(&mut self, parameter: Parameter) {
