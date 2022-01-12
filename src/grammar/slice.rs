@@ -714,6 +714,56 @@ implement_Entity_for!(Enumerator);
 implement_Contained_for!(Enumerator, Enum);
 
 #[derive(Debug)]
+pub struct Trait {
+    pub identifier: Identifier,
+    pub parent: WeakPtr<Module>,
+    pub scope: Scope,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
+    pub location: Location,
+}
+
+impl Trait {
+    pub(crate) fn new(
+        identifier: Identifier,
+        scope: Scope,
+        attributes: Vec<Attribute>,
+        comment: Option<DocComment>,
+        location: Location,
+    ) -> Self {
+        let parent = WeakPtr::create_uninitialized();
+        Trait { identifier, parent, scope, attributes, comment, location }
+    }
+}
+
+impl Type for Trait {
+    fn is_fixed_size(&self) -> bool {
+        false
+    }
+
+    fn min_wire_size(&self) -> u32 {
+        // TODO check if this is reasonable. Write an explanation if so.
+        1
+    }
+
+    fn uses_classes(&self) -> bool {
+        false
+    }
+
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn tag_format(&self) -> TagFormat {
+        TagFormat::FSize
+    }
+}
+
+implement_Element_for!(Trait, "trait");
+implement_Entity_for!(Trait);
+implement_Contained_for!(Trait, Module);
+
+#[derive(Debug)]
 pub struct TypeAlias {
     pub identifier: Identifier,
     pub underlying: TypeRef,

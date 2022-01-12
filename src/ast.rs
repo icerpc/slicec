@@ -216,6 +216,9 @@ impl Ast {
                 Entities::Enum(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Enum>().ok().unwrap(), dyn Type))
                 }
+                Entities::Trait(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Trait>().ok().unwrap(), dyn Type))
+                }
                 Entities::TypeAlias(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<TypeAlias>().ok().unwrap(), dyn Type))
                 }
@@ -303,6 +306,11 @@ impl<'ast> PtrVisitor for LookupTableBuilder<'ast> {
     unsafe fn visit_enum_start(&mut self, enum_ptr: &mut OwnedPtr<Enum>) {
         self.add_module_scoped_entry(enum_ptr);
         self.add_parser_scoped_entry(enum_ptr);
+    }
+
+    unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {
+        self.add_module_scoped_entry(trait_ptr);
+        self.add_parser_scoped_entry(trait_ptr);
     }
 
     unsafe fn visit_type_alias(&mut self, type_alias_ptr: &mut OwnedPtr<TypeAlias>) {
