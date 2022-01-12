@@ -114,6 +114,7 @@ impl SliceParser {
             [exception_def(exception_def)] => Definition::Exception(OwnedPtr::new(exception_def)),
             [interface_def(interface_def)] => Definition::Interface(OwnedPtr::new(interface_def)),
             [enum_def(enum_def)]           => Definition::Enum(OwnedPtr::new(enum_def)),
+            [trait_def(trait_def)]         => Definition::Trait(OwnedPtr::new(trait_def)),
             [type_alias(type_alias)]       => Definition::TypeAlias(OwnedPtr::new(type_alias)),
         ))
     }
@@ -385,6 +386,17 @@ impl SliceParser {
                     comment,
                     location,
                 )
+            },
+        ))
+    }
+
+    fn trait_def(input: PestNode) -> PestResult<Trait> {
+        let location = from_span(&input);
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.children();
+            [prelude(prelude), _, identifier(identifier)] => {
+                let (attributes, comment) = prelude;
+                Trait::new(identifier, scope, attributes, comment, location)
             },
         ))
     }
