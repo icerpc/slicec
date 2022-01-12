@@ -114,6 +114,7 @@ impl SliceParser {
             [exception_def(exception_def)] => Definition::Exception(OwnedPtr::new(exception_def)),
             [interface_def(interface_def)] => Definition::Interface(OwnedPtr::new(interface_def)),
             [enum_def(enum_def)]           => Definition::Enum(OwnedPtr::new(enum_def)),
+            [trait_def(trait_def)]         => Definition::Trait(OwnedPtr::new(trait_def)),
             [type_alias(type_alias)]       => Definition::TypeAlias(OwnedPtr::new(type_alias)),
         ))
     }
@@ -390,13 +391,24 @@ impl SliceParser {
         ))
     }
 
+    fn trait_def(input: PestNode) -> PestResult<Trait> {
+        let location = from_span(&input);
+        let scope = get_scope(&input);
+        Ok(match_nodes!(input.into_children();
+            [prelude(prelude), _, identifier(identifier)] => {
+                let (attributes, comment) = prelude;
+                Trait::new(identifier, scope, attributes, comment, location)
+            },
+        ))
+    }
+
     // Parses an operation's return type. There are 2 possible syntaxes for a return type:
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
     fn return_type(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
         let location = from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [return_tuple(tuple)] => tuple,
             [local_attributes(attributes), tag_modifier(tag), stream_modifier(is_streamed), typeref(data_type)] => {
                 let identifier = Identifier::new("".to_owned(), location.clone());
@@ -418,7 +430,7 @@ impl SliceParser {
     // Parses a return type that is written in return tuple syntax.
     fn return_tuple(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
         // TODO we need to enforce there being more than 1 element here!
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
             [parameter_list(return_elements)] => {
@@ -439,7 +451,7 @@ impl SliceParser {
     }
 
     fn operation_return(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [] => Vec::new(),
             [return_type(return_type)] => return_type,
         ))
@@ -479,7 +491,7 @@ impl SliceParser {
     fn data_member(input: PestNode) -> PestResult<DataMember> {
         let location = from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), typeref(mut data_type)] => {
                 let (attributes, comment) = prelude;
 
@@ -516,7 +528,7 @@ impl SliceParser {
     fn parameter(input: PestNode) -> PestResult<Parameter> {
         let location = from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), stream_modifier(is_streamed), typeref(mut data_type)] => {
                 let (attributes, comment) = prelude;
 
@@ -561,7 +573,7 @@ impl SliceParser {
     }
 
     fn tag_modifier(input: PestNode) -> PestResult<Option<u32>> {
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [] => None,
             [tag(tag)] => Some(tag),
         ))
@@ -620,7 +632,7 @@ impl SliceParser {
     fn type_alias(input: PestNode) -> PestResult<TypeAlias> {
         let location = from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.children();
+        Ok(match_nodes!(input.into_children();
             [prelude(prelude), _, identifier(identifier), typeref(type_ref)] => {
                 let (attributes, comment) = prelude;
                 TypeAlias::new(identifier, type_ref, scope, attributes, comment, location)

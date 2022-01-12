@@ -28,7 +28,7 @@ macro_rules! generate_definition_wrapper {
 }
 
 generate_definition_wrapper!(
-    Module, Struct, Class, Exception, Interface, Enum, TypeAlias
+    Module, Struct, Class, Exception, Interface, Enum, Trait, TypeAlias
 );
 
 macro_rules! generate_entities_wrapper {
@@ -64,7 +64,7 @@ pub trait AsEntities {
 
 generate_entities_wrapper!(
     Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
-    Enumerator, TypeAlias
+    Enumerator, Trait, TypeAlias
 );
 
 macro_rules! generate_types_wrapper {
@@ -114,5 +114,5 @@ pub trait AsTypes {
 }
 
 generate_types_wrapper!(
-    Struct, Class, Interface, Enum, Sequence, Dictionary, Primitive
+    Struct, Class, Interface, Enum, Trait, Sequence, Dictionary, Primitive
 );
