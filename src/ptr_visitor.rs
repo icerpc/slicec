@@ -210,6 +210,17 @@ pub trait PtrVisitor {
     /// borrowed elsewhere. Violating this **will** lead to undefined behavior.
     unsafe fn visit_operation_end(&mut self, operation_ptr: &mut OwnedPtr<Operation>) {}
 
+    /// This function is called by the visitor when it visits a [Trait].
+    ///
+    /// This shouldn't be called by users. To visit a trait, use `trait_ptr.visit_ptr_with`.
+    ///
+    /// # Safety
+    ///
+    /// Implementors of this function must be able to safely borrow the trait being visited,
+    /// mutably and immutably. Hence, this function is only safe to call when the trait isn't
+    /// borrowed elsewhere. Violating this **will** lead to undefined behavior.
+    unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {}
+
     /// This function is called by the visitor when it visits a [TypeAlias].
     ///
     /// This shouldn't be called by users. To visit a type alias, use `type_alias_ptr.visit_ptr_with`.
@@ -290,6 +301,7 @@ impl OwnedPtr<Module> {
                 Definition::Exception(exception_ptr)  => exception_ptr.visit_ptr_with(visitor),
                 Definition::Interface(interface_ptr)  => interface_ptr.visit_ptr_with(visitor),
                 Definition::Enum(enum_ptr)            => enum_ptr.visit_ptr_with(visitor),
+                Definition::Trait(trait_ptr)          => trait_ptr.visit_ptr_with(visitor),
                 Definition::TypeAlias(type_alias_ptr) => type_alias_ptr.visit_ptr_with(visitor),
             }
         }
@@ -435,6 +447,24 @@ impl OwnedPtr<Operation> {
             return_members.visit_ptr_with(visitor, false);
         }
         visitor.visit_operation_end(self);
+    }
+}
+
+impl OwnedPtr<Trait> {
+    /// Uses the provided `visitor` to visit a [Trait] through its enclosing [OwnedPtr].
+    ///
+    /// This function delegates to `visitor.visit_trait`.
+    ///
+    /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
+    /// contents. If you don't need mutability or pointer access, use [Trait::visit_with] instead.
+    ///
+    /// # Safety
+    ///
+    /// The implementation of this function mutably borrows the underlying trait to visit on.
+    /// Hence, it is only safe to call this function when the trait isn't borrowed elsewhere.
+    /// Violating this **will** lead to undefined behavior. Check [OwnedPtr] for more information.
+    pub unsafe fn visit_ptr_with(&mut self, visitor: &mut impl PtrVisitor) {
+        visitor.visit_trait(self);
     }
 }
 
