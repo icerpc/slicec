@@ -125,7 +125,7 @@ impl Ast {
     ///
     /// A separate instance of the anonymous type is created for each place it's used,
     /// even if they're the same type.
-    /// ```
+    /// ```slice
     /// operation(sequence<int> i1, sequence<int> i2); // 2 anonymous types are created here, 1 for each sequence.
     /// ```
     /// Additionally, no indexing is performed on these types since they're un-named and unique to where they're used.
