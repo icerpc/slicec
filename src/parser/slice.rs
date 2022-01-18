@@ -911,10 +911,6 @@ impl SliceParser {
         Ok(())
     }
 
-    fn trait_kw(input: PestNode) -> PestResult<()> {
-        Ok(())
-    }
-
     fn sequence_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
