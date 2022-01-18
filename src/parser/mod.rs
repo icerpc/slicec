@@ -75,8 +75,8 @@ fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
     if fs::metadata(&path)?.is_dir() {
         find_slice_files_in_directory(path.read_dir()?)
     } else
-    // If the path is not a directory, check if it ends with 'ice'.
-    if path.extension().filter(|ext| ext.to_str() == Some("ice")).is_some() {
+    // If the path is not a directory, check if it ends with 'slice'.
+    if path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some() {
         Ok(vec![path])
     } else {
         Ok(vec![])
