@@ -78,12 +78,6 @@ impl<'ast> TypePatcher<'ast> {
                     );
                     return;
                 }
-                Entities::Trait(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Trait>().ok().unwrap(), dyn Type
-                    );
-                    return;
-                }
                 Entities::TypeAlias(type_alias) => {
                     // TODO this can probably be simplified into a single loop.
                     let alias_ref = &type_alias.underlying;

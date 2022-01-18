@@ -27,7 +27,6 @@ impl PtrVisitor for ParentPatcher {
                 Definition::Exception(x) => x.borrow_mut().parent = parent_ptr.clone(),
                 Definition::Interface(x) => x.borrow_mut().parent = parent_ptr.clone(),
                 Definition::Enum(x)      => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Trait(x)     => x.borrow_mut().parent = parent_ptr.clone(),
                 Definition::TypeAlias(x) => x.borrow_mut().parent = parent_ptr.clone(),
             }
         }
