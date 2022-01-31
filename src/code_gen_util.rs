@@ -7,14 +7,16 @@ use crate::grammar::{Element, Member, TypeRef};
 /// `type_to_string` methods in each of the language mapping's code generators.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum TypeContext {
-    /// Used when generating the types of data members in structs and classes.
+    /// Used when generating the types of data members in structs, classes and exceptions.
     DataMember,
-    /// Used when generating the types of operation members (parameters and return types) in places
-    /// where they're being read off the wire and unmarshalled.
-    Incoming,
-    /// Used when generating the types of operation members (parameters and return types) in places
-    /// where they're being going to be marshalled and written onto the wire.
-    Outgoing,
+    /// Used when generating the types of operation parameters in places where they're being decoded.
+    DecodeParam,
+    /// Used when generating the types of operation return types in places where they're being decoded.
+    DecodeReturn,
+    /// Used when generating the types of operation members parameters in places where they're being encoded.
+    EncodeParam,
+    /// Used when generating the types of operation members return types in places where they're being encoded.
+    EncodeReturn,
     /// Used when generating types that are parts of other types, such as the key & value types of
     /// dictionaries, or the element type of a sequence.
     Nested,
