@@ -890,9 +890,8 @@ impl<T: Type + ?Sized> TypeRef<T> {
     pub fn min_wire_size(&self) -> u32 {
         if self.is_optional {
             match self.definition().concrete_type() {
-                // TODO explain why still take up 1 byte.
-                // TODO this is not totally correct the min_wire_size of a optional interface depends on the encoding
-                Types::Class(_) => 1,
+                // TODO explain why classes and interfaces still take up 1 byte.
+                Types::Class(_) | Types::Interface(_) => 1,
                 Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => 1,
                 _ => 0,
             }
