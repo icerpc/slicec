@@ -101,6 +101,9 @@ impl SliceParser {
         let module_ids = match_nodes!(input.into_children();
             [file_attributes(attributes), module_def(modules).., EOI(_)] => {
                 (attributes, modules.collect())
+            },
+            [file_attributes(attributes), file_level_module(module), EOI(_)] => {
+                (attributes, vec![module])
             }
         );
         Ok(module_ids)
@@ -133,54 +136,11 @@ impl SliceParser {
     }
 
     fn module_def(input: PestNode) -> PestResult<Module> {
-        Ok(match_nodes!(input.children();
-            [prelude(prelude), module_start(module_start), definition(definitions)..] => {
-                let (identifier, location) = module_start;
-                let (attributes, comment) = prelude;
+        Self::parse_module(input)
+    }
 
-                // Split the identifier in case it uses nested module syntax.
-                // We iterate in reverse, since we construct them in inner-to-outermost order.
-                let mut modules = identifier.value.rsplit("::");
-
-                // Pop the scope of the inner-most module (the module can't be in its own scope).
-                pop_scope(&input);
-                // Construct the inner-most module first.
-                let mut last_module = Module::new(
-                    // There must be at least one module identifier, so it's safe to unwrap here.
-                    Identifier::new(
-                        modules.next().unwrap().to_owned(),
-                        identifier.location.clone(),
-                    ),
-                    get_scope(&input),
-                    attributes,
-                    comment,
-                    location.clone(),
-                );
-                // Add the definitions into the inner-most module.
-                for definition in definitions {
-                    last_module.add_definition(definition);
-                }
-
-                // Construct any enclosing modules.
-                for module in modules {
-                    // Pop the module's scope, and then construct it.
-                    pop_scope(&input);
-                    let mut new_module = Module::new(
-                        Identifier::new(module.to_owned(), identifier.location.clone()),
-                        get_scope(&input),
-                        Vec::new(),
-                        None,
-                        location.clone(),
-                    );
-                    // Add the inner module to the outer module, than swap their variables.
-                    new_module.add_definition(Definition::Module(OwnedPtr::new(last_module)));
-                    last_module = new_module;
-                }
-
-                // Return the outer-most module.
-                last_module
-            },
-        ))
+    fn file_level_module(input: PestNode) -> PestResult<Module> {
+        Self::parse_module(input)
     }
 
     fn struct_start(input: PestNode) -> PestResult<(bool, Identifier, Location)> {
@@ -1013,5 +973,58 @@ impl SliceParser {
 
     fn EOI(input: PestNode) -> PestResult<()> {
         Ok(())
+    }
+}
+
+impl SliceParser {
+    fn parse_module(input: PestNode) -> PestResult<Module> {
+        Ok(match_nodes!(input.children();
+            [prelude(prelude), module_start(module_start), definition(definitions)..] => {
+                let (identifier, location) = module_start;
+                let (attributes, comment) = prelude;
+
+                // Split the identifier in case it uses nested module syntax.
+                // We iterate in reverse, since we construct them in inner-to-outermost order.
+                let mut modules = identifier.value.rsplit("::");
+
+                // Pop the scope of the inner-most module (the module can't be in its own scope).
+                pop_scope(&input);
+                // Construct the inner-most module first.
+                let mut last_module = Module::new(
+                    // There must be at least one module identifier, so it's safe to unwrap here.
+                    Identifier::new(
+                        modules.next().unwrap().to_owned(),
+                        identifier.location.clone(),
+                    ),
+                    get_scope(&input),
+                    attributes,
+                    comment,
+                    location.clone(),
+                );
+                // Add the definitions into the inner-most module.
+                for definition in definitions {
+                    last_module.add_definition(definition);
+                }
+
+                // Construct any enclosing modules.
+                for module in modules {
+                    // Pop the module's scope, and then construct it.
+                    pop_scope(&input);
+                    let mut new_module = Module::new(
+                        Identifier::new(module.to_owned(), identifier.location.clone()),
+                        get_scope(&input),
+                        Vec::new(),
+                        None,
+                        location.clone(),
+                    );
+                    // Add the inner module to the outer module, than swap their variables.
+                    new_module.add_definition(Definition::Module(OwnedPtr::new(last_module)));
+                    last_module = new_module;
+                }
+
+                // Return the outer-most module.
+                last_module
+            },
+        ))
     }
 }

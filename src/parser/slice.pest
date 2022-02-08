@@ -2,12 +2,13 @@
 // TODO rewrite this with better error handling in mind.
 // This was just copy & pasted from the original implementation and can be improved alot.
 
-main = { SOI ~ file_attributes ~ module_def* ~ EOI }
+main = { SOI ~ file_attributes ~ (file_level_module | module_def*) ~ EOI }
 
 definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | trait_def | type_alias }
 
 module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
+file_level_module = !{ prelude ~ module_start ~ ";" ~ definition* }
 
 struct_start = ${ compact_modifier ~ struct_kw ~ ws+ ~ identifier }
 struct_def = !{ prelude ~ struct_start ~ "{" ~ data_member_list ~ "}" }
