@@ -114,6 +114,7 @@ impl Type for Struct {
         if self.is_compact {
             min_wire_size
         } else {
+            // Non-compact structs use an extra byte to encode TagEndMarker.
             min_wire_size + 1
         }
     }

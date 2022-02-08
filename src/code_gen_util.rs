@@ -124,31 +124,40 @@ pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<
     (required_members, tagged_members)
 }
 
-pub fn are_members_11_compatible(members: &[&impl Member]) -> bool {
-    members.iter().all(|member| is_type_11_compatible(member.data_type()))
+// TODO: move these to grammar/util once we implement slice-driven encoding.
+pub fn are_members_11_compatible(members: &[&impl Member], allow_tags: bool) -> bool {
+    members.iter().all(|member|
+        let is_tagged = member.tag().is_some();
+        is_type_11_compatible(member.data_type(), is_tagged) && (!is_tagged || allow_tags)
+    )
 }
 
-pub fn is_type_11_compatible(type_ref: &TypeRef) -> bool {
+pub fn is_type_11_compatible(type_ref: &TypeRef, is_tagged: bool) -> bool {
+    // We don't count tagged types as optional for the 1.1 encoding.
+    // Tagged types are always implied to be optional.
+    let is_optional = type_ref.is_optional() && !is_tagged;
+
     match type_ref.concrete_type() {
         Types::Struct(struct_def) => {
             struct_def.is_compact
-            && !type_ref.is_optional
-            && are_members_11_compatible(&struct_def.members())
+            && !is_optional
+            && are_members_11_compatible(&struct_def.members(), false)
         }
-        Types::Class(class_def) => are_members_11_compatible(&class_def.members()),
+        Types::Class(class_def) => are_members_11_compatible(&class_def.members(), true),
         Types::Interface(_) => true,
-        Types::Enum(enum_def) => enum_def.underlying.is_none() && !type_ref.is_optional,
+        Types::Enum(enum_def) => enum_def.underlying.is_none() && !is_optional,
         Types::Trait(_) => false,
         Types::Sequence(sequence_def) => {
-            !type_ref.is_optional && is_type_11_compatible(&sequence_def.element_type)
+            !is_optional
+            && is_type_11_compatible(&sequence_def.element_type)
         }
         Types::Dictionary(dictionary_def) => {
-            !type_ref.is_optional
+            !is_optional
             && is_type_11_compatible(&dictionary_def.key_type)
             && is_type_11_compatible(&dictionary_def.value_type)
         }
         Types::Primitive(primitive_def) => {
-            !type_ref.is_optional && matches!(primitive_def,
+            !is_optional && matches!(primitive_def,
                 Primitive::Bool | Primitive::Byte | Primitive::Short | Primitive::Int |
                 Primitive::Long | Primitive::Float | Primitive::Double | Primitive::String |
                 Primitive::AnyClass
