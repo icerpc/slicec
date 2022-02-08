@@ -108,9 +108,15 @@ impl Type for Struct {
 
     fn min_wire_size(&self) -> u32 {
         // The min-wire-size of a struct is the min-wire-size of all its members added together.
-        self.members().iter()
+        let min_wire_size = self.members().iter()
             .map(|member| member.data_type.min_wire_size())
-            .sum()
+            .sum();
+        if self.is_compact {
+            min_wire_size
+        } else {
+            // Non-compact structs use an extra byte to encode TagEndMarker.
+            min_wire_size + 1
+        }
     }
 
     fn uses_classes(&self) -> bool {

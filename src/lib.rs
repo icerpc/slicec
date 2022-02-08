@@ -16,6 +16,7 @@ use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::error::ErrorLevel;
 use crate::slice_file::{Location, SliceFile};
+use crate::validator::Validator;
 use std::collections::HashMap;
 
 pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, SliceFile>, ()> {
@@ -25,6 +26,11 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, Slic
         parser::parse_files(borrow_mut_ast(), options)
     };
     handle_errors(options.warn_as_error, &slice_files)?;
+
+    let mut validator = Validator;
+    for slice_file in slice_files.values() {
+        slice_file.visit_with(&mut validator);
+    }
 
     Ok(slice_files)
 }
