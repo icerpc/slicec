@@ -126,16 +126,16 @@ pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<
 
 // TODO: move these to grammar/util once we implement slice-driven encoding.
 pub fn are_members_11_compatible(members: &[&impl Member], allow_tags: bool) -> bool {
-    members.iter().all(|member|
+    members.iter().all(|member| {
         let is_tagged = member.tag().is_some();
         is_type_11_compatible(member.data_type(), is_tagged) && (!is_tagged || allow_tags)
-    )
+    })
 }
 
 pub fn is_type_11_compatible(type_ref: &TypeRef, is_tagged: bool) -> bool {
     // We don't count tagged types as optional for the 1.1 encoding.
     // Tagged types are always implied to be optional.
-    let is_optional = type_ref.is_optional() && !is_tagged;
+    let is_optional = type_ref.is_optional && !is_tagged;
 
     match type_ref.concrete_type() {
         Types::Struct(struct_def) => {
@@ -149,12 +149,12 @@ pub fn is_type_11_compatible(type_ref: &TypeRef, is_tagged: bool) -> bool {
         Types::Trait(_) => false,
         Types::Sequence(sequence_def) => {
             !is_optional
-            && is_type_11_compatible(&sequence_def.element_type)
+            && is_type_11_compatible(&sequence_def.element_type, false)
         }
         Types::Dictionary(dictionary_def) => {
             !is_optional
-            && is_type_11_compatible(&dictionary_def.key_type)
-            && is_type_11_compatible(&dictionary_def.value_type)
+            && is_type_11_compatible(&dictionary_def.key_type, false)
+            && is_type_11_compatible(&dictionary_def.value_type, false)
         }
         Types::Primitive(primitive_def) => {
             !is_optional && matches!(primitive_def,
