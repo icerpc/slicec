@@ -136,11 +136,11 @@ impl SliceParser {
     }
 
     fn module_def(input: PestNode) -> PestResult<Module> {
-        Self::parse_module(input)
+        Self::parse_module(input, true)
     }
 
     fn file_level_module(input: PestNode) -> PestResult<Module> {
-        Self::parse_module(input)
+        Self::parse_module(input, false)
     }
 
     fn struct_start(input: PestNode) -> PestResult<(bool, Identifier, Location)> {
@@ -977,7 +977,7 @@ impl SliceParser {
 }
 
 impl SliceParser {
-    fn parse_module(input: PestNode) -> PestResult<Module> {
+    fn parse_module(input: PestNode, allow_sub_modules: bool) -> PestResult<Module> {
         Ok(match_nodes!(input.children();
             [prelude(prelude), module_start(module_start), definition(definitions)..] => {
                 let (identifier, location) = module_start;
@@ -1003,6 +1003,20 @@ impl SliceParser {
                 );
                 // Add the definitions into the inner-most module.
                 for definition in definitions {
+                    // Report an error if sub-modules aren't allowed and the definition is a module.
+                    // Files using a file-level module don't support module nesting within the file.
+                    if !allow_sub_modules {
+                        if let Definition::Module(module_def) = &definition {
+                            crate::report_error(
+                                "file level modules cannot contain sub-modules".to_owned(),
+                                Some(&module_def.borrow().location),
+                            );
+                            crate::report_note(
+                                format!("file level module '{}' declared here", &identifier.value),
+                                Some(&location),
+                            );
+                        }
+                    }
                     last_module.add_definition(definition);
                 }
 
