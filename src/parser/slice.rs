@@ -179,11 +179,10 @@ impl SliceParser {
             [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
-                    //TODO let error_handler = &mut input.user_data().borrow_mut().error_handler;
-                    //TODO error_handler.report_error((
-                    //TODO     format!("classes can only inherit from a single base class"),
-                    //TODO     location.clone()
-                    //TODO ).into());
+                    crate::report_error(
+                        format!("classes can only inherit from a single base class"),
+                        Some(&location),
+                    );
                 }
 
                 push_scope(&input, &identifier.value, false);
@@ -220,11 +219,10 @@ impl SliceParser {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    //TODO let error_handler = &mut input.user_data().borrow_mut().error_handler;
-                    //TODO error_handler.report_error((
-                    //TODO     format!("exceptions can only inherit from a single base exception"),
-                    //TODO     location.clone()
-                    //TODO ).into());
+                    crate::report_error(
+                        format!("exceptions can only inherit from a single base exception"),
+                        Some(&location),
+                    );
                 }
 
                 push_scope(&input, &identifier.value, false);
