@@ -144,6 +144,7 @@ pub fn is_type_11_compatible(type_ref: &TypeRef, is_tagged: bool) -> bool {
             && are_members_11_compatible(&struct_def.members(), false)
         }
         Types::Class(class_def) => are_members_11_compatible(&class_def.members(), true),
+        Types::Exception(_) => false, // exceptions can't be used as types with the 1.1 encoding.
         Types::Interface(_) => true,
         Types::Enum(enum_def) => enum_def.underlying.is_none() && !is_optional,
         Types::Trait(_) => false,

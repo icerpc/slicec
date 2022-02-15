@@ -273,12 +273,34 @@ impl Exception {
         self.base.as_ref()
             .map(|type_ref| type_ref.definition())
     }
+}
 
-    // Note that `uses_classes` is defined on `Type`. But since `Exception` isn't a type, we have
-    // a separate implementation here. This is just a method on `Exception` with the same name.
-    pub fn uses_classes(&self) -> bool {
+impl Type for Exception {
+    fn is_fixed_size(&self) -> bool {
+        // An exception is fixed size if and only if all its members are fixed size.
+        self.all_members().iter()
+            .all(|member| member.data_type.is_fixed_size())
+    }
+
+    fn min_wire_size(&self) -> u32 {
+        // The min-wire-size of an exception is the min-wire-size of all its members added together.
+        self.all_members().iter()
+            .map(|member| member.data_type.min_wire_size())
+            .sum()
+    }
+
+    fn uses_classes(&self) -> bool {
         self.all_members().iter()
             .any(|member| member.data_type.uses_classes())
+    }
+
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn tag_format(&self) -> TagFormat {
+        unimplemented!("Tag formats are only used with the 1.1 encoding.\n\
+                        Exceptions can only be sent as a member with the 2.0 encoding.");
     }
 }
 
