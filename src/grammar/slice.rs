@@ -772,8 +772,8 @@ impl Type for Trait {
     }
 
     fn min_wire_size(&self) -> u32 {
-        // Traits are encoded as a type-id followed by the concrete struct.
-        // The min wire size is an empty type-id (1 byte) and empty struct.
+        // Traits are encoded as a type-id string followed by a concrete type, encoded normally.
+        // The min wire size is an empty type-id (1 byte) and an empty concrete type.
         1
     }
 
