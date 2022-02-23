@@ -114,5 +114,5 @@ pub trait AsTypes {
 }
 
 generate_types_wrapper!(
-    Struct, Class, Interface, Enum, Trait, Sequence, Dictionary, Primitive
+    Struct, Class, Exception, Interface, Enum, Trait, Sequence, Dictionary, Primitive
 );

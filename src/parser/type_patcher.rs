@@ -66,6 +66,12 @@ impl<'ast> TypePatcher<'ast> {
                     );
                     return;
                 }
+                Entities::Exception(_) => {
+                    type_ref.definition = upcast_weak_as!(
+                        definition.clone().downcast::<Exception>().ok().unwrap(), dyn Type
+                    );
+                    return;
+                }
                 Entities::Interface(_) => {
                     type_ref.definition = upcast_weak_as!(
                         definition.clone().downcast::<Interface>().ok().unwrap(), dyn Type
