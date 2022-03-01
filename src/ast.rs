@@ -188,12 +188,12 @@ impl Ast {
 
     pub fn find_type(
         &self,
-        identifier: &str,
+        fully_scoped_identifier: &str,
     ) -> Option<WeakPtr<dyn Type>> {
         let result = Self::lookup_type(
             &self.module_scoped_lookup_table,
             &self.primitive_cache,
-            identifier,
+            fully_scoped_identifier,
             &Scope::new("", false),
         );
         result.ok()
@@ -201,9 +201,9 @@ impl Ast {
 
     pub fn find_typed_type<T: Type + 'static>(
         &self,
-        identifier: &str,
+        fully_scoped_identifier: &str,
     ) -> Option<WeakPtr<T>> {
-        let type_ptr = self.find_type(identifier);
+        let type_ptr = self.find_type(fully_scoped_identifier);
         type_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
     }
 
