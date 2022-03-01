@@ -22,6 +22,14 @@ use std::path::PathBuf;
 
 // TODO This module is a mess.
 
+/// Attempts to parse a string representing a valid slice file.
+/// If the parse is successful, this returns a dummy 'SliceFile' and an AST containing the
+/// parsed contents of the string.
+/// If an error occurs while parsing, this returns the error message as a 'String'.
+pub fn parse_string(input: &str) -> Result<Ast, String> {
+    slice::SliceParser::parse_string(input)
+}
+
 pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, SliceFile> {
     let parser = slice::SliceParser;
 

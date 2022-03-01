@@ -170,6 +170,43 @@ impl Ast {
         None
     }
 
+    pub fn find_entity(
+        &self,
+        fully_scoped_identifier: &str,
+    ) -> Option<WeakPtr<dyn Entity>> {
+        let identifier = fully_scoped_identifier.strip_prefix("::").unwrap();
+        self.parser_scoped_lookup_table.get(identifier).cloned()
+    }
+
+    pub fn find_typed_entity<T: Entity + 'static>(
+        &self,
+        fully_scoped_identifier: &str,
+    ) -> Option<WeakPtr<T>> {
+        let entity_ptr = self.find_entity(fully_scoped_identifier);
+        entity_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
+    }
+
+    pub fn find_type(
+        &self,
+        identifier: &str,
+    ) -> Option<WeakPtr<dyn Type>> {
+        let result = Self::lookup_type(
+            &self.module_scoped_lookup_table,
+            &self.primitive_cache,
+            identifier,
+            &Scope::new("", false),
+        );
+        result.ok()
+    }
+
+    pub fn find_typed_type<T: Type + 'static>(
+        &self,
+        identifier: &str,
+    ) -> Option<WeakPtr<T>> {
+        let type_ptr = self.find_type(identifier);
+        type_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
+    }
+
     // =============================================================================================
     // These lookup functions are associated functions instead of methods so that the AST can be
     // mutated without locking down access to them.
