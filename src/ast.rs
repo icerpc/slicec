@@ -244,6 +244,9 @@ impl Ast {
                 Entities::Struct(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Struct>().ok().unwrap(), dyn Type))
                 }
+                Entities::Exception(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Exception>().ok().unwrap(), dyn Type))
+                }
                 Entities::Class(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Class>().ok().unwrap(), dyn Type))
                 }
