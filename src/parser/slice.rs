@@ -51,6 +51,34 @@ struct ParserData<'ast> {
 pub(super) struct SliceParser;
 
 impl SliceParser {
+    pub fn parse_string(input: &str) -> Result<Ast, String> {
+        let mut ast = Ast::new();
+
+        let user_data = RefCell::new(ParserData {
+            ast: &mut ast,
+            current_file: "dummy".to_owned(),
+            current_enum_value: 0,
+            current_scope: Scope::default(),
+        });
+
+        // Parse the file into a file-specific AST.
+        let node = SliceParser::parse_with_userdata(Rule::main, input, &user_data);
+        let unwrapped_node = node.map_err(|e| e.to_string())?;
+        let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
+
+        // Consume the contents of the file and add them into the AST.
+        let (_, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        for module_def in file_contents.into_iter() {
+            ast.add_module(module_def);
+        }
+
+        // Patch the AST.
+        super::parent_patcher::patch_parents(&mut ast);
+        super::type_patcher::patch_types(&mut ast);
+
+        Ok(ast)
+    }
+
     pub fn try_parse_file(&self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
         match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => {
