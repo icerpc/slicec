@@ -52,9 +52,22 @@ impl Scope {
     }
 }
 
+/// These encodings identity the method used to convert Slice types to and from bytes.
+/// Only the versions supported by IceRPC are listed here, although other older versions exist.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum SliceEncoding {
+    /// Version 1.1 of the Slice encoding, supported by IceRPC and Ice 3.5 or greater.
+    /// It is supported for interoperability between Ice and IceRPC.
+    11,
+
+    /// Version 2.0 of the Slice encoding, supported by IceRPC.
+    /// The default encoding when using IceRPC.
+    20,
+}
+
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TagFormat {
     /// A fixed size numeric encoded on 1 byte such as bool or byte.
     F1,

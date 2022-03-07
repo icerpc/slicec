@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::traits::*;
-use super::util::{Scope, TagFormat};
+use super::util::{Scope, SliceEncoding, TagFormat};
 use super::wrappers::*;
 use crate::slice_file::Location;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
@@ -1190,6 +1190,15 @@ impl Element for Primitive {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub struct FileEncoding {
+    pub version: SliceEncoding,
+    pub location: Location,
+}
+
+implement_Element_for!(FileEncoding, "file encoding");
+implement_Symbol_for!(FileEncoding);
 
 #[derive(Clone, Debug)]
 pub struct Identifier {
