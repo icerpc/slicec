@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{Attribute, Module};
+use crate::grammar::{Attribute, Module, FileEncoding};
 use crate::ptr_util::WeakPtr;
 
 #[derive(Clone, Debug)]
@@ -16,6 +16,7 @@ pub struct SliceFile {
     pub raw_text: String,
     pub contents: Vec<WeakPtr<Module>>,
     pub attributes: Vec<Attribute>,
+    pub encoding: Option<FileEncoding>,
     pub is_source: bool,
     line_positions: Vec<usize>,
 }
@@ -26,6 +27,7 @@ impl SliceFile {
         raw_text: String,
         contents: Vec<WeakPtr<Module>>,
         attributes: Vec<Attribute>,
+        encoding: Option<FileEncoding>,
         is_source: bool,
     ) -> SliceFile {
         // Store the starting position of each line the file.
@@ -65,6 +67,7 @@ impl SliceFile {
             raw_text,
             contents,
             attributes,
+            encoding,
             is_source,
             line_positions,
         }

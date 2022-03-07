@@ -454,6 +454,7 @@ pub struct Operation {
     pub return_type: Vec<OwnedPtr<Parameter>>,
     pub parameters: Vec<OwnedPtr<Parameter>>,
     pub is_idempotent: bool,
+    pub encoding: SliceEncoding,
     pub parent: WeakPtr<Interface>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
@@ -466,6 +467,7 @@ impl Operation {
         identifier: Identifier,
         return_type: Vec<OwnedPtr<Parameter>>,
         is_idempotent: bool,
+        encoding: SliceEncoding,
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
@@ -473,7 +475,7 @@ impl Operation {
     ) -> Self {
         let parameters = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Operation { identifier, return_type, parameters, is_idempotent, parent, scope, attributes, comment, location }
+        Operation { identifier, return_type, parameters, is_idempotent, encoding, parent, scope, attributes, comment, location }
     }
 
     pub(crate) fn add_parameter(&mut self, parameter: Parameter) {
