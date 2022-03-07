@@ -58,11 +58,11 @@ impl Scope {
 pub enum SliceEncoding {
     /// Version 1.1 of the Slice encoding, supported by IceRPC and Ice 3.5 or greater.
     /// It is supported for interoperability between Ice and IceRPC.
-    11,
+    Slice11,
 
     /// Version 2.0 of the Slice encoding, supported by IceRPC.
     /// The default encoding when using IceRPC.
-    20,
+    Slice20,
 }
 
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
