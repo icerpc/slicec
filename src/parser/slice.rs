@@ -106,7 +106,7 @@ impl SliceParser {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, file_contents) =
+        let (file_encoding, file_attributes, file_contents) =
             SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let top_level_modules = file_contents.into_iter().map(|module_def| {
@@ -118,6 +118,7 @@ impl SliceParser {
             raw_text,
             top_level_modules,
             file_attributes,
+            file_encoding,
             is_source,
         ))
     }
@@ -128,13 +129,39 @@ impl SliceParser {
     fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<Module>)> {
         let module_ids = match_nodes!(input.into_children();
             [file_attributes(attributes), module_def(modules).., EOI(_)] => {
-                (attributes, modules.collect())
+                (None, attributes, modules.collect())
             },
             [file_attributes(attributes), file_level_module(module), EOI(_)] => {
-                (attributes, vec![module])
+                (None, attributes, vec![module])
+            }
+            [file_encoding(encoding), file_attributes(attributes), module_def(modules).., EOI(_)] => {
+                (Some(encoding), attributes, modules.collect())
+            },
+            [file_encoding(encoding), file_attributes(attributes), file_level_module(module), EOI(_)] => {
+                (Some(encoding), attributes, vec![module])
             }
         );
         Ok(module_ids)
+    }
+
+    fn file_encoding(input: PestNode) -> PestResult<FileEncoding> {
+        let location = from_span(&input);
+        Ok(match_nodes!(input.into_children();
+            [_, encoding_version(encoding)] => FileEncoding { version: encoding, location }
+        ))
+    }
+
+    fn encoding_version(input: PestNode) -> PestResult<SliceEncoding> {
+        match input.as_str() {
+            "1.1" => Ok(SliceEncoding::Slice11),
+            "2.0" => Ok(SliceEncoding::Slice20),
+            _ => Err(PestError::new_from_span(
+                PestErrorVariant::CustomError {
+                    message: format!("Unknown slice encoding version: {}", err),
+                },
+                input.as_span(),
+            )),
+        }
     }
 
     fn definition(input: PestNode) -> PestResult<Definition> {
@@ -994,6 +1021,10 @@ impl SliceParser {
     }
 
     fn unchecked_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn encoding_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
