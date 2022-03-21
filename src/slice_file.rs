@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{Attribute, Module, FileEncoding};
+use crate::grammar::{Attribute, Module, FileEncoding, SliceEncoding};
 use crate::ptr_util::WeakPtr;
 
 #[derive(Clone, Debug)]
@@ -71,6 +71,12 @@ impl SliceFile {
             is_source,
             line_positions,
         }
+    }
+
+    pub fn file_encoding(&self) -> SliceEncoding {
+        self.encoding
+            .as_ref()
+            .map_or(SliceEncoding::default(), |file_encoding| file_encoding.version)
     }
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.

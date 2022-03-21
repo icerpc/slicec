@@ -68,7 +68,7 @@ impl SliceParser {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: file.to_owned(),
-            current_encoding: SliceEncoding::Slice2,
+            current_encoding: SliceEncoding::default(),
             current_enum_value: 0,
             current_scope: Scope::default(),
         });
@@ -107,7 +107,7 @@ impl SliceParser {
             },
             [file_attributes(attributes), file_level_module(module), EOI(_)] => {
                 (attributes, vec![module], None)
-            }
+            },
             [file_encoding(encoding), file_attributes(attributes), module_def(modules).., EOI(_)] => {
                 (attributes, modules.collect(), Some(encoding))
             },
