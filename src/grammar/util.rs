@@ -60,9 +60,9 @@ pub enum SliceEncoding {
     /// It is supported for interoperability between Ice and IceRPC.
     Slice11,
 
-    /// Version 2.0 of the Slice encoding, supported by IceRPC.
+    /// Version 2 of the Slice encoding, supported by IceRPC.
     /// The default encoding when using IceRPC.
-    Slice20,
+    Slice2,
 }
 
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding

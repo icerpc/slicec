@@ -154,7 +154,7 @@ impl SliceParser {
     fn encoding_version(input: PestNode) -> PestResult<SliceEncoding> {
         match input.as_str() {
             "1.1" => Ok(SliceEncoding::Slice11),
-            "2.0" => Ok(SliceEncoding::Slice20),
+            "2" => Ok(SliceEncoding::Slice2),
             _ => Err(PestError::new_from_span(
                 PestErrorVariant::CustomError {
                     message: format!("Unknown slice encoding version: {}", err),
