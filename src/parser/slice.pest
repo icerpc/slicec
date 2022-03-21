@@ -4,7 +4,7 @@
 
 main = { SOI ~ file_encoding? ~ file_attributes ~ (file_level_module | module_def*) ~ EOI }
 
-file_encoding = !{ encoding_kw ~ "=" ~ encoding ~ ";" }
+file_encoding = !{ encoding_kw ~ "=" ~ encoding_version ~ ";" }
 encoding_version = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 
 definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | trait_def | type_alias }
