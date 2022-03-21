@@ -121,7 +121,7 @@ impl SliceParser {
     fn file_encoding(input: PestNode) -> PestResult<FileEncoding> {
         Ok(match_nodes!(input.children();
             [_, encoding_version(encoding)] => {
-                input.user_data().borrow_mut().current_encoding = encoding.clone();
+                input.user_data().borrow_mut().current_encoding = encoding;
                 FileEncoding { version: encoding, location: from_span(&input) }
             }
         ))
@@ -453,7 +453,7 @@ impl SliceParser {
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
                 let (is_idempotent, identifier) = operation_start;
-                let encoding = input.user_data().borrow().current_encoding.clone();
+                let encoding = input.user_data().borrow().current_encoding;
 
                 let mut operation = Operation::new(identifier, return_type, is_idempotent, encoding, scope, attributes, comment, location);
                 for parameter in parameters {
