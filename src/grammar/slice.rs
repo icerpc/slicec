@@ -4,6 +4,7 @@ use super::comments::DocComment;
 use super::traits::*;
 use super::util::{Scope, SliceEncoding, TagFormat};
 use super::wrappers::*;
+use crate::code_gen_util::SupportedEncodings;
 use crate::slice_file::Location;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 
@@ -72,6 +73,7 @@ pub struct Struct {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Struct {
@@ -85,7 +87,8 @@ impl Struct {
     ) -> Self {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Struct { identifier, members, is_compact, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Struct { identifier, members, is_compact, parent, scope, attributes, comment, location, supported_encodings }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -135,6 +138,10 @@ impl Type for Struct {
             TagFormat::FSize
         }
     }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
 }
 
 implement_Element_for!(Struct, "struct");
@@ -153,6 +160,7 @@ pub struct Class {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Class {
@@ -167,7 +175,8 @@ impl Class {
     ) -> Self {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Class { identifier, compact_id, members, base, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Class { identifier, compact_id, members, base, parent, scope, attributes, comment, location, supported_encodings }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -216,6 +225,10 @@ impl Type for Class {
     fn tag_format(&self) -> TagFormat {
         TagFormat::Class
     }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
 }
 
 implement_Element_for!(Class, "class");
@@ -233,6 +246,7 @@ pub struct Exception {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Exception {
@@ -246,7 +260,8 @@ impl Exception {
     ) -> Self {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Exception { identifier, members, base, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Exception { identifier, members, base, parent, scope, attributes, comment, location, supported_encodings }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -302,6 +317,10 @@ impl Type for Exception {
         unimplemented!("Tag formats are only used with the 1.1 encoding.\n\
                         Exceptions can only be sent as a member with the 2.0 encoding.");
     }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
 }
 
 implement_Element_for!(Exception, "exception");
@@ -351,6 +370,7 @@ pub struct Interface {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Interface {
@@ -364,7 +384,8 @@ impl Interface {
     ) -> Self {
         let operations = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Interface { identifier, operations, bases, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Interface { identifier, operations, bases, parent, scope, attributes, comment, location, supported_encodings }
     }
 
     pub(crate) fn add_operation(&mut self, operation: Operation) {
@@ -440,6 +461,10 @@ impl Type for Interface {
 
     fn tag_format(&self) -> TagFormat {
         TagFormat::FSize
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
     }
 }
 
@@ -629,6 +654,7 @@ pub struct Enum {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Enum {
@@ -643,7 +669,8 @@ impl Enum {
     ) -> Self {
         let enumerators = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Enum { identifier, enumerators, underlying, is_unchecked, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Enum { identifier, enumerators, underlying, is_unchecked, parent, scope, attributes, comment, location, supported_encodings }
     }
 
     pub(crate) fn add_enumerator(&mut self, enumerator: Enumerator) {
@@ -709,6 +736,10 @@ impl Type for Enum {
             |data_type| data_type.tag_format(), // Expression to evaluate otherwise
         )
     }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
 }
 
 implement_Element_for!(Enum, "enum");
@@ -753,6 +784,7 @@ pub struct Trait {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Trait {
@@ -764,7 +796,8 @@ impl Trait {
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        Trait { identifier, parent, scope, attributes, comment, location }
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        Trait { identifier, parent, scope, attributes, comment, location, supported_encodings }
     }
 }
 
@@ -789,6 +822,10 @@ impl Type for Trait {
 
     fn tag_format(&self) -> TagFormat {
         unimplemented!("Tag formats are only used with the 1.1 encoding. Traits are 2.0 only.")
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
     }
 }
 
@@ -832,6 +869,8 @@ impl AsTypes for TypeAlias {
 }
 
 impl Type for TypeAlias {
+    // TODO most of these should panic. Since type-aliases are transparent and removed during
+    // type-patching, most of these should never actually be called.
     fn is_fixed_size(&self) -> bool {
         self.underlying.is_fixed_size()
     }
@@ -850,6 +889,10 @@ impl Type for TypeAlias {
 
     fn tag_format(&self) -> TagFormat {
         self.underlying.tag_format()
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.underlying.supported_encodings()
     }
 }
 
@@ -929,6 +972,18 @@ impl<T: Type + ?Sized> TypeRef<T> {
         } else {
             T::min_wire_size(self)
         }
+    }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn supported_encodings(&self) -> SupportedEncodings {
+        let mut supported_encodings = self.definition().supported_encodings();
+        if self.is_optional {
+            // Optional data types are not supported with the 1.1 encoding.
+            // Note that this doesn't include tagged data members and parameters, which are allowed.
+            // Even though they're marked with a '?' these are not technically optional types.
+            supported_encodings.disable_11();
+        }
+        supported_encodings
     }
 }
 
@@ -1032,6 +1087,10 @@ impl Type for Sequence {
             TagFormat::FSize
         }
     }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.element_type.supported_encodings()
+    }
 }
 
 implement_Element_for!(Sequence, "sequence");
@@ -1066,6 +1125,12 @@ impl Type for Dictionary {
         } else {
             TagFormat::FSize
         }
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        let mut encodings = self.key_type.supported_encodings();
+        encodings.intersect_with(self.value_type.supported_encodings());
+        encodings
     }
 }
 
@@ -1167,6 +1232,27 @@ impl Type for Primitive {
             Self::String   => TagFormat::OVSize,
             Self::AnyClass => TagFormat::Class,
         }
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        SupportedEncodings::new(match self {
+            Self::Bool     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::Byte     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::Short    => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::UShort   => vec![SliceEncoding::Slice2],
+            Self::Int      => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::UInt     => vec![SliceEncoding::Slice2],
+            Self::VarInt   => vec![SliceEncoding::Slice2],
+            Self::VarUInt  => vec![SliceEncoding::Slice2],
+            Self::Long     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::ULong    => vec![SliceEncoding::Slice2],
+            Self::VarLong  => vec![SliceEncoding::Slice2],
+            Self::VarULong => vec![SliceEncoding::Slice2],
+            Self::Float    => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::Double   => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::String   => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
+            Self::AnyClass => vec![SliceEncoding::Slice11],
+        })
     }
 }
 

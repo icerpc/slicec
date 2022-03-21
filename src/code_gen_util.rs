@@ -7,6 +7,10 @@ use crate::grammar::{Element, Member, Primitive, SliceEncoding, TypeRef, Types};
 pub struct SupportedEncodings(Vec<SliceEncoding>);
 
 impl SupportedEncodings {
+    pub fn new(encodings: Vec<SliceEncoding>) -> Self {
+        SupportedEncodings(encodings)
+    }
+
     pub fn supports_11(&self) -> bool {
         self.0.contains(&SliceEncoding::Slice11)
     }

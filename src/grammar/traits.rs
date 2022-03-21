@@ -4,6 +4,7 @@ use super::comments::DocComment;
 use super::slice::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
+use crate::code_gen_util::SupportedEncodings;
 use crate::slice_file::Location;
 
 pub trait Element: std::fmt::Debug {
@@ -84,6 +85,7 @@ pub trait Type: Element + AsTypes {
     fn uses_classes(&self) -> bool;
     fn is_class_type(&self) -> bool;
     fn tag_format(&self) -> TagFormat;
+    fn supported_encodings(&self) -> SupportedEncodings;
 }
 
 macro_rules! implement_Element_for {
