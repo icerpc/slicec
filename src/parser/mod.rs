@@ -3,6 +3,7 @@
 // can start using the newer implementation sooner.
 
 mod comments;
+mod encoding_patcher;
 mod parent_patcher;
 mod preprocessor;
 mod slice;
@@ -48,6 +49,7 @@ pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, Sli
 
     parent_patcher::patch_parents(ast);
     type_patcher::patch_types(ast);
+    encoding_patcher::patch_encodings(&slice_files, ast);
 
     slice_files
 }
