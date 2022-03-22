@@ -1129,7 +1129,7 @@ impl Type for Dictionary {
 
     fn supported_encodings(&self) -> SupportedEncodings {
         let mut encodings = self.key_type.supported_encodings();
-        encodings.intersect_with(self.value_type.supported_encodings());
+        encodings.intersect_with(&self.value_type.supported_encodings());
         encodings
     }
 }

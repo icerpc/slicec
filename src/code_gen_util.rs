@@ -11,6 +11,10 @@ impl SupportedEncodings {
         SupportedEncodings(encodings)
     }
 
+    pub fn supports(&self, encoding: &SliceEncoding) -> bool {
+        self.0.contains(encoding)
+    }
+
     pub fn supports_11(&self) -> bool {
         self.0.contains(&SliceEncoding::Slice11)
     }
@@ -35,8 +39,20 @@ impl SupportedEncodings {
         self.0.retain(|&encoding| encoding != SliceEncoding::Slice2);
     }
 
-    pub(crate) fn intersect_with(&mut self, other: SupportedEncodings) {
+    pub(crate) fn intersect_with(&mut self, other: &SupportedEncodings) {
         self.0.retain(|encoding| other.0.contains(encoding));
+    }
+
+    pub(crate) fn dummy() -> Self {
+        // Used when a type is declared in a file in which it's impossible to support (declaring a
+        // class in a encoding=2 file). When this happens we set the type to support all encodings,
+        // to avoid redundant error messages; Otherwise we'll output 2 errors, one specific to the
+        // type misuse ("classes are only supported with the 1.1 encoding"), and a general error
+        // ("type 'foo' is not supportable by any Slice encoding"). The latter is unnecessary.
+        SupportedEncodings(vec![
+            SliceEncoding::Slice11,
+            SliceEncoding::Slice2,
+        ])
     }
 }
 
