@@ -71,6 +71,15 @@ impl Default for SliceEncoding {
     }
 }
 
+impl fmt::Display for SliceEncoding {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Slice11 => write!(f, "1.1"),
+            Self::Slice2 => write!(f, "2"),
+        }
+    }
+}
+
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
 #[derive(Clone, Debug, PartialEq, Eq)]
