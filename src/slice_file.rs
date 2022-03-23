@@ -73,6 +73,11 @@ impl SliceFile {
         }
     }
 
+    /// Returns the Slice encoding used by this file.
+    ///
+    /// If no encoding was explicitely declared, it returns the default encoding.
+    ///
+    /// See [SliceEncoding::default()](crate::grammar::SliceEncoding::default())
     pub fn encoding(&self) -> SliceEncoding {
         self.encoding
             .as_ref()

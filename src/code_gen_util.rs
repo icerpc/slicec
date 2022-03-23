@@ -12,7 +12,7 @@ impl SupportedEncodings {
     ///
     /// # Arguments
     ///
-    /// `encodings` - A list of all the encodings to supports.
+    /// `encodings` - A list of all the encodings to support.
     /// It's allowed to have duplicate entries, and the ordering of entries doesn't matter.
     pub fn new(encodings: Vec<SliceEncoding>) -> Self {
         SupportedEncodings(encodings)
@@ -53,13 +53,13 @@ impl SupportedEncodings {
         self.0.retain(|&encoding| encoding != SliceEncoding::Slice2);
     }
 
-    /// Computes the encodings supported by this and the provided [SupportedEncoding], in place.
+    /// Computes the encodings supported by this and the provided [SupportedEncodings], in place.
     pub(crate) fn intersect_with(&mut self, other: &SupportedEncodings) {
         self.0.retain(|encoding| other.0.contains(encoding));
     }
 
     /// Creates a dummy version of this struct that supports all encodings.
-    /// This is used internally by the compiler to prevent emitting redundant error messages.
+    /// This is used internally by the compiler to avoid emitting redundant error messages.
     ///
     /// For example, if a class is declared in an 'encoding = 2' file, we emit an error for it,
     /// then set it's supported encodings to this dummy value. Otherwise, it wouldn't have any
@@ -73,12 +73,11 @@ impl SupportedEncodings {
     }
 }
 
-/// Allows slice syntax to be used with 'SupportedEncoding's.
+/// Allows slice syntax to be used with [SupportedEncodings].
 /// Example:
 /// ```
 /// # use slice::code_gen_util::SupportedEncodings;
 /// # use slice::grammar::SliceEncoding;
-///
 /// let encodings = vec![SliceEncoding::Slice11];
 /// let supported_encodings = SupportedEncodings::new(encodings);
 ///
