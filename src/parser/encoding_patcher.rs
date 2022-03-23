@@ -179,13 +179,15 @@ impl<'files> EncodingPatcher<'files> {
                 key_encodings
             }
             TypeRefs::Primitive(primitive_ref) => {
+                let primitive_def = primitive_ref.definition();
+
                 // Check that the primitive is supported by the
                 // file's encoding in which it is being used.
-                let encodings = primitive_ref.supported_encodings();
+                let encodings = primitive_def.supported_encodings();
                 if !encodings.supports(&file_encoding) {
                     let message = format!(
                         "'{}' is not supported by the Slice {} encoding",
-                        primitive_ref.definition().kind(),
+                        primitive_def.kind(),
                         file_encoding
                     );
                     crate::report_error(message, Some(type_ref.location()));
