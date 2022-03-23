@@ -169,12 +169,12 @@ impl<'files> EncodingPatcher<'files> {
                 let mut key_encodings = self.resolve_encodings_supported_by_type(
                     file_encoding,
                     &dictionary_ref.key_type,
-                    false
+                    false,
                 );
                 let value_encodings = self.resolve_encodings_supported_by_type(
                     file_encoding,
                     &dictionary_ref.value_type,
-                    false
+                    false,
                 );
                 key_encodings.intersect_with(&value_encodings);
                 key_encodings
@@ -271,7 +271,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             if file_encoding == SliceEncoding::Slice11 {
                 crate::report_error(
                     "non-compact structs are not supported by the Slice 1.1 encoding".to_owned(),
-                    Some(struct_def.location())
+                    Some(struct_def.location()),
                 );
                 self.print_file_encoding_note(struct_def);
                 supported_encodings = SupportedEncodings::dummy();
@@ -306,7 +306,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         if file_encoding == SliceEncoding::Slice2 {
             crate::report_error(
                 "classes are only supported by the Slice 1.1 encoding".to_owned(),
-                Some(class_def.location())
+                Some(class_def.location()),
             );
             self.print_file_encoding_note(class_def);
             supported_encodings = SupportedEncodings::dummy();
@@ -345,7 +345,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             if file_encoding == SliceEncoding::Slice2 {
                 crate::report_error(
                     "exception inheritance is only supported by the Slice 1.1 encoding".to_owned(),
-                    Some(exception_def.location())
+                    Some(exception_def.location()),
                 );
                 self.print_file_encoding_note(exception_def);
                 supported_encodings = SupportedEncodings::dummy();
@@ -396,7 +396,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         if file_encoding == SliceEncoding::Slice11 {
             crate::report_error(
                 "traits are not supported by the Slice 1.1 encoding".to_owned(),
-                Some(trait_def.location())
+                Some(trait_def.location()),
             );
             self.print_file_encoding_note(trait_def);
             supported_encodings = SupportedEncodings::dummy();

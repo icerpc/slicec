@@ -64,10 +64,7 @@ impl SupportedEncodings {
     /// supported encodings, causing any types that use it to also have no supported encodings.
     /// This would lead to a cascade of spurious error messages about unsupportable types.
     pub(crate) fn dummy() -> Self {
-        SupportedEncodings(vec![
-            SliceEncoding::Slice11,
-            SliceEncoding::Slice2,
-        ])
+        SupportedEncodings(vec![SliceEncoding::Slice11, SliceEncoding::Slice2])
     }
 }
 
@@ -107,10 +104,9 @@ mod tests {
     #[test]
     fn test_disabling_encodings() {
         // Create an instance with support for all encodings.
-        let mut supported_encodings = SupportedEncodings::new(vec![
-            SliceEncoding::Slice11,
-            SliceEncoding::Slice2,
-        ]);
+        let mut supported_encodings =
+            SupportedEncodings::new(vec![SliceEncoding::Slice11, SliceEncoding::Slice2]);
+
         assert!(supported_encodings.supports_multiple_encodings(),
             "test case doesn't support multiple encodings when it should\n{:?}",
             supported_encodings,
