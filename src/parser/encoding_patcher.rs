@@ -112,8 +112,14 @@ impl<'files> EncodingPatcher<'files> {
             TypeRefs::Class(class_ref) => {
                 is_nullable = true;
 
-                // TODO THIS IS BROKEN!!!
-                SupportedEncodings::new(vec![SliceEncoding::Slice11])
+                let type_id = class_ref.module_scoped_identifier();
+                // Compute the type's supported encodings if they haven't been computed yet.
+                if let Some(encodings) = self.supported_encodings.get(&type_id) {
+                    encodings
+                } else {
+                    class_ref.visit_with(self);
+                    self.supported_encodings.get(&type_id).unwrap()
+                }.clone()
             }
             TypeRefs::Exception(exception_ref) => {
                 let type_id = exception_ref.module_scoped_identifier();
@@ -287,7 +293,18 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(class_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // We allow cycles with classes, so we don't check for them here.
+        // We allow cycles with classes (since they use reference semantics), but we still have to
+        // break cycles when computing what encodings a class supports.
+        // So, if this class contains itself, we give it a temporary dummy encoding and return
+        // without checking anything else. When we get back up the dependency stack to the first
+        // time we saw the type, the class's real encoding will be computed correctly.
+        if self.dependency_stack.contains(&type_id) {
+            self.supported_encodings.insert(
+                type_id.to_owned(),
+                SupportedEncodings::dummy(),
+            );
+            return;
+        }
 
         // Resolve the supported encodings for the data members.
         self.dependency_stack.push(type_id);
