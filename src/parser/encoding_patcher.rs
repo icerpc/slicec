@@ -185,7 +185,7 @@ impl<'files> EncodingPatcher<'files> {
                 if !encodings.supports(&file_encoding) {
                     let message = format!(
                         "'{}' is not supported by the Slice {} encoding",
-                        primitive_ref.kind(),
+                        primitive_ref.definition().kind(),
                         file_encoding
                     );
                     crate::report_error(message, Some(type_ref.location()));
