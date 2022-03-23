@@ -4,8 +4,8 @@ use super::comments::DocComment;
 use super::slice::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
-use crate::code_gen_util::SupportedEncodings;
 use crate::slice_file::Location;
+use crate::supported_encodings::SupportedEncodings;
 
 pub trait Element: std::fmt::Debug {
     fn kind(&self) -> &'static str;

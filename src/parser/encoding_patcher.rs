@@ -1,11 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
-use crate::code_gen_util::SupportedEncodings;
 use crate::grammar::*;
 use crate::ptr_util::OwnedPtr;
 use crate::ptr_visitor::PtrVisitor;
 use crate::slice_file::SliceFile;
+use crate::supported_encodings::SupportedEncodings;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 

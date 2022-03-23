@@ -4,8 +4,8 @@ use super::comments::DocComment;
 use super::traits::*;
 use super::util::{Scope, SliceEncoding, TagFormat};
 use super::wrappers::*;
-use crate::code_gen_util::SupportedEncodings;
 use crate::slice_file::Location;
+use crate::supported_encodings::SupportedEncodings;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 
 #[derive(Debug)]
