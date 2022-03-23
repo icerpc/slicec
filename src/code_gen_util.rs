@@ -3,7 +3,7 @@
 
 use crate::grammar::{Element, Member, SliceEncoding, TypeRef};
 
-/// A struct for storing and computing what Slice encodings a Slice entity supports.
+/// A struct for storing and computing what Slice encodings a Slice construct supports.
 #[derive(Clone, Debug)]
 pub struct SupportedEncodings(Vec<SliceEncoding>);
 
@@ -62,7 +62,7 @@ impl SupportedEncodings {
     /// This is used internally by the compiler to avoid emitting redundant error messages.
     ///
     /// For example, if a class is declared in an 'encoding = 2' file, we emit an error for it,
-    /// then set it's supported encodings to this dummy value. Otherwise, it wouldn't have any
+    /// then set its supported encodings to this dummy value. Otherwise, it wouldn't have any
     /// supported encodings, causing any types that use it to also have no supported encodings.
     /// This would lead to a cascade of spurious error messages about unsupportable types.
     pub(crate) fn dummy() -> Self {
