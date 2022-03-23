@@ -216,7 +216,28 @@ impl<'files> EncodingPatcher<'files> {
     }
 
     fn print_file_encoding_note(&self, symbol: &impl Symbol) {
-        // TODO!
+        let file_name = &symbol.location().file;
+        let slice_file = self.slice_files.get(file_name).unwrap();
+
+        if let Some(file_encoding) = &slice_file.encoding {
+            let message = format!(
+                "file encoding was set to the Slice {} encoding here:",
+                &file_encoding.version,
+            );
+            crate::report_note(message, Some(file_encoding.location()));
+        } else {
+            let message = format!(
+                "file is using the Slice {} encoding by default",
+                SliceEncoding::default(),
+            );
+            crate::report_note(message, None);
+
+            crate::report_note(
+                r#"to use a different encoding, specify it at the top of the slice file
+ex: 'encoding = 1.1;'"#.to_owned(),
+                None,
+            )
+        }
     }
 }
 
