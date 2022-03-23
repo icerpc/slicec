@@ -86,7 +86,7 @@ impl<'files> EncodingPatcher<'files> {
     fn get_file_encoding_for(&self, symbol: &impl Symbol) -> SliceEncoding {
         let file_name = &symbol.location().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
-        slice_file.file_encoding()
+        slice_file.encoding()
     }
 
     fn resolve_encodings_supported_by_type(

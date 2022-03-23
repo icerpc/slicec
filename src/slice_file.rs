@@ -73,10 +73,10 @@ impl SliceFile {
         }
     }
 
-    pub fn file_encoding(&self) -> SliceEncoding {
+    pub fn encoding(&self) -> SliceEncoding {
         self.encoding
             .as_ref()
-            .map_or(SliceEncoding::default(), |file_encoding| file_encoding.version)
+            .map_or(SliceEncoding::default(), |encoding| encoding.version)
     }
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
