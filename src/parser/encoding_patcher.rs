@@ -95,6 +95,9 @@ impl<'files> EncodingPatcher<'files> {
         type_ref: &TypeRef,
         is_tagged: bool,
     ) -> SupportedEncodings {
+        // True for proxies and classes, false for everything else.
+        let mut is_nullable = false;
+
         let mut supported_encodings = match type_ref.concrete_typeref() {
             TypeRefs::Struct(struct_ref) => {
                 let type_id = struct_ref.module_scoped_identifier();
@@ -107,6 +110,8 @@ impl<'files> EncodingPatcher<'files> {
                 }.clone()
             }
             TypeRefs::Class(class_ref) => {
+                is_nullable = true;
+
                 // TODO THIS IS BROKEN!!!
                 SupportedEncodings::new(vec![SliceEncoding::Slice11])
             }
@@ -121,6 +126,8 @@ impl<'files> EncodingPatcher<'files> {
                 }.clone()
             }
             TypeRefs::Interface(interface_ref) => {
+                is_nullable = true;
+
                 let type_id = interface_ref.module_scoped_identifier();
                 // Compute the type's supported encodings if they haven't been computed yet.
                 if let Some(encodings) = self.supported_encodings.get(&type_id) {
@@ -191,7 +198,7 @@ impl<'files> EncodingPatcher<'files> {
         };
 
         // Non-tagged optional types aren't supported by the Slice 1.1 encoding.
-        if !is_tagged && type_ref.is_optional {
+        if !is_tagged && !is_nullable && type_ref.is_optional {
             supported_encodings.disable_11();
             if *file_encoding == SliceEncoding::Slice11 {
                 crate::report_error(
