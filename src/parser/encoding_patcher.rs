@@ -109,17 +109,12 @@ impl<'files> EncodingPatcher<'files> {
                     self.supported_encodings.get(&type_id).unwrap()
                 }.clone()
             }
-            TypeRefs::Class(class_ref) => {
+            TypeRefs::Class(_) => {
                 is_nullable = true;
-
-                let type_id = class_ref.module_scoped_identifier();
-                // Compute the type's supported encodings if they haven't been computed yet.
-                if let Some(encodings) = self.supported_encodings.get(&type_id) {
-                    encodings
-                } else {
-                    class_ref.visit_with(self);
-                    self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                // Classes can only be declared in a 1.1 encoded file. A 1.1 encoded file can only
+                // reference entities from other 1.1 encoded files. So it's impossible for a class
+                // to contain non-1.1 things in it. So classes are always supported by (only) 1.1.
+                SupportedEncodings::new(vec![SliceEncoding::Slice11])
             }
             TypeRefs::Exception(exception_ref) => {
                 let type_id = exception_ref.module_scoped_identifier();
@@ -293,18 +288,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(class_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // We allow cycles with classes (since they use reference semantics), but we still have to
-        // break cycles when computing what encodings a class supports.
-        // So, if this class contains itself, we give it a temporary dummy encoding and return
-        // without checking anything else. When we get back up the dependency stack to the first
-        // time we saw the type, the class's real encoding will be computed correctly.
-        if self.dependency_stack.contains(&type_id) {
-            self.supported_encodings.insert(
-                type_id.to_owned(),
-                SupportedEncodings::dummy(),
-            );
-            return;
-        }
+        // We allow cycles with classes, so we don't check for them here.
 
         // Resolve the supported encodings for the data members.
         self.dependency_stack.push(type_id);
