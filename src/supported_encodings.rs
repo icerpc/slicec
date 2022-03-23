@@ -93,3 +93,80 @@ impl<I: std::slice::SliceIndex<[SliceEncoding]>> std::ops::Index<I> for Supporte
         &self.0[index]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dummy_instance_supports_all_encodings() {
+        let supported_encodings = SupportedEncodings::dummy();
+        assert!(supported_encodings.supports_11(), "dummy doesn't support the Slice 1.1 encoding");
+        assert!(supported_encodings.supports_2(), "dummy doesn't support the Slice 2 encoding");
+    }
+
+    #[test]
+    fn test_disabling_encodings() {
+        // Create an instance with support for all encodings (and multiple copies of each).
+        let mut supported_encodings = SupportedEncodings::new(vec![
+            SliceEncoding::Slice11,
+            SliceEncoding::Slice2,
+            SliceEncoding::Slice2,
+            SliceEncoding::Slice11,
+        ]);
+        assert!(supported_encodings.supports_multiple_encodings(),
+            "test case doesn't support multiple encodings when it should\n{:?}",
+            supported_encodings,
+        );
+        assert!(!supported_encodings.is_empty(),
+            "test case has no supported encodings when it should\n{:?}",
+            supported_encodings,
+        );
+        assert!(supported_encodings.supports_11(),
+            "test case doesn't support the Slice 1.1 encoding when it should\n{:?}",
+            supported_encodings,
+        );
+        assert!(supported_encodings.supports_2(),
+            "test case doesn't support the Slice 2 encoding when it should\n{:?}",
+            supported_encodings,
+        );
+
+        // Disable support for the Slice 1.1 encoding.
+        supported_encodings.disable_11();
+        assert!(!supported_encodings.supports_multiple_encodings(),
+            "test case supports multiple encodings when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+        assert!(!supported_encodings.is_empty(),
+            "test case has no supported encodings when it should\n{:?}",
+            supported_encodings,
+        );
+        assert!(!supported_encodings.supports_11(),
+            "test case supports the Slice 1.1 encoding when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+        assert!(supported_encodings.supports_2(),
+            "test case doesn't support the Slice 2 encoding when it should\n{:?}",
+            supported_encodings,
+        );
+
+        // Disable support for the Slice 2 encoding.
+        supported_encodings.disable_11();
+        assert!(!supported_encodings.supports_multiple_encodings(),
+            "test case supports multiple encodings when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+        assert!(supported_encodings.is_empty(),
+            "test case has supported encodings when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+        assert!(!supported_encodings.supports_11(),
+            "test case supports the Slice 1.1 encoding when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+        assert!(!supported_encodings.supports_2(),
+            "test case supports the Slice 2 encoding when it shouldn't\n{:?}",
+            supported_encodings,
+        );
+    }
+}
