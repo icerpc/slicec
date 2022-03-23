@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 // TODO this entire file needs to be looked over again.
 
-use crate::grammar::{Element, Member, Primitive, SliceEncoding, TypeRef, Types};
+use crate::grammar::{Element, Member, SliceEncoding, TypeRef};
 
 #[derive(Clone, Debug)]
 pub struct SupportedEncodings(Vec<SliceEncoding>);
@@ -184,49 +184,6 @@ pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<
     tagged_members.sort_by_key(|member| member.tag().unwrap());
 
     (required_members, tagged_members)
-}
-
-// TODO: move these to grammar/util once we implement slice-driven encoding.
-pub fn are_members_11_compatible(members: &[&impl Member], allow_tags: bool) -> bool {
-    members.iter().all(|member| {
-        let is_tagged = member.tag().is_some();
-        is_type_11_compatible(member.data_type(), is_tagged) && (!is_tagged || allow_tags)
-    })
-}
-
-pub fn is_type_11_compatible(type_ref: &TypeRef, is_tagged: bool) -> bool {
-    // We don't count tagged types as optional for the 1.1 encoding.
-    // Tagged types are always implied to be optional.
-    let is_optional = type_ref.is_optional && !is_tagged;
-
-    match type_ref.concrete_type() {
-        Types::Struct(struct_def) => {
-            struct_def.is_compact
-            && !is_optional
-            && are_members_11_compatible(&struct_def.members(), false)
-        }
-        Types::Class(class_def) => are_members_11_compatible(&class_def.members(), true),
-        Types::Exception(_) => false, // exceptions can't be used as types with the 1.1 encoding.
-        Types::Interface(_) => true,
-        Types::Enum(enum_def) => enum_def.underlying.is_none() && !is_optional,
-        Types::Trait(_) => false,
-        Types::Sequence(sequence_def) => {
-            !is_optional
-            && is_type_11_compatible(&sequence_def.element_type, false)
-        }
-        Types::Dictionary(dictionary_def) => {
-            !is_optional
-            && is_type_11_compatible(&dictionary_def.key_type, false)
-            && is_type_11_compatible(&dictionary_def.value_type, false)
-        }
-        Types::Primitive(primitive_def) => {
-            !is_optional && matches!(primitive_def,
-                Primitive::Bool | Primitive::Byte | Primitive::Short | Primitive::Int |
-                Primitive::Long | Primitive::Float | Primitive::Double | Primitive::String |
-                Primitive::AnyClass
-            )
-        }
-    }
 }
 
 pub fn clone_as_non_optional<T: Element + ?Sized>(type_ref: &TypeRef<T>) -> TypeRef<T> {
