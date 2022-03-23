@@ -11,8 +11,7 @@ impl SupportedEncodings {
     ///
     /// # Arguments
     ///
-    /// `encodings` - A list of all the encodings to support.
-    /// It's allowed to have duplicate entries, and the ordering of entries doesn't matter.
+    /// `encodings` - A list of all the encodings to support, in any order.
     pub fn new(encodings: Vec<SliceEncoding>) -> Self {
         SupportedEncodings(encodings)
     }
@@ -75,7 +74,7 @@ impl SupportedEncodings {
 /// Allows slice syntax to be used with [SupportedEncodings].
 /// Example:
 /// ```
-/// # use slice::code_gen_util::SupportedEncodings;
+/// # use slice::supported_encodings::SupportedEncodings;
 /// # use slice::grammar::SliceEncoding;
 /// let encodings = vec![SliceEncoding::Slice11];
 /// let supported_encodings = SupportedEncodings::new(encodings);
@@ -107,12 +106,10 @@ mod tests {
 
     #[test]
     fn test_disabling_encodings() {
-        // Create an instance with support for all encodings (and multiple copies of each).
+        // Create an instance with support for all encodings.
         let mut supported_encodings = SupportedEncodings::new(vec![
             SliceEncoding::Slice11,
             SliceEncoding::Slice2,
-            SliceEncoding::Slice2,
-            SliceEncoding::Slice11,
         ]);
         assert!(supported_encodings.supports_multiple_encodings(),
             "test case doesn't support multiple encodings when it should\n{:?}",
@@ -151,7 +148,7 @@ mod tests {
         );
 
         // Disable support for the Slice 2 encoding.
-        supported_encodings.disable_11();
+        supported_encodings.disable_2();
         assert!(!supported_encodings.supports_multiple_encodings(),
             "test case supports multiple encodings when it shouldn't\n{:?}",
             supported_encodings,
