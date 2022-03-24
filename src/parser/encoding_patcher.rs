@@ -182,6 +182,8 @@ impl<'files> EncodingPatcher<'files> {
             TypeRefs::Primitive(primitive_ref) => {
                 let primitive_def = primitive_ref.definition();
 
+                is_nullable = matches!(primitive_def, Primitive::AnyClass);
+
                 // Check that the primitive is supported by the
                 // file's encoding in which it is being used.
                 let encodings = primitive_def.supported_encodings();
