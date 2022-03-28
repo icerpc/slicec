@@ -12,7 +12,6 @@ use std::collections::HashMap;
 pub(super) fn patch_encodings(slice_files: &HashMap<String, SliceFile>, ast: &mut Ast) {
     let mut patcher = EncodingPatcher {
         slice_files,
-        dependency_stack: Vec::new(),
         supported_encodings: HashMap::new(),
     };
 
@@ -36,8 +35,6 @@ fn get_encodings_supported_by(file_encoding: &SliceEncoding) -> SupportedEncodin
 
 struct EncodingPatcher<'files> {
     slice_files: &'files HashMap<String, SliceFile>,
-    // Stack of all the types we've currently seen in the dependency chain we're currently checking.
-    dependency_stack: Vec<String>,
     // Map of all the encodings supported by a type (key is the type's type-id).
     supported_encodings: HashMap<String, SupportedEncodings>,
 }
@@ -57,30 +54,6 @@ impl<'files> EncodingPatcher<'files> {
             crate::report_error(message, Some(type_def.location()));
         }
         self.supported_encodings.insert(type_id, supported_encodings);
-    }
-
-    fn check_for_cycle<T: Entity + Type>(&mut self, type_def: &T, type_id: &String) -> bool {
-        // Check if the type is self-referential and not a class (we allow cycles in classes).
-        if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {
-            let message = format!(
-                "self-referential type {type_id} has infinite size.\n{cycle_string}",
-                type_id = &type_id,
-                cycle_string = &self.dependency_stack[i..].join(" -> "),
-            );
-            crate::report_error(message, Some(type_def.location()));
-
-            // If the type is cyclic, we say it's supported by all encodings even though it's
-            // supported by non. Otherwise, types using this one would also support no encodings,
-            // leading to many spurious error messages.
-            self.supported_encodings.insert(
-                type_id.to_owned(),
-                SupportedEncodings::dummy(),
-            );
-
-            true
-        } else {
-            false
-        }
     }
 
     fn get_file_encoding_for(&self, symbol: &impl Symbol) -> SliceEncoding {
@@ -250,14 +223,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(struct_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        if self.check_for_cycle(struct_def, &type_id) {
-            // If the type is cyclic, return early to avoid an infinite loop.
-            // `check_for_cycle` will already of reported an error message.
-            return;
-        }
-
         // Resolve the supported encodings for the data members.
-        self.dependency_stack.push(type_id);
         for member in struct_def.members() {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
@@ -280,8 +246,6 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             }
         }
 
-        // Pop the type-id off the stack, and store this struct's supported encodings.
-        let type_id = self.dependency_stack.pop().unwrap();
         self.add_supported_encodings_entry(struct_def, type_id, supported_encodings);
     }
 
@@ -290,10 +254,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(class_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // We allow cycles with classes, so we don't check for them here.
-
         // Resolve the supported encodings for the data members.
-        self.dependency_stack.push(type_id);
         for member in class_def.members() {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
@@ -314,8 +275,6 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             supported_encodings = SupportedEncodings::dummy();
         }
 
-        // Pop the type-id off the stack, and store this class's supported encodings.
-        let type_id = self.dependency_stack.pop().unwrap();
         self.add_supported_encodings_entry(class_def, type_id, supported_encodings);
     }
 
@@ -324,14 +283,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(exception_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        if self.check_for_cycle(exception_def, &type_id) {
-            // If the type is cyclic, return early to avoid an infinite loop.
-            // `check_for_cycle` will already of reported an error message.
-            return;
-        }
-
         // Resolve the supported encodings for the data members.
-        self.dependency_stack.push(type_id);
         for member in exception_def.members() {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
@@ -354,8 +306,6 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             }
         }
 
-        // Pop the type-id off the stack, and store this exceptions's supported encodings.
-        let type_id = self.dependency_stack.pop().unwrap();
         self.add_supported_encodings_entry(exception_def, type_id, supported_encodings);
     }
 
