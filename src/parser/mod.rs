@@ -24,7 +24,7 @@ use std::path::PathBuf;
 
 // TODO This module is a mess.
 
-pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, SliceFile> {
+pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, ()> {
     let parser = slice::SliceParser;
 
     let source_files = find_slice_files(&options.sources);
@@ -49,11 +49,14 @@ pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, Sli
     }
 
     parent_patcher::patch_parents(ast);
+    crate::handle_errors(options.warn_as_error, &slice_files)?;
     type_patcher::patch_types(ast);
+    crate::handle_errors(options.warn_as_error, &slice_files)?;
     cycle_detection::detect_cycles(&slice_files);
+    crate::handle_errors(options.warn_as_error, &slice_files)?;
     encoding_patcher::patch_encodings(&slice_files, ast);
 
-    slice_files
+    Ok(slice_files)
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {

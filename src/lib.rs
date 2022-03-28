@@ -24,7 +24,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, Slic
     // Initialize the global instances of the `Ast` and the `ErrorHandler`.
     global_state::initialize();
     let slice_files = unsafe {
-        parser::parse_files(borrow_mut_ast(), options)
+        parser::parse_files(borrow_mut_ast(), options)?
     };
     handle_errors(options.warn_as_error, &slice_files)?;
 
