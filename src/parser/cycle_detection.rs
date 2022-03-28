@@ -53,7 +53,7 @@ impl Visitor for CycleDetector {
         self.dependency_stack.push(type_id);
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
+    fn visit_struct_end(&mut self, _: &Struct) {
         self.dependency_stack.pop().unwrap();
     }
 
@@ -69,7 +69,7 @@ impl Visitor for CycleDetector {
         self.dependency_stack.push(type_id);
     }
 
-    fn visit_exception_end(&mut self, exception_def: &Exception) {
+    fn visit_exception_end(&mut self, _: &Exception) {
         self.dependency_stack.pop().unwrap();
     }
 

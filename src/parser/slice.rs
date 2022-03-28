@@ -42,7 +42,7 @@ fn pop_scope(input: &PestNode) {
 struct ParserData<'ast> {
     ast: &'ast mut Ast,
     current_file: String,
-    current_encoding: SliceEncoding,
+    current_encoding: Encoding,
     current_enum_value: i64,
     current_scope: Scope,
 }
@@ -68,7 +68,7 @@ impl SliceParser {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: file.to_owned(),
-            current_encoding: SliceEncoding::default(),
+            current_encoding: Encoding::default(),
             current_enum_value: 0,
             current_scope: Scope::default(),
         });
@@ -127,10 +127,10 @@ impl SliceParser {
         ))
     }
 
-    fn encoding_version(input: PestNode) -> PestResult<SliceEncoding> {
+    fn encoding_version(input: PestNode) -> PestResult<Encoding> {
         match input.as_str() {
-            "1.1" => Ok(SliceEncoding::Slice11),
-            "2" => Ok(SliceEncoding::Slice2),
+            "1.1" => Ok(Encoding::Slice11),
+            "2" => Ok(Encoding::Slice2),
             _ => Err(PestError::new_from_span(
                 PestErrorVariant::CustomError {
                     message: format!("Unknown slice encoding version: {}", input.as_str()),

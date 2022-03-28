@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::traits::*;
-use super::util::{Scope, SliceEncoding, TagFormat};
+use super::util::{Scope, Encoding, TagFormat};
 use super::wrappers::*;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
@@ -479,7 +479,7 @@ pub struct Operation {
     pub return_type: Vec<OwnedPtr<Parameter>>,
     pub parameters: Vec<OwnedPtr<Parameter>>,
     pub is_idempotent: bool,
-    pub encoding: SliceEncoding,
+    pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
@@ -492,7 +492,7 @@ impl Operation {
         identifier: Identifier,
         return_type: Vec<OwnedPtr<Parameter>>,
         is_idempotent: bool,
-        encoding: SliceEncoding,
+        encoding: Encoding,
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
@@ -1236,22 +1236,22 @@ impl Type for Primitive {
 
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
-            Self::Bool     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::Byte     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::Short    => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::UShort   => vec![SliceEncoding::Slice2],
-            Self::Int      => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::UInt     => vec![SliceEncoding::Slice2],
-            Self::VarInt   => vec![SliceEncoding::Slice2],
-            Self::VarUInt  => vec![SliceEncoding::Slice2],
-            Self::Long     => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::ULong    => vec![SliceEncoding::Slice2],
-            Self::VarLong  => vec![SliceEncoding::Slice2],
-            Self::VarULong => vec![SliceEncoding::Slice2],
-            Self::Float    => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::Double   => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::String   => vec![SliceEncoding::Slice11, SliceEncoding::Slice2],
-            Self::AnyClass => vec![SliceEncoding::Slice11],
+            Self::Bool     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Byte     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Short    => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::UShort   => vec![Encoding::Slice2],
+            Self::Int      => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::UInt     => vec![Encoding::Slice2],
+            Self::VarInt   => vec![Encoding::Slice2],
+            Self::VarUInt  => vec![Encoding::Slice2],
+            Self::Long     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::ULong    => vec![Encoding::Slice2],
+            Self::VarLong  => vec![Encoding::Slice2],
+            Self::VarULong => vec![Encoding::Slice2],
+            Self::Float    => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Double   => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::String   => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::AnyClass => vec![Encoding::Slice11],
         })
     }
 }
@@ -1281,7 +1281,7 @@ impl Element for Primitive {
 
 #[derive(Clone, Debug)]
 pub struct FileEncoding {
-    pub version: SliceEncoding,
+    pub version: Encoding,
     pub location: Location,
 }
 

@@ -56,7 +56,7 @@ impl Scope {
 ///
 /// These encodings identity the format used to convert Slice types to and from byte streams.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum SliceEncoding {
+pub enum Encoding {
     /// Version 1.1 of the Slice encoding, supported by IceRPC, and Ice 3.5 or greater.
     ///
     /// It is primarly for interoperability between Ice and IceRPC.
@@ -68,14 +68,14 @@ pub enum SliceEncoding {
     Slice2,
 }
 
-impl Default for SliceEncoding {
+impl Default for Encoding {
     /// Returns the default encoding for this version of IceRPC: the Slice 2 encoding.
     fn default() -> Self {
-        SliceEncoding::Slice2
+        Encoding::Slice2
     }
 }
 
-impl fmt::Display for SliceEncoding {
+impl fmt::Display for Encoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Slice11 => write!(f, "1.1"),
