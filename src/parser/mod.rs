@@ -3,6 +3,8 @@
 // can start using the newer implementation sooner.
 
 mod comments;
+mod cycle_detection;
+mod encoding_patcher;
 mod parent_patcher;
 mod preprocessor;
 mod slice;
@@ -21,14 +23,6 @@ use std::path::PathBuf;
 // Accessing ANY data, or calling ANY methods before this point may result in panics or undefined behavior.
 
 // TODO This module is a mess.
-
-/// Attempts to parse a string representing a valid slice file.
-/// If the parse is successful, this returns a dummy 'SliceFile' and an AST containing the
-/// parsed contents of the string.
-/// If an error occurs while parsing, this returns the error message as a 'String'.
-pub fn parse_string(input: &str) -> Result<Ast, String> {
-    slice::SliceParser::parse_string(input)
-}
 
 pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, SliceFile> {
     let parser = slice::SliceParser;
@@ -56,6 +50,8 @@ pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> HashMap<String, Sli
 
     parent_patcher::patch_parents(ast);
     type_patcher::patch_types(ast);
+    cycle_detection::detect_cycles(&slice_files);
+    encoding_patcher::patch_encodings(&slice_files, ast);
 
     slice_files
 }

@@ -2,7 +2,10 @@
 // TODO rewrite this with better error handling in mind.
 // This was just copy & pasted from the original implementation and can be improved alot.
 
-main = { SOI ~ file_attributes ~ (file_level_module | module_def*) ~ EOI }
+main = { SOI ~ file_encoding? ~ file_attributes ~ (file_level_module | module_def*) ~ EOI }
+
+file_encoding = !{ encoding_kw ~ "=" ~ encoding_version ~ ";" }
+encoding_version = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 
 definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | trait_def | type_alias }
 
@@ -145,3 +148,4 @@ extends_kw = { ":" }
 compact_kw = { "compact" ~ !ASCII_ALPHA }
 idempotent_kw = { "idempotent" ~ !ASCII_ALPHA }
 unchecked_kw = { "unchecked" ~ !ASCII_ALPHA }
+encoding_kw = { "encoding" ~ !ASCII_ALPHA }

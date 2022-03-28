@@ -42,6 +42,7 @@ fn pop_scope(input: &PestNode) {
 struct ParserData<'ast> {
     ast: &'ast mut Ast,
     current_file: String,
+    current_encoding: Encoding,
     current_enum_value: i64,
     current_scope: Scope,
 }
@@ -51,34 +52,6 @@ struct ParserData<'ast> {
 pub(super) struct SliceParser;
 
 impl SliceParser {
-    pub fn parse_string(input: &str) -> Result<Ast, String> {
-        let mut ast = Ast::new();
-
-        let user_data = RefCell::new(ParserData {
-            ast: &mut ast,
-            current_file: "dummy".to_owned(),
-            current_enum_value: 0,
-            current_scope: Scope::default(),
-        });
-
-        // Parse the file into a file-specific AST.
-        let node = SliceParser::parse_with_userdata(Rule::main, input, &user_data);
-        let unwrapped_node = node.map_err(|e| e.to_string())?;
-        let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
-
-        // Consume the contents of the file and add them into the AST.
-        let (_, file_contents) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-        for module_def in file_contents.into_iter() {
-            ast.add_module(module_def);
-        }
-
-        // Patch the AST.
-        super::parent_patcher::patch_parents(&mut ast);
-        super::type_patcher::patch_types(&mut ast);
-
-        Ok(ast)
-    }
-
     pub fn try_parse_file(&self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
         match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => {
@@ -95,6 +68,7 @@ impl SliceParser {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: file.to_owned(),
+            current_encoding: Encoding::default(),
             current_enum_value: 0,
             current_scope: Scope::default(),
         });
@@ -106,7 +80,7 @@ impl SliceParser {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, file_contents) =
+        let (file_attributes, file_contents, file_encoding) =
             SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let top_level_modules = file_contents.into_iter().map(|module_def| {
@@ -118,6 +92,7 @@ impl SliceParser {
             raw_text,
             top_level_modules,
             file_attributes,
+            file_encoding,
             is_source,
         ))
     }
@@ -125,16 +100,44 @@ impl SliceParser {
 
 #[pest_consume::parser]
 impl SliceParser {
-    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<Module>)> {
+    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<Module>, Option<FileEncoding>)> {
         let module_ids = match_nodes!(input.into_children();
             [file_attributes(attributes), module_def(modules).., EOI(_)] => {
-                (attributes, modules.collect())
+                (attributes, modules.collect(), None)
             },
             [file_attributes(attributes), file_level_module(module), EOI(_)] => {
-                (attributes, vec![module])
+                (attributes, vec![module], None)
+            },
+            [file_encoding(encoding), file_attributes(attributes), module_def(modules).., EOI(_)] => {
+                (attributes, modules.collect(), Some(encoding))
+            },
+            [file_encoding(encoding), file_attributes(attributes), file_level_module(module), EOI(_)] => {
+                (attributes, vec![module], Some(encoding))
             }
         );
         Ok(module_ids)
+    }
+
+    fn file_encoding(input: PestNode) -> PestResult<FileEncoding> {
+        Ok(match_nodes!(input.children();
+            [_, encoding_version(encoding)] => {
+                input.user_data().borrow_mut().current_encoding = encoding;
+                FileEncoding { version: encoding, location: from_span(&input) }
+            }
+        ))
+    }
+
+    fn encoding_version(input: PestNode) -> PestResult<Encoding> {
+        match input.as_str() {
+            "1.1" => Ok(Encoding::Slice11),
+            "2" => Ok(Encoding::Slice2),
+            _ => Err(PestError::new_from_span(
+                PestErrorVariant::CustomError {
+                    message: format!("Unknown slice encoding version: {}", input.as_str()),
+                },
+                input.as_span(),
+            )),
+        }
     }
 
     fn definition(input: PestNode) -> PestResult<Definition> {
@@ -450,7 +453,9 @@ impl SliceParser {
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters), operation_return(return_type)] => {
                 let (attributes, comment) = prelude;
                 let (is_idempotent, identifier) = operation_start;
-                let mut operation = Operation::new(identifier, return_type, is_idempotent, scope, attributes, comment, location);
+                let encoding = input.user_data().borrow().current_encoding;
+
+                let mut operation = Operation::new(identifier, return_type, is_idempotent, encoding, scope, attributes, comment, location);
                 for parameter in parameters {
                     operation.add_parameter(parameter);
                 }
@@ -994,6 +999,10 @@ impl SliceParser {
     }
 
     fn unchecked_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
+    fn encoding_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
