@@ -7,7 +7,7 @@ main = { SOI ~ file_encoding? ~ file_attributes ~ (file_level_module | module_de
 file_encoding = !{ encoding_kw ~ "=" ~ encoding_version ~ ";" }
 encoding_version = { ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
 
-definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | trait_def | type_alias }
+definition = { module_def | struct_def | class_def | exception_def | interface_def | enum_def | trait_def | custom_type | type_alias }
 
 module_start = ${ module_kw ~ ws+ ~ scoped_identifier }
 module_def = !{ prelude ~ module_start ~ "{" ~ definition* ~ "}" }
@@ -29,6 +29,7 @@ enum_start = ${ unchecked_modifier ~ enum_kw ~ ws+ ~ identifier ~ ( ws* ~ extend
 enum_def = !{ prelude ~ enum_start ~ "{" ~ enumerator_list? ~ "}" }
 
 trait_def = ${ prelude ~ ws* ~ trait_kw ~ ws+ ~ identifier ~ ws* ~ ";" }
+custom_type = ${ prelude ~ ws* ~ custom_kw ~ ws+ ~ identifier ~ ws* ~ ";" }
 
 return_type = ${ local_attributes ~ ws* ~ tag_modifier ~ stream_modifier ~ typeref | return_tuple }
 return_tuple = !{ "(" ~ parameter_list ~ ")" }
@@ -120,6 +121,7 @@ exception_kw = { "exception" }
 interface_kw = { "interface" }
 enum_kw = { "enum" }
 trait_kw = { "trait" }
+custom_kw = { "custom" }
 type_alias_kw = { "typealias" }
 
 sequence_kw = { "sequence" }

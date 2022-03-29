@@ -131,6 +131,16 @@ impl<'files> EncodingPatcher<'files> {
                     self.supported_encodings.get(&type_id).unwrap()
                 }.clone()
             }
+            TypeRefs::CustomType(custom_type_ref) => {
+                let type_id = custom_type_ref.module_scoped_identifier();
+                // Compute the type's supported encodings if they haven't been computed yet.
+                if let Some(encodings) = self.supported_encodings.get(&type_id) {
+                    encodings
+                } else {
+                    custom_type_ref.visit_with(self);
+                    self.supported_encodings.get(&type_id).unwrap()
+                }.clone()
+            }
             TypeRefs::Sequence(sequence_ref) => {
                 self.resolve_encodings_supported_by_type(
                     file_encoding,
@@ -386,6 +396,25 @@ impl<'files> Visitor for EncodingPatcher<'files> {
 
         self.add_supported_encodings_entry(trait_def, type_id, supported_encodings);
     }
+
+    fn visit_custom_type(&mut self, custom_type: &CustomType) {
+        let type_id = custom_type.module_scoped_identifier();
+        let file_encoding = self.get_file_encoding_for(custom_type);
+        let mut supported_encodings = get_encodings_supported_by(&file_encoding);
+
+        // Custom types are not supported by the Slice 1.1 encoding.
+        supported_encodings.disable_11();
+        if file_encoding == Encoding::Slice11 {
+            crate::report_error(
+                "custom types are not supported by the Slice 1.1 encoding".to_owned(),
+                Some(custom_type.location()),
+            );
+            self.print_file_encoding_note(custom_type);
+            supported_encodings = SupportedEncodings::dummy();
+        }
+
+        self.add_supported_encodings_entry(custom_type, type_id, supported_encodings);
+    }
 }
 
 // Then we visit through everything mutably to patch in the supported encodings.
@@ -429,6 +458,13 @@ impl<'files> PtrVisitor for EncodingPatcher<'files> {
         let trait_def = trait_ptr.borrow_mut();
         let type_id = trait_def.module_scoped_identifier();
         trait_def.supported_encodings =
+            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+    }
+
+    unsafe fn visit_custom_type(&mut self, custom_type_ptr: &mut OwnedPtr<CustomType>) {
+        let custom_type = custom_type_ptr.borrow_mut();
+        let type_id = custom_type.module_scoped_identifier();
+        custom_type.supported_encodings =
             Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 }
