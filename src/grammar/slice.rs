@@ -877,7 +877,9 @@ impl Type for CustomType {
     }
 
     fn tag_format(&self) -> TagFormat {
-        unimplemented!("Tag formats are only used with the 1.1 encoding. Custom types are 2.0 only.")
+        // Tag formats are only used with the 1.1 encoding. Custom types are 2.0 only.
+        // TODO this value is NEVER used, but leaving it unimplemented causes a panic.
+        return TagFormat::OVSize;
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
