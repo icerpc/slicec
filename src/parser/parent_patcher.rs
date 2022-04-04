@@ -21,14 +21,15 @@ impl PtrVisitor for ParentPatcher {
         let parent_ptr = module_ptr.downgrade();
         for definition in &mut module_ptr.borrow_mut().contents {
             match definition {
-                Definition::Module(x)    => x.borrow_mut().parent = Some(parent_ptr.clone()),
-                Definition::Struct(x)    => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Class(x)     => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Exception(x) => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Interface(x) => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Enum(x)      => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::Trait(x)     => x.borrow_mut().parent = parent_ptr.clone(),
-                Definition::TypeAlias(x) => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Module(x)     => x.borrow_mut().parent = Some(parent_ptr.clone()),
+                Definition::Struct(x)     => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Class(x)      => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Exception(x)  => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Interface(x)  => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Enum(x)       => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::Trait(x)      => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::CustomType(x) => x.borrow_mut().parent = parent_ptr.clone(),
+                Definition::TypeAlias(x)  => x.borrow_mut().parent = parent_ptr.clone(),
             }
         }
     }

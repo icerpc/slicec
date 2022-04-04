@@ -221,6 +221,17 @@ pub trait PtrVisitor {
     /// borrowed elsewhere. Violating this **will** lead to undefined behavior.
     unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {}
 
+    /// This function is called by the visitor when it visits a [CustomType].
+    ///
+    /// This shouldn't be called by users. To visit a custom type, use `custom_type_ptr.visit_ptr_with`.
+    ///
+    /// # Safety
+    ///
+    /// Implementors of this function must be able to safely borrow the custom type being visited,
+    /// mutably and immutably. Hence, this function is only safe to call when the custom type isn't
+    /// borrowed elsewhere. Violating this **will** lead to undefined behavior.
+    unsafe fn visit_custom_type(&mut self, custom_type_ptr: &mut OwnedPtr<CustomType>) {}
+
     /// This function is called by the visitor when it visits a [TypeAlias].
     ///
     /// This shouldn't be called by users. To visit a type alias, use `type_alias_ptr.visit_ptr_with`.
@@ -295,14 +306,15 @@ impl OwnedPtr<Module> {
         visitor.visit_module_start(self);
         for definition in &mut self.borrow_mut().contents {
             match definition {
-                Definition::Module(module_ptr)        => module_ptr.visit_ptr_with(visitor),
-                Definition::Struct(struct_ptr)        => struct_ptr.visit_ptr_with(visitor),
-                Definition::Class(class_ptr)          => class_ptr.visit_ptr_with(visitor),
-                Definition::Exception(exception_ptr)  => exception_ptr.visit_ptr_with(visitor),
-                Definition::Interface(interface_ptr)  => interface_ptr.visit_ptr_with(visitor),
-                Definition::Enum(enum_ptr)            => enum_ptr.visit_ptr_with(visitor),
-                Definition::Trait(trait_ptr)          => trait_ptr.visit_ptr_with(visitor),
-                Definition::TypeAlias(type_alias_ptr) => type_alias_ptr.visit_ptr_with(visitor),
+                Definition::Module(module_ptr)          => module_ptr.visit_ptr_with(visitor),
+                Definition::Struct(struct_ptr)          => struct_ptr.visit_ptr_with(visitor),
+                Definition::Class(class_ptr)            => class_ptr.visit_ptr_with(visitor),
+                Definition::Exception(exception_ptr)    => exception_ptr.visit_ptr_with(visitor),
+                Definition::Interface(interface_ptr)    => interface_ptr.visit_ptr_with(visitor),
+                Definition::Enum(enum_ptr)              => enum_ptr.visit_ptr_with(visitor),
+                Definition::Trait(trait_ptr)            => trait_ptr.visit_ptr_with(visitor),
+                Definition::CustomType(custom_type_ptr) => custom_type_ptr.visit_ptr_with(visitor),
+                Definition::TypeAlias(type_alias_ptr)   => type_alias_ptr.visit_ptr_with(visitor),
             }
         }
         visitor.visit_module_end(self);
@@ -465,6 +477,24 @@ impl OwnedPtr<Trait> {
     /// Violating this **will** lead to undefined behavior. Check [OwnedPtr] for more information.
     pub unsafe fn visit_ptr_with(&mut self, visitor: &mut impl PtrVisitor) {
         visitor.visit_trait(self);
+    }
+}
+
+impl OwnedPtr<CustomType> {
+    /// Uses the provided `visitor` to visit a [CustomType] through its enclosing [OwnedPtr].
+    ///
+    /// This function delegates to `visitor.visit_custom_type`.
+    ///
+    /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
+    /// contents. If you don't need mutability or pointer access, use [CustomType::visit_with] instead.
+    ///
+    /// # Safety
+    ///
+    /// The implementation of this function mutably borrows the underlying custom type to visit on.
+    /// Hence, it is only safe to call this function when the custom type isn't borrowed elsewhere.
+    /// Violating this **will** lead to undefined behavior. Check [OwnedPtr] for more information.
+    pub unsafe fn visit_ptr_with(&mut self, visitor: &mut impl PtrVisitor) {
+        visitor.visit_custom_type(self);
     }
 }
 

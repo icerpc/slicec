@@ -259,6 +259,9 @@ impl Ast {
                 Entities::Trait(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Trait>().ok().unwrap(), dyn Type))
                 }
+                Entities::CustomType(_) => {
+                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<CustomType>().ok().unwrap(), dyn Type))
+                }
                 Entities::TypeAlias(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<TypeAlias>().ok().unwrap(), dyn Type))
                 }
@@ -351,6 +354,11 @@ impl<'ast> PtrVisitor for LookupTableBuilder<'ast> {
     unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {
         self.add_module_scoped_entry(trait_ptr);
         self.add_parser_scoped_entry(trait_ptr);
+    }
+
+    unsafe fn visit_custom_type(&mut self, custom_type_ptr: &mut OwnedPtr<CustomType>) {
+        self.add_module_scoped_entry(custom_type_ptr);
+        self.add_parser_scoped_entry(custom_type_ptr);
     }
 
     unsafe fn visit_type_alias(&mut self, type_alias_ptr: &mut OwnedPtr<TypeAlias>) {

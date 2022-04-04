@@ -834,6 +834,64 @@ implement_Entity_for!(Trait);
 implement_Contained_for!(Trait, Module);
 
 #[derive(Debug)]
+pub struct CustomType {
+    pub identifier: Identifier,
+    pub parent: WeakPtr<Module>,
+    pub scope: Scope,
+    pub attributes: Vec<Attribute>,
+    pub comment: Option<DocComment>,
+    pub location: Location,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
+}
+
+impl CustomType {
+    pub(crate) fn new(
+        identifier: Identifier,
+        scope: Scope,
+        attributes: Vec<Attribute>,
+        comment: Option<DocComment>,
+        location: Location,
+    ) -> Self {
+        let parent = WeakPtr::create_uninitialized();
+        let supported_encodings = None; // Patched later by the encoding_patcher.
+        CustomType { identifier, parent, scope, attributes, comment, location, supported_encodings }
+    }
+}
+
+impl Type for CustomType {
+    fn is_fixed_size(&self) -> bool {
+        false
+    }
+
+    fn min_wire_size(&self) -> u32 {
+        //TODO Can't we get rid of min wire size already?
+        0
+    }
+
+    fn uses_classes(&self) -> bool {
+        false
+    }
+
+    fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn tag_format(&self) -> TagFormat {
+        // Tag formats are only used with the 1.1 encoding. Custom types are 2.0 only.
+        // TODO this value is NEVER used, but leaving it unimplemented causes a panic.
+        return TagFormat::OVSize;
+    }
+
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
+}
+
+implement_Element_for!(CustomType, "custom type");
+implement_Entity_for!(CustomType);
+implement_Contained_for!(CustomType, Module);
+
+#[derive(Debug)]
 pub struct TypeAlias {
     pub identifier: Identifier,
     pub underlying: TypeRef,

@@ -130,6 +130,11 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit a trait, use `[Trait::visit_with]`.
     fn visit_trait(&mut self, trait_def: &Trait) {}
 
+    /// This function is called by the visitor when it visits a [CustomType],
+    ///
+    /// This shouldn't be called by users. To visit a custom type, use `[CustomType::visit_with]`.
+    fn visit_custom_type(&mut self, custom_type: &CustomType) {}
+
     /// This function is called by the visitor when it visits a [TypeAlias],
     ///
     /// This shouldn't be called by users. To visit a type alias, use `[TypeAlias::visit_with]`.
@@ -189,6 +194,7 @@ impl Module {
                 Definition::Interface(interface_def) => interface_def.borrow().visit_with(visitor),
                 Definition::Enum(enum_def)           => enum_def.borrow().visit_with(visitor),
                 Definition::Trait(trait_def)         => trait_def.borrow().visit_with(visitor),
+                Definition::CustomType(custom_type)  => custom_type.borrow().visit_with(visitor),
                 Definition::TypeAlias(type_alias)    => type_alias.borrow().visit_with(visitor),
             }
         }
@@ -310,6 +316,18 @@ impl Trait {
     /// use [OwnedPtr<Trait>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_trait(self);
+    }
+}
+
+impl CustomType {
+    /// Visits the [CustomType] with the provided `visitor`.
+    ///
+    /// This function delegates to `visitor.visit_custom_type`.
+    ///
+    /// If mutability or access to the custom type's owning pointer are needed,
+    /// use [OwnedPtr<CustomType>::visit_ptr_with] instead.
+    pub fn visit_with(&self, visitor: &mut impl Visitor) {
+        visitor.visit_custom_type(self);
     }
 }
 
