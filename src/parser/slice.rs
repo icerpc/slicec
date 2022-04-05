@@ -412,7 +412,7 @@ impl SliceParser {
         Ok(match_nodes!(input.into_children();
             [return_tuple(tuple)] => tuple,
             [local_attributes(attributes), tag_modifier(tag), stream_modifier(is_streamed), typeref(data_type)] => {
-                let identifier = Identifier::new("".to_owned(), location.clone());
+                let identifier = Identifier::new("returnValue".to_owned(), location.clone());
                 vec![OwnedPtr::new(Parameter::new(
                     identifier,
                     data_type,
