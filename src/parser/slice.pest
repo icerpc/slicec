@@ -59,21 +59,21 @@ sequence = !{ sequence_kw ~ "<" ~ typeref ~ ">" }
 dictionary = !{ dictionary_kw ~ "<" ~ typeref ~ "," ~ typeref ~ ">" }
 
 primitive = {
-    bool_kw     |
-    byte_kw     |
-    short_kw    |
-    ushort_kw   |
-    int_kw      |
-    uint_kw     |
-    varint_kw   |
-    varuint_kw  |
-    long_kw     |
-    ulong_kw    |
-    varlong_kw  |
-    varulong_kw |
-    float_kw    |
-    double_kw   |
-    string_kw   |
+    bool_kw      |
+    uint8_kw     |
+    int16_kw     |
+    uint16_kw    |
+    int32_kw     |
+    uint32_kw    |
+    varint32_kw  |
+    varuint32_kw |
+    int64_kw     |
+    uint64_kw    |
+    varint62_kw  |
+    varuint62_kw |
+    float_kw     |
+    double_kw    |
+    string_kw    |
     any_class_kw
 }
 
@@ -128,17 +128,17 @@ sequence_kw = { "sequence" }
 dictionary_kw = { "dictionary" }
 
 bool_kw = { "bool" ~ !ASCII_ALPHA }
-byte_kw = { "byte" ~ !ASCII_ALPHA }
-short_kw = { "short" ~ !ASCII_ALPHA }
-ushort_kw = { "ushort" ~ !ASCII_ALPHA }
-int_kw = { "int" ~ !ASCII_ALPHA }
-uint_kw = { "uint" ~ !ASCII_ALPHA }
-varint_kw = { "varint" ~ !ASCII_ALPHA }
-varuint_kw = { "varuint" ~ !ASCII_ALPHA }
-long_kw = { "long" ~ !ASCII_ALPHA }
-ulong_kw = { "ulong" ~ !ASCII_ALPHA }
-varlong_kw = { "varlong" ~ !ASCII_ALPHA }
-varulong_kw = { "varulong" ~ !ASCII_ALPHA }
+uint8_kw = { "uint8" ~ !ASCII_ALPHA }
+int16_kw = { "int16" ~ !ASCII_ALPHA }
+uint16_kw = { "uint16" ~ !ASCII_ALPHA }
+int32_kw = { "int32" ~ !ASCII_ALPHA }
+uint32_kw = { "uint32" ~ !ASCII_ALPHA }
+varint32_kw = { "varint32" ~ !ASCII_ALPHA }
+varuint32_kw = { "varuint32" ~ !ASCII_ALPHA }
+int64_kw = { "int64" ~ !ASCII_ALPHA }
+uint64_kw = { "uint64" ~ !ASCII_ALPHA }
+varint62_kw = { "varint62" ~ !ASCII_ALPHA }
+varuint62_kw = { "varuint62" ~ !ASCII_ALPHA }
 float_kw = { "float" ~ !ASCII_ALPHA }
 double_kw = { "double" ~ !ASCII_ALPHA }
 string_kw = { "string" ~ !ASCII_ALPHA }

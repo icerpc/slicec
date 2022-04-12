@@ -63,17 +63,17 @@ impl Ast {
         // we 'define' them here when the AST is created, to ensure they're always available.
         let primitive_cache = HashMap::from([
             ("bool", OwnedPtr::new(Primitive::Bool)),
-            ("byte", OwnedPtr::new(Primitive::Byte)),
-            ("short", OwnedPtr::new(Primitive::Short)),
-            ("ushort", OwnedPtr::new(Primitive::UShort)),
-            ("int", OwnedPtr::new(Primitive::Int)),
-            ("uint", OwnedPtr::new(Primitive::UInt)),
-            ("varint", OwnedPtr::new(Primitive::VarInt)),
-            ("varuint", OwnedPtr::new(Primitive::VarUInt)),
-            ("long", OwnedPtr::new(Primitive::Long)),
-            ("ulong", OwnedPtr::new(Primitive::ULong)),
-            ("varlong", OwnedPtr::new(Primitive::VarLong)),
-            ("varulong", OwnedPtr::new(Primitive::VarULong)),
+            ("uint8", OwnedPtr::new(Primitive::UInt8)),
+            ("int16", OwnedPtr::new(Primitive::Int16)),
+            ("uint16", OwnedPtr::new(Primitive::UInt16)),
+            ("int32", OwnedPtr::new(Primitive::Int32)),
+            ("uint32", OwnedPtr::new(Primitive::UInt32)),
+            ("varint32", OwnedPtr::new(Primitive::VarInt32)),
+            ("varuint32", OwnedPtr::new(Primitive::VarUInt32)),
+            ("int64", OwnedPtr::new(Primitive::Int64)),
+            ("uint64", OwnedPtr::new(Primitive::UInt64)),
+            ("varint62", OwnedPtr::new(Primitive::VarInt62)),
+            ("varuint62", OwnedPtr::new(Primitive::VarUInt62)),
             ("float", OwnedPtr::new(Primitive::Float)),
             ("double", OwnedPtr::new(Primitive::Double)),
             ("string", OwnedPtr::new(Primitive::String)),
@@ -126,7 +126,7 @@ impl Ast {
     /// A separate instance of the anonymous type is created for each place it's used,
     /// even if they're the same type.
     /// ```slice
-    /// operation(sequence<int> i1, sequence<int> i2); // 2 anonymous types are created here, 1 for each sequence.
+    /// operation(sequence<int32> i1, sequence<int32> i2); // 2 anonymous types are created here, 1 for each sequence.
     /// ```
     /// Additionally, no indexing is performed on these types since they're un-named and unique to where they're used.
     /// Instead, this function returns a reference to the [OwnedPtr] storing the type,
