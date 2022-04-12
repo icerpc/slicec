@@ -35,14 +35,9 @@ impl SupportedEncodings {
         self.0.is_empty()
     }
 
-    /// Removes support for the Slice 1.1 encoding if it's currently supported.
-    pub(crate) fn disable_11(&mut self) {
-        self.0.retain(|&encoding| encoding != Encoding::Slice1);
-    }
-
-    /// Removes support for the Slice 2 encoding if it's currently supported.
-    pub(crate) fn disable_2(&mut self) {
-        self.0.retain(|&encoding| encoding != Encoding::Slice2);
+    /// Removes support for the specified encoding if it's currently supported.
+    pub(crate) fn disable(&mut self, encoding: Encoding) {
+        self.0.retain(|&e| e != encoding);
     }
 
     /// Computes the encodings supported by this and the provided [SupportedEncodings], in place.

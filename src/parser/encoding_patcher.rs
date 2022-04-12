@@ -84,9 +84,9 @@ impl<'files> EncodingPatcher<'files> {
             }
             TypeRefs::Class(_) => {
                 is_nullable = true;
-                // Classes can only be declared in a 1.1 encoded file. A 1.1 encoded file can only
-                // reference entities from other 1.1 encoded files. So it's impossible for a class
-                // to contain non-1.1 things in it. So classes are always supported by (only) 1.1.
+                // Classes can only be declared in a Slice 1 encoded file. A Slice 1 encoded file can only
+                // reference entities from other Slice 1 encoded files. So it's impossible for a class
+                // to contain non-Slice 1 things in it. So classes are always supported by (only) Slice 1.
                 SupportedEncodings::new(vec![Encoding::Slice1])
             }
             TypeRefs::Exception(exception_ref) => {
@@ -185,12 +185,12 @@ impl<'files> EncodingPatcher<'files> {
             }
         };
 
-        // Non-tagged optional types aren't supported by the Slice 1.1 encoding.
+        // Non-tagged optional types aren't supported by the Slice 1 encoding.
         if !is_tagged && !is_nullable && type_ref.is_optional {
-            supported_encodings.disable_11();
+            supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
                 crate::report_error(
-                    "optional types can only be used with tags in the Slice 1.1 encoding".to_owned(),
+                    "optional types can only be used with tags in the Slice 1 encoding".to_owned(),
                     Some(type_ref.location())
                 );
                 self.print_file_encoding_note(type_ref);
@@ -220,7 +220,7 @@ impl<'files> EncodingPatcher<'files> {
 
             crate::report_note(
                 r#"to use a different encoding, specify it at the top of the slice file
-ex: 'encoding = 1.1;'"#.to_owned(),
+ex: 'encoding = 1;'"#.to_owned(),
                 None,
             )
         }
@@ -243,12 +243,12 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Non-compact structs are not supported by the 1.1 encoding.
+        // Non-compact structs are not supported by the Slice 1 encoding.
         if !struct_def.is_compact {
-            supported_encodings.disable_11();
+            supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
                 crate::report_error(
-                    "non-compact structs are not supported by the Slice 1.1 encoding".to_owned(),
+                    "non-compact structs are not supported by the Slice 1 encoding".to_owned(),
                     Some(struct_def.location()),
                 );
                 self.print_file_encoding_note(struct_def);
@@ -274,11 +274,11 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Classes are only supported by the 1.1 encoding.
-        supported_encodings.disable_2();
+        // Classes are only supported by the Slice 1 encoding.
+        supported_encodings.disable(Encoding::Slice2);
         if file_encoding == Encoding::Slice2 {
             crate::report_error(
-                "classes are only supported by the Slice 1.1 encoding".to_owned(),
+                "classes are only supported by the Slice 1 encoding".to_owned(),
                 Some(class_def.location()),
             );
             self.print_file_encoding_note(class_def);
@@ -303,12 +303,12 @@ impl<'files> Visitor for EncodingPatcher<'files> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Exception inheritance is only supported by the 1.1 encoding.
+        // Exception inheritance is only supported by the Slice 1 encoding.
         if exception_def.base.is_some() {
-            supported_encodings.disable_2();
+            supported_encodings.disable(Encoding::Slice2);
             if file_encoding == Encoding::Slice2 {
                 crate::report_error(
-                    "exception inheritance is only supported by the Slice 1.1 encoding".to_owned(),
+                    "exception inheritance is only supported by the Slice 1 encoding".to_owned(),
                     Some(exception_def.location()),
                 );
                 self.print_file_encoding_note(exception_def);
@@ -362,12 +362,12 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(enum_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Enums with underlying types are not supported by the Slice 1.1 encoding.
+        // Enums with underlying types are not supported by the Slice 1 encoding.
         if enum_def.underlying.is_some() {
-            supported_encodings.disable_11();
+            supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
                 crate::report_error(
-                    "enums with underlying types are not supported by the Slice 1.1 encoding".to_owned(),
+                    "enums with underlying types are not supported by the Slice 1 encoding".to_owned(),
                     Some(enum_def.location())
                 );
                 self.print_file_encoding_note(enum_def);
@@ -383,11 +383,11 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(trait_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Traits are not supported by the Slice 1.1 encoding.
-        supported_encodings.disable_11();
+        // Traits are not supported by the Slice 1 encoding.
+        supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
             crate::report_error(
-                "traits are not supported by the Slice 1.1 encoding".to_owned(),
+                "traits are not supported by the Slice 1 encoding".to_owned(),
                 Some(trait_def.location()),
             );
             self.print_file_encoding_note(trait_def);
@@ -402,11 +402,11 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         let file_encoding = self.get_file_encoding_for(custom_type);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Custom types are not supported by the Slice 1.1 encoding.
-        supported_encodings.disable_11();
+        // Custom types are not supported by the Slice 1 encoding.
+        supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
             crate::report_error(
-                "custom types are not supported by the Slice 1.1 encoding".to_owned(),
+                "custom types are not supported by the Slice 1 encoding".to_owned(),
                 Some(custom_type.location()),
             );
             self.print_file_encoding_note(custom_type);
