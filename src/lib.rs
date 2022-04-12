@@ -101,6 +101,6 @@ mod global_state {
 
     pub(super) fn initialize() {
         let _ = AST.set(UnsafeCell::new(Ast::new()));
-        let _ = ERROR_REPORTER.set(UnsafeCell::new(ErrorReporter::new()));
+        let _ = ERROR_REPORTER.set(UnsafeCell::new(ErrorReporter::default()));
     }
 }

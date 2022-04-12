@@ -212,7 +212,7 @@ impl SliceParser {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     crate::report_error(
-                        format!("classes can only inherit from a single base class"),
+                        "classes can only inherit from a single base class".to_owned(),
                         Some(&location),
                     );
                 }
@@ -252,7 +252,7 @@ impl SliceParser {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     crate::report_error(
-                        format!("exceptions can only inherit from a single base exception"),
+                        "exceptions can only inherit from a single base exception".to_owned(),
                         Some(&location),
                     );
                 }
