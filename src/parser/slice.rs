@@ -129,7 +129,7 @@ impl SliceParser {
 
     fn encoding_version(input: PestNode) -> PestResult<Encoding> {
         match input.as_str() {
-            "1.1" => Ok(Encoding::Slice11),
+            "1.1" => Ok(Encoding::Slice1),
             "2" => Ok(Encoding::Slice2),
             _ => Err(PestError::new_from_span(
                 PestErrorVariant::CustomError {

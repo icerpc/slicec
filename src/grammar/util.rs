@@ -60,7 +60,7 @@ pub enum Encoding {
     /// Version 1.1 of the Slice encoding, supported by IceRPC, and Ice 3.5 or greater.
     ///
     /// It is primarly for interoperability between Ice and IceRPC.
-    Slice11,
+    Slice1,
 
     /// Version 2 of the Slice encoding, supported by IceRPC.
     ///
@@ -78,7 +78,7 @@ impl Default for Encoding {
 impl fmt::Display for Encoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Slice11 => write!(f, "1.1"),
+            Self::Slice1 => write!(f, "1.1"),
             Self::Slice2 => write!(f, "2"),
         }
     }

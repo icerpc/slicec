@@ -37,7 +37,7 @@ impl SupportedEncodings {
 
     /// Removes support for the Slice 1.1 encoding if it's currently supported.
     pub(crate) fn disable_11(&mut self) {
-        self.0.retain(|&encoding| encoding != Encoding::Slice11);
+        self.0.retain(|&encoding| encoding != Encoding::Slice1);
     }
 
     /// Removes support for the Slice 2 encoding if it's currently supported.
@@ -58,7 +58,7 @@ impl SupportedEncodings {
     /// supported encodings, causing any types that use it to also have no supported encodings.
     /// This would lead to a cascade of spurious error messages about unsupportable types.
     pub(crate) fn dummy() -> Self {
-        SupportedEncodings(vec![Encoding::Slice11, Encoding::Slice2])
+        SupportedEncodings(vec![Encoding::Slice1, Encoding::Slice2])
     }
 }
 
@@ -67,7 +67,7 @@ impl SupportedEncodings {
 /// ```
 /// # use slice::supported_encodings::SupportedEncodings;
 /// # use slice::grammar::Encoding;
-/// let encodings = vec![Encoding::Slice11];
+/// let encodings = vec![Encoding::Slice1];
 /// let supported_encodings = SupportedEncodings::new(encodings);
 ///
 /// match supported_encodings[..] {
