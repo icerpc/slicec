@@ -1199,6 +1199,7 @@ implement_Element_for!(Dictionary, "dictionary");
 #[derive(Debug)]
 pub enum Primitive {
     Bool,
+    Int8,
     UInt8,
     Int16,
     UInt16,
@@ -1219,9 +1220,9 @@ pub enum Primitive {
 impl Primitive {
     pub fn is_numeric(&self) -> bool {
         matches!(self,
-            Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 | Self::VarInt32 |
-            Self::VarUInt32 | Self::Int64 | Self::UInt64 | Self::VarInt62 | Self::VarUInt62 |
-            Self::Float32 | Self::Float64
+            Self::Int8 | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 |
+            Self::VarInt32 | Self::VarUInt32 | Self::Int64 | Self::UInt64 | Self::VarInt62 |
+            Self::VarUInt62 | Self::Float32 | Self::Float64
         )
     }
 
@@ -1240,14 +1241,15 @@ impl Primitive {
 impl Type for Primitive {
     fn is_fixed_size(&self) -> bool {
         matches!(self,
-            Self::Bool | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 |
-            Self::Int64 | Self::UInt64 | Self::Float32 | Self::Float64
+            Self::Bool | Self::Int8 | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 |
+            Self::UInt32 | Self::Int64 | Self::UInt64 | Self::Float32 | Self::Float64
         )
     }
 
     fn min_wire_size(&self) -> u32 {
         match self {
             Self::Bool => 1,
+            Self::Int8 => 1,
             Self::UInt8 => 1,
             Self::Int16 => 2,
             Self::UInt16 => 2,
@@ -1277,6 +1279,7 @@ impl Type for Primitive {
     fn tag_format(&self) -> TagFormat {
         match self {
             Self::Bool      => TagFormat::F1,
+            Self::Int8      => TagFormat::F1,
             Self::UInt8     => TagFormat::F1,
             Self::Int16     => TagFormat::F2,
             Self::UInt16    => TagFormat::F2,
@@ -1298,6 +1301,7 @@ impl Type for Primitive {
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
             Self::Bool      => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int8      => vec![Encoding::Slice2],
             Self::UInt8     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::Int16     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UInt16    => vec![Encoding::Slice2],
@@ -1321,6 +1325,7 @@ impl Element for Primitive {
     fn kind(&self) -> &'static str {
         match self {
             Self::Bool => "bool",
+            Self::Int8 => "int8",
             Self::UInt8 => "uint8",
             Self::Int16 => "int16",
             Self::UInt16 => "uint16",

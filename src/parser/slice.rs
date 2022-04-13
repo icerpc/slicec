@@ -935,6 +935,10 @@ impl SliceParser {
         Ok(())
     }
 
+    fn int8_kw(input: PestNode) -> PestResult<()> {
+        Ok(())
+    }
+
     fn uint8_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }

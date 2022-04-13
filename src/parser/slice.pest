@@ -60,6 +60,7 @@ dictionary = !{ dictionary_kw ~ "<" ~ typeref ~ "," ~ typeref ~ ">" }
 
 primitive = {
     bool_kw      |
+    int8_kw      |
     uint8_kw     |
     int16_kw     |
     uint16_kw    |
@@ -128,6 +129,7 @@ sequence_kw = { "sequence" }
 dictionary_kw = { "dictionary" }
 
 bool_kw = { "bool" ~ !ASCII_ALPHA }
+int8_kw = { "int8" ~ !ASCII_ALPHA }
 uint8_kw = { "uint8" ~ !ASCII_ALPHA }
 int16_kw = { "int16" ~ !ASCII_ALPHA }
 uint16_kw = { "uint16" ~ !ASCII_ALPHA }
