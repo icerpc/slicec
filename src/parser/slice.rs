@@ -935,55 +935,55 @@ impl SliceParser {
         Ok(())
     }
 
-    fn byte_kw(input: PestNode) -> PestResult<()> {
+    fn uint8_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn short_kw(input: PestNode) -> PestResult<()> {
+    fn int16_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn ushort_kw(input: PestNode) -> PestResult<()> {
+    fn uint16_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn int_kw(input: PestNode) -> PestResult<()> {
+    fn int32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn uint_kw(input: PestNode) -> PestResult<()> {
+    fn uint32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn varint_kw(input: PestNode) -> PestResult<()> {
+    fn varint32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn varuint_kw(input: PestNode) -> PestResult<()> {
+    fn varuint32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn long_kw(input: PestNode) -> PestResult<()> {
+    fn int64_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn ulong_kw(input: PestNode) -> PestResult<()> {
+    fn uint64_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn varlong_kw(input: PestNode) -> PestResult<()> {
+    fn varint62_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn varulong_kw(input: PestNode) -> PestResult<()> {
+    fn varuint62_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn float_kw(input: PestNode) -> PestResult<()> {
+    fn float32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn double_kw(input: PestNode) -> PestResult<()> {
+    fn float64_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

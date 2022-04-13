@@ -687,10 +687,10 @@ impl Enum {
 
     pub fn underlying_type(&self) -> &Primitive {
         // If the enum has an underlying type, return a reference to its definition.
-        // Otherwise, enums have a backing type of `int` by default. Since `int` is a type
+        // Otherwise, enums have a backing type of `int32` by default. Since `int32` is a type
         // defined by the compiler, we fetch its definition directly from the global AST.
         self.underlying.as_ref().map_or(
-            crate::borrow_ast().lookup_primitive("int").borrow(),
+            crate::borrow_ast().lookup_primitive("int32").borrow(),
             |data_type| data_type.definition(),
         )
     }
@@ -1199,19 +1199,19 @@ implement_Element_for!(Dictionary, "dictionary");
 #[derive(Debug)]
 pub enum Primitive {
     Bool,
-    Byte,
-    Short,
-    UShort,
-    Int,
-    UInt,
-    VarInt,
-    VarUInt,
-    Long,
-    ULong,
-    VarLong,
-    VarULong,
-    Float,
-    Double,
+    UInt8,
+    Int16,
+    UInt16,
+    Int32,
+    UInt32,
+    VarInt32,
+    VarUInt32,
+    Int64,
+    UInt64,
+    VarInt62,
+    VarUInt62,
+    Float32,
+    Float64,
     String,
     AnyClass,
 }
@@ -1219,15 +1219,16 @@ pub enum Primitive {
 impl Primitive {
     pub fn is_numeric(&self) -> bool {
         matches!(self,
-            Self::Byte | Self::Short | Self::UShort | Self::Int | Self::UInt | Self::VarInt |
-            Self::VarUInt | Self::Long | Self::ULong | Self::VarLong | Self::VarULong |
-            Self::Float | Self::Double
+            Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 | Self::VarInt32 |
+            Self::VarUInt32 | Self::Int64 | Self::UInt64 | Self::VarInt62 | Self::VarUInt62 |
+            Self::Float32 | Self::Float64
         )
     }
 
     pub fn is_unsigned_numeric(&self) -> bool {
         matches!(self,
-            Self::Byte | Self::UShort | Self::UInt | Self::VarUInt | Self::ULong | Self::VarULong
+            Self::UInt8 | Self::UInt16 | Self::UInt32 | Self::VarUInt32 | Self::UInt64 |
+            Self::VarUInt62
         )
     }
 
@@ -1239,27 +1240,27 @@ impl Primitive {
 impl Type for Primitive {
     fn is_fixed_size(&self) -> bool {
         matches!(self,
-            Self::Bool | Self::Byte | Self::Short | Self::UShort | Self::Int | Self::UInt |
-            Self::Long | Self::ULong | Self::Float | Self::Double
+            Self::Bool | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 |
+            Self::Int64 | Self::UInt64 | Self::Float32 | Self::Float64
         )
     }
 
     fn min_wire_size(&self) -> u32 {
         match self {
             Self::Bool => 1,
-            Self::Byte => 1,
-            Self::Short => 2,
-            Self::UShort => 2,
-            Self::Int => 4,
-            Self::UInt => 4,
-            Self::VarInt => 1,
-            Self::VarUInt => 1,
-            Self::Long => 8,
-            Self::ULong => 8,
-            Self::VarLong => 1,
-            Self::VarULong => 1,
-            Self::Float => 4,
-            Self::Double => 8,
+            Self::UInt8 => 1,
+            Self::Int16 => 2,
+            Self::UInt16 => 2,
+            Self::Int32 => 4,
+            Self::UInt32 => 4,
+            Self::VarInt32 => 1,
+            Self::VarUInt32 => 1,
+            Self::Int64 => 8,
+            Self::UInt64 => 8,
+            Self::VarInt62 => 1,
+            Self::VarUInt62 => 1,
+            Self::Float32 => 4,
+            Self::Float64 => 8,
             Self::String => 1, // At least 1 byte for the empty string.
             Self::AnyClass => 1, // At least 1 byte to encode an index (instead of an instance).
         }
@@ -1275,43 +1276,43 @@ impl Type for Primitive {
 
     fn tag_format(&self) -> TagFormat {
         match self {
-            Self::Bool     => TagFormat::F1,
-            Self::Byte     => TagFormat::F1,
-            Self::Short    => TagFormat::F2,
-            Self::UShort   => TagFormat::F2,
-            Self::Int      => TagFormat::F4,
-            Self::UInt     => TagFormat::F4,
-            Self::VarInt   => TagFormat::VInt,
-            Self::VarUInt  => TagFormat::VInt,
-            Self::Long     => TagFormat::F8,
-            Self::ULong    => TagFormat::F8,
-            Self::VarLong  => TagFormat::VInt,
-            Self::VarULong => TagFormat::VInt,
-            Self::Float    => TagFormat::F4,
-            Self::Double   => TagFormat::F8,
-            Self::String   => TagFormat::OVSize,
-            Self::AnyClass => TagFormat::Class,
+            Self::Bool      => TagFormat::F1,
+            Self::UInt8     => TagFormat::F1,
+            Self::Int16     => TagFormat::F2,
+            Self::UInt16    => TagFormat::F2,
+            Self::Int32     => TagFormat::F4,
+            Self::UInt32    => TagFormat::F4,
+            Self::VarInt32  => TagFormat::VInt,
+            Self::VarUInt32 => TagFormat::VInt,
+            Self::Int64     => TagFormat::F8,
+            Self::UInt64    => TagFormat::F8,
+            Self::VarInt62  => TagFormat::VInt,
+            Self::VarUInt62 => TagFormat::VInt,
+            Self::Float32   => TagFormat::F4,
+            Self::Float64   => TagFormat::F8,
+            Self::String    => TagFormat::OVSize,
+            Self::AnyClass  => TagFormat::Class,
         }
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
-            Self::Bool     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Byte     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Short    => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UShort   => vec![Encoding::Slice2],
-            Self::Int      => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt     => vec![Encoding::Slice2],
-            Self::VarInt   => vec![Encoding::Slice2],
-            Self::VarUInt  => vec![Encoding::Slice2],
-            Self::Long     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::ULong    => vec![Encoding::Slice2],
-            Self::VarLong  => vec![Encoding::Slice2],
-            Self::VarULong => vec![Encoding::Slice2],
-            Self::Float    => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Double   => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::String   => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::AnyClass => vec![Encoding::Slice1],
+            Self::Bool      => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt8     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int16     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt16    => vec![Encoding::Slice2],
+            Self::Int32     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt32    => vec![Encoding::Slice2],
+            Self::VarInt32  => vec![Encoding::Slice2],
+            Self::VarUInt32 => vec![Encoding::Slice2],
+            Self::Int64     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt64    => vec![Encoding::Slice2],
+            Self::VarInt62  => vec![Encoding::Slice2],
+            Self::VarUInt62 => vec![Encoding::Slice2],
+            Self::Float32   => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Float64   => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::String    => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::AnyClass  => vec![Encoding::Slice1],
         })
     }
 }
@@ -1320,19 +1321,19 @@ impl Element for Primitive {
     fn kind(&self) -> &'static str {
         match self {
             Self::Bool => "bool",
-            Self::Byte => "byte",
-            Self::Short => "short",
-            Self::UShort => "ushort",
-            Self::Int => "int",
-            Self::UInt => "uint",
-            Self::VarInt => "varint",
-            Self::VarUInt => "varuint",
-            Self::Long => "long",
-            Self::ULong => "ulong",
-            Self::VarLong => "varlong",
-            Self::VarULong => "varulong",
-            Self::Float => "float",
-            Self::Double => "double",
+            Self::UInt8 => "uint8",
+            Self::Int16 => "int16",
+            Self::UInt16 => "uint16",
+            Self::Int32 => "int32",
+            Self::UInt32 => "uint32",
+            Self::VarInt32 => "varint32",
+            Self::VarUInt32 => "varuint32",
+            Self::Int64 => "int64",
+            Self::UInt64 => "uint64",
+            Self::VarInt62 => "varint62",
+            Self::VarUInt62 => "varuint62",
+            Self::Float32 => "float32",
+            Self::Float64 => "float64",
             Self::String => "string",
             Self::AnyClass => "any class",
         }

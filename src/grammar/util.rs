@@ -88,16 +88,16 @@ impl fmt::Display for Encoding {
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TagFormat {
-    /// A fixed size numeric encoded on 1 byte such as bool or byte.
+    /// A fixed size numeric encoded on 1 byte such as bool or uint8.
     F1,
 
-    /// A fixed size numeric encoded on 2 bytes such as short.
+    /// A fixed size numeric encoded on 2 bytes such as int16.
     F2,
 
-    /// A fixed size numeric encoded on 4 bytes such as int or float.
+    /// A fixed size numeric encoded on 4 bytes such as int32 or float32.
     F4,
 
-    /// A fixed size numeric encoded on 8 bytes such as long or double.
+    /// A fixed size numeric encoded on 8 bytes such as int64 or float64.
     F8,
 
     /// A variable-length size encoded on 1 or 5 bytes.
