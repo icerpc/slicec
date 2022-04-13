@@ -314,8 +314,8 @@ impl Type for Exception {
     }
 
     fn tag_format(&self) -> TagFormat {
-        unimplemented!("Tag formats are only used with the 1.1 encoding.\n\
-                        Exceptions can only be sent as a member with the 2.0 encoding.");
+        unimplemented!("Tag formats are only used with the Slice 1 encoding.\n\
+                        Exceptions can only be sent as a member with the Slice 2 encoding.");
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -823,7 +823,7 @@ impl Type for Trait {
     }
 
     fn tag_format(&self) -> TagFormat {
-        unimplemented!("Tag formats are only used with the 1.1 encoding. Traits are 2.0 only.")
+        unimplemented!("Tag formats are only used with the Slice 1 encoding. Traits are Slice 2 only.")
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -879,7 +879,7 @@ impl Type for CustomType {
     }
 
     fn tag_format(&self) -> TagFormat {
-        // Tag formats are only used with the 1.1 encoding. Custom types are 2.0 only.
+        // Tag formats are only used with the Slice 1 encoding. Custom types are Slice 2 only.
         // TODO this value is NEVER used, but leaving it unimplemented causes a panic.
         TagFormat::OVSize
     }
@@ -1038,10 +1038,10 @@ impl<T: Type + ?Sized> TypeRef<T> {
     pub fn supported_encodings(&self) -> SupportedEncodings {
         let mut supported_encodings = self.definition().supported_encodings();
         if self.is_optional {
-            // Optional data types are not supported with the 1.1 encoding.
+            // Optional data types are not supported with the Slice 1 encoding.
             // Note that this doesn't include tagged data members and parameters, which are allowed.
             // Even though they're marked with a '?' these are not technically optional types.
-            supported_encodings.disable_11();
+            supported_encodings.disable(Encoding::Slice1);
         }
         supported_encodings
     }
@@ -1296,22 +1296,22 @@ impl Type for Primitive {
 
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
-            Self::Bool     => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::Byte     => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::Short    => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Bool     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Byte     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Short    => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UShort   => vec![Encoding::Slice2],
-            Self::Int      => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Int      => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UInt     => vec![Encoding::Slice2],
             Self::VarInt   => vec![Encoding::Slice2],
             Self::VarUInt  => vec![Encoding::Slice2],
-            Self::Long     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Long     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::ULong    => vec![Encoding::Slice2],
             Self::VarLong  => vec![Encoding::Slice2],
             Self::VarULong => vec![Encoding::Slice2],
-            Self::Float    => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::Double   => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::String   => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::AnyClass => vec![Encoding::Slice11],
+            Self::Float    => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Double   => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::String   => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::AnyClass => vec![Encoding::Slice1],
         })
     }
 }
