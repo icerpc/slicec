@@ -488,6 +488,7 @@ pub struct Operation {
 }
 
 impl Operation {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         identifier: Identifier,
         return_type: Vec<OwnedPtr<Parameter>>,
@@ -613,6 +614,7 @@ pub struct Parameter {
 }
 
 impl Parameter {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         identifier: Identifier,
         data_type: TypeRef,
@@ -879,7 +881,7 @@ impl Type for CustomType {
     fn tag_format(&self) -> TagFormat {
         // Tag formats are only used with the Slice 1 encoding. Custom types are Slice 2 only.
         // TODO this value is NEVER used, but leaving it unimplemented causes a panic.
-        return TagFormat::OVSize;
+        TagFormat::OVSize
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {

@@ -12,19 +12,20 @@ mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
+use crate::error::Error;
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-// NOTE! it is NOT safe to call any methods on any of the slice entitites during parsing.
+// NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including patching).
 // Accessing ANY data, or calling ANY methods before this point may result in panics or undefined behavior.
 
 // TODO This module is a mess.
 
-pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, ()> {
+pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, Error> {
     let parser = slice::SliceParser;
 
     let source_files = find_slice_files(&options.sources);

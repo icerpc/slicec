@@ -20,7 +20,7 @@ use std::collections::HashMap;
 /// and it owns all the Slice [Primitive]s, which are added to the AST during initialization,
 /// ensuring they're always available.
 ///
-/// The AST is primarly for centralizing ownership of Slice elements, but also features lookup
+/// The AST is primarily for centralizing ownership of Slice elements, but also features lookup
 /// methods for retrieving [primitives](Ast::lookup_primitive), [types](Ast::lookup_type), and
 /// [entities](Ast::lookup_entity) by name.
 ///
@@ -45,7 +45,7 @@ pub struct Ast {
     /// Primitives are built-in to the compiler, and are always defined, even if they're not needed.
     /// They are kept in a separate cache for stronger typing (this stores `Primitive`s instead of just `dyn Type`s),
     /// and to prevent excessive copies of primitives being created. A single instance per-primitive is safe,
-    /// as primitives are not scope-sensative, unlike other anonymous types.
+    /// as primitives are not scope-sensitive, unlike other anonymous types.
     pub(crate) primitive_cache: HashMap<&'static str, OwnedPtr<Primitive>>,
 
     /// This lookup table stores [WeakPtr]s for every user defined entity that is defined in global

@@ -75,7 +75,7 @@ impl SliceFile {
 
     /// Returns the Slice encoding used by this file.
     ///
-    /// If no encoding was explicitely declared, it returns the default encoding.
+    /// If no encoding was explicitly declared, it returns the default encoding.
     ///
     /// See [Encoding::default()](crate::grammar::Encoding::default())
     pub fn encoding(&self) -> Encoding {

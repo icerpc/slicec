@@ -22,7 +22,7 @@ struct CycleDetector {
 }
 
 impl CycleDetector {
-    fn check_for_cycle<T: Entity + Type>(&mut self, type_def: &T, type_id: &String) -> bool {
+    fn check_for_cycle<T: Entity + Type>(&mut self, type_def: &T, type_id: &str) -> bool {
         // Check if the type is self-referential by whether we've already seen it's type-id in
         // the dependency chain we're currently checking.
         if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {

@@ -83,7 +83,7 @@ fn pascal_case(s: &str) -> String {
 fn snake_case(s: &str) -> String {
     s.chars()
         .enumerate()
-        .map(|(i, c)| {
+        .flat_map(|(i, c)| {
             if c.is_uppercase() {
                 let mut chars = vec![];
                 if i > 0 {
@@ -95,7 +95,6 @@ fn snake_case(s: &str) -> String {
                 vec![c]
             }
         })
-        .flatten()
         .collect::<String>()
 }
 

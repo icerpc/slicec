@@ -170,7 +170,7 @@ impl<'files> EncodingPatcher<'files> {
                 // Check that the primitive is supported by the
                 // file's encoding in which it is being used.
                 let encodings = primitive_def.supported_encodings();
-                if !encodings.supports(&file_encoding) {
+                if !encodings.supports(file_encoding) {
                     let message = format!(
                         "'{}' is not supported by the Slice {} encoding",
                         primitive_def.kind(),

@@ -32,7 +32,7 @@ use crate::ptr_util::OwnedPtr;
 /// This allows `PtrVisitor` to mutate elements while visiting, as well as work with their pointers.
 /// These provide greater flexibility than `Visitor`s methods do, but introduce unsafety.
 ///
-/// The trait methods are pre-emptively marked as unsafe, even though they aren't inherently unsafe.
+/// The trait methods are preemptively marked as unsafe, even though they aren't inherently unsafe.
 /// They are marked unsafe to
 ///  - A) Allow unsafe behavior to occur in them without needing an extra `unsafe` block.
 ///  - B) To signal that you should only be using this trait if you know what you're doing.

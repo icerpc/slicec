@@ -201,6 +201,7 @@ impl SliceParser {
         ))
     }
 
+    #[allow(clippy::type_complexity)]
     fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
@@ -212,7 +213,7 @@ impl SliceParser {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     crate::report_error(
-                        format!("classes can only inherit from a single base class"),
+                        "classes can only inherit from a single base class".to_owned(),
                         Some(&location),
                     );
                 }
@@ -252,7 +253,7 @@ impl SliceParser {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     crate::report_error(
-                        format!("exceptions can only inherit from a single base exception"),
+                        "exceptions can only inherit from a single base exception".to_owned(),
                         Some(&location),
                     );
                 }
