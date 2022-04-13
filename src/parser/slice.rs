@@ -201,6 +201,7 @@ impl SliceParser {
         ))
     }
 
+    #[allow(clippy::type_complexity)]
     fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();

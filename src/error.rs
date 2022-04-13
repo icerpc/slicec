@@ -80,9 +80,9 @@ impl ErrorReporter {
 }
 
 pub struct Error {
-    message: String,
-    location: Option<Location>,
-    severity: ErrorLevel,
+    pub message: String,
+    pub location: Option<Location>,
+    pub severity: ErrorLevel,
 }
 
 pub enum ErrorLevel {

@@ -15,12 +15,12 @@ pub mod visitor;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::error::ErrorLevel;
+use crate::error::{Error, ErrorLevel};
 use crate::slice_file::{Location, SliceFile};
 use crate::validator::Validator;
 use std::collections::HashMap;
 
-pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, SliceFile>, ()> {
+pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, SliceFile>, Error> {
     // Initialize the global instances of the `Ast` and the `ErrorHandler`.
     global_state::initialize();
     let slice_files = unsafe {
@@ -42,6 +42,9 @@ pub fn borrow_ast() -> &'static Ast {
 }
 
 // TODO comments
+/// # Safety
+///
+/// This can only be called when there are no other borrows.
 pub unsafe fn borrow_mut_ast() -> &'static mut Ast {
     &mut *global_state::AST.get().unwrap().get()
 }
@@ -70,17 +73,24 @@ fn report_error_impl(message: String, location: Option<&Location>, severity: Err
 pub fn handle_errors(
     warn_as_error: bool,
     slice_files: &HashMap<String, SliceFile>,
-) -> Result<(), ()> {
+) -> Result<(), Error> {
     let error_reporter = unsafe { &mut *global_state::ERROR_REPORTER.get().unwrap().get() };
 
     error_reporter.print_errors(slice_files);
     if error_reporter.has_errors(warn_as_error) {
         let counts = error_reporter.get_totals();
-        println!(
+        let message = format!(
             "Compilation failed with {} error(s) and {} warning(s).\n",
             counts.0, counts.1
         );
-        Err(())
+
+        println!("{}", &message);
+
+        Err(Error{
+            message,
+            location: None,
+            severity: ErrorLevel::Critical,
+        })
     } else {
         Ok(())
     }

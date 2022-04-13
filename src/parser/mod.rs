@@ -12,6 +12,7 @@ mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
+use crate::error::Error;
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::fs;
@@ -24,7 +25,7 @@ use std::path::PathBuf;
 
 // TODO This module is a mess.
 
-pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, ()> {
+pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, Error> {
     let parser = slice::SliceParser;
 
     let source_files = find_slice_files(&options.sources);

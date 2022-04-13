@@ -39,21 +39,27 @@ impl<T: Sized + 'static> OwnedPtr<T> {
     }
 }
 
+
 impl<T: ?Sized> OwnedPtr<T> {
+    #[allow(clippy::should_implement_trait)]
     pub fn borrow(&self) -> &T {
         &*self.data
     }
 
-    // This function doesn't use unsafe Rust, but is marked unsafe because the invoker must
-    // GUARANTEE there are no other references to the underlying data when calling this function.
-    //
-    // The borrow checker can ensure that there are no other references through this `OwnedPtr`,
-    // but it's possible to obtain a reference via `WeakPtr::borrow` instead. Because `WeakPtr`
-    // uses raw pointers, the borrow checker can't reason about these accesses. So we have to
-    // enforce Rust's borrow policy manually by ensuring this mutable borrow is the ONLY borrow.
-    //
-    // Mutating the underlying data while another reference to it still exists, is undefined
-    // behavior. So ONLY call this function if you are CERTAIN that NO other references exist.
+    /// # Safety
+    ///
+    /// This function doesn't use unsafe Rust, but is marked unsafe because the invoker must
+    /// GUARANTEE there are no other references to the underlying data when calling this function.
+    ///
+    /// The borrow checker can ensure that there are no other references through this `OwnedPtr`,
+    /// but it's possible to obtain a reference via `WeakPtr::borrow` instead. Because `WeakPtr`
+    /// uses raw pointers, the borrow checker can't reason about these accesses. So we have to
+    /// enforce Rust's borrow policy manually by ensuring this mutable borrow is the ONLY borrow.
+    ///
+    /// Mutating the underlying data while another reference to it still exists, is undefined
+    /// behavior. So ONLY call this function if you are CERTAIN that NO other references exist.
+    ///
+    #[allow(clippy::should_implement_trait)]
     pub unsafe fn borrow_mut(&mut self) -> &mut T {
         &mut *self.data
     }
@@ -118,6 +124,7 @@ impl<T: ?Sized> WeakPtr<T> {
     //
     // Note that it IS still possible to call this on an uninitialized WeakPtr, which will cause a
     // panic. But this isn't 'unsafe' in the technical sense of involving unsafe Rust.
+    #[allow(clippy::should_implement_trait)]
     pub fn borrow(&self) -> &T {
         unsafe { &*self.data.unwrap() }
     }
