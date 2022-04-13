@@ -39,7 +39,6 @@ impl<T: Sized + 'static> OwnedPtr<T> {
     }
 }
 
-
 impl<T: ?Sized> OwnedPtr<T> {
     #[allow(clippy::should_implement_trait)]
     pub fn borrow(&self) -> &T {
