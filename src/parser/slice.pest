@@ -71,8 +71,8 @@ primitive = {
     uint64_kw    |
     varint62_kw  |
     varuint62_kw |
-    float_kw     |
-    double_kw    |
+    float32_kw   |
+    float64_kw   |
     string_kw    |
     any_class_kw
 }
@@ -139,8 +139,8 @@ int64_kw = { "int64" ~ !ASCII_ALPHA }
 uint64_kw = { "uint64" ~ !ASCII_ALPHA }
 varint62_kw = { "varint62" ~ !ASCII_ALPHA }
 varuint62_kw = { "varuint62" ~ !ASCII_ALPHA }
-float_kw = { "float" ~ !ASCII_ALPHA }
-double_kw = { "double" ~ !ASCII_ALPHA }
+float32_kw = { "float32" ~ !ASCII_ALPHA }
+float64_kw = { "float64" ~ !ASCII_ALPHA }
 string_kw = { "string" ~ !ASCII_ALPHA }
 any_class_kw = { "AnyClass" ~ !ASCII_ALPHA }
 

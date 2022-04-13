@@ -94,10 +94,10 @@ pub enum TagFormat {
     /// A fixed size numeric encoded on 2 bytes such as int16.
     F2,
 
-    /// A fixed size numeric encoded on 4 bytes such as int32 or float.
+    /// A fixed size numeric encoded on 4 bytes such as int32 or float32.
     F4,
 
-    /// A fixed size numeric encoded on 8 bytes such as int64 or double.
+    /// A fixed size numeric encoded on 8 bytes such as int64 or float64.
     F8,
 
     /// A variable-length size encoded on 1 or 5 bytes.

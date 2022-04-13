@@ -74,8 +74,8 @@ impl Ast {
             ("uint64", OwnedPtr::new(Primitive::UInt64)),
             ("varint62", OwnedPtr::new(Primitive::VarInt62)),
             ("varuint62", OwnedPtr::new(Primitive::VarUInt62)),
-            ("float", OwnedPtr::new(Primitive::Float)),
-            ("double", OwnedPtr::new(Primitive::Double)),
+            ("float32", OwnedPtr::new(Primitive::Float32)),
+            ("float64", OwnedPtr::new(Primitive::Float64)),
             ("string", OwnedPtr::new(Primitive::String)),
             ("AnyClass", OwnedPtr::new(Primitive::AnyClass)),
         ]);

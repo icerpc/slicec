@@ -978,11 +978,11 @@ impl SliceParser {
         Ok(())
     }
 
-    fn float_kw(input: PestNode) -> PestResult<()> {
+    fn float32_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 
-    fn double_kw(input: PestNode) -> PestResult<()> {
+    fn float64_kw(input: PestNode) -> PestResult<()> {
         Ok(())
     }
 

@@ -1208,8 +1208,8 @@ pub enum Primitive {
     UInt64,
     VarInt62,
     VarUInt62,
-    Float,
-    Double,
+    Float32,
+    Float64,
     String,
     AnyClass,
 }
@@ -1219,7 +1219,7 @@ impl Primitive {
         matches!(self,
             Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 | Self::VarInt32 |
             Self::VarUInt32 | Self::Int64 | Self::UInt64 | Self::VarInt62 | Self::VarUInt62 |
-            Self::Float | Self::Double
+            Self::Float32 | Self::Float64
         )
     }
 
@@ -1239,7 +1239,7 @@ impl Type for Primitive {
     fn is_fixed_size(&self) -> bool {
         matches!(self,
             Self::Bool | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 |
-            Self::Int64 | Self::UInt64 | Self::Float | Self::Double
+            Self::Int64 | Self::UInt64 | Self::Float32 | Self::Float64
         )
     }
 
@@ -1257,8 +1257,8 @@ impl Type for Primitive {
             Self::UInt64 => 8,
             Self::VarInt62 => 1,
             Self::VarUInt62 => 1,
-            Self::Float => 4,
-            Self::Double => 8,
+            Self::Float32 => 4,
+            Self::Float64 => 8,
             Self::String => 1, // At least 1 byte for the empty string.
             Self::AnyClass => 1, // At least 1 byte to encode an index (instead of an instance).
         }
@@ -1286,8 +1286,8 @@ impl Type for Primitive {
             Self::UInt64    => TagFormat::F8,
             Self::VarInt62  => TagFormat::VInt,
             Self::VarUInt62 => TagFormat::VInt,
-            Self::Float     => TagFormat::F4,
-            Self::Double    => TagFormat::F8,
+            Self::Float32   => TagFormat::F4,
+            Self::Float64   => TagFormat::F8,
             Self::String    => TagFormat::OVSize,
             Self::AnyClass  => TagFormat::Class,
         }
@@ -1307,8 +1307,8 @@ impl Type for Primitive {
             Self::UInt64    => vec![Encoding::Slice2],
             Self::VarInt62  => vec![Encoding::Slice2],
             Self::VarUInt62 => vec![Encoding::Slice2],
-            Self::Float     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Double    => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Float32   => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Float64   => vec![Encoding::Slice1, Encoding::Slice2],
             Self::String    => vec![Encoding::Slice1, Encoding::Slice2],
             Self::AnyClass  => vec![Encoding::Slice1],
         })
@@ -1330,8 +1330,8 @@ impl Element for Primitive {
             Self::UInt64 => "uint64",
             Self::VarInt62 => "varint62",
             Self::VarUInt62 => "varuint62",
-            Self::Float => "float",
-            Self::Double => "double",
+            Self::Float32 => "float32",
+            Self::Float64 => "float64",
             Self::String => "string",
             Self::AnyClass => "any class",
         }
