@@ -1295,22 +1295,22 @@ impl Type for Primitive {
 
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
-            Self::Bool      => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::UInt8     => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::Int16     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Bool      => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt8     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int16     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UInt16    => vec![Encoding::Slice2],
-            Self::Int32     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Int32     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UInt32    => vec![Encoding::Slice2],
             Self::VarInt32  => vec![Encoding::Slice2],
             Self::VarUInt32 => vec![Encoding::Slice2],
-            Self::Int64     => vec![Encoding::Slice11, Encoding::Slice2],
+            Self::Int64     => vec![Encoding::Slice1, Encoding::Slice2],
             Self::UInt64    => vec![Encoding::Slice2],
             Self::VarInt62  => vec![Encoding::Slice2],
             Self::VarUInt62 => vec![Encoding::Slice2],
-            Self::Float     => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::Double    => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::String    => vec![Encoding::Slice11, Encoding::Slice2],
-            Self::AnyClass  => vec![Encoding::Slice11],
+            Self::Float     => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Double    => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::String    => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::AnyClass  => vec![Encoding::Slice1],
         })
     }
 }
