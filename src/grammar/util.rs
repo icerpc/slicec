@@ -59,7 +59,7 @@ impl Scope {
 pub enum Encoding {
     /// Version 1.1 of the Slice encoding, supported by IceRPC, and Ice 3.5 or greater.
     ///
-    /// It is primarly for interoperability between Ice and IceRPC.
+    /// It is primarily for interoperability between Ice and IceRPC.
     Slice11,
 
     /// Version 2 of the Slice encoding, supported by IceRPC.

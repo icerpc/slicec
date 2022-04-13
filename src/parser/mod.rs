@@ -19,7 +19,7 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-// NOTE! it is NOT safe to call any methods on any of the slice entitites during parsing.
+// NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including patching).
 // Accessing ANY data, or calling ANY methods before this point may result in panics or undefined behavior.
 

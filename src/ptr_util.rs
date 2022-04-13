@@ -4,7 +4,7 @@ use std::any::TypeId;
 
 // `ThreadSafe` is a transparent wrapper for marking data as thread-safe, even if it isn't.
 // The Rust compiler automatically infers thread-safety at compile time, but data can be
-// explicitily marked as thread-safe by implementing the `Sync` trait on it, like here.
+// explicitly marked as thread-safe by implementing the `Sync` trait on it, like here.
 //
 // We use this as a hack to satisfy the Rust compiler. Only thread-safe data can be stored in
 // static variables, since it MIGHT be accessed from other threads. But since the slice
