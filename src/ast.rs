@@ -63,6 +63,7 @@ impl Ast {
         // we 'define' them here when the AST is created, to ensure they're always available.
         let primitive_cache = HashMap::from([
             ("bool", OwnedPtr::new(Primitive::Bool)),
+            ("int8", OwnedPtr::new(Primitive::Int8)),
             ("uint8", OwnedPtr::new(Primitive::UInt8)),
             ("int16", OwnedPtr::new(Primitive::Int16)),
             ("uint16", OwnedPtr::new(Primitive::UInt16)),
