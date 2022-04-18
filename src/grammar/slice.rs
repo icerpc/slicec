@@ -314,7 +314,7 @@ impl Type for Exception {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        // Exceptions as a data type are only supported with Slice 2, which doesn't use tag formats.
+        // Exceptions as a data type are only supported with Slice2, which doesn't use tag formats.
         None
     }
 
@@ -823,7 +823,7 @@ impl Type for Trait {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        // Traits are only supported with Slice 2, which doesn't use tag formats.
+        // Traits are only supported with Slice2, which doesn't use tag formats.
         None
     }
 
@@ -880,7 +880,7 @@ impl Type for CustomType {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        // Custom types are only supported with Slice 2, which doesn't use tag formats.
+        // Custom types are only supported with Slice2, which doesn't use tag formats.
         None
     }
 
@@ -1038,7 +1038,7 @@ impl<T: Type + ?Sized> TypeRef<T> {
     pub fn supported_encodings(&self) -> SupportedEncodings {
         let mut supported_encodings = self.definition().supported_encodings();
         if self.is_optional {
-            // Optional data types are not supported with the Slice 1 encoding.
+            // Optional data types are not supported with the Slice1 encoding.
             // Note that this doesn't include tagged data members and parameters, which are allowed.
             // Even though they're marked with a '?' these are not technically optional types.
             supported_encodings.disable(Encoding::Slice1);
