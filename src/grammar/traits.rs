@@ -84,7 +84,7 @@ pub trait Type: Element + AsTypes {
     fn min_wire_size(&self) -> u32;
     fn uses_classes(&self) -> bool;
     fn is_class_type(&self) -> bool;
-    fn tag_format(&self) -> TagFormat;
+    fn tag_format(&self) -> Option<TagFormat>;
     fn supported_encodings(&self) -> SupportedEncodings;
 }
 

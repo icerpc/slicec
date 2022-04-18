@@ -131,11 +131,11 @@ impl Type for Struct {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
+    fn tag_format(&self) -> Option<TagFormat> {
         if self.is_fixed_size() {
-            TagFormat::VSize
+            Some(TagFormat::VSize)
         } else {
-            TagFormat::FSize
+            Some(TagFormat::FSize)
         }
     }
 
@@ -222,8 +222,8 @@ impl Type for Class {
         true
     }
 
-    fn tag_format(&self) -> TagFormat {
-        TagFormat::Class
+    fn tag_format(&self) -> Option<TagFormat> {
+        Some(TagFormat::Class)
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -313,9 +313,9 @@ impl Type for Exception {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
-        unimplemented!("Tag formats are only used with the Slice 1 encoding.\n\
-                        Exceptions can only be sent as a member with the Slice 2 encoding.");
+    fn tag_format(&self) -> Option<TagFormat> {
+        // Exceptions as a data type are only supported with Slice 2, which doesn't use tag formats.
+        None
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -459,8 +459,8 @@ impl Type for Interface {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
-        TagFormat::FSize
+    fn tag_format(&self) -> Option<TagFormat> {
+        Some(TagFormat::FSize)
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -732,9 +732,9 @@ impl Type for Enum {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
+    fn tag_format(&self) -> Option<TagFormat> {
         self.underlying.as_ref().map_or(
-            TagFormat::Size,                    // Default value if `underlying` == None
+            Some(TagFormat::Size),              // Default value if `underlying` == None
             |data_type| data_type.tag_format(), // Expression to evaluate otherwise
         )
     }
@@ -822,8 +822,9 @@ impl Type for Trait {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
-        unimplemented!("Tag formats are only used with the Slice 1 encoding. Traits are Slice 2 only.")
+    fn tag_format(&self) -> Option<TagFormat> {
+        // Traits are only supported with Slice 2, which doesn't use tag formats.
+        None
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -878,10 +879,9 @@ impl Type for CustomType {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
-        // Tag formats are only used with the Slice 1 encoding. Custom types are Slice 2 only.
-        // TODO this value is NEVER used, but leaving it unimplemented causes a panic.
-        TagFormat::OVSize
+    fn tag_format(&self) -> Option<TagFormat> {
+        // Custom types are only supported with Slice 2, which doesn't use tag formats.
+        None
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
@@ -947,7 +947,7 @@ impl Type for TypeAlias {
         self.underlying.is_class_type()
     }
 
-    fn tag_format(&self) -> TagFormat {
+    fn tag_format(&self) -> Option<TagFormat> {
         self.underlying.tag_format()
     }
 
@@ -1136,15 +1136,15 @@ impl Type for Sequence {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
+    fn tag_format(&self) -> Option<TagFormat> {
         if self.element_type.is_fixed_size() {
             if self.element_type.min_wire_size() == 1 {
-                TagFormat::OVSize
+                Some(TagFormat::OVSize)
             } else {
-                TagFormat::VSize
+                Some(TagFormat::VSize)
             }
         } else {
-            TagFormat::FSize
+            Some(TagFormat::FSize)
         }
     }
 
@@ -1179,11 +1179,11 @@ impl Type for Dictionary {
         false
     }
 
-    fn tag_format(&self) -> TagFormat {
+    fn tag_format(&self) -> Option<TagFormat> {
         if self.key_type.is_fixed_size() && self.value_type.is_fixed_size() {
-            TagFormat::VSize
+            Some(TagFormat::VSize)
         } else {
-            TagFormat::FSize
+            Some(TagFormat::FSize)
         }
     }
 
@@ -1276,8 +1276,8 @@ impl Type for Primitive {
         matches!(self, Self::AnyClass)
     }
 
-    fn tag_format(&self) -> TagFormat {
-        match self {
+    fn tag_format(&self) -> Option<TagFormat> {
+        Some(match self {
             Self::Bool      => TagFormat::F1,
             Self::Int8      => TagFormat::F1,
             Self::UInt8     => TagFormat::F1,
@@ -1295,7 +1295,7 @@ impl Type for Primitive {
             Self::Float64   => TagFormat::F8,
             Self::String    => TagFormat::OVSize,
             Self::AnyClass  => TagFormat::Class,
-        }
+        })
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
