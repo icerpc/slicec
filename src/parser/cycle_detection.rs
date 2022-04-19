@@ -1,13 +1,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>) {
+pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, error_reporter: &mut ErrorReporter) {
     let mut cycle_detector = CycleDetector {
         dependency_stack: Vec::new(),
+        error_reporter,
     };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
@@ -16,12 +18,13 @@ pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>) {
     }
 }
 
-struct CycleDetector {
+struct CycleDetector<'a> {
     // Stack of all the types we've seen in the dependency chain we're currently checking.
     dependency_stack: Vec<String>,
+    error_reporter: &'a mut ErrorReporter,
 }
 
-impl CycleDetector {
+impl<'a> CycleDetector<'a> {
     fn check_for_cycle<T: Entity + Type>(&mut self, type_def: &T, type_id: &str) -> bool {
         // Check if the type is self-referential by whether we've already seen it's type-id in
         // the dependency chain we're currently checking.
@@ -31,7 +34,7 @@ impl CycleDetector {
                 type_id = &type_id,
                 cycle_string = &self.dependency_stack[i..].join(" -> "),
             );
-            crate::report_error(message, Some(type_def.location()));
+            self.error_reporter.report_error(message, Some(type_def.location()));
 
             true
         } else {
@@ -40,7 +43,7 @@ impl CycleDetector {
     }
 }
 
-impl Visitor for CycleDetector {
+impl<'a> Visitor for CycleDetector<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         let type_id = struct_def.module_scoped_identifier();
         if self.check_for_cycle(struct_def, &type_id) {

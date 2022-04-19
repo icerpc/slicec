@@ -3,6 +3,7 @@
 use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
+use std::fmt;
 
 #[derive(Default)]
 pub struct ErrorReporter {
@@ -14,6 +15,13 @@ pub struct ErrorReporter {
     warning_count: usize,
 }
 
+impl std::fmt::Debug for ErrorReporter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "ErrorReporter {{ error_count: {}, warning_count: {} }}",
+               self.error_count, self.warning_count)
+    }
+}
+
 impl ErrorReporter {
     /// Checks if any errors have been reported during compilation.
     /// This doesn't include notes, and only includes warnings if [`include_warnings`] is set.
@@ -21,7 +29,7 @@ impl ErrorReporter {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
     }
 
-    pub fn report_error(&mut self,
+    pub fn report(&mut self,
         message: String,
         location: Option<&Location>,
         severity: ErrorLevel)
@@ -36,6 +44,23 @@ impl ErrorReporter {
         };
         self.errors.push(Error { message, location: location.cloned(), severity })
     }
+
+    pub fn report_note(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Note);
+    }
+
+    pub fn report_warning(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Warning);
+    }
+
+    pub fn report_error(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Error);
+    }
+
+    pub fn report_critical(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Critical);
+    }
+
 
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
@@ -76,6 +101,14 @@ impl ErrorReporter {
     /// Returns the total number of errors and warnings reported through the error handler.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)
+    }
+
+    // #[cfg(test)] //TODO:
+    pub fn assert_errors(&self, expected_errors: &[&str]) {
+        assert_eq!(self.errors.len(), expected_errors.len());
+        for (i, error) in self.errors.iter().enumerate() {
+            assert_eq!(error.message, expected_errors[i]);
+        }
     }
 }
 

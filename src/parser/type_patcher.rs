@@ -3,15 +3,17 @@
 use crate::upcast_weak_as;
 
 use crate::ast::Ast;
+use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::ptr_visitor::PtrVisitor;
 use std::collections::HashMap;
 
-pub(super) fn patch_types(ast: &mut Ast) {
+pub(super) fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
     let mut patcher = TypePatcher {
         primitive_cache: &ast.primitive_cache,
         module_scoped_lookup_table: &ast.module_scoped_lookup_table,
+        error_reporter,
     };
 
     for module in &mut ast.ast {
@@ -38,10 +40,11 @@ pub(super) fn patch_types(ast: &mut Ast) {
 struct TypePatcher<'ast> {
     primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
     module_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+    error_reporter: &'ast mut ErrorReporter,
 }
 
 impl<'ast> TypePatcher<'ast> {
-    fn resolve_definition(&self, type_ref: &mut TypeRef<dyn Type>) {
+    fn resolve_definition(&mut self, type_ref: &mut TypeRef<dyn Type>) {
         // Skip if the reference has already been resolved and doesn't need patching.
         if type_ref.definition.is_initialized() {
             return;
@@ -139,13 +142,13 @@ impl<'ast> TypePatcher<'ast> {
             }
         }
 
-        crate::report_error(format!(
+        self.error_reporter.report_error(format!(
             "No entity with the identifier '{}' could be found in this scope.",
             &type_ref.type_string,
         ), Some(type_ref.location()));
     }
 
-    fn resolve_typed_definition<T: Element + 'static>(&self, type_ref: &mut TypeRef<T>) {
+    fn resolve_typed_definition<T: Element + 'static>(&mut self, type_ref: &mut TypeRef<T>) {
         // Skip if the reference has already been resolved and doesn't need patching.
         if type_ref.definition.is_initialized() {
             return;
@@ -160,13 +163,13 @@ impl<'ast> TypePatcher<'ast> {
             if let Ok(converted) = definition.clone().downcast::<T>() {
                 type_ref.definition = converted;
             } else {
-                crate::report_error(format!(
+                self.error_reporter.report_error(format!(
                     "The Entity '{}' is not a valid type for this definition.",
                     &type_ref.type_string,
                 ), Some(type_ref.location()));
             }
         } else {
-            crate::report_error(format!(
+            self.error_reporter.report_error(format!(
                 "No entity with the identifier '{}' could be found in this scope.",
                 &type_ref.type_string,
             ), Some(type_ref.location()));
