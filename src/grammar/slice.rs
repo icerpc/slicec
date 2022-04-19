@@ -1277,25 +1277,25 @@ impl Type for Primitive {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        Some(match self {
-            Self::Bool      => TagFormat::F1,
-            Self::Int8      => TagFormat::F1,
-            Self::UInt8     => TagFormat::F1,
-            Self::Int16     => TagFormat::F2,
-            Self::UInt16    => TagFormat::F2,
-            Self::Int32     => TagFormat::F4,
-            Self::UInt32    => TagFormat::F4,
-            Self::VarInt32  => TagFormat::VInt,
-            Self::VarUInt32 => TagFormat::VInt,
-            Self::Int64     => TagFormat::F8,
-            Self::UInt64    => TagFormat::F8,
-            Self::VarInt62  => TagFormat::VInt,
-            Self::VarUInt62 => TagFormat::VInt,
-            Self::Float32   => TagFormat::F4,
-            Self::Float64   => TagFormat::F8,
-            Self::String    => TagFormat::OVSize,
-            Self::AnyClass  => TagFormat::Class,
-        })
+        match self {
+            Self::Bool      => Some(TagFormat::F1),
+            Self::Int8      => None,
+            Self::UInt8     => Some(TagFormat::F1),
+            Self::Int16     => Some(TagFormat::F2),
+            Self::UInt16    => None,
+            Self::Int32     => Some(TagFormat::F4),
+            Self::UInt32    => None,
+            Self::VarInt32  => None,
+            Self::VarUInt32 => None,
+            Self::Int64     => Some(TagFormat::F8),
+            Self::UInt64    => None,
+            Self::VarInt62  => None,
+            Self::VarUInt62 => None,
+            Self::Float32   => Some(TagFormat::F4),
+            Self::Float64   => Some(TagFormat::F8),
+            Self::String    => Some(TagFormat::OVSize),
+            Self::AnyClass  => Some(TagFormat::Class),
+        }
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
