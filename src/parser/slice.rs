@@ -2,6 +2,7 @@
 use super::comments::CommentParser;
 use crate::ast::Ast;
 use crate::grammar::*;
+use crate::error::{Error, ErrorLevel};
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
 use crate::upcast_weak_as;
@@ -96,6 +97,57 @@ impl SliceParser {
             is_source,
         ))
     }
+
+    pub fn parse_string(
+        &self,
+        identifier: &str,
+        input: &str,
+        ast: &mut Ast,
+    ) -> Result<SliceFile, Error> {
+        let user_data = RefCell::new(ParserData {
+            ast,
+            current_file: identifier.to_owned(),
+            current_encoding: Encoding::default(),
+            current_enum_value: 0,
+            current_scope: Scope::default(),
+        });
+
+        // Parse the file into a file-specific AST.
+        let node = SliceParser::parse_with_userdata(Rule::main, input, &user_data);
+
+        let unwrapped_node = node.map_err(|e| Error {
+            message: e.to_string(),
+            location: None,
+            severity: ErrorLevel::Critical,
+        })?;
+
+        let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
+
+        // Consume the contents of the file and add them into the AST.
+        let (file_attributes, file_contents, file_encoding) =
+            SliceParser::main(raw_ast).map_err(|e| Error {
+                message: e.to_string(),
+                location: None,
+                severity: ErrorLevel::Critical,
+            })?;
+
+        let top_level_modules = file_contents
+            .into_iter()
+            .map(|module_def| ast.add_module(module_def))
+            .collect::<Vec<_>>();
+
+        let slice_file = SliceFile::new(
+            identifier.to_owned(),
+            input.to_owned(),
+            top_level_modules,
+            file_attributes,
+            file_encoding,
+            false, // skip code generation
+        );
+
+        Ok(slice_file)
+    }
+
 }
 
 #[pest_consume::parser]

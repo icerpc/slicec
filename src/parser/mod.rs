@@ -60,6 +60,30 @@ pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<Stri
     Ok(slice_files)
 }
 
+pub fn parse_string(identifier: &str, input: &str) -> Result<Ast, Error> {
+    let parser = slice::SliceParser;
+    let mut ast = Ast::new();
+
+    let slice_file = parser.parse_string(identifier, input, &mut ast)?;
+
+    let slice_files = HashMap::from([(identifier.to_owned(), slice_file)]);
+
+    // Patch the AST.
+    parent_patcher::patch_parents(&mut ast);
+    type_patcher::patch_types(&mut ast);
+
+    parent_patcher::patch_parents(&mut ast);
+    crate::handle_errors(true, &slice_files)?;
+    type_patcher::patch_types(&mut ast);
+    crate::handle_errors(true, &slice_files)?;
+    cycle_detection::detect_cycles(&slice_files);
+    crate::handle_errors(true, &slice_files)?;
+    encoding_patcher::patch_encodings(&slice_files, &mut ast);
+
+    Ok(ast)
+}
+
+
 fn find_slice_files(paths: &[String]) -> Vec<String> {
     let mut slice_paths = Vec::new();
     for path in paths {
