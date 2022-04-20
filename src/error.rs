@@ -3,9 +3,8 @@
 use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
-use std::fmt;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ErrorReporter {
     /// Vector where all the errors are stored, in the order they're reported.
     errors: Vec<Error>,
@@ -13,13 +12,6 @@ pub struct ErrorReporter {
     error_count: usize,
     /// The total number of warnings reported.
     warning_count: usize,
-}
-
-impl std::fmt::Debug for ErrorReporter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "ErrorReporter {{ error_count: {}, warning_count: {} }}",
-               self.error_count, self.warning_count)
-    }
 }
 
 impl ErrorReporter {
@@ -112,12 +104,14 @@ impl ErrorReporter {
     }
 }
 
+#[derive(Debug)]
 pub struct Error {
     pub message: String,
     pub location: Option<Location>,
     pub severity: ErrorLevel,
 }
 
+#[derive(Debug)]
 pub enum ErrorLevel {
     Critical,
     Error,

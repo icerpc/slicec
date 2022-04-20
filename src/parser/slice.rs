@@ -44,13 +44,13 @@ fn report_error<F>(input: &PestNode, report: F) where F: FnOnce(&mut ErrorReport
 }
 
 #[derive(Debug)]
-struct ParserData<'ast> {
-    ast: &'ast mut Ast,
+struct ParserData<'a> {
+    ast: &'a mut Ast,
     current_file: String,
     current_encoding: Encoding,
     current_enum_value: i64,
     current_scope: Scope,
-    error_reporter: &'ast mut ErrorReporter,
+    error_reporter: &'a mut ErrorReporter,
 }
 
 #[derive(PestParser)]

@@ -35,15 +35,15 @@ fn get_encodings_supported_by(file_encoding: &Encoding) -> SupportedEncodings {
     })
 }
 
-struct EncodingPatcher<'files> {
-    slice_files: &'files HashMap<String, SliceFile>,
+struct EncodingPatcher<'a> {
+    slice_files: &'a HashMap<String, SliceFile>,
     // Map of all the encodings supported by a type (key is the type's type-id).
     supported_encodings: HashMap<String, SupportedEncodings>,
 
-    error_reporter: &'files mut ErrorReporter,
+    error_reporter: &'a mut ErrorReporter,
 }
 
-impl<'files> EncodingPatcher<'files> {
+impl<'a> EncodingPatcher<'a> {
     fn add_supported_encodings_entry(
         &mut self,
         type_def: &(impl Entity + Type),
@@ -231,7 +231,7 @@ ex: 'encoding = 1;'"#.to_owned(),
     }
 }
 
-impl<'files> Visitor for EncodingPatcher<'files> {
+impl<'a> Visitor for EncodingPatcher<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         let type_id = struct_def.module_scoped_identifier();
         let file_encoding = self.get_file_encoding_for(struct_def);
@@ -422,7 +422,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
 }
 
 // Then we visit through everything mutably to patch in the supported encodings.
-impl<'files> PtrVisitor for EncodingPatcher<'files> {
+impl<'a> PtrVisitor for EncodingPatcher<'a> {
     unsafe fn visit_struct_start(&mut self, struct_ptr: &mut OwnedPtr<Struct>) {
         let struct_def = struct_ptr.borrow_mut();
         let type_id = struct_def.module_scoped_identifier();

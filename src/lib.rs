@@ -16,19 +16,19 @@ pub mod visitor;
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::error::{Error, ErrorLevel, ErrorReporter};
+use crate::parser::parse_string;
 use crate::slice_file::SliceFile;
 use crate::validator::Validator;
-use crate::parser::parse_string;
 use std::collections::HashMap;
 
-pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, SliceFile>, Error> {
-    // Initialize the global instances of the `Ast` and the `ErrorHandler`.
+pub fn parse_from_options(options: &SliceOptions) -> Result<(ErrorReporter, HashMap<String, SliceFile>), Error> {
+    // Initialize the global instance of the `Ast`.
     global_state::initialize();
 
     let mut error_reporter = ErrorReporter::default();
 
     let slice_files = unsafe {
-        parser::parse_files(borrow_mut_ast(), options)?
+        parser::parse_files(options, borrow_mut_ast(), &mut error_reporter, )?
     };
     handle_errors(options.warn_as_error, &slice_files, &mut error_reporter)?;
 
@@ -37,18 +37,17 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<HashMap<String, Slic
         slice_file.visit_with(&mut validator);
     }
 
-    Ok(slice_files)
+    Ok((error_reporter, slice_files))
 }
 
 pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
-    // Initialize the global instances of the `Ast` and the `ErrorHandler`.
-    global_state::initialize();
-
+    let mut ast = Ast::new();
     let mut error_reporter = ErrorReporter::default();
 
-    let (ast, slice_files) = parse_string(input, &mut error_reporter)?;
+    let slice_files = parse_string(input, &mut ast, &mut error_reporter)?;
 
     let mut validator = Validator { error_reporter: &mut error_reporter };
+
     for slice_file in slice_files.values() {
         slice_file.visit_with(&mut validator);
     }
