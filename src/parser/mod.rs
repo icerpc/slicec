@@ -76,9 +76,6 @@ pub fn parse_string(input: &str, ast: &mut Ast, error_reporter: &mut ErrorReport
     // Patch the AST.
     parent_patcher::patch_parents(ast);
     type_patcher::patch_types(ast, error_reporter);
-
-    parent_patcher::patch_parents(ast);
-    type_patcher::patch_types(ast, error_reporter);
     cycle_detection::detect_cycles(&slice_files, error_reporter);
     encoding_patcher::patch_encodings(&slice_files, ast, error_reporter);
 
