@@ -53,7 +53,6 @@ impl ErrorReporter {
         self.report(message, location, ErrorLevel::Critical);
     }
 
-
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for error in mem::take(&mut self.errors).into_iter() {
