@@ -28,7 +28,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<(ErrorReporter, Hash
     let mut error_reporter = ErrorReporter::default();
 
     let slice_files = unsafe {
-        parser::parse_files(options, borrow_mut_ast(), &mut error_reporter, )?
+        parser::parse_files(options, borrow_mut_ast(), &mut error_reporter)?
     };
     handle_errors(options.warn_as_error, &slice_files, &mut error_reporter)?;
 
