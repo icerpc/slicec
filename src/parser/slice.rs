@@ -1,3 +1,4 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::comments::CommentParser;
 use crate::ast::Ast;

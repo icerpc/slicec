@@ -1,4 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
+
 // TODO this entire file needs to be looked over again.
 
 use crate::grammar::{Element, Member, TypeRef};
