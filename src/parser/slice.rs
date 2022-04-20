@@ -39,10 +39,6 @@ fn pop_scope(input: &PestNode) {
     scope.pop_scope();
 }
 
-fn report_error<F>(input: &PestNode, report: F) where F: FnOnce(&mut ErrorReporter) {
-    report(input.user_data().borrow_mut().error_reporter);
-}
-
 #[derive(Debug)]
 struct ParserData<'a> {
     ast: &'a mut Ast,
@@ -274,12 +270,10 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
-                    report_error(&input, |error_reporter| {
-                        error_reporter.report_error(
-                            "classes can only inherit from a single base class".to_owned(),
-                            Some(&location),
-                        );
-                    });
+                    input.user_data().borrow_mut().error_reporter.report_error(
+                        "classes can only inherit from a single base class".to_owned(),
+                        Some(&location),
+                    );
                 }
 
                 push_scope(&input, &identifier.value, false);
@@ -316,12 +310,10 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    report_error(&input, |error_reporter| {
-                        error_reporter.report_error(
-                            "exceptions can only inherit from a single base exception".to_owned(),
-                            Some(&location),
-                        )
-                    });
+                    input.user_data().borrow_mut().error_reporter.report_error(
+                        "exceptions can only inherit from a single base exception".to_owned(),
+                        Some(&location),
+                    )
                 }
 
                 push_scope(&input, &identifier.value, false);
@@ -1129,19 +1121,17 @@ impl<'a> SliceParser<'a> {
                     // Files using a file-level module don't support module nesting within the file.
                     if !allow_sub_modules {
                         if let Definition::Module(module_def) = &definition {
-                            report_error(&input, |error_reporter| {
-                                error_reporter.report_error(
-                                    "file level modules cannot contain sub-modules".to_owned(),
-                                    Some(&module_def.borrow().location),
-                                );
-                            });
+                            let error_reporter = &mut input.user_data().borrow_mut().error_reporter;
 
-                            report_error(&input, |error_reporter| {
-                                error_reporter.report_note(
-                                    format!("file level module '{}' declared here", &identifier.value),
-                                    Some(&location),
-                                );
-                            });
+                            error_reporter.report_error(
+                                "file level modules cannot contain sub-modules".to_owned(),
+                                Some(&module_def.borrow().location),
+                            );
+
+                            error_reporter.report_note(
+                                format!("file level module '{}' declared here", &identifier.value),
+                                Some(&location),
+                            );
                         }
                     }
                     last_module.add_definition(definition);

@@ -21,7 +21,7 @@ impl ErrorReporter {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
     }
 
-    pub fn report(&mut self,
+    fn report(&mut self,
         message: String,
         location: Option<&Location>,
         severity: ErrorLevel)

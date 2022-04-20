@@ -11,7 +11,7 @@ exception B : A {}").ok().unwrap();
 
         error_reporter.assert_errors(&[
             "exception inheritance is only supported by the Slice 1 encoding",
-            "file encoding was set to the Slice 2 encoding here:"
+            "file encoding was set to the Slice 2 encoding here:",
         ]);
     }
 }
