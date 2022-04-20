@@ -16,9 +16,7 @@ exception B : A {}").ok().unwrap();
     }
 }
 
-mod compact_structs {
-
-}
+mod compact_structs { }
 
 
 mod structs {
