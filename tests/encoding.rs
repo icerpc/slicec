@@ -2,7 +2,6 @@ mod exceptions {
     use slice::parse_from_string;
 
     #[test]
-
     fn no_inheritance_with_slice2() {
         let (_, error_reporter) = parse_from_string("
 encoding = 2;
