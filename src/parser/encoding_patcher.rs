@@ -43,7 +43,6 @@ struct EncodingPatcher<'a> {
     slice_files: &'a HashMap<String, SliceFile>,
     // Map of all the encodings supported by a type (key is the type's type-id).
     supported_encodings: HashMap<String, SupportedEncodings>,
-
     error_reporter: &'a mut ErrorReporter,
 }
 
