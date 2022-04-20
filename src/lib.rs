@@ -21,15 +21,11 @@ use crate::slice_file::SliceFile;
 use crate::validator::Validator;
 use std::collections::HashMap;
 
-pub fn parse_from_options(options: &SliceOptions) -> Result<(ErrorReporter, HashMap<String, SliceFile>), Error> {
-    // Initialize the global instance of the `Ast`.
-    global_state::initialize();
-
+pub fn parse_from_options(options: &SliceOptions) -> Result<(Ast, ErrorReporter, HashMap<String, SliceFile>), Error> {
+    let mut ast = Ast::new();
     let mut error_reporter = ErrorReporter::default();
 
-    let slice_files = unsafe {
-        parser::parse_files(options, borrow_mut_ast(), &mut error_reporter)?
-    };
+    let slice_files = parser::parse_files(options, &mut ast, &mut error_reporter)?;
     handle_errors(options.warn_as_error, &slice_files, &mut error_reporter)?;
 
     let mut validator = Validator { error_reporter: &mut error_reporter };
@@ -37,7 +33,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<(ErrorReporter, Hash
         slice_file.visit_with(&mut validator);
     }
 
-    Ok((error_reporter, slice_files))
+    Ok((ast, error_reporter, slice_files))
 }
 
 pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
@@ -53,19 +49,6 @@ pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
     }
 
     Ok((ast, error_reporter))
-}
-
-// TODO comments
-pub fn borrow_ast() -> &'static Ast {
-    unsafe { &*global_state::AST.get().unwrap().get() }
-}
-
-// TODO comments
-/// # Safety
-///
-/// This can only be called when there are no other borrows.
-pub unsafe fn borrow_mut_ast() -> &'static mut Ast {
-    &mut *global_state::AST.get().unwrap().get()
 }
 
 pub fn handle_errors(
@@ -89,20 +72,5 @@ pub fn handle_errors(
         })
     } else {
         Ok(())
-    }
-}
-
-mod global_state {
-    use crate::ast::Ast;
-    use crate::ptr_util::ThreadSafe;
-    use once_cell::unsync::OnceCell;
-    use std::cell::UnsafeCell;
-
-    type ThreadSafeCell<T> = ThreadSafe<OnceCell<UnsafeCell<T>>>;
-
-    pub(super) static AST: ThreadSafeCell<Ast> = ThreadSafe(OnceCell::new());
-
-    pub(super) fn initialize() {
-        let _ = AST.set(UnsafeCell::new(Ast::new()));
     }
 }

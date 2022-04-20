@@ -2,28 +2,6 @@
 
 use std::any::TypeId;
 
-// `ThreadSafe` is a transparent wrapper for marking data as thread-safe, even if it isn't.
-// The Rust compiler automatically infers thread-safety at compile time, but data can be
-// explicitly marked as thread-safe by implementing the `Sync` trait on it, like here.
-//
-// We use this as a hack to satisfy the Rust compiler. Only thread-safe data can be stored in
-// static variables, since it MIGHT be accessed from other threads. But since the slice
-// compiler is single threaded, this isn't a concern.
-//
-// If we ever make the slice compiler multi-threaded we'd have to make the data thread-safe
-// anyways, and then could drop this hack.
-pub struct ThreadSafe<T>(pub T);
-
-unsafe impl<T> Sync for ThreadSafe<T> {}
-
-impl<T> std::ops::Deref for ThreadSafe<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
 #[derive(Debug)]
 pub struct OwnedPtr<T: ?Sized> {
     data: Box<T>,
