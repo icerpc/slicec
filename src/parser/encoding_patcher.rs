@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
+use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::ptr_util::OwnedPtr;
 use crate::ptr_visitor::PtrVisitor;
@@ -9,10 +10,15 @@ use crate::supported_encodings::SupportedEncodings;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn patch_encodings(slice_files: &HashMap<String, SliceFile>, ast: &mut Ast) {
+pub(super) fn patch_encodings(
+    slice_files: &HashMap<String, SliceFile>,
+    ast: &mut Ast,
+    error_reporter: &mut ErrorReporter,
+) {
     let mut patcher = EncodingPatcher {
         slice_files,
         supported_encodings: HashMap::new(),
+        error_reporter,
     };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
@@ -33,13 +39,14 @@ fn get_encodings_supported_by(file_encoding: &Encoding) -> SupportedEncodings {
     })
 }
 
-struct EncodingPatcher<'files> {
-    slice_files: &'files HashMap<String, SliceFile>,
+struct EncodingPatcher<'a> {
+    slice_files: &'a HashMap<String, SliceFile>,
     // Map of all the encodings supported by a type (key is the type's type-id).
     supported_encodings: HashMap<String, SupportedEncodings>,
+    error_reporter: &'a mut ErrorReporter,
 }
 
-impl<'files> EncodingPatcher<'files> {
+impl<'a> EncodingPatcher<'a> {
     fn add_supported_encodings_entry(
         &mut self,
         type_def: &(impl Entity + Type),
@@ -51,7 +58,7 @@ impl<'files> EncodingPatcher<'files> {
                 "type '{}' isn't supportable by any Slice encoding",
                 type_id,
             );
-            crate::report_error(message, Some(type_def.location()));
+            self.error_reporter.report_error(message, Some(type_def.location()));
         }
         self.supported_encodings.insert(type_id, supported_encodings);
     }
@@ -176,7 +183,7 @@ impl<'files> EncodingPatcher<'files> {
                         primitive_def.kind(),
                         file_encoding
                     );
-                    crate::report_error(message, Some(type_ref.location()));
+                    self.error_reporter.report_error(message, Some(type_ref.location()));
                     self.print_file_encoding_note(type_ref);
                     SupportedEncodings::dummy()
                 } else {
@@ -189,7 +196,7 @@ impl<'files> EncodingPatcher<'files> {
         if !is_tagged && !is_nullable && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                crate::report_error(
+                self.error_reporter.report_error(
                     "optional types can only be used with tags in the Slice 1 encoding".to_owned(),
                     Some(type_ref.location())
                 );
@@ -201,7 +208,7 @@ impl<'files> EncodingPatcher<'files> {
         supported_encodings
     }
 
-    fn print_file_encoding_note(&self, symbol: &impl Symbol) {
+    fn print_file_encoding_note(&mut self, symbol: &impl Symbol) {
         let file_name = &symbol.location().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
@@ -210,15 +217,15 @@ impl<'files> EncodingPatcher<'files> {
                 "file encoding was set to the Slice {} encoding here:",
                 &file_encoding.version,
             );
-            crate::report_note(message, Some(file_encoding.location()));
+            self.error_reporter.report_note(message, Some(file_encoding.location()));
         } else {
             let message = format!(
                 "file is using the Slice {} encoding by default",
                 Encoding::default(),
             );
-            crate::report_note(message, None);
+            self.error_reporter.report_note(message, None);
 
-            crate::report_note(
+            self.error_reporter.report_note(
                 r#"to use a different encoding, specify it at the top of the slice file
 ex: 'encoding = 1;'"#.to_owned(),
                 None,
@@ -227,7 +234,7 @@ ex: 'encoding = 1;'"#.to_owned(),
     }
 }
 
-impl<'files> Visitor for EncodingPatcher<'files> {
+impl<'a> Visitor for EncodingPatcher<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         let type_id = struct_def.module_scoped_identifier();
         let file_encoding = self.get_file_encoding_for(struct_def);
@@ -247,7 +254,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         if !struct_def.is_compact {
             supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
-                crate::report_error(
+                self.error_reporter.report_error(
                     "non-compact structs are not supported by the Slice 1 encoding".to_owned(),
                     Some(struct_def.location()),
                 );
@@ -277,7 +284,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         // Classes are only supported by the Slice 1 encoding.
         supported_encodings.disable(Encoding::Slice2);
         if file_encoding == Encoding::Slice2 {
-            crate::report_error(
+            self.error_reporter.report_error(
                 "classes are only supported by the Slice 1 encoding".to_owned(),
                 Some(class_def.location()),
             );
@@ -307,7 +314,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         if exception_def.base.is_some() {
             supported_encodings.disable(Encoding::Slice2);
             if file_encoding == Encoding::Slice2 {
-                crate::report_error(
+                self.error_reporter.report_error(
                     "exception inheritance is only supported by the Slice 1 encoding".to_owned(),
                     Some(exception_def.location()),
                 );
@@ -346,7 +353,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
                         operation_def.identifier(),
                         operation_encoding
                     );
-                    crate::report_error(message, Some(member.location()));
+                    patcher.error_reporter.report_error(message, Some(member.location()));
                     patcher.print_file_encoding_note(member);
                 }
             }
@@ -366,7 +373,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         if enum_def.underlying.is_some() {
             supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
-                crate::report_error(
+                self.error_reporter.report_error(
                     "enums with underlying types are not supported by the Slice 1 encoding".to_owned(),
                     Some(enum_def.location())
                 );
@@ -386,7 +393,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         // Traits are not supported by the Slice 1 encoding.
         supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
-            crate::report_error(
+            self.error_reporter.report_error(
                 "traits are not supported by the Slice 1 encoding".to_owned(),
                 Some(trait_def.location()),
             );
@@ -405,7 +412,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
         // Custom types are not supported by the Slice 1 encoding.
         supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
-            crate::report_error(
+            self.error_reporter.report_error(
                 "custom types are not supported by the Slice 1 encoding".to_owned(),
                 Some(custom_type.location()),
             );
@@ -418,7 +425,7 @@ impl<'files> Visitor for EncodingPatcher<'files> {
 }
 
 // Then we visit through everything mutably to patch in the supported encodings.
-impl<'files> PtrVisitor for EncodingPatcher<'files> {
+impl<'a> PtrVisitor for EncodingPatcher<'a> {
     unsafe fn visit_struct_start(&mut self, struct_ptr: &mut OwnedPtr<Struct>) {
         let struct_def = struct_ptr.borrow_mut();
         let type_id = struct_def.module_scoped_identifier();

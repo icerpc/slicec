@@ -12,7 +12,7 @@ mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::error::Error;
+use crate::error::{Error, ErrorReporter};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::fs;
@@ -25,8 +25,12 @@ use std::path::PathBuf;
 
 // TODO This module is a mess.
 
-pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<String, SliceFile>, Error> {
-    let parser = slice::SliceParser;
+pub fn parse_files(
+    options: &SliceOptions,
+    ast: &mut Ast,
+    error_reporter: &mut ErrorReporter,
+) -> Result<HashMap<String, SliceFile>, Error> {
+    let mut parser = slice::SliceParser { error_reporter };
 
     let source_files = find_slice_files(&options.sources);
     let mut reference_files = find_slice_files(&options.references);
@@ -50,12 +54,30 @@ pub fn parse_files(ast: &mut Ast, options: &SliceOptions) -> Result<HashMap<Stri
     }
 
     parent_patcher::patch_parents(ast);
-    crate::handle_errors(options.warn_as_error, &slice_files)?;
-    type_patcher::patch_types(ast);
-    crate::handle_errors(options.warn_as_error, &slice_files)?;
-    cycle_detection::detect_cycles(&slice_files);
-    crate::handle_errors(options.warn_as_error, &slice_files)?;
-    encoding_patcher::patch_encodings(&slice_files, ast);
+    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
+    type_patcher::patch_types(ast, error_reporter);
+    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
+    cycle_detection::detect_cycles(&slice_files, error_reporter);
+    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
+    encoding_patcher::patch_encodings(&slice_files, ast, error_reporter);
+
+    Ok(slice_files)
+}
+
+pub fn parse_string(input: &str, ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<HashMap<String,SliceFile>, Error> {
+    let mut parser = slice::SliceParser { error_reporter };
+
+    let identifier = "in-memory-file";
+
+    let slice_file = parser.parse_string(identifier, input, ast)?;
+
+    let slice_files = HashMap::from([(identifier.to_owned(), slice_file)]);
+
+    // Patch the AST.
+    parent_patcher::patch_parents(ast);
+    type_patcher::patch_types(ast, error_reporter);
+    cycle_detection::detect_cycles(&slice_files, error_reporter);
+    encoding_patcher::patch_encodings(&slice_files, ast, error_reporter);
 
     Ok(slice_files)
 }

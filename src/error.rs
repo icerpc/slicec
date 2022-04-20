@@ -4,7 +4,7 @@ use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ErrorReporter {
     /// Vector where all the errors are stored, in the order they're reported.
     errors: Vec<Error>,
@@ -21,7 +21,7 @@ impl ErrorReporter {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
     }
 
-    pub fn report_error(&mut self,
+    fn report(&mut self,
         message: String,
         location: Option<&Location>,
         severity: ErrorLevel)
@@ -35,6 +35,22 @@ impl ErrorReporter {
             }
         };
         self.errors.push(Error { message, location: location.cloned(), severity })
+    }
+
+    pub fn report_note(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Note);
+    }
+
+    pub fn report_warning(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Warning);
+    }
+
+    pub fn report_error(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Error);
+    }
+
+    pub fn report_critical(&mut self, message: String, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Critical);
     }
 
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
@@ -77,14 +93,24 @@ impl ErrorReporter {
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)
     }
+
+    // #[cfg(test)] //TODO:
+    pub fn assert_errors(&self, expected_errors: &[&str]) {
+        assert_eq!(self.errors.len(), expected_errors.len());
+        for (i, error) in self.errors.iter().enumerate() {
+            assert_eq!(error.message, expected_errors[i]);
+        }
+    }
 }
 
+#[derive(Debug)]
 pub struct Error {
     pub message: String,
     pub location: Option<Location>,
     pub severity: ErrorLevel,
 }
 
+#[derive(Debug)]
 pub enum ErrorLevel {
     Critical,
     Error,
