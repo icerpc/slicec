@@ -656,10 +656,12 @@ pub struct Enum {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
+    int32_def: Primitive,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Enum {
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         identifier: Identifier,
         underlying: Option<TypeRef<Primitive>>,
@@ -672,7 +674,8 @@ impl Enum {
         let enumerators = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Enum { identifier, enumerators, underlying, is_unchecked, parent, scope, attributes, comment, location, supported_encodings }
+        let int32_def = Primitive::Int32;
+        Enum { identifier, enumerators, underlying, is_unchecked, parent, scope, attributes, comment, location, supported_encodings, int32_def }
     }
 
     pub(crate) fn add_enumerator(&mut self, enumerator: Enumerator) {
@@ -690,7 +693,7 @@ impl Enum {
         // Otherwise, enums have a backing type of `int32` by default. Since `int32` is a type
         // defined by the compiler, we fetch its definition directly from the global AST.
         self.underlying.as_ref().map_or(
-            crate::borrow_ast().lookup_primitive("int32").borrow(),
+            &self.int32_def,
             |data_type| data_type.definition(),
         )
     }
