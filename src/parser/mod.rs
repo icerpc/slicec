@@ -82,7 +82,6 @@ pub fn parse_string(input: &str, ast: &mut Ast, error_reporter: &mut ErrorReport
     Ok(slice_files)
 }
 
-
 fn find_slice_files(paths: &[String]) -> Vec<String> {
     let mut slice_paths = Vec::new();
     for path in paths {
