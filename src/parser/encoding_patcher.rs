@@ -18,7 +18,7 @@ pub(super) fn patch_encodings(
     let mut patcher = EncodingPatcher {
         slice_files,
         supported_encodings: HashMap::new(),
-        error_reporter
+        error_reporter,
     };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
