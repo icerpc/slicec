@@ -33,4 +33,20 @@ struct A {}").ok().unwrap();
             "file encoding was set to the Slice 1 encoding here:",
         ]);
     }
+
+    #[test]
+    fn unsupported_with_slice1_types() {
+        let (_, error_reporter) = parse_from_string("
+encoding = 2;
+module Test;
+struct A
+{
+    c: AnyClass
+}").ok().unwrap();
+
+        error_reporter.assert_errors(&[
+            "'any class' is not supported by the Slice 2 encoding",
+            "file encoding was set to the Slice 2 encoding here:",
+        ]);
+    }
 }
