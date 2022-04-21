@@ -177,7 +177,6 @@ enum E : int32 {}");
     }
 }
 
-
 // Notes?
 // - uint8 causes compiler to crash in cycle_detection
 // - encoding = 1; compact struct S { v: } complains about int8 not being supported
