@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::parse_from_string;
 use slice::error::ErrorReporter;
+use slice::parse_from_string;
 
 pub fn parse(slice: &str) -> ErrorReporter {
     let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
@@ -9,10 +9,7 @@ pub fn parse(slice: &str) -> ErrorReporter {
     error_reporter
 }
 
-
 mod compact_structs {}
-
-use super::*;
 
 #[test]
 fn success_with_slice2_types() {
@@ -26,7 +23,8 @@ struct A
 i: int32,
 s: string?,
 t: T,
-}");
+}",
+    );
 
     error_reporter.assert_errors(&[]);
 }
@@ -37,7 +35,8 @@ fn unsupported_with_slice1() {
         "
 encoding = 1;
 module Test;
-struct A {}");
+struct A {}",
+    );
 
     error_reporter.assert_errors(&[
         "non-compact structs are not supported by the Slice 1 encoding",
@@ -54,7 +53,8 @@ module Test;
 struct A
 {
 c: AnyClass
-}");
+}",
+    );
 
     error_reporter.assert_errors(&[
         "'AnyClass' is not supported by the Slice 2 encoding",
@@ -67,10 +67,12 @@ mod enums {
 
     #[test]
     fn no_underlying_types_with_slice1() {
-        let error_reporter = parse("
+        let error_reporter = parse(
+            "
 encoding = 1;
 module Test;
-enum E : int32 {}");
+enum E : int32 {}",
+        );
 
         error_reporter.assert_errors(&[
             "enums with underlying types are not supported by the Slice 1 encoding",

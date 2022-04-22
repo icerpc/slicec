@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::parse_from_string;
 use slice::error::ErrorReporter;
+use slice::parse_from_string;
 
 pub fn parse(slice: &str) -> ErrorReporter {
     let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
@@ -11,36 +11,46 @@ pub fn parse(slice: &str) -> ErrorReporter {
 
 mod slice1 {
 
-    use std::collections::HashMap;
     use super::*;
+    const ENCODING: &str = "1";
 
-    // TODO: Add comment
+    /// Verifies that if Slice 1 is used with unsupported types (int8, uint16, uint32, varint32,
+    /// varuint32, uint64, varint62, and varuint62) that the compiler will produce the relevant not
+    /// supported errors.
     #[test]
-    fn unsupported_types_produce_error() {
+    fn unsupported_types_fail() {
         // Test setup
-        let type_cases = HashMap::from([
-            ("1", vec!["int8", "uint16","uint32", "varint32",  "varuint32", "uint64", "varint62", "varuint62"]),
-            ("2", vec!["AnyClass"])
-            ]);
-        for (encoding, value) in type_cases.iter().flat_map(|(encoding, value)| value.iter().map(move |v| (encoding, v))) {
+        let type_cases = vec![
+            "int8",
+            "uint16",
+            "uint32",
+            "varint32",
+            "varuint32",
+            "uint64",
+            "varint62",
+            "varuint62",
+        ];
+
+        for value in type_cases.iter() {
             let errors: &[&str] = &[
-                &format!("'{}' is not supported by the Slice {} encoding", value, encoding),
-                &format!("file encoding was set to the Slice {} encoding here:", encoding),
+                &format!("'{}' is not supported by the Slice 1 encoding", value),
+                &format!("file encoding was set to the Slice 1 encoding here:"),
             ];
-            unsupported_types(encoding, value, errors)
+            test(value, errors)
         }
 
-        fn unsupported_types(encoding: &str, value: &str, expected: &[&str]) {
+        fn test(value: &str, expected: &[&str]) {
             // Arrange
-            let slice = &format!("
+            let slice = &format!(
+                "
                 encoding = {encoding};
                 module Test;
                 compact struct S
                 {{
                     v: {value},
                 }}",
-            encoding = encoding,
-            value = value,
+                encoding = ENCODING,
+                value = value,
             );
 
             // Act
@@ -51,30 +61,31 @@ mod slice1 {
         }
     }
 
-    // TODO: Add comment
+    /// Verifies that valid Slice 1 types (bool, uint8, int16, int32, int64, float32, float64,
+    /// string, and  AnyClass) will not produce any compiler errors.
     #[test]
-    fn support_types_do_not_produce_errors() {
+    fn supported_types_succeed() {
         // Test setup
-        let type_cases = HashMap::from([
-            ("2", vec!["bool", "int8", "uint8", "int16", "uint16", "int32", "uint32", "varint32", "varuint32",
-                    "int64", "uint64", "varint62", "varuint62", "float32", "float64", "string"]),
-            ("1", vec!["bool", "uint8", "int16", "int32", "int64", "float32","float64", "string", "AnyClass"])
-            ]);
-        for (encoding, value) in type_cases.iter().flat_map(|(encoding, value)| value.iter().map(move |v| (encoding, v))) {
-            supported_types(encoding, value)
+        let type_cases = vec![
+            "bool", "uint8", "int16", "int32", "int64", "float32", "float64", "string", "AnyClass",
+        ];
+
+        for value in type_cases.iter() {
+            test(value)
         }
 
-        fn supported_types(encoding: &str, value: &str) {
+        fn test(value: &str) {
             // Arrange
-            let slice = &format!("
+            let slice = &format!(
+                "
                 encoding = {encoding};
                 module Test;
                 compact struct S
                 {{
                     v: {value},
                 }}",
-            encoding = encoding,
-            value = value,
+                encoding = ENCODING,
+                value = value,
             );
 
             // Act
@@ -89,35 +100,34 @@ mod slice1 {
 mod slice2 {
 
     use super::*;
-    use std::collections::HashMap;
+    const ENCODING: &str = "2";
 
-    // TODO: Add comment
+    /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
+    /// produce the relevant not supported errors.
     #[test]
-    fn unsupported_types_produce_error() {
+    fn unsupported_types_fail() {
         // Test setup
-        let type_cases = HashMap::from([
-            ("1", vec!["int8", "uint16","uint32", "varint32",  "varuint32", "uint64", "varint62", "varuint62"]),
-            ("2", vec!["AnyClass"])
-            ]);
-        for (encoding, value) in type_cases.iter().flat_map(|(encoding, value)| value.iter().map(move |v| (encoding, v))) {
+        let type_cases = vec!["AnyClass"];
+        for value in type_cases.iter() {
             let errors: &[&str] = &[
-                &format!("'{}' is not supported by the Slice {} encoding", value, encoding),
-                &format!("file encoding was set to the Slice {} encoding here:", encoding),
+                &format!("'{}' is not supported by the Slice 2 encoding", value),
+                &format!("file encoding was set to the Slice 2 encoding here:"),
             ];
-            unsupported_types(encoding, value, errors)
+            test(value, errors)
         }
 
-        fn unsupported_types(encoding: &str, value: &str, expected: &[&str]) {
+        fn test(value: &str, expected: &[&str]) {
             // Arrange
-            let slice = &format!("
+            let slice = &format!(
+                "
                 encoding = {encoding};
                 module Test;
                 compact struct S
                 {{
                     v: {value},
                 }}",
-            encoding = encoding,
-            value = value,
+                encoding = ENCODING,
+                value = value,
             );
 
             // Act
@@ -128,31 +138,46 @@ mod slice2 {
         }
     }
 
-
-    // TODO: Add comment
+    /// Verifies that valid Slice 2 types (bool, int8, uint8, int16, uint16, int32, uint32,
+    /// varint32, varuint32, int64, uint64, varint62, varuint62, float32, float64, and string) will
+    /// not produce any compiler errors.
     #[test]
-    fn support_types_do_not_produce_errors() {
+    fn supported_types_succeed() {
         // Test setup
-        let type_cases = HashMap::from([
-            ("2", vec!["bool", "int8", "uint8", "int16", "uint16", "int32", "uint32", "varint32", "varuint32",
-                    "int64", "uint64", "varint62", "varuint62", "float32", "float64", "string"]),
-            ("1", vec!["bool", "uint8", "int16", "int32", "int64", "float32","float64", "string", "AnyClass"])
-            ]);
-        for (encoding, value) in type_cases.iter().flat_map(|(encoding, value)| value.iter().map(move |v| (encoding, v))) {
-            supported_types(encoding, value)
+        let type_cases = vec![
+            "bool",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int32",
+            "uint32",
+            "varint32",
+            "varuint32",
+            "int64",
+            "uint64",
+            "varint62",
+            "varuint62",
+            "float32",
+            "float64",
+            "string",
+        ];
+        for value in type_cases.iter() {
+            test(value)
         }
 
-        fn supported_types(encoding: &str, value: &str) {
+        fn test(value: &str) {
             // Arrange
-            let slice = &format!("
+            let slice = &format!(
+                "
                 encoding = {encoding};
                 module Test;
                 compact struct S
                 {{
                     v: {value},
                 }}",
-            encoding = encoding,
-            value = value,
+                encoding = ENCODING,
+                value = value,
             );
 
             // Act
