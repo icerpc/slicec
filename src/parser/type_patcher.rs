@@ -53,7 +53,7 @@ impl<'ast> TypePatcher<'ast> {
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         // Since only user-defined types need to be patched, we lookup by entity instead of by type.
         let lookup = Ast::lookup_entity(
-            self.lookup_table, &type_ref.type_string, &type_ref.scope,
+            self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope,
         );
         if let Some(definition) = lookup {
             match definition.borrow().concrete_entity() {
@@ -113,7 +113,7 @@ impl<'ast> TypePatcher<'ast> {
                         self.lookup_table,
                         self.primitive_cache,
                         &alias_ref.type_string,
-                        &alias_ref.scope,
+                        &alias_ref.scope.module_scope,
                     );
 
                     while let Ok(underlying) = &alias_lookup {
@@ -130,7 +130,7 @@ impl<'ast> TypePatcher<'ast> {
                                 self.lookup_table,
                                 self.primitive_cache,
                                 &underlying_ref.type_string,
-                                &underlying_ref.scope,
+                                &underlying_ref.scope.module_scope,
                             );
                         } else {
                             type_ref.definition = underlying.clone();
@@ -156,7 +156,7 @@ impl<'ast> TypePatcher<'ast> {
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         let lookup = Ast::lookup_entity(
-            self.lookup_table, &type_ref.type_string, &type_ref.scope
+            self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope
         );
 
         if let Some(definition) = lookup {

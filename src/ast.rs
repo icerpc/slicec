@@ -189,7 +189,7 @@ impl Ast {
             &self.lookup_table,
             &self.primitive_cache,
             fully_scoped_identifier,
-            &Scope::new("", false),
+            &[], // We always lookup types by their global identifier.
         );
         result.ok()
     }
@@ -212,21 +212,22 @@ impl Ast {
     pub fn lookup_entity<'ast>(
         lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         identifier: &str,
-        scope: &Scope,
+        scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        Ast::lookup_entity(lookup_table, identifier, &scope.module_scope)//TODOAUSTIN module_scope here?
+        // TODOAUSTIN take an explicit scope here. Or is there no chance of identifier collisions?
+        Ast::lookup_entity(lookup_table, identifier, &scopes)
     }
 
     pub fn lookup_type<'ast>(
         lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
         identifier: &str,
-        scope: &Scope
+        scopes: &[String]
     ) -> Result<WeakPtr<dyn Type>, Option<WeakPtr<dyn Entity>>> {
         if let Some(primitive_ptr) = primitive_cache.get(identifier) {
             Ok(downgrade_as!(primitive_ptr, dyn Type))
         } else if let Some(entity_ptr) =
-        Self::lookup_entity(lookup_table, identifier, scope) {
+        Self::lookup_entity(lookup_table, identifier, scopes) {
             match entity_ptr.borrow().concrete_entity() {
                 Entities::Struct(_) => {
                     Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Struct>().ok().unwrap(), dyn Type))
@@ -287,7 +288,7 @@ struct LookupTableBuilder<'ast> {
 impl<'ast> LookupTableBuilder<'ast> {
     /// Adds an entry into the AST's [Ast::lookup_table] for the provided definition.
     fn add_entry<T: Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
-        let identifier = definition.borrow().module_scoped_identifier();//TODOAUSTIN module scope?
+        let identifier = definition.borrow().parser_scoped_identifier();
         let weak_ptr = downgrade_as!(definition, dyn Entity);
         self.lookup_table.insert(identifier, weak_ptr);
     }
