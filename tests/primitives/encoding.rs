@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::encoding_helpers::parse;
+use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
 
@@ -47,7 +47,7 @@ mod slice1 {
             );
 
             // Act
-            let error_reporter = parse(slice);
+            let error_reporter = parse_for_errors(slice);
 
             // Assert
             error_reporter.assert_errors(expected);
@@ -82,7 +82,7 @@ mod slice1 {
             );
 
             // Act
-            let error_reporter = parse(slice);
+            let error_reporter = parse_for_errors(slice);
 
             // Assert
             assert!(!error_reporter.has_errors(true));
@@ -124,7 +124,7 @@ mod slice2 {
             );
 
             // Act
-            let error_reporter = parse(slice);
+            let error_reporter = parse_for_errors(slice);
 
             // Assert
             error_reporter.assert_errors(expected);
@@ -174,7 +174,7 @@ mod slice2 {
             );
 
             // Act
-            let error_reporter = parse(slice);
+            let error_reporter = parse_for_errors(slice);
 
             // Assert
             assert!(!error_reporter.has_errors(true));

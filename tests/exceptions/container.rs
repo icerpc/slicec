@@ -1,8 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::container_helpers::parse;
+use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::grammar::*;
 
+/// Verifies that exceptions can contain data members.
 #[test]
 fn can_contain_data_members() {
     // Arrange
@@ -17,7 +18,7 @@ fn can_contain_data_members() {
     ";
 
     // Act
-    let ast = parse(slice);
+    let ast = parse_for_ast(slice);
 
     // Assert
     let struct_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();
@@ -43,6 +44,7 @@ fn can_contain_data_members() {
     ));
 }
 
+/// Verifies that exceptions can be empty
 #[test]
 fn can_be_empty() {
     // Arrange
@@ -52,7 +54,7 @@ fn can_be_empty() {
     ";
 
     // Act
-    let ast = parse(slice);
+    let ast = parse_for_ast(slice);
 
     // Assert
     let struct_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();

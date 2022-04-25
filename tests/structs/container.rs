@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::container_helpers::parse;
+use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::parse_from_string;
 
 mod structs {
@@ -8,7 +8,7 @@ mod structs {
     use super::*;
     use slice::grammar::*;
 
-    ///
+    /// Verifies that structs can contain data memebers.
     #[test]
     fn can_contain_data_members() {
         // Arrange
@@ -23,7 +23,7 @@ mod structs {
             ";
 
         // Act
-        let ast = parse(slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
         let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
@@ -50,7 +50,7 @@ mod structs {
         ));
     }
 
-    ///
+    /// Verifies that structs can be empty
     #[test]
     fn can_be_empty() {
         // Arrange
@@ -60,7 +60,7 @@ mod structs {
         ";
 
         // Act
-        let ast = parse(slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
         let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
@@ -75,7 +75,7 @@ mod compact_structs {
 
     use super::*;
 
-    ///
+    /// Verifies that compact structs must contain some data member.
     #[test]
     #[ignore]
     fn must_not_be_empty() {
