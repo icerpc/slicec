@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+// Encoding tests
 mod encoding {
-    // Encoding tests
+
     #[path = "exceptions.rs"]
     mod exceptions;
 
@@ -11,4 +12,3 @@ mod encoding {
     #[path = "structs.rs"]
     mod structs;
 }
-// Encoding helpers tests
