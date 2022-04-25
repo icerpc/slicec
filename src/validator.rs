@@ -13,10 +13,10 @@ pub(crate) struct Validator<'a> {
 impl<'a> Visitor for Validator<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         if struct_def.is_compact {
-            // Compact structs cannot be empty.
+            // Compact structs must be non-empty.
             if struct_def.members().is_empty() {
                 self.error_reporter.report_error(
-                    "compact structs cannot be empty".to_owned(),
+                    "compact structs must be non-empty".to_owned(),
                     Some(&struct_def.location),
                 )
             } else {
