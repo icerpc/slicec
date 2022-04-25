@@ -107,7 +107,6 @@ mod operations {
     }
 
     #[test]
-    #[ignore]
     fn operation_can_have_at_most_one_streamed_parameter() {
         let slice = "
             module Test;
