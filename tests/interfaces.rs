@@ -121,7 +121,6 @@ mod operations {
     }
 
     #[test]
-    #[ignore]
     fn stream_parameter_must_be_last() {
         let slice = "
             module Test;
