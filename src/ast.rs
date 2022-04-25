@@ -214,7 +214,6 @@ impl Ast {
         identifier: &str,
         scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        // TODOAUSTIN take an explicit scope here. Or is there no chance of identifier collisions?
         Ast::lookup_definition(lookup_table, identifier, &scopes)
     }
 
