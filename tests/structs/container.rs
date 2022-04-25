@@ -8,7 +8,7 @@ mod structs {
     use super::*;
     use slice::grammar::*;
 
-    /// Verifies that structs can contain data memebers.
+    /// Verifies that structs can contain data members.
     #[test]
     fn can_contain_data_members() {
         // Arrange
@@ -32,9 +32,9 @@ mod structs {
 
         assert_eq!(data_members.len(), 3);
 
-        assert_eq!(data_members[0].identifier(), "i"));
-        assert_eq!(data_members[1].identifier(), "s"));
-        assert_eq!(data_members[2].identifier(), "b"));
+        assert_eq!(data_members[0].identifier(), "i");
+        assert_eq!(data_members[1].identifier(), "s");
+        assert_eq!(data_members[2].identifier(), "b");
 
         assert!(matches!(
             data_members[0].data_type.concrete_type(),
