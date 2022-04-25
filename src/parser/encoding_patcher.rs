@@ -107,12 +107,16 @@ impl<'a> EncodingPatcher<'a> {
             TypeRefs::Exception(exception_ref) => {
                 let type_id = exception_ref.module_scoped_identifier();
                 // Compute the type's supported encodings if they haven't been computed yet.
-                if let Some(encodings) = self.supported_encodings.get(&type_id) {
-                    encodings
+                let mut encodings = if let Some(e) = self.supported_encodings.get(&type_id) {
+                    e
                 } else {
                     exception_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }.clone();
+
+                // Exceptions as a data type are not supported with Slice 1.
+                encodings.disable(Encoding::Slice1);
+                encodings
             }
             TypeRefs::Interface(interface_ref) => {
                 is_nullable = true;
