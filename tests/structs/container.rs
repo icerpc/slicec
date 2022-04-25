@@ -32,9 +32,9 @@ mod structs {
 
         assert_eq!(data_members.len(), 3);
 
-        assert!(matches!(data_members[0].identifier(), "i"));
-        assert!(matches!(data_members[1].identifier(), "s"));
-        assert!(matches!(data_members[2].identifier(), "b"));
+        assert_eq!(data_members[0].identifier(), "i"));
+        assert_eq!(data_members[1].identifier(), "s"));
+        assert_eq!(data_members[2].identifier(), "b"));
 
         assert!(matches!(
             data_members[0].data_type.concrete_type(),
