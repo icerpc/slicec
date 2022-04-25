@@ -75,7 +75,7 @@ mod compact_structs {
 
     use super::*;
 
-    /// Verifies that compact structs must contain some data member.
+    /// Verifies that compact structs must contain at least one data member.
     #[test]
     fn must_not_be_empty() {
         // Arrange
