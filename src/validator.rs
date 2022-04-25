@@ -12,8 +12,16 @@ pub(crate) struct Validator<'a> {
 // TODO add additional validation logic here.
 impl<'a> Visitor for Validator<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        // Compact structs can't have tagged data members.
         if struct_def.is_compact {
+            // Compact structs can't be empty.
+            if struct_def.members().is_empty() {
+                self.error_reporter.report_error(
+                    "compact structs cannot be empty"
+                    Some(&struct_def.location),
+                )
+            }
+
+            // Compact structs can't have tagged data members.
             let mut has_tags = false;
             for member in struct_def.members() {
                 if member.tag.is_some() {
