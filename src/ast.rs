@@ -48,7 +48,7 @@ pub struct Ast {
     /// as primitives are not scope-sensitive, unlike other anonymous types.
     pub(crate) primitive_cache: HashMap<&'static str, OwnedPtr<Primitive>>,
 
-    /// This lookup table stores [WeakPtr]s for every user defined entity.
+    /// This lookup table stores [WeakPtr]s for every user defined entity stored in this AST.
     /// Each [Entity]'s fully scoped identifier is used as its key in the table.
     pub(crate) lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
 }
@@ -189,7 +189,7 @@ impl Ast {
             &self.lookup_table,
             &self.primitive_cache,
             fully_scoped_identifier,
-            &[], // We always lookup types by their global identifier.
+            &[], // We always look up types by their global identifier.
         );
         result.ok()
     }
