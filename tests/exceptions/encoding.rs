@@ -9,8 +9,6 @@ mod slice1 {
     /// Verifies that the slice parser with the Slice 1 encoding emits errors when parsing an
     /// exception that is a data member.
     #[test]
-    #[ignore] // Encoding 1 with compact struct containing exceptions is not supported, compilation should
-              // fail
     fn can_not_be_data_members() {
         // Arrange
         let slice = "
@@ -23,8 +21,8 @@ mod slice1 {
             }
             ";
         let expected_errors = &[
-            "exception inheritance is only supported by the Slice 1 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "type 'Test::S' isn't supported by its file's Slice encoding",
+            "file encoding was set to the Slice 1 encoding here:",
         ];
 
         // Act

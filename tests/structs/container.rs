@@ -77,7 +77,6 @@ mod compact_structs {
 
     /// Verifies that compact structs must contain some data member.
     #[test]
-    #[ignore]
     fn must_not_be_empty() {
         // Arrange
         let slice = "

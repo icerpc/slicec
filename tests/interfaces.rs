@@ -107,7 +107,7 @@ mod operations {
     }
 
     #[test]
-    #[ignore] // does not fail
+    #[ignore]
     fn operation_can_have_at_most_one_streamed_parameter() {
         let slice = "
             module Test;
@@ -122,7 +122,7 @@ mod operations {
     }
 
     #[test]
-    #[ignore] // does not fail
+    #[ignore]
     fn stream_parameter_must_be_last() {
         let slice = "
             module Test;
