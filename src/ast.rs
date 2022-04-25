@@ -189,7 +189,7 @@ impl Ast {
             &self.lookup_table,
             &self.primitive_cache,
             fully_scoped_identifier,
-            &[], // We always look up types by their global identifier.
+            &[], // We always look up types by their fully scoped identifiers.
         );
         result.ok()
     }
