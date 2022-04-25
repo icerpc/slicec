@@ -214,7 +214,7 @@ impl Ast {
         identifier: &str,
         scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        Ast::lookup_definition(lookup_table, identifier, &scopes)
+        Ast::lookup_definition(lookup_table, identifier, scopes)
     }
 
     pub fn lookup_type<'ast>(
