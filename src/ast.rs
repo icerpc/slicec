@@ -51,10 +51,6 @@ pub struct Ast {
     /// This lookup table stores [WeakPtr]s for every user defined entity that is defined in global
     /// or module scope. Each [Entity]'s **module** scoped identifier is used as its key in the table.
     pub(crate) module_scoped_lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
-
-    /// This lookup table stores [WeakPtr]s for every user defined entity that is stored in the AST.
-    /// Each [Entity]'s **parser** scoped identifier is used as its key in the table.
-    pub(crate) parser_scoped_lookup_table: HashMap<String, WeakPtr<dyn Entity>>,
 }
 
 impl Ast {
@@ -87,7 +83,6 @@ impl Ast {
             anonymous_types: Vec::new(),
             primitive_cache,
             module_scoped_lookup_table: HashMap::new(),
-            parser_scoped_lookup_table: HashMap::new(),
         }
     }
 
@@ -102,7 +97,6 @@ impl Ast {
         // Create a visitor for adding the module's contents into the AST's lookup tables.
         let mut visitor = LookupTableBuilder {
             module_scoped_lookup_table: &mut self.module_scoped_lookup_table,
-            parser_scoped_lookup_table: &mut self.parser_scoped_lookup_table,
         };
 
         // Add the module into the lookup tables, then recursively add it's contents too.
@@ -176,7 +170,7 @@ impl Ast {
         fully_scoped_identifier: &str,
     ) -> Option<WeakPtr<dyn Entity>> {
         let identifier = fully_scoped_identifier.strip_prefix("::").unwrap();
-        self.parser_scoped_lookup_table.get(identifier).cloned()
+        self.module_scoped_lookup_table.get(identifier).cloned() //TODOAUSTIN THIS WAS PARSER SCOPED
     }
 
     pub fn find_typed_entity<T: Entity + 'static>(
@@ -221,14 +215,6 @@ impl Ast {
         scope: &Scope,
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
         Ast::lookup_entity(module_scoped_lookup_table, identifier, &scope.module_scope)
-    }
-
-    pub fn lookup_parser_scoped_entity<'ast>(
-        parser_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
-        identifier: &str,
-        scope: &Scope,
-    ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        Ast::lookup_entity(parser_scoped_lookup_table, identifier, &scope.parser_scope)
     }
 
     pub fn lookup_type<'ast>(
@@ -297,12 +283,6 @@ struct LookupTableBuilder<'ast> {
     /// inserts a corresponding entry into this table. Each entry consists of the entity's
     /// **module** scoped identifier, and a [WeakPtr] to the entity.
     module_scoped_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Entity>>,
-
-    /// Mutable reference to the AST's [Ast::parser_scoped_lookup_table].
-    ///
-    /// Whenever the builder visits a slice [Entity], it inserts a corresponding entry into this table.
-    /// Each entry consists of the entity's **parser** scoped identifier, and a [WeakPtr] to the entity.
-    parser_scoped_lookup_table: &'ast mut HashMap<String, WeakPtr<dyn Entity>>,
 }
 
 impl<'ast> LookupTableBuilder<'ast> {
@@ -312,78 +292,62 @@ impl<'ast> LookupTableBuilder<'ast> {
         let weak_ptr = downgrade_as!(definition, dyn Entity);
         self.module_scoped_lookup_table.insert(identifier, weak_ptr);
     }
-
-    /// Adds an entry into the AST's [parser_scoped_lookup_table] for the provided definition.
-    fn add_parser_scoped_entry<T: Entity + 'static>(&mut self, definition: &OwnedPtr<T>) {
-        let identifier = definition.borrow().parser_scoped_identifier();
-        let weak_ptr = downgrade_as!(definition, dyn Entity);
-        self.parser_scoped_lookup_table.insert(identifier, weak_ptr);
-    }
 }
 
 impl<'ast> PtrVisitor for LookupTableBuilder<'ast> {
     unsafe fn visit_module_start(&mut self, module_ptr: &mut OwnedPtr<Module>) {
         self.add_module_scoped_entry(module_ptr);
-        self.add_parser_scoped_entry(module_ptr);
     }
 
     unsafe fn visit_struct_start(&mut self, struct_ptr: &mut OwnedPtr<Struct>) {
         self.add_module_scoped_entry(struct_ptr);
-        self.add_parser_scoped_entry(struct_ptr);
     }
 
     unsafe fn visit_class_start(&mut self, class_ptr: &mut OwnedPtr<Class>) {
         self.add_module_scoped_entry(class_ptr);
-        self.add_parser_scoped_entry(class_ptr);
     }
 
     unsafe fn visit_exception_start(&mut self, exception_ptr: &mut OwnedPtr<Exception>) {
         self.add_module_scoped_entry(exception_ptr);
-        self.add_parser_scoped_entry(exception_ptr);
     }
 
     unsafe fn visit_interface_start(&mut self, interface_ptr: &mut OwnedPtr<Interface>) {
         self.add_module_scoped_entry(interface_ptr);
-        self.add_parser_scoped_entry(interface_ptr);
     }
 
     unsafe fn visit_enum_start(&mut self, enum_ptr: &mut OwnedPtr<Enum>) {
         self.add_module_scoped_entry(enum_ptr);
-        self.add_parser_scoped_entry(enum_ptr);
     }
 
     unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {
         self.add_module_scoped_entry(trait_ptr);
-        self.add_parser_scoped_entry(trait_ptr);
     }
 
     unsafe fn visit_custom_type(&mut self, custom_type_ptr: &mut OwnedPtr<CustomType>) {
         self.add_module_scoped_entry(custom_type_ptr);
-        self.add_parser_scoped_entry(custom_type_ptr);
     }
 
     unsafe fn visit_type_alias(&mut self, type_alias_ptr: &mut OwnedPtr<TypeAlias>) {
         self.add_module_scoped_entry(type_alias_ptr);
-        self.add_parser_scoped_entry(type_alias_ptr);
     }
 
     unsafe fn visit_operation_start(&mut self, operation_ptr: &mut OwnedPtr<Operation>) {
-        self.add_parser_scoped_entry(operation_ptr);
+        self.add_module_scoped_entry(operation_ptr); //TODOAUSTIN USED TO BE PARSER SCOPED
     }
 
     unsafe fn visit_data_member(&mut self, data_member_ptr: &mut OwnedPtr<DataMember>) {
-        self.add_parser_scoped_entry(data_member_ptr);
+        self.add_module_scoped_entry(data_member_ptr); //TODOAUSTIN USED TO BE PARSER SCOPED
     }
 
     unsafe fn visit_parameter(&mut self, parameter_ptr: &mut OwnedPtr<Parameter>) {
-        self.add_parser_scoped_entry(parameter_ptr);
+        self.add_module_scoped_entry(parameter_ptr); //TODOAUSTIN USED TO BE PARSER SCOPED
     }
 
     unsafe fn visit_return_member(&mut self, parameter_ptr: &mut OwnedPtr<Parameter>) {
-        self.add_parser_scoped_entry(parameter_ptr);
+        self.add_module_scoped_entry(parameter_ptr); //TODOAUSTIN USED TO BE PARSER SCOPED
     }
 
     unsafe fn visit_enumerator(&mut self, enumerator_ptr: &mut OwnedPtr<Enumerator>) {
-        self.add_parser_scoped_entry(enumerator_ptr);
+        self.add_module_scoped_entry(enumerator_ptr); //TODOAUSTIN USED TO BE PARSER SCOPED
     }
 }
