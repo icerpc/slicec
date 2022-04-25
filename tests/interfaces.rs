@@ -88,7 +88,7 @@ mod operations {
     }
 
     #[test]
-    fn operation_can_have_no_response() {
+    fn operation_can_have_empty_return_type() {
         let slice = "
             module Test;
             interface I
