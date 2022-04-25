@@ -134,7 +134,7 @@ impl Ast {
         self.anonymous_types.last().unwrap()
     }
 
-    fn lookup_entity<'ast>(
+    fn lookup_definition<'ast>(
         lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         identifier: &str,
         mut scopes: &[String],
@@ -215,7 +215,7 @@ impl Ast {
         scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
         // TODOAUSTIN take an explicit scope here. Or is there no chance of identifier collisions?
-        Ast::lookup_entity(lookup_table, identifier, &scopes)
+        Ast::lookup_definition(lookup_table, identifier, &scopes)
     }
 
     pub fn lookup_type<'ast>(
