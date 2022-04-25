@@ -87,7 +87,7 @@ prelude = !{ local_attributes ~ doc_comment ~ local_attributes }
 file_attributes = !{ ("[[" ~ attribute ~ "]]")* }
 local_attributes = !{ ("[" ~ attribute ~ "]")* }
 attribute = !{ attribute_directive ~ ( "(" ~ attribute_arguments? ~ ")" )? }
-attribute_directive = ${ attribute_identifier ~ (":" ~ attribute_identifier)? }
+attribute_directive = ${ attribute_identifier ~ ("::" ~ attribute_identifier)? }
 attribute_identifier = @{ (ASCII_ALPHANUMERIC | "_" | "-")+ }
 attribute_argument = @{
     "\"" ~ (!"\"" ~ ANY)* ~ "\"" |          // Add support for escaped characters in the future.
