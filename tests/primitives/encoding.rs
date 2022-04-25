@@ -1,13 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::error::ErrorReporter;
-use slice::parse_from_string;
-
-pub fn parse(slice: &str) -> ErrorReporter {
-    let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
-
-    error_reporter
-}
+use crate::helpers::encoding_helpers::parse;
 
 mod slice1 {
 

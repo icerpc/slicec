@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::helpers::encoding_helpers::parse;
+
 mod slice1 {
 
     use super::*;

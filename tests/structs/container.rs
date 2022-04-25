@@ -1,41 +1,37 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::ast::Ast;
+use crate::helpers::container_helpers::parse;
 use slice::parse_from_string;
 
-fn parse(slice: &str) -> Ast {
-    let (ast, error_reporter) = parse_from_string(slice).ok().unwrap();
-    assert!(!error_reporter.has_errors(true));
-    ast
-}
-
-mod exceptions {
+mod structs {
 
     use super::*;
     use slice::grammar::*;
 
+    ///
     #[test]
     fn can_contain_data_members() {
         // Arrange
         let slice = "
-        module Test;
-        exception E
-        {
-            i: int32,
-            s: string,
-            b: bool,
-        }
-        ";
+            module Test;
+            struct S
+            {
+                i: int32,
+                s: string,
+                b: bool,
+            }
+            ";
 
         // Act
         let ast = parse(slice);
 
         // Assert
-        let struct_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();
+        let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
         let struct_def = struct_ptr.borrow();
         let data_members = struct_def.members();
 
         assert_eq!(data_members.len(), 3);
+
         assert!(matches!(data_members[0].identifier(), "i"));
         assert!(matches!(data_members[1].identifier(), "s"));
         assert!(matches!(data_members[2].identifier(), "b"));
@@ -54,22 +50,47 @@ mod exceptions {
         ));
     }
 
+    ///
     #[test]
     fn can_be_empty() {
         // Arrange
         let slice = "
         module Test;
-        exception E {}
+        struct S {}
         ";
 
         // Act
         let ast = parse(slice);
 
         // Assert
-        let struct_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();
+        let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
         let struct_def = struct_ptr.borrow();
         let data_members = struct_def.members();
 
         assert_eq!(data_members.len(), 0);
+    }
+}
+
+mod compact_structs {
+
+    use super::*;
+
+    ///
+    #[test]
+    #[ignore]
+    fn must_not_be_empty() {
+        // Arrange
+        let slice = "
+            encoding = 2;
+            module Test;
+            compact struct S {}
+        ";
+        let expected_errors = &["compact structs must be non-empty"];
+
+        // Act
+        let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
+
+        // Assert
+        error_reporter.assert_errors(expected_errors);
     }
 }
