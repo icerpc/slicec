@@ -13,6 +13,8 @@ mod slice1 {
 
     use super::*;
 
+    /// Verifies using the slice parser with the Slice 1 encoding will emit errors when parsing
+    /// non-compact structs.
     #[test]
     fn unsupported_fail() {
         // Arrange
@@ -38,6 +40,8 @@ mod slice2 {
 
     use super::*;
 
+    /// Verifies using the slice parser with the Slice 2 encoding will emit errors when parsing
+    /// structs that contain Slice 1 types.
     #[test]
     fn slice1_types_fail() {
         // Arrange
@@ -47,7 +51,8 @@ mod slice2 {
         struct A
         {
             c: AnyClass
-        }";
+        }
+        ";
         let expected_errors = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
             "file encoding was set to the Slice 2 encoding here:",
@@ -60,6 +65,8 @@ mod slice2 {
         error_reporter.assert_errors(expected_errors);
     }
 
+    /// Verifies using the slice parser with the Slice 2 encoding will not emit errors when parsing
+    /// structs that contain Slice 2 types.
     #[test]
     fn slice2_types_succeed() {
         // Arrange
@@ -72,7 +79,8 @@ mod slice2 {
                 i: int32,
                 s: string?,
                 t: T,
-            }";
+            }
+            ";
 
         // Act
         let error_reporter = parse(slice);

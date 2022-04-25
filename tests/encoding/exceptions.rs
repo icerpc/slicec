@@ -13,6 +13,8 @@ mod slice1 {
 
     use super::*;
 
+    /// Verifies that the slice parser with the Slice 1 encoding emits errors when parsing an
+    /// exception that is a data member.
     #[test]
     #[ignore] // Encoding 1 with compact struct containing exceptions is not supported, compilation should
               // fail
@@ -25,7 +27,8 @@ mod slice1 {
             compact struct S
             {
                 e: E,
-            }";
+            }
+            ";
         let expected_errors = &[
             "exception inheritance is only supported by the Slice 1 encoding",
             "file encoding was set to the Slice 2 encoding here:",
@@ -43,8 +46,10 @@ mod slice2 {
 
     use super::*;
 
+    /// Verifies that the slice parser with the Slice 2 encoding emits errors when parsing an
+    /// exception that inherits from another exception.
     #[test]
-    fn no_inheritance() {
+    fn inheritance_fails() {
         // Arrange
         let slice = "
             encoding = 2;
@@ -64,6 +69,8 @@ mod slice2 {
         error_reporter.assert_errors(expected_errors);
     }
 
+    /// Verifies that the slice parser with the Slice 2 encoding does not emit errors when parsing
+    /// exceptions that are data members.
     #[test]
     fn can_be_data_members() {
         // Arrange
@@ -74,7 +81,8 @@ mod slice2 {
             struct S
             {
                 e: E,
-            }";
+            }
+            ";
 
         // Act
         let error_reporter = parse(slice);
