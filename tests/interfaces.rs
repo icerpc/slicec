@@ -117,7 +117,7 @@ mod operations {
         ";
 
         let error_reporter = parse_for_errors(slice);
-        error_reporter.assert_errors(&["can not be more than one streamed parameter"]);
+        error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
     }
 
     #[test]
