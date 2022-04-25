@@ -134,37 +134,6 @@ impl Ast {
         self.anonymous_types.last().unwrap()
     }
 
-    fn lookup_definition<'ast>(
-        lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
-        identifier: &str,
-        mut scopes: &[String],
-    ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        // If the identifier starts with '::', it's a global identifier, which can be looked up directly.
-        if let Some(unprefixed) = identifier.strip_prefix("::") {
-            return lookup_table.get(unprefixed);
-        }
-
-        // For relative paths, we check each enclosing scope, starting from the bottom
-        // (most specific scope), and working our way up to global scope.
-        while !scopes.is_empty() {
-            let candidate = scopes.join("::") + "::" + identifier;
-            if let Some(result) = lookup_table.get(&candidate) {
-                return Some(result);
-            }
-            // Remove the last parent's scope before trying again.
-            // It's safe to unwrap here, since we know that `scopes` is not empty.
-            scopes = scopes.split_last().unwrap().1;
-        }
-
-        // Check for the entity at global scope (without any parent scopes).
-        if let Some(result) = lookup_table.get(&identifier.to_owned()) {
-            return Some(result);
-        }
-
-        // The entity couldn't be found.
-        None
-    }
-
     pub fn find_entity(
         &self,
         fully_scoped_identifier: &str,
@@ -212,9 +181,32 @@ impl Ast {
     pub fn lookup_entity<'ast>(
         lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         identifier: &str,
-        scopes: &[String],
+        mut scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        Ast::lookup_definition(lookup_table, identifier, scopes)
+        // If the identifier starts with '::', it's a global identifier, which can be looked up directly.
+        if let Some(unprefixed) = identifier.strip_prefix("::") {
+            return lookup_table.get(unprefixed);
+        }
+
+        // For relative paths, we check each enclosing scope, starting from the bottom
+        // (most specific scope), and working our way up to global scope.
+        while !scopes.is_empty() {
+            let candidate = scopes.join("::") + "::" + identifier;
+            if let Some(result) = lookup_table.get(&candidate) {
+                return Some(result);
+            }
+            // Remove the last parent's scope before trying again.
+            // It's safe to unwrap here, since we know that `scopes` is not empty.
+            scopes = scopes.split_last().unwrap().1;
+        }
+
+        // Check for the entity at global scope (without any parent scopes).
+        if let Some(result) = lookup_table.get(&identifier.to_owned()) {
+            return Some(result);
+        }
+
+        // The entity couldn't be found.
+        None
     }
 
     pub fn lookup_type<'ast>(
