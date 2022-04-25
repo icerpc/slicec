@@ -12,7 +12,7 @@ use std::collections::HashMap;
 pub(super) fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
     let mut patcher = TypePatcher {
         primitive_cache: &ast.primitive_cache,
-        module_scoped_lookup_table: &ast.module_scoped_lookup_table,
+        lookup_table: &ast.lookup_table,
         error_reporter,
     };
 
@@ -39,7 +39,7 @@ pub(super) fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
 
 struct TypePatcher<'ast> {
     primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
-    module_scoped_lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
+    lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
     error_reporter: &'ast mut ErrorReporter,
 }
 
@@ -52,8 +52,8 @@ impl<'ast> TypePatcher<'ast> {
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         // Since only user-defined types need to be patched, we lookup by entity instead of by type.
-        let lookup = Ast::lookup_module_scoped_entity(
-            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope,
+        let lookup = Ast::lookup_entity(
+            self.lookup_table, &type_ref.type_string, &type_ref.scope,
         );
         if let Some(definition) = lookup {
             match definition.borrow().concrete_entity() {
@@ -110,7 +110,7 @@ impl<'ast> TypePatcher<'ast> {
                     }
 
                     let mut alias_lookup = Ast::lookup_type(
-                        self.module_scoped_lookup_table,
+                        self.lookup_table,
                         self.primitive_cache,
                         &alias_ref.type_string,
                         &alias_ref.scope,
@@ -127,7 +127,7 @@ impl<'ast> TypePatcher<'ast> {
                             }
 
                             alias_lookup = Ast::lookup_type(
-                                self.module_scoped_lookup_table,
+                                self.lookup_table,
                                 self.primitive_cache,
                                 &underlying_ref.type_string,
                                 &underlying_ref.scope,
@@ -155,8 +155,8 @@ impl<'ast> TypePatcher<'ast> {
         }
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
-        let lookup = Ast::lookup_module_scoped_entity(
-            self.module_scoped_lookup_table, &type_ref.type_string, &type_ref.scope
+        let lookup = Ast::lookup_entity(
+            self.lookup_table, &type_ref.type_string, &type_ref.scope
         );
 
         if let Some(definition) = lookup {
