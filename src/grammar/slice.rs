@@ -1415,8 +1415,8 @@ impl Attribute {
         location: Location,
     ) -> Self {
         let prefixed_directive = prefix.clone().map_or(
-            directive.clone(),                  // Default value if prefix == None
-            |prefix| prefix + ":" + &directive, // Function to call if prefix == Some
+            directive.clone(),                   // Default value if prefix == None
+            |prefix| prefix + "::" + &directive, // Function to call if prefix == Some
         );
         Attribute { prefix, directive, prefixed_directive, arguments, location }
     }
