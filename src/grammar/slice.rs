@@ -205,7 +205,7 @@ impl Class {
     }
 
     pub fn preserve_slices(&self, check_parents: bool) -> bool {
-        self.has_attribute("preserve-slice", check_parents)
+        self.has_attribute("preserveSlice", check_parents)
     }
 }
 
