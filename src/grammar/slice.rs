@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::traits::*;
-use super::util::{Scope, Encoding, EncodingFormat, TagFormat};
+use super::util::{Scope, Encoding, ClassFormat, TagFormat};
 use super::wrappers::*;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
@@ -598,16 +598,16 @@ impl Operation {
         }
     }
 
-    pub fn encoding_format(&self) -> EncodingFormat {
+    pub fn class_format(&self) -> ClassFormat {
         if let Some(format) = self.get_attribute("format", true) {
             match format[0].as_str() {
-                "Compact" => EncodingFormat::Compact,
-                "Sliced" => EncodingFormat::Sliced,
+                "Compact" => ClassFormat::Compact,
+                "Sliced" => ClassFormat::Sliced,
                 _ => panic!("unknown format type"),
             }
         } else {
             // Compact is the default format for classes.
-            EncodingFormat::Compact
+            ClassFormat::Compact
         }
     }
 

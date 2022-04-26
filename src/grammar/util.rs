@@ -88,7 +88,7 @@ impl fmt::Display for Encoding {
 /// encoded. With IceRPC, exceptions are always sent in a Sliced format, but they can be received
 /// in either format for backwards compatibility. Classes are sent in a Compact format by default.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum EncodingFormat {
+pub enum ClassFormat {
     /// Used when both sender and receiver have the same Slice definitions for classes and
     /// exceptions. Encoding a class or exception with this format is more efficient, but if an
     /// application receives an instance it doesn't know, it's incapable of decoding it.
