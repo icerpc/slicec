@@ -45,10 +45,10 @@ mod slice2 {
             // Arrange
             let slice = &format!(
                 "
-            encoding = 2;
-            module Test;
-            enum E : {} {{}}
-            ",
+                encoding = 2;
+                module Test;
+                enum E : {} {{}}
+                ",
                 valid_type,
             );
             let expected_errors = &[];
@@ -65,6 +65,7 @@ mod slice2 {
     /// * This test is passing currently, but Austin believes it results from the error checking for
     /// these types not being implemented yet.
     #[test]
+    #[ignore]
     fn supported_variable_size_numeric_underlying_types_succeed() {
         // Test case setup
         let valid_types = ["varint32", "varuint32", "varint62", "varuint62"];
@@ -76,13 +77,13 @@ mod slice2 {
             // Arrange
             let slice = &format!(
                 "
-            encoding = 2;
-            module Test;
-            enum E : {} {{}}
-            ",
+                encoding = 2;
+                module Test;
+                enum E : {} {{}}
+                ",
                 valid_type,
             );
-            let expected_errors = &[];
+            let expected_errors = &[]; // TODO: Add the relevant error message once fixed
 
             // Act
             let error_reporter = parse_for_errors(slice);
