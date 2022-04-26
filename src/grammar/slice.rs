@@ -1343,7 +1343,7 @@ impl Element for Primitive {
             Self::Float32 => "float32",
             Self::Float64 => "float64",
             Self::String => "string",
-            Self::AnyClass => "any class",
+            Self::AnyClass => "AnyClass",
         }
     }
 }
