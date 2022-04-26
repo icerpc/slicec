@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::traits::*;
-use super::util::{Scope, Encoding, TagFormat};
+use super::util::{Scope, Encoding, EncodingFormat, TagFormat};
 use super::wrappers::*;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
@@ -202,6 +202,10 @@ impl Class {
     pub fn base_class(&self) -> Option<&Class> {
         self.base.as_ref()
             .map(|type_ref| type_ref.definition())
+    }
+
+    pub fn preserve_slices(&self, check_parents: bool) -> bool {
+        self.has_attribute("preserve-slice", check_parents)
     }
 }
 
@@ -592,6 +596,23 @@ impl Operation {
         } else {
             false
         }
+    }
+
+    pub fn encoding_format(&self) -> EncodingFormat {
+        if let Some(format) = self.get_attribute("format", true) {
+            match format[0].as_str() {
+                "Compact" => EncodingFormat::Compact,
+                "Sliced" => EncodingFormat::Sliced,
+                _ => panic!("unknown format type"),
+            }
+        } else {
+            // Compact is the default format for classes.
+            EncodingFormat::Compact
+        }
+    }
+
+    pub fn is_oneway(&self) -> bool {
+        self.has_attribute("oneway", false)
     }
 }
 

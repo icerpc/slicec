@@ -84,6 +84,21 @@ impl fmt::Display for Encoding {
     }
 }
 
+/// These format types describe how classes and exceptions with inheritance hierarchies are
+/// encoded. With IceRPC, exceptions are always sent in a Sliced format, but they can be received
+/// in either format for backwards compatibility. Classes are sent in a Compact format by default.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum EncodingFormat {
+    /// Used when both sender and receiver have the same Slice definitions for classes and
+    /// exceptions. Encoding a class or exception with this format is more efficient, but if an
+    /// application receives an instance it doesn't know, it's incapable of decoding it.
+    Compact,
+
+    /// Used when a sender and receiver may have different Slice definitions. Each layer of
+    /// inheritance is sliced separately, allowing applications to ignore unknown slices.
+    Sliced,
+}
+
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
 #[derive(Clone, Debug, PartialEq, Eq)]
