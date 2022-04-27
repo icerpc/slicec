@@ -8,7 +8,7 @@ mod slice2 {
 
     use super::*;
 
-    /// Simple dictionary key types test.
+    /// Invalid Simple dictionary key types test.
     macro_rules! test_simple_dictionary_key_types_fails {
         ($(($test_name:ident, $key_type:expr)),*) => {
             $(
@@ -41,7 +41,7 @@ mod slice2 {
         }
     }
 
-    // Simple dictionary key types test cases.
+    // Invalid Simple dictionary key types test cases.
     test_simple_dictionary_key_types_fails!(
         (optional_uint8_as_key_invalid, "uint8?"),
         (optional_uint16_as_key_invalid, "uint16?"),
@@ -63,7 +63,7 @@ mod slice2 {
         (float64_as_key_invalid, "float64")
     );
 
-    /// Constructed dictionary key types test.
+    /// Invalid Constructed dictionary key types test.
     macro_rules! test_constructed_dictionary_key_types_fails {
         ($(($test_name:ident, $key_type:expr, $key_ident:expr, $key_def:expr)),*) => {
             $(
@@ -104,7 +104,7 @@ mod slice2 {
         }
     }
 
-    // Constructed dictionary key types test cases.
+    // Invalid Constructed dictionary key types test cases.
     test_constructed_dictionary_key_types_fails!(
         (
             dictionary_as_key_invalid,
