@@ -52,6 +52,7 @@ impl<'a> EncodingPatcher<'a> {
         type_def: &(impl Entity + Type),
         type_id: String,
         supported_encodings: SupportedEncodings,
+        file_encoding: Encoding,
     ) {
         if supported_encodings.is_empty() {
             let message = format!(
@@ -59,6 +60,13 @@ impl<'a> EncodingPatcher<'a> {
                 type_id,
             );
             self.error_reporter.report_error(message, Some(type_def.location()));
+        } else if !supported_encodings.supports(&file_encoding) {
+            let message = format!(
+                "type '{}' isn't supported by its file's Slice encoding",
+                type_id,
+            );
+            self.error_reporter.report_error(message, Some(type_def.location()));
+            self.print_file_encoding_note(type_def);
         }
         self.supported_encodings.insert(type_id, supported_encodings);
     }
@@ -99,12 +107,16 @@ impl<'a> EncodingPatcher<'a> {
             TypeRefs::Exception(exception_ref) => {
                 let type_id = exception_ref.module_scoped_identifier();
                 // Compute the type's supported encodings if they haven't been computed yet.
-                if let Some(encodings) = self.supported_encodings.get(&type_id) {
-                    encodings
+                let mut encodings = if let Some(e) = self.supported_encodings.get(&type_id) {
+                    e
                 } else {
                     exception_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }.clone();
+
+                // Exceptions as a data type are not supported with Slice 1.
+                encodings.disable(Encoding::Slice1);
+                encodings
             }
             TypeRefs::Interface(interface_ref) => {
                 is_nullable = true;
@@ -263,7 +275,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             }
         }
 
-        self.add_supported_encodings_entry(struct_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(struct_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_class_start(&mut self, class_def: &Class) {
@@ -292,7 +304,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings = SupportedEncodings::dummy();
         }
 
-        self.add_supported_encodings_entry(class_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(class_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_exception_start(&mut self, exception_def: &Exception) {
@@ -323,7 +335,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             }
         }
 
-        self.add_supported_encodings_entry(exception_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(
+            exception_def,
+            type_id,
+            supported_encodings,
+            file_encoding,
+        );
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface) {
@@ -331,7 +348,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         let file_encoding = self.get_file_encoding_for(interface_def);
         let supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        self.add_supported_encodings_entry(interface_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(
+            interface_def,
+            type_id,
+            supported_encodings,
+            file_encoding,
+        );
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
@@ -382,7 +404,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             }
         }
 
-        self.add_supported_encodings_entry(enum_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(enum_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_trait(&mut self, trait_def: &Trait) {
@@ -401,7 +423,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings = SupportedEncodings::dummy();
         }
 
-        self.add_supported_encodings_entry(trait_def, type_id, supported_encodings);
+        self.add_supported_encodings_entry(trait_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_custom_type(&mut self, custom_type: &CustomType) {
@@ -420,7 +442,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings = SupportedEncodings::dummy();
         }
 
-        self.add_supported_encodings_entry(custom_type, type_id, supported_encodings);
+        self.add_supported_encodings_entry(
+            custom_type,
+            type_id,
+            supported_encodings,
+            file_encoding,
+        );
     }
 }
 
