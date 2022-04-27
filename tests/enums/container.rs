@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::helpers::parsing_helpers::*;
 
 mod slice1 {
 
