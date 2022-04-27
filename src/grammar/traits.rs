@@ -58,7 +58,7 @@ pub trait Attributable: Symbol {
     }
 
     fn get_deprecated_attribute(&self, check_parent: bool) -> Option<&Vec<String>> {
-        self.get_attribute("deprecate", check_parent)
+        self.get_attribute("deprecated", check_parent)
     }
 
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
