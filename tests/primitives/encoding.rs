@@ -27,7 +27,7 @@ mod slice1 {
         for value in type_cases.iter() {
             let errors: &[&str] = &[
                 &format!("'{}' is not supported by the Slice 1 encoding", value),
-                &format!("file encoding was set to the Slice 1 encoding here:"),
+                "file encoding was set to the Slice 1 encoding here:",
             ];
             test(value, errors)
         }
@@ -104,7 +104,7 @@ mod slice2 {
         for value in type_cases.iter() {
             let errors: &[&str] = &[
                 &format!("'{}' is not supported by the Slice 2 encoding", value),
-                &format!("file encoding was set to the Slice 2 encoding here:"),
+                "file encoding was set to the Slice 2 encoding here:",
             ];
             test(value, errors)
         }
