@@ -203,10 +203,6 @@ impl Class {
         self.base.as_ref()
             .map(|type_ref| type_ref.definition())
     }
-
-    pub fn preserve_slices(&self, check_parents: bool) -> bool {
-        self.has_attribute("preserveSlice", check_parents)
-    }
 }
 
 impl Type for Class {
