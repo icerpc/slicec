@@ -2,6 +2,7 @@
 
 pub mod helpers;
 
+mod dictionaries;
 mod enums;
 mod exceptions;
 mod primitives;
