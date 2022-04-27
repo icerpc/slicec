@@ -109,6 +109,6 @@ mod slice2 {
         assert_eq!(enumerators[1].value, 2);
         assert_eq!(enumerators[2].value, 3);
 
-        assert!(matches!(enum_def.underlying_type(), &Primitive::Int16));
+        assert!(matches!(*enum_def.underlying_type(), Primitive::Int16));
     }
 }
