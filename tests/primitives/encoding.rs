@@ -6,7 +6,6 @@ mod slice1 {
 
     use super::*;
     use test_case::test_case;
-    const ENCODING: &str = "1";
 
     /// Verifies that if Slice 1 is used with unsupported types (int8, uint16, uint32, varint32,
     /// varuint32, uint64, varint62, and varuint62) that the compiler will produce the relevant not
@@ -23,13 +22,12 @@ mod slice1 {
         // Test setup
         let slice = &format!(
             "
-            encoding = {encoding};
+            encoding = 1;
             module Test;
             compact struct S
             {{
                 v: {value},
             }}",
-            encoding = ENCODING,
             value = value,
         );
 
@@ -60,13 +58,12 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-            encoding = {encoding};
+            encoding = 1;
             module Test;
             compact struct S
             {{
                 v: {value},
             }}",
-            encoding = ENCODING,
             value = value,
         );
 
@@ -82,7 +79,6 @@ mod slice2 {
 
     use super::*;
     use test_case::test_case;
-    const ENCODING: &str = "2";
 
     /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
@@ -91,13 +87,12 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = {encoding};
+            encoding = 2;
             module Test;
             compact struct S
             {{
                 v: AnyClass,
             }}",
-            encoding = ENCODING,
         );
         let expected_errors: &[&str] = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
@@ -134,13 +129,12 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = {encoding};
+            encoding = 2;
             module Test;
             compact struct S
             {{
                 v: {value},
             }}",
-            encoding = ENCODING,
             value = value,
         );
 
@@ -172,13 +166,12 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = {encoding};
+            encoding = 2;
             module Test;
             struct MyStruct {{
                 myVar: {value},
             }}
             ",
-            encoding = ENCODING,
             value = value,
         );
 
