@@ -176,37 +176,4 @@ mod slice2 {
         (string_as_key_valid, "string"),
         (bool_as_key_valid, "bool")
     );
-
-    /// Compact structs containing allowed types as a key test.
-    #[test]
-    fn compact_struct_containing_allowed_primitives_as_key_valid() {
-        // Arrange
-        let slice = "
-            encoding = 2;
-            module Test;
-            compact struct S {
-                a : uint8,
-                b : uint16,
-                c : uint32,
-                d : uint64,
-                e : int8,
-                f : int16,
-                g : int32,
-                h : int64,
-                i : varint32,
-                j : varuint32,
-                k : varint62,
-                l : varuint62,
-                m : string,
-                n : bool,
-            }
-            typealias MyDict = dictionary<S, int32>;
-            ";
-
-        // Act
-        let error_reporter = parse_for_errors(&slice);
-
-        // Assert
-        assert!(!error_reporter.has_errors(true));
-    }
 }
