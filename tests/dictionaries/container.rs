@@ -8,7 +8,7 @@ mod slice2 {
 
     use super::*;
 
-    /// Invalid Simple dictionary key types test.
+    /// Invalid primitive dictionary key types test.
     macro_rules! test_simple_dictionary_key_types_fails {
         ($(($test_name:ident, $key_type:expr)),*) => {
             $(
@@ -41,25 +41,11 @@ mod slice2 {
         }
     }
 
-    // Invalid Simple dictionary key types test cases.
+    // Invalid primitive dictionary key types test cases.
     test_simple_dictionary_key_types_fails!(
-        (optional_uint8_as_key_invalid, "uint8?"),
-        (optional_uint16_as_key_invalid, "uint16?"),
-        (optional_uint32_as_key_invalid, "uint32?"),
-        (optional_uint64_as_key_invalid, "uint64?"),
-        (optional_int8_as_key_invalid, "int8?"),
-        (optional_int16_as_key_invalid, "int16?"),
         (optional_int32_as_key_invalid, "int32?"),
-        (optional_int64_as_key_invalid, "int64?"),
-        (optional_varint32_as_key_invalid, "varint32?"),
-        (optional_varuint32_as_key_invalid, "varuint32?"),
-        (optional_varint62_as_key_invalid, "varint62?"),
-        (optional_varuint62_as_key_invalid, "varuint62?"),
-        (optional_string_as_key_invalid, "string?"),
-        (optional_bool_as_key_invalid, "bool?"),
-        (optional_sequence_as_key_invalid, "sequence<int32>?"),
+        (optional_proxy_as_key_invalid, "proxy?"),
         (proxy_as_key_invalid, "proxy"),
-        (float32_as_key_invalid, "float32"),
         (float64_as_key_invalid, "float64")
     );
 
