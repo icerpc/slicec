@@ -116,7 +116,13 @@ mod slice2 {
             "MyException",
             "exception MyException { }"
         ),
-        (trait_as_key_invalid, "trait", "MyTrait", "trait MyTrait")
+        (trait_as_key_invalid, "trait", "MyTrait", "trait MyTrait"),
+        (
+            custom_as_key_invalid,
+            "custom",
+            "MyCustom",
+            "custom MyCustom"
+        )
     );
 
     /// Valid dictionary key types test.
