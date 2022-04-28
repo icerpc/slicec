@@ -9,7 +9,7 @@ mod slice2 {
     use super::*;
 
     /// Invalid primitive dictionary key types test.
-    macro_rules! test_simple_dictionary_key_types_fails {
+    macro_rules! test_primitive_dictionary_key_types_fails {
         ($(($test_name:ident, $key_type:expr)),*) => {
             $(
                 #[test]
