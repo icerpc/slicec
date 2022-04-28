@@ -42,7 +42,7 @@ mod slice2 {
     }
 
     // Invalid primitive dictionary key types test cases.
-    test_simple_dictionary_key_types_fails!(
+    test_primitive_dictionary_key_types_fails!(
         (optional_int32_as_key_invalid, "int32?"),
         (optional_proxy_as_key_invalid, "proxy?"),
         (proxy_as_key_invalid, "proxy"),
