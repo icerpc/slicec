@@ -97,6 +97,7 @@ mod slice2 {
             "MyDict",
             "typealias MyDict = dictionary<int32, int32>"
         ),
+        (proxy_as_key_invalid, "proxy", "I", "interface I {}"),
         (
             struct_as_key_invalid,
             "struct",
