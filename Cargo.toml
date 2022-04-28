@@ -16,6 +16,9 @@ pest_derive = "2.0"
 pest_consume = "1.0.6"
 structopt = "0.3.13"
 
+[dev-dependencies]
+test-case = "2.0.2"
+
 [lib]
 name = "slice"
 path = "src/lib.rs"
