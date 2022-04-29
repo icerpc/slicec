@@ -52,8 +52,7 @@ will show a redefinition conflict between the 2 slice files.
 
 ## Testing
 
-The test suite can be run from the command line by running `cargo test` command in the repository top-level
-directory.
+The test suite can be run from the command line by running `cargo test` in the repository.
 
 Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3).
 
