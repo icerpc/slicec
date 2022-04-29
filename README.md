@@ -49,3 +49,40 @@ target/release/slicec-csharp example/testing.slice example/sliceerrors.slice
 ```
 
 will show a redefinition conflict between the 2 slice files.
+
+## Testing
+
+
+```shell
+cargo install rustfilt
+cargo install cargo-binutils
+rustup component add llvm-tools-preview
+```
+
+```shell
+RUSTFLAGS="-C instrument-coverage" \
+    LLVM_PROFILE_FILE="tests/test-report/data/test-report-%m.profraw" \
+    cargo test --tests
+```
+
+```shell
+cargo profdata -- merge -sparse tests/test-report/data/test-report-*.profraw -o tests/test-report/data/test-report.profdata
+```
+
+```shell
+cargo cov -- report \
+    $( \
+      for file in \
+        $( \
+          RUSTFLAGS="-C instrument-coverage" \
+            cargo test --tests --no-run --message-format=json \
+              | jq -r "select(.profile.test == true) | .filenames[]" \
+              | grep -v dSYM - \
+        ); \
+      do \
+        printf "%s %s " -object $file; \
+      done \
+    ) \
+  --instr-profile=tests/test-report/data/test-report.profdata --summary-only \
+  --use-color --ignore-filename-regex='/.cargo/registry'
+```
