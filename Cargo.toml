@@ -18,13 +18,7 @@ structopt = "0.3.13"
 
 [dev-dependencies]
 test-case = "2.0.2"
-rustfilt = "0.2.1"
 
 [lib]
 name = "slice"
 path = "src/lib.rs"
-
-[build]
-# Build the profiler runtime (required when compiling with options that depend
-# on this runtime, such as `-C profile-generate` or `-C instrument-coverage`).
-profiler = true
