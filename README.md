@@ -67,10 +67,9 @@ rustup component add llvm-tools-preview
 Then set the flags required for generating the .profraw files.
 
 ```shell
-export CARGO_INCREMENTAL=0 \
-&& export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" \
-&&  export RUSTDOCFLAGS="-Cpanic=abort"
-```
+export CARGO_INCREMENTAL=0 
+export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" 
+export RUSTDOCFLAGS="-Cpanic=abort"
 
 Finally generate the .profraw files.
 
