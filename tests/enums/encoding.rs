@@ -32,64 +32,56 @@ mod slice1 {
 mod slice2 {
 
     use super::*;
+    use test_case::test_case;
 
-    #[test]
-    fn supported_fixed_size_numeric_underlying_types_succeed() {
-        // Test case setup
-        let valid_types = ["uint8", "int16", "uint16", "int32", "uint32"];
+    #[test_case("uint8")]
+    #[test_case("int16")]
+    #[test_case("uint16")]
+    #[test_case("int32")]
+    #[test_case("uint32")]
+    fn supported_fixed_size_numeric_underlying_types_succeed(valid_type: &str) {
+        // Arrange
+        let slice = &format!(
+            "
+            encoding = 2;
+            module Test;
+            enum E : {} {{}}
+            ",
+            valid_type,
+        );
+        let expected_errors = &[];
 
-        // Run test for each case
-        valid_types.iter().for_each(|valid_type| test(valid_type));
+        // Act
+        let error_reporter = parse_for_errors(slice);
 
-        fn test(valid_type: &str) {
-            // Arrange
-            let slice = &format!(
-                "
-                encoding = 2;
-                module Test;
-                enum E : {} {{}}
-                ",
-                valid_type,
-            );
-            let expected_errors = &[];
-
-            // Act
-            let error_reporter = parse_for_errors(slice);
-
-            // Assert
-            error_reporter.assert_errors(expected_errors);
-        }
+        // Assert
+        error_reporter.assert_errors(expected_errors);
     }
 
     //
     /// * This test is passing currently, but Austin believes it results from the error checking for
     /// these types not being implemented yet.
-    #[test]
+    #[test_case("varint32")]
+    #[test_case("varuint32")]
+    #[test_case("varint62")]
+    #[test_case("varuint62")]
     #[ignore]
-    fn supported_variable_size_numeric_underlying_types_succeed() {
-        // Test case setup
-        let valid_types = ["varint32", "varuint32", "varint62", "varuint62"];
+    fn supported_variable_size_numeric_underlying_types_succeed(valid_type: &str) {
+        // Arrange
+        let slice = &format!(
+            "
+            encoding = 2;
+            module Test;
+            enum E : {} {{}}
+            ",
+            valid_type,
+        );
+        let expected_errors = &[]; // TODO: Add the relevant error message once fixed
 
-        // Run test for each case
-        valid_types.iter().for_each(|valid_type| test(valid_type));
+        // Act
+        let error_reporter = parse_for_errors(slice);
 
-        fn test(valid_type: &str) {
-            // Arrange
-            let slice = &format!(
-                "
-                encoding = 2;
-                module Test;
-                enum E : {} {{}}
-                ",
-                valid_type,
-            );
-            let expected_errors = &[]; // TODO: Add the relevant error message once fixed
-
-            // Act
-            let error_reporter = parse_for_errors(slice);
-
-            // Assert
-            error_reporter.assert_errors(expected_errors);
-        }
+        // Assert
+        error_reporter.assert_errors(expected_errors);
     }
 }
