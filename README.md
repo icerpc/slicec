@@ -52,12 +52,19 @@ will show a redefinition conflict between the 2 slice files.
 
 ## Testing
 
-### Report generation
+The test suite can be run from the command line by running `cargo test` command in the repository top-level
+directory.
+
+Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3).
+
+First we must  install grcov and the llvm tools
 
 ```shell
 cargo install grcov
 rustup component add llvm-tools-preview
 ```
+
+Then set the flags required for generating the .profraw files.
 
 ```shell
 export CARGO_INCREMENTAL=0 \
@@ -65,9 +72,13 @@ export CARGO_INCREMENTAL=0 \
 &&  export RUSTDOCFLAGS="-Cpanic=abort"
 ```
 
+Finally generate the .profraw files.
+
 ```shell
 cargo build && cargo test
 ```
+
+Now that the files are generate  grcov can generate the html report:
 
 ```shell
 grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
