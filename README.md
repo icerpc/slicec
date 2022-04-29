@@ -57,7 +57,7 @@ directory.
 
 Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3).
 
-First we must  install grcov and the llvm tools
+First we must install `grcov` and the `llvm-tools-preview`.
 
 ```shell
 cargo install grcov
