@@ -52,37 +52,25 @@ will show a redefinition conflict between the 2 slice files.
 
 ## Testing
 
+### Report generation
 
 ```shell
-cargo install rustfilt
-cargo install cargo-binutils
+cargo install grcov
 rustup component add llvm-tools-preview
 ```
 
 ```shell
-RUSTFLAGS="-C instrument-coverage" \
-    LLVM_PROFILE_FILE="tests/test-report/data/test-report-%m.profraw" \
-    cargo test --tests
+export CARGO_INCREMENTAL=0 \
+&& export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort" \
+&&  export RUSTDOCFLAGS="-Cpanic=abort"
 ```
 
 ```shell
-cargo profdata -- merge -sparse tests/test-report/data/test-report-*.profraw -o tests/test-report/data/test-report.profdata
+cargo build && cargo test
 ```
 
 ```shell
-cargo cov -- report \
-    $( \
-      for file in \
-        $( \
-          RUSTFLAGS="-C instrument-coverage" \
-            cargo test --tests --no-run --message-format=json \
-              | jq -r "select(.profile.test == true) | .filenames[]" \
-              | grep -v dSYM - \
-        ); \
-      do \
-        printf "%s %s " -object $file; \
-      done \
-    ) \
-  --instr-profile=tests/test-report/data/test-report.profdata --summary-only \
-  --use-color --ignore-filename-regex='/.cargo/registry'
+grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
 ```
+
+The output html is in the `target/debug/coverage/` directory.
