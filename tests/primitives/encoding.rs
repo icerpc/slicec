@@ -83,6 +83,7 @@ mod slice2 {
     /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
     #[test]
+    #[ignore]
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
