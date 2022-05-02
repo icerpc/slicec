@@ -58,7 +58,6 @@ fn can_have_parameters() {
     let parameters = operation.parameters();
 
     assert_eq!(parameters.len(), 3);
-
     assert_eq!(parameters[0].identifier(), "a");
     assert_eq!(parameters[1].identifier(), "b");
     assert_eq!(parameters[2].identifier(), "c");
