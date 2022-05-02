@@ -1,0 +1,41 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+mod helpers;
+
+use crate::helpers::parsing_helpers::*;
+use test_case::test_case;
+
+/// Verifies that the supported encodings compile
+#[test_case("1")]
+#[test_case("2")]
+fn valid_encodings(value: &str) {
+    // Arrange
+    let slice = &format!(
+        "
+        encoding = {value};
+        ",
+        value = value,
+    );
+
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
+    // Assert
+    assert!(!error_reporter.has_errors(true));
+}
+
+#[test]
+#[should_panic] // TODO: Fix parse_for_errors to not panic
+fn invalid_encodings_fail() {
+    // Arrange
+    let slice = "
+        encoding = 3;
+        ";
+    let expected_errors: &[&str] = &[];
+
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
+    // Assert
+    error_reporter.assert_errors(expected_errors);
+}
