@@ -59,14 +59,8 @@ fn can_have_multiple_operation() {
 fn supports_single_inheritance() {
     let slice = "
         module Test;
-        interface I
-        {
-            op1();
-        }
-        interface J : I
-        {
-            op2();
-        }
+        interface I {}
+        interface J : I {}
     ";
 
     let ast = parse_for_ast(slice);
