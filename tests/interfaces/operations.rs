@@ -118,7 +118,6 @@ fn can_have_return_tuple() {
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 2);
-
     assert_eq!(returns[0].identifier(), "r1");
     assert_eq!(returns[1].identifier(), "r2");
 
