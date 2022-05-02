@@ -115,7 +115,7 @@ fn inherits_correct_operations() {
     assert_eq!(interface_b_def.operations()[0].identifier(), "opB");
     assert_eq!(
         interface_b_def.all_inherited_operations()[0].identifier(),
-        "opA"
+        "opA",
     );
 
     assert_eq!(interface_d_def.operations().len(), 1);
@@ -125,10 +125,10 @@ fn inherits_correct_operations() {
 
     assert_eq!(
         interface_d_def.all_inherited_operations()[0].identifier(),
-        "opA"
+        "opA",
     );
     assert_eq!(
         interface_d_def.all_inherited_operations()[1].identifier(),
-        "opB"
+        "opB",
     );
 }
