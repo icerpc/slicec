@@ -58,12 +58,14 @@ The test suite can be run from the command line by running `cargo test` in the r
 
 Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3).
 
-First install `grcov` and the `llvm-tools-preview` and set the relevant build flags:
+First install `grcov` and the `llvm-tools-preview`:
 
 ```shell
 cargo install grcov
 rustup component add llvm-tools-preview
 ```
+
+Then set the relevant build flags:
 
 ```shell
 export CARGO_INCREMENTAL=0
@@ -71,7 +73,7 @@ export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Co
 export RUSTDOCFLAGS="-Cpanic=abort"
 ```
 
-Generate the html report:
+Finally the html report:
 
 ```shell
 cargo build && cargo test
