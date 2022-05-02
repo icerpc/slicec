@@ -73,7 +73,7 @@ export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Co
 export RUSTDOCFLAGS="-Cpanic=abort"
 ```
 
-Finally the html report:
+Finally generate the html report:
 
 ```shell
 cargo build && cargo test
