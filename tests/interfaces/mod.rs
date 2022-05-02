@@ -82,18 +82,9 @@ fn supports_single_inheritance() {
 fn supports_multiple_inheritance() {
     let slice = "
         module Test;
-        interface I
-        {
-            op1();
-        }
-        interface J
-        {
-            op2();
-        }
-        interface K : I, J
-        {
-            op2();
-        }
+        interface I {}
+        interface J {}
+        interface K : I, J {}
     ";
 
     let ast = parse_for_ast(slice);
