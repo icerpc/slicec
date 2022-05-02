@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+mod inheritance;
 mod operations;
 
 use crate::helpers::parsing_helpers::*;
