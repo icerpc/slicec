@@ -1,73 +1,10 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::ast::Ast;
-use slice::error::ErrorReporter;
+use crate::helpers::parsing_helpers::*;
 use slice::grammar::*;
-use slice::parse_from_string;
-
-fn parse_for_ast(slice: &str) -> Ast {
-    let (ast, error_reporter) = parse_from_string(slice).ok().unwrap();
-    assert!(!error_reporter.has_errors(true));
-    ast
-}
-
-fn parse_for_errors(slice: &str) -> ErrorReporter {
-    let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
-    error_reporter
-}
 
 #[test]
-fn can_have_no_operations() {
-    let slice = "
-        module Test;
-        interface I {}
-    ";
-
-    let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-    assert_eq!(interface_def.identifier(), "I");
-    assert_eq!(interface_def.operations().len(), 0);
-}
-
-#[test]
-fn can_have_one_operation() {
-    let slice = "
-        module Test;
-        interface I
-        {
-            op1();
-        }
-    ";
-
-    let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-
-    assert_eq!(interface_def.operations().len(), 1);
-}
-
-#[test]
-fn can_have_multiple_operation() {
-    let slice = "
-        module Test;
-        interface I
-        {
-            op1();
-            op2();
-            op3();
-        }
-    ";
-
-    let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-
-    assert_eq!(interface_def.operations().len(), 3);
-}
-
-#[test]
-fn operation_can_have_no_parameters() {
+fn can_have_no_parameters() {
     let slice = "
         module Test;
         interface I
@@ -86,7 +23,7 @@ fn operation_can_have_no_parameters() {
 }
 
 #[test]
-fn operation_can_have_empty_return_type() {
+fn can_have_no_return_type() {
     let slice = "
         module Test;
         interface I
@@ -104,30 +41,33 @@ fn operation_can_have_empty_return_type() {
     assert!(operation.return_members().is_empty());
 }
 
-#[test]
-fn operation_can_have_at_most_one_streamed_parameter() {
-    let slice = "
-        module Test;
-        interface I
-        {
-            op(s: stream varuint62, s2: stream string);
-        }
-    ";
+mod streams {
+    use crate::helpers::parsing_helpers::*;
+    #[test]
+    fn operation_can_have_at_most_one_streamed_parameter() {
+        let slice = "
+            module Test;
+            interface I
+            {
+                op(s: stream varuint62, s2: stream string);
+            }
+        ";
 
-    let error_reporter = parse_for_errors(slice);
-    error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
-}
+        let error_reporter = parse_for_errors(slice);
+        error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
+    }
 
-#[test]
-fn stream_parameter_must_be_last() {
-    let slice = "
-        module Test;
-        interface I
-        {
-            op(s: stream varuint62, i: int32);
-        }
-    ";
+    #[test]
+    fn stream_parameter_must_be_last() {
+        let slice = "
+            module Test;
+            interface I
+            {
+                op(s: stream varuint62, i: int32);
+            }
+        ";
 
-    let error_reporter = parse_for_errors(slice);
-    error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
+        let error_reporter = parse_for_errors(slice);
+        error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
+    }
 }
