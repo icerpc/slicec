@@ -138,8 +138,7 @@ impl Ast {
         &self,
         fully_scoped_identifier: &str,
     ) -> Option<WeakPtr<dyn Entity>> {
-        let identifier = fully_scoped_identifier.strip_prefix("::").unwrap();
-        self.lookup_table.get(identifier).cloned()
+        self.lookup_table.get(fully_scoped_identifier).cloned()
     }
 
     pub fn find_typed_entity<T: Entity + 'static>(
