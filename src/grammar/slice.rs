@@ -447,8 +447,10 @@ impl Type for Interface {
     }
 
     fn min_wire_size(&self) -> u32 {
-        // TODO write a comment explaining why this is 3.
-        3
+        // Interfaces are passed on the wire as proxies, and the smallest valid proxy (with Slice2)
+        // is "/". Taking up 1 byte for the length of the string, and 1 byte for the '/' character.
+        // Note the min_wire_size for a Slice1 encoded proxy is 3, but we take the minimum of both.
+        2
     }
 
     fn uses_classes(&self) -> bool {
