@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-mod helpers;
+pub mod helpers;
 
-use crate::helpers::parsing_helpers::*;
+use crate::helpers::parsing_helpers::parse_for_errors;
 use test_case::test_case;
 
 /// Verifies that the supported encodings compile
