@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::helpers::parsing_helpers::parse_for_errors;
+use test_case::test_case;
 
 #[test]
 fn optionals_are_disallowed() {
