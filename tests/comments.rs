@@ -4,7 +4,6 @@ pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::grammar::*;
-use slice::slice_file::Location;
 use test_case::test_case;
 
 #[test_case("/** This is a block doc comment. */", "This is a block doc comment.")]
@@ -41,32 +40,20 @@ fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
     assert_eq!(interface_doc.overview, expected);
 }
 
-#[test_case(
-    "/** @param testParam My test param */",
-    vec![("testParam".to_owned(), "My test param".to_owned())];
-    "MyTest"
-)]
-#[test_case(
-    "/// @param testParam My test param",
-    vec![("testParam".to_owned(),
-    "My test param".to_owned())];
-    "MyTest2"
-)]
-#[ignore] // TODO: /** test case fails as the params are never parsed, /// fails because of a trailing \n
-fn doc_comments_params(doc_comment: &str, expected: Vec<(String, String)>) {
+#[test]
+#[ignore] // /// fails because of a trailing \n
+fn doc_comments_params() {
     // Arrange
-    let slice = &format!(
-        "
+    let slice = "
         encoding = 2;
         module tests;
 
         interface TestInterface {{
-            {}
+            /// @param testParam My test param
             testOp(testParam: string);
         }}
-        ",
-        doc_comment
-    );
+        ";
+    let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
     // Act
     let ast = parse_for_ast(slice);
@@ -81,30 +68,20 @@ fn doc_comments_params(doc_comment: &str, expected: Vec<(String, String)>) {
     assert_eq!(op_doc_comment.params, expected);
 }
 
-#[test_case(
-    "/** @return bool*/",
-    Some("bool".to_owned());
-    "block comment"
-)] // TODO: fix, star stripping
-#[test_case(
-    "/// @return bool",
-    Some("bool".to_owned());
-    "comment")] // TODO: fix trailing \n
-#[ignore]
-fn doc_comments_returns(doc_comment: &str, expected: Option<String>) {
+#[test]
+#[ignore] // TODO: fix trailing \n
+fn doc_comments_returns() {
     // Arrange
-    let slice = &format!(
-        "
+    let slice = "
         encoding = 2;
         module tests;
 
         interface TestInterface {{
-            {}
+            /// @return bool
             testOp(testParam: string) -> bool;
         }}
-        ",
-        doc_comment
-    );
+        ";
+    let expected = Some("bool".to_owned());
 
     // Act
     let ast = parse_for_ast(slice);
@@ -119,31 +96,23 @@ fn doc_comments_returns(doc_comment: &str, expected: Option<String>) {
     assert_eq!(op_doc_comment.returns, expected);
 }
 
-#[test_case(
-    "/** @throws MyThrownThing Message about my thrown thing.*/",
-    vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
-    "block comment"
-)] // TODO: Fix star stripping
-#[test_case(
-    "/// @throws MyThrownThing Message about my thrown thing.",
-    vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
-    "comment"
-)] // TODO: Fix trailing \n
-#[ignore]
-fn doc_comments_throws(doc_comment: &str, expected: Vec<(String, String)>) {
+#[test]
+#[ignore] // TODO: Fix trailing \n
+fn doc_comments_throws() {
     // Arrange
-    let slice = &format!(
-        "
+    let slice = "
         encoding = 2;
         module tests;
 
         interface TestInterface {{
-            {}
+            // @throws MyThrownThing Message about my thrown thing.
             testOp(testParam: string) -> bool;
         }}
-        ",
-        doc_comment
-    );
+        ";
+    let expected = vec![(
+        "MyThrownThing".to_owned(),
+        "Message about my thrown thing.".to_owned(),
+    )];
 
     // Act
     let ast = parse_for_ast(slice);
@@ -158,31 +127,20 @@ fn doc_comments_throws(doc_comment: &str, expected: Vec<(String, String)>) {
     assert_eq!(op_doc_comment.throws, expected);
 }
 
-#[test_case(
-    "/** @see MySee Message about thing.*/",
-    vec!["MySee".to_owned()];
-    "block comment"
-)] // TODO: Fix star stripping
-#[test_case(
-    "/// @see MySee Message about thing.",
-    vec!["MySee".to_owned()];
-    "comment"
-)]
+#[test]
 #[ignore]
-fn doc_comments_see_also(doc_comment: &str, expected: Vec<String>) {
+fn doc_comments_see_also() {
     // Arrange
-    let slice = &format!(
-        "
+    let slice = "
         encoding = 2;
         module tests;
 
         interface TestInterface {{
-            {}
+            /// @see MySee Message about thing.
             testOp(testParam: string) -> bool;
         }}
-        ",
-        doc_comment
-    );
+        ";
+    let expected = vec!["MySee".to_owned()];
 
     // Act
     let ast = parse_for_ast(slice);
@@ -197,22 +155,19 @@ fn doc_comments_see_also(doc_comment: &str, expected: Vec<String>) {
     assert_eq!(op_doc_comment.see_also, expected);
 }
 
-#[test_case("/** This is a block doc comment. */", (5, 36))]
-#[test_case("/**\n* This is a multi-line block doc comment.\n*/", (7, 3))]
-#[test_case("/// This is a doc comment.", (6, 1))]
+#[test]
 #[ignore] // TODO: When fixing updated expected_end, currently influenced by the \n or lack of star stripping
-fn doc_comments_location(comment: &str, expected_end: (usize, usize)) {
+fn doc_comments_location() {
     // Arrange
-    let slice = &format!(
-        "
+    let slice = "
 encoding = 2;
 module tests;
 
-{}
+/// This is a doc comment.
 interface MyInterface {{}}
-",
-        comment
-    );
+";
+    let expected_start = (5, 1);
+    let expected_end = (6, 1);
 
     // Act
     let ast = parse_for_ast(slice);
@@ -224,7 +179,7 @@ interface MyInterface {{}}
     let interface_def = interface_ptr.borrow();
     let interface_doc = interface_def.comment().unwrap();
 
-    assert_eq!(interface_doc.location.start, (5, 1));
+    assert_eq!(interface_doc.location.start, expected_start);
     assert_eq!(interface_doc.location.end, expected_end);
 }
 
