@@ -24,14 +24,8 @@ impl DocComment {
             .map(|(s, t)| (s.to_owned(), t.trim().to_owned()))
             .collect();
 
-        self.returns = match &self.returns {
-            Some(s) => Some(s.trim().to_owned()),
-            None => None,
-        };
-        self.deprecate_reason = match &self.deprecate_reason {
-            Some(s) => Some(s.trim().to_owned()),
-            None => None,
-        };
+        self.returns = self.returns.as_ref().map(|s| s.trim().to_owned());
+        self.deprecate_reason = self.deprecate_reason.as_ref().map(|s| s.trim().to_owned());
         self.throws = self
             .throws
             .iter()
