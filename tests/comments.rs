@@ -41,17 +41,16 @@ fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
 }
 
 #[test]
-#[ignore] // /// fails because of a trailing \n
 fn doc_comments_params() {
     // Arrange
     let slice = "
         encoding = 2;
         module tests;
 
-        interface TestInterface {{
+        interface TestInterface {
             /// @param testParam My test param
             testOp(testParam: string);
-        }}
+        }
         ";
     let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
@@ -69,17 +68,16 @@ fn doc_comments_params() {
 }
 
 #[test]
-#[ignore] // TODO: fix trailing \n
 fn doc_comments_returns() {
     // Arrange
     let slice = "
         encoding = 2;
         module tests;
 
-        interface TestInterface {{
+        interface TestInterface {
             /// @return bool
             testOp(testParam: string) -> bool;
-        }}
+        }
         ";
     let expected = Some("bool".to_owned());
 
@@ -97,17 +95,16 @@ fn doc_comments_returns() {
 }
 
 #[test]
-#[ignore] // TODO: Fix trailing \n
 fn doc_comments_throws() {
     // Arrange
     let slice = "
         encoding = 2;
         module tests;
 
-        interface TestInterface {{
-            // @throws MyThrownThing Message about my thrown thing.
+        interface TestInterface {
+            /// @throws MyThrownThing Message about my thrown thing.
             testOp(testParam: string) -> bool;
-        }}
+        }
         ";
     let expected = vec![(
         "MyThrownThing".to_owned(),
@@ -135,10 +132,10 @@ fn doc_comments_see_also() {
         encoding = 2;
         module tests;
 
-        interface TestInterface {{
+        interface TestInterface {
             /// @see MySee Message about thing.
             testOp(testParam: string) -> bool;
-        }}
+        }
         ";
     let expected = vec!["MySee".to_owned()];
 
@@ -156,7 +153,6 @@ fn doc_comments_see_also() {
 }
 
 #[test]
-#[ignore] // TODO: When fixing updated expected_end, currently influenced by the \n or lack of star stripping
 fn doc_comments_location() {
     // Arrange
     let slice = "
@@ -164,7 +160,7 @@ encoding = 2;
 module tests;
 
 /// This is a doc comment.
-interface MyInterface {{}}
+interface MyInterface {}
 ";
     let expected_start = (5, 1);
     let expected_end = (6, 1);

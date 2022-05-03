@@ -14,3 +14,28 @@ pub struct DocComment {
     pub deprecate_reason: Option<String>,
     pub location: Location,
 }
+impl DocComment {
+    pub fn sanitize(&mut self) {
+        self.overview = self.overview.trim().to_owned();
+        self.see_also = self.see_also.iter().map(|s| s.trim().to_owned()).collect();
+        self.params = self
+            .params
+            .iter()
+            .map(|(s, t)| (s.to_owned(), t.trim().to_owned()))
+            .collect();
+
+        self.returns = match &self.returns {
+            Some(s) => Some(s.trim().to_owned()),
+            None => None,
+        };
+        self.deprecate_reason = match &self.deprecate_reason {
+            Some(s) => Some(s.trim().to_owned()),
+            None => None,
+        };
+        self.throws = self
+            .throws
+            .iter()
+            .map(|(s, t)| (s.to_owned(), t.trim().to_owned()))
+            .collect();
+    }
+}
