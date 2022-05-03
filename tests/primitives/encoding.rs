@@ -83,16 +83,15 @@ mod slice2 {
     /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
     #[test]
-    #[ignore]
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
             encoding = 2;
             module Test;
             compact struct S
-            {{
+            {
                 v: AnyClass,
-            }}";
+            }";
         let expected_errors: &[&str] = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
             "file encoding was set to the Slice 2 encoding here:",
