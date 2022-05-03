@@ -20,11 +20,6 @@ impl Validator<'_> {
     }
 
     fn check_dictionary_key_type(&mut self, type_ref: &TypeRef) -> bool {
-        // If the key type couldn't be patched due to an error, don't attempt to validate it.
-        if !type_ref.definition.is_initialized() {
-            return true;
-        }
-
         // Optional types cannot be used as dictionary keys.
         if type_ref.is_optional {
             self.error_reporter.report_error(
