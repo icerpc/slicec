@@ -44,7 +44,7 @@ impl Validator<'_> {
                         Some(&type_ref.location),
                     );
                     self.error_reporter.report_note(
-                        format!("struct '{}' is defined here:", struct_def.identifier()),
+                        format!("struct '{}' is declared compact here:", struct_def.identifier()),
                         Some(&struct_def.location)
                     );
                     return false;
@@ -96,13 +96,17 @@ impl Validator<'_> {
         };
 
         if !is_valid {
-            // Report that the key type is invalid.
-            let should_pluralize = !matches!(definition.concrete_type(), Types::Primitive(_));
+            let pluralized_kind = match definition.concrete_type() {
+                Types::Primitive(_) => definition.kind().to_owned(),
+                Types::Class(_) => "classes".to_owned(),
+                Types::Dictionary(_) => "dictionaries".to_owned(),
+                _ => definition.kind().to_owned() + "s",
+            };
+
             self.error_reporter.report_error(
                 format!(
-                    "{}{} cannot be used as a dictionary key type",
-                    definition.kind(),
-                    if should_pluralize { "" } else { "s" },
+                    "{} cannot be used as a dictionary key type",
+                    pluralized_kind,
                 ),
                 Some(&type_ref.location),
             );
@@ -115,7 +119,7 @@ impl Validator<'_> {
                         named_symbol_def.kind(),
                         named_symbol_def.identifier(),
                     ),
-                    Some(&named_symbol_def.location()),
+                    Some(named_symbol_def.location()),
                 );
             }
         }
