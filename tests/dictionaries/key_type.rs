@@ -107,7 +107,8 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
         {}
         typealias Dict = dictionary<{}, int8>;
         ",
-        key_type_def, key_type,
+        key_type_def,
+        key_type,
     );
 
     // Act
