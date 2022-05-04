@@ -94,7 +94,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     assert_errors!(error_reporter, &[&*format!(
         "invalid dictionary key type: {} cannot be used as a dictionary key type",
         key_kind,
-    ),]);
+    )]);
 }
 
 #[test_case("MyEnum", "enum MyEnum {}" ; "enums")]
