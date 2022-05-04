@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -40,7 +41,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies that valid Slice 1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -83,26 +84,25 @@ mod slice2 {
     /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
     #[test]
-    #[ignore]
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             compact struct S
-            {{
+            {
                 v: AnyClass,
-            }}";
+            }";
         let expected_errors: &[&str] = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "file is using the Slice 2 encoding by default",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies that valid Slice 2 types (bool, int8, uint8, int16, uint16, int32, uint32,
@@ -128,7 +128,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             compact struct S
             {{
@@ -165,7 +164,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             struct MyStruct {{
                 myVar: {value},

@@ -38,6 +38,9 @@ impl CommentParser {
             }
         }
 
+        // Sanitize the comment before returning it.
+        comment.sanitize();
+
         // Return the comment. If parsing succeeded, it will be populated with content. If there was
         // a syntax error, the comment will be empty.
         comment

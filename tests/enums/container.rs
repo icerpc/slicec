@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 
 mod slice1 {
@@ -21,13 +22,13 @@ mod slice1 {
             C = -3,
         }
         ";
-        let expected_errors = &[]; // TODO: Add the relevant error message once fixed
+        let expected_errors = &["ERROR"]; // TODO: Add the relevant error message once fixed
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }
 
@@ -41,7 +42,6 @@ mod slice2 {
     fn enums_can_be_empty() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E {}
         ";
@@ -61,7 +61,6 @@ mod slice2 {
     fn enumerators_can_contain_negative_values() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E: int32 {
             A = -1,
@@ -69,20 +68,18 @@ mod slice2 {
             C = -3,
         }
         ";
-        let expected_errors = &[];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter);
     }
 
     #[test]
     fn enumerators_can_contain_values() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E: int16 {
             A = 1,

@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -29,7 +30,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }
 
@@ -43,21 +44,22 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-            encoding = 2;
+            // encoding = 2;
             module Test;
             exception A {}
             exception B : A {}
             ";
         let expected_errors = &[
             "exception inheritance is only supported by the Slice 1 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "file is using the Slice 2 encoding by default",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies that the slice parser with the Slice 2 encoding does not emit errors when parsing
@@ -66,7 +68,6 @@ mod slice2 {
     fn can_be_data_members() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             exception E {}
             struct S
@@ -79,6 +80,6 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert!(!error_reporter.has_errors(true));
+        assert_errors!(error_reporter);
     }
 }

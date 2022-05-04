@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::parse_from_string;
 
@@ -80,7 +81,6 @@ mod compact_structs {
     fn must_not_be_empty() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             compact struct S {}
         ";
@@ -90,6 +90,6 @@ mod compact_structs {
         let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }

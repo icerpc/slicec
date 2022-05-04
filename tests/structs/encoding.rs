@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -25,7 +26,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }
 
@@ -39,7 +40,6 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         struct A
         {
@@ -48,14 +48,15 @@ mod slice2 {
         ";
         let expected_errors = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "file is using the Slice 2 encoding by default",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies using the slice parser with the Slice 2 encoding will not emit errors when parsing
@@ -64,7 +65,6 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             trait T;
             struct A
