@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::grammar::*;
 
@@ -72,7 +73,9 @@ fn must_inherit_from_interface() {
 
     let error_reporter = parse_for_errors(slice);
 
-    error_reporter.assert_errors(&["The Entity 'C' is not a valid type for this definition."])
+    assert_errors!(error_reporter, &[
+        "The Entity 'C' is not a valid type for this definition."
+    ]);
 }
 
 #[test]

@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {}
@@ -33,7 +34,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Invalid Constructed dictionary key types test.
@@ -75,7 +76,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(&expected_errors);
+        assert_errors!(error_reporter, &expected_errors);
     }
 
     // Valid dictionary key types
@@ -108,6 +109,6 @@ mod slice2 {
         let error_reporter = parse_for_errors(&slice);
 
         // Assert
-        assert!(!error_reporter.has_errors(true));
+        assert_errors!(error_reporter);
     }
 }

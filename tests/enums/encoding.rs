@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -25,7 +26,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }
 
@@ -49,13 +50,12 @@ mod slice2 {
             ",
             valid_type,
         );
-        let expected_errors = &[];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter);
     }
 
     //
@@ -76,12 +76,11 @@ mod slice2 {
             ",
             valid_type,
         );
-        let expected_errors = &[]; // TODO: Add the relevant error message once fixed
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter);
     }
 }

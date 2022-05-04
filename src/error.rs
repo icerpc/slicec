@@ -21,20 +21,27 @@ impl ErrorReporter {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
     }
 
-    fn report(&mut self,
-        message: String,
-        location: Option<&Location>,
-        severity: ErrorLevel)
-    {
+    /// Returns the total number of errors and warnings reported through the error handler.
+    pub fn get_totals(&self) -> (usize, usize) {
+        (self.error_count, self.warning_count)
+    }
+
+    /// Returns a slice of the errors that have been reported.
+    pub fn errors(&self) -> &[Error] {
+        &self.errors
+    }
+
+    fn report(&mut self, message: String, location: Option<&Location>, severity: ErrorLevel) {
         match severity {
             ErrorLevel::Note => {}
             ErrorLevel::Warning => self.warning_count += 1,
             ErrorLevel::Error => self.error_count += 1,
             ErrorLevel::Critical => {
-                //TODO:  Report the error and exit immediately.
+                // TODO:  Report the error and exit immediately.
             }
         };
-        self.errors.push(Error { message, location: location.cloned(), severity })
+        self.errors
+            .push(Error { message, location: location.cloned(), severity })
     }
 
     pub fn report_note(&mut self, message: String, location: Option<&Location>) {
@@ -57,9 +64,9 @@ impl ErrorReporter {
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for error in mem::take(&mut self.errors).into_iter() {
             let prefix = match error.severity {
-                ErrorLevel::Note =>    "note",
+                ErrorLevel::Note => "note",
                 ErrorLevel::Warning => "warning",
-                ErrorLevel::Error =>   "error",
+                ErrorLevel::Error => "error",
                 ErrorLevel::Critical => "critical",
             };
 
@@ -89,18 +96,13 @@ impl ErrorReporter {
         }
     }
 
-    /// Returns the total number of errors and warnings reported through the error handler.
-    pub fn get_totals(&self) -> (usize, usize) {
-        (self.error_count, self.warning_count)
-    }
-
-    // #[cfg(test)] //TODO:
-    pub fn assert_errors(&self, expected_errors: &[&str]) {
-        assert_eq!(self.errors.len(), expected_errors.len());
-        for (i, error) in self.errors.iter().enumerate() {
-            assert_eq!(error.message, expected_errors[i]);
-        }
-    }
+    // // #[cfg(test)] //TODO:
+    // pub fn assert_errors(&self, expected_errors: &[&str]) {
+    //     assert_eq!(self.errors.len(), expected_errors.len());
+    //     for (i, error) in self.errors.iter().enumerate() {
+    //         assert_eq!(error.message, expected_errors[i]);
+    //     }
+    // }
 }
 
 #[derive(Debug)]

@@ -21,7 +21,7 @@ fn valid_encodings(value: &str) {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert!(!error_reporter.has_errors(true));
+    assert_errors!(error_reporter);
 }
 
 #[test]
@@ -37,5 +37,5 @@ fn invalid_encodings_fail() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    error_reporter.assert_errors(expected_errors);
+    assert_errors!(error_reporter, expected_errors);
 }
