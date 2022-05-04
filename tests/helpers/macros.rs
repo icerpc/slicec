@@ -11,7 +11,7 @@ macro_rules! assert_errors {
             !$error_reporter.has_errors(true),
             "Expected no errors, got {}.\n{:?}",
             $error_reporter.errors().len(),
-            $error_reporter.errors()
+            $error_reporter.errors(),
         );
     };
 
