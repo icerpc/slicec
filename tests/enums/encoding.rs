@@ -44,7 +44,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             enum E : {} {{}}
             ",
@@ -70,7 +69,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             enum E : {} {{}}
             ",

@@ -32,6 +32,7 @@ pub fn parse_from_options(options: &SliceOptions) -> Result<(Ast, ErrorReporter,
     for slice_file in slice_files.values() {
         slice_file.visit_with(&mut validator);
     }
+    validator.validate_dictionary_key_types(&ast);
 
     Ok((ast, error_reporter, slice_files))
 }
@@ -47,6 +48,7 @@ pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
     for slice_file in slice_files.values() {
         slice_file.visit_with(&mut validator);
     }
+    validator.validate_dictionary_key_types(&ast);
 
     Ok((ast, error_reporter))
 }

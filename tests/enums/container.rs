@@ -42,7 +42,6 @@ mod slice2 {
     fn enums_can_be_empty() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E {}
         ";
@@ -62,7 +61,6 @@ mod slice2 {
     fn enumerators_can_contain_negative_values() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E: int32 {
             A = -1,
@@ -82,7 +80,6 @@ mod slice2 {
     fn enumerators_can_contain_values() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         enum E: int16 {
             A = 1,

@@ -22,3 +22,13 @@ pub fn parse_for_errors(slice: &str) -> ErrorReporter {
         Err(e) => panic!("{:?}", e),
     }
 }
+
+/// This function returns the kind of an element, but pluralized.
+pub fn pluralize_kind(s: &str) -> String {
+    match s {
+        "class" => "classes".to_owned(),
+        "type alias" => "type aliases".to_owned(),
+        "dictionary" => "dictionaries".to_owned(),
+        kind => kind.to_owned() + "s",
+    }
+}
