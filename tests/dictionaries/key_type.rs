@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::parse_for_errors;
+use crate::helpers::parsing_helpers::{parse_for_errors, pluralize_kind};
 use test_case::test_case;
 
 #[test]
@@ -137,12 +137,8 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    let pluralized_kind = match key_kind {
-        "class" => "classes".to_owned(),
-        kind => kind.to_owned() + "s",
-    };
     error_reporter.assert_errors(&[
-        &*format!("{} cannot be used as a dictionary key type", pluralized_kind),
+        &*format!("{} cannot be used as a dictionary key type", pluralize_kind(key_kind)),
         &*format!("{} '{}' is defined here:", key_kind, key_type),
     ]);
 }

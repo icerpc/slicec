@@ -16,3 +16,13 @@ pub fn parse_for_errors(slice: &str) -> ErrorReporter {
     let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
     error_reporter
 }
+
+/// This function returns the kind of an element, but pluralized.
+pub fn pluralize_kind(element: impl Element) -> String {
+    match element.kind() {
+        "class" => "classes".to_owned(),
+        "type alias" => "type aliases".to_owned(),
+        "dictionary" => "dictionaries".to_owned(),
+        kind => kind.to_owned() + "s",
+    }
+}
