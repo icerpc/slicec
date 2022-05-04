@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -40,7 +41,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies that valid Slice 1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -101,7 +102,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies that valid Slice 2 types (bool, int8, uint8, int16, uint16, int32, uint32,

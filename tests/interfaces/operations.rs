@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::grammar::*;
 
@@ -144,7 +145,7 @@ fn return_tuple_can_not_be_empty() {
 
     let error_reporter = parse_for_errors(slice);
 
-    error_reporter.assert_errors(&["Expected at least two return value"]);
+    assert_errors!(error_reporter, &["Expected at least two return value"]);
 }
 
 #[test]
@@ -160,10 +161,13 @@ fn return_tuple_can_not_have_one_element() {
 
     let error_reporter = parse_for_errors(slice);
 
-    error_reporter.assert_errors(&["Tuple returns require at least two values"]);
+    assert_errors!(error_reporter, &[
+        "Tuple returns require at least two values",
+    ]);
 }
 
 mod streams {
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     #[test]
     fn operation_can_have_at_most_one_streamed_parameter() {
@@ -176,7 +180,9 @@ mod streams {
         ";
 
         let error_reporter = parse_for_errors(slice);
-        error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
+        assert_errors!(error_reporter, &[
+            "only the last parameter in an operation can be streamed",
+        ]);
     }
 
     #[test]
@@ -190,6 +196,8 @@ mod streams {
         ";
 
         let error_reporter = parse_for_errors(slice);
-        error_reporter.assert_errors(&["only the last parameter in an operation can be streamed"]);
+        assert_errors!(error_reporter, &[
+            "only the last parameter in an operation can be streamed",
+        ]);
     }
 }

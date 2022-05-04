@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 mod slice1 {
@@ -25,7 +26,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 }
 
@@ -55,7 +56,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        error_reporter.assert_errors(expected_errors);
+        assert_errors!(error_reporter, expected_errors);
     }
 
     /// Verifies using the slice parser with the Slice 2 encoding will not emit errors when parsing
