@@ -72,7 +72,7 @@ fn disallowed_primitive_types(key_type: &str) {
     assert_errors!(error_reporter, &[&*format!(
         "invalid dictionary key type: {} cannot be used as a dictionary key type",
         key_type,
-    ),]);
+    )]);
 }
 
 #[test_case("sequence<int8>", "sequences" ; "sequences")]
