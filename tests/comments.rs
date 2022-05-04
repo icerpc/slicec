@@ -18,7 +18,6 @@ fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
     // Arrange
     let slice = &format!(
         "
-        encoding = 2;
         module tests;
 
         {}
@@ -44,15 +43,18 @@ fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
 fn doc_comments_params() {
     // Arrange
     let slice = "
-        encoding = 2;
         module tests;
 
         interface TestInterface {
             /// @param testParam My test param
+            /// @param testParam2 My test param two
             testOp(testParam: string);
         }
         ";
-    let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
+    let expected = vec![
+        ("testParam".to_owned(), "My test param".to_owned()),
+        ("testParam2".to_owned(), "My test param two".to_owned()),
+    ];
 
     // Act
     let ast = parse_for_ast(slice);
@@ -71,7 +73,6 @@ fn doc_comments_params() {
 fn doc_comments_returns() {
     // Arrange
     let slice = "
-        encoding = 2;
         module tests;
 
         interface TestInterface {
@@ -95,10 +96,43 @@ fn doc_comments_returns() {
 }
 
 #[test]
+#[ignore] // TODO: fix star parsing, causing doc comment return message to be parsed incorrectly
+fn multiline_tag_comment() {
+    // Arrange
+    let slice = "
+        module tests;
+
+        interface TestInterface {
+            /**
+             * @throws MyThrownThing Message about my thrown thing. \n More about the thrown thing.
+             * @return bool
+             */
+            testOp(testParam: string) -> bool;
+        }
+        ";
+    let expected_throws = vec![(
+        "MyThrownThing".to_owned(),
+        "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
+    )];
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let op_ptr = ast
+        .find_typed_entity::<Operation>("tests::TestInterface::testOp")
+        .unwrap();
+    let op_def = op_ptr.borrow();
+    let op_doc_comment = op_def.comment().unwrap();
+
+    assert_eq!(op_doc_comment.throws, expected_throws);
+    assert_eq!(op_doc_comment.returns, Some("bool\n".to_owned()));
+}
+
+#[test]
 fn doc_comments_throws() {
     // Arrange
     let slice = "
-        encoding = 2;
         module tests;
 
         interface TestInterface {
@@ -129,7 +163,6 @@ fn doc_comments_throws() {
 fn doc_comments_see_also() {
     // Arrange
     let slice = "
-        encoding = 2;
         module tests;
 
         interface TestInterface {
@@ -152,18 +185,23 @@ fn doc_comments_see_also() {
     assert_eq!(op_doc_comment.see_also, expected);
 }
 
-#[test]
-fn doc_comments_location() {
+#[test_case("/// This is a doc comment.", (4, 1), (5, 1))]
+#[test_case("/**\n* This is a multi line doc comment.\n*/", (4, 1), (6, 3))]
+fn doc_comments_location(
+    comment: &str,
+    expected_start: (usize, usize),
+    expected_end: (usize, usize),
+) {
     // Arrange
-    let slice = "
-encoding = 2;
+    let slice = &format!(
+        "
 module tests;
 
-/// This is a doc comment.
-interface MyInterface {}
-";
-    let expected_start = (5, 1);
-    let expected_end = (6, 1);
+{}
+interface MyInterface {{}}
+",
+        comment
+    );
 
     // Act
     let ast = parse_for_ast(slice);
@@ -182,11 +220,10 @@ interface MyInterface {}
 #[test_case("/* This is a block comment. */")]
 #[test_case("/*\n* This is a multiline block comment.\n */")]
 #[test_case("// This is a comment.")]
-fn comments_are_ignored(comment: &str) {
+fn non_doc_comments_are_ignored(comment: &str) {
     // Arrange
     let slice = &format!(
         "
-        encoding = 2;
         module tests;
 
         {}
