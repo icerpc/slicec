@@ -22,7 +22,7 @@ macro_rules! assert_errors {
             "Expected {} errors, got {}.\n{:?}",
             $expected_errors.len(),
             $error_reporter.errors().len(),
-            $error_reporter.errors()
+            $error_reporter.errors(),
         );
 
         for (i, error) in $error_reporter.errors().iter().enumerate() {
