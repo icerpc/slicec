@@ -15,10 +15,9 @@ fn optionals_are_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         "optional types cannot be used as a dictionary key type",
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
 
 #[test_case("bool")]
@@ -49,8 +48,7 @@ fn allowed_primitive_types(key_type: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    let expected_errors = [];
-    error_reporter.assert_errors(&expected_errors);
+    error_reporter.assert_errors(&[]);
 }
 
 #[test_case("float32")]
@@ -70,10 +68,9 @@ fn disallowed_primitive_types(key_type: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         &*format!("{} cannot be used as a dictionary key type", key_type),
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
 
 #[test_case("sequence<int8>", "sequences" ; "sequences")]
@@ -92,10 +89,9 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         &*format!("{} cannot be used as a dictionary key type", key_kind),
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
 
 #[test_case("MyEnum", "enum MyEnum {}" ; "enums")]
@@ -116,8 +112,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    let expected_errors = [];
-    error_reporter.assert_errors(&expected_errors);
+    error_reporter.assert_errors(&[]);
 }
 
 #[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
@@ -146,12 +141,10 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
         "class" => "classes".to_owned(),
         kind => kind.to_owned() + "s",
     };
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         &*format!("{} cannot be used as a dictionary key type", pluralized_kind),
         &*format!("{} '{}' is defined here:", key_kind, key_type),
-
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
 
 #[test]
@@ -167,11 +160,10 @@ fn non_compact_structs_are_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         "structs must be compact to be used as a dictionary key type",
         "struct 'MyStruct' is defined here:",
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
 
 #[test]
@@ -198,8 +190,7 @@ fn compact_struct_with_allowed_members_is_allowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected_errors = [];
-    error_reporter.assert_errors(&expected_errors);
+    error_reporter.assert_errors(&[]);
 }
 
 #[test]
@@ -228,7 +219,7 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected_errors = [
+    error_reporter.assert_errors(&[
         "sequences cannot be used as a dictionary key type",
         "data member 'seq' cannot be used as a dictionary key type",
 
@@ -242,6 +233,5 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
         "struct 'Outer' contains members that cannot be used as a dictionary key type",
         "struct 'Outer' is defined here:",
-    ];
-    error_reporter.assert_errors(&expected_errors);
+    ]);
 }
