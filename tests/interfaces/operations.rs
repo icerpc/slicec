@@ -162,7 +162,7 @@ fn return_tuple_can_not_have_one_element() {
     let error_reporter = parse_for_errors(slice);
 
     assert_errors!(error_reporter, &[
-        "Tuple returns require at least two values"
+        "Tuple returns require at least two values",
     ]);
 }
 
