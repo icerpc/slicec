@@ -87,7 +87,6 @@ mod slice2 {
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             compact struct S
             {{
@@ -128,7 +127,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             compact struct S
             {{
@@ -165,7 +163,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             struct MyStruct {{
                 myVar: {value},

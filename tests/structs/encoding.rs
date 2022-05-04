@@ -39,7 +39,6 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         struct A
         {
@@ -48,7 +47,8 @@ mod slice2 {
         ";
         let expected_errors = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "file is using the Slice 2 encoding by default",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
         // Act
@@ -64,7 +64,6 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             trait T;
             struct A

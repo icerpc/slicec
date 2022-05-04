@@ -80,7 +80,6 @@ mod compact_structs {
     fn must_not_be_empty() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             compact struct S {}
         ";
