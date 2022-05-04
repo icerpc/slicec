@@ -16,7 +16,7 @@ fn optionals_are_disallowed() {
 
     // Assert
     error_reporter.assert_errors(&[
-        "optional types cannot be used as a dictionary key type",
+        "invalid dictionary key type: optional types cannot be used as a dictionary key type",
     ]);
 }
 
@@ -69,7 +69,10 @@ fn disallowed_primitive_types(key_type: &str) {
 
     // Assert
     error_reporter.assert_errors(&[
-        &*format!("{} cannot be used as a dictionary key type", key_type),
+        &*format!(
+            "invalid dictionary key type: {} cannot be used as a dictionary key type",
+            key_type,
+        ),
     ]);
 }
 
@@ -90,7 +93,10 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
 
     // Assert
     error_reporter.assert_errors(&[
-        &*format!("{} cannot be used as a dictionary key type", key_kind),
+        &*format!(
+            "invalid dictionary key type: {} cannot be used as a dictionary key type",
+            key_kind,
+        ),
     ]);
 }
 
@@ -138,7 +144,10 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 
     // Assert
     error_reporter.assert_errors(&[
-        &*format!("{} cannot be used as a dictionary key type", pluralize_kind(key_kind)),
+        &*format!(
+            "invalid dictionary key type: {} cannot be used as a dictionary key type",
+            pluralize_kind(key_kind),
+        ),
         &*format!("{} '{}' is defined here:", key_kind, key_type),
     ]);
 }
@@ -157,7 +166,7 @@ fn non_compact_structs_are_disallowed() {
 
     // Assert
     error_reporter.assert_errors(&[
-        "structs must be compact to be used as a dictionary key type",
+        "invalid dictionary key type: structs must be compact to be used as a dictionary key type",
         "struct 'MyStruct' is defined here:",
     ]);
 }
@@ -216,18 +225,18 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
     // Assert
     error_reporter.assert_errors(&[
-        "sequences cannot be used as a dictionary key type",
+        "invalid dictionary key type: sequences cannot be used as a dictionary key type",
         "data member 'seq' cannot be used as a dictionary key type",
 
-        "float32 cannot be used as a dictionary key type",
+        "invalid dictionary key type: float32 cannot be used as a dictionary key type",
         "data member 'f32' cannot be used as a dictionary key type",
 
-        "struct 'Inner' contains members that cannot be used as a dictionary key type",
+        "invalid dictionary key type: struct 'Inner' contains members that cannot be used as a dictionary key type",
         "struct 'Inner' is defined here:",
 
         "data member 'i' cannot be used as a dictionary key type",
 
-        "struct 'Outer' contains members that cannot be used as a dictionary key type",
+        "invalid dictionary key type: struct 'Outer' contains members that cannot be used as a dictionary key type",
         "struct 'Outer' is defined here:",
     ]);
 }
