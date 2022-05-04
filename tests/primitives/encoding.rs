@@ -94,7 +94,8 @@ mod slice2 {
             }";
         let expected_errors: &[&str] = &[
             "'AnyClass' is not supported by the Slice 2 encoding",
-            "file encoding was set to the Slice 2 encoding here:",
+            "file is using the Slice 2 encoding by default",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
         // Act
