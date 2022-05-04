@@ -95,14 +95,6 @@ impl ErrorReporter {
             eprintln!("{}", message);
         }
     }
-
-    // // #[cfg(test)] //TODO:
-    // pub fn assert_errors(&self, expected_errors: &[&str]) {
-    //     assert_eq!(self.errors.len(), expected_errors.len());
-    //     for (i, error) in self.errors.iter().enumerate() {
-    //         assert_eq!(error.message, expected_errors[i]);
-    //     }
-    // }
 }
 
 #[derive(Debug)]
