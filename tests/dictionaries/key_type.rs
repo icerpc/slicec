@@ -16,7 +16,7 @@ fn optionals_are_disallowed() {
 
     // Assert
     let expected_errors = [
-        "dictionary keys cannot be optional",
+        "optional types cannot be used as a dictionary key type",
     ];
     error_reporter.assert_errors(&expected_errors);
 }

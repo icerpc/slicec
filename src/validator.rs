@@ -23,7 +23,7 @@ impl Validator<'_> {
         // Optional types cannot be used as dictionary keys.
         if type_ref.is_optional {
             self.error_reporter.report_error(
-                "dictionary keys cannot be optional".to_owned(),
+                "optional types cannot be used as a dictionary key type".to_owned(),
                 Some(&type_ref.location),
             );
             return false;
