@@ -39,7 +39,6 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-        encoding = 2;
         module Test;
         struct A
         {
@@ -64,7 +63,6 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             trait T;
             struct A

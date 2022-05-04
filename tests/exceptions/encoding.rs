@@ -43,7 +43,6 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             exception A {}
             exception B : A {}
@@ -66,7 +65,6 @@ mod slice2 {
     fn can_be_data_members() {
         // Arrange
         let slice = "
-            encoding = 2;
             module Test;
             exception E {}
             struct S

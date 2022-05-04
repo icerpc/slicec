@@ -18,7 +18,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module Test;
             typealias TestDict = dictionary<{key_type}, int32>;
             ",
@@ -53,7 +52,6 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 2;
             module test;
 
             {key_def}
@@ -97,7 +95,6 @@ mod slice2 {
         // Arrange
         let slice = format!(
             "
-            encoding = 2;
             module Test;
             typealias MyDict = dictionary<{key_type}, int32>;
             ",
