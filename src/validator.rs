@@ -39,8 +39,8 @@ impl Validator<'_> {
                         Some(&type_ref.location),
                     );
                     self.error_reporter.report_note(
-                        format!("struct '{}' is declared compact here:", struct_def.identifier()),
-                        Some(&struct_def.location)
+                        format!("struct '{}' is defined here:", struct_def.identifier()),
+                        Some(&struct_def.location),
                     );
                     return false;
                 }

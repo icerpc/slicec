@@ -169,7 +169,7 @@ fn non_compact_structs_are_disallowed() {
     // Assert
     let expected_errors = [
         "structs must be compact to be used as a dictionary key type",
-        "struct 'MyStruct' is declared compact here:",
+        "struct 'MyStruct' is defined here:",
     ];
     error_reporter.assert_errors(&expected_errors);
 }
