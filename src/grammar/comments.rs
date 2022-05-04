@@ -14,6 +14,7 @@ pub struct DocComment {
     pub deprecate_reason: Option<String>,
     pub location: Location,
 }
+
 impl DocComment {
     pub fn sanitize(&mut self) {
         self.overview = self.overview.trim().to_owned();
