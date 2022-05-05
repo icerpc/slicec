@@ -4,6 +4,8 @@ pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_errors;
 
+use slice::parse_from_string;
+
 mod encodings {
 
     use super::*;
@@ -42,5 +44,20 @@ mod encodings {
 
         // Assert
         assert_errors!(error_reporter, expected_errors);
+    }
+
+    #[test] // TODO: Maybe this shouldn't produce a parser error
+    fn encoding_must_be_first() {
+        // Arrange
+        let slice = "
+        module Test;
+        encoding = 2;
+        ";
+
+        // Act
+        let error = parse_from_string(slice).err().is_some();
+
+        // Assert
+        assert!(error);
     }
 }
