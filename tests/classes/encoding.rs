@@ -9,7 +9,6 @@ mod slice2 {
     #[test]
     fn unsupported_error() {
         let slice = "
-            encoding = 2;
             module Test;
             class C {}
         ";
