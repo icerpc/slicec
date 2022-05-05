@@ -86,7 +86,8 @@ fn inherits_correct_operations() {
     {
         opA();
     }
-    interface B : A {
+    interface B : A
+    {
         opB();
     }
     interface C : A

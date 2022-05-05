@@ -8,7 +8,11 @@ use slice::parse_from_string;
 pub fn parse_for_ast(slice: &str) -> Ast {
     match parse_from_string(slice) {
         Ok((ast, error_reporter)) => {
-            assert!(!error_reporter.has_errors(true));
+            assert!(
+                !error_reporter.has_errors(true),
+                "Errors found while parsing:\n{:?}",
+                error_reporter,
+            );
             ast
         }
         Err(e) => panic!("{:?}", e),
