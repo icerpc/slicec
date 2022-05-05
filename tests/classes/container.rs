@@ -46,26 +46,32 @@ fn can_contain_data_members() {
     ));
 }
 
-#[test]
-fn cycles_are_allowed() {
-    let slice = "
-    encoding = 1;
-    module Test;
+#[test_case(
+    "
     class C
     {
         c: C,
     }
-
+    "
+)]
+#[test_case(
+    "
     class C1
     {
         c2: C2,
     }
-
     class C2
     {
         c1: C1,
     }
-    ";
+    "
+)]
+fn cycles_are_allowed(cycle_string: &str ) {
+    let slice = &format("
+    encoding = 1;
+    module Test;
+    {}
+    ", cycle_string);
 
     let error_reporter = parse_for_errors(slice);
 
