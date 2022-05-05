@@ -35,29 +35,4 @@ mod sequences {
             _ => panic!("Expected sequence type"),
         }
     }
-
-    #[test]
-    fn can_contain_constructed_types() {
-        // Arrange
-        let slice = "
-            module Test;
-            interface I {}
-            typealias Seq = sequence<I>;
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let seq_ptr = ast.find_typed_entity::<TypeAlias>("Test::Seq").unwrap();
-        let seq_def = seq_ptr.borrow();
-        let seq_type = seq_def.underlying.concrete_typeref();
-
-        match seq_type {
-            TypeRefs::Sequence(seq) => {
-                matches!(&seq.element_type.concrete_type(), Types::Interface(_));
-            }
-            _ => panic!("Expected sequence type"),
-        }
-    }
 }
