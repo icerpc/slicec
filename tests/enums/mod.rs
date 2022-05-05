@@ -2,3 +2,4 @@
 
 mod container;
 mod encoding;
+mod tags;
