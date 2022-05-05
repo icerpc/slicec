@@ -11,7 +11,7 @@ pub fn parse_for_ast(slice: &str) -> Ast {
             assert!(
                 !error_reporter.has_errors(true),
                 "Errors found while parsing:\n{:?}",
-                error_reporter
+                error_reporter,
             );
             ast
         }

@@ -3,6 +3,7 @@
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use slice::grammar::*;
+use test_case::test_case;
 
 /// Verifies that classes can contain data members.
 #[test]
@@ -52,7 +53,7 @@ fn can_contain_data_members() {
     {
         c: C,
     }
-    "
+    "; "single class circular reference"
 )]
 #[test_case(
     "
@@ -64,14 +65,17 @@ fn can_contain_data_members() {
     {
         c1: C1,
     }
-    "
+    "; "multi class circular reference"
 )]
-fn cycles_are_allowed(cycle_string: &str ) {
-    let slice = &format("
+fn cycles_are_allowed(cycle_string: &str) {
+    let slice = &format!(
+        "
     encoding = 1;
     module Test;
     {}
-    ", cycle_string);
+    ",
+        cycle_string,
+    );
 
     let error_reporter = parse_for_errors(slice);
 
