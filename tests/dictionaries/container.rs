@@ -37,17 +37,18 @@ mod slice2 {
     }
 
     /// Invalid Constructed dictionary key types test.
-    #[test_case("dictionary", "MyDict", "typealias MyDict = dictionary<int32, int32>")]
-    #[test_case("proxy", "I", "interface I {}")]
-    #[test_case("struct", "MyStruct", "struct MyStruct { }")]
+    #[test_case("dictionary", "MyDict", "typealias MyDict = dictionary<int32, int32>" ; "dictionary as key type")]
+    #[test_case("proxy", "I", "interface I {}" ; "proxy as key type")]
+    #[test_case("struct", "MyStruct", "struct MyStruct { }"; "struct as key type")]
     #[test_case(
         "struct",
         "MyTaggedStruct",
         "struct MyTaggedStruct { a: tag(1) int32 }"
+        ; "struct with tag as key type"
     )]
-    #[test_case("exception", "MyException", "exception MyException { }")]
-    #[test_case("trait", "MyTrait", "trait MyTrait")]
-    #[test_case("custom", "MyCustom", "custom MyCustom")]
+    #[test_case("exception", "MyException", "exception MyException { }"; "exception as key type")]
+    #[test_case("trait", "MyTrait", "trait MyTrait"; "trait as key type")]
+    #[test_case("custom", "MyCustom", "custom MyCustom"; "custom as key type")]
     #[ignore] // Remove ignore when disallowed key errors are added.
     fn constructed_dictionary_key_types_fails(key_type: &str, key_ident: &str, key_def: &str) {
         // Arrange
