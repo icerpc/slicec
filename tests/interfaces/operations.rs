@@ -43,6 +43,27 @@ fn can_have_no_return_type() {
 }
 
 #[test]
+fn can_contain_tags() {
+    // Arrange
+    let slice = "
+        module Test;
+        interface I
+        {
+            op(a: tag(1) int32);
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let op_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let tag_def = op_ptr.borrow().parameters()[0].tag();
+
+    assert_eq!(tag_def, Some(1));
+}
+
+#[test]
 fn can_have_parameters() {
     let slice = "
         module Test;

@@ -3,6 +3,7 @@
 mod container;
 mod encoding;
 mod inheritance;
+mod tags;
 
 use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::grammar::*;
