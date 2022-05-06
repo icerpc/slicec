@@ -100,6 +100,12 @@ impl Struct {
             .map(|member_ptr| member_ptr.borrow())
             .collect()
     }
+
+    pub fn has_optional_interface_members(&self) -> bool {
+        self.members()
+            .iter()
+            .any(|member| member.data_type.is_optional && member.data_type.is_interface_type())
+    }
 }
 
 impl Type for Struct {
@@ -128,6 +134,10 @@ impl Type for Struct {
     }
 
     fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn is_interface_type(&self) -> bool {
         false
     }
 
@@ -222,6 +232,10 @@ impl Type for Class {
         true
     }
 
+    fn is_interface_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> Option<TagFormat> {
         Some(TagFormat::Class)
     }
@@ -310,6 +324,10 @@ impl Type for Exception {
     }
 
     fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn is_interface_type(&self) -> bool {
         false
     }
 
@@ -458,6 +476,10 @@ impl Type for Interface {
     }
 
     fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn is_interface_type(&self) -> bool {
         false
     }
 
@@ -754,6 +776,10 @@ impl Type for Enum {
         false
     }
 
+    fn is_interface_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> Option<TagFormat> {
         self.underlying.as_ref().map_or(
             Some(TagFormat::Size),              // Default value if `underlying` == None
@@ -844,6 +870,10 @@ impl Type for Trait {
         false
     }
 
+    fn is_interface_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> Option<TagFormat> {
         // Traits are only supported with Slice2, which doesn't use tag formats.
         None
@@ -898,6 +928,10 @@ impl Type for CustomType {
     }
 
     fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn is_interface_type(&self) -> bool {
         false
     }
 
@@ -967,6 +1001,10 @@ impl Type for TypeAlias {
 
     fn is_class_type(&self) -> bool {
         self.underlying.is_class_type()
+    }
+
+    fn is_interface_type(&self) -> bool {
+        self.underlying.is_interface_type()
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
@@ -1158,6 +1196,10 @@ impl Type for Sequence {
         false
     }
 
+    fn is_interface_type(&self) -> bool {
+        false
+    }
+
     fn tag_format(&self) -> Option<TagFormat> {
         if self.element_type.is_fixed_size() {
             if self.element_type.min_wire_size() == 1 {
@@ -1198,6 +1240,10 @@ impl Type for Dictionary {
     }
 
     fn is_class_type(&self) -> bool {
+        false
+    }
+
+    fn is_interface_type(&self) -> bool {
         false
     }
 
@@ -1296,6 +1342,10 @@ impl Type for Primitive {
 
     fn is_class_type(&self) -> bool {
         matches!(self, Self::AnyClass)
+    }
+
+    fn is_interface_type(&self) -> bool {
+        false
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
