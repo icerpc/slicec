@@ -49,7 +49,7 @@ fn can_contain_tags() {
         module Test;
         interface I
         {
-            op(a: tag(1) int32);
+            op(a: tag(1) int32?);
         }
     ";
 
