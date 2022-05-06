@@ -30,3 +30,20 @@ macro_rules! assert_errors {
         }
     };
 }
+
+#[macro_export]
+macro_rules! assert_matches {
+    ($expression:expr, $t:ident:: $tv:ident) => {
+        match &$expression {
+            $t::$tv(_) => {}
+            _ => panic!("unexpected type: {:?}", $expression),
+        }
+    };
+
+    ($expression:expr, $t:ident:: $tv:ident, $st:ident:: $stv:ident) => {
+        match &$expression {
+            $t::$tv($st::$stv) => {}
+            _ => panic!("unexpected type: {:?}", $expression),
+        }
+    };
+}
