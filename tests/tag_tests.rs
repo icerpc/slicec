@@ -10,6 +10,26 @@ mod tags {
     use test_case::test_case;
 
     #[test]
+    #[ignore] // TODO: We do not verify that tagged data members are optional.
+    fn tagged_data_members_must_be_optional() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        class C {
+            i: int32,
+            s: string,
+            b: tag(10) bool,
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &["Tagged data members must be optional"]);
+    }
+
+    #[test]
     #[ignore] // TODO: Add error messages explaining that you cannot have tags on classes.
     fn cannot_tag_a_class() {
         // Arrange
@@ -23,7 +43,7 @@ mod tags {
             class C {
                 i: int32,
                 s: string,
-                b: tag(10) B,
+                b: tag(10) B?,
             }
             ";
         let expected_errors = [""];
@@ -45,7 +65,7 @@ mod tags {
         "
         class C {}
         interface I {
-            op(a: tag(1) C);
+            op(a: tag(1) C?);
         }"
     )]
     #[ignore]

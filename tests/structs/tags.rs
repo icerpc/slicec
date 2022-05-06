@@ -16,7 +16,7 @@ mod structs {
             struct S {
                 i: int32,
                 s: string,
-                b: tag(10) bool,
+                b: tag(10) bool?,
             }
             ";
         let ast = parse_for_ast(slice);
@@ -41,7 +41,7 @@ mod compact_structs {
             compact struct S {
                 i: int32,
                 s: string,
-                b: tag(10) bool,
+                b: tag(10) bool?,
             }
             ";
         let expected_errors = [

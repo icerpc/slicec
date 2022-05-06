@@ -57,12 +57,10 @@ fn can_contain_tags() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-    let operation = interface_def.operations()[0];
-    let data_member_tag = operation.parameters().first().unwrap().tag();
+    let op_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let tag_def = op_ptr.borrow().parameters()[0].tag();
 
-    assert_eq!(data_member_tag, Some(1));
+    assert_eq!(tag_def, Some(1));
 }
 
 #[test]

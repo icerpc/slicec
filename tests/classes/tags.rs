@@ -12,7 +12,7 @@ fn can_contain_tags() {
         class C {
             i: int32,
             s: string,
-            b: tag(10) bool,
+            b: tag(10) bool?,
         }
         ";
     let ast = parse_for_ast(slice);
