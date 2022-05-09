@@ -13,8 +13,8 @@ mod scope_resolution {
     fn file_level_modules_can_not_contain_sub_modules() {
         let slice = "
         module T;
-        module S {}";
-
+        module S {}
+        ";
         let error_reporter = parse_for_errors(slice);
 
         assert_errors!(error_reporter, [
