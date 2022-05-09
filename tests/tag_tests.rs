@@ -3,6 +3,7 @@
 pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_errors;
+use slice::parse_from_string;
 
 mod tags {
 
@@ -88,5 +89,111 @@ mod tags {
 
         // Assert
         assert_errors!(errors, expected_errors);
+    }
+
+    #[test]
+    #[ignore] // TODO: Add error messages explaining that you cannot have multiple tags with the same value.
+    fn cannot_have_duplicate_tags() {
+        // Arrange
+        let slice = "
+            module Test;
+            struct S {
+                a: tag(1) int32,
+                b: tag(1) int32,
+            }
+        ";
+        let expected_errors = [""];
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, expected_errors);
+    }
+
+    #[test_case(i32::MAX as i64, "2"; "Slice2 max value")]
+    #[test_case(i32::MAX as i64, "1"; "Slice1 max value")]
+    #[ignore] // TODO: Add error messages
+    fn cannot_have_tag_with_value_larger_than_max(max: i64, encoding: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            encoding = {encoding};
+            module Test;
+            interface S {{
+                testOp(a: tag({max_value}) int32);
+            }}
+        ",
+            max_value = max + 1,
+            encoding = encoding
+        );
+        let expected_errors = [""]; // TODO: Add error messages
+
+        // Act
+        let error_reporter = parse_for_errors(&slice);
+
+        // Assert
+        assert_errors!(error_reporter, expected_errors);
+    }
+
+    #[test_case(i32::MIN as i64, "2"; "Slice2 min value")]
+    #[test_case(0, "1"; "Slice1 min value")]
+    #[ignore] // TODO: Add error messages
+    fn cannot_have_tag_with_value_smaller_than_minimum(min: i64, encoding: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            encoding = {encoding};
+            module Test;
+            interface S {{
+                testOp(a: tag({max_value}) int32);
+            }}
+            ",
+            max_value = min - 1,
+            encoding = encoding
+        );
+        let expected_errors = [""]; // TODO: Add error messages
+
+        // Act
+        let error_reporter = parse_for_errors(&slice);
+
+        // Assert
+        assert_errors!(error_reporter, expected_errors);
+    }
+
+    #[test] // TODO: We should not be panicing here. We should be returning an error.
+    fn strings_invalid_as_tag_value() {
+        // Arrange
+        let slice = "
+            module Test;
+            interface S {
+                testOp(a: tag(\"test string\") int32);
+            }
+            ";
+
+        // Act
+        let err = parse_from_string(slice).err();
+
+        // Assert
+        assert!(err.is_some());
+    }
+
+    #[test]
+    #[ignore] // TODO: Add error messages
+    fn negative_tags_are_invalid_with_slice1() {
+        // Arrange
+        let slice = "
+            encoding = 1;
+            module Test;
+            interface S {
+                testOp(a: tag(-1) int32);
+            }
+        ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &["Tags cannot be negative"]);
     }
 }
