@@ -95,10 +95,10 @@ attribute_argument = @{
 }
 attribute_arguments = !{ ( attribute_argument ~ "," ~ attribute_arguments) | ( attribute_argument ~ ","? ) }
 
-// "WHITESPACE" and "COMMENT" are special rules that Pest will implicitely allow to appear in between any other rules.
+// "WHITESPACE" and "COMMENT" are special rules that Pest will implicitly allow to appear in between any other rules.
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 COMMENT = _{ line_comment | block_comment }
-// "ws" is used for rules where we have to explicitely handle whitespace.
+// "ws" is used for rules where we have to explicitly handle whitespace.
 ws = _{ WHITESPACE | COMMENT }
 doc_comment = { ( line_doc_comment+ | block_doc_comment )? }
 

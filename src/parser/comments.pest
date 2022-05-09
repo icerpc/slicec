@@ -10,7 +10,7 @@ message = { (!newline ~ ANY)+ }
 identifier = { (!separator ~ ANY)+ }
 
 field = _{ param_field | return_field | throws_field | see_field | invalid_field }
-// `identifier`s always end at a whitespace character, so we don't need to explicitely match a space
+// `identifier`s always end at a whitespace character, so we don't need to explicitly match a space
 // in between `identifier`s and `message`s. Not having the extra token simplifies parsing later on.
 param_field = { "@param" ~ space? ~ identifier? ~ message? }
 return_field = { "@return" ~ space? ~ message? }
