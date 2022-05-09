@@ -15,10 +15,8 @@ fn can_have_no_parameters() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-
-    let operation = interface_def.operations()[0];
+    let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let operation = operation_ptr.borrow();
 
     assert!(operation.parameters().is_empty());
 }
@@ -34,10 +32,8 @@ fn can_have_no_return_type() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-
-    let operation = interface_def.operations()[0];
+    let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let operation = operation_ptr.borrow();
 
     assert!(operation.return_members().is_empty());
 }
@@ -74,9 +70,8 @@ fn can_have_parameters() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-    let operation = interface_def.operations()[0];
+    let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let operation = operation_ptr.borrow();
     let parameters = operation.parameters();
 
     assert_eq!(parameters.len(), 3);
@@ -109,9 +104,8 @@ fn can_have_return_value() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-    let operation = interface_def.operations()[0];
+    let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let operation = operation_ptr.borrow();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 1);
@@ -134,9 +128,8 @@ fn can_have_return_tuple() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
-    let operation = interface_def.operations()[0];
+    let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let operation = operation_ptr.borrow();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 2);
