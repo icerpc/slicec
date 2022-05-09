@@ -1,13 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_errors;
-
 mod slice1 {}
 
 mod slice2 {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
     /// Invalid primitive dictionary key types test.

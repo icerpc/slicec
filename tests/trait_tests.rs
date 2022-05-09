@@ -2,12 +2,10 @@
 
 pub mod helpers;
 
-use helpers::parsing_helpers::parse_for_ast;
-use slice::grammar::*;
-
 mod traits {
 
-    use super::*;
+    use crate::helpers::parsing_helpers::parse_for_ast;
+    use slice::grammar::*;
 
     #[test]
     fn are_resolvable_as_an_entity() {

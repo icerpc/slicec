@@ -1,10 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_errors;
-
 mod slice2 {
-    use super::*;
+
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::parse_for_errors;
 
     #[test]
     fn unsupported_error() {

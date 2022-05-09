@@ -2,12 +2,11 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
-use slice::grammar::*;
-
 mod scope_resolution {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use slice::grammar::*;
 
     #[test]
     fn file_level_modules_can_not_contain_sub_modules() {
