@@ -24,9 +24,26 @@ macro_rules! assert_errors {
             $error_reporter.errors().len(),
             $error_reporter.errors(),
         );
-
         for (i, error) in $error_reporter.errors().iter().enumerate() {
             assert_eq!(error.message, $expected_errors[i]);
+        }
+    };
+}
+
+/// Asserts that an expression matches a variant and optional sub-variant.
+#[macro_export]
+macro_rules! assert_matches {
+    ($expression:expr, $type:path) => {
+        match &$expression {
+            $type(_) => {}
+            _ => panic!("unexpected type: {:?}", $expression),
+        }
+    };
+
+    ($expression:expr, $type:path, $subtype:path) => {
+        match &$expression {
+            $type($subtype) => {}
+            _ => panic!("unexpected type: {:?}", $expression),
         }
     };
 }
