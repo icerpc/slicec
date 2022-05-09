@@ -1,9 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
+use crate::helpers::parsing_helpers::parse_for_errors;
+
 mod slice1 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use super::*;
 
     /// Verifies that the slice parser with the Slice 1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -30,8 +32,7 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use super::*;
     use test_case::test_case;
 
     #[test_case("uint8")]

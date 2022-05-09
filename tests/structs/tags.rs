@@ -1,9 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
+use crate::helpers::parsing_helpers::*;
+use slice::grammar::*;
+
 mod structs {
 
-    use crate::helpers::parsing_helpers::*;
-    use slice::grammar::*;
+    use super::*;
 
     #[test]
     fn can_contain_tags() {
@@ -28,8 +31,7 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::*;
+    use super::*;
 
     #[test]
     fn cannot_contain_tags() {

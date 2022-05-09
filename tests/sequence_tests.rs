@@ -2,10 +2,12 @@
 
 pub mod helpers;
 
+use helpers::parsing_helpers::parse_for_ast;
+use slice::grammar::*;
+
 mod sequences {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
-    use slice::grammar::*;
+    use super::*;
 
     #[test]
     fn can_contain_primitive_types() {

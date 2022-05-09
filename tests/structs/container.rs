@@ -1,8 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
+use crate::helpers::parsing_helpers::parse_for_ast;
+use slice::parse_from_string;
+
 mod structs {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use super::*;
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -70,8 +74,7 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::assert_errors;
-    use slice::parse_from_string;
+    use super::*;
 
     /// Verifies that compact structs must contain at least one data member.
     #[test]

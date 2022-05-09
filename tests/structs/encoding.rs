@@ -1,9 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
+use crate::helpers::parsing_helpers::parse_for_errors;
+
 mod slice1 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use super::*;
 
     /// Verifies using the slice parser with the Slice 1 encoding will emit errors when parsing
     /// non-compact structs.
@@ -30,8 +32,7 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use super::*;
 
     /// Verifies using the slice parser with the Slice 2 encoding will emit errors when parsing
     /// structs that contain Slice 1 types.
