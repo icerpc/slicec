@@ -5,8 +5,10 @@ pub mod helpers;
 mod tags {
 
     use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use slice::grammar::*;
     use slice::parse_from_string;
+
     use test_case::test_case;
 
     #[test]
@@ -90,26 +92,25 @@ mod tags {
         assert_errors!(errors, expected_errors);
     }
 
-    #[test_case("encoding = 1;"; "valid_slice1_tag")]
-    #[test_case("encoding = 2;"; "valid_slice2_tag")]
-    fn valid_tag(encoding: &str) {
+    #[test]
+    fn valid_tag() {
         // Arrange
-        let slice = format!(
-            "
-            {}
+        let slice = "
             module Test;
-            interface I {{
-                op(a: tag(1) string?);
-            }}
-            ",
-            encoding
-        );
+            struct S {
+                a: tag(1) int32?
+            }
+            ";
 
         // Act
-        let errors = parse_for_errors(&slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
-        assert_errors!(errors);
+        let data_member_ptr = ast.find_typed_entity::<DataMember>("Test::S::a").unwrap();
+        let data_member_tag = data_member_ptr.borrow().tag();
+
+        assert_eq!(data_member_tag, Some(1));
+        assert!(data_member_ptr.borrow().data_type.is_optional);
     }
 
     #[test]
