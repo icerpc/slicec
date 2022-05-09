@@ -55,7 +55,7 @@ cargo +nightly build && cargo +nightly test
 ```
 
 ```shell
-grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
+grcov . -s src --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
 ```
 
 The output html is in the `target/debug/coverage/` directory.
