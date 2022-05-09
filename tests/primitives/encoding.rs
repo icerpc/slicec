@@ -1,11 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_errors;
-
 mod slice1 {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
     /// Verifies that if Slice 1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -78,7 +76,8 @@ mod slice1 {
 
 mod slice2 {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
     /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will

@@ -2,12 +2,10 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_ast;
-use slice::grammar::*;
-
 mod comments {
 
-    use super::*;
+    use crate::helpers::parsing_helpers::parse_for_ast;
+    use slice::grammar::*;
     use test_case::test_case;
 
     #[test_case("/** This is a block doc comment. */", "This is a block doc comment."; "block doc comment")]

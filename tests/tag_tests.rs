@@ -2,11 +2,10 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_errors;
-
 mod tags {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
     #[test]
