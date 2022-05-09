@@ -51,7 +51,7 @@ export RUSTDOCFLAGS="-Cpanic=abort"
 Finally generate the html report:
 
 ```shell
-cargo build && cargo test
+cargo +nightly build && cargo +nightly test
 ```
 
 ```shell
