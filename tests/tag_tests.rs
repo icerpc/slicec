@@ -90,6 +90,28 @@ mod tags {
         assert_errors!(errors, expected_errors);
     }
 
+    #[test_case("encoding = 1;"; "valid_slice1_tag")]
+    #[test_case("encoding = 2;"; "valid_slice2_tag")]
+    fn valid_tag(encoding: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            {}
+            module Test;
+            interface I {{
+                op(a: tag(1) string?);
+            }}
+            ",
+            encoding
+        );
+
+        // Act
+        let errors = parse_for_errors(&slice);
+
+        // Assert
+        assert_errors!(errors);
+    }
+
     #[test]
     #[ignore] // TODO: Add error messages explaining that you cannot have multiple tags with the same value.
     fn cannot_have_duplicate_tags() {
@@ -97,8 +119,8 @@ mod tags {
         let slice = "
             module Test;
             struct S {
-                a: tag(1) int32,
-                b: tag(1) int32,
+                a: tag(1) int32?,
+                b: tag(1) int32?,
             }
         ";
         let expected_errors = [""];
@@ -119,8 +141,8 @@ mod tags {
             "
             encoding = {encoding};
             module Test;
-            interface S {{
-                testOp(a: tag({max_value}) int32);
+            interface I {{
+                testOp(a: tag({max_value}) int32?);
             }}
         ",
             max_value = max + 1,
@@ -144,8 +166,8 @@ mod tags {
             "
             encoding = {encoding};
             module Test;
-            interface S {{
-                testOp(a: tag({max_value}) int32);
+            interface I {{
+                testOp(a: tag({max_value}) int32?);
             }}
             ",
             max_value = min - 1,
@@ -165,8 +187,8 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            interface S {
-                testOp(a: tag(\"test string\") int32);
+            interface I {
+                testOp(a: tag(\"test string\") int32?);
             }
             ";
 
@@ -184,8 +206,8 @@ mod tags {
         let slice = "
             encoding = 1;
             module Test;
-            interface S {
-                testOp(a: tag(-1) int32);
+            interface I {
+                testOp(a: tag(-1) int32?);
             }
         ";
 
