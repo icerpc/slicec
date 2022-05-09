@@ -2,12 +2,26 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_ast;
+use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use slice::grammar::*;
 
 mod scope_resolution {
 
     use super::*;
+
+    #[test]
+    fn file_level_modules_can_not_contain_sub_modules() {
+        let slice = "
+        module T;
+        module S {}";
+
+        let error_reporter = parse_for_errors(slice);
+
+        assert_errors!(error_reporter, [
+            "file level modules cannot contain sub-modules",
+            "file level module 'T' declared here"
+        ]);
+    }
 
     #[test]
     fn identifier_exists_in_module_and_submodule() {
