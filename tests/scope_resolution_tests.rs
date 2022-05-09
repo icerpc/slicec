@@ -46,10 +46,16 @@ mod scope_resolution {
         let s3_type = s3_ptr.borrow().data_type();
         let s4_type = s4_ptr.borrow().data_type();
 
-        assert_matches!(s1_type.concrete_type(), Types::Primitive, Primitive::Int32);
-        assert_matches!(s2_type.concrete_type(), Types::Primitive, Primitive::Int32);
-        assert_matches!(s3_type.concrete_type(), Types::Struct);
-        assert_matches!(s4_type.concrete_type(), Types::Struct);
+        assert!(matches!(
+            s1_type.concrete_type(),
+            Types::Primitive(Primitive::Int32)
+        ));
+        assert!(matches!(
+            s2_type.concrete_type(),
+            Types::Primitive(Primitive::Int32)
+        ));
+        assert!(matches!(s3_type.concrete_type(), Types::Struct(_)));
+        assert!(matches!(s4_type.concrete_type(), Types::Struct(_)));
     }
 
     #[test]
@@ -86,10 +92,22 @@ mod scope_resolution {
         let s3_type = s3_ptr.borrow().data_type();
         let s4_type = s4_ptr.borrow().data_type();
 
-        assert_matches!(s1_type.concrete_type(), Types::Primitive, Primitive::String);
-        assert_matches!(s2_type.concrete_type(), Types::Primitive, Primitive::String);
-        assert_matches!(s3_type.concrete_type(), Types::Primitive, Primitive::String);
-        assert_matches!(s4_type.concrete_type(), Types::Primitive, Primitive::Int32);
+        assert!(matches!(
+            s1_type.concrete_type(),
+            Types::Primitive(Primitive::String)
+        ));
+        assert!(matches!(
+            s2_type.concrete_type(),
+            Types::Primitive(Primitive::String)
+        ));
+        assert!(matches!(
+            s3_type.concrete_type(),
+            Types::Primitive(Primitive::String)
+        ));
+        assert!(matches!(
+            s4_type.concrete_type(),
+            Types::Primitive(Primitive::Int32)
+        ));
     }
 
     #[test]
@@ -137,9 +155,12 @@ mod scope_resolution {
         let s2_type = s2_ptr.borrow().data_type();
         let s3_type = s3_ptr.borrow().data_type();
 
-        assert_matches!(s1_type.concrete_type(), Types::Struct);
-        assert_matches!(s2_type.concrete_type(), Types::Struct);
-        assert_matches!(s3_type.concrete_type(), Types::Primitive, Primitive::Int32);
+        assert!(matches!(s1_type.concrete_type(), Types::Struct(_)));
+        assert!(matches!(s2_type.concrete_type(), Types::Struct(_)));
+        assert!(matches!(
+            s3_type.concrete_type(),
+            Types::Primitive(Primitive::Int32)
+        ));
     }
 
     #[test]
@@ -190,19 +211,23 @@ mod scope_resolution {
         let s1_type = s1_ptr.borrow().data_type();
         let s2_type = s2_ptr.borrow().data_type();
 
-        assert_matches!(
+        assert!(matches!(
             nested_s1_type.concrete_type(),
-            Types::Primitive,
-            Primitive::Int32
-        );
-        assert_matches!(
+            Types::Primitive(Primitive::Int32)
+        ));
+        assert!(matches!(
             nested_s2_type.concrete_type(),
-            Types::Primitive,
-            Primitive::String
-        );
+            Types::Primitive(Primitive::String)
+        ));
 
-        assert_matches!(s1_type.concrete_type(), Types::Primitive, Primitive::String);
-        assert_matches!(s2_type.concrete_type(), Types::Primitive, Primitive::String);
+        assert!(matches!(
+            s1_type.concrete_type(),
+            Types::Primitive(Primitive::String)
+        ));
+        assert!(matches!(
+            s2_type.concrete_type(),
+            Types::Primitive(Primitive::String)
+        ));
     }
 
     #[test]
@@ -230,7 +255,7 @@ mod scope_resolution {
         let b_ptr = ast.find_typed_entity::<DataMember>("A::S::b").unwrap();
         let b_type = b_ptr.borrow().data_type();
 
-        assert_matches!(b_type.concrete_type(), Types::Interface);
+        assert!(matches!(b_type.concrete_type(), Types::Interface(_)));
     }
 
     #[test]
@@ -261,7 +286,7 @@ mod scope_resolution {
             .unwrap();
         let b_type = b_ptr.borrow().data_type();
 
-        assert_matches!(b_type.concrete_type(), Types::Interface);
+        assert!(matches!(b_type.concrete_type(), Types::Interface(_)));
     }
 
     #[test]
