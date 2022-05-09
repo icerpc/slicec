@@ -6,6 +6,7 @@ mod module {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
+    use slice::parse_from_string;
 
     #[test]
     #[ignore]
@@ -54,5 +55,13 @@ mod module {
         let ast = parse_for_ast(slice);
 
         assert!(ast.find_typed_entity::<Module>("A::B::C::D").is_some());
+    }
+
+    #[test]
+    fn is_required() {
+        // TODO: better error message once we replace the parser
+        let slice = "custom C;";
+        let err = parse_from_string(slice).err();
+        assert!(err.is_some());
     }
 }
