@@ -1,11 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::*;
-
 mod slice1 {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::*;
 
     /// * Note this passes and should not. Austin suspects similar to variable size backing types
     /// working. This is most likely a result of not producing the correct errors.
@@ -34,7 +32,8 @@ mod slice1 {
 
 mod slice2 {
 
-    use super::*;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
 
     ///

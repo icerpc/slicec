@@ -2,11 +2,10 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_ast;
-use slice::grammar::*;
-
 mod module {
-    use super::*;
+
+    use crate::helpers::parsing_helpers::parse_for_ast;
+    use slice::grammar::*;
 
     #[test]
     #[ignore]
