@@ -5,8 +5,8 @@
 use crate::{downgrade_as, upcast_owned_as, upcast_weak_as};
 
 use crate::grammar::*;
-use crate::ptr_visitor::PtrVisitor;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_visitor::PtrVisitor;
 use std::collections::HashMap;
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the
@@ -16,8 +16,8 @@ use std::collections::HashMap;
 /// The parser parses each file into its top level modules, and then moves
 /// these modules directly into the shared AST.
 ///
-/// In addition, the AST owns all anonymous types, which are created in the AST as the parser needs them,
-/// and it owns all the Slice [Primitive]s, which are added to the AST during initialization,
+/// In addition, the AST owns all anonymous types, which are created in the AST as the parser needs
+/// them, and it owns all the Slice [Primitive]s, which are added to the AST during initialization,
 /// ensuring they're always available.
 ///
 /// The AST is primarily for centralizing ownership of Slice elements, but also features lookup
@@ -28,24 +28,28 @@ use std::collections::HashMap;
 /// (in [global_state::initialize]), and it stays in scope until the program terminates.
 #[derive(Debug)]
 pub struct Ast {
-    /// The AST vector owns all the top level modules defined in every slice file parsed by the compiler.
-    /// These modules in-turn own all their contents. Hence, this vector contains all **user** defined slice elements.
-    /// All compiler defined types are stored in either [anonymous_types] or [primitive_cache].
+    /// The AST vector owns all the top level modules defined in every slice file parsed by the
+    /// compiler. These modules in-turn own all their contents. Hence, this vector contains all
+    /// **user** defined slice elements. All compiler defined types are stored in either
+    /// [anonymous_types] or [primitive_cache].
     pub(crate) ast: Vec<OwnedPtr<Module>>,
 
     /// This vector owns all the non-primitive anonymous types ([Sequence]s and [Dictionary]s).
-    /// These types aren't defined by users, but are still usable in slice definitions behind a [TypeRef].
+    /// These types aren't defined by users, but are still usable in slice definitions behind a
+    /// [TypeRef].
     ///
     /// Since these types aren't defined by users, they can't be owned by a module.
-    /// Instead they are owned by the AST, and stored here, so that they can be referenced via [WeakPtr] elsewhere.
-    /// Types are stored in the order they're parsed, and are only created when needed by the parser.
+    /// Instead they are owned by the AST, and stored here, so that they can be referenced via
+    /// [WeakPtr] elsewhere. Types are stored in the order they're parsed, and are only created
+    /// when needed by the parser.
     pub(crate) anonymous_types: Vec<OwnedPtr<dyn Type>>,
 
-    /// This cache holds the definitions for all the Slice primitive types, keyed by their Slice keywords.
-    /// Primitives are built-in to the compiler, and are always defined, even if they're not needed.
-    /// They are kept in a separate cache for stronger typing (this stores `Primitive`s instead of just `dyn Type`s),
-    /// and to prevent excessive copies of primitives being created. A single instance per-primitive is safe,
-    /// as primitives are not scope-sensitive, unlike other anonymous types.
+    /// This cache holds the definitions for all the Slice primitive types, keyed by their Slice
+    /// keywords. Primitives are built-in to the compiler, and are always defined, even if
+    /// they're not needed. They are kept in a separate cache for stronger typing (this stores
+    /// `Primitive`s instead of just `dyn Type`s), and to prevent excessive copies of
+    /// primitives being created. A single instance per-primitive is safe, as primitives are
+    /// not scope-sensitive, unlike other anonymous types.
     pub(crate) primitive_cache: HashMap<&'static str, OwnedPtr<Primitive>>,
 
     /// This lookup table stores [WeakPtr]s for every user defined entity stored in this AST.
@@ -95,15 +99,15 @@ impl Ast {
         let mut module_ptr = OwnedPtr::new(module_def);
 
         // Create a visitor for adding the module's contents into the AST's lookup tables.
-        let mut visitor = LookupTableBuilder {
-            lookup_table: &mut self.lookup_table,
-        };
+        let mut visitor = LookupTableBuilder { lookup_table: &mut self.lookup_table };
 
         // Add the module into the lookup tables, then recursively add it's contents too.
         //
         // This is always safe; no other references to the module can exist because we own it,
         // and haven't dereferenced any of the pointers to it that we've constructed.
-        unsafe { module_ptr.visit_ptr_with(&mut visitor); }
+        unsafe {
+            module_ptr.visit_ptr_with(&mut visitor);
+        }
 
         // Move the module into the AST and return a WeakPtr to it.
         let weak_ptr = module_ptr.downgrade();
@@ -123,9 +127,9 @@ impl Ast {
     /// ```slice
     /// operation(sequence<int32> i1, sequence<int32> i2); // 2 anonymous types are created here, 1 for each sequence.
     /// ```
-    /// Additionally, no indexing is performed on these types since they're un-named and unique to where they're used.
-    /// Instead, this function returns a reference to the [OwnedPtr] storing the type,
-    /// since there's no way to access the type through a lookup table later.
+    /// Additionally, no indexing is performed on these types since they're un-named and unique to
+    /// where they're used. Instead, this function returns a reference to the [OwnedPtr] storing
+    /// the type, since there's no way to access the type through a lookup table later.
     ///
     /// This should only be called by the parser.
     pub(crate) fn add_anonymous_type(&mut self, ty: impl Type + 'static) -> &OwnedPtr<dyn Type> {
@@ -134,10 +138,7 @@ impl Ast {
         self.anonymous_types.last().unwrap()
     }
 
-    pub fn find_entity(
-        &self,
-        fully_scoped_identifier: &str,
-    ) -> Option<WeakPtr<dyn Entity>> {
+    pub fn find_entity(&self, fully_scoped_identifier: &str) -> Option<WeakPtr<dyn Entity>> {
         self.lookup_table.get(fully_scoped_identifier).cloned()
     }
 
@@ -149,10 +150,7 @@ impl Ast {
         entity_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
     }
 
-    pub fn find_type(
-        &self,
-        fully_scoped_identifier: &str,
-    ) -> Option<WeakPtr<dyn Type>> {
+    pub fn find_type(&self, fully_scoped_identifier: &str) -> Option<WeakPtr<dyn Type>> {
         let result = Self::lookup_type(
             &self.lookup_table,
             &self.primitive_cache,
@@ -182,7 +180,8 @@ impl Ast {
         identifier: &str,
         mut scopes: &[String],
     ) -> Option<&'ast WeakPtr<dyn Entity>> {
-        // If the identifier starts with '::', it's a global identifier, which can be looked up directly.
+        // If the identifier starts with '::', it's a global identifier, which can be looked up
+        // directly.
         if let Some(unprefixed) = identifier.strip_prefix("::") {
             return lookup_table.get(unprefixed);
         }
@@ -212,48 +211,55 @@ impl Ast {
         lookup_table: &'ast HashMap<String, WeakPtr<dyn Entity>>,
         primitive_cache: &'ast HashMap<&'static str, OwnedPtr<Primitive>>,
         identifier: &str,
-        scopes: &[String]
+        scopes: &[String],
     ) -> Result<WeakPtr<dyn Type>, Option<WeakPtr<dyn Entity>>> {
         if let Some(primitive_ptr) = primitive_cache.get(identifier) {
             Ok(downgrade_as!(primitive_ptr, dyn Type))
-        } else if let Some(entity_ptr) =
-        Self::lookup_entity(lookup_table, identifier, scopes) {
+        } else if let Some(entity_ptr) = Self::lookup_entity(lookup_table, identifier, scopes) {
             match entity_ptr.borrow().concrete_entity() {
-                Entities::Struct(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Struct>().ok().unwrap(), dyn Type))
-                }
-                Entities::Exception(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Exception>().ok().unwrap(), dyn Type))
-                }
-                Entities::Class(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Class>().ok().unwrap(), dyn Type))
-                }
-                Entities::Interface(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Interface>().ok().unwrap(), dyn Type))
-                }
-                Entities::Enum(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Enum>().ok().unwrap(), dyn Type))
-                }
-                Entities::Trait(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<Trait>().ok().unwrap(), dyn Type))
-                }
-                Entities::CustomType(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<CustomType>().ok().unwrap(), dyn Type))
-                }
-                Entities::TypeAlias(_) => {
-                    Ok(upcast_weak_as!(entity_ptr.clone().downcast::<TypeAlias>().ok().unwrap(), dyn Type))
-                }
-                _ => Err(Some(entity_ptr.clone()))
+                Entities::Struct(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Struct>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::Exception(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Exception>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::Class(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Class>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::Interface(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Interface>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::Enum(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Enum>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::Trait(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<Trait>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::CustomType(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<CustomType>().ok().unwrap(),
+                    dyn Type
+                )),
+                Entities::TypeAlias(_) => Ok(upcast_weak_as!(
+                    entity_ptr.clone().downcast::<TypeAlias>().ok().unwrap(),
+                    dyn Type
+                )),
+                _ => Err(Some(entity_ptr.clone())),
             }
         } else {
             Err(None)
         }
     }
 
-    pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive>{
-        self.primitive_cache.get(identifier).unwrap_or_else(||
-            panic!("No primitive type exists with the name '{}'", identifier)
-        )
+    pub fn lookup_primitive(&self, identifier: &str) -> &OwnedPtr<Primitive> {
+        self.primitive_cache
+            .get(identifier)
+            .unwrap_or_else(|| panic!("No primitive type exists with the name '{}'", identifier))
     }
 }
 

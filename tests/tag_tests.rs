@@ -183,7 +183,7 @@ mod tags {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    #[test] // TODO: We should not be panicing here. We should be returning an error.
+    #[test] // TODO: We should not be panicking here. We should be returning an error.
     fn strings_invalid_as_tag_value() {
         // Arrange
         let slice = "

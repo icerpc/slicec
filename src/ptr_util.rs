@@ -5,15 +5,12 @@ use std::any::TypeId;
 #[derive(Debug)]
 pub struct OwnedPtr<T: ?Sized> {
     data: Box<T>,
-    concrete_type_id: TypeId, // TODO for downcasting support
+    concrete_type_id: TypeId, // TODO: For downcasting support
 }
 
 impl<T: Sized + 'static> OwnedPtr<T> {
     pub fn new(value: T) -> Self {
-        OwnedPtr {
-            data: Box::new(value),
-            concrete_type_id: TypeId::of::<T>(),
-        }
+        OwnedPtr { data: Box::new(value), concrete_type_id: TypeId::of::<T>() }
     }
 }
 
@@ -35,17 +32,13 @@ impl<T: ?Sized> OwnedPtr<T> {
     ///
     /// Mutating the underlying data while another reference to it still exists, is undefined
     /// behavior. So ONLY call this function if you are CERTAIN that NO other references exist.
-    ///
     #[allow(clippy::should_implement_trait)]
     pub unsafe fn borrow_mut(&mut self) -> &mut T {
         &mut *self.data
     }
 
     pub fn downgrade(&self) -> WeakPtr<T> {
-        WeakPtr {
-            data: Some(&*self.data),
-            concrete_type_id: self.concrete_type_id,
-        }
+        WeakPtr { data: Some(&*self.data), concrete_type_id: self.concrete_type_id }
     }
 
     pub fn downcast<U: 'static>(self) -> Result<OwnedPtr<U>, OwnedPtr<T>> {
@@ -64,10 +57,7 @@ impl<T: ?Sized> OwnedPtr<T> {
     }
 
     pub fn from_inner(inner: (Box<T>, TypeId)) -> Self {
-        OwnedPtr {
-            data: inner.0,
-            concrete_type_id: inner.1,
-        }
+        OwnedPtr { data: inner.0, concrete_type_id: inner.1 }
     }
 
     pub fn into_inner(self) -> (Box<T>, TypeId) {
@@ -83,10 +73,7 @@ pub struct WeakPtr<T: ?Sized> {
 
 impl<T: ?Sized + 'static> WeakPtr<T> {
     pub fn create_uninitialized() -> Self {
-        WeakPtr {
-            data: None,
-            concrete_type_id: TypeId::of::<T>(),
-        }
+        WeakPtr { data: None, concrete_type_id: TypeId::of::<T>() }
     }
 }
 
@@ -120,10 +107,7 @@ impl<T: ?Sized> WeakPtr<T> {
     }
 
     pub fn from_inner(inner: (Option<*const T>, TypeId)) -> Self {
-        WeakPtr {
-            data: inner.0,
-            concrete_type_id: inner.1,
-        }
+        WeakPtr { data: inner.0, concrete_type_id: inner.1 }
     }
 
     pub fn into_inner(self) -> (Option<*const T>, TypeId) {
@@ -133,10 +117,7 @@ impl<T: ?Sized> WeakPtr<T> {
 
 impl<T: ?Sized> Clone for WeakPtr<T> {
     fn clone(&self) -> Self {
-        WeakPtr {
-            data: self.data,
-            concrete_type_id: self.concrete_type_id,
-        }
+        WeakPtr { data: self.data, concrete_type_id: self.concrete_type_id }
     }
 }
 
@@ -145,8 +126,8 @@ impl<T: ?Sized> Clone for WeakPtr<T> {
 // concrete type to a trait type it implements). But the trait is still marked as unstable.
 // When it's stabilized, this should be uncommented, and the macros beneath this deleted.
 //
-//impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<OwnedPtr<U>> for OwnedPtr<T> {}
-//impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<WeakPtr<U>> for WeakPtr<T> {}
+// impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<OwnedPtr<U>> for OwnedPtr<T> {}
+// impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<WeakPtr<U>> for WeakPtr<T> {}
 
 #[macro_export]
 macro_rules! downgrade_as {
@@ -159,10 +140,7 @@ macro_rules! downgrade_as {
 macro_rules! upcast_owned_as {
     ($owned:expr, $new_type:ty) => {{
         let (data, type_id) = $owned.into_inner();
-        OwnedPtr::from_inner((
-            data as Box<$new_type>,
-            type_id,
-        ))
+        OwnedPtr::from_inner((data as Box<$new_type>, type_id))
     }};
 }
 
@@ -170,9 +148,6 @@ macro_rules! upcast_owned_as {
 macro_rules! upcast_weak_as {
     ($weak:expr, $new_type:ty) => {{
         let (data, type_id) = $weak.into_inner();
-        WeakPtr::from_inner((
-            data.map(|ptr| ptr as *const $new_type),
-            type_id,
-        ))
+        WeakPtr::from_inner((data.map(|ptr| ptr as *const $new_type), type_id))
     }};
 }

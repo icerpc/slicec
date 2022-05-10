@@ -10,16 +10,18 @@ use crate::grammar::{Element, Member, TypeRef};
 pub enum TypeContext {
     /// Used when generating the types of data members in structs, classes, and exceptions.
     DataMember,
-    /// Used when generating the types of operation parameters, and return types in places where they're being decoded.
+    /// Used when generating the types of operation parameters, and return types in places where
+    /// they're being decoded.
     Decode,
-    /// Used when generating the types of operation parameters, and return types in places where they're being encoded.
+    /// Used when generating the types of operation parameters, and return types in places where
+    /// they're being encoded.
     Encode,
     /// Used when generating types that are parts of other types, such as the key & value types of
     /// dictionaries, or the element type of a sequence.
     Nested,
 }
 
-/// TODOAUSTIN write a good comment here
+/// TODO: Write a good comment here
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum CaseStyle {
     Camel,
