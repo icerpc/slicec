@@ -610,7 +610,7 @@ impl Operation {
 
     pub fn has_nonstreamed_return_members(&self) -> bool {
         // Operations can have at most 1 streamed return member. So, if it has more than 1 member
-        // there must be nonstreamed members. Otherwise we check if the 1 member is streamed.
+        // there must be non streamed members. Otherwise we check if the 1 member is streamed.
         match self.return_type.len() {
             0 => false,
             1 => !self.return_type[0].borrow().is_streamed,
