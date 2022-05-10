@@ -5,9 +5,9 @@ use crate::ptr_util::OwnedPtr;
 
 /// The `PtrVisitor` trait is used to recursively visit through a tree of slice elements.
 ///
-/// It automatically traverses through the tree, calling the various `visit_x` methods as applicable.
-/// Elements that implement [Container] have 2 corresponding methods, `visit_x_start` and `visit_x_end`.
-/// Non-container elements only have a single method: `visit_x`.
+/// It automatically traverses through the tree, calling the various `visit_x` methods as
+/// applicable. Elements that implement [Container] have 2 corresponding methods, `visit_x_start`
+/// and `visit_x_end`. Non-container elements only have a single method: `visit_x`.
 ///
 /// These methods are default implemented as no-ops, so implementors are free to only implement the
 /// methods they need. Implementors also don't need to implement the tree traversal or recursive
@@ -223,7 +223,8 @@ pub trait PtrVisitor {
 
     /// This function is called by the visitor when it visits a [CustomType].
     ///
-    /// This shouldn't be called by users. To visit a custom type, use `custom_type_ptr.visit_ptr_with`.
+    /// This shouldn't be called by users. To visit a custom type, use
+    /// `custom_type_ptr.visit_ptr_with`.
     ///
     /// # Safety
     ///
@@ -234,7 +235,8 @@ pub trait PtrVisitor {
 
     /// This function is called by the visitor when it visits a [TypeAlias].
     ///
-    /// This shouldn't be called by users. To visit a type alias, use `type_alias_ptr.visit_ptr_with`.
+    /// This shouldn't be called by users. To visit a type alias, use
+    /// `type_alias_ptr.visit_ptr_with`.
     ///
     /// # Safety
     ///
@@ -267,18 +269,20 @@ pub trait PtrVisitor {
 
     /// This function is called by the visitor when it visits a [return member](Parameter).
     ///
-    /// This shouldn't be called by users. To visit a return member, use `member_ptr.visit_ptr_with`.
+    /// This shouldn't be called by users. To visit a return member, use
+    /// `member_ptr.visit_ptr_with`.
     ///
     /// # Safety
     ///
     /// Implementors of this function must be able to safely borrow the return member being visited,
-    /// mutably and immutably. Hence, this function is only safe to call when the return member isn't
-    /// borrowed elsewhere. Violating this **will** lead to undefined behavior.
+    /// mutably and immutably. Hence, this function is only safe to call when the return member
+    /// isn't borrowed elsewhere. Violating this **will** lead to undefined behavior.
     unsafe fn visit_return_member(&mut self, parameter_ptr: &mut OwnedPtr<Parameter>) {}
 
     /// This function is called by the visitor when it visits an [Enumerator].
     ///
-    /// This shouldn't be called by users. To visit a enumerator, use `type_alias_ptr.visit_ptr_with`.
+    /// This shouldn't be called by users. To visit a enumerator, use
+    /// `type_alias_ptr.visit_ptr_with`.
     ///
     /// # Safety
     ///
@@ -306,15 +310,15 @@ impl OwnedPtr<Module> {
         visitor.visit_module_start(self);
         for definition in &mut self.borrow_mut().contents {
             match definition {
-                Definition::Module(module_ptr)          => module_ptr.visit_ptr_with(visitor),
-                Definition::Struct(struct_ptr)          => struct_ptr.visit_ptr_with(visitor),
-                Definition::Class(class_ptr)            => class_ptr.visit_ptr_with(visitor),
-                Definition::Exception(exception_ptr)    => exception_ptr.visit_ptr_with(visitor),
-                Definition::Interface(interface_ptr)    => interface_ptr.visit_ptr_with(visitor),
-                Definition::Enum(enum_ptr)              => enum_ptr.visit_ptr_with(visitor),
-                Definition::Trait(trait_ptr)            => trait_ptr.visit_ptr_with(visitor),
+                Definition::Module(module_ptr) => module_ptr.visit_ptr_with(visitor),
+                Definition::Struct(struct_ptr) => struct_ptr.visit_ptr_with(visitor),
+                Definition::Class(class_ptr) => class_ptr.visit_ptr_with(visitor),
+                Definition::Exception(exception_ptr) => exception_ptr.visit_ptr_with(visitor),
+                Definition::Interface(interface_ptr) => interface_ptr.visit_ptr_with(visitor),
+                Definition::Enum(enum_ptr) => enum_ptr.visit_ptr_with(visitor),
+                Definition::Trait(trait_ptr) => trait_ptr.visit_ptr_with(visitor),
                 Definition::CustomType(custom_type_ptr) => custom_type_ptr.visit_ptr_with(visitor),
-                Definition::TypeAlias(type_alias_ptr)   => type_alias_ptr.visit_ptr_with(visitor),
+                Definition::TypeAlias(type_alias_ptr) => type_alias_ptr.visit_ptr_with(visitor),
             }
         }
         visitor.visit_module_end(self);
@@ -374,7 +378,8 @@ impl OwnedPtr<Exception> {
     /// the contents of the exception, and finally calls `visitor.visit_exception_end`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [Exception::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [Exception::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -397,7 +402,8 @@ impl OwnedPtr<Interface> {
     /// the contents of the interface, and finally calls `visitor.visit_interface_end`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [Interface::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [Interface::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -443,7 +449,8 @@ impl OwnedPtr<Operation> {
     /// the contents of the operation, and finally calls `visitor.visit_operation_end`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [Operation::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [Operation::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -486,7 +493,8 @@ impl OwnedPtr<CustomType> {
     /// This function delegates to `visitor.visit_custom_type`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [CustomType::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [CustomType::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -504,7 +512,8 @@ impl OwnedPtr<TypeAlias> {
     /// This function delegates to `visitor.visit_type_alias`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [TypeAlias::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [TypeAlias::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -522,7 +531,8 @@ impl OwnedPtr<DataMember> {
     /// This function delegates to `visitor.visit_data_member`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [DataMember::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [DataMember::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -542,7 +552,8 @@ impl OwnedPtr<Parameter> {
     /// cases because both semantic types are implemented by the [Parameter] struct.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [Parameter::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [Parameter::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///
@@ -564,7 +575,8 @@ impl OwnedPtr<Enumerator> {
     /// This function delegates to `visitor.visit_enumerator`.
     ///
     /// It takes a mutable borrow of the pointer, to allow the visitor to modify the pointer and its
-    /// contents. If you don't need mutability or pointer access, use [Enumerator::visit_with] instead.
+    /// contents. If you don't need mutability or pointer access, use [Enumerator::visit_with]
+    /// instead.
     ///
     /// # Safety
     ///

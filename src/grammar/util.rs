@@ -18,11 +18,7 @@ impl Scope {
             .map(|s| s.to_owned())
             .collect::<Vec<_>>();
 
-        let module_scope = if is_module {
-            parser_scope.clone()
-        } else {
-            Vec::new()
-        };
+        let module_scope = if is_module { parser_scope.clone() } else { Vec::new() };
 
         Scope {
             raw_module_scope: module_scope.join("::"),
@@ -57,7 +53,8 @@ impl Scope {
 /// These encodings identity the format used to convert Slice types to and from byte streams.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Encoding {
-    /// Version 1 of the Slice encoding, supported by IceRPC, and compatible with Ice 3.5 or greater.
+    /// Version 1 of the Slice encoding, supported by IceRPC, and compatible with Ice 3.5 or
+    /// greater.
     ///
     /// It is primarily for interoperability between Ice and IceRPC.
     Slice1,

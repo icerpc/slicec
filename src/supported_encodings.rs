@@ -68,7 +68,7 @@ impl SupportedEncodings {
 /// match supported_encodings[..] {
 ///     [] => println!("No supported encodings"),
 ///     [e] => println!("Only supports {}", e),
-///     _ => println!("Supports multiple encodings")
+///     _ => println!("Supports multiple encodings"),
 /// }
 /// ```
 impl<I: std::slice::SliceIndex<[Encoding]>> std::ops::Index<I> for SupportedEncodings {

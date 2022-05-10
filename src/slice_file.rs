@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{Attribute, FileEncoding, Module, Encoding};
+use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
 use crate::ptr_util::WeakPtr;
 
 #[derive(Clone, Debug)]

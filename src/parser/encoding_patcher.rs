@@ -15,11 +15,8 @@ pub(super) fn patch_encodings(
     ast: &mut Ast,
     error_reporter: &mut ErrorReporter,
 ) {
-    let mut patcher = EncodingPatcher {
-        slice_files,
-        supported_encodings: HashMap::new(),
-        error_reporter,
-    };
+    let mut patcher =
+        EncodingPatcher { slice_files, supported_encodings: HashMap::new(), error_reporter };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
     for slice_file in slice_files.values() {
@@ -28,7 +25,9 @@ pub(super) fn patch_encodings(
 
     // Then directly visit everything mutably to actually patch in the supported encodings.
     for module in &mut ast.ast {
-        unsafe { module.visit_ptr_with(&mut patcher); }
+        unsafe {
+            module.visit_ptr_with(&mut patcher);
+        }
     }
 }
 
@@ -55,20 +54,20 @@ impl<'a> EncodingPatcher<'a> {
         file_encoding: Encoding,
     ) {
         if supported_encodings.is_empty() {
-            let message = format!(
-                "type '{}' isn't supportable by any Slice encoding",
-                type_id,
-            );
-            self.error_reporter.report_error(message, Some(type_def.location()));
+            let message = format!("type '{}' isn't supportable by any Slice encoding", type_id,);
+            self.error_reporter
+                .report_error(message, Some(type_def.location()));
         } else if !supported_encodings.supports(&file_encoding) {
             let message = format!(
                 "type '{}' isn't supported by its file's Slice encoding",
                 type_id,
             );
-            self.error_reporter.report_error(message, Some(type_def.location()));
+            self.error_reporter
+                .report_error(message, Some(type_def.location()));
             self.print_file_encoding_note(type_def);
         }
-        self.supported_encodings.insert(type_id, supported_encodings);
+        self.supported_encodings
+            .insert(type_id, supported_encodings);
     }
 
     fn get_file_encoding_for(&self, symbol: &impl Symbol) -> Encoding {
@@ -95,13 +94,15 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     struct_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }
+                .clone()
             }
             TypeRefs::Class(_) => {
                 is_nullable = true;
-                // Classes can only be declared in a Slice 1 encoded file. A Slice 1 encoded file can only
-                // reference entities from other Slice 1 encoded files. So it's impossible for a class
-                // to contain non-Slice 1 things in it. So classes are always supported by (only) Slice 1.
+                // Classes can only be declared in a Slice 1 encoded file. A Slice 1 encoded file
+                // can only reference entities from other Slice 1 encoded files. So
+                // it's impossible for a class to contain non-Slice 1 things in it.
+                // So classes are always supported by (only) Slice 1.
                 SupportedEncodings::new(vec![Encoding::Slice1])
             }
             TypeRefs::Exception(exception_ref) => {
@@ -112,7 +113,8 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     exception_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone();
+                }
+                .clone();
 
                 // Exceptions as a data type are not supported with Slice 1.
                 encodings.disable(Encoding::Slice1);
@@ -128,7 +130,8 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     interface_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }
+                .clone()
             }
             TypeRefs::Enum(enum_ref) => {
                 let type_id = enum_ref.module_scoped_identifier();
@@ -138,7 +141,8 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     enum_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }
+                .clone()
             }
             TypeRefs::Trait(trait_ref) => {
                 let type_id = trait_ref.module_scoped_identifier();
@@ -148,7 +152,8 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     trait_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }
+                .clone()
             }
             TypeRefs::CustomType(custom_type_ref) => {
                 let type_id = custom_type_ref.module_scoped_identifier();
@@ -158,15 +163,14 @@ impl<'a> EncodingPatcher<'a> {
                 } else {
                     custom_type_ref.visit_with(self);
                     self.supported_encodings.get(&type_id).unwrap()
-                }.clone()
+                }
+                .clone()
             }
-            TypeRefs::Sequence(sequence_ref) => {
-                self.resolve_encodings_supported_by_type(
-                    file_encoding,
-                    &sequence_ref.element_type,
-                    false
-                )
-            }
+            TypeRefs::Sequence(sequence_ref) => self.resolve_encodings_supported_by_type(
+                file_encoding,
+                &sequence_ref.element_type,
+                false,
+            ),
             TypeRefs::Dictionary(dictionary_ref) => {
                 let mut key_encodings = self.resolve_encodings_supported_by_type(
                     file_encoding,
@@ -195,7 +199,8 @@ impl<'a> EncodingPatcher<'a> {
                         primitive_def.kind(),
                         file_encoding
                     );
-                    self.error_reporter.report_error(message, Some(type_ref.location()));
+                    self.error_reporter
+                        .report_error(message, Some(type_ref.location()));
                     self.print_file_encoding_note(type_ref);
                     SupportedEncodings::dummy()
                 } else {
@@ -210,7 +215,7 @@ impl<'a> EncodingPatcher<'a> {
             if *file_encoding == Encoding::Slice1 {
                 self.error_reporter.report_error(
                     "optional types can only be used with tags in the Slice 1 encoding".to_owned(),
-                    Some(type_ref.location())
+                    Some(type_ref.location()),
                 );
                 self.print_file_encoding_note(type_ref);
                 supported_encodings = SupportedEncodings::dummy();
@@ -229,7 +234,8 @@ impl<'a> EncodingPatcher<'a> {
                 "file encoding was set to the Slice {} encoding here:",
                 &file_encoding.version,
             );
-            self.error_reporter.report_note(message, Some(file_encoding.location()));
+            self.error_reporter
+                .report_note(message, Some(file_encoding.location()));
         } else {
             let message = format!(
                 "file is using the Slice {} encoding by default",
@@ -239,7 +245,8 @@ impl<'a> EncodingPatcher<'a> {
 
             self.error_reporter.report_note(
                 r#"to use a different encoding, specify it at the top of the slice file
-ex: 'encoding = 1;'"#.to_owned(),
+ex: 'encoding = 1;'"#
+                    .to_owned(),
                 None,
             )
         }
@@ -375,7 +382,9 @@ impl<'a> Visitor for EncodingPatcher<'a> {
                         operation_def.identifier(),
                         operation_encoding
                     );
-                    patcher.error_reporter.report_error(message, Some(member.location()));
+                    patcher
+                        .error_reporter
+                        .report_error(message, Some(member.location()));
                     patcher.print_file_encoding_note(member);
                 }
             }
@@ -396,8 +405,9 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
                 self.error_reporter.report_error(
-                    "enums with underlying types are not supported by the Slice 1 encoding".to_owned(),
-                    Some(enum_def.location())
+                    "enums with underlying types are not supported by the Slice 1 encoding"
+                        .to_owned(),
+                    Some(enum_def.location()),
                 );
                 self.print_file_encoding_note(enum_def);
                 supported_encodings = SupportedEncodings::dummy();
