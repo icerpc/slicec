@@ -15,5 +15,8 @@
     "upcasting",
     "varint",
     "varuint"
-  ]
+  ],
+  "rust-analyzer.rustfmt.extraArgs": [
+    "+nightly"
+  ],
 }
