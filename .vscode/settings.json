@@ -11,6 +11,7 @@
     "uncasted",
     "unpatchable",
     "unprefixed",
+    "Unsize",
     "upcasting",
     "varint",
     "varuint"

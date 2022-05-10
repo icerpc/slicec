@@ -126,8 +126,8 @@ impl<T: ?Sized> Clone for WeakPtr<T> {
 // concrete type to a trait type it implements). But the trait is still marked as unstable.
 // When it's stabilized, this should be uncommented, and the macros beneath this deleted.
 //
-// impl<T: ?Sized + Unsized<U>, U: ?Sized> CoerceUnsized<OwnedPtr<U>> for OwnedPtr<T> {}
-// impl<T: ?Sized + Unsized<U>, U: ?Sized> CoerceUnsized<WeakPtr<U>> for WeakPtr<T> {}
+// impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<OwnedPtr<U>> for OwnedPtr<T> {}
+// impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<WeakPtr<U>> for WeakPtr<T> {}
 
 #[macro_export]
 macro_rules! downgrade_as {
