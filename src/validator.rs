@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
-use crate::grammar::*;
 use crate::error::ErrorReporter;
+use crate::grammar::*;
 use crate::visitor::Visitor;
 
 #[derive(Debug)]
@@ -30,7 +30,9 @@ impl Validator<'_> {
         }
 
         let definition = type_ref.definition();
-        let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition.concrete_type() {
+        let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition
+            .concrete_type()
+        {
             Types::Struct(struct_def) => {
                 // Only compact structs can be used for dictionary keys.
                 if !struct_def.is_compact {
@@ -85,7 +87,10 @@ impl Validator<'_> {
             Types::Sequence(_) => (false, None),
             Types::Dictionary(_) => (false, None),
             Types::Primitive(primitive) => (
-                !matches!(primitive, Primitive::Float32 | Primitive::Float64 | Primitive::AnyClass),
+                !matches!(
+                    primitive,
+                    Primitive::Float32 | Primitive::Float64 | Primitive::AnyClass
+                ),
                 None,
             ),
         };
@@ -137,9 +142,10 @@ impl<'a> Visitor for Validator<'a> {
                 let mut has_tags = false;
                 for member in struct_def.members() {
                     if member.tag.is_some() {
-                    self.error_reporter.report_error(
+                        self.error_reporter.report_error(
                             "tagged data members are not supported in compact structs\n\
-                            consider removing the tag, or making the struct non-compact".to_owned(),
+                            consider removing the tag, or making the struct non-compact"
+                                .to_owned(),
                             Some(&member.location),
                         );
                         has_tags = true;
@@ -147,8 +153,11 @@ impl<'a> Visitor for Validator<'a> {
                 }
 
                 if has_tags {
-                self.error_reporter.report_note(
-                        format!("struct '{}' is declared compact here", struct_def.identifier()),
+                    self.error_reporter.report_note(
+                        format!(
+                            "struct '{}' is declared compact here",
+                            struct_def.identifier()
+                        ),
                         Some(&struct_def.location),
                     );
                 }
@@ -161,8 +170,8 @@ impl<'a> Visitor for Validator<'a> {
             // If members is empty, `split_last` returns None, and this check is skipped,
             // otherwise it returns all the members, except for the last one. None of these members
             // can be streamed, since only the last member can be.
-            if let Some((_, unstreamable_members)) = members.split_last() {
-                for member in unstreamable_members {
+            if let Some((_, nonstreamed_members)) = members.split_last() {
+                for member in nonstreamed_members {
                     if member.is_streamed {
                         error_reporter.report_error(
                             "only the last parameter in an operation can be streamed".to_owned(),

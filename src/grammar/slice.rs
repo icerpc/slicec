@@ -2,11 +2,11 @@
 
 use super::comments::DocComment;
 use super::traits::*;
-use super::util::{Scope, Encoding, ClassFormat, TagFormat};
+use super::util::{ClassFormat, Encoding, Scope, TagFormat};
 use super::wrappers::*;
+use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
 
 #[derive(Debug)]
 pub struct Module {
@@ -41,7 +41,8 @@ impl Module {
     }
 
     pub fn submodules(&self) -> Vec<&Module> {
-        self.contents.iter()
+        self.contents
+            .iter()
             .filter_map(|definition| {
                 if let Definition::Module(module_def) = definition {
                     Some(module_def.borrow())
@@ -88,7 +89,17 @@ impl Struct {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Struct { identifier, members, is_compact, parent, scope, attributes, comment, location, supported_encodings }
+        Struct {
+            identifier,
+            members,
+            is_compact,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -96,7 +107,8 @@ impl Struct {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members.iter()
+        self.members
+            .iter()
             .map(|member_ptr| member_ptr.borrow())
             .collect()
     }
@@ -105,13 +117,16 @@ impl Struct {
 impl Type for Struct {
     fn is_fixed_size(&self) -> bool {
         // A struct is fixed size if and only if all its members are fixed size.
-        self.members().iter()
+        self.members()
+            .iter()
             .all(|member| member.data_type.is_fixed_size())
     }
 
     fn min_wire_size(&self) -> u32 {
         // The min-wire-size of a struct is the min-wire-size of all its members added together.
-        let min_wire_size = self.members().iter()
+        let min_wire_size = self
+            .members()
+            .iter()
             .map(|member| member.data_type.min_wire_size())
             .sum();
         if self.is_compact {
@@ -123,7 +138,8 @@ impl Type for Struct {
     }
 
     fn uses_classes(&self) -> bool {
-        self.members().iter()
+        self.members()
+            .iter()
             .any(|member| member.data_type.uses_classes())
     }
 
@@ -176,7 +192,18 @@ impl Class {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Class { identifier, compact_id, members, base, parent, scope, attributes, comment, location, supported_encodings }
+        Class {
+            identifier,
+            compact_id,
+            members,
+            base,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -184,7 +211,8 @@ impl Class {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members.iter()
+        self.members
+            .iter()
             .map(|member_ptr| member_ptr.borrow())
             .collect()
     }
@@ -200,8 +228,7 @@ impl Class {
     }
 
     pub fn base_class(&self) -> Option<&Class> {
-        self.base.as_ref()
-            .map(|type_ref| type_ref.definition())
+        self.base.as_ref().map(|type_ref| type_ref.definition())
     }
 }
 
@@ -261,7 +288,17 @@ impl Exception {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Exception { identifier, members, base, parent, scope, attributes, comment, location, supported_encodings }
+        Exception {
+            identifier,
+            members,
+            base,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 
     pub(crate) fn add_member(&mut self, member: DataMember) {
@@ -269,7 +306,8 @@ impl Exception {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members.iter()
+        self.members
+            .iter()
             .map(|member_ptr| member_ptr.borrow())
             .collect()
     }
@@ -285,27 +323,29 @@ impl Exception {
     }
 
     pub fn base_exception(&self) -> Option<&Exception> {
-        self.base.as_ref()
-            .map(|type_ref| type_ref.definition())
+        self.base.as_ref().map(|type_ref| type_ref.definition())
     }
 }
 
 impl Type for Exception {
     fn is_fixed_size(&self) -> bool {
         // An exception is fixed size if and only if all its members are fixed size.
-        self.all_members().iter()
+        self.all_members()
+            .iter()
             .all(|member| member.data_type.is_fixed_size())
     }
 
     fn min_wire_size(&self) -> u32 {
         // The min-wire-size of an exception is the min-wire-size of all its members added together.
-        self.all_members().iter()
+        self.all_members()
+            .iter()
             .map(|member| member.data_type.min_wire_size())
             .sum()
     }
 
     fn uses_classes(&self) -> bool {
-        self.all_members().iter()
+        self.all_members()
+            .iter()
             .any(|member| member.data_type.uses_classes())
     }
 
@@ -351,7 +391,16 @@ impl DataMember {
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        DataMember { identifier, data_type, tag, parent, scope, attributes, comment, location }
+        DataMember {
+            identifier,
+            data_type,
+            tag,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -385,7 +434,17 @@ impl Interface {
         let operations = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Interface { identifier, operations, bases, parent, scope, attributes, comment, location, supported_encodings }
+        Interface {
+            identifier,
+            operations,
+            bases,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 
     pub(crate) fn add_operation(&mut self, operation: Operation) {
@@ -393,13 +452,16 @@ impl Interface {
     }
 
     pub fn operations(&self) -> Vec<&Operation> {
-        self.operations.iter()
+        self.operations
+            .iter()
             .map(|operation_ptr| operation_ptr.borrow())
             .collect()
     }
 
     pub fn all_inherited_operations(&self) -> Vec<&Operation> {
-        let mut operations = self.all_base_interfaces().iter()
+        let mut operations = self
+            .all_base_interfaces()
+            .iter()
             .flat_map(|base_interface| base_interface.operations())
             .collect::<Vec<&Operation>>();
 
@@ -420,7 +482,8 @@ impl Interface {
     }
 
     pub fn base_interfaces(&self) -> Vec<&Interface> {
-        self.bases.iter()
+        self.bases
+            .iter()
             .map(|type_ref| type_ref.definition())
             .collect()
     }
@@ -503,7 +566,18 @@ impl Operation {
     ) -> Self {
         let parameters = Vec::new();
         let parent = WeakPtr::create_uninitialized();
-        Operation { identifier, return_type, parameters, is_idempotent, encoding, parent, scope, attributes, comment, location }
+        Operation {
+            identifier,
+            return_type,
+            parameters,
+            is_idempotent,
+            encoding,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 
     pub(crate) fn add_parameter(&mut self, parameter: Parameter) {
@@ -511,20 +585,22 @@ impl Operation {
     }
 
     pub fn parameters(&self) -> Vec<&Parameter> {
-        self.parameters.iter()
+        self.parameters
+            .iter()
             .map(|parameter_ptr| parameter_ptr.borrow())
             .collect()
     }
 
     pub fn return_members(&self) -> Vec<&Parameter> {
-        self.return_type.iter()
+        self.return_type
+            .iter()
             .map(|parameter_ptr| parameter_ptr.borrow())
             .collect()
     }
 
     pub fn has_nonstreamed_parameters(&self) -> bool {
         // Operations can have at most 1 streamed parameter. So, if it has more than 1 parameter
-        // there must be unstreamed parameters. Otherwise we check if the 1 parameter is streamed.
+        // there must be  parameters. Otherwise we check if the 1 parameter is streamed.
         match self.parameters.len() {
             0 => false,
             1 => !self.parameters[0].borrow().is_streamed,
@@ -534,7 +610,7 @@ impl Operation {
 
     pub fn has_nonstreamed_return_members(&self) -> bool {
         // Operations can have at most 1 streamed return member. So, if it has more than 1 member
-        // there must be unstreamed members. Otherwise we check if the 1 member is streamed.
+        // there must be nonstreamed members. Otherwise we check if the 1 member is streamed.
         match self.return_type.len() {
             0 => false,
             1 => !self.return_type[0].borrow().is_streamed,
@@ -543,14 +619,16 @@ impl Operation {
     }
 
     pub fn nonstreamed_parameters(&self) -> Vec<&Parameter> {
-        self.parameters().iter()
+        self.parameters()
+            .iter()
             .filter(|parameter| !parameter.is_streamed)
             .cloned()
             .collect()
     }
 
     pub fn nonstreamed_return_members(&self) -> Vec<&Parameter> {
-        self.return_members().iter()
+        self.return_members()
+            .iter()
             .filter(|parameter| !parameter.is_streamed)
             .cloned()
             .collect()
@@ -558,25 +636,29 @@ impl Operation {
 
     pub fn streamed_parameter(&self) -> Option<&Parameter> {
         // There can be only 1 streamed parameter and it must be the last parameter.
-        self.parameters().last()
+        self.parameters()
+            .last()
             .filter(|parameter| parameter.is_streamed)
             .cloned()
     }
 
     pub fn streamed_return_member(&self) -> Option<&Parameter> {
         // There can be only 1 streamed return member and it must be the last member.
-        self.return_members().last()
+        self.return_members()
+            .last()
             .filter(|parameter| parameter.is_streamed)
             .cloned()
     }
 
     pub fn sends_classes(&self) -> bool {
-        self.parameters().iter()
+        self.parameters()
+            .iter()
             .any(|parameter| parameter.data_type.uses_classes())
     }
 
     pub fn returns_classes(&self) -> bool {
-        self.return_members().iter()
+        self.return_members()
+            .iter()
             .any(|parameter| parameter.data_type.uses_classes())
     }
 
@@ -646,7 +728,18 @@ impl Parameter {
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        Parameter { identifier, data_type, tag, is_streamed, is_returned, parent, scope, attributes, comment, location }
+        Parameter {
+            identifier,
+            data_type,
+            tag,
+            is_streamed,
+            is_returned,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 
@@ -694,7 +787,19 @@ impl Enum {
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
         let int32_def = Primitive::Int32;
-        Enum { identifier, enumerators, underlying, is_unchecked, parent, scope, attributes, comment, location, supported_encodings, int32_def }
+        Enum {
+            identifier,
+            enumerators,
+            underlying,
+            is_unchecked,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+            int32_def,
+        }
     }
 
     pub(crate) fn add_enumerator(&mut self, enumerator: Enumerator) {
@@ -702,7 +807,8 @@ impl Enum {
     }
 
     pub fn enumerators(&self) -> Vec<&Enumerator> {
-        self.enumerators.iter()
+        self.enumerators
+            .iter()
             .map(|enumerator_ptr| enumerator_ptr.borrow())
             .collect()
     }
@@ -711,23 +817,24 @@ impl Enum {
         // If the enum has an underlying type, return a reference to its definition.
         // Otherwise, enums have a backing type of `int32` by default. Since `int32` is a type
         // defined by the compiler, we fetch its definition directly from the global AST.
-        self.underlying.as_ref().map_or(
-            &self.int32_def,
-            |data_type| data_type.definition(),
-        )
+        self.underlying
+            .as_ref()
+            .map_or(&self.int32_def, |data_type| data_type.definition())
     }
 
     pub fn get_min_max_values(&self) -> Option<(i64, i64)> {
-        let values = self.enumerators.iter().map(
-            |enumerator| enumerator.borrow().value
-        );
+        let values = self
+            .enumerators
+            .iter()
+            .map(|enumerator| enumerator.borrow().value);
 
         // There might not be a minimum value if the enum is empty.
-        values.clone().min().map(|min| (
-            min,
-            values.max().unwrap() // A 'min' guarantees a 'max' exists too, so unwrap is safe.
-
-        ))
+        values.clone().min().map(|min| {
+            (
+                min,
+                values.max().unwrap(), // A 'min' guarantees a 'max' exists too, so unwrap is safe.
+            )
+        })
     }
 }
 
@@ -735,14 +842,14 @@ impl Type for Enum {
     fn is_fixed_size(&self) -> bool {
         match &self.underlying {
             Some(underlying) => underlying.is_fixed_size(),
-            _ => false
+            _ => false,
         }
     }
 
     fn min_wire_size(&self) -> u32 {
         match &self.underlying {
             Some(underlying) => underlying.min_wire_size(),
-            _ => 1
+            _ => 1,
         }
     }
 
@@ -821,7 +928,15 @@ impl Trait {
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        Trait { identifier, parent, scope, attributes, comment, location, supported_encodings }
+        Trait {
+            identifier,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 }
 
@@ -879,7 +994,15 @@ impl CustomType {
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        CustomType { identifier, parent, scope, attributes, comment, location, supported_encodings }
+        CustomType {
+            identifier,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+            supported_encodings,
+        }
     }
 }
 
@@ -889,7 +1012,7 @@ impl Type for CustomType {
     }
 
     fn min_wire_size(&self) -> u32 {
-        //TODO Can't we get rid of min wire size already?
+        // TODO Can't we get rid of min wire size already?
         0
     }
 
@@ -1046,7 +1169,8 @@ impl<T: Type + ?Sized> TypeRef<T> {
         if self.is_optional {
             match self.definition().concrete_type() {
                 // TODO explain why still take up 1 byte.
-                // TODO this is not totally correct the min_wire_size of a optional interface depends on the encoding
+                // TODO this is not totally correct the min_wire_size of a optional interface
+                // depends on the encoding
                 Types::Class(_) => 1,
                 Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => 1,
                 _ => 0,
@@ -1241,17 +1365,34 @@ pub enum Primitive {
 
 impl Primitive {
     pub fn is_numeric(&self) -> bool {
-        matches!(self,
-            Self::Int8 | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 | Self::UInt32 |
-            Self::VarInt32 | Self::VarUInt32 | Self::Int64 | Self::UInt64 | Self::VarInt62 |
-            Self::VarUInt62 | Self::Float32 | Self::Float64
+        matches!(
+            self,
+            Self::Int8
+                | Self::UInt8
+                | Self::Int16
+                | Self::UInt16
+                | Self::Int32
+                | Self::UInt32
+                | Self::VarInt32
+                | Self::VarUInt32
+                | Self::Int64
+                | Self::UInt64
+                | Self::VarInt62
+                | Self::VarUInt62
+                | Self::Float32
+                | Self::Float64
         )
     }
 
     pub fn is_unsigned_numeric(&self) -> bool {
-        matches!(self,
-            Self::UInt8 | Self::UInt16 | Self::UInt32 | Self::VarUInt32 | Self::UInt64 |
-            Self::VarUInt62
+        matches!(
+            self,
+            Self::UInt8
+                | Self::UInt16
+                | Self::UInt32
+                | Self::VarUInt32
+                | Self::UInt64
+                | Self::VarUInt62
         )
     }
 
@@ -1262,9 +1403,19 @@ impl Primitive {
 
 impl Type for Primitive {
     fn is_fixed_size(&self) -> bool {
-        matches!(self,
-            Self::Bool | Self::Int8 | Self::UInt8 | Self::Int16 | Self::UInt16 | Self::Int32 |
-            Self::UInt32 | Self::Int64 | Self::UInt64 | Self::Float32 | Self::Float64
+        matches!(
+            self,
+            Self::Bool
+                | Self::Int8
+                | Self::UInt8
+                | Self::Int16
+                | Self::UInt16
+                | Self::Int32
+                | Self::UInt32
+                | Self::Int64
+                | Self::UInt64
+                | Self::Float32
+                | Self::Float64
         )
     }
 
@@ -1285,7 +1436,7 @@ impl Type for Primitive {
             Self::VarUInt62 => 1,
             Self::Float32 => 4,
             Self::Float64 => 8,
-            Self::String => 1, // At least 1 byte for the empty string.
+            Self::String => 1,   // At least 1 byte for the empty string.
             Self::AnyClass => 1, // At least 1 byte to encode an index (instead of an instance).
         }
     }
@@ -1300,45 +1451,45 @@ impl Type for Primitive {
 
     fn tag_format(&self) -> Option<TagFormat> {
         match self {
-            Self::Bool      => Some(TagFormat::F1),
-            Self::Int8      => None,
-            Self::UInt8     => Some(TagFormat::F1),
-            Self::Int16     => Some(TagFormat::F2),
-            Self::UInt16    => None,
-            Self::Int32     => Some(TagFormat::F4),
-            Self::UInt32    => None,
-            Self::VarInt32  => None,
+            Self::Bool => Some(TagFormat::F1),
+            Self::Int8 => None,
+            Self::UInt8 => Some(TagFormat::F1),
+            Self::Int16 => Some(TagFormat::F2),
+            Self::UInt16 => None,
+            Self::Int32 => Some(TagFormat::F4),
+            Self::UInt32 => None,
+            Self::VarInt32 => None,
             Self::VarUInt32 => None,
-            Self::Int64     => Some(TagFormat::F8),
-            Self::UInt64    => None,
-            Self::VarInt62  => None,
+            Self::Int64 => Some(TagFormat::F8),
+            Self::UInt64 => None,
+            Self::VarInt62 => None,
             Self::VarUInt62 => None,
-            Self::Float32   => Some(TagFormat::F4),
-            Self::Float64   => Some(TagFormat::F8),
-            Self::String    => Some(TagFormat::OVSize),
-            Self::AnyClass  => Some(TagFormat::Class),
+            Self::Float32 => Some(TagFormat::F4),
+            Self::Float64 => Some(TagFormat::F8),
+            Self::String => Some(TagFormat::OVSize),
+            Self::AnyClass => Some(TagFormat::Class),
         }
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
         SupportedEncodings::new(match self {
-            Self::Bool      => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Int8      => vec![Encoding::Slice2],
-            Self::UInt8     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Int16     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt16    => vec![Encoding::Slice2],
-            Self::Int32     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt32    => vec![Encoding::Slice2],
-            Self::VarInt32  => vec![Encoding::Slice2],
+            Self::Bool => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int8 => vec![Encoding::Slice2],
+            Self::UInt8 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int16 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt16 => vec![Encoding::Slice2],
+            Self::Int32 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt32 => vec![Encoding::Slice2],
+            Self::VarInt32 => vec![Encoding::Slice2],
             Self::VarUInt32 => vec![Encoding::Slice2],
-            Self::Int64     => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt64    => vec![Encoding::Slice2],
-            Self::VarInt62  => vec![Encoding::Slice2],
+            Self::Int64 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt64 => vec![Encoding::Slice2],
+            Self::VarInt62 => vec![Encoding::Slice2],
             Self::VarUInt62 => vec![Encoding::Slice2],
-            Self::Float32   => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Float64   => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::String    => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::AnyClass  => vec![Encoding::Slice1],
+            Self::Float32 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Float64 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::String => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::AnyClass => vec![Encoding::Slice1],
         })
     }
 }
