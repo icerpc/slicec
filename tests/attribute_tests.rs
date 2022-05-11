@@ -6,9 +6,9 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::helpers::parsing_helpers::parse_for_ast;
+        use crate::assert_errors;
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
         use slice::grammar::*;
-        use slice::parse_from_string;
         use test_case::test_case;
 
         #[test_case("Compact", ClassFormat::Compact)]
@@ -38,22 +38,48 @@ mod attributes {
         }
 
         #[test] // TODO: Using an invalid format should not panic but should be handled gracefully.
-        fn format_with_invalid_format_fails() {
+        fn format_with_no_argument_uses_compact_as_default() {
             // Arrange
             let slice = "
                 module Test;
 
                 interface I {
-                    [format(Fake format)]
+                    [format(Compact)]
                     op(s: string) -> string;
                 }
-                ";
+            ";
 
             // Act
-            let errors = parse_from_string(slice).err();
+            let ast = parse_for_ast(slice);
 
             // Assert
-            assert!(errors.is_some());
+            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+            let operation = operation_ptr.borrow();
+
+            // Assert
+            assert_eq!(operation.class_format(), ClassFormat::Compact);
+        }
+
+        #[test]
+        #[ignore] // TODO: Should be emitting errors.
+        fn format_with_invalid_argument_fails() {
+            // Arrange
+            let slice = "
+                module Test;
+
+                interface I {
+                    [format(Foo)]
+                    op(s: string) -> string;
+                }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "" // Should be error here
+            ]);
         }
 
         #[test]
@@ -130,7 +156,8 @@ mod attributes {
 
     mod generalized_api {
 
-        use crate::helpers::parsing_helpers::parse_for_ast;
+        use crate::assert_errors;
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
         use slice::grammar::*;
 
         #[test]
@@ -187,6 +214,50 @@ mod attributes {
             assert_eq!(operation.attributes[0].arguments[0], "1");
             assert_eq!(operation.attributes[0].arguments[1], "2");
             assert_eq!(operation.attributes[0].arguments[2], "3");
+        }
+
+        #[test]
+        #[ignore] // TODO: Should be emitting errors.
+        fn foo_attribute_with_commas_fails() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                [foo::bar(abc,def,ghi)]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "" // Should be error here
+            ]);
+        }
+
+        #[test]
+        #[ignore] // TODO: Should be emitting errors.
+        fn foo_attribute_with_spaces_fails() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                [foo::bar(abc def ghi)]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "" // Should be error here
+            ]);
         }
     }
 }
