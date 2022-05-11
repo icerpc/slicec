@@ -21,7 +21,9 @@ use crate::slice_file::SliceFile;
 use crate::validator::Validator;
 use std::collections::HashMap;
 
-pub fn parse_from_options(options: &SliceOptions) -> Result<(Ast, ErrorReporter, HashMap<String, SliceFile>), Error> {
+pub fn parse_from_options(
+    options: &SliceOptions,
+) -> Result<(Ast, ErrorReporter, HashMap<String, SliceFile>), Error> {
     let mut ast = Ast::new();
     let mut error_reporter = ErrorReporter::default();
 
@@ -67,11 +69,7 @@ pub fn handle_errors(
         );
 
         println!("{}", &message);
-        Err(Error{
-            message,
-            location: None,
-            severity: ErrorLevel::Critical,
-        })
+        Err(Error { message, location: None, severity: ErrorLevel::Critical })
     } else {
         Ok(())
     }

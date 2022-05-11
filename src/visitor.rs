@@ -5,9 +5,9 @@ use crate::slice_file::SliceFile;
 
 /// The `Visitor` trait is used to recursively visit through a tree of slice elements.
 ///
-/// It automatically traverses through the tree, calling the various `visit_x` methods as applicable.
-/// Elements that implement [Container] have 2 corresponding methods, `visit_x_start` and `visit_x_end`.
-/// Non-container elements only have a single method: `visit_x`.
+/// It automatically traverses through the tree, calling the various `visit_x` methods as
+/// applicable. Elements that implement [Container] have 2 corresponding methods, `visit_x_start`
+/// and `visit_x_end`. Non-container elements only have a single method: `visit_x`.
 ///
 /// These methods are default implemented as no-ops, so implementors are free to only implement the
 /// methods they need. Implementors also don't need to implement the tree traversal or recursive
@@ -187,15 +187,15 @@ impl Module {
         visitor.visit_module_start(self);
         for definition in &self.contents {
             match definition {
-                Definition::Module(module_def)       => module_def.borrow().visit_with(visitor),
-                Definition::Struct(struct_def)       => struct_def.borrow().visit_with(visitor),
-                Definition::Class(class_def)         => class_def.borrow().visit_with(visitor),
+                Definition::Module(module_def) => module_def.borrow().visit_with(visitor),
+                Definition::Struct(struct_def) => struct_def.borrow().visit_with(visitor),
+                Definition::Class(class_def) => class_def.borrow().visit_with(visitor),
                 Definition::Exception(exception_def) => exception_def.borrow().visit_with(visitor),
                 Definition::Interface(interface_def) => interface_def.borrow().visit_with(visitor),
-                Definition::Enum(enum_def)           => enum_def.borrow().visit_with(visitor),
-                Definition::Trait(trait_def)         => trait_def.borrow().visit_with(visitor),
-                Definition::CustomType(custom_type)  => custom_type.borrow().visit_with(visitor),
-                Definition::TypeAlias(type_alias)    => type_alias.borrow().visit_with(visitor),
+                Definition::Enum(enum_def) => enum_def.borrow().visit_with(visitor),
+                Definition::Trait(trait_def) => trait_def.borrow().visit_with(visitor),
+                Definition::CustomType(custom_type) => custom_type.borrow().visit_with(visitor),
+                Definition::TypeAlias(type_alias) => type_alias.borrow().visit_with(visitor),
             }
         }
         visitor.visit_module_end(self);

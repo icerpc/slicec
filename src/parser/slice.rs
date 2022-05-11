@@ -2,8 +2,8 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::grammar::*;
 use crate::error::{Error, ErrorLevel, ErrorReporter};
+use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
 use crate::upcast_weak_as;
@@ -57,12 +57,14 @@ pub(super) struct SliceParser<'a> {
 }
 
 impl<'a> SliceParser<'a> {
-
-    pub fn try_parse_file(&mut self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
+    pub fn try_parse_file(
+        &mut self,
+        file: &str,
+        is_source: bool,
+        ast: &mut Ast,
+    ) -> Option<SliceFile> {
         match self.parse_file(file, is_source, ast) {
-            Ok(slice_file) => {
-                Some(slice_file)
-            }
+            Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.error_reporter.report_error(message, None);
                 None
@@ -70,7 +72,12 @@ impl<'a> SliceParser<'a> {
         }
     }
 
-    fn parse_file(&mut self, file: &str, is_source: bool, ast: &mut Ast) -> Result<SliceFile, String> {
+    fn parse_file(
+        &mut self,
+        file: &str,
+        is_source: bool,
+        ast: &mut Ast,
+    ) -> Result<SliceFile, String> {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: file.to_owned(),
@@ -90,9 +97,10 @@ impl<'a> SliceParser<'a> {
         let (file_attributes, file_contents, file_encoding) =
             SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
-        let top_level_modules = file_contents.into_iter().map(|module_def| {
-            ast.add_module(module_def)
-        }).collect::<Vec<_>>();
+        let top_level_modules = file_contents
+            .into_iter()
+            .map(|module_def| ast.add_module(module_def))
+            .collect::<Vec<_>>();
 
         Ok(SliceFile::new(
             file.to_owned(),
@@ -154,7 +162,6 @@ impl<'a> SliceParser<'a> {
 
         Ok(slice_file)
     }
-
 }
 
 #[pest_consume::parser]
@@ -261,7 +268,9 @@ impl<'a> SliceParser<'a> {
     }
 
     #[allow(clippy::type_complexity)]
-    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
+    fn class_start(
+        input: PestNode,
+    ) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier), compact_id(compact_id)] => {
@@ -301,7 +310,9 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
+    fn exception_start(
+        input: PestNode,
+    ) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
@@ -341,7 +352,9 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
+    fn interface_start(
+        input: PestNode,
+    ) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
         let location = from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
@@ -382,7 +395,9 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
+    fn enum_start(
+        input: PestNode,
+    ) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
         // Reset the current enumerator value back to 0.
         input.user_data().borrow_mut().current_enum_value = 0;
 
@@ -767,19 +782,33 @@ impl<'a> SliceParser<'a> {
 
     fn primitive(input: PestNode) -> PestResult<WeakPtr<Primitive>> {
         // Look the primitive up in the AST's primitive cache.
-        Ok(input.user_data().borrow().ast.lookup_primitive(input.as_str()).downgrade())
+        Ok(input
+            .user_data()
+            .borrow()
+            .ast
+            .lookup_primitive(input.as_str())
+            .downgrade())
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), from_span(&input)))
+        Ok(Identifier::new(
+            input.as_str().to_owned(),
+            from_span(&input),
+        ))
     }
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {

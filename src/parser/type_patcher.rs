@@ -17,7 +17,9 @@ pub(super) fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
     };
 
     for module in &mut ast.ast {
-        unsafe { module.visit_ptr_with(&mut patcher); }
+        unsafe {
+            module.visit_ptr_with(&mut patcher);
+        }
     }
 
     for type_ptr in &mut ast.anonymous_types {
@@ -53,7 +55,9 @@ impl<'ast> TypePatcher<'ast> {
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         // Since only user-defined types need to be patched, we lookup by entity instead of by type.
         let lookup = Ast::lookup_entity(
-            self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope,
+            self.lookup_table,
+            &type_ref.type_string,
+            &type_ref.scope.module_scope,
         );
         if let Some(definition) = lookup {
             match definition.borrow().concrete_entity() {
@@ -102,7 +106,9 @@ impl<'ast> TypePatcher<'ast> {
                 Entities::TypeAlias(type_alias) => {
                     // TODO this can probably be simplified into a single loop.
                     let alias_ref = &type_alias.underlying;
-                    type_ref.attributes.extend_from_slice(alias_ref.attributes());
+                    type_ref
+                        .attributes
+                        .extend_from_slice(alias_ref.attributes());
 
                     if alias_ref.definition.is_initialized() {
                         type_ref.definition = alias_ref.definition.clone();
@@ -119,7 +125,9 @@ impl<'ast> TypePatcher<'ast> {
                     while let Ok(underlying) = &alias_lookup {
                         if let Ok(underlying_alias) = underlying.clone().downcast::<TypeAlias>() {
                             let underlying_ref = &underlying_alias.borrow().underlying;
-                            type_ref.attributes.extend_from_slice(underlying_ref.attributes());
+                            type_ref
+                                .attributes
+                                .extend_from_slice(underlying_ref.attributes());
 
                             if underlying_ref.definition.is_initialized() {
                                 type_ref.definition = underlying_ref.definition.clone();
@@ -137,15 +145,21 @@ impl<'ast> TypePatcher<'ast> {
                             return;
                         }
                     }
-                },
-                _ => panic!("Encountered unpatchable type: {}", definition.borrow().kind())
+                }
+                _ => panic!(
+                    "Encountered unpatchable type: {}",
+                    definition.borrow().kind()
+                ),
             }
         }
 
-        self.error_reporter.report_error(format!(
-            "No entity with the identifier '{}' could be found in this scope.",
-            &type_ref.type_string,
-        ), Some(type_ref.location()));
+        self.error_reporter.report_error(
+            format!(
+                "No entity with the identifier '{}' could be found in this scope.",
+                &type_ref.type_string,
+            ),
+            Some(type_ref.location()),
+        );
     }
 
     fn resolve_typed_definition<T: Element + 'static>(&mut self, type_ref: &mut TypeRef<T>) {
@@ -156,23 +170,31 @@ impl<'ast> TypePatcher<'ast> {
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         let lookup = Ast::lookup_entity(
-            self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope
+            self.lookup_table,
+            &type_ref.type_string,
+            &type_ref.scope.module_scope,
         );
 
         if let Some(definition) = lookup {
             if let Ok(converted) = definition.clone().downcast::<T>() {
                 type_ref.definition = converted;
             } else {
-                self.error_reporter.report_error(format!(
-                    "The Entity '{}' is not a valid type for this definition.",
-                    &type_ref.type_string,
-                ), Some(type_ref.location()));
+                self.error_reporter.report_error(
+                    format!(
+                        "The Entity '{}' is not a valid type for this definition.",
+                        &type_ref.type_string,
+                    ),
+                    Some(type_ref.location()),
+                );
             }
         } else {
-            self.error_reporter.report_error(format!(
-                "No entity with the identifier '{}' could be found in this scope.",
-                &type_ref.type_string,
-            ), Some(type_ref.location()));
+            self.error_reporter.report_error(
+                format!(
+                    "No entity with the identifier '{}' could be found in this scope.",
+                    &type_ref.type_string,
+                ),
+                Some(type_ref.location()),
+            );
         }
     }
 }

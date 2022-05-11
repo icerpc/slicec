@@ -52,9 +52,8 @@ pub trait Attributable: Symbol {
     }
 
     fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&Vec<String>> {
-        self.get_raw_attribute(directive, recurse).map(
-            |attribute| &attribute.arguments
-        )
+        self.get_raw_attribute(directive, recurse)
+            .map(|attribute| &attribute.arguments)
     }
 
     fn get_deprecated_attribute(&self, check_parent: bool) -> Option<&Vec<String>> {
@@ -160,7 +159,7 @@ macro_rules! implement_Attributable_for {
 
                 match self.parent() {
                     Some(parent) if recurse => parent.get_raw_attribute(directive, recurse),
-                    _ => None
+                    _ => None,
                 }
             }
         }
@@ -223,13 +222,8 @@ macro_rules! implement_Member_for {
     };
 }
 
-pub(crate) use implement_Element_for;
-pub(crate) use implement_Symbol_for;
-pub(crate) use implement_Named_Symbol_for;
-pub(crate) use implement_Scoped_Symbol_for;
-pub(crate) use implement_Attributable_for;
-pub(crate) use implement_Commentable_for;
-pub(crate) use implement_Entity_for;
-pub(crate) use implement_Container_for;
-pub(crate) use implement_Contained_for;
-pub(crate) use implement_Member_for;
+pub(crate) use {
+    implement_Attributable_for, implement_Commentable_for, implement_Contained_for,
+    implement_Container_for, implement_Element_for, implement_Entity_for, implement_Member_for,
+    implement_Named_Symbol_for, implement_Scoped_Symbol_for, implement_Symbol_for,
+};

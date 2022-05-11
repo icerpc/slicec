@@ -16,13 +16,13 @@ use crate::command_line::SliceOptions;
 use crate::error::{Error, ErrorReporter};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
-use std::fs;
-use std::io;
 use std::path::PathBuf;
+use std::{fs, io};
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
-// Slice entities are NOT considered fully constructed until AFTER parsing is finished (including patching).
-// Accessing ANY data, or calling ANY methods before this point may result in panics or undefined behavior.
+// Slice entities are NOT considered fully constructed until AFTER parsing is finished (including
+// patching). Accessing ANY data, or calling ANY methods before this point may result in panics or
+// undefined behavior.
 
 // TODO This module is a mess.
 
@@ -65,7 +65,11 @@ pub fn parse_files(
     Ok(slice_files)
 }
 
-pub fn parse_string(input: &str, ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<HashMap<String,SliceFile>, Error> {
+pub fn parse_string(
+    input: &str,
+    ast: &mut Ast,
+    error_reporter: &mut ErrorReporter,
+) -> Result<HashMap<String, SliceFile>, Error> {
     let mut parser = slice::SliceParser { error_reporter };
 
     let identifier = "in-memory-file";
@@ -92,7 +96,8 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
         }
     }
 
-    let mut string_paths = slice_paths.into_iter()
+    let mut string_paths = slice_paths
+        .into_iter()
         .map(|path| path.to_str().unwrap().to_owned())
         .collect::<Vec<_>>();
 
@@ -107,7 +112,11 @@ fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
         find_slice_files_in_directory(path.read_dir()?)
     }
     // If the path is not a directory, check if it ends with 'slice'.
-    else if path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some() {
+    else if path
+        .extension()
+        .filter(|ext| ext.to_str() == Some("slice"))
+        .is_some()
+    {
         Ok(vec![path])
     } else {
         Ok(vec![])
