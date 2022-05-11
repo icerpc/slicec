@@ -37,14 +37,13 @@ mod attributes {
             assert_eq!(operation.class_format(), expected);
         }
 
-        #[test] // TODO: Using an invalid format should not panic but should be handled gracefully.
-        fn format_with_no_argument_uses_compact_as_default() {
+        #[test]
+        fn not_specifying_format_uses_compact_as_default() {
             // Arrange
             let slice = "
                 module Test;
 
                 interface I {
-                    [format(Compact)]
                     op(s: string) -> string;
                 }
             ";
@@ -60,21 +59,26 @@ mod attributes {
             assert_eq!(operation.class_format(), ClassFormat::Compact);
         }
 
-        #[test]
+        #[test_case(Some("()"))]
+        #[test_case(Some("(Foo)"))]
+        #[test_case(None)]
         #[ignore] // TODO: Should be emitting errors.
-        fn format_with_invalid_argument_fails() {
+        fn format_with_invalid_argument_fails(arg: Option<&str>) {
             // Arrange
-            let slice = "
+            let slice = format!(
+                "
                 module Test;
 
-                interface I {
-                    [format(Foo)]
+                interface I {{
+                    [format{}]
                     op(s: string) -> string;
-                }
-            ";
+                }}
+                ",
+                arg.unwrap_or("")
+            );
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let error_reporter = parse_for_errors(&slice);
 
             // Assert
             assert_errors!(error_reporter, [
@@ -152,6 +156,29 @@ mod attributes {
             assert!(operation.compress_arguments());
             assert!(operation.compress_return());
         }
+
+        #[test]
+        fn compress_with_no_arguments() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                [compress()]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+            let operation = operation_ptr.borrow();
+
+            assert!(!operation.compress_arguments());
+            assert!(!operation.compress_return());
+        }
     }
 
     mod generalized_api {
@@ -183,7 +210,7 @@ mod attributes {
 
             assert_eq!(operation.attributes[0].directive, "bar");
             assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
-            assert_eq!(operation.attributes[0].prefix, Some("foo".to_string()));
+            assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
             assert_eq!(operation.attributes[0].arguments.len(), 0);
         }
 
@@ -210,7 +237,7 @@ mod attributes {
 
             assert_eq!(operation.attributes[0].directive, "bar");
             assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
-            assert_eq!(operation.attributes[0].prefix, Some("foo".to_string()));
+            assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
             assert_eq!(operation.attributes[0].arguments[0], "1");
             assert_eq!(operation.attributes[0].arguments[1], "2");
             assert_eq!(operation.attributes[0].arguments[2], "3");
