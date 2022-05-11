@@ -1,11 +1,16 @@
 {
   "cSpell.words": [
+    "Commentable",
     "dedup",
     "downcasted",
     "downcasting",
     "encodable",
     "nonstreamed",
+    "rsplit",
+    "struct",
     "structopt",
+    "subtoken",
+    "subtokens",
     "typealias",
     "typeref",
     "uncasted",
@@ -13,6 +18,7 @@
     "unprefixed",
     "Unsize",
     "upcasting",
+    "userdata",
     "varint",
     "varuint"
   ],

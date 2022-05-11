@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 // TODO rewrite this with better error handling in mind.
-// This was just copy & pasted from the original implementation and can be improved alot.
+// This was just copy & pasted from the original implementation and can be improved a lot.
 
 main = { SOI ~ file_encoding? ~ file_attributes ~ (file_level_module | module_def*) ~ EOI }
 
