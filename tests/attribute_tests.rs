@@ -186,6 +186,8 @@ mod attributes {
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
         use slice::grammar::*;
+        use slice::parse_from_string;
+        use test_case::test_case;
 
         #[test]
         fn foo_attribute() {
@@ -243,26 +245,55 @@ mod attributes {
             assert_eq!(operation.attributes[0].arguments[2], "3");
         }
 
-        #[test]
-        #[ignore] // TODO: Should be emitting errors.
-        fn foo_attribute_with_commas_fails() {
+        #[test_case("a", &["a"]; "single argument")]
+        #[test_case("a,b,c", &["a", "b", "c"]; "multiple arguments")]
+        #[test_case("\"a b c\"", &["a b c"]; "quoted argument")]
+        #[test_case("\"a, b, c\"", &["a, b, c"]; "quoted argument with comma")]
+        fn attribute_parameters(input: &str, expected: &[&str]) {
             // Arrange
-            let slice = "
+            let slice = format!(
+                "
             module Test;
-
-            interface I {
-                [foo::bar(abc,def,ghi)]
+            interface I {{
+                [foo::bar({input})]
                 op(s: string) -> string;
-            }
-            ";
+            }}
+            ",
+                input = input
+            );
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let ast = parse_for_ast(&slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "" // Should be error here
-            ]);
+            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+            let operation = operation_ptr.borrow();
+
+            for (i, v) in operation.attributes[0].arguments.iter().enumerate() {
+                assert_eq!(v, expected.get(i).unwrap().to_owned());
+            }
+        }
+
+        #[test_case("a, \""; "quoted argument with comma and trailing comma")]
+        #[test_case("a, )"; "quoted argument with comma and trailing parenthesis")]
+        fn attribute_with_invalid_parameters(input: &str) {
+            // Arrange
+            let slice = format!(
+                "
+                module Test;
+                interface I {{
+                    [foo::bar({input})]
+                    op(s: string) -> string;
+                }}
+                ",
+                input = input
+            );
+
+            // Act
+            let errors = parse_from_string(&slice).err();
+
+            // Assert
+            assert!(errors.is_some());
         }
 
         #[test]
