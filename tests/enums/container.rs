@@ -31,31 +31,6 @@ fn enumerator_default_values() {
 }
 
 #[test]
-fn should_be_monotonic_increasing() {
-    // Arrange
-    let slice = "
-    module Test;
-    enum E {
-        A,
-        B,
-        C,
-    }
-    ";
-
-    // Act
-    let ast = parse_for_ast(slice);
-
-    // Assert
-    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-    let enum_def = enum_ptr.borrow();
-    let enumerators = enum_def.enumerators();
-
-    assert_eq!(enumerators[0].value, 0);
-    assert_eq!(enumerators[1].value, 1);
-    assert_eq!(enumerators[2].value, 2);
-}
-
-#[test]
 fn subsequent_unsigned_value_is_incremented_previous_value() {
     // Arrange
     let slice = "
@@ -80,7 +55,6 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
 }
 
 #[test]
-#[ignore = "reason: validation not implemented"] // TODO
 fn out_of_order_enumerators_are_rejected() {
     // Arrange
     let slice = "
@@ -95,7 +69,7 @@ fn out_of_order_enumerators_are_rejected() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(error_reporter);
 }
 
 #[test]
@@ -144,8 +118,6 @@ fn invalid_underlying_type(underlying_type: &str) {
 }
 
 #[test_case("10")]
-#[test_case("ábč")]
-#[test_case("true")]
 #[test_case("😊")]
 #[ignore = "reason: validation not implemented"] // TODO
 fn enumerator_invalid_identifiers(identifier: &str) {
