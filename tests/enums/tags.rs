@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 #[test]
@@ -15,5 +16,5 @@ fn cannot_contain_tags() {
         ";
 
     // Act
-    let _ = parse_for_errors(slice);
+    assert_errors!(parse_for_errors(slice));
 }
