@@ -3,16 +3,29 @@
 use crate::ast::Ast;
 use crate::error::ErrorReporter;
 use crate::grammar::*;
+use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
+    pub ast: &'a Ast,
 }
 
 impl Validator<'_> {
-    pub fn validate_dictionary_key_types(&mut self, ast: &Ast) {
-        for type_ptr in &ast.anonymous_types {
+    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
+        for slice_file in slice_files.values() {
+            slice_file.visit_with(self);
+        }
+        self.validate_dictionary_key_types();
+        self.validate_tags();
+    }
+
+    fn validate_tags(&self) {}
+
+    fn validate_dictionary_key_types(&mut self) {
+        for type_ptr in &self.ast.anonymous_types {
             if let Types::Dictionary(dictionary) = type_ptr.borrow().concrete_type() {
                 self.check_dictionary_key_type(&dictionary.key_type);
             }

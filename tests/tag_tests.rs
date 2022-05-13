@@ -133,23 +133,23 @@ mod tags {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    #[test_case(i32::MAX as i64, "2"; "Slice2 max value")]
-    #[test_case(i32::MAX as i64, "1"; "Slice1 max value")]
-    #[ignore] // TODO: Add error messages
-    fn cannot_have_tag_with_value_larger_than_max(max: i64, encoding: &str) {
+    #[test]
+    fn cannot_have_tag_with_value_larger_than_max() {
         // Arrange
+        let max_value = i32::MAX as i64;
         let slice = format!(
             "
-            encoding = {encoding};
             module Test;
             interface I {{
-                testOp(a: tag({max_value}) int32?);
+                testOp(a: tag({value}) int32?);
             }}
         ",
-            max_value = max + 1,
-            encoding = encoding
+            value = max_value + 1
         );
-        let expected_errors = [""]; // TODO: Add error messages
+        let expected_errors = [format!(
+            "tag is out of range: {}. Tag values must be less than 2147483647",
+            max_value + 1
+        )];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
@@ -158,23 +158,23 @@ mod tags {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    #[test_case(i32::MIN as i64, "2"; "Slice2 min value")]
-    #[test_case(0, "1"; "Slice1 min value")]
-    #[ignore] // TODO: Add error messages
-    fn cannot_have_tag_with_value_smaller_than_minimum(min: i64, encoding: &str) {
+    #[test]
+    fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
+        let min_value = 0;
         let slice = format!(
             "
-            encoding = {encoding};
             module Test;
             interface I {{
-                testOp(a: tag({max_value}) int32?);
+                testOp(a: tag({value}) int32?);
             }}
             ",
-            max_value = min - 1,
-            encoding = encoding
+            value = min_value - 1
         );
-        let expected_errors = [""]; // TODO: Add error messages
+        let expected_errors = [format!(
+            "tag is out of range: {}. Tag values must be positive",
+            min_value - 1
+        )];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
@@ -198,24 +198,5 @@ mod tags {
 
         // Assert
         assert!(err.is_some());
-    }
-
-    #[test]
-    #[ignore] // TODO: Add error messages
-    fn negative_tags_are_invalid_with_slice1() {
-        // Arrange
-        let slice = "
-            encoding = 1;
-            module Test;
-            interface I {
-                testOp(a: tag(-1) int32?);
-            }
-        ";
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
-        assert_errors!(error_reporter, &["Tags cannot be negative"]);
     }
 }
