@@ -256,7 +256,6 @@ impl TagValidator<'_> {
     where
         M: Member + ?Sized,
     {
-        // Validate that tags are unique.
         let tagged_members = members
             .iter()
             .filter(|member| member.tag().is_some())
