@@ -198,15 +198,17 @@ impl<'a> Visitor for Validator<'a> {
     }
 }
 
-// Tag Validator ---------------------------------------------------------------
 #[derive(Debug)]
 struct TagValidator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
 }
 
 impl TagValidator<'_> {
+    // Tagged parameters must succeed the required parameters.
     fn validate_tagged_parameters_order(&mut self, parameters: &[&Parameter]) {
-        // Tagged parameters must succeed the required parameters.
+        // Folding is used to have an accumulator called `seen` that is set to true once a tagged
+        // parameter is found. If `seen` is true on a successive iteration and the parameter has
+        // no tag  then we have a required parameter after a tagged parameter.
         parameters.iter().fold(false, |seen, parameter| {
             match parameter.tag {
                 Some(_) => true,
@@ -235,7 +237,9 @@ impl TagValidator<'_> {
             .clone()
             .collect::<Vec<_>>();
 
-        // add comment about why we need to sort first
+        // The tagged members must be sorted by value first as we are using windowing to check the
+        // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
+        // the windowing will reveal any duplicate tags.
         let mut unique_tagged_members = tagged_members.clone();
         unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
         unique_tagged_members.windows(2).for_each(|window| {
@@ -246,6 +250,14 @@ impl TagValidator<'_> {
                         &window[1].identifier()
                     ),
                     Some(window[1].location()),
+                );
+                self.error_reporter.report_error(
+                    format!(
+                        "The data member `{}` has previous used the tag value `{}`",
+                        &window[0].identifier(),
+                        window[0].tag().unwrap()
+                    ),
+                    Some(window[0].location()),
                 );
             }
         });
@@ -311,7 +323,16 @@ impl TagValidator<'_> {
             .collect::<Vec<_>>();
 
         for member in tagged_members {
-            if member.data_type().definition().uses_classes() {
+            let uses_classes = member.data_type().definition().uses_classes();
+            // TODO: Remove contains_tagged_members. Currently is needed because `uses_classes`
+            // always returns true for class type, even if it is empty. Not sure why this is the
+            // case.
+            let contains_tagged_members = match member.data_type().concrete_type() {
+                Types::Struct(s) => !s.contents().is_empty(),
+                Types::Class(c) => !c.contents().is_empty(),
+                _ => false,
+            };
+            if uses_classes & contains_tagged_members {
                 self.error_reporter.report_error(
                     format!(
                         "invalid type `{}`: tagged members cannot contain classes",
@@ -334,7 +355,7 @@ impl<'a> Visitor for TagValidator<'a> {
         self.validate_tagged_members_optional(&struct_def.members());
 
         // Validate that if a member is a class, then it cannot be tagged
-        self.validate_tagged_members_cannot_be_class(&struct_def.members());
+        self.validate_tagged_members_cannot_be_classes(&struct_def.members());
 
         // Validate that tagged member cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&struct_def.members())
@@ -348,7 +369,7 @@ impl<'a> Visitor for TagValidator<'a> {
         self.validate_tagged_members_optional(&class_def.members());
 
         // Validate that if a member is a class, then it cannot be tagged
-        self.validate_tagged_members_cannot_be_class(&class_def.members());
+        self.validate_tagged_members_cannot_be_classes(&class_def.members());
 
         // Validate that tagged member cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&class_def.members())
@@ -363,6 +384,9 @@ impl<'a> Visitor for TagValidator<'a> {
 
         // Validate that tagged parameters must be unique.
         self.validate_tags_are_unique(&operation_def.parameters());
+
+        // Validate that if a parameters is a class, then it cannot be tagged
+        self.validate_tagged_members_cannot_be_classes(&operation_def.parameters());
 
         // Validate that tagged parameters cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&operation_def.parameters())
