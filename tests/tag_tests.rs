@@ -72,7 +72,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore] // TODO: Add error messages explaining that you cannot have tags on classes.
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
@@ -88,7 +87,7 @@ mod tags {
                 b: tag(10) B?,
             }
             ";
-        let expected_errors = [""];
+        let expected_errors = ["invalid member `b`: tagged members cannot be classes"];
 
         // Act
         let errors = parse_for_errors(slice);
