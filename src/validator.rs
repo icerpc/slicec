@@ -278,7 +278,7 @@ impl TagValidator<'_> {
         }
     }
 
-    fn validate_tagged_members_cannot_be_class<M>(&mut self, members: &[&M])
+    fn validate_tagged_members_cannot_be_classes<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
