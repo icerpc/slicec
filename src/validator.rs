@@ -205,7 +205,7 @@ struct TagValidator<'a> {
 }
 
 impl TagValidator<'_> {
-    fn validate_tagged_parameters(&mut self, parameters: &[&Parameter]) {
+    fn validate_tagged_parameters_order(&mut self, parameters: &[&Parameter]) {
         // Tagged parameters must succeed the required parameters.
         parameters.iter().fold(false, |seen, parameter| {
             match parameter.tag {
@@ -213,7 +213,7 @@ impl TagValidator<'_> {
                 None if seen => {
                     self.error_reporter.report_error(
                         format!(
-                            "invalid parameter `{}`: tagged parameters must come after required parameters",
+                            "invalid parameter `{}`: required parameters must precede tagged parameters",
                             parameter.identifier()
                         ),
                         Some(&parameter.data_type.location)
@@ -223,9 +223,33 @@ impl TagValidator<'_> {
                 None => seen
             }
         });
+    }
 
-        // Tagged parameters must be unique.
-        self.validate_tagged_members_optional(parameters);
+    fn validate_tags_are_unique<M>(&mut self, members: &[&M])
+    where
+        M: Member + ?Sized,
+    {
+        let tagged_members = members
+            .iter()
+            .filter(|member| member.tag().is_some())
+            .clone()
+            .collect::<Vec<_>>();
+
+        // look at windows and chunks
+        // add comment about why we need to sort first
+        let mut unique_tagged_members = tagged_members.clone();
+        unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
+        unique_tagged_members.windows(2).for_each(|window| {
+            if window[0].tag() == window[1].tag() {
+                self.error_reporter.report_error(
+                    format!(
+                        "invalid tag on member `{}`: tags must be unique",
+                        &window[1].identifier()
+                    ),
+                    Some(window[1].location()),
+                );
+            }
+        });
     }
 
     fn validate_tagged_members_optional<M>(&mut self, members: &[&M])
@@ -265,7 +289,7 @@ impl TagValidator<'_> {
             .collect::<Vec<_>>();
 
         for member in tagged_members {
-            if let Types::Class(_) = member.data_type().concrete_type() {
+            if matches!(member.data_type().concrete_type(), Types::Class(_)) {
                 self.error_reporter.report_error(
                     format!(
                         "invalid member `{}`: tagged members cannot be classes",
@@ -278,51 +302,71 @@ impl TagValidator<'_> {
         }
     }
 
-    fn validate_tagged_members<M>(&mut self, members: &[&M])
+    fn validate_tagged_containers_cannot_contain_classes<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
-        // Validate that tags are unique.
         let tagged_members = members
             .iter()
             .filter(|member| member.tag().is_some())
             .clone()
             .collect::<Vec<_>>();
 
-        // look at windows and chunks
-        // add comment about why we need to sort first
-        let mut unique_tagged_members = tagged_members.clone();
-        unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
-        unique_tagged_members.windows(2).for_each(|window| {
-            if window[0].tag() == window[1].tag() {
+        for member in tagged_members {
+            if member.data_type().definition().uses_classes() {
                 self.error_reporter.report_error(
                     format!(
-                        "invalid tag on member `{}`: tags must be unique",
-                        &window[1].identifier()
-                    ),
-                    Some(window[1].location()),
+                        "invalid type `{}`: tagged members cannot contain classes",
+                        member.identifier()
+                    )
+                    .to_owned(),
+                    Some(member.location()),
                 );
             }
-        });
-
-        // Validate that tagged members are optional.
-        self.validate_tagged_members_optional(members);
-
-        // Validate that if a member is a class, then it cannot be tagged
-        self.validate_tagged_members_cannot_be_class(members);
+        }
     }
 }
 
 impl<'a> Visitor for TagValidator<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.validate_tagged_members(&struct_def.members());
+        // Validate that tags are unique.
+        self.validate_tags_are_unique(&struct_def.members());
+
+        // Validate that tagged members are optional.
+        self.validate_tagged_members_optional(&struct_def.members());
+
+        // Validate that if a member is a class, then it cannot be tagged
+        self.validate_tagged_members_cannot_be_class(&struct_def.members());
+
+        // Validate that tagged member cannot contain classes.
+        self.validate_tagged_containers_cannot_contain_classes(&struct_def.members())
     }
 
     fn visit_class_start(&mut self, class_def: &Class) {
-        self.validate_tagged_members(&class_def.members());
+        // Validate that tags are unique.
+        self.validate_tags_are_unique(&class_def.members());
+
+        // Validate that tagged members are optional.
+        self.validate_tagged_members_optional(&class_def.members());
+
+        // Validate that if a member is a class, then it cannot be tagged
+        self.validate_tagged_members_cannot_be_class(&class_def.members());
+
+        // Validate that tagged member cannot contain classes.
+        self.validate_tagged_containers_cannot_contain_classes(&class_def.members())
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        self.validate_tagged_parameters(&operation_def.parameters());
+        // Validate that all tagged parameters succeed the required parameters.
+        self.validate_tagged_parameters_order(&operation_def.parameters());
+
+        // Validate that tagged parameters must be optional.
+        self.validate_tagged_members_optional(&operation_def.parameters());
+
+        // Validate that tagged parameters must be unique.
+        self.validate_tags_are_unique(&operation_def.parameters());
+
+        // Validate that tagged parameters cannot contain classes.
+        self.validate_tagged_containers_cannot_contain_classes(&operation_def.parameters())
     }
 }

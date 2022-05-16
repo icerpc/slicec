@@ -9,8 +9,6 @@ mod tags {
     use slice::grammar::*;
     use slice::parse_from_string;
 
-    use test_case::test_case;
-
     #[test]
     fn tagged_data_members_must_be_optional() {
         // Arrange
@@ -58,7 +56,7 @@ mod tags {
         encoding = 1;
         module Test;
         interface I {
-            op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(10) int32?);
+            op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
         }
         ";
 
@@ -66,8 +64,8 @@ mod tags {
 
         // Assert
         assert_errors!(error_reporter, &[
-            "invalid parameter `p3`: tagged parameters must come after required parameters",
-            "invalid parameter `p4`: tagged parameters must come after required parameters"
+            "invalid parameter `p3`: required parameters must precede tagged parameters",
+            "invalid parameter `p4`: required parameters must precede tagged parameters"
         ]);
     }
 
@@ -87,7 +85,10 @@ mod tags {
                 b: tag(10) B?,
             }
             ";
-        let expected_errors = ["invalid member `b`: tagged members cannot be classes"];
+        let expected_errors = [
+            "invalid member `b`: tagged members cannot be classes",
+            "invalid type `b`: tagged members cannot contain classes",
+        ];
 
         // Act
         let errors = parse_for_errors(slice);
@@ -96,36 +97,26 @@ mod tags {
         assert_errors!(errors, expected_errors);
     }
 
-    #[test_case(
-        "
-        class A {
-            a: tag(1) A,
-        }"
-    )]
-    #[test_case(
-        "
-        class C {}
-        interface I {
-            op(a: tag(1) C?);
-        }"
-    )]
-    #[ignore]
-    fn cannot_tag_a_container_that_contains_a_class(slice_component: &str) {
+    #[test]
+    fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             encoding = 1;
             module Test;
 
-            {}
-            ",
-            slice_component
-        );
-        let expected_errors = [""]; // TODO: Add error messages explaining that you cannot have tags on containers that contain
-                                    // classes.
+            class C {}
+            compact struct S {
+                c: C
+            }
+
+            interface I {
+                op(s: tag(1) S?);
+            }
+            ";
+        let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
 
         // Act
-        let errors = parse_for_errors(&slice);
+        let errors = parse_for_errors(slice);
 
         // Assert
         assert_errors!(errors, expected_errors);
