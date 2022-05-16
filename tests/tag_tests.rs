@@ -12,7 +12,6 @@ mod tags {
     use test_case::test_case;
 
     #[test]
-    #[ignore] // TODO: We do not verify that tagged data members are optional.
     fn tagged_data_members_must_be_optional() {
         // Arrange
         let slice = "
@@ -28,7 +27,48 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, &["Tagged data members must be optional"]);
+        assert_errors!(error_reporter, &[
+            "invalid member `b`: tagged members must be optional"
+        ]);
+    }
+
+    #[test]
+    fn tagged_parameters_must_be_optional() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        interface I {
+            op(myParam: tag(10) int32);
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &[
+            "invalid member `myParam`: tagged members must be optional"
+        ]);
+    }
+
+    #[test]
+    fn tagged_parameters_must_be_after_required_parameters() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        interface I {
+            op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(10) int32?);
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &[
+            "invalid parameter `p3`: tagged parameters must come after required parameters",
+            "invalid parameter `p4`: tagged parameters must come after required parameters"
+        ]);
     }
 
     #[test]
@@ -114,7 +154,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore] // TODO: Add error messages explaining that you cannot have multiple tags with the same value.
     fn cannot_have_duplicate_tags() {
         // Arrange
         let slice = "
@@ -124,13 +163,14 @@ mod tags {
                 b: tag(1) int32?,
             }
         ";
-        let expected_errors = [""];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors!(error_reporter, [
+            "invalid tag on member `b`: tags must be unique"
+        ]);
     }
 
     #[test]

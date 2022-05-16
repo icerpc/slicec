@@ -12,17 +12,113 @@ pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
     pub ast: &'a Ast,
 }
+#[derive(Debug)]
+struct TagValidator<'a> {
+    pub error_reporter: &'a mut ErrorReporter,
+}
+
+impl TagValidator<'_> {
+    fn validate_tagged_parameters(&mut self, parameters: Vec<&Parameter>) {
+        // Tagged parameters must succeed the required parameters.
+        parameters.iter().fold(false, |seen, parameter| {
+            match parameter.tag {
+                Some(_) => true,
+                None if seen => {
+                    self.error_reporter.report_error(
+                        format!(
+                            "invalid parameter `{}`: tagged parameters must come after required parameters",
+                            parameter.identifier()
+                        ),
+                        Some(&parameter.data_type.location)
+                    );
+                    true
+                },
+                None => seen
+            }
+        });
+
+        // Tagged parameters must be unique.
+        self.validate_tagged_members_optional(parameters);
+    }
+
+    fn validate_tagged_members_optional<M>(&mut self, members: Vec<&M>)
+    where
+        M: Member + ?Sized,
+    {
+        // Validate that tags are unique.
+        let tagged_members = members
+            .iter()
+            .filter(|member| member.tag().is_some())
+            .clone()
+            .collect::<Vec<_>>();
+        // Validate that tagged members are optional.
+        for member in tagged_members {
+            if !member.data_type().is_optional {
+                self.error_reporter.report_error(
+                    format!(
+                        "invalid member `{}`: tagged members must be optional",
+                        member.identifier()
+                    )
+                    .to_owned(),
+                    Some(member.location()),
+                );
+            }
+        }
+    }
+
+    fn validate_tagged_members<M>(&mut self, members: Vec<&M>)
+    where
+        M: Member + ?Sized,
+    {
+        // Validate that tags are unique.
+        let tagged_members = members
+            .iter()
+            .filter(|member| member.tag().is_some())
+            .clone()
+            .collect::<Vec<_>>();
+        // look at windows and chunks
+        // add comment about why we need to sort first
+        let mut unique_tagged_members = tagged_members.clone();
+        unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
+        unique_tagged_members.windows(2).for_each(|window| {
+            if window[0].tag() == window[1].tag() {
+                self.error_reporter.report_error(
+                    format!(
+                        "invalid tag on member `{}`: tags must be unique",
+                        &window[1].identifier()
+                    ),
+                    Some(window[1].location()),
+                );
+            }
+        });
+
+        // Validate that tagged members are optional.
+        self.validate_tagged_members_optional(members);
+    }
+}
+
+impl<'a> Visitor for TagValidator<'a> {
+    fn visit_struct_start(&mut self, struct_def: &Struct) {
+        self.validate_tagged_members(struct_def.members());
+    }
+
+    fn visit_class_start(&mut self, class_def: &Class) {
+        self.validate_tagged_members(class_def.members());
+    }
+
+    fn visit_operation_start(&mut self, operation_def: &Operation) {
+        self.validate_tagged_parameters(operation_def.parameters());
+    }
+}
 
 impl Validator<'_> {
     pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
+            slice_file.visit_with(&mut TagValidator { error_reporter: self.error_reporter });
         }
         self.validate_dictionary_key_types();
-        self.validate_tags();
     }
-
-    fn validate_tags(&self) {}
 
     fn validate_dictionary_key_types(&mut self) {
         for type_ptr in &self.ast.anonymous_types {
@@ -138,6 +234,22 @@ impl Validator<'_> {
         }
         is_valid
     }
+
+    fn validate_stream_member(&mut self, members: Vec<&Parameter>) {
+        // If members is empty, `split_last` returns None, and this check is skipped,
+        // otherwise it returns all the members, except for the last one. None of these members
+        // can be streamed, since only the last member can be.
+        if let Some((_, nonstreamed_members)) = members.split_last() {
+            for member in nonstreamed_members {
+                if member.is_streamed {
+                    self.error_reporter.report_error(
+                        "only the last parameter in an operation can be streamed".to_owned(),
+                        Some(&member.location),
+                    );
+                }
+            }
+        }
+    }
 }
 
 // TODO add additional validation logic here.
@@ -179,23 +291,7 @@ impl<'a> Visitor for Validator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        fn validate_stream_member(error_reporter: &mut ErrorReporter, members: Vec<&Parameter>) {
-            // If members is empty, `split_last` returns None, and this check is skipped,
-            // otherwise it returns all the members, except for the last one. None of these members
-            // can be streamed, since only the last member can be.
-            if let Some((_, nonstreamed_members)) = members.split_last() {
-                for member in nonstreamed_members {
-                    if member.is_streamed {
-                        error_reporter.report_error(
-                            "only the last parameter in an operation can be streamed".to_owned(),
-                            Some(&member.location),
-                        );
-                    }
-                }
-            }
-        }
-
-        validate_stream_member(self.error_reporter, operation_def.parameters());
-        validate_stream_member(self.error_reporter, operation_def.return_members());
+        self.validate_stream_member(operation_def.parameters());
+        self.validate_stream_member(operation_def.return_members());
     }
 }
