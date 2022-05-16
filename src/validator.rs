@@ -235,7 +235,6 @@ impl TagValidator<'_> {
             .clone()
             .collect::<Vec<_>>();
 
-        // look at windows and chunks
         // add comment about why we need to sort first
         let mut unique_tagged_members = tagged_members.clone();
         unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
