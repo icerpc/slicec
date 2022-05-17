@@ -204,11 +204,11 @@ struct TagValidator<'a> {
 }
 
 impl TagValidator<'_> {
-    // Tagged parameters must succeed the required parameters.
+    // Tagged parameters must follow the required parameters.
     fn validate_tagged_parameters_order(&mut self, parameters: &[&Parameter]) {
         // Folding is used to have an accumulator called `seen` that is set to true once a tagged
         // parameter is found. If `seen` is true on a successive iteration and the parameter has
-        // no tag  then we have a required parameter after a tagged parameter.
+        // no tag then we have a required parameter after a tagged parameter.
         parameters.iter().fold(false, |seen, parameter| {
             match parameter.tag {
                 Some(_) => true,
@@ -263,7 +263,7 @@ impl TagValidator<'_> {
         });
     }
 
-    fn validate_tagged_members_optional<M>(&mut self, members: &[&M])
+    fn validate_tagged_members_have_optional_types<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
@@ -323,7 +323,7 @@ impl TagValidator<'_> {
             .collect::<Vec<_>>();
 
         for member in tagged_members {
-            let uses_classes = member.data_type().definition().uses_classes();
+            let uses_classes = member.data_type().definition().is_class_type();
             // TODO: Remove contains_tagged_members. Currently is needed because `uses_classes`
             // always returns true for class type, even if it is empty. Not sure why this is the
             // case.
@@ -347,48 +347,32 @@ impl TagValidator<'_> {
 }
 
 impl<'a> Visitor for TagValidator<'a> {
+    fn visit_exception_start(&mut self, exception_def: &Exception) {
+        self.validate_tags_are_unique(&exception_def.members());
+        self.validate_tagged_members_have_optional_types(&exception_def.members());
+        self.validate_tagged_members_cannot_be_classes(&exception_def.members());
+        self.validate_tagged_containers_cannot_contain_classes(&exception_def.members())
+    }
+
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        // Validate that tags are unique.
         self.validate_tags_are_unique(&struct_def.members());
-
-        // Validate that tagged members are optional.
-        self.validate_tagged_members_optional(&struct_def.members());
-
-        // Validate that if a member is a class, then it cannot be tagged
+        self.validate_tagged_members_have_optional_types(&struct_def.members());
         self.validate_tagged_members_cannot_be_classes(&struct_def.members());
-
-        // Validate that tagged member cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&struct_def.members())
     }
 
     fn visit_class_start(&mut self, class_def: &Class) {
-        // Validate that tags are unique.
         self.validate_tags_are_unique(&class_def.members());
-
-        // Validate that tagged members are optional.
-        self.validate_tagged_members_optional(&class_def.members());
-
-        // Validate that if a member is a class, then it cannot be tagged
+        self.validate_tagged_members_have_optional_types(&class_def.members());
         self.validate_tagged_members_cannot_be_classes(&class_def.members());
-
-        // Validate that tagged member cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&class_def.members())
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        // Validate that all tagged parameters succeed the required parameters.
         self.validate_tagged_parameters_order(&operation_def.parameters());
-
-        // Validate that tagged parameters must be optional.
-        self.validate_tagged_members_optional(&operation_def.parameters());
-
-        // Validate that tagged parameters must be unique.
+        self.validate_tagged_members_have_optional_types(&operation_def.parameters());
         self.validate_tags_are_unique(&operation_def.parameters());
-
-        // Validate that if a parameters is a class, then it cannot be tagged
         self.validate_tagged_members_cannot_be_classes(&operation_def.parameters());
-
-        // Validate that tagged parameters cannot contain classes.
         self.validate_tagged_containers_cannot_contain_classes(&operation_def.parameters())
     }
 }
