@@ -195,7 +195,7 @@ mod streams {
 
         let error_reporter = parse_for_errors(slice);
         assert_errors!(error_reporter, &[
-            "only the last parameter in an operation can be streamed",
+            "only the last parameter in an operation can use the stream modifier",
         ]);
     }
 
@@ -211,7 +211,7 @@ mod streams {
 
         let error_reporter = parse_for_errors(slice);
         assert_errors!(error_reporter, &[
-            "only the last parameter in an operation can be streamed",
+            "only the last parameter in an operation can use the stream modifier",
         ]);
     }
 }

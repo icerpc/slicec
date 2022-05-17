@@ -145,7 +145,8 @@ impl Validator<'_> {
             for member in nonstreamed_members {
                 if member.is_streamed {
                     self.error_reporter.report_error(
-                        "only the last parameter in an operation can use the stream modifier".to_owned(),
+                        "only the last parameter in an operation can use the stream modifier"
+                            .to_owned(),
                         Some(&member.location),
                     );
                 }
@@ -204,8 +205,8 @@ struct TagValidator<'a> {
 }
 
 impl TagValidator<'_> {
-    // Tagged parameters must follow the required parameters.
-    fn validate_tagged_parameters_order(&mut self, parameters: &[&Parameter]) {
+    // Validate that tagged parameters must follow the required parameters.
+    fn parameter_order(&mut self, parameters: &[&Parameter]) {
         // Folding is used to have an accumulator called `seen` that is set to true once a tagged
         // parameter is found. If `seen` is true on a successive iteration and the parameter has
         // no tag then we have a required parameter after a tagged parameter.
@@ -227,7 +228,8 @@ impl TagValidator<'_> {
         });
     }
 
-    fn validate_tags_are_unique<M>(&mut self, members: &[&M])
+    /// Validates that the tags are unique.
+    fn tags_are_unique<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
@@ -263,7 +265,8 @@ impl TagValidator<'_> {
         });
     }
 
-    fn validate_tagged_members_have_optional_types<M>(&mut self, members: &[&M])
+    /// Validate that the data type of the tagged member is optional.
+    fn have_optional_types<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
@@ -288,7 +291,8 @@ impl TagValidator<'_> {
         }
     }
 
-    fn validate_tagged_members_cannot_be_classes<M>(&mut self, members: &[&M])
+    /// Validate that classes cannot be tagged.
+    fn cannot_tag_classes<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
@@ -299,7 +303,7 @@ impl TagValidator<'_> {
             .collect::<Vec<_>>();
 
         for member in tagged_members {
-            if matches!(member.data_type().concrete_type(), Types::Class(_)) {
+            if member.data_type().definition().is_class_type() {
                 self.error_reporter.report_error(
                     format!(
                         "invalid member `{}`: tagged members cannot be classes",
@@ -312,7 +316,8 @@ impl TagValidator<'_> {
         }
     }
 
-    fn validate_tagged_containers_cannot_contain_classes<M>(&mut self, members: &[&M])
+    /// Validate that tagged container types cannot contain class members.
+    fn tagged_containers_cannot_contain_classes<M>(&mut self, members: &[&M])
     where
         M: Member + ?Sized,
     {
@@ -323,16 +328,21 @@ impl TagValidator<'_> {
             .collect::<Vec<_>>();
 
         for member in tagged_members {
-            let uses_classes = member.data_type().definition().is_class_type();
-            // TODO: Remove contains_tagged_members. Currently is needed because `uses_classes`
-            // always returns true for class type, even if it is empty. Not sure why this is the
-            // case.
-            let contains_tagged_members = match member.data_type().concrete_type() {
-                Types::Struct(s) => !s.contents().is_empty(),
-                Types::Class(c) => !c.contents().is_empty(),
-                _ => false,
-            };
-            if uses_classes & contains_tagged_members {
+            // TODO: This works but the uses_classes method is not intuitive. Should be renamed
+            // or changed so that if a class contains no memebers it returns false.
+            let uses_classes = member.data_type().definition().uses_classes();
+            if match member.data_type().concrete_type() {
+                Types::Class(c) => {
+                    if c.members().is_empty() {
+                        false
+                    } else {
+                        !c.members()
+                            .iter()
+                            .any(|m| m.data_type().definition().uses_classes())
+                    }
+                }
+                _ => uses_classes,
+            } {
                 self.error_reporter.report_error(
                     format!(
                         "invalid type `{}`: tagged members cannot contain classes",
@@ -348,31 +358,29 @@ impl TagValidator<'_> {
 
 impl<'a> Visitor for TagValidator<'a> {
     fn visit_exception_start(&mut self, exception_def: &Exception) {
-        self.validate_tags_are_unique(&exception_def.members());
-        self.validate_tagged_members_have_optional_types(&exception_def.members());
-        self.validate_tagged_members_cannot_be_classes(&exception_def.members());
-        self.validate_tagged_containers_cannot_contain_classes(&exception_def.members())
+        self.tags_are_unique(&exception_def.members());
+        self.have_optional_types(&exception_def.members());
+        self.tagged_containers_cannot_contain_classes(&exception_def.members());
+        self.cannot_tag_classes(&exception_def.members());
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.validate_tags_are_unique(&struct_def.members());
-        self.validate_tagged_members_have_optional_types(&struct_def.members());
-        self.validate_tagged_members_cannot_be_classes(&struct_def.members());
-        self.validate_tagged_containers_cannot_contain_classes(&struct_def.members())
+        self.tags_are_unique(&struct_def.members());
+        self.have_optional_types(&struct_def.members());
     }
 
     fn visit_class_start(&mut self, class_def: &Class) {
-        self.validate_tags_are_unique(&class_def.members());
-        self.validate_tagged_members_have_optional_types(&class_def.members());
-        self.validate_tagged_members_cannot_be_classes(&class_def.members());
-        self.validate_tagged_containers_cannot_contain_classes(&class_def.members())
+        self.tags_are_unique(&class_def.members());
+        self.have_optional_types(&class_def.members());
+        self.tagged_containers_cannot_contain_classes(&class_def.members());
+        self.cannot_tag_classes(&class_def.members());
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        self.validate_tagged_parameters_order(&operation_def.parameters());
-        self.validate_tagged_members_have_optional_types(&operation_def.parameters());
-        self.validate_tags_are_unique(&operation_def.parameters());
-        self.validate_tagged_members_cannot_be_classes(&operation_def.parameters());
-        self.validate_tagged_containers_cannot_contain_classes(&operation_def.parameters())
+        self.parameter_order(&operation_def.parameters());
+        self.have_optional_types(&operation_def.parameters());
+        self.tags_are_unique(&operation_def.parameters());
+        self.tagged_containers_cannot_contain_classes(&operation_def.parameters());
+        self.cannot_tag_classes(&operation_def.parameters());
     }
 }

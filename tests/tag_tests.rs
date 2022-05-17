@@ -138,6 +138,27 @@ mod tags {
     }
 
     #[test]
+    fn cannot_tag_a_container_that_contains_a_class_new_example() {
+        // Arrange
+        let slice = "
+            encoding = 1;
+            module Test;
+
+            class C {}
+            interface I {
+               op(s: tag(1) sequence<C>?);
+            }
+            ";
+        let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
+
+        // Act
+        let errors = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(errors, expected_errors);
+    }
+
+    #[test]
     fn valid_tag() {
         // Arrange
         let slice = "
