@@ -9,46 +9,25 @@ mod tags {
     use slice::grammar::*;
     use slice::parse_from_string;
 
-    use test_case::test_case;
-
-    #[test_case(
-        "
+    #[test]
+    fn tagged_data_members_must_be_optional() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
         class C {
             i: int32,
             s: string,
             b: tag(10) bool,
         }
-        ",
-        "b";
-        "tagged data member"
-    )]
-    #[test_case(
-        "
-        interface I {
-            op(myParam: tag(10) int32);
-        }
-        ",
-        "myParam";
-        "tagged parameter"
-    )]
-    fn tagged_data_members_must_be_optional(slice: &str, expected_identifier: &str) {
-        // Arrange
-        let slice = format!(
-            "
-        encoding = 1;
-        module Test;
-        {}
-        ",
-            slice
-        );
+        ";
 
         let error_reporter = parse_for_errors(&slice);
 
         // Assert
-        assert_errors!(error_reporter, &[format!(
-            "invalid member `{}`: tagged members must be optional",
-            expected_identifier
-        ),]);
+        assert_errors!(error_reporter, [
+            "invalid member `b`: tagged members must be optional"
+        ]);
     }
 
     #[test]
@@ -126,27 +105,6 @@ mod tags {
 
             interface I {
                 op(s: tag(1) S?);
-            }
-            ";
-        let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
-
-        // Act
-        let errors = parse_for_errors(slice);
-
-        // Assert
-        assert_errors!(errors, expected_errors);
-    }
-
-    #[test]
-    fn cannot_tag_a_container_that_contains_a_class_new_example() {
-        // Arrange
-        let slice = "
-            encoding = 1;
-            module Test;
-
-            class C {}
-            interface I {
-               op(s: tag(1) sequence<C>?);
             }
             ";
         let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
