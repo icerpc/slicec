@@ -222,7 +222,7 @@ impl TagValidator<'_> {
                     );
                     true
                 },
-                None => seen
+                None => false
             }
         });
     }
