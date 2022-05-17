@@ -330,7 +330,6 @@ impl TagValidator<'_> {
         for member in tagged_members {
             // TODO: This works but the uses_classes method is not intuitive. Should be renamed
             // or changed so that if a class contains no memebers it returns false.
-            let uses_classes = member.data_type().definition().uses_classes();
             if match member.data_type().concrete_type() {
                 Types::Class(c) => {
                     if c.members().is_empty() {
@@ -341,7 +340,7 @@ impl TagValidator<'_> {
                             .any(|m| m.data_type().definition().uses_classes())
                     }
                 }
-                _ => uses_classes,
+                _ => member.data_type().definition().uses_classes(),
             } {
                 self.error_reporter.report_error(
                     format!(
