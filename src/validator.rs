@@ -145,7 +145,7 @@ impl Validator<'_> {
             for member in nonstreamed_members {
                 if member.is_streamed {
                     self.error_reporter.report_error(
-                        "only the last parameter in an operation can be streamed".to_owned(),
+                        "only the last parameter in an operation can use the stream modifier".to_owned(),
                         Some(&member.location),
                     );
                 }
@@ -222,7 +222,7 @@ impl TagValidator<'_> {
                     );
                     true
                 },
-                None => seen
+                None => false
             }
         });
     }
