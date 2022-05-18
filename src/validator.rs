@@ -181,7 +181,7 @@ struct TagValidator<'a> {
 }
 
 impl TagValidator<'_> {
-    // Validate that tagged parameters must follow the required parameters.
+    // Validate that tagged parametezrs must follow the required parameters.
     fn parameter_order(&mut self, parameters: &[&Parameter]) {
         // Folding is used to have an accumulator called `seen` that is set to true once a tagged
         // parameter is found. If `seen` is true on a successive iteration and the parameter has
@@ -387,10 +387,18 @@ impl<'a> Visitor for TagValidator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
+        // Parameter checks
         self.parameter_order(&operation_def.parameters());
         self.have_optional_types(&operation_def.parameters());
         self.tags_are_unique(&operation_def.parameters());
         self.tagged_containers_cannot_contain_classes(&operation_def.parameters());
         self.cannot_tag_classes(&operation_def.parameters());
+
+        // Return checks
+        self.parameter_order(&operation_def.return_members());
+        self.have_optional_types(&operation_def.return_members());
+        self.tags_are_unique(&operation_def.return_members());
+        self.tagged_containers_cannot_contain_classes(&operation_def.return_members());
+        self.cannot_tag_classes(&operation_def.return_members());
     }
 }
