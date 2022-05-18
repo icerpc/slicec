@@ -181,7 +181,7 @@ struct TagValidator<'a> {
 }
 
 impl TagValidator<'_> {
-    // Validate that tagged parametezrs must follow the required parameters.
+    // Validate that tagged parameters must follow the required parameters.
     fn parameter_order(&mut self, parameters: &[&Parameter]) {
         // Folding is used to have an accumulator called `seen` that is set to true once a tagged
         // parameter is found. If `seen` is true on a successive iteration and the parameter has
