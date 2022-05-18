@@ -165,30 +165,6 @@ impl<'a> Visitor for Validator<'a> {
                     "compact structs must be non-empty".to_owned(),
                     Some(&struct_def.location),
                 )
-            } else {
-                // Compact structs cannot have tagged data members.
-                let mut has_tags = false;
-                for member in struct_def.members() {
-                    if member.tag.is_some() {
-                        self.error_reporter.report_error(
-                            "tagged data members are not supported in compact structs\n\
-                            consider removing the tag, or making the struct non-compact"
-                                .to_owned(),
-                            Some(&member.location),
-                        );
-                        has_tags = true;
-                    }
-                }
-
-                if has_tags {
-                    self.error_reporter.report_note(
-                        format!(
-                            "struct '{}' is declared compact here",
-                            struct_def.identifier()
-                        ),
-                        Some(&struct_def.location),
-                    );
-                }
             }
         }
     }
@@ -226,6 +202,36 @@ impl TagValidator<'_> {
                 None => false
             }
         });
+    }
+
+    /// Validate that tags cannot be used in compact structs.
+    fn compact_structs_cannot_contain_tags(&mut self, struct_def: &Struct) {
+        // Compact structs must be non-empty.
+        if !struct_def.members.is_empty() {
+            // Compact structs cannot have tagged data members.
+            let mut has_tags = false;
+            for member in struct_def.members() {
+                if member.tag.is_some() {
+                    self.error_reporter.report_error(
+                        "tagged data members are not supported in compact structs\n\
+                            consider removing the tag, or making the struct non-compact"
+                            .to_owned(),
+                        Some(member.location()),
+                    );
+                    has_tags = true;
+                }
+            }
+
+            if has_tags {
+                self.error_reporter.report_note(
+                    format!(
+                        "struct '{}' is declared compact here",
+                        struct_def.identifier()
+                    ),
+                    Some(&struct_def.location),
+                );
+            }
+        }
     }
 
     /// Validates that the tags are unique.
@@ -364,8 +370,13 @@ impl<'a> Visitor for TagValidator<'a> {
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.tags_are_unique(&struct_def.members());
-        self.have_optional_types(&struct_def.members());
+        if struct_def.is_compact {
+            self.compact_structs_cannot_contain_tags(struct_def)
+        } else {
+            // Tags can only exist on non compact structs.
+            self.tags_are_unique(&struct_def.members());
+            self.have_optional_types(&struct_def.members());
+        }
     }
 
     fn visit_class_start(&mut self, class_def: &Class) {
