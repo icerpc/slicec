@@ -147,8 +147,7 @@ fn can_have_return_tuple() {
 }
 
 #[test]
-#[ignore] // should fail
-fn return_tuple_can_not_be_empty() {
+fn return_tuple_must_contain_two_or_more_elements() {
     let slice = "
         module Test;
         interface I
@@ -159,24 +158,8 @@ fn return_tuple_can_not_be_empty() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, &["Expected at least two return value"]);
-}
-
-#[test]
-#[ignore] // should fail
-fn return_tuple_can_not_have_one_element() {
-    let slice = "
-        module Test;
-        interface I
-        {
-            op() -> (a: int32);
-        }
-    ";
-
-    let error_reporter = parse_for_errors(slice);
-
     assert_errors!(error_reporter, &[
-        "Tuple returns require at least two values",
+        "Return tuple must have at least 2 elements"
     ]);
 }
 
