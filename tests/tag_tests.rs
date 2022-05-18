@@ -9,10 +9,7 @@ mod tags {
     use slice::grammar::*;
     use slice::parse_from_string;
 
-    use test_case::test_case;
-
     #[test]
-    #[ignore] // TODO: We do not verify that tagged data members are optional.
     fn tagged_data_members_must_be_optional() {
         // Arrange
         let slice = "
@@ -25,30 +22,67 @@ mod tags {
         }
         ";
 
-        let error_reporter = parse_for_errors(slice);
+        let error_reporter = parse_for_errors(&slice);
 
         // Assert
-        assert_errors!(error_reporter, &["Tagged data members must be optional"]);
+        assert_errors!(error_reporter, [
+            "invalid member `b`: tagged members must be optional"
+        ]);
     }
 
     #[test]
-    #[ignore] // TODO: Add error messages explaining that you cannot have tags on classes.
+    fn tagged_parameters_must_be_optional() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        interface I {
+            op(myParam: tag(10) int32);
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &[
+            "invalid member `myParam`: tagged members must be optional"
+        ]);
+    }
+
+    #[test]
+    fn tagged_parameters_must_be_after_required_parameters() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        interface I {
+            op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, &[
+            "invalid parameter `p3`: required parameters must precede tagged parameters",
+            "invalid parameter `p4`: required parameters must precede tagged parameters"
+        ]);
+    }
+
+    #[test]
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
             encoding = 1;
             module Test;
 
-            class B {
-                i: int32,
-            }
-            class C {
-                i: int32,
-                s: string,
-                b: tag(10) B?,
+            class C {}
+
+            interface I {
+                op(c: tag(1) C?);
             }
             ";
-        let expected_errors = [""];
+        let expected_errors = ["invalid member `c`: tagged members cannot be classes"];
 
         // Act
         let errors = parse_for_errors(slice);
@@ -57,36 +91,26 @@ mod tags {
         assert_errors!(errors, expected_errors);
     }
 
-    #[test_case(
-        "
-        class A {
-            a: tag(1) A,
-        }"
-    )]
-    #[test_case(
-        "
-        class C {}
-        interface I {
-            op(a: tag(1) C?);
-        }"
-    )]
-    #[ignore]
-    fn cannot_tag_a_container_that_contains_a_class(slice_component: &str) {
+    #[test]
+    fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             encoding = 1;
             module Test;
 
-            {}
-            ",
-            slice_component
-        );
-        let expected_errors = [""]; // TODO: Add error messages explaining that you cannot have tags on containers that contain
-                                    // classes.
+            class C {}
+            compact struct S {
+                c: C
+            }
+
+            interface I {
+                op(s: tag(1) S?);
+            }
+            ";
+        let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
 
         // Act
-        let errors = parse_for_errors(&slice);
+        let errors = parse_for_errors(slice);
 
         // Assert
         assert_errors!(errors, expected_errors);
@@ -114,7 +138,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore] // TODO: Add error messages explaining that you cannot have multiple tags with the same value.
     fn cannot_have_duplicate_tags() {
         // Arrange
         let slice = "
@@ -124,32 +147,34 @@ mod tags {
                 b: tag(1) int32?,
             }
         ";
-        let expected_errors = [""];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors!(error_reporter, [
+            "invalid tag on member `b`: tags must be unique",
+            "The data member `a` has previous used the tag value `1`"
+        ]);
     }
 
-    #[test_case(i32::MAX as i64, "2"; "Slice2 max value")]
-    #[test_case(i32::MAX as i64, "1"; "Slice1 max value")]
-    #[ignore] // TODO: Add error messages
-    fn cannot_have_tag_with_value_larger_than_max(max: i64, encoding: &str) {
+    #[test]
+    fn cannot_have_tag_with_value_larger_than_max() {
         // Arrange
+        let max_value = i32::MAX as i64;
         let slice = format!(
             "
-            encoding = {encoding};
             module Test;
             interface I {{
-                testOp(a: tag({max_value}) int32?);
+                testOp(a: tag({value}) int32?);
             }}
         ",
-            max_value = max + 1,
-            encoding = encoding
+            value = max_value + 1
         );
-        let expected_errors = [""]; // TODO: Add error messages
+        let expected_errors = [format!(
+            "tag is out of range: {}. Tag values must be less than 2147483647",
+            max_value + 1
+        )];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
@@ -158,23 +183,19 @@ mod tags {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    #[test_case(i32::MIN as i64, "2"; "Slice2 min value")]
-    #[test_case(0, "1"; "Slice1 min value")]
-    #[ignore] // TODO: Add error messages
-    fn cannot_have_tag_with_value_smaller_than_minimum(min: i64, encoding: &str) {
+    #[test]
+    fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
         let slice = format!(
             "
-            encoding = {encoding};
             module Test;
             interface I {{
-                testOp(a: tag({max_value}) int32?);
+                testOp(a: tag({value}) int32?);
             }}
             ",
-            max_value = min - 1,
-            encoding = encoding
+            value = -1
         );
-        let expected_errors = [""]; // TODO: Add error messages
+        let expected_errors = [format!("tag is out of range: {}. Tag values must be positive", -1)];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
@@ -198,24 +219,5 @@ mod tags {
 
         // Assert
         assert!(err.is_some());
-    }
-
-    #[test]
-    #[ignore] // TODO: Add error messages
-    fn negative_tags_are_invalid_with_slice1() {
-        // Arrange
-        let slice = "
-            encoding = 1;
-            module Test;
-            interface I {
-                testOp(a: tag(-1) int32?);
-            }
-        ";
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
-        assert_errors!(error_reporter, &["Tags cannot be negative"]);
     }
 }
