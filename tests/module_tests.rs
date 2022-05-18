@@ -9,15 +9,14 @@ mod module {
     use slice::parse_from_string;
 
     #[test]
-    #[ignore]
     fn can_be_reopened() {
         let slice = "
-        module mod
+        module Test
         {
             struct S1 {}
         }
 
-        module mod
+        module Test
         {
             struct S2 {}
         }
@@ -25,11 +24,8 @@ mod module {
 
         let ast = parse_for_ast(slice);
 
-        let module_ptr = ast.find_typed_entity::<Module>("mod").unwrap();
-        let module_def = module_ptr.borrow();
-        let contents = module_def.contents();
-
-        assert_eq!(contents.len(), 2);
+        assert!(ast.find_typed_type::<Struct>("Test::S1").is_some());
+        assert!(ast.find_typed_type::<Struct>("Test::S2").is_some());
     }
 
     #[test]
