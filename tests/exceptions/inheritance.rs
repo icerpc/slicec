@@ -71,7 +71,7 @@ fn inherits_correct_data_members() {
     {
         c: float64
     }
-";
+    ";
 
     let ast = parse_for_ast(slice);
     let exception_a_ptr = ast.find_typed_type::<Exception>("Test::A").unwrap();
