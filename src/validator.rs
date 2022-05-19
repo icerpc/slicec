@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
+use crate::code_gen_util::get_sorted_members;
 use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
@@ -237,20 +238,13 @@ impl TagValidator<'_> {
     /// Validates that the tags are unique.
     fn tags_are_unique<M>(&mut self, members: &[&M])
     where
-        M: Member + ?Sized,
+        M: Member,
     {
-        let tagged_members = members
-            .iter()
-            .filter(|member| member.tag().is_some())
-            .clone()
-            .collect::<Vec<_>>();
-
         // The tagged members must be sorted by value first as we are using windowing to check the
         // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
         // the windowing will reveal any duplicate tags.
-        let mut unique_tagged_members = tagged_members.clone();
-        unique_tagged_members.sort_by_key(|m| m.tag().unwrap());
-        unique_tagged_members.windows(2).for_each(|window| {
+        let (_, tagged_members) = get_sorted_members(members);
+        tagged_members.windows(2).for_each(|window| {
             if window[0].tag() == window[1].tag() {
                 self.error_reporter.report_error(
                     format!(
