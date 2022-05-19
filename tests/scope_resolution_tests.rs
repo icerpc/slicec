@@ -244,7 +244,7 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore] // TODO: this case should be invalid
+    #[ignore = "This test case should be invalid"]
     fn interface_has_same_identifier_as_module() {
         let slice = "
         module A
@@ -272,7 +272,7 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore] // TODO: This test is broken. Fails with "Encountered unpatchable type: module"
+    #[ignore = "This test is broken. Fails with \"Encountered unpatchable type: module\""]
     fn relative_scope_is_module_before_interface() {
         let slice = "
         module A
@@ -303,7 +303,7 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore] // TODO: This test is broken. Crashes in the cycle detector
+    #[ignore = "This test is broken. Crashes in the cycle detector"]
     fn missing_type_should_fail() {
         let slice = "
         module A
