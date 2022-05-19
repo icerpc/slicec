@@ -189,7 +189,7 @@ impl EnumValidator<'_> {
     fn backing_type_bounds(&mut self, enum_def: &Enum) {
         match self.encoding {
             Encoding::Slice1 => {
-                // Slice 1 does not allow negative numbers.
+                // Slice1 does not allow negative numbers.
                 enum_def
                     .enumerators()
                     .iter()
@@ -203,7 +203,7 @@ impl EnumValidator<'_> {
                             Some(enumerator.location()),
                         );
                     });
-                // Enums in Slice1 are always have int32
+                // Enums in Slice1 always have an underlying type of int32.
                 enum_def
                 .enumerators()
                 .iter()
@@ -235,7 +235,7 @@ impl EnumValidator<'_> {
                     .for_each(|value| {
                         self.error_reporter.report_error(
                             format!(
-                                "enumerator value '{value}' is out of bounds. The value must be bounded between [{min}, {max}] for the underlying type `{underlying}`",
+                                "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
                                 value = value,
                                 underlying=enum_def.underlying_type(self.encoding).kind(),
                                 min = min,
@@ -474,7 +474,7 @@ impl TagValidator<'_> {
 
         for member in tagged_members {
             // TODO: This works but the uses_classes method is not intuitive. Should be renamed
-            // or changed so that if a class contains no memebers it returns false.
+            // or changed so that if a class contains no members it returns false.
             if match member.data_type().concrete_type() {
                 Types::Class(c) => {
                     if c.members().is_empty() {

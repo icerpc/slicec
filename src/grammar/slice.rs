@@ -813,10 +813,9 @@ impl Enum {
             .collect()
     }
 
+    /// Computes the underlying type of the enum. The default underlying type is dependent on the
+    /// encoding. For Slice1 the default is int32, for Slice2 the default is varint32.
     pub fn underlying_type(&self, encoding: Encoding) -> &Primitive {
-        // If the enum has an underlying type, return a reference to its definition.
-        // Otherwise, enums have a backing type of `int32` by default. Since `int32` is a type
-        // defined by the compiler, we fetch its definition directly from the global AST.
         let default_underlying = match encoding {
             Encoding::Slice1 => &self.int32_def,
             Encoding::Slice2 => &Primitive::VarInt32,
@@ -1423,14 +1422,9 @@ impl Primitive {
     }
 
     pub fn numeric_bounds(&self) -> Option<(i64, i64)> {
-        static VARINT32_MIN: i64 = -(2_i64.pow(31)) - 1;
-        static VARINT32_MAX: i64 = 2_i64.pow(31) - 1;
-        static VARUINT32_MIN: i64 = 0;
-        static VARUINT32_MAX: i64 = 2_i64.pow(32) - 1;
-        static VARINT62_MIN: i64 = -(2_i64.pow(61)) - 1;
-        static VARINT62_MAX: i64 = 2_i64.pow(61) - 1;
-        static VARUINT62_MIN: i64 = 0;
-        static VARUINT62_MAX: i64 = 2_i64.pow(62) - 1;
+        static VARINT62_MIN: i64 = -2_305_843_009_213_693_952; // -2^61
+        static VARINT62_MAX: i64 = 2_305_843_009_213_693_951; // 2^61 - 1
+        static VARUINT62_MAX: i64 = 4_611_686_018_427_387_903; // 2^62 - 1
 
         match self {
             Self::Int8 => Some((i8::MIN as i64, i8::MAX as i64)),
@@ -1439,12 +1433,12 @@ impl Primitive {
             Self::UInt16 => Some((0, u16::MAX as i64)),
             Self::Int32 => Some((i32::MIN as i64, i32::MAX as i64)),
             Self::UInt32 => Some((0, u32::MAX as i64)),
-            Self::VarInt32 => Some((VARINT32_MIN, VARINT32_MAX)),
-            Self::VarUInt32 => Some((VARUINT32_MIN, VARUINT32_MAX)),
+            Self::VarInt32 => Some((i32::MIN as i64, i32::MAX as i64)),
+            Self::VarUInt32 => Some((0, u32::MAX as i64)),
             Self::Int64 => Some((i64::MIN, i64::MAX)),
             Self::UInt64 => Some((0, u64::MAX as i64)),
             Self::VarInt62 => Some((VARINT62_MIN, VARINT62_MAX)),
-            Self::VarUInt62 => Some((VARUINT62_MIN, VARUINT62_MAX)),
+            Self::VarUInt62 => Some((0, VARUINT62_MAX)),
             _ => None,
         }
     }

@@ -91,7 +91,7 @@ fn validate_backing_type_bounds() {
 
     // Assert
     assert_errors!(error_reporter,[
-        "enumerator value '32768' is out of bounds. The value must be bounded between [-32768, 32767] for the underlying type `int16`"
+        "enumerator value '32768' is out of bounds. The value must be between `-32768..32767`, inclusive, for the underlying type `int16`"
     ]);
 }
 
