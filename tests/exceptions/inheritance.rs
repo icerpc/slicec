@@ -10,7 +10,8 @@ fn supports_single_inheritance() {
         encoding = 1;
         module Test;
         exception E1 {}
-        exception E2 : E1 {}";
+        exception E2 : E1 {}
+        ";
 
     let ast = parse_for_ast(slice);
 
