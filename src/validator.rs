@@ -5,7 +5,6 @@ use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -295,7 +294,7 @@ impl EnumValidator<'_> {
 
     /// Validate the the underlying type of an enum is not optional.
     fn underlying_type_cannot_be_optional(&mut self, enum_def: &Enum) {
-        if let Some(ref typeref) = enum_def.underlying.borrow() {
+        if let Some(ref typeref) = enum_def.underlying {
             if typeref.is_optional {
                 self.error_reporter.report_error(
                     format!("underlying type '{}' cannot be optional: enums cannot have optional underlying types", typeref.type_string),

@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use core::panic;
-
 use super::comments::DocComment;
 use super::traits::*;
 use super::util::{ClassFormat, Encoding, Scope, TagFormat};
