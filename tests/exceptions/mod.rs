@@ -2,4 +2,5 @@
 
 mod container;
 mod encoding;
+mod inheritance;
 mod tags;
