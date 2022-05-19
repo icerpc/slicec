@@ -73,7 +73,6 @@ fn out_of_order_enumerators_are_rejected() {
 }
 
 #[test]
-#[ignore = "reason: validation not implemented"] // TODO
 fn validate_backing_type_bounds() {
     // Arranges
     let out_of_bounds_value = i16::MAX as i32 + 1;
@@ -91,13 +90,14 @@ fn validate_backing_type_bounds() {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(error_reporter,[
+        "enumerator value '32768' is out of bounds. The value must be bounded between [-32768, 32767] for the underlying type `int16`"
+    ]);
 }
 
 #[test_case("string")]
 #[test_case("float32")]
 #[test_case("float64")]
-#[ignore = "reason: validation not implemented"] // TODO
 fn invalid_underlying_type(underlying_type: &str) {
     // Arrange
     let slice = format!(
@@ -114,7 +114,10 @@ fn invalid_underlying_type(underlying_type: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(error_reporter, [format!(
+        "underlying type '{}' is not allowed for enums",
+        underlying_type
+    )]);
 }
 
 #[test_case("10")]
@@ -140,23 +143,23 @@ fn enumerator_invalid_identifiers(identifier: &str) {
 }
 
 #[test]
-#[ignore = "reason: validation not implemented"] // TODO
 fn optional_underlying_types_fail() {
     // Arrange
     let slice = "
         module Test;
         enum E: int32? { A = 1 }
-    ";
+        ";
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(error_reporter, [
+        "underlying type 'int32' cannot be optional: enums cannot have optional underlying types"
+    ]);
 }
 
 #[test]
-#[ignore = "reason: validation not implemented"] // TODO
 fn enumerators_must_be_unique() {
     // Arrange
     let slice = "
@@ -165,13 +168,16 @@ fn enumerators_must_be_unique() {
             A = 1,
             B = 1,
         }
-    ";
+        ";
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(error_reporter, [
+        "invalid enumerator value on enumerator `B`: enumerators must be unique",
+        "The enumerator `A` has previous used the value `1`"
+    ]);
 }
 
 mod slice1 {
@@ -179,10 +185,7 @@ mod slice1 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
 
-    /// * Note this passes and should not. Austin suspects similar to variable size backing types
-    /// working. This is most likely a result of not producing the correct errors.
     #[test]
-    #[ignore]
     fn enumerators_cannot_contain_negative_values() {
         // Arrange
         let slice = "
@@ -194,10 +197,37 @@ mod slice1 {
             C = -3,
         }
         ";
-        let expected_errors = &["ERROR"]; // TODO: Add the relevant error message once fixed
+        let expected_errors = &[
+            "invalid enumerator value on enumerator `A`: enumerators must be non-negative",
+            "invalid enumerator value on enumerator `B`: enumerators must be non-negative",
+            "invalid enumerator value on enumerator `C`: enumerators must be non-negative",
+        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, expected_errors);
+    }
+
+    #[test]
+    fn enumerators_cannot_contain_out_of_bounds_values() {
+        // Arrange
+        let slice = format!(
+            "
+            encoding = 1;
+            module Test;
+            enum E {{
+                A = {value},
+            }}
+            ",
+            value = i32::MAX as i64 + 1
+        );
+        let expected_errors =
+            &["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
+
+        // Act
+        let error_reporter = parse_for_errors(&slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);
@@ -279,6 +309,9 @@ mod slice2 {
         assert_eq!(enumerators[1].value, 2);
         assert_eq!(enumerators[2].value, 3);
 
-        assert!(matches!(*enum_def.underlying_type(), Primitive::Int16));
+        assert!(matches!(
+            *enum_def.underlying_type(Encoding::Slice2),
+            Primitive::Int16
+        ));
     }
 }
