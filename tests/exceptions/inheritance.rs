@@ -29,7 +29,8 @@ fn does_not_support_multiple_inheritance() {
         module Test;
         exception E1 {}
         exception E2 {}
-        exception E3 : E1, E2 {}";
+        exception E3 : E1, E2 {}
+        ";
 
     let error_reporter = parse_for_errors(slice);
 
