@@ -97,7 +97,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     )]);
 }
 
-#[test_case("MyEnum", "enum MyEnum {}" ; "enums")]
+#[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
 #[test_case("MyCustom", "custom MyCustom;" ; "custom_types")]
 fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     // Arrange

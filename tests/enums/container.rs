@@ -310,25 +310,6 @@ mod slice2 {
 
     ///
     #[test]
-    fn enums_can_be_empty() {
-        // Arrange
-        let slice = "
-        module Test;
-        enum E {}
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-        let enum_def = enum_ptr.borrow();
-        let enumerators = enum_def.enumerators();
-        assert_eq!(enumerators.len(), 0);
-    }
-
-    ///
-    #[test]
     fn enumerators_can_contain_negative_values() {
         // Arrange
         let slice = "
