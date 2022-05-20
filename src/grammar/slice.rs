@@ -768,7 +768,6 @@ pub struct Enum {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
-    int32_def: Primitive,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
@@ -786,7 +785,6 @@ impl Enum {
         let enumerators = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        let int32_def = Primitive::Int32;
         Enum {
             identifier,
             enumerators,
@@ -798,7 +796,6 @@ impl Enum {
             comment,
             location,
             supported_encodings,
-            int32_def,
         }
     }
 
@@ -817,7 +814,7 @@ impl Enum {
     /// encoding. For Slice1 the default is int32, for Slice2 the default is varint32.
     pub fn underlying_type(&self, encoding: Encoding) -> &Primitive {
         let default_underlying = match encoding {
-            Encoding::Slice1 => &self.int32_def,
+            Encoding::Slice1 => &Primitive::Int32,
             Encoding::Slice2 => &Primitive::VarInt32,
         };
         self.underlying

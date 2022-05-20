@@ -702,6 +702,9 @@ impl<'a> SliceParser<'a> {
         );
 
         let parser_data = &mut input.user_data().borrow_mut();
+
+        // TODO: Add validation incase of overflow
+        if next_enum_value == i64::MAX {}
         parser_data.current_enum_value = next_enum_value + 1;
         Ok(enumerator)
     }
