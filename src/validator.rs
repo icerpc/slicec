@@ -304,6 +304,16 @@ impl EnumValidator<'_> {
             }
         }
     }
+
+    /// Validate that a checked enum must not be empty.
+    fn nonempty_if_checked(&mut self, enum_def: &Enum) {
+        if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
+            self.error_reporter.report_error(
+                "enums must contain at least one enumerator".to_owned(),
+                Some(&enum_def.location),
+            );
+        }
+    }
 }
 
 impl<'a> Visitor for EnumValidator<'a> {
@@ -312,6 +322,7 @@ impl<'a> Visitor for EnumValidator<'a> {
         self.backing_type_bounds(enum_def);
         self.enumerators_are_unique(enum_def.enumerators());
         self.underlying_type_cannot_be_optional(enum_def);
+        self.nonempty_if_checked(enum_def);
     }
 }
 
