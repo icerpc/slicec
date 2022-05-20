@@ -197,6 +197,57 @@ fn automatically_assigned_values_will_not_overflow() {
     assert!(error.message.ends_with("Enumerator value out of range: B"));
 }
 
+#[test_case("unchecked enum", true ; "unchecked")]
+#[test_case("enum", false ; "checked")]
+fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
+    let slice = format!(
+        "
+        module Test;
+        {enum_definition} E {{
+            A,
+            B,
+        }}
+        ",
+        enum_definition = enum_definition
+    );
+
+    let ast = parse_for_ast(&slice);
+
+    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
+    let enum_def = enum_ptr.borrow();
+
+    assert_eq!(enum_def.is_unchecked, expected_result);
+}
+
+#[test]
+fn checked_enums_can_not_be_empty() {
+    let slice = "
+        module Test;
+        enum E {}
+        ";
+
+    let error_reporter = parse_for_errors(slice);
+
+    assert_errors!(error_reporter, &[
+        "enums must contain at least one enumerator"
+    ]);
+}
+
+#[test]
+fn unchecked_enums_can_be_empty() {
+    let slice = "
+        module Test;
+        unchecked enum E {}
+        ";
+
+    let ast = parse_for_ast(slice);
+
+    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
+    let enum_def = enum_ptr.borrow();
+
+    assert_eq!(enum_def.enumerators.len(), 0);
+}
+
 mod slice1 {
 
     use crate::assert_errors;
@@ -256,25 +307,6 @@ mod slice2 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
-
-    ///
-    #[test]
-    fn enums_can_be_empty() {
-        // Arrange
-        let slice = "
-        module Test;
-        enum E {}
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-        let enum_def = enum_ptr.borrow();
-        let enumerators = enum_def.enumerators();
-        assert_eq!(enumerators.len(), 0);
-    }
 
     ///
     #[test]
