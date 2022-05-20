@@ -3,6 +3,7 @@
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use slice::grammar::*;
+use slice::parse_from_string;
 use test_case::test_case;
 
 #[test]
@@ -178,6 +179,22 @@ fn enumerators_must_be_unique() {
         "invalid enumerator value on enumerator `B`: enumerators must be unique",
         "The enumerator `A` has previous used the value `1`"
     ]);
+}
+
+#[test]
+fn automatically_assigned_values_will_not_overflow() {
+    let slice = format!(
+        "module Test;
+        enum E {{
+            A = {max_value},
+            B,
+        }}",
+        max_value = i64::MAX
+    );
+
+    let error = parse_from_string(&slice).err().unwrap();
+
+    assert!(error.message.ends_with("Enumerator value out of range: B"));
 }
 
 mod slice1 {
