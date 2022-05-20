@@ -39,32 +39,11 @@ mod slice2 {
     #[test_case("uint16")]
     #[test_case("int32")]
     #[test_case("uint32")]
-    fn supported_fixed_size_numeric_underlying_types_succeed(valid_type: &str) {
-        // Arrange
-        let slice = &format!(
-            "
-            module Test;
-            enum E : {} {{}}
-            ",
-            valid_type,
-        );
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
-        assert_errors!(error_reporter);
-    }
-
-    //
-    /// * This test is passing currently, but Austin believes it results from the error checking for
-    /// these types not being implemented yet.
     #[test_case("varint32")]
     #[test_case("varuint32")]
     #[test_case("varint62")]
     #[test_case("varuint62")]
-    #[ignore]
-    fn supported_variable_size_numeric_underlying_types_succeed(valid_type: &str) {
+    fn supported_numeric_underlying_types_succeed(valid_type: &str) {
         // Arrange
         let slice = &format!(
             "

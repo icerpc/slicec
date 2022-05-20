@@ -768,7 +768,6 @@ pub struct Enum {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub location: Location,
-    int32_def: Primitive,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
@@ -786,7 +785,6 @@ impl Enum {
         let enumerators = Vec::new();
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
-        let int32_def = Primitive::Int32;
         Enum {
             identifier,
             enumerators,
@@ -798,7 +796,6 @@ impl Enum {
             comment,
             location,
             supported_encodings,
-            int32_def,
         }
     }
 
@@ -813,13 +810,16 @@ impl Enum {
             .collect()
     }
 
-    pub fn underlying_type(&self) -> &Primitive {
-        // If the enum has an underlying type, return a reference to its definition.
-        // Otherwise, enums have a backing type of `int32` by default. Since `int32` is a type
-        // defined by the compiler, we fetch its definition directly from the global AST.
+    /// Computes the underlying type of the enum. The default underlying type is dependent on the
+    /// encoding. For Slice1 the default is int32, for Slice2 the default is varint32.
+    pub fn underlying_type(&self, encoding: Encoding) -> &Primitive {
+        let default_underlying = match encoding {
+            Encoding::Slice1 => &Primitive::Int32,
+            Encoding::Slice2 => &Primitive::VarInt32,
+        };
         self.underlying
             .as_ref()
-            .map_or(&self.int32_def, |data_type| data_type.definition())
+            .map_or(default_underlying, |data_type| data_type.definition())
     }
 
     pub fn get_min_max_values(&self) -> Option<(i64, i64)> {
@@ -1384,6 +1384,24 @@ impl Primitive {
         )
     }
 
+    pub fn is_integral(&self) -> bool {
+        matches!(
+            self,
+            Self::Int8
+                | Self::UInt8
+                | Self::Int16
+                | Self::UInt16
+                | Self::Int32
+                | Self::UInt32
+                | Self::VarInt32
+                | Self::VarUInt32
+                | Self::Int64
+                | Self::UInt64
+                | Self::VarInt62
+                | Self::VarUInt62
+        )
+    }
+
     pub fn is_unsigned_numeric(&self) -> bool {
         matches!(
             self,
@@ -1398,6 +1416,28 @@ impl Primitive {
 
     pub fn is_numeric_or_bool(&self) -> bool {
         self.is_numeric() || matches!(self, Self::Bool)
+    }
+
+    pub fn numeric_bounds(&self) -> Option<(i64, i64)> {
+        static VARINT62_MIN: i64 = -2_305_843_009_213_693_952; // -2^61
+        static VARINT62_MAX: i64 = 2_305_843_009_213_693_951; // 2^61 - 1
+        static VARUINT62_MAX: i64 = 4_611_686_018_427_387_903; // 2^62 - 1
+
+        match self {
+            Self::Int8 => Some((i8::MIN as i64, i8::MAX as i64)),
+            Self::UInt8 => Some((0, u8::MAX as i64)),
+            Self::Int16 => Some((i16::MIN as i64, i16::MAX as i64)),
+            Self::UInt16 => Some((0, u16::MAX as i64)),
+            Self::Int32 => Some((i32::MIN as i64, i32::MAX as i64)),
+            Self::UInt32 => Some((0, u32::MAX as i64)),
+            Self::VarInt32 => Some((i32::MIN as i64, i32::MAX as i64)),
+            Self::VarUInt32 => Some((0, u32::MAX as i64)),
+            Self::Int64 => Some((i64::MIN, i64::MAX)),
+            Self::UInt64 => Some((0, u64::MAX as i64)),
+            Self::VarInt62 => Some((VARINT62_MIN, VARINT62_MAX)),
+            Self::VarUInt62 => Some((0, VARUINT62_MAX)),
+            _ => None,
+        }
     }
 }
 
