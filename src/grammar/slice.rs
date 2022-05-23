@@ -600,7 +600,8 @@ impl Operation {
 
     pub fn has_nonstreamed_parameters(&self) -> bool {
         // Operations can have at most 1 streamed parameter. So, if it has more than 1 parameter
-        // there must be  parameters. Otherwise we check if the 1 parameter is streamed.
+        // there must be non streamed parameters. Otherwise we check if the 1 parameter is
+        // streamed.
         match self.parameters.len() {
             0 => false,
             1 => !self.parameters[0].borrow().is_streamed,

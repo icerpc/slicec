@@ -35,15 +35,15 @@ fn can_contain_data_members() {
 
     assert!(matches!(
         data_members[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::Int32)
+        Types::Primitive(Primitive::Int32),
     ));
     assert!(matches!(
         data_members[1].data_type.concrete_type(),
-        Types::Primitive(Primitive::String)
+        Types::Primitive(Primitive::String),
     ));
     assert!(matches!(
         data_members[2].data_type.concrete_type(),
-        Types::Primitive(Primitive::Bool)
+        Types::Primitive(Primitive::Bool),
     ));
 }
 
@@ -68,7 +68,7 @@ fn can_contain_data_members() {
     "; "multi class circular reference"
 )]
 fn cycles_are_allowed(cycle_string: &str) {
-    let slice = &format!(
+    let slice = format!(
         "
     encoding = 1;
     module Test;
@@ -77,7 +77,7 @@ fn cycles_are_allowed(cycle_string: &str) {
         cycle_string,
     );
 
-    let error_reporter = parse_for_errors(slice);
+    let error_reporter = parse_for_errors(&slice);
 
     assert_errors!(error_reporter);
 }

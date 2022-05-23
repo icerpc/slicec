@@ -22,7 +22,7 @@ mod typealias {
         assert_eq!(type_alias.identifier(), "MyInt");
         assert!(matches!(
             type_alias.underlying.concrete_type(),
-            Types::Primitive(Primitive::VarUInt32)
+            Types::Primitive(Primitive::VarUInt32),
         ));
     }
 
@@ -45,7 +45,7 @@ mod typealias {
         assert_eq!(data_member.identifier(), "a");
         assert!(matches!(
             data_member.data_type.concrete_type(),
-            Types::Primitive(Primitive::VarUInt32)
+            Types::Primitive(Primitive::VarUInt32),
         ));
     }
 }

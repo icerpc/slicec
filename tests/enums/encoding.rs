@@ -15,7 +15,7 @@ mod slice1 {
             module Test;
             unchecked enum E : int32 {}
             ";
-        let expected_errors = &[
+        let expected_errors = [
             "enums with underlying types are not supported by the Slice 1 encoding",
             "file encoding was set to the Slice 1 encoding here:",
         ];

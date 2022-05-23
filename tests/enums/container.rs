@@ -56,7 +56,7 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
 }
 
 #[test]
-fn out_of_order_enumerators_are_rejected() {
+fn enumerator_values_can_be_out_of_order() {
     // Arrange
     let slice = "
         module Test;
@@ -84,15 +84,15 @@ fn validate_backing_type_bounds() {
             A = {out_of_bounds_value},
         }}
         ",
-        out_of_bounds_value = out_of_bounds_value
+        out_of_bounds_value = out_of_bounds_value,
     );
 
     // Act
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter,[
-        "enumerator value '32768' is out of bounds. The value must be between `-32768..32767`, inclusive, for the underlying type `int16`"
+    assert_errors!(error_reporter, [
+        "enumerator value '32768' is out of bounds. The value must be between `-32768..32767`, inclusive, for the underlying type `int16`",
     ]);
 }
 
@@ -108,7 +108,7 @@ fn invalid_underlying_type(underlying_type: &str) {
             A
         }}
         ",
-        underlying_type
+        underlying_type,
     );
 
     // Act
@@ -117,7 +117,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     // Assert
     assert_errors!(error_reporter, [format!(
         "underlying type '{}' is not allowed for enums",
-        underlying_type
+        underlying_type,
     )]);
 }
 
@@ -133,7 +133,7 @@ fn enumerator_invalid_identifiers(identifier: &str) {
             {identifier},
         }}
         ",
-        identifier = identifier
+        identifier = identifier,
     );
 
     // Act
@@ -156,7 +156,7 @@ fn optional_underlying_types_fail() {
 
     // Assert
     assert_errors!(error_reporter, [
-        "underlying type 'int32' cannot be optional: enums cannot have optional underlying types"
+        "underlying type 'int32' cannot be optional: enums cannot have optional underlying types",
     ]);
 }
 
@@ -177,7 +177,7 @@ fn enumerators_must_be_unique() {
     // Assert
     assert_errors!(error_reporter, [
         "invalid enumerator value on enumerator `B`: enumerators must be unique",
-        "The enumerator `A` has previous used the value `1`"
+        "The enumerator `A` has previous used the value `1`",
     ]);
 }
 
@@ -189,7 +189,7 @@ fn automatically_assigned_values_will_not_overflow() {
             A = {max_value},
             B,
         }}",
-        max_value = i64::MAX
+        max_value = i64::MAX,
     );
 
     let error = parse_from_string(&slice).err().unwrap();
@@ -208,7 +208,7 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
             B,
         }}
         ",
-        enum_definition = enum_definition
+        enum_definition = enum_definition,
     );
 
     let ast = parse_for_ast(&slice);
@@ -228,8 +228,8 @@ fn checked_enums_can_not_be_empty() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, &[
-        "enums must contain at least one enumerator"
+    assert_errors!(error_reporter, [
+        "enums must contain at least one enumerator",
     ]);
 }
 
@@ -265,7 +265,7 @@ mod slice1 {
             C = -3,
         }
         ";
-        let expected_errors = &[
+        let expected_errors = [
             "invalid enumerator value on enumerator `A`: enumerators must be non-negative",
             "invalid enumerator value on enumerator `B`: enumerators must be non-negative",
             "invalid enumerator value on enumerator `C`: enumerators must be non-negative",
@@ -291,8 +291,9 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected_errors =
-            &["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
+        let expected_errors = [
+            "invalid enumerator value on enumerator `A`: must be smaller than than 2147483647",
+        ];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
@@ -308,7 +309,6 @@ mod slice2 {
     use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
 
-    ///
     #[test]
     fn enumerators_can_contain_negative_values() {
         // Arrange
@@ -360,7 +360,7 @@ mod slice2 {
 
         assert!(matches!(
             *enum_def.underlying_type(Encoding::Slice2),
-            Primitive::Int16
+            Primitive::Int16,
         ));
     }
 }

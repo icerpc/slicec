@@ -26,7 +26,7 @@ mod tags {
 
         // Assert
         assert_errors!(error_reporter, [
-            "invalid member `b`: tagged members must be optional"
+            "invalid member `b`: tagged members must be optional",
         ]);
     }
 
@@ -44,8 +44,8 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, &[
-            "invalid member `myParam`: tagged members must be optional"
+        assert_errors!(error_reporter, [
+            "invalid member `myParam`: tagged members must be optional",
         ]);
     }
 
@@ -63,9 +63,9 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, &[
+        assert_errors!(error_reporter, [
             "invalid parameter `p3`: required parameters must precede tagged parameters",
-            "invalid parameter `p4`: required parameters must precede tagged parameters"
+            "invalid parameter `p4`: required parameters must precede tagged parameters",
         ]);
     }
 
@@ -154,7 +154,7 @@ mod tags {
         // Assert
         assert_errors!(error_reporter, [
             "invalid tag on member `b`: tags must be unique",
-            "The data member `a` has previous used the tag value `1`"
+            "The data member `a` has previous used the tag value `1`",
         ]);
     }
 
@@ -173,7 +173,7 @@ mod tags {
         );
         let expected_errors = [format!(
             "tag is out of range: {}. Tag values must be less than 2147483647",
-            max_value + 1
+            max_value + 1,
         )];
 
         // Act

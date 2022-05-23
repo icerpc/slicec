@@ -4,6 +4,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::parse_for_errors;
 
 #[test]
+// TODO, should we? This is just a syntax error in my opinion. There isn't even a type to tag here.
 #[should_panic] // TODO: We would have error messages explaining that you cannot have tags on enums.
 fn cannot_contain_tags() {
     // Arrange
@@ -15,6 +16,6 @@ fn cannot_contain_tags() {
         }
         ";
 
-    // Act
+    // Act & Assert
     assert_errors!(parse_for_errors(slice));
 }

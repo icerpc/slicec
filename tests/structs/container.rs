@@ -35,15 +35,15 @@ mod structs {
 
         assert!(matches!(
             data_members[0].data_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
         assert!(matches!(
             data_members[1].data_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
             data_members[2].data_type.concrete_type(),
-            Types::Primitive(Primitive::Bool)
+            Types::Primitive(Primitive::Bool),
         ));
     }
 
@@ -81,7 +81,7 @@ mod compact_structs {
             module Test;
             compact struct S {}
         ";
-        let expected_errors = &["compact structs must be non-empty"];
+        let expected_errors = ["compact structs must be non-empty"];
 
         // Act
         let (_, error_reporter) = parse_from_string(slice).ok().unwrap();

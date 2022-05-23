@@ -509,16 +509,14 @@ impl<'a> SliceParser<'a> {
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
             [parameter_list(return_elements)] => {
-                // Validating that return tuples must contain at least two elements.
-                match return_elements.len() {
-                    0 | 1 => {
-                        let location = &location_from_span(&input);
-                        input.user_data().borrow_mut().error_reporter.report_error(
-                            "Return tuple must have at least 2 elements".to_owned(),
-                            Some(location),
-                        );
-                    },
-                    _ => ()
+                // Validate that return tuples must contain at least two elements.
+                // TODO: should we move this into the validators, instead of a parse-time check?
+                if return_elements.len() < 2 {
+                    let location = location_from_span(&input);
+                    input.user_data().borrow_mut().error_reporter.report_error(
+                        "return tuples must have at least 2 elements".to_owned(),
+                        Some(&location),
+                    );
                 }
                 return_elements.into_iter().map(
                     |mut parameter| { parameter.is_returned = true; OwnedPtr::new(parameter) }
@@ -831,7 +829,6 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    // TODO: this is currently unused
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
         Ok(Identifier::new(
             input.as_str().to_owned(),

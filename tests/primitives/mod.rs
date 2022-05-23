@@ -24,17 +24,17 @@ use test_case::test_case;
 #[test_case("string", Primitive::String, None; "string")]
 #[test_case("AnyClass", Primitive::AnyClass, Some("encoding = 1;"); "AnyClass")]
 fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str>) {
-    let slice = &format!(
+    let slice = format!(
         "
         {encoding}
         module Test;
         typealias P = {slice_component};
         ",
         encoding = encoding.unwrap_or(""),
-        slice_component = slice_component
+        slice_component = slice_component,
     );
 
-    let ast = parse_for_ast(slice);
+    let ast = parse_for_ast(&slice);
 
     let type_ptr = ast.find_typed_entity::<TypeAlias>("Test::P").unwrap();
     let primitive_ptr = type_ptr
@@ -48,6 +48,6 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
 
     assert_eq!(
         std::mem::discriminant(primitive),
-        std::mem::discriminant(&expected)
+        std::mem::discriminant(&expected),
     );
 }

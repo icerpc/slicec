@@ -24,7 +24,7 @@ mod attributes {
                     op(s: string) -> string;
                 }}
                 ",
-                format
+                format,
             );
 
             // Act
@@ -74,7 +74,7 @@ mod attributes {
                     op(s: string) -> string;
                 }}
                 ",
-                arg.unwrap_or("")
+                arg.unwrap_or(""),
             );
 
             // Act
@@ -130,7 +130,7 @@ mod attributes {
             assert!(operation.get_deprecated_attribute(false).is_some());
             assert_eq!(
                 operation.get_deprecated_attribute(false).unwrap()[0],
-                "Deprecation message here"
+                "Deprecation message here",
             );
         }
 
@@ -259,7 +259,7 @@ mod attributes {
                 op(s: string) -> string;
             }}
             ",
-                input = input
+                input = input,
             );
 
             // Act
@@ -286,7 +286,7 @@ mod attributes {
                     op(s: string) -> string;
                 }}
                 ",
-                input = input
+                input = input,
             );
 
             // Act
@@ -314,7 +314,7 @@ mod attributes {
 
             // Assert
             assert_errors!(error_reporter, [
-                "" // Should be error here
+                "", // Should be error here
             ]);
         }
     }

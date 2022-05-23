@@ -14,7 +14,7 @@ mod encodings {
     #[test_case("2")]
     fn valid_encodings(value: &str) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             encoding = {value};
             ",
@@ -22,7 +22,7 @@ mod encodings {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let error_reporter = parse_for_errors(&slice);
 
         // Assert
         assert_errors!(error_reporter);
