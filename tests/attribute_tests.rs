@@ -102,7 +102,7 @@ mod attributes {
             // Assert
             assert_errors!(error_reporter, [
                 "invalid format attribute argument `Foo`",
-                "The options for the format argument are \"Compact\" and \"Sliced\"",
+                "The valid arguments for the format attribute are `Compact` and `Sliced`",
             ]);
         }
 
@@ -216,6 +216,28 @@ mod attributes {
 
             assert!(operation.compress_arguments());
             assert!(operation.compress_return());
+        }
+
+        #[test]
+        fn compress_with_invalid_arguments_fails() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                [compress(Foo)]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "invalid argument `Foo` for the compress attribute",
+                "The valid argument(s) for the compress attribute are `Args` and `Return`",
+            ]);
         }
 
         #[test]
