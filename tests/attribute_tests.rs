@@ -60,10 +60,8 @@ mod attributes {
         }
 
         #[test_case(Some("()"))]
-        #[test_case(Some("(Foo)"))]
         #[test_case(None)]
-        #[ignore] // TODO: Should be emitting errors.
-        fn format_with_invalid_argument_fails(arg: Option<&str>) {
+        fn format_with_no_argument_fails(arg: Option<&str>) {
             // Arrange
             let slice = format!(
                 "
@@ -82,7 +80,29 @@ mod attributes {
 
             // Assert
             assert_errors!(error_reporter, [
-                "" // Should be error here
+                "format attribute arguments cannot be empty" // Should be error here
+            ]);
+        }
+
+        #[test]
+        fn format_with_invalid_argument_fails() {
+            // Arrange
+            let slice = "
+                module Test;
+
+                interface I {
+                    [format(Foo)]
+                    op(s: string) -> string;
+                }
+                ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "invalid format attribute argument `Foo`",
+                "The valid arguments for the format attribute are `Compact` and `Sliced`",
             ]);
         }
 
@@ -106,6 +126,47 @@ mod attributes {
             let operation = operation_ptr.borrow();
 
             assert!(operation.get_deprecated_attribute(false).is_some());
+        }
+
+        #[test]
+        fn cannot_deprecate_parameters() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                op([deprecated] s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the deprecated attribute cannot be applied to parameters"
+            ]);
+        }
+
+        #[test]
+        fn cannot_deprecate_data_members() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            struct S {
+                [deprecated]
+                s: string,
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the deprecated attribute cannot be applied to data members"
+            ]);
         }
 
         #[test]
@@ -155,6 +216,49 @@ mod attributes {
 
             assert!(operation.compress_arguments());
             assert!(operation.compress_return());
+        }
+
+        #[test]
+        fn compress_with_invalid_arguments_fails() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                [compress(Foo)]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "invalid argument `Foo` for the compress attribute",
+                "The valid argument(s) for the compress attribute are `Args` and `Return`",
+            ]);
+        }
+
+        #[test]
+        fn cannot_compress_structs() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            [compress()]
+            struct S {
+                s: string,
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the compress attribute can only be applied to interfaces and operations"
+            ]);
         }
 
         #[test]
@@ -297,14 +401,15 @@ mod attributes {
         }
 
         #[test]
-        #[ignore] // TODO: Should be emitting errors.
+        #[ignore] // TODO: Currently panics with "expected operation" error. Should be fixed
+                  // in parser.
         fn foo_attribute_with_spaces_fails() {
             // Arrange
             let slice = "
             module Test;
 
             interface I {
-                [foo::bar(abc def ghi)]
+                [foo::bar(abcdefgh)]
                 op(s: string) -> string;
             }
             ";
