@@ -19,7 +19,7 @@ fn supports_single_inheritance() {
     let e2 = e2_ptr.borrow();
     assert_eq!(
         e2.base_exception().unwrap().module_scoped_identifier(),
-        "Test::E1"
+        "Test::E1",
     );
 }
 
@@ -36,7 +36,7 @@ fn does_not_support_multiple_inheritance() {
     let error_reporter = parse_for_errors(slice);
 
     assert_errors!(error_reporter, [
-        "exceptions can only inherit from a single base exception"
+        "exceptions can only inherit from a single base exception",
     ]);
 }
 
@@ -51,7 +51,7 @@ fn must_inherit_from_exception() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, &[
+    assert_errors!(error_reporter, [
         "The Entity 'C' is not a valid type for this definition.",
     ]);
 }

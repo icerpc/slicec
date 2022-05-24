@@ -23,14 +23,13 @@ mod sequences {
         let seq_def = seq_ptr.borrow();
         let seq_type = seq_def.underlying.concrete_typeref();
 
-        match seq_type {
-            TypeRefs::Sequence(seq) => {
-                matches!(
-                    &seq.element_type.concrete_type(),
-                    Types::Primitive(Primitive::Int8)
-                );
-            }
-            _ => panic!("Expected sequence type"),
+        if let TypeRefs::Sequence(seq) = seq_type {
+            matches!(
+                &seq.element_type.concrete_type(),
+                Types::Primitive(Primitive::Int8),
+            );
+        } else {
+            panic!("Expected sequence type");
         }
     }
 }

@@ -32,15 +32,15 @@ fn can_contain_data_members() {
 
     assert!(matches!(
         data_members[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::Int32)
+        Types::Primitive(Primitive::Int32),
     ));
     assert!(matches!(
         data_members[1].data_type.concrete_type(),
-        Types::Primitive(Primitive::String)
+        Types::Primitive(Primitive::String),
     ));
     assert!(matches!(
         data_members[2].data_type.concrete_type(),
-        Types::Primitive(Primitive::Bool)
+        Types::Primitive(Primitive::Bool),
     ));
 }
 

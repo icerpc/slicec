@@ -81,15 +81,15 @@ fn can_have_parameters() {
 
     assert!(matches!(
         parameters[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::Int32)
+        Types::Primitive(Primitive::Int32),
     ));
     assert!(matches!(
         parameters[1].data_type.concrete_type(),
-        Types::Primitive(Primitive::String)
+        Types::Primitive(Primitive::String),
     ));
     assert!(matches!(
         parameters[2].data_type.concrete_type(),
-        Types::Primitive(Primitive::VarUInt62)
+        Types::Primitive(Primitive::VarUInt62),
     ));
 }
 
@@ -113,7 +113,7 @@ fn can_have_return_value() {
 
     assert!(matches!(
         returns[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::String)
+        Types::Primitive(Primitive::String),
     ));
 }
 
@@ -138,11 +138,11 @@ fn can_have_return_tuple() {
 
     assert!(matches!(
         returns[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::String)
+        Types::Primitive(Primitive::String),
     ));
     assert!(matches!(
         returns[1].data_type.concrete_type(),
-        Types::Primitive(Primitive::Bool)
+        Types::Primitive(Primitive::Bool),
     ));
 }
 
@@ -158,8 +158,8 @@ fn return_tuple_must_contain_two_or_more_elements() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, &[
-        "Return tuple must have at least 2 elements"
+    assert_errors!(error_reporter, [
+        "return tuples must have at least 2 elements",
     ]);
 }
 
@@ -177,7 +177,7 @@ mod streams {
         ";
 
         let error_reporter = parse_for_errors(slice);
-        assert_errors!(error_reporter, &[
+        assert_errors!(error_reporter, [
             "only the last parameter in an operation can use the stream modifier",
         ]);
     }
@@ -193,7 +193,7 @@ mod streams {
         ";
 
         let error_reporter = parse_for_errors(slice);
-        assert_errors!(error_reporter, &[
+        assert_errors!(error_reporter, [
             "only the last parameter in an operation can use the stream modifier",
         ]);
     }

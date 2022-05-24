@@ -19,7 +19,7 @@ mod comments {
               // end of doc comment.
     fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             module tests;
 
@@ -30,7 +30,7 @@ mod comments {
         );
 
         // Act
-        let ast = parse_for_ast(slice);
+        let ast = parse_for_ast(&slice);
 
         // Assert
         let interface_ptr = ast
@@ -196,18 +196,18 @@ mod comments {
         expected_end: (usize, usize),
     ) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             module tests;
 
             {}
             interface MyInterface {{}}
             ",
-            comment
+            comment,
         );
 
         // Act
-        let ast = parse_for_ast(slice);
+        let ast = parse_for_ast(&slice);
 
         // Assert
         let interface_ptr = ast
@@ -225,18 +225,18 @@ mod comments {
     #[test_case("// This is a comment."; "comment")]
     fn non_doc_comments_are_ignored(comment: &str) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             module tests;
 
             {}
             interface MyInterface {{}}
             ",
-            comment
+            comment,
         );
 
         // Act
-        let ast = parse_for_ast(slice);
+        let ast = parse_for_ast(&slice);
 
         // Assert
         let interface_ptr = ast

@@ -13,9 +13,9 @@ mod slice1 {
         let slice = "
             encoding = 1;
             module Test;
-            enum E : int32 {}
+            unchecked enum E : int32 {}
             ";
-        let expected_errors = &[
+        let expected_errors = [
             "enums with underlying types are not supported by the Slice 1 encoding",
             "file encoding was set to the Slice 1 encoding here:",
         ];
@@ -48,7 +48,7 @@ mod slice2 {
         let slice = &format!(
             "
             module Test;
-            enum E : {} {{}}
+            unchecked enum E : {} {{}}
             ",
             valid_type,
         );

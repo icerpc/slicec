@@ -54,7 +54,7 @@ impl<'a> EncodingPatcher<'a> {
         file_encoding: Encoding,
     ) {
         if supported_encodings.is_empty() {
-            let message = format!("type '{}' isn't supportable by any Slice encoding", type_id,);
+            let message = format!("type '{}' isn't supportable by any Slice encoding", type_id);
             self.error_reporter
                 .report_error(message, Some(type_def.location()));
         } else if !supported_encodings.supports(&file_encoding) {

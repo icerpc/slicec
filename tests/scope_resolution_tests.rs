@@ -18,7 +18,7 @@ mod scope_resolution {
 
         assert_errors!(error_reporter, [
             "file level modules cannot contain sub-modules",
-            "file level module 'T' declared here"
+            "file level module 'T' declared here",
         ]);
     }
 
@@ -61,11 +61,11 @@ mod scope_resolution {
 
         assert!(matches!(
             s1_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
         assert!(matches!(
             s2_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
         assert!(matches!(s3_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(s4_type.concrete_type(), Types::Struct(_)));
@@ -107,19 +107,19 @@ mod scope_resolution {
 
         assert!(matches!(
             s1_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
             s2_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
             s3_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
             s4_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
     }
 
@@ -172,7 +172,7 @@ mod scope_resolution {
         assert!(matches!(s2_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(
             s3_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
     }
 
@@ -226,20 +226,20 @@ mod scope_resolution {
 
         assert!(matches!(
             nested_s1_type.concrete_type(),
-            Types::Primitive(Primitive::Int32)
+            Types::Primitive(Primitive::Int32),
         ));
         assert!(matches!(
             nested_s2_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
 
         assert!(matches!(
             s1_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
             s2_type.concrete_type(),
-            Types::Primitive(Primitive::String)
+            Types::Primitive(Primitive::String),
         ));
     }
 

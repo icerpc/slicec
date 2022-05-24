@@ -45,7 +45,7 @@ struct ParserData<'a> {
     ast: &'a mut Ast,
     current_file: String,
     current_encoding: Encoding,
-    current_enum_value: i64,
+    current_enum_value: Option<i64>,
     current_scope: Scope,
     error_reporter: &'a mut ErrorReporter,
 }
@@ -82,7 +82,7 @@ impl<'a> SliceParser<'a> {
             ast,
             current_file: file.to_owned(),
             current_encoding: Encoding::default(),
-            current_enum_value: 0,
+            current_enum_value: None,
             current_scope: Scope::default(),
             error_reporter: self.error_reporter,
         });
@@ -122,7 +122,7 @@ impl<'a> SliceParser<'a> {
             ast,
             current_file: identifier.to_owned(),
             current_encoding: Encoding::default(),
-            current_enum_value: 0,
+            current_enum_value: None,
             current_scope: Scope::default(),
             error_reporter: self.error_reporter,
         });
@@ -398,8 +398,8 @@ impl<'a> SliceParser<'a> {
     fn enum_start(
         input: PestNode,
     ) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
-        // Reset the current enumerator value back to 0.
-        input.user_data().borrow_mut().current_enum_value = 0;
+        // Reset the current enumerator value back to None.
+        input.user_data().borrow_mut().current_enum_value = None;
 
         let location = location_from_span(&input);
         Ok(match_nodes!(input.children();
@@ -509,16 +509,14 @@ impl<'a> SliceParser<'a> {
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
             [parameter_list(return_elements)] => {
-                // Validating that return tuples must contain at least two elements.
-                match return_elements.len() {
-                    0 | 1 => {
-                        let location = &location_from_span(&input);
-                        input.user_data().borrow_mut().error_reporter.report_error(
-                            "Return tuple must have at least 2 elements".to_owned(),
-                            Some(location),
-                        );
-                    },
-                    _ => ()
+                // Validate that return tuples must contain at least two elements.
+                // TODO: should we move this into the validators, instead of a parse-time check?
+                if return_elements.len() < 2 {
+                    let location = location_from_span(&input);
+                    input.user_data().borrow_mut().error_reporter.report_error(
+                        "return tuples must have at least 2 elements".to_owned(),
+                        Some(&location),
+                    );
                 }
                 return_elements.into_iter().map(
                     |mut parameter| { parameter.is_returned = true; OwnedPtr::new(parameter) }
@@ -687,25 +685,36 @@ impl<'a> SliceParser<'a> {
     fn enumerator(input: PestNode) -> PestResult<Enumerator> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        let mut next_enum_value = input.user_data().borrow().current_enum_value;
+
+        let enum_value: i64;
 
         let enumerator = match_nodes!(input.children();
             [prelude(prelude), identifier(ident)] => {
                 let (attributes, comment) = prelude;
-                Enumerator::new(ident, next_enum_value, scope, attributes, comment, location)
+
+                // The user did not specify an enum value, so we increment the previous value.
+                enum_value = match input.user_data().borrow().current_enum_value {
+                    Some(value) if value == i64::MAX => Err(PestError::new_from_span(
+                        PestErrorVariant::CustomError {
+                            message: format!("Enumerator value out of range: {}", input.as_str()),
+                        },
+                        input.as_span(),
+                    )),
+                    Some(value) => Ok(value + 1),
+                    None => Ok(0),
+                }?;
+
+                Enumerator::new(ident, enum_value, scope, attributes, comment, location)
             },
             [prelude(prelude), identifier(ident), integer(value)] => {
-                next_enum_value = value;
+                enum_value = value;
                 let (attributes, comment) = prelude;
                 Enumerator::new(ident, value, scope, attributes, comment, location)
             },
         );
 
         let parser_data = &mut input.user_data().borrow_mut();
-
-        // TODO: Add validation incase of overflow
-        if next_enum_value == i64::MAX {}
-        parser_data.current_enum_value = next_enum_value + 1;
+        parser_data.current_enum_value = Some(enum_value);
         Ok(enumerator)
     }
 
@@ -820,7 +829,6 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    // TODO: this is currently unused
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
         Ok(Identifier::new(
             input.as_str().to_owned(),

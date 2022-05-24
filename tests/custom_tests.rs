@@ -27,7 +27,7 @@ mod custom {
                 let error_reporter = parse_for_errors(slice);
 
                 // Assert
-                assert_errors!(error_reporter, &[
+                assert_errors!(error_reporter, [
                     "custom types are not supported by the Slice 1 encoding",
                     "file encoding was set to the Slice 1 encoding here:",
                 ]);

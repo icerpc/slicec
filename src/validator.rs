@@ -348,6 +348,16 @@ impl EnumValidator<'_> {
             }
         }
     }
+
+    /// Validate that a checked enum must not be empty.
+    fn nonempty_if_checked(&mut self, enum_def: &Enum) {
+        if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
+            self.error_reporter.report_error(
+                "enums must contain at least one enumerator".to_owned(),
+                Some(&enum_def.location),
+            );
+        }
+    }
 }
 
 impl<'a> Visitor for EnumValidator<'a> {
@@ -356,6 +366,7 @@ impl<'a> Visitor for EnumValidator<'a> {
         self.backing_type_bounds(enum_def);
         self.enumerators_are_unique(enum_def.enumerators());
         self.underlying_type_cannot_be_optional(enum_def);
+        self.nonempty_if_checked(enum_def);
     }
 }
 
@@ -419,10 +430,7 @@ impl TagValidator<'_> {
     }
 
     /// Validates that the tags are unique.
-    fn tags_are_unique<M>(&mut self, members: &[&M])
-    where
-        M: Member,
-    {
+    fn tags_are_unique(&mut self, members: &[&impl Member]) {
         // The tagged members must be sorted by value first as we are using windowing to check the
         // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
         // the windowing will reveal any duplicate tags.
@@ -449,10 +457,7 @@ impl TagValidator<'_> {
     }
 
     /// Validate that the data type of the tagged member is optional.
-    fn have_optional_types<M>(&mut self, members: &[&M])
-    where
-        M: Member + ?Sized,
-    {
+    fn have_optional_types(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
             .filter(|member| member.tag().is_some())
@@ -475,10 +480,7 @@ impl TagValidator<'_> {
     }
 
     /// Validate that classes cannot be tagged.
-    fn cannot_tag_classes<M>(&mut self, members: &[&M])
-    where
-        M: Member + ?Sized,
-    {
+    fn cannot_tag_classes(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
             .filter(|member| member.tag().is_some())
@@ -500,10 +502,7 @@ impl TagValidator<'_> {
     }
 
     /// Validate that tagged container types cannot contain class members.
-    fn tagged_containers_cannot_contain_classes<M>(&mut self, members: &[&M])
-    where
-        M: Member + ?Sized,
-    {
+    fn tagged_containers_cannot_contain_classes(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
             .filter(|member| member.tag().is_some())

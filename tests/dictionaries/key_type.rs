@@ -16,7 +16,7 @@ fn optionals_are_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, &[
+    assert_errors!(error_reporter, [
         "invalid dictionary key type: optional types cannot be used as a dictionary key type",
     ]);
 }
@@ -69,7 +69,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, &[&*format!(
+    assert_errors!(error_reporter, [format!(
         "invalid dictionary key type: {} cannot be used as a dictionary key type",
         key_type,
     )]);
@@ -91,13 +91,13 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, &[&*format!(
+    assert_errors!(error_reporter, [format!(
         "invalid dictionary key type: {} cannot be used as a dictionary key type",
         key_kind,
     )]);
 }
 
-#[test_case("MyEnum", "enum MyEnum {}" ; "enums")]
+#[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
 #[test_case("MyCustom", "custom MyCustom;" ; "custom_types")]
 fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     // Arrange
@@ -139,12 +139,12 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let error_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, &[
-        &*format!(
+    assert_errors!(error_reporter, [
+        format!(
             "invalid dictionary key type: {} cannot be used as a dictionary key type",
             pluralize_kind(key_kind),
         ),
-        &*format!("{} '{}' is defined here:", key_kind, key_type),
+        format!("{} '{}' is defined here:", key_kind, key_type),
     ]);
 }
 
@@ -161,7 +161,7 @@ fn non_compact_structs_are_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, &[
+    assert_errors!(error_reporter, [
         "invalid dictionary key type: structs must be compact to be used as a dictionary key type",
         "struct 'MyStruct' is defined here:",
     ]);
@@ -220,7 +220,7 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, &[
+    assert_errors!(error_reporter, [
         "invalid dictionary key type: sequences cannot be used as a dictionary key type",
         "data member 'seq' cannot be used as a dictionary key type",
 

@@ -91,7 +91,7 @@ mod slice2 {
             {
                 v: AnyClass,
             }";
-        let expected_errors: &[&str] = &[
+        let expected_errors = [
             "'AnyClass' is not supported by the Slice 2 encoding",
             "file is using the Slice 2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
@@ -125,7 +125,7 @@ mod slice2 {
     #[test_case("string")]
     fn supported_types_succeed(value: &str) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             module Test;
             compact struct S
@@ -136,7 +136,7 @@ mod slice2 {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let error_reporter = parse_for_errors(&slice);
 
         // Assert
         assert!(!error_reporter.has_errors(true));
@@ -161,7 +161,7 @@ mod slice2 {
     #[test_case("float64?")]
     fn supported_optional_types_succeed(value: &str) {
         // Arrange
-        let slice = &format!(
+        let slice = format!(
             "
             module Test;
             struct MyStruct {{
@@ -172,7 +172,7 @@ mod slice2 {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let error_reporter = parse_for_errors(&slice);
 
         // Assert
         assert!(!error_reporter.has_errors(true));
