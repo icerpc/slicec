@@ -209,7 +209,7 @@ impl AttributeValidator<'_> {
                             format!("invalid format attribute argument `{}`", arg),
                             Some(&attribute.location),
                         );
-                        self.error_reporter.report_error(
+                        self.error_reporter.report_note(
                             "The valid arguments for the format attribute are \"Compact\" and \"Sliced\""
                                 .to_owned(),
                             Some(&attribute.location),
@@ -219,7 +219,7 @@ impl AttributeValidator<'_> {
         }
     }
 
-    /// Validates that the `deprecated` attribute cannot be applied to operations.
+    /// Validates that the `deprecated` attribute cannot be applied to operation parameters.
     fn validate_deprecated_parameters(&mut self, attributes: &[Attribute]) {
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
@@ -260,19 +260,15 @@ impl AttributeValidator<'_> {
 
 impl<'a> Visitor for AttributeValidator<'a> {
     fn visit_interface_start(&mut self, interface_def: &Interface) {
-        interface_def.attributes().iter().for_each(|attribute| {
-            if attribute.directive.as_str() == "format" {
-                self.validate_format_attribute(attribute);
-            }
-        })
+        if let Some(attribute) = interface_def.get_raw_attribute("format") {
+            self.validate_format_attribute(attribute);
+        }
     }
 
     fn visit_operation_start(&mut self, operation: &Operation) {
-        operation.attributes().iter().for_each(|attribute| {
-            if attribute.directive.as_str() == "format" {
-                self.validate_format_attribute(attribute);
-            }
-        })
+        if let Some(attribute) = operation.get_raw_attribute("format") {
+            self.validate_format_attribute(attribute);
+        }
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
