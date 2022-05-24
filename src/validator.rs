@@ -210,7 +210,7 @@ impl AttributeValidator<'_> {
                             Some(&attribute.location),
                         );
                         self.error_reporter.report_error(
-                            "The options for the format argument are \"Compact\" and \"Sliced\""
+                            "The valid arguments for the format attribute are \"Compact\" and \"Sliced\""
                                 .to_owned(),
                             Some(&attribute.location),
                         );
