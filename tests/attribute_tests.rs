@@ -385,7 +385,7 @@ mod attributes {
             // Arrange
             let slice = "
             module Test;
- d
+
             interface I {
                 [foo::bar(abcdefgh)]
                 op(s: string) -> string;

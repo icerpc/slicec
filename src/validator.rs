@@ -7,6 +7,7 @@ use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub(crate) struct Validator<'a> {
@@ -196,11 +197,13 @@ impl AttributeValidator<'_> {
             ),
             _ => {
                 // Validate format attributes are allowed ones.
-                let options = ["Compact".to_owned(), "Sliced".to_owned()];
                 attribute
                     .arguments
                     .iter()
-                    .filter(|arg| !options.contains(arg))
+                    .filter(|arg| {
+                        let format = ClassFormat::from_str(arg.as_str());
+                        format.is_err()
+                    })
                     .for_each(|arg| {
                         self.error_reporter.report_error(
                             format!("invalid format attribute argument `{}`", arg),
