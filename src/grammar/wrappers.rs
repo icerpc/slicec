@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use super::slice::*;
+use super::elements::*;
 use super::traits::*;
 use crate::ptr_util::OwnedPtr;
 

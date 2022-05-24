@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::comments::DocComment;
-use super::slice::{Attribute, Identifier, TypeRef};
+use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Location;
