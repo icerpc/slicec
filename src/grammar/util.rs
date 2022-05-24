@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq)]
 pub struct Scope {
@@ -96,6 +97,26 @@ pub enum ClassFormat {
     Sliced,
 }
 
+impl fmt::Display for ClassFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Compact => write!(f, "Compact"),
+            Self::Sliced => write!(f, "Sliced"),
+        }
+    }
+}
+
+impl FromStr for ClassFormat {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Compact" => Ok(Self::Compact),
+            "Sliced" => Ok(Self::Sliced),
+            _ => Err(()),
+        }
+    }
+}
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
 #[derive(Clone, Debug, PartialEq, Eq)]

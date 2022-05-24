@@ -62,7 +62,6 @@ mod attributes {
         #[test_case(Some("()"))]
         #[test_case(Some("(Foo)"))]
         #[test_case(None)]
-        #[ignore] // TODO: Should be emitting errors.
         fn format_with_invalid_argument_fails(arg: Option<&str>) {
             // Arrange
             let slice = format!(
@@ -82,7 +81,7 @@ mod attributes {
 
             // Assert
             assert_errors!(error_reporter, [
-                "" // Should be error here
+                "format attribute arguments cannot be empty" // Should be error here
             ]);
         }
 
@@ -297,7 +296,8 @@ mod attributes {
         }
 
         #[test]
-        #[ignore] // TODO: Should be emitting errors.
+        #[ignore] // TODO: Currently panics with "expected operation" error. Should be fixed
+                  // in parser.
         fn foo_attribute_with_spaces_fails() {
             // Arrange
             let slice = "

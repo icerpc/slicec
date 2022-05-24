@@ -6,6 +6,7 @@ use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -23,6 +24,7 @@ impl Validator<'_> {
                 error_reporter: self.error_reporter,
                 encoding: slice_file.encoding(),
             });
+            slice_file.visit_with(&mut AttributeValidator { error_reporter: self.error_reporter })
         }
         self.validate_dictionary_key_types();
     }
@@ -176,6 +178,48 @@ impl<'a> Visitor for Validator<'a> {
     fn visit_operation_start(&mut self, operation_def: &Operation) {
         self.validate_stream_member(operation_def.parameters());
         self.validate_stream_member(operation_def.return_members());
+    }
+}
+
+#[derive(Debug)]
+struct AttributeValidator<'a> {
+    pub error_reporter: &'a mut ErrorReporter,
+}
+
+impl AttributeValidator<'_> {
+    /// Validates that each argument does not contain spaces or tabs unless it is a string literal.
+    fn validate_format_attribute(&mut self, attributes: &[Attribute]) {
+        attributes.iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "format" {
+                match attribute.arguments.len() {
+                    // The format attribute must have arguments
+                    0 => self.error_reporter.report_error(
+                        "format attribute arguments cannot be empty".to_owned(),
+                        Some(&attribute.location),
+                    ),
+                    _ => {
+                        // Validate format attributes are allowed ones.
+                        let options = ["Compact".to_owned(), "Sliced".to_owned()];
+                        attribute
+                            .arguments
+                            .iter()
+                            .filter(|arg| options.contains(arg))
+                            .for_each(|arg| {
+                                self.error_reporter.report_error(
+                                    format!("invalid format attribute argument: {}", arg),
+                                    Some(&attribute.location),
+                                )
+                            });
+                    }
+                }
+            }
+        })
+    }
+}
+
+impl<'a> Visitor for AttributeValidator<'a> {
+    fn visit_operation_start(&mut self, operation: &Operation) {
+        self.validate_format_attribute(&operation.attributes);
     }
 }
 
