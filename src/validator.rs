@@ -187,36 +187,33 @@ struct AttributeValidator<'a> {
 
 impl AttributeValidator<'_> {
     /// Validates that each argument does not contain spaces or tabs unless it is a string literal.
-    fn validate_format_attribute(&mut self, attributes: &[Attribute]) {
-        attributes.iter().for_each(|attribute| {
-            if attribute.directive.as_str() == "format" {
-                match attribute.arguments.len() {
-                    // The format attribute must have arguments
-                    0 => self.error_reporter.report_error(
-                        "format attribute arguments cannot be empty".to_owned(),
-                        Some(&attribute.location),
-                    ),
-                    _ => {
-                        // Validate format attributes are allowed ones.
-                        let options = ["Compact".to_owned(), "Sliced".to_owned()];
-                        attribute
-                            .arguments
-                            .iter()
-                            .filter(|arg| !options.contains(arg))
-                            .for_each(|arg| {
-                                self.error_reporter.report_error(
-                                    format!("invalid format attribute argument `{}`", arg),
-                                    Some(&attribute.location),
-                                );
-                                self.error_reporter.report_error(
-                                    "The options for the format argument are \"Compact\" and \"Sliced\"".to_owned(),
-                                    Some(&attribute.location),
-                                );
-                            });
-                    }
-                }
+    fn validate_format_attribute(&mut self, attribute: &Attribute) {
+        match attribute.arguments.len() {
+            // The format attribute must have arguments
+            0 => self.error_reporter.report_error(
+                "format attribute arguments cannot be empty".to_owned(),
+                Some(&attribute.location),
+            ),
+            _ => {
+                // Validate format attributes are allowed ones.
+                let options = ["Compact".to_owned(), "Sliced".to_owned()];
+                attribute
+                    .arguments
+                    .iter()
+                    .filter(|arg| !options.contains(arg))
+                    .for_each(|arg| {
+                        self.error_reporter.report_error(
+                            format!("invalid format attribute argument `{}`", arg),
+                            Some(&attribute.location),
+                        );
+                        self.error_reporter.report_error(
+                            "The options for the format argument are \"Compact\" and \"Sliced\""
+                                .to_owned(),
+                            Some(&attribute.location),
+                        );
+                    });
             }
-        })
+        }
     }
 
     fn validate_deprecated_parameters(&mut self, attributes: &[Attribute]) {
@@ -243,8 +240,20 @@ impl AttributeValidator<'_> {
 }
 
 impl<'a> Visitor for AttributeValidator<'a> {
+    fn visit_interface_start(&mut self, interface_def: &Interface) {
+        interface_def.attributes().iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "format" {
+                self.validate_format_attribute(attribute);
+            }
+        })
+    }
+
     fn visit_operation_start(&mut self, operation: &Operation) {
-        self.validate_format_attribute(&operation.attributes);
+        operation.attributes.iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "format" {
+                self.validate_format_attribute(attribute);
+            }
+        })
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
