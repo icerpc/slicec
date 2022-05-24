@@ -219,6 +219,27 @@ mod attributes {
         }
 
         #[test]
+        fn cannot_compress_structs() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            [compress()]
+            struct S {
+                s: string,
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the compress attribute can only be applied to interfaces and operations"
+            ]);
+        }
+
+        #[test]
         fn compress_with_no_arguments() {
             // Arrange
             let slice = "

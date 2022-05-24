@@ -216,6 +216,7 @@ impl AttributeValidator<'_> {
         }
     }
 
+    /// Validates that the `deprecated` attribute cannot be applied to operations.
     fn validate_deprecated_parameters(&mut self, attributes: &[Attribute]) {
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
@@ -227,11 +228,26 @@ impl AttributeValidator<'_> {
         })
     }
 
+    /// Validates that the `deprecated` attribute cannot be applied to data members.
     fn validate_deprecated_data_members(&mut self, attributes: &[Attribute]) {
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
                 self.error_reporter.report_error(
                     "the deprecated attribute cannot be applied to data members".to_owned(),
+                    Some(&attribute.location),
+                );
+            }
+        })
+    }
+
+    /// Validates that the `compress` attribute cannot be applied to anything other than interfaces
+    /// and operations.
+    fn validate_is_not_compressible(&mut self, attributes: &[Attribute]) {
+        attributes.iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "compress" {
+                self.error_reporter.report_error(
+                    "the compress attribute can only be applied to interfaces and operations"
+                        .to_owned(),
                     Some(&attribute.location),
                 );
             }
@@ -249,19 +265,33 @@ impl<'a> Visitor for AttributeValidator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation: &Operation) {
-        operation.attributes.iter().for_each(|attribute| {
+        operation.attributes().iter().for_each(|attribute| {
             if attribute.directive.as_str() == "format" {
                 self.validate_format_attribute(attribute);
             }
         })
     }
 
+    fn visit_struct_start(&mut self, struct_def: &Struct) {
+        self.validate_is_not_compressible(struct_def.attributes());
+    }
+
     fn visit_parameter(&mut self, parameter: &Parameter) {
         self.validate_deprecated_parameters(parameter.attributes());
+        self.validate_is_not_compressible(parameter.attributes());
     }
 
     fn visit_data_member(&mut self, data_member: &DataMember) {
         self.validate_deprecated_data_members(data_member.attributes());
+        self.validate_is_not_compressible(data_member.attributes());
+    }
+
+    fn visit_enum_start(&mut self, enum_def: &Enum) {
+        self.validate_is_not_compressible(enum_def.attributes());
+    }
+
+    fn visit_exception_start(&mut self, exception_def: &Exception) {
+        self.validate_is_not_compressible(exception_def.attributes());
     }
 }
 
