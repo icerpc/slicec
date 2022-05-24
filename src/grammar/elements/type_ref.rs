@@ -3,7 +3,6 @@
 use super::super::*;
 use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
-use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
@@ -78,18 +77,6 @@ impl<T: Type + ?Sized> TypeRef<T> {
         } else {
             T::min_wire_size(self)
         }
-    }
-
-    // This intentionally shadows the trait method of the same name on `Type`.
-    pub fn supported_encodings(&self) -> SupportedEncodings {
-        let mut supported_encodings = self.definition().supported_encodings();
-        if self.is_optional {
-            // Optional data types are not supported with the Slice1 encoding.
-            // Note that this doesn't include tagged data members and parameters, which are allowed.
-            // Even though they're marked with a '?' these are not technically optional types.
-            supported_encodings.disable(Encoding::Slice1);
-        }
-        supported_encodings
     }
 }
 
