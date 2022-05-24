@@ -6,7 +6,6 @@ use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -203,15 +202,41 @@ impl AttributeValidator<'_> {
                         attribute
                             .arguments
                             .iter()
-                            .filter(|arg| options.contains(arg))
+                            .filter(|arg| !options.contains(arg))
                             .for_each(|arg| {
                                 self.error_reporter.report_error(
-                                    format!("invalid format attribute argument: {}", arg),
+                                    format!("invalid format attribute argument `{}`", arg),
                                     Some(&attribute.location),
-                                )
+                                );
+                                self.error_reporter.report_error(
+                                    "The options for the format argument are \"Compact\" and \"Sliced\"".to_owned(),
+                                    Some(&attribute.location),
+                                );
                             });
                     }
                 }
+            }
+        })
+    }
+
+    fn validate_deprecated_parameters(&mut self, attributes: &[Attribute]) {
+        attributes.iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "deprecated" {
+                self.error_reporter.report_error(
+                    "the deprecated attribute cannot be applied to parameters".to_owned(),
+                    Some(&attribute.location),
+                );
+            }
+        })
+    }
+
+    fn validate_deprecated_data_members(&mut self, attributes: &[Attribute]) {
+        attributes.iter().for_each(|attribute| {
+            if attribute.directive.as_str() == "deprecated" {
+                self.error_reporter.report_error(
+                    "the deprecated attribute cannot be applied to data members".to_owned(),
+                    Some(&attribute.location),
+                );
             }
         })
     }
@@ -220,6 +245,14 @@ impl AttributeValidator<'_> {
 impl<'a> Visitor for AttributeValidator<'a> {
     fn visit_operation_start(&mut self, operation: &Operation) {
         self.validate_format_attribute(&operation.attributes);
+    }
+
+    fn visit_parameter(&mut self, parameter: &Parameter) {
+        self.validate_deprecated_parameters(parameter.attributes());
+    }
+
+    fn visit_data_member(&mut self, data_member: &DataMember) {
+        self.validate_deprecated_data_members(data_member.attributes());
     }
 }
 

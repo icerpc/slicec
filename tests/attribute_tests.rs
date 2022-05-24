@@ -60,9 +60,8 @@ mod attributes {
         }
 
         #[test_case(Some("()"))]
-        #[test_case(Some("(Foo)"))]
         #[test_case(None)]
-        fn format_with_invalid_argument_fails(arg: Option<&str>) {
+        fn format_with_no_argument_fails(arg: Option<&str>) {
             // Arrange
             let slice = format!(
                 "
@@ -86,6 +85,28 @@ mod attributes {
         }
 
         #[test]
+        fn format_with_invalid_argument_fails() {
+            // Arrange
+            let slice = "
+                module Test;
+
+                interface I {
+                    [format(Foo)]
+                    op(s: string) -> string;
+                }
+                ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "invalid format attribute argument `Foo`",
+                "The options for the format argument are \"Compact\" and \"Sliced\"",
+            ]);
+        }
+
+        #[test]
         fn deprecated() {
             // Arrange
             let slice = "
@@ -105,6 +126,47 @@ mod attributes {
             let operation = operation_ptr.borrow();
 
             assert!(operation.get_deprecated_attribute(false).is_some());
+        }
+
+        #[test]
+        fn cannot_deprecate_parameters() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I {
+                op([deprecated] s: string) -> string;
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the deprecated attribute cannot be applied to parameters"
+            ]);
+        }
+
+        #[test]
+        fn cannot_deprecate_data_members() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            struct S {
+                [deprecated]
+                s: string,
+            }
+            ";
+
+            // Act
+            let error_reporter = parse_for_errors(slice);
+
+            // Assert
+            assert_errors!(error_reporter, [
+                "the deprecated attribute cannot be applied to data members"
+            ]);
         }
 
         #[test]
@@ -302,9 +364,9 @@ mod attributes {
             // Arrange
             let slice = "
             module Test;
-
+ d
             interface I {
-                [foo::bar(abc def ghi)]
+                [foo::bar(abcdefgh)]
                 op(s: string) -> string;
             }
             ";
