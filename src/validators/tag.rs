@@ -44,8 +44,7 @@ impl TagValidator<'_> {
                 if member.tag.is_some() {
                     self.error_reporter.report_error(
                         "tagged data members are not supported in compact structs\n\
-                            consider removing the tag, or making the struct non-compact"
-                            .to_owned(),
+                            consider removing the tag, or making the struct non-compact",
                         Some(member.location()),
                     );
                     has_tags = true;
