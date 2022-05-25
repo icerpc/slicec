@@ -10,7 +10,6 @@ pub mod ptr_util;
 pub mod ptr_visitor;
 pub mod slice_file;
 pub mod supported_encodings;
-pub mod validator;
 pub mod validators;
 pub mod visitor;
 
@@ -19,7 +18,7 @@ use crate::command_line::SliceOptions;
 use crate::error::{Error, ErrorLevel, ErrorReporter};
 use crate::parser::parse_string;
 use crate::slice_file::SliceFile;
-use crate::validator::Validator;
+use crate::validators::Validator;
 use std::collections::HashMap;
 
 pub fn parse_from_options(
