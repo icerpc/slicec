@@ -35,7 +35,7 @@ impl AttributeValidator<'_> {
         match attribute.arguments.len() {
             // The format attribute must have arguments
             0 => self.error_reporter.report_error(
-                "format attribute arguments cannot be empty".to_owned(),
+                "format attribute arguments cannot be empty",
                 Some(&attribute.location),
             ),
             _ => {
@@ -69,7 +69,7 @@ impl AttributeValidator<'_> {
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
                 self.error_reporter.report_error(
-                    "the deprecated attribute cannot be applied to parameters".to_owned(),
+                    "the deprecated attribute cannot be applied to parameters",
                     Some(&attribute.location),
                 );
             }
@@ -81,7 +81,7 @@ impl AttributeValidator<'_> {
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
                 self.error_reporter.report_error(
-                    "the deprecated attribute cannot be applied to data members".to_owned(),
+                    "the deprecated attribute cannot be applied to data members",
                     Some(&attribute.location),
                 );
             }
@@ -99,8 +99,7 @@ impl AttributeValidator<'_> {
             match element.get_raw_attribute("compress", false) {
                 Some(attribute) => {
                     self.error_reporter.report_error(
-                        "the compress attribute can only be applied to interfaces and operations"
-                            .to_owned(),
+                        "the compress attribute can only be applied to interfaces and operations",
                         Some(&attribute.location),
                     );
                 }

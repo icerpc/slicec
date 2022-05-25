@@ -44,20 +44,20 @@ impl ErrorReporter {
             .push(Error { message, location: location.cloned(), severity })
     }
 
-    pub fn report_note(&mut self, message: String, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Note);
+    pub fn report_note(&mut self, message: impl Into<String>, location: Option<&Location>) {
+        self.report(message.into(), location, ErrorLevel::Note);
     }
 
-    pub fn report_warning(&mut self, message: String, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Warning);
+    pub fn report_warning(&mut self, message: impl Into<String>, location: Option<&Location>) {
+        self.report(message.into(), location, ErrorLevel::Warning);
     }
 
-    pub fn report_error(&mut self, message: String, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Error);
+    pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
+        self.report(message.into(), location, ErrorLevel::Error);
     }
 
-    pub fn report_critical(&mut self, message: String, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Critical);
+    pub fn report_critical(&mut self, message: impl Into<String>, location: Option<&Location>) {
+        self.report(message.into(), location, ErrorLevel::Critical);
     }
 
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
