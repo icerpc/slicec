@@ -57,7 +57,7 @@ impl EnumValidator<'_> {
                     .enumerators()
                     .iter()
                     .map(|enumerator| enumerator.value)
-                    .filter(|value| *value <= min || *value >= max)
+                    .filter(|value| *value < min || *value > max)
                     .for_each(|value| {
                         self.error_reporter.report_error(
                             format!(

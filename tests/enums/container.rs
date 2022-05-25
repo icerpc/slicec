@@ -74,7 +74,7 @@ fn enumerator_values_can_be_out_of_order() {
 }
 
 #[test]
-fn validate_backing_type_bounds() {
+fn validate_backing_type_out_of_bounds() {
     // Arranges
     let out_of_bounds_value = i16::MAX as i32 + 1;
     let slice = format!(
@@ -94,6 +94,29 @@ fn validate_backing_type_bounds() {
     assert_errors!(error_reporter, [
         "enumerator value '32768' is out of bounds. The value must be between `-32768..32767`, inclusive, for the underlying type `int16`",
     ]);
+}
+
+#[test]
+fn validate_backing_type_bounds() {
+    // Arranges
+    let bounds = (i16::MIN, i16::MAX);
+    let slice = format!(
+        "
+            module Test;
+            enum E: int16 {{
+                A = {min},
+                B = {max},
+            }}
+            ",
+        min = bounds.0,
+        max = bounds.1,
+    );
+
+    // Act
+    let error_reporter = parse_for_errors(&slice);
+
+    // Assert
+    assert_errors!(error_reporter);
 }
 
 #[test_case("string")]
@@ -291,9 +314,8 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected_errors = [
-            "invalid enumerator value on enumerator `A`: must be smaller than than 2147483647",
-        ];
+        let expected_errors =
+            ["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
 
         // Act
         let error_reporter = parse_for_errors(&slice);
