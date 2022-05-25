@@ -52,8 +52,7 @@ impl Validator<'_> {
             for member in nonstreamed_members {
                 if member.is_streamed {
                     self.error_reporter.report_error(
-                        "only the last parameter in an operation can use the stream modifier"
-                            .to_owned(),
+                        "only the last parameter in an operation can use the stream modifier",
                         Some(&member.location),
                     );
                 }
@@ -68,7 +67,7 @@ impl<'a> Visitor for Validator<'a> {
             // Compact structs must be non-empty.
             if struct_def.members().is_empty() {
                 self.error_reporter.report_error(
-                    "compact structs must be non-empty".to_owned(),
+                    "compact structs must be non-empty",
                     Some(&struct_def.location),
                 )
             }

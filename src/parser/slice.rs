@@ -281,7 +281,7 @@ impl<'a> SliceParser<'a> {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report_error(
-                        "classes can only inherit from a single base class".to_owned(),
+                        "classes can only inherit from a single base class",
                         Some(&location),
                     );
                 }
@@ -323,7 +323,7 @@ impl<'a> SliceParser<'a> {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report_error(
-                        "exceptions can only inherit from a single base exception".to_owned(),
+                        "exceptions can only inherit from a single base exception",
                         Some(&location),
                     )
                 }
@@ -514,7 +514,7 @@ impl<'a> SliceParser<'a> {
                 if return_elements.len() < 2 {
                     let location = location_from_span(&input);
                     input.user_data().borrow_mut().error_reporter.report_error(
-                        "return tuples must have at least 2 elements".to_owned(),
+                        "return tuples must have at least 2 elements",
                         Some(&location),
                     );
                 }
@@ -1179,7 +1179,7 @@ impl<'a> SliceParser<'a> {
                             let error_reporter = &mut input.user_data().borrow_mut().error_reporter;
 
                             error_reporter.report_error(
-                                "file level modules cannot contain sub-modules".to_owned(),
+                                "file level modules cannot contain sub-modules",
                                 Some(&module_def.borrow().location),
                             );
 

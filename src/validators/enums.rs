@@ -134,7 +134,7 @@ impl EnumValidator<'_> {
     fn nonempty_if_checked(&mut self, enum_def: &Enum) {
         if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
             self.error_reporter.report_error(
-                "enums must contain at least one enumerator".to_owned(),
+                "enums must contain at least one enumerator",
                 Some(&enum_def.location),
             );
         }

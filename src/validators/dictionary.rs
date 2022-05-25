@@ -24,7 +24,7 @@ impl DictionaryValidator<'_> {
         // Optional types cannot be used as dictionary keys.
         if type_ref.is_optional {
             self.error_reporter.report_error(
-                "invalid dictionary key type: optional types cannot be used as a dictionary key type".to_owned(),
+                "invalid dictionary key type: optional types cannot be used as a dictionary key type",
                 Some(&type_ref.location),
             );
             return false;
@@ -38,7 +38,7 @@ impl DictionaryValidator<'_> {
                 // Only compact structs can be used for dictionary keys.
                 if !struct_def.is_compact {
                     self.error_reporter.report_error(
-                        "invalid dictionary key type: structs must be compact to be used as a dictionary key type".to_owned(),
+                        "invalid dictionary key type: structs must be compact to be used as a dictionary key type",
                         Some(&type_ref.location),
                     );
                     self.error_reporter.report_note(
