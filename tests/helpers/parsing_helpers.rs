@@ -5,8 +5,8 @@ use slice::error::ErrorReporter;
 use slice::parse_from_string;
 
 /// This function is used to parse a Slice file and return the AST.
-pub fn parse_for_ast(slice: &str) -> Ast {
-    match parse_from_string(slice) {
+pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
+    match parse_from_string(&slice.into()) {
         Ok((ast, error_reporter)) => {
             assert!(
                 !error_reporter.has_errors(true),
@@ -20,8 +20,8 @@ pub fn parse_for_ast(slice: &str) -> Ast {
 }
 
 /// This function is used to parse a Slice file and return the ErrorReporter.
-pub fn parse_for_errors(slice: &str) -> ErrorReporter {
-    match parse_from_string(slice) {
+pub fn parse_for_errors(slice: impl Into<String>) -> ErrorReporter {
+    match parse_from_string(&slice.into()) {
         Ok((_, error_reporter)) => error_reporter,
         Err(e) => panic!("{:?}", e),
     }

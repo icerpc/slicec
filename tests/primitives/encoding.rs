@@ -136,7 +136,7 @@ mod slice2 {
         );
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert!(!error_reporter.has_errors(true));
@@ -172,7 +172,7 @@ mod slice2 {
         );
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert!(!error_reporter.has_errors(true));

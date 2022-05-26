@@ -46,7 +46,7 @@ fn allowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter);
@@ -66,7 +66,7 @@ fn disallowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [format!(
@@ -88,7 +88,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [format!(
@@ -111,7 +111,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter);
@@ -136,7 +136,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [

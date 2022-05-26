@@ -30,7 +30,7 @@ mod comments {
         );
 
         // Act
-        let ast = parse_for_ast(&slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
         let interface_ptr = ast
@@ -207,7 +207,7 @@ mod comments {
         );
 
         // Act
-        let ast = parse_for_ast(&slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
         let interface_ptr = ast
@@ -236,7 +236,7 @@ mod comments {
         );
 
         // Act
-        let ast = parse_for_ast(&slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
         let interface_ptr = ast

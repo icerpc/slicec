@@ -22,7 +22,7 @@ mod encodings {
         );
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter);

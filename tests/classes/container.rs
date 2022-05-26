@@ -77,7 +77,7 @@ fn cycles_are_allowed(cycle_string: &str) {
         cycle_string,
     );
 
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     assert_errors!(error_reporter);
 }

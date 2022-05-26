@@ -34,7 +34,7 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
         slice_component = slice_component,
     );
 
-    let ast = parse_for_ast(&slice);
+    let ast = parse_for_ast(slice);
 
     let type_ptr = ast.find_typed_entity::<TypeAlias>("Test::P").unwrap();
     let primitive_ptr = type_ptr

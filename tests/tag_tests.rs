@@ -177,7 +177,7 @@ mod tags {
         )];
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);
@@ -198,7 +198,7 @@ mod tags {
         let expected_errors = [format!("tag is out of range: {}. Tag values must be positive", -1)];
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);

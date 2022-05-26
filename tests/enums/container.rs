@@ -88,7 +88,7 @@ fn validate_backing_type_out_of_bounds() {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [
@@ -113,7 +113,7 @@ fn validate_backing_type_bounds() {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter);
@@ -135,7 +135,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [format!(
@@ -160,7 +160,7 @@ fn enumerator_invalid_identifiers(identifier: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let error_reporter = parse_for_errors(slice);
 
     // Assert
     assert_errors!(error_reporter, [""]);
@@ -234,7 +234,7 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
         enum_definition = enum_definition,
     );
 
-    let ast = parse_for_ast(&slice);
+    let ast = parse_for_ast(slice);
 
     let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
     let enum_def = enum_ptr.borrow();
@@ -318,7 +318,7 @@ mod slice1 {
             ["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
 
         // Act
-        let error_reporter = parse_for_errors(&slice);
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);

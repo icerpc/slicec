@@ -28,7 +28,7 @@ mod attributes {
             );
 
             // Act
-            let ast = parse_for_ast(&slice);
+            let ast = parse_for_ast(slice);
 
             // Assert
             let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
@@ -76,7 +76,7 @@ mod attributes {
             );
 
             // Act
-            let error_reporter = parse_for_errors(&slice);
+            let error_reporter = parse_for_errors(slice);
 
             // Assert
             assert_errors!(error_reporter, [
@@ -367,7 +367,7 @@ mod attributes {
             );
 
             // Act
-            let ast = parse_for_ast(&slice);
+            let ast = parse_for_ast(slice);
 
             // Assert
             let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
