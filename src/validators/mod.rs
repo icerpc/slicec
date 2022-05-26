@@ -11,6 +11,7 @@ use std::collections::HashMap;
 mod attribute;
 mod dictionary;
 mod enums;
+mod identifiers;
 mod tag;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is
