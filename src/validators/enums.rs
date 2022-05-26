@@ -7,30 +7,29 @@ use crate::visitor::Visitor;
 #[derive(Debug)]
 pub struct EnumValidator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
-    pub encoding: Encoding,
 }
 
 impl EnumValidator<'_> {
     /// Validate that the enumerators are within the bounds of the specified underlying type.
     fn backing_type_bounds(&mut self, enum_def: &Enum) {
-        match self.encoding {
-            Encoding::Slice1 => {
-                // Slice1 does not allow negative numbers.
-                enum_def
-                    .enumerators()
-                    .iter()
-                    .filter(|enumerator| enumerator.value < 0)
-                    .for_each(|enumerator| {
-                        self.error_reporter.report_error(
-                            format!(
-                            "invalid enumerator value on enumerator `{}`: enumerators must be non-negative",
-                            &enumerator.identifier()
-                        ),
-                            Some(enumerator.location()),
-                        );
-                    });
-                // Enums in Slice1 always have an underlying type of int32.
-                enum_def
+        if enum_def.supported_encodings().supports(&Encoding::Slice1) {
+            // Enum was defined in a Slice1 file.
+            // Slice1 does not allow negative numbers.
+            enum_def
+                .enumerators()
+                .iter()
+                .filter(|enumerator| enumerator.value < 0)
+                .for_each(|enumerator| {
+                    self.error_reporter.report_error(
+                        format!(
+                    "invalid enumerator value on enumerator `{}`: enumerators must be non-negative",
+                    &enumerator.identifier()
+                ),
+                        Some(enumerator.location()),
+                    );
+                });
+            // Enums in Slice1 always have an underlying type of int32.
+            enum_def
                 .enumerators()
                 .iter()
                 .filter(|enumerator| enumerator.value > i32::MAX as i64)
@@ -45,44 +44,43 @@ impl EnumValidator<'_> {
                         Some(enumerator.location()),
                     );
                 });
+        } else {
+            // Enum was defined in a Slice2 file.
+            // Non-integrals are handled by `allowed_underlying_types`
+            fn check_bounds(
+                enum_def: &Enum,
+                underlying_type: &Primitive,
+                error_reporter: &mut ErrorReporter,
+            ) {
+                let (min, max) = underlying_type.numeric_bounds().unwrap();
+                enum_def
+                .enumerators()
+                .iter()
+                .map(|enumerator| enumerator.value)
+                .filter(|value| *value < min || *value > max)
+                .for_each(|value| {
+                    error_reporter.report_error(
+                        format!(
+                            "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
+                            value = value,
+                            underlying=underlying_type.kind(),
+                            min = min,
+                            max = max,
+                        ),
+                        Some(&enum_def.location),
+                    );
+                });
             }
-            Encoding::Slice2 => {
-                // Non-integrals are handled by `allowed_underlying_types`
-                fn check_bounds(
-                    enum_def: &Enum,
-                    underlying_type: &Primitive,
-                    error_reporter: &mut ErrorReporter,
-                ) {
-                    let (min, max) = underlying_type.numeric_bounds().unwrap();
-                    enum_def
-                    .enumerators()
-                    .iter()
-                    .map(|enumerator| enumerator.value)
-                    .filter(|value| *value < min || *value > max)
-                    .for_each(|value| {
-                        error_reporter.report_error(
-                            format!(
-                                "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
-                                value = value,
-                                underlying=underlying_type.kind(),
-                                min = min,
-                                max = max,
-                            ),
-                            Some(&enum_def.location),
-                        );
-                    });
-                }
 
-                match &enum_def.underlying {
-                    Some(underlying_type) => {
-                        if underlying_type.is_integral() {
-                            check_bounds(enum_def, underlying_type, self.error_reporter);
-                        }
+            match &enum_def.underlying {
+                Some(underlying_type) => {
+                    if underlying_type.is_integral() {
+                        check_bounds(enum_def, underlying_type, self.error_reporter);
                     }
-                    None => {
-                        // No underlying type, the default is varint32 for Slice2.
-                        check_bounds(enum_def, &Primitive::VarInt32, self.error_reporter);
-                    }
+                }
+                None => {
+                    // No underlying type, the default is varint32 for Slice2.
+                    check_bounds(enum_def, &Primitive::VarInt32, self.error_reporter);
                 }
             }
         }
@@ -90,7 +88,7 @@ impl EnumValidator<'_> {
 
     /// Validate that the backing type specified for a Slice2 enums is an integral type.
     fn allowed_underlying_types(&mut self, enum_def: &Enum) {
-        if self.encoding == Encoding::Slice1 {
+        if enum_def.supported_encodings().supports(&Encoding::Slice1) {
             return;
         }
         match &enum_def.underlying {

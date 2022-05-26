@@ -32,10 +32,7 @@ impl Validator<'_> {
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
             slice_file.visit_with(&mut AttributeValidator { error_reporter: self.error_reporter });
-            slice_file.visit_with(&mut EnumValidator {
-                error_reporter: self.error_reporter,
-                encoding: slice_file.encoding(),
-            });
+            slice_file.visit_with(&mut EnumValidator { error_reporter: self.error_reporter });
             slice_file.visit_with(&mut TagValidator { error_reporter: self.error_reporter });
             let dictionary_validator =
                 &mut DictionaryValidator { error_reporter: self.error_reporter, ast: self.ast };
