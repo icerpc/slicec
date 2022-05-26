@@ -58,18 +58,6 @@ impl Enum {
             .collect()
     }
 
-    /// Computes the underlying type of the enum. The default underlying type is dependent on the
-    /// encoding. For Slice1 the default is int32, for Slice2 the default is varint32.
-    pub fn underlying_type(&self, encoding: Encoding) -> &Primitive {
-        let default_underlying = match encoding {
-            Encoding::Slice1 => &Primitive::Int32,
-            Encoding::Slice2 => &Primitive::VarInt32,
-        };
-        self.underlying
-            .as_ref()
-            .map_or(default_underlying, |data_type| data_type.definition())
-    }
-
     pub fn get_min_max_values(&self) -> Option<(i64, i64)> {
         let values = self
             .enumerators

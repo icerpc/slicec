@@ -381,7 +381,7 @@ mod slice2 {
         assert_eq!(enumerators[2].value, 3);
 
         assert!(matches!(
-            *enum_def.underlying_type(Encoding::Slice2),
+            enum_def.underlying.as_ref().unwrap().definition(),
             Primitive::Int16,
         ));
     }

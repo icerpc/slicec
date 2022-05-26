@@ -48,22 +48,23 @@ impl EnumValidator<'_> {
             }
             Encoding::Slice2 => {
                 // Non-integrals are handled by `allowed_underlying_types`
-                if enum_def.underlying_type(self.encoding).is_integral() {
-                    let (min, max) = enum_def
-                        .underlying_type(self.encoding)
-                        .numeric_bounds()
-                        .unwrap();
+                fn check_bounds(
+                    enum_def: &Enum,
+                    underlying_type: &Primitive,
+                    error_reporter: &mut ErrorReporter,
+                ) {
+                    let (min, max) = underlying_type.numeric_bounds().unwrap();
                     enum_def
                     .enumerators()
                     .iter()
                     .map(|enumerator| enumerator.value)
                     .filter(|value| *value < min || *value > max)
                     .for_each(|value| {
-                        self.error_reporter.report_error(
+                        error_reporter.report_error(
                             format!(
                                 "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
                                 value = value,
-                                underlying=enum_def.underlying_type(self.encoding).kind(),
+                                underlying=underlying_type.kind(),
                                 min = min,
                                 max = max,
                             ),
@@ -71,22 +72,40 @@ impl EnumValidator<'_> {
                         );
                     });
                 }
+
+                match &enum_def.underlying {
+                    Some(underlying_type) => {
+                        if underlying_type.is_integral() {
+                            check_bounds(enum_def, underlying_type, self.error_reporter);
+                        }
+                    }
+                    None => {
+                        // No underlying type, the default is varint32 for Slice2.
+                        check_bounds(enum_def, &Primitive::VarInt32, self.error_reporter);
+                    }
+                }
             }
         }
     }
 
     /// Validate that the backing type specified for a Slice2 enums is an integral type.
     fn allowed_underlying_types(&mut self, enum_def: &Enum) {
-        if self.encoding == Encoding::Slice2
-            && !enum_def.underlying_type(self.encoding).is_integral()
-        {
-            self.error_reporter.report_error(
-                format!(
-                    "underlying type '{underlying}' is not allowed for enums",
-                    underlying = enum_def.underlying_type(self.encoding).kind(),
-                ),
-                Some(&enum_def.location),
-            );
+        if self.encoding == Encoding::Slice1 {
+            return;
+        }
+        match &enum_def.underlying {
+            Some(underlying_type) => {
+                if !underlying_type.is_integral() {
+                    self.error_reporter.report_error(
+                        format!(
+                            "underlying type '{underlying}' is not allowed for enums",
+                            underlying = underlying_type.definition().kind(),
+                        ),
+                        Some(&enum_def.location),
+                    );
+                }
+            }
+            None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
         }
     }
 
@@ -123,9 +142,9 @@ impl EnumValidator<'_> {
         if let Some(ref typeref) = enum_def.underlying {
             if typeref.is_optional {
                 self.error_reporter.report_error(
-                    format!("underlying type '{}' cannot be optional: enums cannot have optional underlying types", typeref.type_string),
-                    Some(&enum_def.location),
-                );
+                        format!("underlying type '{}' cannot be optional: enums cannot have optional underlying types", typeref.type_string),
+                        Some(&enum_def.location),
+                    );
             }
         }
     }
