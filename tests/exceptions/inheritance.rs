@@ -57,6 +57,29 @@ fn must_inherit_from_exception() {
 }
 
 #[test]
+fn data_member_shadowing_is_disallowed() {
+    let slice = "
+        encoding = 1;
+        module Test;
+        exception I
+        {
+            i: int32
+        }
+        exception J : I
+        {
+            i: int32
+        }
+    ";
+
+    let error_reporter = parse_for_errors(slice);
+
+    assert_errors!(error_reporter, [
+        "i shadows another symbol",
+        "i was previously defined here"
+    ]);
+}
+
+#[test]
 fn inherits_correct_data_members() {
     let slice = "
     encoding = 1;

@@ -78,6 +78,7 @@ pub fn parse_string(
 
     let slice_files = HashMap::from([(identifier.to_owned(), slice_file)]);
 
+    // TODO: we should check for errors at each stage here
     // Patch the AST.
     parent_patcher::patch_parents(ast);
     type_patcher::patch_types(ast, error_reporter);

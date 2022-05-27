@@ -54,11 +54,18 @@ impl Exception {
             .collect()
     }
 
+    pub fn all_inherited_members(&self) -> Vec<&DataMember> {
+        self.base_exception()
+            .iter()
+            .flat_map(|base_exception| base_exception.members())
+            .collect::<Vec<_>>()
+    }
+
     pub fn all_members(&self) -> Vec<&DataMember> {
         let mut members = vec![];
         // Recursively add inherited data members from super-exceptions.
-        if let Some(base_class) = self.base_exception() {
-            members.extend(base_class.all_members());
+        if let Some(base_exception) = self.base_exception() {
+            members.extend(base_exception.all_members());
         }
         members.extend(self.members());
         members

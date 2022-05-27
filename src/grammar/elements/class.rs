@@ -57,6 +57,13 @@ impl Class {
             .collect()
     }
 
+    pub fn all_inherited_members(&self) -> Vec<&DataMember> {
+        self.base_class()
+            .iter()
+            .flat_map(|base_class| base_class.members())
+            .collect::<Vec<_>>()
+    }
+
     pub fn all_members(&self) -> Vec<&DataMember> {
         let mut members = vec![];
         // Recursively add inherited data members from super-classes.

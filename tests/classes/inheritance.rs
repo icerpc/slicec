@@ -46,7 +46,6 @@ fn does_not_support_multiple_inheritance() {
 }
 
 #[test]
-#[ignore]
 fn data_member_shadowing_is_disallowed() {
     let slice = "
         encoding = 1;
@@ -64,7 +63,8 @@ fn data_member_shadowing_is_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     assert_errors!(error_reporter, [
-        "shadowing of a data member is not allowed",
+        "i shadows another symbol",
+        "i was previously defined here"
     ]);
 }
 
