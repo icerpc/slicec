@@ -62,7 +62,7 @@ impl Interface {
             .collect::<Vec<&Operation>>();
 
         // Filter duplicates created by diamond inheritance.
-        // Dedup only works on sorted collections, so we have to sort the operations first  .
+        // Dedup only works on sorted collections, so we have to sort the operations first.
         operations.sort_by_key(|operation| &operation.identifier);
         operations.dedup_by_key(|operation| &operation.identifier);
         operations
