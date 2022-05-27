@@ -3,7 +3,7 @@
 use super::super::*;
 use crate::slice_file::Location;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Identifier {
     pub value: String,
     pub raw_value: String,

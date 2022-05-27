@@ -42,8 +42,11 @@ pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
 
     let slice_files = parse_string(input, &mut ast, &mut error_reporter)?;
 
-    let mut validator = Validator { error_reporter: &mut error_reporter, ast: &ast };
-    validator.validate(&slice_files);
+    // TODO hack until we sort out error reporting
+    if !error_reporter.has_errors(true) {
+        let mut validator = Validator { error_reporter: &mut error_reporter, ast: &ast };
+        validator.validate(&slice_files);
+    }
 
     Ok((ast, error_reporter))
 }

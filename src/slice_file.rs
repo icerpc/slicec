@@ -3,7 +3,7 @@
 use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
 use crate::ptr_util::WeakPtr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Location {
     pub start: (usize, usize),
     pub end: (usize, usize),

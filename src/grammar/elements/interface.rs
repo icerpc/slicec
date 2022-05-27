@@ -61,9 +61,10 @@ impl Interface {
             .flat_map(|base_interface| base_interface.operations())
             .collect::<Vec<&Operation>>();
 
-        // Dedup only works on sorted collections, so we have to sort the operations first.
-        operations.sort_by_key(|operation| operation.identifier());
-        operations.dedup_by_key(|operation| operation.identifier());
+        // Filter duplicates created by diamond inheritance.
+        // Dedup only works on sorted collections, so we have to sort the operations first  .
+        operations.sort_by_key(|operation| &operation.identifier);
+        operations.dedup_by_key(|operation| &operation.identifier);
         operations
     }
 
@@ -71,9 +72,10 @@ impl Interface {
         let mut operations = self.operations();
         operations.extend(self.all_inherited_operations());
 
+        // Filter duplicates created by diamond inheritance.
         // Dedup only works on sorted collections, so we have to sort the operations first.
-        operations.sort_by_key(|operation| operation.identifier());
-        operations.dedup_by_key(|operation| operation.identifier());
+        operations.sort_by_key(|operation| &operation.identifier);
+        operations.dedup_by_key(|operation| &operation.identifier);
         operations
     }
 
@@ -93,6 +95,7 @@ impl Interface {
                 .collect::<Vec<&Interface>>(),
         );
 
+        // Filter duplicates created by diamond inheritance.
         // Dedup only works on sorted collections, so we have to sort the bases first.
         bases.sort_by_key(|base| base.module_scoped_identifier());
         bases.dedup_by_key(|base| base.module_scoped_identifier());

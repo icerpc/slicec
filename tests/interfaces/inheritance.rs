@@ -79,6 +79,28 @@ fn must_inherit_from_interface() {
 }
 
 #[test]
+fn operation_shadowing_is_disallowed() {
+    let slice = "
+        module Test;
+        interface I
+        {
+            op();
+        }
+        interface J : I
+        {
+            op();
+        }
+    ";
+
+    let error_reporter = parse_for_errors(slice);
+
+    assert_errors!(error_reporter, [
+        "op shadows another symbol",
+        "op was previously defined here"
+    ]);
+}
+
+#[test]
 fn inherits_correct_operations() {
     let slice = "
     module Test;

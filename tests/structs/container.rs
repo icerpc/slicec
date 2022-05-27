@@ -2,7 +2,8 @@
 
 mod structs {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -65,6 +66,25 @@ mod structs {
         let data_members = struct_def.members();
 
         assert_eq!(data_members.len(), 0);
+    }
+
+    #[test]
+    fn cannot_redefine_data_members() {
+        let slice = "
+        module Test;
+        struct S
+        {
+            a: int32,
+            a: string,
+        }
+    ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        assert_errors!(error_reporter, [
+            "redefinition of a",
+            "a was previously defined here"
+        ]);
     }
 }
 

@@ -1,27 +1,29 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::ast::Ast;
-use crate::error::ErrorReporter;
-use crate::grammar::*;
-use crate::slice_file::SliceFile;
-use crate::validators::{AttributeValidator, DictionaryValidator, EnumValidator, TagValidator};
-use crate::visitor::Visitor;
-use std::collections::HashMap;
-
 mod attribute;
 mod dictionary;
 mod enums;
 mod identifiers;
 mod tag;
 
+use crate::ast::Ast;
+use crate::error::ErrorReporter;
+use crate::grammar::*;
+use crate::slice_file::SliceFile;
+use crate::validators::{
+    AttributeValidator, DictionaryValidator, EnumValidator, IdentifierValidator, TagValidator,
+};
+use crate::visitor::Visitor;
+use std::collections::HashMap;
+
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
 pub use self::attribute::*;
 pub use self::dictionary::*;
 pub use self::enums::*;
+pub use self::identifiers::*;
 pub use self::tag::*;
 
-#[derive(Debug)]
 pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
     pub ast: &'a Ast,
@@ -38,6 +40,8 @@ impl Validator<'_> {
                 encoding: slice_file.encoding(),
             });
             slice_file.visit_with(&mut TagValidator { error_reporter: self.error_reporter });
+            slice_file.visit_with(&mut IdentifierValidator { error_reporter: self.error_reporter });
+
             let dictionary_validator =
                 &mut DictionaryValidator { error_reporter: self.error_reporter, ast: self.ast };
             slice_file.visit_with(dictionary_validator);

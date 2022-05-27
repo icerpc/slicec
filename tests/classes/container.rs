@@ -102,3 +102,23 @@ fn can_be_empty() {
 
     assert_eq!(data_members.len(), 0);
 }
+
+#[test]
+fn cannot_redefine_data_members() {
+    let slice = "
+    encoding = 1;
+    module Test;
+    class C
+    {
+        a: int32,
+        a: string,
+    }
+";
+
+    let error_reporter = parse_for_errors(slice);
+
+    assert_errors!(error_reporter, [
+        "redefinition of a",
+        "a was previously defined here"
+    ]);
+}

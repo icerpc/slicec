@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::parse_for_ast;
+use crate::assert_errors;
+use crate::helpers::parsing_helpers::*;
 use slice::grammar::*;
 
 /// Verifies that exceptions can contain data members.
@@ -62,4 +63,24 @@ fn can_be_empty() {
     let data_members = exception_def.members();
 
     assert_eq!(data_members.len(), 0);
+}
+
+#[test]
+fn cannot_redefine_data_members() {
+    let slice = "
+        encoding = 1;
+        module Test;
+        exception E
+        {
+            a: int32,
+            a: string,
+        }
+    ";
+
+    let error_reporter = parse_for_errors(slice);
+
+    assert_errors!(error_reporter, [
+        "redefinition of a",
+        "a was previously defined here"
+    ]);
 }
