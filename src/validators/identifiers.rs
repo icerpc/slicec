@@ -10,7 +10,7 @@ pub struct IdentifierValidator<'a> {
 }
 
 impl IdentifierValidator<'_> {
-    pub fn check_for_redefined(&mut self, symbols: &[&impl NamedSymbol]) {
+    pub fn check_for_redefinition(&mut self, symbols: &[&impl NamedSymbol]) {
         let mut identifiers = symbols
             .iter()
             .map(|s| s.raw_identifier())
@@ -72,25 +72,27 @@ impl Visitor for IdentifierValidator<'_> {
         let operations = interface.operations();
         let inherited_operations = interface.all_inherited_operations();
 
-        self.check_for_redefined(&operations);
+        self.check_for_redefinition(&operations);
         self.check_for_shadowing(&operations, &inherited_operations);
     }
 
     fn visit_exception_start(&mut self, exception: &Exception) {
         let members = exception.members();
         let inherited_members = exception.all_inherited_members();
-        self.check_for_redefined(&members);
+
+        self.check_for_redefinition(&members);
         self.check_for_shadowing(&members, &inherited_members);
     }
 
     fn visit_class_start(&mut self, class: &Class) {
         let members = class.members();
         let inherited_members = class.all_inherited_members();
-        self.check_for_redefined(&members);
+
+        self.check_for_redefinition(&members);
         self.check_for_shadowing(&members, &inherited_members);
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.check_for_redefined(&struct_def.members());
+        self.check_for_redefinition(&struct_def.members());
     }
 }
