@@ -64,6 +64,16 @@ impl Operation {
             .collect()
     }
 
+    pub fn all_members(&self) -> Vec<&Parameter> {
+        let parameters = self.parameters.iter();
+        let return_members = self.return_type.iter();
+
+        parameters
+            .chain(return_members)
+            .map(|parameter_ptr| parameter_ptr.borrow())
+            .collect()
+    }
+
     pub fn has_nonstreamed_parameters(&self) -> bool {
         // Operations can have at most 1 streamed parameter. So, if it has more than 1 parameter
         // there must be non streamed parameters. Otherwise we check if the 1 parameter is

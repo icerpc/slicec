@@ -194,12 +194,11 @@ impl<'a> Visitor for TagValidator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        for member_list in [operation_def.parameters(), operation_def.return_members()].iter() {
-            self.parameter_order(member_list);
-            self.have_optional_types(member_list);
-            self.tags_are_unique(member_list);
-            self.tagged_containers_cannot_contain_classes(member_list);
-            self.cannot_tag_classes(member_list);
-        }
+        let members = operation_def.all_members();
+        self.parameter_order(&members);
+        self.have_optional_types(&members);
+        self.tags_are_unique(&members);
+        self.tagged_containers_cannot_contain_classes(&members);
+        self.cannot_tag_classes(&members);
     }
 }

@@ -104,7 +104,7 @@ fn snake_case(s: &str) -> String {
 pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
     members
         .iter()
-        .filter(|member| member.tag().is_none() && member.data_type().is_bit_sequence_encodable())
+        .filter(|member| !member.is_tagged() && member.data_type().is_bit_sequence_encodable())
         .count()
 }
 
@@ -113,12 +113,12 @@ pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
 pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
     let required_members = members
         .iter()
-        .filter(|member| member.tag().is_none())
+        .filter(|member| !member.is_tagged())
         .cloned()
         .collect::<Vec<_>>();
     let mut tagged_members = members
         .iter()
-        .filter(|member| member.tag().is_some())
+        .filter(|member| member.is_tagged())
         .cloned()
         .collect::<Vec<_>>();
     tagged_members.sort_by_key(|member| member.tag().unwrap());

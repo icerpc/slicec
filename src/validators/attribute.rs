@@ -153,6 +153,11 @@ impl<'a> Visitor for AttributeValidator<'a> {
         self.validate_compress_attribute(parameter);
     }
 
+    fn visit_return_member(&mut self, parameter: &Parameter) {
+        self.validate_deprecated_parameters(parameter.attributes());
+        self.validate_compress_attribute(parameter);
+    }
+
     fn visit_data_member(&mut self, data_member: &DataMember) {
         self.validate_deprecated_data_members(data_member.attributes());
         self.validate_compress_attribute(data_member);
