@@ -263,7 +263,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -294,7 +294,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -323,7 +323,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -373,7 +373,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
                 let member_supported_encodings = patcher.resolve_encodings_supported_by_type(
                     operation_encoding,
                     member.data_type(),
-                    member.tag().is_some(),
+                    member.is_tagged(),
                 );
                 if !member_supported_encodings.supports(operation_encoding) {
                     let message = format!(
