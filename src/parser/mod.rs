@@ -62,6 +62,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     };
 
     // Patch the Ast
+
     if !parsed_data.has_errors() {
         parent_patcher::patch_parents(&mut parsed_data.ast);
     }
@@ -102,6 +103,7 @@ pub fn parse_string(input: &str) -> ParserResult {
         ParsedData { ast, files: slice_files, error_reporter, warning_as_error: true };
 
     // Patch the Ast
+
     if !parsed_data.has_errors() {
         parent_patcher::patch_parents(&mut parsed_data.ast);
     }
