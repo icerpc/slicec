@@ -7,23 +7,16 @@ use slice::parse_from_string;
 /// This function is used to parse a Slice file and return the AST.
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     match parse_from_string(&slice.into()) {
-        Ok((ast, error_reporter)) => {
-            assert!(
-                !error_reporter.has_errors(true),
-                "Errors found while parsing:\n{:?}",
-                error_reporter,
-            );
-            ast
-        }
-        Err(e) => panic!("{:?}", e),
+        Ok(data) => data.ast,
+        Err(e) => panic!("{:?}", e.error_reporter),
     }
 }
 
 /// This function is used to parse a Slice file and return the ErrorReporter.
 pub fn parse_for_errors(slice: impl Into<String>) -> ErrorReporter {
     match parse_from_string(&slice.into()) {
-        Ok((_, error_reporter)) => error_reporter,
-        Err(e) => panic!("{:?}", e),
+        Ok(data) => data.error_reporter,
+        Err(data) => data.error_reporter,
     }
 }
 

@@ -377,8 +377,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
                     operation_def.identifier(),
                     operation_encoding
                 );
-                self
-                    .error_reporter
+                self.error_reporter
                     .report_error(message, Some(member.location()));
                 self.print_file_encoding_note(member);
             }

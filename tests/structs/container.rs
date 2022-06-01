@@ -91,7 +91,7 @@ mod structs {
 mod compact_structs {
 
     use crate::assert_errors;
-    use slice::parse_from_string;
+    use crate::helpers::parsing_helpers::parse_for_errors;
 
     /// Verifies that compact structs must contain at least one data member.
     #[test]
@@ -104,7 +104,7 @@ mod compact_structs {
         let expected_errors = ["compact structs must be non-empty"];
 
         // Act
-        let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);

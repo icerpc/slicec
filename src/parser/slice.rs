@@ -2,7 +2,7 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::error::{Error, ErrorLevel, ErrorReporter};
+use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
@@ -112,12 +112,27 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    pub fn parse_string(
+    pub fn try_parse_string(
         &mut self,
         identifier: &str,
         input: &str,
         ast: &mut Ast,
-    ) -> Result<SliceFile, Error> {
+    ) -> Option<SliceFile> {
+        match self.parse_string(identifier, input, ast) {
+            Ok(slice_file) => Some(slice_file),
+            Err(message) => {
+                self.error_reporter.report_error(message, None);
+                None
+            }
+        }
+    }
+
+    fn parse_string(
+        &mut self,
+        identifier: &str,
+        input: &str,
+        ast: &mut Ast,
+    ) -> Result<SliceFile, String> {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: identifier.to_owned(),
@@ -130,21 +145,13 @@ impl<'a> SliceParser<'a> {
         // Parse the file into a file-specific AST.
         let node = SliceParser::parse_with_userdata(Rule::main, input, &user_data);
 
-        let unwrapped_node = node.map_err(|e| Error {
-            message: e.to_string(),
-            location: None,
-            severity: ErrorLevel::Critical,
-        })?;
+        let unwrapped_node = node.map_err(|e| e.to_string())?;
 
         let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
 
         // Consume the contents of the file and add them into the AST.
         let (file_attributes, file_contents, file_encoding) =
-            SliceParser::main(raw_ast).map_err(|e| Error {
-                message: e.to_string(),
-                location: None,
-                severity: ErrorLevel::Critical,
-            })?;
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let top_level_modules = file_contents
             .into_iter()
