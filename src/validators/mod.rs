@@ -4,10 +4,11 @@ use crate::ast::Ast;
 use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
-use crate::validators::{AttributeValidator, DictionaryValidator, EnumValidator, TagValidator};
+use crate::validators::DictionaryValidator;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
+mod ReeceValidator;
 mod attribute;
 mod dictionary;
 mod enums;
@@ -20,6 +21,8 @@ pub use self::dictionary::*;
 pub use self::enums::*;
 pub use self::tag::*;
 
+use crate::validators::ReeceValidator::*;
+
 #[derive(Debug)]
 pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
@@ -29,14 +32,17 @@ pub(crate) struct Validator<'a> {
 impl Validator<'_> {
     /// This method is responsible for visiting each slice file with the various validators.
     pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
+        let validator = &mut ReeceValidatorThing::new();
+        validator.add_validation_functions(tag_validators());
+        validator.add_validation_functions(enum_validators());
+        validator.add_validation_functions(attribute_validators());
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
-            slice_file.visit_with(&mut AttributeValidator { error_reporter: self.error_reporter });
-            slice_file.visit_with(&mut EnumValidator { error_reporter: self.error_reporter });
-            slice_file.visit_with(&mut TagValidator { error_reporter: self.error_reporter });
+            slice_file.visit_with(validator);
+            self.error_reporter.report_errors(validator.errors());
+            // TODO: Dictionaries are being changed.
             let dictionary_validator =
                 &mut DictionaryValidator { error_reporter: self.error_reporter, ast: self.ast };
-            slice_file.visit_with(dictionary_validator);
             dictionary_validator.validate_dictionary_key_types();
         }
     }

@@ -3,7 +3,6 @@
 use crate::ast::Ast;
 use crate::error::ErrorReporter;
 use crate::grammar::*;
-use crate::visitor::Visitor;
 
 #[derive(Debug)]
 pub struct DictionaryValidator<'a> {
@@ -127,5 +126,3 @@ impl DictionaryValidator<'_> {
         is_valid
     }
 }
-
-impl<'a> Visitor for DictionaryValidator<'a> {}

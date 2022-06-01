@@ -43,7 +43,7 @@ mod compact_structs {
             }
             ";
         let expected_errors = [
-            "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact",
+            "tagged data members are not supported in compact structs. Consider removing the tag, or making the struct non-compact",
             "struct 'S' is declared compact here",
         ];
 
