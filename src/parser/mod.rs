@@ -61,27 +61,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
         warning_as_error: options.warn_as_error,
     };
 
-    // Patch the Ast
-
-    if !parsed_data.has_errors() {
-        parent_patcher::patch_parents(&mut parsed_data.ast);
-    }
-
-    if !parsed_data.has_errors() {
-        type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
-    }
-
-    if !parsed_data.has_errors() {
-        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
-    }
-
-    if !parsed_data.has_errors() {
-        encoding_patcher::patch_encodings(
-            &parsed_data.files,
-            &mut parsed_data.ast,
-            &mut parsed_data.error_reporter,
-        );
-    }
+    patch_ast(&mut parsed_data);
 
     parsed_data.into()
 }
@@ -102,8 +82,12 @@ pub fn parse_string(input: &str) -> ParserResult {
     let mut parsed_data =
         ParsedData { ast, files: slice_files, error_reporter, warning_as_error: true };
 
-    // Patch the Ast
+    patch_ast(&mut parsed_data);
 
+    parsed_data.into()
+}
+
+fn patch_ast(parsed_data: &mut ParsedData) {
     if !parsed_data.has_errors() {
         parent_patcher::patch_parents(&mut parsed_data.ast);
     }
@@ -123,8 +107,6 @@ pub fn parse_string(input: &str) -> ParserResult {
             &mut parsed_data.error_reporter,
         );
     }
-
-    parsed_data.into()
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {
