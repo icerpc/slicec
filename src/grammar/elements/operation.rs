@@ -64,7 +64,7 @@ impl Operation {
             .collect()
     }
 
-    pub fn all_members(&self) -> Vec<&Parameter> {
+    pub fn parameters_and_return_members(&self) -> Vec<&Parameter> {
         let parameters = self.parameters.iter();
         let return_members = self.return_type.iter();
 

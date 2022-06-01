@@ -77,6 +77,6 @@ impl<'a> Visitor for Validator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        self.validate_stream_member(operation_def.all_members());
+        self.validate_stream_member(operation_def.parameters_and_return_members());
     }
 }

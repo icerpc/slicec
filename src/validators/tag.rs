@@ -194,7 +194,7 @@ impl<'a> Visitor for TagValidator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        let members = operation_def.all_members();
+        let members = operation_def.parameters_and_return_members();
         self.parameter_order(&members);
         self.have_optional_types(&members);
         self.tags_are_unique(&members);

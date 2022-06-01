@@ -365,7 +365,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
     fn visit_operation_start(&mut self, operation_def: &Operation) {
         // Ensure the operation's parameters and return type are supported by its encoding.
         let operation_encoding = &operation_def.encoding;
-        for member in operation_def.all_members() {
+        for member in operation_def.parameters_and_return_members() {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 operation_encoding,
                 member.data_type(),
