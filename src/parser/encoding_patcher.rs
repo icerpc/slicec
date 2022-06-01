@@ -263,7 +263,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -294,7 +294,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -323,7 +323,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             let member_supported_encodings = self.resolve_encodings_supported_by_type(
                 &file_encoding,
                 &member.data_type,
-                member.tag.is_some(),
+                member.is_tagged(),
             );
             supported_encodings.intersect_with(&member_supported_encodings);
         }
@@ -363,35 +363,26 @@ impl<'a> Visitor for EncodingPatcher<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        fn check_operation_members(
-            members: Vec<&impl Member>,
-            operation_def: &Operation,
-            patcher: &mut EncodingPatcher,
-        ) {
-            let operation_encoding = &operation_def.encoding;
-            for member in members {
-                let member_supported_encodings = patcher.resolve_encodings_supported_by_type(
-                    operation_encoding,
-                    member.data_type(),
-                    member.tag().is_some(),
+        // Ensure the operation's parameters and return type are supported by its encoding.
+        let operation_encoding = &operation_def.encoding;
+        for member in operation_def.parameters_and_return_members() {
+            let member_supported_encodings = self.resolve_encodings_supported_by_type(
+                operation_encoding,
+                member.data_type(),
+                member.is_tagged(),
+            );
+            if !member_supported_encodings.supports(operation_encoding) {
+                let message = format!(
+                    "operation '{}' contains members that are not compatible with its encoding (Slice {}).",
+                    operation_def.identifier(),
+                    operation_encoding
                 );
-                if !member_supported_encodings.supports(operation_encoding) {
-                    let message = format!(
-                        "operation '{}' contains members that are not compatible with its encoding (Slice {}).",
-                        operation_def.identifier(),
-                        operation_encoding
-                    );
-                    patcher
-                        .error_reporter
-                        .report_error(message, Some(member.location()));
-                    patcher.print_file_encoding_note(member);
-                }
+                self
+                    .error_reporter
+                    .report_error(message, Some(member.location()));
+                self.print_file_encoding_note(member);
             }
         }
-
-        // Ensure the operation's parameters and return type are supported by its encoding.
-        check_operation_members(operation_def.parameters(), operation_def, self);
-        check_operation_members(operation_def.return_members(), operation_def, self);
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {

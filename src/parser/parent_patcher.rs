@@ -76,5 +76,8 @@ impl PtrVisitor for ParentPatcher {
         for parameter in &mut operation_ptr.borrow_mut().parameters {
             parameter.borrow_mut().parent = parent_ptr.clone();
         }
+        for return_member in &mut operation_ptr.borrow_mut().return_type {
+            return_member.borrow_mut().parent = parent_ptr.clone();
+        }
     }
 }

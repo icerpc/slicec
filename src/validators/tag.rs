@@ -36,30 +36,27 @@ impl TagValidator<'_> {
 
     /// Validate that tags cannot be used in compact structs.
     fn compact_structs_cannot_contain_tags(&mut self, struct_def: &Struct) {
-        // Compact structs must be non-empty.
-        if !struct_def.members.is_empty() {
-            // Compact structs cannot have tagged data members.
-            let mut has_tags = false;
-            for member in struct_def.members() {
-                if member.tag.is_some() {
-                    self.error_reporter.report_error(
-                        "tagged data members are not supported in compact structs\n\
-                            consider removing the tag, or making the struct non-compact",
-                        Some(member.location()),
-                    );
-                    has_tags = true;
-                }
-            }
-
-            if has_tags {
-                self.error_reporter.report_note(
-                    format!(
-                        "struct '{}' is declared compact here",
-                        struct_def.identifier()
-                    ),
-                    Some(&struct_def.location),
+        // Compact structs cannot have tagged data members.
+        let mut has_tags = false;
+        for member in struct_def.members() {
+            if member.is_tagged() {
+                self.error_reporter.report_error(
+                    "tagged data members are not supported in compact structs\n\
+                        consider removing the tag, or making the struct non-compact",
+                    Some(member.location()),
                 );
+                has_tags = true;
             }
+        }
+
+        if has_tags {
+            self.error_reporter.report_note(
+                format!(
+                    "struct '{}' is declared compact here",
+                    struct_def.identifier()
+                ),
+                Some(&struct_def.location),
+            );
         }
     }
 
@@ -94,7 +91,7 @@ impl TagValidator<'_> {
     fn have_optional_types(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
-            .filter(|member| member.tag().is_some())
+            .filter(|member| member.is_tagged())
             .clone()
             .collect::<Vec<_>>();
 
@@ -117,7 +114,7 @@ impl TagValidator<'_> {
     fn cannot_tag_classes(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
-            .filter(|member| member.tag().is_some())
+            .filter(|member| member.is_tagged())
             .clone()
             .collect::<Vec<_>>();
 
@@ -139,7 +136,7 @@ impl TagValidator<'_> {
     fn tagged_containers_cannot_contain_classes(&mut self, members: &[&impl Member]) {
         let tagged_members = members
             .iter()
-            .filter(|member| member.tag().is_some())
+            .filter(|member| member.is_tagged())
             .clone()
             .collect::<Vec<_>>();
 
@@ -197,12 +194,11 @@ impl<'a> Visitor for TagValidator<'a> {
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
-        for member_list in [operation_def.parameters(), operation_def.return_members()].iter() {
-            self.parameter_order(member_list);
-            self.have_optional_types(member_list);
-            self.tags_are_unique(member_list);
-            self.tagged_containers_cannot_contain_classes(member_list);
-            self.cannot_tag_classes(member_list);
-        }
+        let members = operation_def.parameters_and_return_members();
+        self.parameter_order(&members);
+        self.have_optional_types(&members);
+        self.tags_are_unique(&members);
+        self.tagged_containers_cannot_contain_classes(&members);
+        self.cannot_tag_classes(&members);
     }
 }

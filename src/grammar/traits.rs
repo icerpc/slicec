@@ -80,6 +80,10 @@ pub trait Contained<T: Entity + ?Sized>: Entity {
 pub trait Member: Entity {
     fn data_type(&self) -> &TypeRef;
     fn tag(&self) -> Option<u32>;
+
+    fn is_tagged(&self) -> bool {
+        self.tag().is_some()
+    }
 }
 
 pub trait Type: Element + AsTypes {
