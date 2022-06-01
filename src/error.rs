@@ -21,7 +21,7 @@ impl ErrorReporter {
         (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
     }
 
-    /// Returns the total number of errors and warnings reported through the error handler.
+    /// Returns the total number of errors and warnings reported through the error reporter.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)
     }
@@ -53,7 +53,7 @@ impl ErrorReporter {
         self.report(message.into(), location, ErrorLevel::Error);
     }
 
-    /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
+    /// Writes the errors stored to stderr, along with any locations and snippets.
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for error in mem::take(&mut self.errors).into_iter() {
             let prefix = match error.severity {
