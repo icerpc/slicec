@@ -3,7 +3,6 @@
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use slice::grammar::*;
-use slice::parse_from_string;
 use test_case::test_case;
 
 #[test]
@@ -215,9 +214,11 @@ fn automatically_assigned_values_will_not_overflow() {
         max_value = i64::MAX,
     );
 
-    let error = parse_from_string(&slice).err().unwrap();
+    let error_reporter = parse_for_errors(&slice);
 
-    assert!(error.message.ends_with("Enumerator value out of range: B"));
+    assert!(error_reporter.errors()[0]
+        .message
+        .ends_with("Enumerator value out of range: B"));
 }
 
 #[test_case("unchecked enum", true ; "unchecked")]
