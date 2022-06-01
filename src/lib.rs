@@ -19,25 +19,17 @@ use crate::parse_result::ParserResult;
 use crate::validators::Validator;
 
 pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
-    match parser::parse_files(options) {
-        Ok(mut data) => {
-            let mut validator =
-                Validator { error_reporter: &mut data.error_reporter, ast: &data.ast };
-            validator.validate(&data.files);
-            data.into()
-        }
-        Err(data) => Err(data),
-    }
+    parser::parse_files(options).and_then(|mut data| {
+        let mut validator = Validator { error_reporter: &mut data.error_reporter, ast: &data.ast };
+        validator.validate(&data.files);
+        data.into()
+    })
 }
 
 pub fn parse_from_string(input: &str) -> ParserResult {
-    match parser::parse_string(input) {
-        Ok(mut data) => {
-            let mut validator =
-                Validator { error_reporter: &mut data.error_reporter, ast: &data.ast };
-            validator.validate(&data.files);
-            data.into()
-        }
-        Err(data) => Err(data),
-    }
+    parser::parse_string(input).and_then(|mut data| {
+        let mut validator = Validator { error_reporter: &mut data.error_reporter, ast: &data.ast };
+        validator.validate(&data.files);
+        data.into()
+    })
 }
