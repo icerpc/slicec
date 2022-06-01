@@ -164,50 +164,8 @@ fn validate_compress_attribute(element: &dyn Attributable) -> ValidationResult {
             None => (),
         }
     }
-<<<<<<< HEAD
     match errors.is_empty() {
         true => Ok(()),
         false => Err(errors),
-=======
-}
-
-impl<'a> Visitor for AttributeValidator<'a> {
-    fn visit_interface_start(&mut self, interface_def: &Interface) {
-        self.validate_compress_attribute(interface_def);
-    }
-
-    fn visit_operation_start(&mut self, operation: &Operation) {
-        self.validate_compress_attribute(operation);
-        if let Some(attribute) = operation.get_raw_attribute("format", false) {
-            self.validate_format_attribute(attribute);
-        }
-    }
-
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.validate_compress_attribute(struct_def);
-    }
-
-    fn visit_parameter(&mut self, parameter: &Parameter) {
-        self.validate_deprecated_parameters(parameter.attributes());
-        self.validate_compress_attribute(parameter);
-    }
-
-    fn visit_return_member(&mut self, parameter: &Parameter) {
-        self.validate_deprecated_parameters(parameter.attributes());
-        self.validate_compress_attribute(parameter);
-    }
-
-    fn visit_data_member(&mut self, data_member: &DataMember) {
-        self.validate_deprecated_data_members(data_member.attributes());
-        self.validate_compress_attribute(data_member);
-    }
-
-    fn visit_enum_start(&mut self, enum_def: &Enum) {
-        self.validate_compress_attribute(enum_def);
-    }
-
-    fn visit_exception_start(&mut self, exception_def: &Exception) {
-        self.validate_compress_attribute(exception_def);
->>>>>>> origin/main
     }
 }

@@ -15,11 +15,8 @@ pub mod validators;
 pub mod visitor;
 
 use crate::command_line::SliceOptions;
-use crate::error::{Error, ErrorLevel, ErrorReporter};
 use crate::parse_result::ParserResult;
-use crate::slice_file::SliceFile;
 use crate::validators::Validator;
-use std::collections::HashMap;
 
 pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
     match parser::parse_files(options) {
@@ -40,25 +37,5 @@ pub fn parse_from_string(input: &str) -> ParserResult {
             data.into()
         }
         Err(data) => Err(data),
-    }
-}
-
-pub fn handle_errors(
-    warn_as_error: bool,
-    slice_files: &HashMap<String, SliceFile>,
-    error_reporter: &mut ErrorReporter,
-) -> Result<(), Error> {
-    error_reporter.print_errors(slice_files);
-    if error_reporter.has_errors(warn_as_error) {
-        let counts = error_reporter.get_totals();
-        let message = format!(
-            "Compilation failed with {} error(s) and {} warning(s).\n",
-            counts.0, counts.1
-        );
-
-        println!("{}", &message);
-        Err(Error { message, location: None, severity: ErrorLevel::Critical })
-    } else {
-        Ok(())
     }
 }
