@@ -462,8 +462,8 @@ impl OwnedPtr<Operation> {
         for parameter in &mut self.borrow_mut().parameters {
             parameter.visit_ptr_with(visitor, true);
         }
-        for return_members in &mut self.borrow_mut().return_type {
-            return_members.visit_ptr_with(visitor, false);
+        for return_member in &mut self.borrow_mut().return_type {
+            return_member.visit_ptr_with(visitor, false);
         }
         visitor.visit_operation_end(self);
     }

@@ -300,8 +300,8 @@ impl Operation {
         for parameter in &self.parameters {
             parameter.borrow().visit_with(visitor, true);
         }
-        for return_members in &self.return_type {
-            return_members.borrow().visit_with(visitor, false);
+        for return_member in &self.return_type {
+            return_member.borrow().visit_with(visitor, false);
         }
         visitor.visit_operation_end(self);
     }

@@ -36,9 +36,6 @@ impl ErrorReporter {
             ErrorLevel::Note => {}
             ErrorLevel::Warning => self.warning_count += 1,
             ErrorLevel::Error => self.error_count += 1,
-            ErrorLevel::Critical => {
-                // TODO:  Report the error and exit immediately.
-            }
         };
         self.errors
             .push(Error { message, location: location.cloned(), severity })
@@ -66,10 +63,6 @@ impl ErrorReporter {
         self.report(message.into(), location, ErrorLevel::Error);
     }
 
-    pub fn report_critical(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(message.into(), location, ErrorLevel::Critical);
-    }
-
     /// Writes the errors stored in the handler to stderr, along with any locations and snippets.
     pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for error in mem::take(&mut self.errors).into_iter() {
@@ -77,7 +70,6 @@ impl ErrorReporter {
                 ErrorLevel::Note => "note",
                 ErrorLevel::Warning => "warning",
                 ErrorLevel::Error => "error",
-                ErrorLevel::Critical => "critical",
             };
 
             // Insert the prefix at the start of the message.
@@ -116,7 +108,6 @@ pub struct Error {
 
 #[derive(Debug, Clone)]
 pub enum ErrorLevel {
-    Critical,
     Error,
     Warning,
     Note,

@@ -13,8 +13,8 @@ mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::error::{Error, ErrorReporter};
-use crate::slice_file::SliceFile;
+use crate::error::ErrorReporter;
+use crate::parse_result::{ParsedData, ParserResult};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};
@@ -26,12 +26,11 @@ use std::{fs, io};
 
 // TODO This module is a mess.
 
-pub fn parse_files(
-    options: &SliceOptions,
-    ast: &mut Ast,
-    error_reporter: &mut ErrorReporter,
-) -> Result<HashMap<String, SliceFile>, Error> {
-    let mut parser = slice::SliceParser { error_reporter };
+pub fn parse_files(options: &SliceOptions) -> ParserResult {
+    let mut ast = Ast::new();
+    let mut error_reporter = ErrorReporter::default();
+
+    let mut parser = slice::SliceParser { error_reporter: &mut error_reporter };
 
     let source_files = find_slice_files(&options.sources);
     let mut reference_files = find_slice_files(&options.references);
@@ -44,47 +43,88 @@ pub fn parse_files(
     let mut slice_files = HashMap::new();
 
     for path in source_files {
-        if let Some(slice_file) = parser.try_parse_file(&path, true, ast) {
+        if let Some(slice_file) = parser.try_parse_file(&path, true, &mut ast) {
             slice_files.insert(path.to_owned(), slice_file);
         }
     }
+
     for path in reference_files {
-        if let Some(slice_file) = parser.try_parse_file(&path, false, ast) {
+        if let Some(slice_file) = parser.try_parse_file(&path, false, &mut ast) {
             slice_files.insert(path.to_owned(), slice_file);
         }
     }
 
-    parent_patcher::patch_parents(ast);
-    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
-    type_patcher::patch_types(ast, error_reporter);
-    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
-    cycle_detection::detect_cycles(&slice_files, error_reporter);
-    crate::handle_errors(options.warn_as_error, &slice_files, error_reporter)?;
-    encoding_patcher::patch_encodings(&slice_files, ast, error_reporter);
+    let mut parsed_data = ParsedData {
+        ast,
+        files: slice_files,
+        error_reporter,
+        warning_as_error: options.warn_as_error,
+    };
 
-    Ok(slice_files)
+    // Patch the Ast
+
+    if !parsed_data.has_errors() {
+        parent_patcher::patch_parents(&mut parsed_data.ast);
+    }
+
+    if !parsed_data.has_errors() {
+        type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
+    }
+
+    if !parsed_data.has_errors() {
+        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
+    }
+
+    if !parsed_data.has_errors() {
+        encoding_patcher::patch_encodings(
+            &parsed_data.files,
+            &mut parsed_data.ast,
+            &mut parsed_data.error_reporter,
+        );
+    }
+
+    parsed_data.into()
 }
 
-pub fn parse_string(
-    input: &str,
-    ast: &mut Ast,
-    error_reporter: &mut ErrorReporter,
-) -> Result<HashMap<String, SliceFile>, Error> {
-    let mut parser = slice::SliceParser { error_reporter };
+pub fn parse_string(input: &str) -> ParserResult {
+    let mut ast = Ast::new();
+    let mut error_reporter = ErrorReporter::default();
+    let mut parser = slice::SliceParser { error_reporter: &mut error_reporter };
 
     let identifier = "in-memory-file";
 
-    let slice_file = parser.parse_string(identifier, input, ast)?;
+    let mut slice_files = HashMap::new();
 
-    let slice_files = HashMap::from([(identifier.to_owned(), slice_file)]);
+    if let Some(slice_file) = parser.try_parse_string(identifier, input, &mut ast) {
+        slice_files.insert(identifier.to_owned(), slice_file);
+    }
 
-    // Patch the AST.
-    parent_patcher::patch_parents(ast);
-    type_patcher::patch_types(ast, error_reporter);
-    cycle_detection::detect_cycles(&slice_files, error_reporter);
-    encoding_patcher::patch_encodings(&slice_files, ast, error_reporter);
+    let mut parsed_data =
+        ParsedData { ast, files: slice_files, error_reporter, warning_as_error: true };
 
-    Ok(slice_files)
+    // Patch the Ast
+
+    if !parsed_data.has_errors() {
+        parent_patcher::patch_parents(&mut parsed_data.ast);
+    }
+
+    if !parsed_data.has_errors() {
+        type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
+    }
+
+    if !parsed_data.has_errors() {
+        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
+    }
+
+    if !parsed_data.has_errors() {
+        encoding_patcher::patch_encodings(
+            &parsed_data.files,
+            &mut parsed_data.ast,
+            &mut parsed_data.error_reporter,
+        );
+    }
+
+    parsed_data.into()
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {

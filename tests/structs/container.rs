@@ -2,7 +2,8 @@
 
 mod structs {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -66,12 +67,31 @@ mod structs {
 
         assert_eq!(data_members.len(), 0);
     }
+
+    #[test]
+    fn cannot_redefine_data_members() {
+        let slice = "
+        module Test;
+        struct S
+        {
+            a: int32,
+            a: string,
+        }
+    ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        assert_errors!(error_reporter, [
+            "redefinition of a",
+            "a was previously defined here"
+        ]);
+    }
 }
 
 mod compact_structs {
 
     use crate::assert_errors;
-    use slice::parse_from_string;
+    use crate::helpers::parsing_helpers::parse_for_errors;
 
     /// Verifies that compact structs must contain at least one data member.
     #[test]
@@ -84,7 +104,7 @@ mod compact_structs {
         let expected_errors = ["compact structs must be non-empty"];
 
         // Act
-        let (_, error_reporter) = parse_from_string(slice).ok().unwrap();
+        let error_reporter = parse_for_errors(slice);
 
         // Assert
         assert_errors!(error_reporter, expected_errors);

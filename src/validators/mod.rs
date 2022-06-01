@@ -1,5 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+mod attribute;
+mod dictionary;
+mod enums;
+mod identifiers;
+mod tag;
+
 use crate::ast::Ast;
 use crate::error::{Error, ErrorReporter};
 use crate::grammar::*;
@@ -8,16 +14,12 @@ use crate::validators::DictionaryValidator;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-mod attribute;
-mod dictionary;
-mod enums;
-mod tag;
-
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
 pub use self::attribute::*;
 pub use self::dictionary::*;
 pub use self::enums::*;
+pub use self::identifiers::*;
 pub use self::tag::*;
 
 pub type ValidationChain = Vec<Validate>;
@@ -184,8 +186,7 @@ impl<'a> Visitor for Validator<'a> {
                 Ok(_) => (),
                 Err(mut errs) => errors.append(&mut errs),
             });
-        self.validate_stream_member(operation.parameters());
-        self.validate_stream_member(operation.return_members());
+        self.validate_stream_member(operation.parameters_and_return_members());
         self.errors.append(&mut errors);
     }
 
