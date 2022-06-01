@@ -20,28 +20,38 @@ pub use self::dictionary::*;
 pub use self::enums::*;
 pub use self::tag::*;
 
-pub type ValidatorResult = Result<(), Vec<Error>>;
-pub enum ValidationFunction {
-    Attributable(Box<dyn Fn(&dyn Attributable) -> ValidatorResult>),
-    Class(Box<dyn Fn(&Class) -> ValidatorResult>),
-    Members(Box<dyn Fn(&[&DataMember]) -> ValidatorResult>),
-    Parameters(Box<dyn Fn(&[&Parameter]) -> ValidatorResult>),
-    Parameter(Box<dyn Fn(&Parameter) -> ValidatorResult>),
-    Struct(Box<dyn Fn(&Struct) -> ValidatorResult>),
-    Enums(Box<dyn Fn(&Enum) -> ValidatorResult>),
-    Interface(Box<dyn Fn(&Interface) -> ValidatorResult>),
-    Operation(Box<dyn Fn(&Operation) -> ValidatorResult>),
-    Exception(Box<dyn Fn(&[&DataMember]) -> ValidatorResult>),
+pub type ValidationChain = Vec<Validate>;
+pub type ValidationResult = Result<(), Vec<Error>>;
+pub enum Validate {
+    Attributable(fn(&dyn Attributable) -> ValidationResult),
+    Class(fn(&Class) -> ValidationResult),
+    Members(fn(&[&DataMember]) -> ValidationResult),
+    Parameters(fn(&[&Parameter]) -> ValidationResult),
+    Parameter(fn(&Parameter) -> ValidationResult),
+    Struct(fn(&Struct) -> ValidationResult),
+    Enums(fn(&Enum) -> ValidationResult),
+    Interface(fn(&Interface) -> ValidationResult),
+    Operation(fn(&Operation) -> ValidationResult),
+    Exception(fn(&[&DataMember]) -> ValidationResult),
 }
 
 pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
     pub ast: &'a Ast,
-    validation_functions: Vec<ValidationFunction>,
+    validation_functions: Vec<Validate>,
     errors: Vec<Error>,
 }
 
 impl<'a> Validator<'a> {
+    pub fn new(error_reporter: &'a mut ErrorReporter, ast: &'a Ast) -> Validator<'a> {
+        Validator {
+            error_reporter,
+            ast,
+            validation_functions: Vec::new(),
+            errors: Vec::new(),
+        }
+    }
+
     /// This method is responsible for visiting each slice file with the various validators.
     pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
         self.add_validation_functions(tag_validators());
@@ -57,17 +67,8 @@ impl<'a> Validator<'a> {
         }
     }
 
-    pub fn add_validation_functions(&mut self, validation_functions: Vec<ValidationFunction>) {
+    pub fn add_validation_functions(&mut self, validation_functions: Vec<Validate>) {
         self.validation_functions.extend(validation_functions);
-    }
-
-    pub fn new(error_reporter: &'a mut ErrorReporter, ast: &'a Ast) -> Validator<'a> {
-        Validator {
-            error_reporter,
-            ast,
-            validation_functions: Vec::new(),
-            errors: Vec::new(),
-        }
     }
 
     // Miscellaneous validators
@@ -107,11 +108,9 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Class(function) => Some(function(class_def)),
-                ValidationFunction::Members(function) => {
-                    Some(function(class_def.members().as_slice()))
-                }
-                ValidationFunction::Attributable(function) => Some(function(class_def)),
+                Validate::Class(function) => Some(function(class_def)),
+                Validate::Members(function) => Some(function(class_def.members().as_slice())),
+                Validate::Attributable(function) => Some(function(class_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -126,11 +125,9 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Struct(function) => Some(function(struct_def)),
-                ValidationFunction::Members(function) => {
-                    Some(function(struct_def.members().as_slice()))
-                }
-                ValidationFunction::Attributable(function) => Some(function(struct_def)),
+                Validate::Struct(function) => Some(function(struct_def)),
+                Validate::Members(function) => Some(function(struct_def.members().as_slice())),
+                Validate::Attributable(function) => Some(function(struct_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -146,8 +143,8 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Enums(function) => Some(function(enum_def)),
-                ValidationFunction::Attributable(function) => Some(function(enum_def)),
+                Validate::Enums(function) => Some(function(enum_def)),
+                Validate::Attributable(function) => Some(function(enum_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -162,8 +159,8 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Interface(function) => Some(function(interface_def)),
-                ValidationFunction::Attributable(function) => Some(function(interface_def)),
+                Validate::Interface(function) => Some(function(interface_def)),
+                Validate::Attributable(function) => Some(function(interface_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -178,11 +175,9 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Operation(function) => Some(function(operation)),
-                ValidationFunction::Attributable(function) => Some(function(operation)),
-                ValidationFunction::Parameters(function) => {
-                    Some(function(operation.parameters().as_slice()))
-                }
+                Validate::Operation(function) => Some(function(operation)),
+                Validate::Attributable(function) => Some(function(operation)),
+                Validate::Parameters(function) => Some(function(operation.parameters().as_slice())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -199,8 +194,8 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                ValidationFunction::Parameter(function) => Some(function(parameter)),
-                ValidationFunction::Attributable(function) => Some(function(parameter)),
+                Validate::Parameter(function) => Some(function(parameter)),
+                Validate::Attributable(function) => Some(function(parameter)),
                 _ => None,
             })
             .for_each(|result| match result {

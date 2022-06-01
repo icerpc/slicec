@@ -2,16 +2,16 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{ValidationFunction, ValidatorResult};
+use crate::validators::{Validate, ValidationChain, ValidationResult};
 use std::str::FromStr;
 
-pub fn attribute_validators() -> Vec<ValidationFunction> {
-    return vec![
-        ValidationFunction::Attributable(Box::new(validate_compress_attribute)),
-        ValidationFunction::Operation(Box::new(validate_format_attribute)),
-        ValidationFunction::Parameter(Box::new(validate_deprecated_parameters)),
-        ValidationFunction::Members(Box::new(validate_deprecated_data_members)),
-    ];
+pub fn attribute_validators() -> ValidationChain {
+    vec![
+        Validate::Attributable(validate_compress_attribute),
+        Validate::Operation(validate_format_attribute),
+        Validate::Parameter(validate_deprecated_parameters),
+        Validate::Members(validate_deprecated_data_members),
+    ]
 }
 
 /// Helper
@@ -35,7 +35,7 @@ fn message_value_separator(valid_strings: &[&str]) -> String {
 }
 
 /// Attribute validators
-fn validate_format_attribute(operation: &Operation) -> ValidatorResult {
+fn validate_format_attribute(operation: &Operation) -> ValidationResult {
     let mut errors = vec![];
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
@@ -80,7 +80,7 @@ fn validate_format_attribute(operation: &Operation) -> ValidatorResult {
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to operation parameters.
-fn validate_deprecated_parameters(parameter: &Parameter) -> ValidatorResult {
+fn validate_deprecated_parameters(parameter: &Parameter) -> ValidationResult {
     let mut errors = vec![];
     let attributes = parameter.attributes();
     attributes.iter().for_each(|attribute| {
@@ -99,7 +99,7 @@ fn validate_deprecated_parameters(parameter: &Parameter) -> ValidatorResult {
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to data members.
-fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidatorResult {
+fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidationResult {
     let mut errors = vec![];
     members.iter().for_each(|member| {
         let attributes = member.attributes();
@@ -122,7 +122,7 @@ fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidatorResult 
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn validate_compress_attribute(element: &dyn Attributable) -> ValidatorResult {
+fn validate_compress_attribute(element: &dyn Attributable) -> ValidationResult {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let mut errors = vec![];

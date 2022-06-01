@@ -3,26 +3,26 @@
 use crate::code_gen_util::get_sorted_members;
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{ValidationFunction, ValidatorResult};
+use crate::validators::{Validate, ValidationChain, ValidationResult};
 
-pub fn tag_validators() -> Vec<ValidationFunction> {
-    return vec![
-        ValidationFunction::Exception(Box::new(have_optional_types)),
-        ValidationFunction::Exception(Box::new(tagged_containers_cannot_contain_classes)),
-        ValidationFunction::Exception(Box::new(cannot_tag_classes)),
-        ValidationFunction::Struct(Box::new(compact_structs_cannot_contain_tags)),
-        ValidationFunction::Members(Box::new(check_tags_uniqueness)),
-        ValidationFunction::Members(Box::new(have_optional_types)),
-        ValidationFunction::Parameters(Box::new(parameter_order)),
-        ValidationFunction::Parameters(Box::new(have_optional_types)),
-        ValidationFunction::Parameters(Box::new(check_tags_uniqueness)),
-        ValidationFunction::Parameters(Box::new(tagged_containers_cannot_contain_classes)),
-        ValidationFunction::Parameters(Box::new(cannot_tag_classes)),
-    ];
+pub fn tag_validators() -> ValidationChain {
+    vec![
+        Validate::Exception(have_optional_types),
+        Validate::Exception(tagged_containers_cannot_contain_classes),
+        Validate::Exception(cannot_tag_classes),
+        Validate::Struct(compact_structs_cannot_contain_tags),
+        Validate::Members(check_tags_uniqueness),
+        Validate::Members(have_optional_types),
+        Validate::Parameters(parameter_order),
+        Validate::Parameters(have_optional_types),
+        Validate::Parameters(check_tags_uniqueness),
+        Validate::Parameters(tagged_containers_cannot_contain_classes),
+        Validate::Parameters(cannot_tag_classes),
+    ]
 }
 
 /// Validates that the tags are unique.
-fn check_tags_uniqueness(members: &[&impl Member]) -> ValidatorResult {
+fn check_tags_uniqueness(members: &[&impl Member]) -> ValidationResult {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -56,7 +56,7 @@ fn check_tags_uniqueness(members: &[&impl Member]) -> ValidatorResult {
 }
 
 // Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter]) -> ValidatorResult {
+fn parameter_order(parameters: &[&Parameter]) -> ValidationResult {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
@@ -86,7 +86,7 @@ fn parameter_order(parameters: &[&Parameter]) -> ValidatorResult {
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidatorResult {
+fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult {
     // Compact structs must be non-empty.
     let mut errors = vec![];
     if struct_def.is_compact && !struct_def.members.is_empty() {
@@ -122,7 +122,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidatorResult {
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn have_optional_types(members: &[&impl Member]) -> ValidatorResult {
+fn have_optional_types(members: &[&impl Member]) -> ValidationResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
@@ -151,7 +151,7 @@ fn have_optional_types(members: &[&impl Member]) -> ValidatorResult {
 }
 
 /// Validate that classes cannot be tagged.
-fn cannot_tag_classes(members: &[&impl Member]) -> ValidatorResult {
+fn cannot_tag_classes(members: &[&impl Member]) -> ValidationResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
@@ -178,7 +178,7 @@ fn cannot_tag_classes(members: &[&impl Member]) -> ValidatorResult {
 }
 
 /// Validate that tagged container types cannot contain class members.
-fn tagged_containers_cannot_contain_classes(members: &[&impl Member]) -> ValidatorResult {
+fn tagged_containers_cannot_contain_classes(members: &[&impl Member]) -> ValidationResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
