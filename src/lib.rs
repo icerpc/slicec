@@ -30,7 +30,7 @@ pub fn parse_from_options(
     let slice_files = parser::parse_files(options, &mut ast, &mut error_reporter)?;
     handle_errors(options.warn_as_error, &slice_files, &mut error_reporter)?;
 
-    let mut validator = Validator { error_reporter: &mut error_reporter, ast: &ast };
+    let mut validator = Validator::new(&mut error_reporter, &ast);
     validator.validate(&slice_files);
 
     Ok((ast, error_reporter, slice_files))
@@ -42,7 +42,7 @@ pub fn parse_from_string(input: &str) -> Result<(Ast, ErrorReporter), Error> {
 
     let slice_files = parse_string(input, &mut ast, &mut error_reporter)?;
 
-    let mut validator = Validator { error_reporter: &mut error_reporter, ast: &ast };
+    let mut validator = Validator::new(&mut error_reporter, &ast);
     validator.validate(&slice_files);
 
     Ok((ast, error_reporter))

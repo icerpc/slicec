@@ -3,7 +3,7 @@
 use crate::code_gen_util::get_sorted_members;
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::ValidationFunction;
+use crate::validators::{ValidationFunction, ValidatorResult};
 
 pub fn tag_validators() -> Vec<ValidationFunction> {
     return vec![
@@ -22,7 +22,7 @@ pub fn tag_validators() -> Vec<ValidationFunction> {
 }
 
 /// Validates that the tags are unique.
-fn check_tags_uniqueness(members: &[&impl Member]) -> Result<(), Vec<Error>> {
+fn check_tags_uniqueness(members: &[&impl Member]) -> ValidatorResult {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -56,7 +56,7 @@ fn check_tags_uniqueness(members: &[&impl Member]) -> Result<(), Vec<Error>> {
 }
 
 // Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter]) -> Result<(), Vec<Error>> {
+fn parameter_order(parameters: &[&Parameter]) -> ValidatorResult {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
@@ -86,7 +86,7 @@ fn parameter_order(parameters: &[&Parameter]) -> Result<(), Vec<Error>> {
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> Result<(), Vec<Error>> {
+fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidatorResult {
     // Compact structs must be non-empty.
     let mut errors = vec![];
     if struct_def.is_compact && !struct_def.members.is_empty() {
@@ -122,7 +122,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> Result<(), Vec<Er
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn have_optional_types(members: &[&impl Member]) -> Result<(), Vec<Error>> {
+fn have_optional_types(members: &[&impl Member]) -> ValidatorResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
@@ -151,7 +151,7 @@ fn have_optional_types(members: &[&impl Member]) -> Result<(), Vec<Error>> {
 }
 
 /// Validate that classes cannot be tagged.
-fn cannot_tag_classes(members: &[&impl Member]) -> Result<(), Vec<Error>> {
+fn cannot_tag_classes(members: &[&impl Member]) -> ValidatorResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
@@ -178,7 +178,7 @@ fn cannot_tag_classes(members: &[&impl Member]) -> Result<(), Vec<Error>> {
 }
 
 /// Validate that tagged container types cannot contain class members.
-fn tagged_containers_cannot_contain_classes(members: &[&impl Member]) -> Result<(), Vec<Error>> {
+fn tagged_containers_cannot_contain_classes(members: &[&impl Member]) -> ValidatorResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
@@ -216,39 +216,3 @@ fn tagged_containers_cannot_contain_classes(members: &[&impl Member]) -> Result<
         false => Err(errors),
     }
 }
-
-// impl<'a> Visitor for TagValidator<'a> {
-//     fn visit_exception_start(&mut self, exception_def: &Exception) {
-//         let members = exception_def.members().as_slice();
-//         self.have_optional_types(&exception_def.members());
-//         self.tagged_containers_cannot_contain_classes(&exception_def.members());
-//         self.cannot_tag_classes(&exception_def.members());
-//     }
-
-//     fn visit_struct_start(&mut self, struct_def: &Struct) {
-//         if struct_def.is_compact {
-//             self.compact_structs_cannot_contain_tags(struct_def)
-//         } else {
-//             // Tags can only exist on non compact structs.
-//             self.tags_are_unique(&struct_def.members());
-//             self.have_optional_types(&struct_def.members());
-//         }
-//     }
-
-//     fn visit_class_start(&mut self, class_def: &Class) {
-//         self.tags_are_unique(&class_def.members());
-//         self.have_optional_types(&class_def.members());
-//         self.tagged_containers_cannot_contain_classes(&class_def.members());
-//         self.cannot_tag_classes(&class_def.members());
-//     }
-
-//     fn visit_operation_start(&mut self, operation_def: &Operation) {
-//         for member_list in [operation_def.parameters(), operation_def.return_members()].iter() {
-//             self.parameter_order(member_list);
-//             self.have_optional_types(member_list);
-//             self.tags_are_unique(member_list);
-//             self.tagged_containers_cannot_contain_classes(member_list);
-//             self.cannot_tag_classes(member_list);
-//         }
-//     }
-// }

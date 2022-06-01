@@ -52,7 +52,7 @@ impl ErrorReporter {
         self.report(message.into(), location, ErrorLevel::Warning);
     }
 
-    pub fn report_errors(&mut self, errors: &Vec<Error>) {
+    pub fn report_errors(&mut self, errors: &[Error]) {
         errors.iter().for_each(|error| {
             self.report(
                 error.message.clone(),

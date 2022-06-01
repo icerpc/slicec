@@ -2,7 +2,7 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::ValidationFunction;
+use crate::validators::{ValidationFunction, ValidatorResult};
 
 pub fn enum_validators() -> Vec<ValidationFunction> {
     return vec![
@@ -15,7 +15,7 @@ pub fn enum_validators() -> Vec<ValidationFunction> {
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
-fn backing_type_bounds(enum_def: &Enum) -> Result<(), Vec<Error>> {
+fn backing_type_bounds(enum_def: &Enum) -> ValidatorResult {
     let mut errors = vec![];
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         // Enum was defined in a Slice1 file.
@@ -98,7 +98,7 @@ fn backing_type_bounds(enum_def: &Enum) -> Result<(), Vec<Error>> {
 }
 
 /// Validate that the backing type specified for a Slice2 enums is an integral type.
-fn allowed_underlying_types(enum_def: &Enum) -> Result<(), Vec<Error>> {
+fn allowed_underlying_types(enum_def: &Enum) -> ValidatorResult {
     let mut errors = vec![];
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         return Ok(());
@@ -125,7 +125,7 @@ fn allowed_underlying_types(enum_def: &Enum) -> Result<(), Vec<Error>> {
 }
 
 /// Validate that the enumerators for an enum are unique.
-fn enumerators_are_unique(enum_def: &Enum) -> Result<(), Vec<Error>> {
+fn enumerators_are_unique(enum_def: &Enum) -> ValidatorResult {
     // The enumerators must be sorted by value first as we are using windowing to check the
     // n + 1 enumerator against the n enumerator. If the enumerators are sorted by value then
     // the windowing will reveal any duplicate enumerators.
@@ -161,7 +161,7 @@ fn enumerators_are_unique(enum_def: &Enum) -> Result<(), Vec<Error>> {
 }
 
 /// Validate the the underlying type of an enum is not optional.
-fn underlying_type_cannot_be_optional(enum_def: &Enum) -> Result<(), Vec<Error>> {
+fn underlying_type_cannot_be_optional(enum_def: &Enum) -> ValidatorResult {
     let mut errors = vec![];
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
@@ -179,7 +179,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum) -> Result<(), Vec<Error>>
 }
 
 /// Validate that a checked enum must not be empty.
-fn nonempty_if_checked(enum_def: &Enum) -> Result<(), Vec<Error>> {
+fn nonempty_if_checked(enum_def: &Enum) -> ValidatorResult {
     let mut errors = vec![];
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
         errors.push(Error {

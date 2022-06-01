@@ -2,43 +2,8 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::ValidationFunction;
+use crate::validators::{ValidationFunction, ValidatorResult};
 use std::str::FromStr;
-
-// impl<'a> Visitor for AttributeValidator<'a> {
-//     fn visit_interface_start(&mut self, interface_def: &Interface) {
-//         self.validate_compress_attribute(interface_def);
-//     }
-
-//     fn visit_operation_start(&mut self, operation: &Operation) {
-//         self.validate_compress_attribute(operation);
-//         if let Some(attribute) = operation.get_raw_attribute("format", false) {
-//             self.validate_format_attribute(attribute);
-//         }
-//     }
-
-//     fn visit_struct_start(&mut self, struct_def: &Struct) {
-//         self.validate_compress_attribute(struct_def);
-//     }
-
-//     fn visit_parameter(&mut self, parameter: &Parameter) {
-//         self.validate_deprecated_parameters(parameter.attributes());
-//         self.validate_compress_attribute(parameter);
-//     }
-
-//     fn visit_data_member(&mut self, data_member: &DataMember) {
-//         self.validate_deprecated_data_members(data_member.attributes());
-//         self.validate_compress_attribute(data_member);
-//     }
-
-//     fn visit_enum_start(&mut self, enum_def: &Enum) {
-//         self.validate_compress_attribute(enum_def);
-//     }
-
-//     fn visit_exception_start(&mut self, exception_def: &Exception) {
-//         self.validate_compress_attribute(exception_def);
-//     }
-// }
 
 pub fn attribute_validators() -> Vec<ValidationFunction> {
     return vec![
@@ -70,7 +35,7 @@ fn message_value_separator(valid_strings: &[&str]) -> String {
 }
 
 /// Attribute validators
-fn validate_format_attribute(operation: &Operation) -> Result<(), Vec<Error>> {
+fn validate_format_attribute(operation: &Operation) -> ValidatorResult {
     let mut errors = vec![];
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
@@ -115,7 +80,7 @@ fn validate_format_attribute(operation: &Operation) -> Result<(), Vec<Error>> {
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to operation parameters.
-fn validate_deprecated_parameters(parameter: &Parameter) -> Result<(), Vec<Error>> {
+fn validate_deprecated_parameters(parameter: &Parameter) -> ValidatorResult {
     let mut errors = vec![];
     let attributes = parameter.attributes();
     attributes.iter().for_each(|attribute| {
@@ -134,7 +99,7 @@ fn validate_deprecated_parameters(parameter: &Parameter) -> Result<(), Vec<Error
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to data members.
-fn validate_deprecated_data_members(members: &[&DataMember]) -> Result<(), Vec<Error>> {
+fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidatorResult {
     let mut errors = vec![];
     members.iter().for_each(|member| {
         let attributes = member.attributes();
@@ -157,7 +122,7 @@ fn validate_deprecated_data_members(members: &[&DataMember]) -> Result<(), Vec<E
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn validate_compress_attribute(element: &Attributable) -> Result<(), Vec<Error>> {
+fn validate_compress_attribute(element: &dyn Attributable) -> ValidatorResult {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let mut errors = vec![];
