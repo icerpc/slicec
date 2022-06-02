@@ -54,7 +54,7 @@ impl ErrorReporter {
             self.report(
                 error.message.clone(),
                 error.location.as_ref(),
-                error.severity.clone(),
+                error.severity,
             );
         });
     }
@@ -106,7 +106,7 @@ pub struct Error {
     pub severity: ErrorLevel,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum ErrorLevel {
     Error,
     Warning,

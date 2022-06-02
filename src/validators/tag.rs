@@ -95,7 +95,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult 
         for member in struct_def.members() {
             if member.tag.is_some() {
                 errors.push(Error {
-                    message: "tagged data members are not supported in compact structs. Consider removing the tag, or making the struct non-compact"
+                    message: "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
                         .to_owned(),
                     location: Some(member.location().clone()),
                     severity: crate::error::ErrorLevel::Error,

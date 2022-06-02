@@ -45,23 +45,17 @@ pub enum Validate {
 
 pub(crate) struct Validator<'a> {
     pub error_reporter: &'a mut ErrorReporter,
-    pub ast: &'a Ast,
     validation_functions: Vec<Validate>,
     errors: Vec<Error>,
 }
 
 impl<'a> Validator<'a> {
-    pub fn new(error_reporter: &'a mut ErrorReporter, ast: &'a Ast) -> Validator<'a> {
-        Validator {
-            error_reporter,
-            ast,
-            validation_functions: Vec::new(),
-            errors: Vec::new(),
-        }
+    pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
+        Validator { error_reporter, validation_functions: Vec::new(), errors: Vec::new() }
     }
 
     /// This method is responsible for visiting each slice file with the various validators.
-    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
+    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>, ast: &Ast) {
         self.add_validation_functions(tag_validators());
         self.add_validation_functions(enum_validators());
         self.add_validation_functions(attribute_validators());
@@ -72,7 +66,7 @@ impl<'a> Validator<'a> {
             self.error_reporter.report_errors(&self.errors);
             // TODO: Implement dictionary visitor.
             let dictionary_validator =
-                &mut DictionaryValidator { error_reporter: self.error_reporter, ast: self.ast };
+                &mut DictionaryValidator { error_reporter: self.error_reporter, ast };
             dictionary_validator.validate_dictionary_key_types();
         }
     }
