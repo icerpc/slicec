@@ -49,6 +49,16 @@ impl ErrorReporter {
         self.report(message.into(), location, ErrorLevel::Warning);
     }
 
+    pub fn report_errors(&mut self, errors: &[Error]) {
+        errors.iter().for_each(|error| {
+            self.report(
+                error.message.clone(),
+                error.location.as_ref(),
+                error.severity,
+            );
+        });
+    }
+
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
         self.report(message.into(), location, ErrorLevel::Error);
     }
@@ -96,7 +106,7 @@ pub struct Error {
     pub severity: ErrorLevel,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum ErrorLevel {
     Error,
     Warning,
