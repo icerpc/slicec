@@ -51,16 +51,21 @@ pub(crate) struct Validator<'a> {
 
 impl<'a> Validator<'a> {
     pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
-        Validator { error_reporter, validation_functions: Vec::new(), errors: Vec::new() }
+        let validation_functions = vec![
+            tag_validators(),
+            enum_validators(),
+            attribute_validators(),
+            identifier_validators(),
+            miscellaneous_validators(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        Validator { error_reporter, validation_functions, errors: Vec::new() }
     }
 
     /// This method is responsible for visiting each slice file with the various validators.
     pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>, ast: &Ast) {
-        self.add_validation_functions(tag_validators());
-        self.add_validation_functions(enum_validators());
-        self.add_validation_functions(attribute_validators());
-        self.add_validation_functions(identifier_validators());
-        self.add_validation_functions(miscellaneous_validators());
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
             self.error_reporter.report_errors(&self.errors);
@@ -69,10 +74,6 @@ impl<'a> Validator<'a> {
                 &mut DictionaryValidator { error_reporter: self.error_reporter, ast };
             dictionary_validator.validate_dictionary_key_types();
         }
-    }
-
-    pub fn add_validation_functions(&mut self, validation_functions: Vec<Validate>) {
-        self.validation_functions.extend(validation_functions);
     }
 }
 
