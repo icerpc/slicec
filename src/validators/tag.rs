@@ -55,7 +55,7 @@ fn check_tags_uniqueness(members: &[&impl Member]) -> ValidationResult {
     }
 }
 
-// Validate that tagged parameters must follow the required parameters.
+/// Validate that tagged parameters must follow the required parameters.
 fn parameter_order(parameters: &[&Parameter]) -> ValidationResult {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
