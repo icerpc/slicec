@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+mod encoding;
 mod inheritance;
 mod operations;
 

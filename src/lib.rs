@@ -33,3 +33,11 @@ pub fn parse_from_string(input: &str) -> ParserResult {
         data.into()
     })
 }
+
+pub fn parse_from_strings(inputs: &[&str]) -> ParserResult {
+    parser::parse_strings(inputs).and_then(|mut data| {
+        let mut validator = Validator::new(&mut data.error_reporter);
+        validator.validate(&data.files);
+        data.into()
+    })
+}
