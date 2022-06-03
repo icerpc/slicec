@@ -23,6 +23,10 @@ if [ -f "$FILE" ]; then
     echo ""
     echo "Successfully generated the coverage report"
     echo "The report can be found at 'target/debug/coverage'"
+else
+    echo ""
+    echo "Failed to generate the coverage report"
+    echo "Please check the above output for any errors"
 fi
 
 # Cleanup build flags:
