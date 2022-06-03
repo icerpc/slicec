@@ -31,7 +31,7 @@ The test suite can be run from the command line by running `cargo test` in the r
 
 ## Code coverage report
 
-Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3) from a regular command prompt, using the following command
+Code coverage reports can be generated using [grcov](https://docs.rs/crate/grcov) from a regular command prompt, using the following command
 
 For Linux and macOS:
 
