@@ -2,7 +2,7 @@
 
 set -e
 
-# Ensure that necessary depencies are installed:
+# Ensure that necessary dependencies are installed.
 FILE=~/.cargo/bin/grcov
 if [ ! -f "$FILE" ]; then
     echo "grov is missing"
