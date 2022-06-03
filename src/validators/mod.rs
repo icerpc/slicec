@@ -33,7 +33,8 @@ pub enum Validate {
     Enums(fn(&Enum) -> ValidationResult),
     Exception(fn(&[&DataMember]) -> ValidationResult),
     Interface(fn(&Interface) -> ValidationResult),
-    Members(fn(&[&DataMember]) -> ValidationResult),
+    Members(fn(Vec<&dyn Member>) -> ValidationResult),
+    DataMembers(fn(&[&DataMember]) -> ValidationResult),
     Identifiers(fn(Vec<&Identifier>) -> ValidationResult),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>) -> ValidationResult),
     Operation(fn(&Operation) -> ValidationResult),
@@ -89,6 +90,25 @@ where
         self.iter().map(|member| member.raw_identifier()).collect()
     }
 }
+trait MemberMassagerExtension {
+    fn massage_this(&self) -> Vec<&dyn Member>;
+}
+
+impl MemberMassagerExtension for Vec<&DataMember> {
+    fn massage_this(&self) -> Vec<&dyn Member> {
+        let mut v: Vec<&dyn Member> = Vec::new();
+        self.iter().for_each(|m| v.push(*m));
+        v
+    }
+}
+
+impl MemberMassagerExtension for Vec<&Parameter> {
+    fn massage_this(&self) -> Vec<&dyn Member> {
+        let mut v: Vec<&dyn Member> = Vec::new();
+        self.iter().for_each(|m| v.push(*m));
+        v
+    }
+}
 
 impl<'a> Visitor for Validator<'a> {
     fn visit_class_start(&mut self, class: &Class) {
@@ -97,7 +117,8 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Class(function) => Some(function(class)),
-                Validate::Members(function) => Some(function(class.members().as_slice())),
+                Validate::Members(function) => Some(function(class.members().massage_this())),
+                Validate::DataMembers(function) => Some(function(class.members().as_slice())),
                 Validate::Attributable(function) => Some(function(class)),
                 Validate::Identifiers(function) => {
                     Some(function(class.members().get_identifiers()))
@@ -121,7 +142,8 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Struct(function) => Some(function(struct_def)),
-                Validate::Members(function) => Some(function(struct_def.members().as_slice())),
+                Validate::Members(function) => Some(function(struct_def.members().massage_this())),
+                Validate::DataMembers(function) => Some(function(struct_def.members().as_slice())),
                 Validate::Attributable(function) => Some(function(struct_def)),
                 Validate::Identifiers(function) => {
                     Some(function(struct_def.members().get_identifiers()))
@@ -205,6 +227,9 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Operation(function) => Some(function(operation)),
                 Validate::Attributable(function) => Some(function(operation)),
                 Validate::Parameters(function) => Some(function(operation.parameters().as_slice())),
+                Validate::Members(function) => {
+                    Some(function(operation.parameters().massage_this()))
+                }
                 Validate::ParametersAndReturnMember(function) => {
                     Some(function(&operation.parameters_and_return_members()))
                 }
