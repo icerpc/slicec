@@ -5,7 +5,7 @@ mod slice1 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
 
-    /// Verifies using the slice parser with the Slice 1 encoding will emit errors when parsing
+    /// Verifies using the slice parser with Slice1 will emit errors when parsing
     /// non-compact structs.
     #[test]
     fn unsupported_fail() {
@@ -16,8 +16,8 @@ mod slice1 {
             struct A {}
             ";
         let expected_errors = [
-            "non-compact structs are not supported by the Slice 1 encoding",
-            "file encoding was set to the Slice 1 encoding here:",
+            "non-compact structs are not supported by the Slice1 encoding",
+            "file encoding was set to the Slice1 encoding here:",
         ];
 
         // Act
@@ -34,7 +34,7 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
 
     /// Verifies using the slice parser with the Slice 2 encoding will emit errors when parsing
-    /// structs that contain Slice 1 types.
+    /// structs that contain Slice1 types.
     #[test]
     fn slice1_types_fail() {
         // Arrange

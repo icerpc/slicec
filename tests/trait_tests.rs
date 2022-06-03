@@ -28,8 +28,8 @@ mod traits {
 
                 // Assert
                 assert_errors!(error_reporter, [
-                    "traits are not supported by the Slice 1 encoding",
-                    "file encoding was set to the Slice 1 encoding here:",
+                    "traits are not supported by the Slice1 encoding",
+                    "file encoding was set to the Slice1 encoding here:",
                 ]);
             }
         }
