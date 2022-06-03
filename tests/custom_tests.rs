@@ -28,8 +28,8 @@ mod custom {
 
                 // Assert
                 assert_errors!(error_reporter, [
-                    "custom types are not supported by the Slice1 encoding",
-                    "file encoding was set to the Slice1 encoding here:",
+                    "custom types are not supported with Slice1",
+                    "file encoding was set to Slice1 here:",
                 ]);
             }
         }

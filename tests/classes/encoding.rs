@@ -15,8 +15,8 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         assert_errors!(error_reporter, [
-            "classes are only supported by the Slice1 encoding",
-            "file is using the Slice2 encoding by default",
+            "classes are only supported with Slice1",
+            "file is using Slice2 by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ]);
     }

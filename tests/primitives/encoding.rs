@@ -31,8 +31,8 @@ mod slice1 {
         );
 
         let expected_errors: &[&str] = &[
-            &format!("'{}' is not supported by the Slice1 encoding", value),
-            "file encoding was set to the Slice1 encoding here:",
+            &format!("'{}' is not supported with Slice1", value),
+            "file encoding was set to Slice1 here:",
         ];
 
         // Act
@@ -92,8 +92,8 @@ mod slice2 {
                 v: AnyClass,
             }";
         let expected_errors = [
-            "'AnyClass' is not supported by the Slice2 encoding",
-            "file is using the Slice2 encoding by default",
+            "'AnyClass' is not supported with Slice2",
+            "file is using Slice2 by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
