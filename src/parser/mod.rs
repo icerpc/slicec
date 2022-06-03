@@ -76,7 +76,7 @@ pub fn parse_string(input: &str) -> ParserResult {
     let mut slice_files = HashMap::new();
 
     if let Some(slice_file) = parser.try_parse_string(identifier, input, &mut ast) {
-        slice_files.insert(identifier.to_owned(), slice_file);
+        slice_files.insert(slice_file.filename.clone(), slice_file);
     }
 
     let mut parsed_data =
@@ -97,7 +97,7 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     for (i, input) in inputs.iter().enumerate() {
         let identifier = format!("string-{}", i);
         if let Some(slice_file) = parser.try_parse_string(&identifier, input, &mut ast) {
-            slice_files.insert(identifier.to_string(), slice_file);
+            slice_files.insert(slice_file.filename.clone(), slice_file);
         }
     }
 
