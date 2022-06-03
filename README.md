@@ -39,10 +39,4 @@ For Linux and macOS:
 ./generate_coverage_report.sh
 ```
 
-For Windows:
-
-```shell
-# TODO: Add generate_coverage_report.cmd
-```
-
 The output html is in the `target/debug/coverage/` directory.

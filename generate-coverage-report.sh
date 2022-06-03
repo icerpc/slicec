@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Ensure that necessary depencies are installed:
 FILE=~/.cargo/bin/grcov
 if [ ! -f "$FILE" ]; then
@@ -20,7 +22,7 @@ export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Co
 export RUSTDOCFLAGS="-Cpanic=abort"
 
 # Generate the html report:
-cargo +nightly build && cargo +nightly test
+cargo +nightly build && cargo +nightly testuuuuuu
 grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
 
 FILE=target/debug/coverage/index.html
@@ -33,8 +35,3 @@ else
     echo "Failed to generate the coverage report"
     echo "Please check the above output for any errors"
 fi
-
-# Cleanup build flags:
-unset CARGO_INCREMENTAL
-unset RUSTFLAGS
-unset RUSTDOCFLAGS
