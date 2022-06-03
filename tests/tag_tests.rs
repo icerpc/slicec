@@ -50,6 +50,26 @@ mod tags {
     }
 
     #[test]
+    fn non_tagged_optional_types_fail() {
+        // Arrange
+        let slice = "
+        encoding = 1;
+        module Test;
+        interface I {
+            myOp(a: int32?);
+        }
+        ";
+
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "optional types can only be used with tags using Slice1",
+            "file encoding was set to Slice1 here:",
+        ]);
+    }
+
+    #[test]
     fn tagged_parameters_must_be_after_required_parameters() {
         // Arrange
         let slice = "
