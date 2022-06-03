@@ -31,7 +31,7 @@ mod slice1 {
         );
 
         let expected_errors: &[&str] = &[
-            &format!("'{}' is not supported by the Slice 1 encoding", value),
+            &format!("'{}' is not supported by the Slice1 encoding", value),
             "file encoding was set to the Slice1 encoding here:",
         ];
 
@@ -80,7 +80,7 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
-    /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
+    /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
     #[test]
     fn unsupported_types_fail() {
@@ -92,8 +92,8 @@ mod slice2 {
                 v: AnyClass,
             }";
         let expected_errors = [
-            "'AnyClass' is not supported by the Slice 2 encoding",
-            "file is using the Slice 2 encoding by default",
+            "'AnyClass' is not supported by the Slice2 encoding",
+            "file is using the Slice2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
@@ -104,7 +104,7 @@ mod slice2 {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    /// Verifies that valid Slice 2 types (bool, int8, uint8, int16, uint16, int32, uint32,
+    /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,
     /// varint32, varuint32, int64, uint64, varint62, varuint62, float32, float64, and string) will
     /// not produce any compiler errors.
     #[test_case("bool")]

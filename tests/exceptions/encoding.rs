@@ -37,7 +37,7 @@ mod slice2 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
 
-    /// Verifies that the slice parser with the Slice 2 encoding emits errors when parsing an
+    /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
     /// exception that inherits from another exception.
     #[test]
     fn inheritance_fails() {
@@ -50,7 +50,7 @@ mod slice2 {
             ";
         let expected_errors = [
             "exception inheritance is only supported by the Slice1 encoding",
-            "file is using the Slice 2 encoding by default",
+            "file is using the Slice2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
@@ -61,7 +61,7 @@ mod slice2 {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    /// Verifies that the slice parser with the Slice 2 encoding does not emit errors when parsing
+    /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing
     /// exceptions that are data members.
     #[test]
     fn can_be_data_members() {

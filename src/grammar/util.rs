@@ -67,7 +67,7 @@ pub enum Encoding {
 }
 
 impl Default for Encoding {
-    /// Returns the default encoding for this version of IceRPC: the Slice 2 encoding.
+    /// Returns the default encoding for this version of IceRPC: the Slice2 encoding.
     fn default() -> Self {
         Encoding::Slice2
     }

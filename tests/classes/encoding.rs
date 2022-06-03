@@ -16,7 +16,7 @@ mod slice2 {
 
         assert_errors!(error_reporter, [
             "classes are only supported by the Slice1 encoding",
-            "file is using the Slice 2 encoding by default",
+            "file is using the Slice2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ]);
     }

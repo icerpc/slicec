@@ -195,7 +195,7 @@ impl<'a> EncodingPatcher<'a> {
                 let encodings = primitive_def.supported_encodings();
                 if !encodings.supports(file_encoding) {
                     let message = format!(
-                        "'{}' is not supported by the Slice {} encoding",
+                        "'{}' is not supported by the Slice{} encoding",
                         primitive_def.kind(),
                         file_encoding
                     );
@@ -238,7 +238,7 @@ impl<'a> EncodingPatcher<'a> {
                 .report_note(message, Some(file_encoding.location()));
         } else {
             let message = format!(
-                "file is using the Slice {} encoding by default",
+                "file is using the Slice{} encoding by default",
                 Encoding::default(),
             );
             self.error_reporter.report_note(message, None);
