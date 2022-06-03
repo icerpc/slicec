@@ -7,7 +7,6 @@ mod identifiers;
 mod miscellaneous;
 mod tag;
 
-use crate::ast::Ast;
 use crate::error::{Error, ErrorReporter};
 use crate::grammar::*;
 use crate::ptr_util::OwnedPtr;
@@ -67,7 +66,7 @@ impl<'a> Validator<'a> {
     }
 
     /// This method is responsible for visiting each slice file with the various validators.
-    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>, ast: &Ast) {
+    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
             self.error_reporter.report_errors(&self.errors);
