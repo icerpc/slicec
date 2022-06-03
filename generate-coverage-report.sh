@@ -2,17 +2,17 @@
 
 # Ensure that necessary depencies are installed:
 FILE=~/.cargo/bin/grcov
-if ![ -f "$FILE" ]; then
+if [ ! -f "$FILE" ]; then
     echo "grov is missing"
-    echo "run `cargo install grov` to install"
+    echo "run 'cargo install grov' to install"
     exit 1
 fi
 
-if ! rustup component list | grep llvm-tools-preview > /dev/null; then 
+if ! rustup component list | grep llvm-tools-preview > /dev/null; then
     echo "llvm-tools-preview is not installed"
-    echo  "run `rustup component add llvm-tools-preview` to install"
+    echo  "run 'rustup component add llvm-tools-preview' to install"
     exit 1
-fi 
+fi
 
 # Set the relevant build flags:
 export CARGO_INCREMENTAL=0
