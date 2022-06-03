@@ -9,7 +9,7 @@ fn operation_members_are_compatible_with_encoding() {
         encoding = 1;
         module Test;
         class C {}
-        ";
+    ";
 
     let slice2 = "
         encoding = 2;
