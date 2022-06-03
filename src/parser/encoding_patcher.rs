@@ -99,10 +99,10 @@ impl<'a> EncodingPatcher<'a> {
             }
             TypeRefs::Class(_) => {
                 is_nullable = true;
-                // Classes can only be declared in a Slice 1 encoded file. A Slice 1 encoded file
-                // can only reference entities from other Slice 1 encoded files. So
-                // it's impossible for a class to contain non-Slice 1 things in it.
-                // So classes are always supported by (only) Slice 1.
+                // Classes can only be declared in a Slice1 encoded file. A Slice1 encoded file
+                // can only reference entities from other Slice1 encoded files. So
+                // it's impossible for a class to contain non-Slice1 things in it.
+                // So classes are always supported by (only) Slice1.
                 SupportedEncodings::new(vec![Encoding::Slice1])
             }
             TypeRefs::Exception(exception_ref) => {
@@ -116,7 +116,7 @@ impl<'a> EncodingPatcher<'a> {
                 }
                 .clone();
 
-                // Exceptions as a data type are not supported with Slice 1.
+                // Exceptions as a data type are not supported with Slice1.
                 encodings.disable(Encoding::Slice1);
                 encodings
             }
@@ -195,7 +195,7 @@ impl<'a> EncodingPatcher<'a> {
                 let encodings = primitive_def.supported_encodings();
                 if !encodings.supports(file_encoding) {
                     let message = format!(
-                        "'{}' is not supported by the Slice {} encoding",
+                        "'{}' is not supported with Slice{}",
                         primitive_def.kind(),
                         file_encoding
                     );
@@ -209,12 +209,12 @@ impl<'a> EncodingPatcher<'a> {
             }
         };
 
-        // Non-tagged optional types aren't supported by the Slice 1 encoding.
+        // Non-tagged optional types aren't supported with Slice1.
         if !is_tagged && !is_nullable && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
                 self.error_reporter.report_error(
-                    "optional types can only be used with tags in the Slice 1 encoding",
+                    "optional types can only be used with tags using Slice1",
                     Some(type_ref.location()),
                 );
                 self.print_file_encoding_note(type_ref);
@@ -231,16 +231,13 @@ impl<'a> EncodingPatcher<'a> {
 
         if let Some(file_encoding) = &slice_file.encoding {
             let message = format!(
-                "file encoding was set to the Slice {} encoding here:",
+                "file encoding was set to Slice{} here:",
                 &file_encoding.version,
             );
             self.error_reporter
                 .report_note(message, Some(file_encoding.location()));
         } else {
-            let message = format!(
-                "file is using the Slice {} encoding by default",
-                Encoding::default(),
-            );
+            let message = format!("file is using Slice{} by default", Encoding::default(),);
             self.error_reporter.report_note(message, None);
 
             self.error_reporter.report_note(
@@ -268,12 +265,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Non-compact structs are not supported by the Slice 1 encoding.
+        // Non-compact structs are not supported with Slice1.
         if !struct_def.is_compact {
             supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
                 self.error_reporter.report_error(
-                    "non-compact structs are not supported by the Slice 1 encoding",
+                    "non-compact structs are not supported with Slice1",
                     Some(struct_def.location()),
                 );
                 self.print_file_encoding_note(struct_def);
@@ -299,11 +296,11 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Classes are only supported by the Slice 1 encoding.
+        // Classes are only supported with Slice1.
         supported_encodings.disable(Encoding::Slice2);
         if file_encoding == Encoding::Slice2 {
             self.error_reporter.report_error(
-                "classes are only supported by the Slice 1 encoding",
+                "classes are only supported with Slice1",
                 Some(class_def.location()),
             );
             self.print_file_encoding_note(class_def);
@@ -328,12 +325,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
-        // Exception inheritance is only supported by the Slice 1 encoding.
+        // Exception inheritance is only supported with Slice1.
         if exception_def.base.is_some() {
             supported_encodings.disable(Encoding::Slice2);
             if file_encoding == Encoding::Slice2 {
                 self.error_reporter.report_error(
-                    "exception inheritance is only supported by the Slice 1 encoding",
+                    "exception inheritance is only supported with Slice1",
                     Some(exception_def.location()),
                 );
                 self.print_file_encoding_note(exception_def);
@@ -389,12 +386,12 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         let file_encoding = self.get_file_encoding_for(enum_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Enums with underlying types are not supported by the Slice 1 encoding.
+        // Enums with underlying types are not supported with Slice1.
         if enum_def.underlying.is_some() {
             supported_encodings.disable(Encoding::Slice1);
             if file_encoding == Encoding::Slice1 {
                 self.error_reporter.report_error(
-                    "enums with underlying types are not supported by the Slice 1 encoding",
+                    "enums with underlying types are not supported with Slice1",
                     Some(enum_def.location()),
                 );
                 self.print_file_encoding_note(enum_def);
@@ -410,11 +407,11 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         let file_encoding = self.get_file_encoding_for(trait_def);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Traits are not supported by the Slice 1 encoding.
+        // Traits are not supported with Slice1.
         supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
             self.error_reporter.report_error(
-                "traits are not supported by the Slice 1 encoding",
+                "traits are not supported with Slice1",
                 Some(trait_def.location()),
             );
             self.print_file_encoding_note(trait_def);
@@ -429,11 +426,11 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         let file_encoding = self.get_file_encoding_for(custom_type);
         let mut supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        // Custom types are not supported by the Slice 1 encoding.
+        // Custom types are not supported with Slice1.
         supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
             self.error_reporter.report_error(
-                "custom types are not supported by the Slice 1 encoding",
+                "custom types are not supported with Slice1",
                 Some(custom_type.location()),
             );
             self.print_file_encoding_note(custom_type);
