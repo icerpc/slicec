@@ -36,7 +36,7 @@ Code coverage reports can be generated using [grcove](https://docs.rs/crate/grco
 For Linux and macOS:
 
 ```shell
-./generate_coverage_report.sh
+./generate-coverage-report.sh
 ```
 
 The output html is in the `target/debug/coverage/` directory.
