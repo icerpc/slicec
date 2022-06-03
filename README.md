@@ -31,31 +31,18 @@ The test suite can be run from the command line by running `cargo test` in the r
 
 ## Code coverage report
 
-Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3).
+Code coverage reports can be generated using [grcove](https://docs.rs/crate/grcov/0.4.3) from a regular command prompt, using the following command
 
-First install `grcov` and the `llvm-tools-preview`:
+For Linux and macOS:
 
 ```shell
-cargo install grcov
-rustup component add llvm-tools-preview
+./generate_coverage_report.sh
 ```
 
-Then set the relevant build flags:
+For Windows:
 
 ```shell
-export CARGO_INCREMENTAL=0
-export RUSTFLAGS="-Zprofile -Ccodegen-units=1 -Copt-level=0 -Clink-dead-code -Coverflow-checks=off -Zpanic_abort_tests -Cpanic=abort"
-export RUSTDOCFLAGS="-Cpanic=abort"
-```
-
-Finally generate the html report:
-
-```shell
-cargo +nightly build && cargo +nightly test
-```
-
-```shell
-grcov . -s . --binary-path ./target/debug/ -t html --branch --ignore-not-existing -o ./target/debug/coverage/
+# TODO: Add generate_coverage_report.cmd
 ```
 
 The output html is in the `target/debug/coverage/` directory.
