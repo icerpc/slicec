@@ -71,11 +71,9 @@ pub fn parse_string(input: &str) -> ParserResult {
     let mut error_reporter = ErrorReporter::default();
     let mut parser = slice::SliceParser { error_reporter: &mut error_reporter };
 
-    let identifier = "string";
-
     let mut slice_files = HashMap::new();
 
-    if let Some(slice_file) = parser.try_parse_string(identifier, input, &mut ast) {
+    if let Some(slice_file) = parser.try_parse_string("string", input, &mut ast) {
         slice_files.insert(slice_file.filename.clone(), slice_file);
     }
 
@@ -95,8 +93,8 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut slice_files = HashMap::new();
 
     for (i, input) in inputs.iter().enumerate() {
-        let identifier = format!("string-{}", i);
-        if let Some(slice_file) = parser.try_parse_string(&identifier, input, &mut ast) {
+        if let Some(slice_file) = parser.try_parse_string(&format!("string-{}", i), input, &mut ast)
+        {
             slice_files.insert(slice_file.filename.clone(), slice_file);
         }
     }
