@@ -10,8 +10,8 @@ mod tag;
 use crate::ast::Ast;
 use crate::error::{Error, ErrorReporter};
 use crate::grammar::*;
+use crate::ptr_util::OwnedPtr;
 use crate::slice_file::SliceFile;
-use crate::validators::DictionaryValidator;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
@@ -30,6 +30,7 @@ pub type ValidationResult = Result<(), Vec<Error>>;
 pub enum Validate {
     Attributable(fn(&dyn Attributable) -> ValidationResult),
     Class(fn(&Class) -> ValidationResult),
+    Dictionary(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
     Exception(fn(&[&DataMember]) -> ValidationResult),
     Interface(fn(&Interface) -> ValidationResult),
@@ -52,6 +53,7 @@ pub(crate) struct Validator<'a> {
 impl<'a> Validator<'a> {
     pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
         let validation_functions = vec![
+            dictionary_validators(),
             tag_validators(),
             enum_validators(),
             attribute_validators(),
@@ -69,10 +71,6 @@ impl<'a> Validator<'a> {
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
             self.error_reporter.report_errors(&self.errors);
-            // TODO: Implement dictionary visitor.
-            let dictionary_validator =
-                &mut DictionaryValidator { error_reporter: self.error_reporter, ast };
-            dictionary_validator.validate_dictionary_key_types();
         }
     }
 }
@@ -90,6 +88,33 @@ where
     }
 }
 
+fn container_dictionaries<T>(container: &dyn Container<OwnedPtr<T>>) -> Vec<&Dictionary>
+where
+    T: Member,
+{
+    container
+        .contents()
+        .iter()
+        .filter_map(|member| match member.borrow().data_type().concrete_type() {
+            Types::Dictionary(dictionary) => Some(dictionary),
+            _ => None,
+        })
+        .collect()
+}
+
+fn member_dictionaries<T>(members: Vec<&T>) -> Vec<&Dictionary>
+where
+    T: Member,
+{
+    members
+        .iter()
+        .filter_map(|member| match member.data_type().concrete_type() {
+            Types::Dictionary(dictionary) => Some(dictionary),
+            _ => None,
+        })
+        .collect()
+}
+
 impl<'a> Visitor for Validator<'a> {
     fn visit_class_start(&mut self, class: &Class) {
         let mut errors = vec![];
@@ -97,6 +122,7 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Class(function) => Some(function(class)),
+                Validate::Dictionary(function) => Some(function(&container_dictionaries(class))),
                 Validate::Members(function) => Some(function(class.members().as_slice())),
                 Validate::Attributable(function) => Some(function(class)),
                 Validate::Identifiers(function) => {
@@ -121,6 +147,9 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Struct(function) => Some(function(struct_def)),
+                Validate::Dictionary(function) => {
+                    Some(function(&container_dictionaries(struct_def)))
+                }
                 Validate::Members(function) => Some(function(struct_def.members().as_slice())),
                 Validate::Attributable(function) => Some(function(struct_def)),
                 Validate::Identifiers(function) => {
@@ -156,6 +185,9 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
+                Validate::Dictionary(function) => {
+                    Some(function(&container_dictionaries(exception)))
+                }
                 Validate::Exception(function) => Some(function(exception.members().as_slice())),
                 Validate::Attributable(function) => Some(function(exception)),
                 Validate::Identifiers(function) => {
@@ -202,6 +234,9 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
+                Validate::Dictionary(function) => Some(function(&member_dictionaries(
+                    operation.parameters_and_return_members(),
+                ))),
                 Validate::Operation(function) => Some(function(operation)),
                 Validate::Attributable(function) => Some(function(operation)),
                 Validate::Parameters(function) => Some(function(operation.parameters().as_slice())),
@@ -224,6 +259,24 @@ impl<'a> Visitor for Validator<'a> {
             .filter_map(|function| match function {
                 Validate::Parameter(function) => Some(function(parameter)),
                 Validate::Attributable(function) => Some(function(parameter)),
+                _ => None,
+            })
+            .for_each(|result| match result {
+                Ok(_) => (),
+                Err(mut errs) => errors.append(&mut errs),
+            });
+        self.errors.append(&mut errors);
+    }
+
+    fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
+        let mut errors = vec![];
+        self.validation_functions
+            .iter()
+            .filter_map(|function| match function {
+                Validate::Dictionary(function) => match type_alias.underlying.concrete_type() {
+                    Types::Dictionary(dictionary) => Some(function(&[dictionary])),
+                    _ => None,
+                },
                 _ => None,
             })
             .for_each(|result| match result {
