@@ -6,7 +6,7 @@ set -e
 FILE=~/.cargo/bin/grcov
 if [ ! -f "$FILE" ]; then
     echo "grov is missing"
-    echo "run 'cargo install grov' to install"
+    echo "run 'cargo install grcov' to install"
     exit 1
 fi
 
