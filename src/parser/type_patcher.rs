@@ -131,7 +131,18 @@ impl<'ast> TypePatcher<'ast> {
                         }
                     }
                 }
-                _ => panic!("Encountered unpatchable type: {}", definition.borrow().kind()),
+                _ => {
+                    let entity = definition.borrow();
+                    self.error_reporter.report_error(
+                        format!(
+                            "{} `{}` cannot be used as a type",
+                            entity.kind(),
+                            entity.module_scoped_identifier(),
+                        ),
+                        Some(entity.location()),
+                    );
+                    return;
+                }
             }
         }
 

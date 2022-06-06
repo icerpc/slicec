@@ -126,6 +126,29 @@ where
 }
 
 impl<'a> Visitor for Validator<'a> {
+    fn visit_module_start(&mut self, module_def: &Module) {
+        let mut errors = Vec::new();
+        self.validation_functions
+            .iter()
+            .filter_map(|f| {
+                if let Validate::Identifiers(function) = f {
+                    let identifiers = module_def
+                        .contents()
+                        .iter()
+                        .map(|definition| definition.borrow().raw_identifier())
+                        .collect::<Vec<_>>();
+                    Some(function(identifiers))
+                } else {
+                    None
+                }
+            })
+            .for_each(|result| match result {
+                Ok(_) => (),
+                Err(mut errs) => errors.append(&mut errs),
+            });
+        self.errors.append(&mut errors);
+    }
+
     fn visit_class_start(&mut self, class: &Class) {
         let mut errors = vec![];
         self.validation_functions
