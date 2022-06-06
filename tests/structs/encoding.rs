@@ -5,7 +5,7 @@ mod slice1 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
 
-    /// Verifies using the slice parser with the Slice 1 encoding will emit errors when parsing
+    /// Verifies using the slice parser with Slice1 will emit errors when parsing
     /// non-compact structs.
     #[test]
     fn unsupported_fail() {
@@ -16,8 +16,8 @@ mod slice1 {
             struct A {}
             ";
         let expected_errors = [
-            "non-compact structs are not supported by the Slice 1 encoding",
-            "file encoding was set to the Slice 1 encoding here:",
+            "non-compact structs are not supported with Slice1",
+            "file encoding was set to Slice1 here:",
         ];
 
         // Act
@@ -33,8 +33,8 @@ mod slice2 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
 
-    /// Verifies using the slice parser with the Slice 2 encoding will emit errors when parsing
-    /// structs that contain Slice 1 types.
+    /// Verifies using the slice parser with Slice2 will emit errors when parsing
+    /// structs that contain Slice1 types.
     #[test]
     fn slice1_types_fail() {
         // Arrange
@@ -46,8 +46,8 @@ mod slice2 {
         }
         ";
         let expected_errors = [
-            "'AnyClass' is not supported by the Slice 2 encoding",
-            "file is using the Slice 2 encoding by default",
+            "'AnyClass' is not supported with Slice2",
+            "file is using Slice2 by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
@@ -58,8 +58,8 @@ mod slice2 {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    /// Verifies using the slice parser with the Slice 2 encoding will not emit errors when parsing
-    /// structs that contain Slice 2 types.
+    /// Verifies using the slice parser with Slice2 will not emit errors when parsing
+    /// structs that contain Slice2 types.
     #[test]
     fn slice2_types_succeed() {
         // Arrange

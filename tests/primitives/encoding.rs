@@ -6,7 +6,7 @@ mod slice1 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
-    /// Verifies that if Slice 1 is used with unsupported types (int8, uint16, uint32, varint32,
+    /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
     /// varuint32, uint64, varint62, and varuint62) that the compiler will produce the relevant not
     /// supported errors.
     #[test_case("int8")]
@@ -31,8 +31,8 @@ mod slice1 {
         );
 
         let expected_errors: &[&str] = &[
-            &format!("'{}' is not supported by the Slice 1 encoding", value),
-            "file encoding was set to the Slice 1 encoding here:",
+            &format!("'{}' is not supported with Slice1", value),
+            "file encoding was set to Slice1 here:",
         ];
 
         // Act
@@ -42,7 +42,7 @@ mod slice1 {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    /// Verifies that valid Slice 1 types (bool, uint8, int16, int32, int64, float32, float64,
+    /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
     /// string, and  AnyClass) will not produce any compiler errors.
     #[test_case("bool")]
     #[test_case("uint8")]
@@ -80,7 +80,7 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
-    /// Verifies that if Slice 2 is used with unsupported types (AnyClass) that the compiler will
+    /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
     /// produce the relevant not supported errors.
     #[test]
     fn unsupported_types_fail() {
@@ -92,8 +92,8 @@ mod slice2 {
                 v: AnyClass,
             }";
         let expected_errors = [
-            "'AnyClass' is not supported by the Slice 2 encoding",
-            "file is using the Slice 2 encoding by default",
+            "'AnyClass' is not supported with Slice2",
+            "file is using Slice2 by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 
@@ -104,7 +104,7 @@ mod slice2 {
         assert_errors!(error_reporter, expected_errors);
     }
 
-    /// Verifies that valid Slice 2 types (bool, int8, uint8, int16, uint16, int32, uint32,
+    /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,
     /// varint32, varuint32, int64, uint64, varint62, varuint62, float32, float64, and string) will
     /// not produce any compiler errors.
     #[test_case("bool")]
