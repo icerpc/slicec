@@ -28,13 +28,9 @@ pub type ValidationResult = Result<(), Vec<Error>>;
 
 pub enum Validate {
     Attributable(fn(&dyn Attributable) -> ValidationResult),
-    Class(fn(&Class) -> ValidationResult),
     Dictionary(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
-    Exception(fn(&[&DataMember]) -> ValidationResult),
-    Interface(fn(&Interface) -> ValidationResult),
     Members(fn(Vec<&dyn Member>) -> ValidationResult),
-    DataMembers(fn(&[&DataMember]) -> ValidationResult),
     Identifiers(fn(Vec<&Identifier>) -> ValidationResult),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>) -> ValidationResult),
     Operation(fn(&Operation) -> ValidationResult),
@@ -140,10 +136,8 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Class(function) => Some(function(class)),
-                Validate::DataMembers(function) => Some(function(class.members().as_slice())),
                 Validate::Dictionary(function) => Some(function(&container_dictionaries(class))),
-                Validate::Members(function) => Some(function(class.members().as_slice())),
+                Validate::Members(function) => Some(function(class.members().massage_this())),
                 Validate::Attributable(function) => Some(function(class)),
                 Validate::Identifiers(function) => {
                     Some(function(class.members().get_identifiers()))
@@ -167,11 +161,10 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Struct(function) => Some(function(struct_def)),
-                Validate::DataMembers(function) => Some(function(struct_def.members().as_slice())),
                 Validate::Dictionary(function) => {
                     Some(function(&container_dictionaries(struct_def)))
                 }
-                Validate::Members(function) => Some(function(struct_def.members().as_slice())),
+                Validate::Members(function) => Some(function(struct_def.members().massage_this())),
                 Validate::Attributable(function) => Some(function(struct_def)),
                 Validate::Identifiers(function) => {
                     Some(function(struct_def.members().get_identifiers()))
@@ -209,7 +202,7 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Dictionary(function) => {
                     Some(function(&container_dictionaries(exception)))
                 }
-                Validate::Exception(function) => Some(function(exception.members().as_slice())),
+                Validate::Members(function) => Some(function(exception.members().massage_this())),
                 Validate::Attributable(function) => Some(function(exception)),
                 Validate::Identifiers(function) => {
                     Some(function(exception.members().get_identifiers()))
@@ -232,7 +225,6 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Interface(function) => Some(function(interface)),
                 Validate::Attributable(function) => Some(function(interface)),
                 Validate::Identifiers(function) => {
                     Some(function(interface.operations().get_identifiers()))

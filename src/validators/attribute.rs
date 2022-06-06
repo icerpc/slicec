@@ -78,25 +78,6 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
     }
 }
 
-/// Validates that the `deprecated` attribute cannot be applied to operation parameters.
-fn validate_deprecated_parameters(parameter: &Parameter) -> ValidationResult {
-    let mut errors = vec![];
-    let attributes = parameter.attributes();
-    attributes.iter().for_each(|attribute| {
-        if attribute.directive.as_str() == "deprecated" {
-            errors.push(Error {
-                message: "the deprecated attribute cannot be applied to parameters".to_owned(),
-                location: Some(attribute.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
-            });
-        }
-    });
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
-}
-
 /// Validates that the `deprecated` attribute cannot be applied to data members.
 fn cannot_be_deprecated(members: Vec<&dyn Member>) -> ValidationResult {
     let not_supported_on = ["parameter", "data member"];

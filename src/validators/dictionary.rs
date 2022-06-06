@@ -5,10 +5,10 @@ use crate::grammar::*;
 use crate::validators::{Validate, ValidationChain, ValidationResult};
 
 pub fn dictionary_validators() -> ValidationChain {
-    vec![Validate::Dictionary(validate_dictionary_key_types)]
+    vec![Validate::Dictionary(has_allowed_key_type)]
 }
 
-pub fn validate_dictionary_key_types(dictionaries: &[&Dictionary]) -> ValidationResult {
+pub fn has_allowed_key_type(dictionaries: &[&Dictionary]) -> ValidationResult {
     let mut errors = vec![];
 
     for dictionary in dictionaries {
