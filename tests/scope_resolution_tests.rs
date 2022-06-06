@@ -303,8 +303,8 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore = "This test is broken. Crashes in the cycle detector"]
     fn missing_type_should_fail() {
+        // Arrange
         let slice = "
         module A
         {
@@ -315,11 +315,12 @@ mod scope_resolution {
         }
         ";
 
-        let ast = parse_for_ast(slice);
+        // Act
+        let error_reporter = parse_for_errors(slice);
 
-        let b_ptr = ast.find_typed_entity::<Interface>("A::B::I").unwrap();
-        let b_def = b_ptr.borrow();
-
-        assert_eq!(b_def.all_base_interfaces().len(), 1);
+        // Assert
+        assert_errors!(error_reporter, [
+            "No entity with the identifier 'Nested::C' could be found in this scope.",
+        ]);
     }
 }

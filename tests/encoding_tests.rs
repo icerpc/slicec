@@ -29,19 +29,18 @@ mod encodings {
     }
 
     #[test]
-    #[should_panic] // TODO: Fix parse_for_errors to not panic
+    #[ignore = "The current message being emitted is not correct"]
     fn invalid_encodings_fail() {
         // Arrange
         let slice = "
             encoding = 3;
             ";
-        let expected_errors: &[&str] = &[];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors!(error_reporter, ["Unknown slice encoding version: 3"]);
     }
 
     #[test] // TODO: Maybe this shouldn't produce a parser error
