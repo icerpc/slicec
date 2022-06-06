@@ -87,11 +87,11 @@ where
 }
 
 trait AsMemberVecExt {
-    fn as_vec(&self) -> Vec<&dyn Member>;
+    fn as_member_vec(&self) -> Vec<&dyn Member>;
 }
 
 impl<T: Member> AsMemberVecExt for Vec<&T> {
-    fn as_vec(&self) -> Vec<&dyn Member> {
+    fn as_member_vec(&self) -> Vec<&dyn Member> {
         let mut v: Vec<&dyn Member> = Vec::new();
         self.iter().for_each(|m| v.push(*m));
         v
@@ -138,7 +138,7 @@ impl<'a> Visitor for Validator<'a> {
                     class.members().get_identifiers(),
                     class.all_inherited_members().get_identifiers(),
                 )),
-                Validate::Members(function) => Some(function(class.members().as_vec())),
+                Validate::Members(function) => Some(function(class.members().as_member_vec())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -156,7 +156,7 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Attributes(function) => Some(function(struct_def)),
                 Validate::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
                 Validate::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
-                Validate::Members(function) => Some(function(struct_def.members().as_vec())),
+                Validate::Members(function) => Some(function(struct_def.members().as_member_vec())),
                 Validate::Struct(function) => Some(function(struct_def)),
                 _ => None,
             })
@@ -195,7 +195,7 @@ impl<'a> Visitor for Validator<'a> {
                     exception.members().get_identifiers(),
                     exception.all_inherited_members().get_identifiers(),
                 )),
-                Validate::Members(function) => Some(function(exception.members().as_vec())),
+                Validate::Members(function) => Some(function(exception.members().as_member_vec())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -234,7 +234,9 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Dictionaries(function) => Some(function(&member_dictionaries(
                     operation.parameters_and_return_members(),
                 ))),
-                Validate::Members(function) => Some(function(operation.parameters_and_return_members().as_vec())),
+                Validate::Members(function) => {
+                    Some(function(operation.parameters_and_return_members().as_member_vec()))
+                }
                 Validate::Operations(function) => Some(function(operation)),
                 Validate::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
                 _ => None,
