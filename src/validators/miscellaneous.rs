@@ -7,7 +7,7 @@ use crate::validators::{Validate, ValidationChain, ValidationResult};
 pub fn miscellaneous_validators() -> ValidationChain {
     vec![
         Validate::Parameters(stream_parameter_is_last),
-        Validate::Struct(compact_structs_must_be_nonempty),
+        Validate::Struct(validate_compact_struct_not_empty),
     ]
 }
 
@@ -33,7 +33,7 @@ fn stream_parameter_is_last(members: &[&Parameter]) -> ValidationResult {
     }
 }
 
-fn compact_structs_must_be_nonempty(struct_def: &Struct) -> ValidationResult {
+fn validate_compact_struct_not_empty(struct_def: &Struct) -> ValidationResult {
     let mut errors = vec![];
     if struct_def.is_compact {
         // Compact structs must be non-empty.
