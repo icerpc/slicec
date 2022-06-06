@@ -143,7 +143,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     )]);
 }
 
-#[test_case("10"; "numerical identifier")]
+#[test_case("10"; "numeric identifier")]
 #[test_case("😊"; "unicode identifier")]
 #[ignore = "reason: validation not implemented"] // TODO
 fn enumerator_invalid_identifiers(identifier: &str) {
