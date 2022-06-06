@@ -233,7 +233,7 @@ mod scope_resolution {
         // Assert
         assert_errors!(error_reporter, [
             "redefinition of B",
-            "B was previously defined here"
+            "B was previously defined here",
         ]);
     }
 
