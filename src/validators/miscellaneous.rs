@@ -6,12 +6,12 @@ use crate::validators::{Validate, ValidationChain, ValidationResult};
 
 pub fn miscellaneous_validators() -> ValidationChain {
     vec![
-        Validate::ParametersAndReturnMember(validate_stream_member),
+        Validate::Parameters(stream_parameter_is_last),
         Validate::Struct(validate_compact_struct_not_empty),
     ]
 }
 
-fn validate_stream_member(members: &[&Parameter]) -> ValidationResult {
+fn stream_parameter_is_last(members: &[&Parameter]) -> ValidationResult {
     let mut errors = vec![];
     // If members is empty, `split_last` returns None, and this check is skipped,
     // otherwise it returns all the members, except for the last one. None of these members

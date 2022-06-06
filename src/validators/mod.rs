@@ -27,19 +27,14 @@ pub type ValidationChain = Vec<Validate>;
 pub type ValidationResult = Result<(), Vec<Error>>;
 
 pub enum Validate {
-    Attributable(fn(&dyn Attributable) -> ValidationResult),
-    Class(fn(&Class) -> ValidationResult),
-    Dictionary(fn(&[&Dictionary]) -> ValidationResult),
+    Attributes(fn(&dyn Attributable) -> ValidationResult),
+    Dictionaries(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
-    Exception(fn(&[&DataMember]) -> ValidationResult),
-    Interface(fn(&Interface) -> ValidationResult),
-    Members(fn(&[&DataMember]) -> ValidationResult),
+    Members(fn(Vec<&dyn Member>) -> ValidationResult),
     Identifiers(fn(Vec<&Identifier>) -> ValidationResult),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>) -> ValidationResult),
-    Operation(fn(&Operation) -> ValidationResult),
-    Parameter(fn(&Parameter) -> ValidationResult),
+    Operations(fn(&Operation) -> ValidationResult),
     Parameters(fn(&[&Parameter]) -> ValidationResult),
-    ParametersAndReturnMember(fn(&[&Parameter]) -> ValidationResult),
     Struct(fn(&Struct) -> ValidationResult),
 }
 
@@ -91,6 +86,18 @@ where
     }
 }
 
+trait AsMemberVecExt {
+    fn as_member_vec(&self) -> Vec<&dyn Member>;
+}
+
+impl<T: Member> AsMemberVecExt for Vec<&T> {
+    fn as_member_vec(&self) -> Vec<&dyn Member> {
+        let mut v: Vec<&dyn Member> = Vec::new();
+        self.iter().for_each(|m| v.push(*m));
+        v
+    }
+}
+
 fn container_dictionaries<T>(container: &dyn Container<OwnedPtr<T>>) -> Vec<&Dictionary>
 where
     T: Member,
@@ -124,15 +131,14 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Class(function) => Some(function(class)),
-                Validate::Dictionary(function) => Some(function(&container_dictionaries(class))),
-                Validate::Members(function) => Some(function(class.members().as_slice())),
-                Validate::Attributable(function) => Some(function(class)),
+                Validate::Attributes(function) => Some(function(class)),
+                Validate::Dictionaries(function) => Some(function(&container_dictionaries(class))),
                 Validate::Identifiers(function) => Some(function(class.members().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     class.members().get_identifiers(),
                     class.all_inherited_members().get_identifiers(),
                 )),
+                Validate::Members(function) => Some(function(class.members().as_member_vec())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -147,11 +153,11 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Struct(function) => Some(function(struct_def)),
-                Validate::Dictionary(function) => Some(function(&container_dictionaries(struct_def))),
-                Validate::Members(function) => Some(function(struct_def.members().as_slice())),
-                Validate::Attributable(function) => Some(function(struct_def)),
+                Validate::Attributes(function) => Some(function(struct_def)),
+                Validate::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
                 Validate::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
+                Validate::Members(function) => Some(function(struct_def.members().as_member_vec())),
+                Validate::Struct(function) => Some(function(struct_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -166,8 +172,8 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
+                Validate::Attributes(function) => Some(function(enum_def)),
                 Validate::Enums(function) => Some(function(enum_def)),
-                Validate::Attributable(function) => Some(function(enum_def)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -182,14 +188,14 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Dictionary(function) => Some(function(&container_dictionaries(exception))),
-                Validate::Exception(function) => Some(function(exception.members().as_slice())),
-                Validate::Attributable(function) => Some(function(exception)),
+                Validate::Attributes(function) => Some(function(exception)),
+                Validate::Dictionaries(function) => Some(function(&container_dictionaries(exception))),
                 Validate::Identifiers(function) => Some(function(exception.members().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     exception.members().get_identifiers(),
                     exception.all_inherited_members().get_identifiers(),
                 )),
+                Validate::Members(function) => Some(function(exception.members().as_member_vec())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -204,8 +210,7 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Interface(function) => Some(function(interface)),
-                Validate::Attributable(function) => Some(function(interface)),
+                Validate::Attributes(function) => Some(function(interface)),
                 Validate::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     interface.operations().get_identifiers(),
@@ -225,15 +230,15 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Dictionary(function) => Some(function(&member_dictionaries(
+                Validate::Attributes(function) => Some(function(operation)),
+                Validate::Dictionaries(function) => Some(function(&member_dictionaries(
                     operation.parameters_and_return_members(),
                 ))),
-                Validate::Operation(function) => Some(function(operation)),
-                Validate::Attributable(function) => Some(function(operation)),
-                Validate::Parameters(function) => Some(function(operation.parameters().as_slice())),
-                Validate::ParametersAndReturnMember(function) => {
-                    Some(function(&operation.parameters_and_return_members()))
+                Validate::Members(function) => {
+                    Some(function(operation.parameters_and_return_members().as_member_vec()))
                 }
+                Validate::Operations(function) => Some(function(operation)),
+                Validate::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -248,8 +253,7 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Parameter(function) => Some(function(parameter)),
-                Validate::Attributable(function) => Some(function(parameter)),
+                Validate::Attributes(function) => Some(function(parameter)),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -264,7 +268,7 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Dictionary(function) => match type_alias.underlying.concrete_type() {
+                Validate::Dictionaries(function) => match type_alias.underlying.concrete_type() {
                     Types::Dictionary(dictionary) => Some(function(&[dictionary])),
                     _ => None,
                 },
