@@ -130,16 +130,18 @@ impl<'a> Visitor for Validator<'a> {
         let mut errors = Vec::new();
         self.validation_functions
             .iter()
-            .filter_map(|f|
+            .filter_map(|f| {
                 if let Validate::Identifiers(function) = f {
-                    let identifiers = module_def.contents().iter()
+                    let identifiers = module_def
+                        .contents()
+                        .iter()
                         .map(|definition| definition.borrow().raw_identifier())
                         .collect::<Vec<_>>();
                     Some(function(identifiers))
                 } else {
                     None
                 }
-            )
+            })
             .for_each(|result| match result {
                 Ok(_) => (),
                 Err(mut errs) => errors.append(&mut errs),

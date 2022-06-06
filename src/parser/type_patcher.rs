@@ -134,7 +134,11 @@ impl<'ast> TypePatcher<'ast> {
                 _ => {
                     let entity = definition.borrow();
                     self.error_reporter.report_error(
-                        format!("{} `{}` cannot be used as a type", entity.kind(), entity.module_scoped_identifier()),
+                        format!(
+                            "{} `{}` cannot be used as a type",
+                            entity.kind(),
+                            entity.module_scoped_identifier(),
+                        ),
                         Some(entity.location()),
                     );
                     return;
