@@ -7,10 +7,9 @@ use std::str::FromStr;
 
 pub fn attribute_validators() -> ValidationChain {
     vec![
-        Validate::Attributable(validate_compress_attribute),
-        Validate::Operation(validate_format_attribute),
-        Validate::Parameter(validate_deprecated_parameters),
-        Validate::Members(validate_deprecated_data_members),
+        Validate::Attributes(is_compressible),
+        Validate::Operations(validate_format_attribute),
+        Validate::Members(cannot_be_deprecated),
     ]
 }
 
@@ -79,40 +78,19 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
     }
 }
 
-/// Validates that the `deprecated` attribute cannot be applied to operation parameters.
-fn validate_deprecated_parameters(parameter: &Parameter) -> ValidationResult {
+/// Validates that the `deprecated` attribute cannot be applied to members.
+fn cannot_be_deprecated(members: Vec<&dyn Member>) -> ValidationResult {
     let mut errors = vec![];
-    let attributes = parameter.attributes();
-    attributes.iter().for_each(|attribute| {
-        if attribute.directive.as_str() == "deprecated" {
+    members.iter().for_each(|m| {
+        if m.has_attribute("deprecated", false) {
             errors.push(Error {
-                message: "the deprecated attribute cannot be applied to parameters".to_owned(),
-                location: Some(attribute.location.clone()),
+                message: format!("the deprecated attribute cannot be applied to {}s", m.kind()),
+                location: Some(m.location().clone()),
                 severity: crate::error::ErrorLevel::Error,
             });
         }
     });
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
-}
 
-/// Validates that the `deprecated` attribute cannot be applied to data members.
-fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidationResult {
-    let mut errors = vec![];
-    members.iter().for_each(|member| {
-        let attributes = member.attributes();
-        attributes.iter().for_each(|attribute| {
-            if attribute.directive.as_str() == "deprecated" {
-                errors.push(Error {
-                    message: "the deprecated attribute cannot be applied to data members".to_owned(),
-                    location: Some(attribute.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
-                });
-            }
-        });
-    });
     match errors.is_empty() {
         true => Ok(()),
         false => Err(errors),
@@ -121,7 +99,7 @@ fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidationResult
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn validate_compress_attribute(element: &dyn Attributable) -> ValidationResult {
+fn is_compressible(element: &dyn Attributable) -> ValidationResult {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let mut errors = vec![];
