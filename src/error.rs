@@ -103,7 +103,7 @@ pub struct Error {
     pub severity: ErrorLevel,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ErrorLevel {
     Error,
     Warning,

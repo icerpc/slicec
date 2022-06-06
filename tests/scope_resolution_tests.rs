@@ -207,8 +207,8 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore = "This test case should be invalid"]
     fn interface_has_same_identifier_as_module() {
+        // Arrange
         let slice = "
         module A
         {
@@ -227,16 +227,19 @@ mod scope_resolution {
         }
         ";
 
-        let ast = parse_for_ast(slice);
-        let b_ptr = ast.find_typed_entity::<DataMember>("A::S::b").unwrap();
-        let b_type = b_ptr.borrow().data_type();
+        // Act
+        let error_reporter = parse_for_errors(slice);
 
-        assert!(matches!(b_type.concrete_type(), Types::Interface(_)));
+        // Assert
+        assert_errors!(error_reporter, [
+            "redefinition of B",
+            "B was previously defined here"
+        ]);
     }
 
     #[test]
-    #[ignore = "This test is broken. Fails with \"Encountered unpatchable type: module\""]
     fn relative_scope_is_module_before_interface() {
+        // Arrange
         let slice = "
         module A
         {
@@ -255,12 +258,13 @@ mod scope_resolution {
         }
         ";
 
-        let ast = parse_for_ast(slice);
+        // Act
+        let error_reporter = parse_for_errors(slice);
 
-        let b_ptr = ast.find_typed_entity::<DataMember>("A::B::C::S::c").unwrap();
-        let b_type = b_ptr.borrow().data_type();
-
-        assert!(matches!(b_type.concrete_type(), Types::Interface(_)));
+        // Assert
+        assert_errors!(error_reporter, [
+            "module `A::B::C` cannot be used as a type",
+        ]);
     }
 
     #[test]
