@@ -5,7 +5,7 @@ use crate::grammar::*;
 use crate::validators::{Validate, ValidationChain, ValidationResult};
 
 pub fn dictionary_validators() -> ValidationChain {
-    vec![Validate::Dictionary(has_allowed_key_type)]
+    vec![Validate::Dictionaries(has_allowed_key_type)]
 }
 
 pub fn has_allowed_key_type(dictionaries: &[&Dictionary]) -> ValidationResult {

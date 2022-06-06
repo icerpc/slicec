@@ -7,8 +7,8 @@ use std::str::FromStr;
 
 pub fn attribute_validators() -> ValidationChain {
     vec![
-        Validate::Attributable(is_compressible),
-        Validate::Operation(validate_format_attribute),
+        Validate::Attributes(is_compressible),
+        Validate::Operations(validate_format_attribute),
         Validate::Members(cannot_be_deprecated),
     ]
 }

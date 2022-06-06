@@ -6,17 +6,17 @@ use crate::validators::{Validate, ValidationChain, ValidationResult};
 
 pub fn tag_validators() -> ValidationChain {
     vec![
-        Validate::Members(have_optional_types),
+        Validate::Members(tags_have_optional_types),
         Validate::Members(tagged_containers_cannot_contain_classes),
         Validate::Members(cannot_tag_classes),
-        Validate::Members(check_tags_uniqueness),
+        Validate::Members(tags_are_unique),
         Validate::Struct(compact_structs_cannot_contain_tags),
         Validate::Parameters(parameter_order),
     ]
 }
 
 /// Validates that the tags are unique.
-fn check_tags_uniqueness(members: Vec<&dyn Member>) -> ValidationResult {
+fn tags_are_unique(members: Vec<&dyn Member>) -> ValidationResult {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -116,7 +116,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult 
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn have_optional_types(members: Vec<&dyn Member>) -> ValidationResult {
+fn tags_have_optional_types(members: Vec<&dyn Member>) -> ValidationResult {
     let mut errors = vec![];
     let tagged_members = members
         .iter()
