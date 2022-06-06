@@ -106,8 +106,7 @@ fn validate_deprecated_data_members(members: &[&DataMember]) -> ValidationResult
         attributes.iter().for_each(|attribute| {
             if attribute.directive.as_str() == "deprecated" {
                 errors.push(Error {
-                    message: "the deprecated attribute cannot be applied to data members"
-                        .to_owned(),
+                    message: "the deprecated attribute cannot be applied to data members".to_owned(),
                     location: Some(attribute.location.clone()),
                     severity: crate::error::ErrorLevel::Error,
                 });
@@ -131,8 +130,7 @@ fn validate_compress_attribute(element: &dyn Attributable) -> ValidationResult {
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => errors.push(Error {
-                message: "the compress attribute can only be applied to interfaces and operations"
-                    .to_owned(),
+                message: "the compress attribute can only be applied to interfaces and operations".to_owned(),
                 location: Some(attribute.location.clone()),
                 severity: crate::error::ErrorLevel::Error,
             }),

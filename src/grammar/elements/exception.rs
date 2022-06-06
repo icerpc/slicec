@@ -48,10 +48,7 @@ impl Exception {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members
-            .iter()
-            .map(|member_ptr| member_ptr.borrow())
-            .collect()
+        self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
     }
 
     pub fn all_inherited_members(&self) -> Vec<&DataMember> {
@@ -79,9 +76,7 @@ impl Exception {
 impl Type for Exception {
     fn is_fixed_size(&self) -> bool {
         // An exception is fixed size if and only if all its members are fixed size.
-        self.all_members()
-            .iter()
-            .all(|member| member.data_type.is_fixed_size())
+        self.all_members().iter().all(|member| member.data_type.is_fixed_size())
     }
 
     fn min_wire_size(&self) -> u32 {
@@ -93,9 +88,7 @@ impl Type for Exception {
     }
 
     fn uses_classes(&self) -> bool {
-        self.all_members()
-            .iter()
-            .any(|member| member.data_type.uses_classes())
+        self.all_members().iter().any(|member| member.data_type.uses_classes())
     }
 
     fn is_class_type(&self) -> bool {

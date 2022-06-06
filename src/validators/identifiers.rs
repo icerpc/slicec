@@ -36,10 +36,7 @@ pub fn check_for_redefinition(identifiers: Vec<&Identifier>) -> ValidationResult
     }
 }
 
-pub fn check_for_shadowing(
-    identifiers: Vec<&Identifier>,
-    inherited_symbols: Vec<&Identifier>,
-) -> ValidationResult {
+pub fn check_for_shadowing(identifiers: Vec<&Identifier>, inherited_symbols: Vec<&Identifier>) -> ValidationResult {
     let mut errors = vec![];
     identifiers.iter().for_each(|identifier| {
         inherited_symbols

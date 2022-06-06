@@ -57,12 +57,7 @@ pub(super) struct SliceParser<'a> {
 }
 
 impl<'a> SliceParser<'a> {
-    pub fn try_parse_file(
-        &mut self,
-        file: &str,
-        is_source: bool,
-        ast: &mut Ast,
-    ) -> Option<SliceFile> {
+    pub fn try_parse_file(&mut self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
         match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
@@ -72,12 +67,7 @@ impl<'a> SliceParser<'a> {
         }
     }
 
-    fn parse_file(
-        &mut self,
-        file: &str,
-        is_source: bool,
-        ast: &mut Ast,
-    ) -> Result<SliceFile, String> {
+    fn parse_file(&mut self, file: &str, is_source: bool, ast: &mut Ast) -> Result<SliceFile, String> {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: file.to_owned(),
@@ -89,13 +79,11 @@ impl<'a> SliceParser<'a> {
 
         // Read the raw text from the file, and parse it into a raw ast.
         let raw_text = fs::read_to_string(&file).map_err(|e| e.to_string())?;
-        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &user_data)
-            .map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
+        let node = SliceParser::parse_with_userdata(Rule::main, &raw_text, &user_data).map_err(|e| e.to_string())?; // TODO maybe make this error print prettier?
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, file_contents, file_encoding) =
-            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        let (file_attributes, file_contents, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let top_level_modules = file_contents
             .into_iter()
@@ -112,12 +100,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    pub fn try_parse_string(
-        &mut self,
-        identifier: &str,
-        input: &str,
-        ast: &mut Ast,
-    ) -> Option<SliceFile> {
+    pub fn try_parse_string(&mut self, identifier: &str, input: &str, ast: &mut Ast) -> Option<SliceFile> {
         match self.parse_string(identifier, input, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
@@ -127,12 +110,7 @@ impl<'a> SliceParser<'a> {
         }
     }
 
-    fn parse_string(
-        &mut self,
-        identifier: &str,
-        input: &str,
-        ast: &mut Ast,
-    ) -> Result<SliceFile, String> {
+    fn parse_string(&mut self, identifier: &str, input: &str, ast: &mut Ast) -> Result<SliceFile, String> {
         let user_data = RefCell::new(ParserData {
             ast,
             current_file: identifier.to_owned(),
@@ -150,8 +128,7 @@ impl<'a> SliceParser<'a> {
         let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
 
         // Consume the contents of the file and add them into the AST.
-        let (file_attributes, file_contents, file_encoding) =
-            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        let (file_attributes, file_contents, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let top_level_modules = file_contents
             .into_iter()
@@ -275,9 +252,7 @@ impl<'a> SliceParser<'a> {
     }
 
     #[allow(clippy::type_complexity)]
-    fn class_start(
-        input: PestNode,
-    ) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
         let location = location_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier), compact_id(compact_id)] => {
@@ -317,9 +292,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn exception_start(
-        input: PestNode,
-    ) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
+    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
         let location = location_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
@@ -359,9 +332,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn interface_start(
-        input: PestNode,
-    ) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
+    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
         let location = location_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
@@ -402,9 +373,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enum_start(
-        input: PestNode,
-    ) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
+    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
         // Reset the current enumerator value back to None.
         input.user_data().borrow_mut().current_enum_value = None;
 
@@ -760,22 +729,16 @@ impl<'a> SliceParser<'a> {
         let type_node = nodes.next().unwrap();
 
         // Get the typename as a string, with any whitespace removed from it.
-        let type_name = type_node
-            .as_str()
-            .chars()
-            .filter(|c| !c.is_whitespace())
-            .collect();
+        let type_name = type_node.as_str().chars().filter(|c| !c.is_whitespace()).collect();
 
         let is_optional = input.as_str().ends_with('?');
         let scope = get_scope(&input);
-        let mut type_ref: TypeRef<dyn Type> =
-            TypeRef::new(type_name, is_optional, scope, attributes, location);
+        let mut type_ref: TypeRef<dyn Type> = TypeRef::new(type_name, is_optional, scope, attributes, location);
 
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
             Rule::primitive => {
-                type_ref.definition =
-                    upcast_weak_as!(Self::primitive(type_node).unwrap(), dyn Type);
+                type_ref.definition = upcast_weak_as!(Self::primitive(type_node).unwrap(), dyn Type);
             }
             Rule::sequence => {
                 // Store the sequence in the AST's anonymous types vector.
@@ -823,24 +786,15 @@ impl<'a> SliceParser<'a> {
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            location_from_span(&input),
-        ))
+        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            location_from_span(&input),
-        ))
+        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
     }
 
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(
-            input.as_str().to_owned(),
-            location_from_span(&input),
-        ))
+        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
     }
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {

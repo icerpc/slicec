@@ -158,9 +158,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "return tuples must have at least 2 elements",
-    ]);
+    assert_errors!(error_reporter, ["return tuples must have at least 2 elements",]);
 }
 
 mod streams {

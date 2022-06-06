@@ -26,7 +26,15 @@ impl TypeAlias {
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        TypeAlias { identifier, underlying, parent, scope, attributes, comment, location }
+        TypeAlias {
+            identifier,
+            underlying,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 

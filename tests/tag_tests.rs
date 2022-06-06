@@ -25,9 +25,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
-            "invalid member `b`: tagged members must be optional",
-        ]);
+        assert_errors!(error_reporter, ["invalid member `b`: tagged members must be optional",]);
     }
 
     #[test]

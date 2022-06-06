@@ -23,7 +23,14 @@ impl<T: Element + ?Sized + 'static> TypeRef<T> {
         location: Location,
     ) -> Self {
         let definition = WeakPtr::create_uninitialized();
-        TypeRef { type_string, definition, is_optional, scope, attributes, location }
+        TypeRef {
+            type_string,
+            definition,
+            is_optional,
+            scope,
+            attributes,
+            location,
+        }
     }
 }
 

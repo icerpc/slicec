@@ -30,26 +30,26 @@ fn backing_type_bounds(enum_def: &Enum) -> ValidationResult {
                         "invalid enumerator value on enumerator `{}`: enumerators must be non-negative",
                         &enumerator.identifier()
                     ),
-                    location:  Some(enumerator.location.clone()),
+                    location: Some(enumerator.location.clone()),
                     severity: crate::error::ErrorLevel::Error,
                 });
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
-                .enumerators()
-                .iter()
-                .filter(|enumerator| enumerator.value > i32::MAX as i64)
-                .for_each(|enumerator| {
-                    errors.push(Error {
-                        message: format!(
-                            "invalid enumerator value on enumerator `{identifier}`: must be smaller than than {max}",
-                            identifier = &enumerator.identifier(),
-                            max = i32::MAX,
-                        ),
-                        location:  Some(enumerator.location.clone()),
-                        severity: crate::error::ErrorLevel::Error,
-                    });
+            .enumerators()
+            .iter()
+            .filter(|enumerator| enumerator.value > i32::MAX as i64)
+            .for_each(|enumerator| {
+                errors.push(Error {
+                    message: format!(
+                        "invalid enumerator value on enumerator `{identifier}`: must be smaller than than {max}",
+                        identifier = &enumerator.identifier(),
+                        max = i32::MAX,
+                    ),
+                    location: Some(enumerator.location.clone()),
+                    severity: crate::error::ErrorLevel::Error,
                 });
+            });
         match errors.is_empty() {
             true => Ok(()),
             false => Err(errors),
@@ -166,7 +166,10 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum) -> ValidationResult {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
             errors.push(Error {
-                message: format!("underlying type '{}' cannot be optional: enums cannot have optional underlying types", typeref.type_string),
+                message: format!(
+                    "underlying type '{}' cannot be optional: enums cannot have optional underlying types",
+                    typeref.type_string
+                ),
                 location: Some(enum_def.location.clone()),
                 severity: crate::error::ErrorLevel::Error,
             });

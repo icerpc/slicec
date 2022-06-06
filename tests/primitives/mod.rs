@@ -46,8 +46,5 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
         .unwrap();
     let primitive = primitive_ptr.borrow();
 
-    assert_eq!(
-        std::mem::discriminant(primitive),
-        std::mem::discriminant(&expected),
-    );
+    assert_eq!(std::mem::discriminant(primitive), std::mem::discriminant(&expected));
 }
