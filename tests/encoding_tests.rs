@@ -10,8 +10,8 @@ mod encodings {
     use test_case::test_case;
 
     /// Verifies that the supported encodings compile
-    #[test_case("1")]
-    #[test_case("2")]
+    #[test_case("1"; "encoding 1")]
+    #[test_case("2"; "encoding 2")]
     fn valid_encodings(value: &str) {
         // Arrange
         let slice = format!(

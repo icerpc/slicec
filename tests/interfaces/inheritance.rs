@@ -119,7 +119,7 @@ fn inherits_correct_operations() {
     {
         opD();
     }
-";
+    ";
 
     let ast = parse_for_ast(slice);
     let interface_a_ptr = ast.find_typed_type::<Interface>("Test::A").unwrap();

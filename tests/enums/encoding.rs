@@ -34,15 +34,15 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use test_case::test_case;
 
-    #[test_case("uint8")]
-    #[test_case("int16")]
-    #[test_case("uint16")]
-    #[test_case("int32")]
-    #[test_case("uint32")]
-    #[test_case("varint32")]
-    #[test_case("varuint32")]
-    #[test_case("varint62")]
-    #[test_case("varuint62")]
+    #[test_case("uint8"; "uint8")]
+    #[test_case("int16"; "int16")]
+    #[test_case("uint16"; "uint16")]
+    #[test_case("int32"; "int32")]
+    #[test_case("uint32"; "uint32")]
+    #[test_case("varint32"; "varint32")]
+    #[test_case("varuint32"; "varuint32")]
+    #[test_case("varint62"; "varint62")]
+    #[test_case("varuint62"; "varuint62")]
     fn supported_numeric_underlying_types_succeed(valid_type: &str) {
         // Arrange
         let slice = &format!(

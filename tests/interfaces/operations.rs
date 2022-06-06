@@ -164,6 +164,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
 mod streams {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
+
     #[test]
     fn operation_can_have_at_most_one_streamed_parameter() {
         let slice = "

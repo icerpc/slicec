@@ -118,9 +118,9 @@ fn validate_backing_type_bounds() {
     assert_errors!(error_reporter);
 }
 
-#[test_case("string")]
-#[test_case("float32")]
-#[test_case("float64")]
+#[test_case("string"; "string")]
+#[test_case("float32"; "float32")]
+#[test_case("float64"; "float64")]
 fn invalid_underlying_type(underlying_type: &str) {
     // Arrange
     let slice = format!(
@@ -143,8 +143,8 @@ fn invalid_underlying_type(underlying_type: &str) {
     )]);
 }
 
-#[test_case("10")]
-#[test_case("😊")]
+#[test_case("10"; "numeric identifier")]
+#[test_case("😊"; "unicode identifier")]
 #[ignore = "reason: validation not implemented"] // TODO
 fn enumerator_invalid_identifiers(identifier: &str) {
     // Arrange
