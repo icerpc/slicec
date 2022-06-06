@@ -252,9 +252,7 @@ fn checked_enums_can_not_be_empty() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "enums must contain at least one enumerator",
-    ]);
+    assert_errors!(error_reporter, ["enums must contain at least one enumerator",]);
 }
 
 #[test]
@@ -315,8 +313,7 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected_errors =
-            ["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
+        let expected_errors = ["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
 
         // Act
         let error_reporter = parse_for_errors(slice);

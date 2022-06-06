@@ -80,10 +80,7 @@ impl Interface {
     }
 
     pub fn base_interfaces(&self) -> Vec<&Interface> {
-        self.bases
-            .iter()
-            .map(|type_ref| type_ref.definition())
-            .collect()
+        self.bases.iter().map(|type_ref| type_ref.definition()).collect()
     }
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {

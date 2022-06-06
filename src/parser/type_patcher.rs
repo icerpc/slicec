@@ -54,61 +54,48 @@ impl<'ast> TypePatcher<'ast> {
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
         // Since only user-defined types need to be patched, we lookup by entity instead of by type.
-        let lookup = Ast::lookup_entity(
-            self.lookup_table,
-            &type_ref.type_string,
-            &type_ref.scope.module_scope,
-        );
+        let lookup = Ast::lookup_entity(self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope);
         if let Some(definition) = lookup {
             match definition.borrow().concrete_entity() {
                 Entities::Struct(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Struct>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Struct>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::Class(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Class>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Class>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::Exception(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Exception>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Exception>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::Interface(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Interface>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Interface>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::Enum(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Enum>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Enum>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::Trait(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<Trait>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<Trait>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::CustomType(_) => {
-                    type_ref.definition = upcast_weak_as!(
-                        definition.clone().downcast::<CustomType>().ok().unwrap(), dyn Type
-                    );
+                    type_ref.definition =
+                        upcast_weak_as!(definition.clone().downcast::<CustomType>().ok().unwrap(), dyn Type);
                     return;
                 }
                 Entities::TypeAlias(type_alias) => {
                     // TODO this can probably be simplified into a single loop.
                     let alias_ref = &type_alias.underlying;
-                    type_ref
-                        .attributes
-                        .extend_from_slice(alias_ref.attributes());
+                    type_ref.attributes.extend_from_slice(alias_ref.attributes());
 
                     if alias_ref.definition.is_initialized() {
                         type_ref.definition = alias_ref.definition.clone();
@@ -125,9 +112,7 @@ impl<'ast> TypePatcher<'ast> {
                     while let Ok(underlying) = &alias_lookup {
                         if let Ok(underlying_alias) = underlying.clone().downcast::<TypeAlias>() {
                             let underlying_ref = &underlying_alias.borrow().underlying;
-                            type_ref
-                                .attributes
-                                .extend_from_slice(underlying_ref.attributes());
+                            type_ref.attributes.extend_from_slice(underlying_ref.attributes());
 
                             if underlying_ref.definition.is_initialized() {
                                 type_ref.definition = underlying_ref.definition.clone();
@@ -146,10 +131,7 @@ impl<'ast> TypePatcher<'ast> {
                         }
                     }
                 }
-                _ => panic!(
-                    "Encountered unpatchable type: {}",
-                    definition.borrow().kind()
-                ),
+                _ => panic!("Encountered unpatchable type: {}", definition.borrow().kind()),
             }
         }
 
@@ -169,11 +151,7 @@ impl<'ast> TypePatcher<'ast> {
         }
 
         // Lookup the definition in the AST's lookup tables, and if it exists, try to patch it in.
-        let lookup = Ast::lookup_entity(
-            self.lookup_table,
-            &type_ref.type_string,
-            &type_ref.scope.module_scope,
-        );
+        let lookup = Ast::lookup_entity(self.lookup_table, &type_ref.type_string, &type_ref.scope.module_scope);
 
         if let Some(definition) = lookup {
             if let Ok(converted) = definition.clone().downcast::<T>() {

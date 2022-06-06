@@ -33,9 +33,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast
-            .find_typed_type::<Interface>("tests::MyInterface")
-            .unwrap();
+        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
         let interface_def = interface_ptr.borrow();
         let interface_doc = interface_def.comment().unwrap();
 
@@ -143,10 +141,7 @@ mod comments {
                 testOp(testParam: string) -> bool;
             }
             ";
-        let expected = vec![(
-            "MyThrownThing".to_owned(),
-            "Message about my thrown thing.".to_owned(),
-        )];
+        let expected = vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
 
         // Act
         let ast = parse_for_ast(slice);
@@ -190,11 +185,7 @@ mod comments {
 
     #[test_case("/// This is a doc comment.", (4, 13), (5, 13); "doc comment")]
     #[test_case("/**\n* This is a multi line doc comment.\n*/", (4, 13), (6, 3); "multi-line doc comment")]
-    fn doc_comments_location(
-        comment: &str,
-        expected_start: (usize, usize),
-        expected_end: (usize, usize),
-    ) {
+    fn doc_comments_location(comment: &str, expected_start: (usize, usize), expected_end: (usize, usize)) {
         // Arrange
         let slice = format!(
             "
@@ -210,9 +201,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast
-            .find_typed_type::<Interface>("tests::MyInterface")
-            .unwrap();
+        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
         let interface_def = interface_ptr.borrow();
         let interface_doc = interface_def.comment().unwrap();
 
@@ -239,9 +228,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast
-            .find_typed_type::<Interface>("tests::MyInterface")
-            .unwrap();
+        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
         let interface_def = interface_ptr.borrow();
         let interface_doc = interface_def.comment();
 

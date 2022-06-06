@@ -20,8 +20,7 @@ fn validate_stream_member(members: &[&Parameter]) -> ValidationResult {
         for member in nonstreamed_members {
             if member.is_streamed {
                 errors.push(Error {
-                    message: "only the last parameter in an operation can use the stream modifier"
-                        .to_owned(),
+                    message: "only the last parameter in an operation can use the stream modifier".to_owned(),
                     location: Some(member.location.clone()),
                     severity: crate::error::ErrorLevel::Error,
                 });

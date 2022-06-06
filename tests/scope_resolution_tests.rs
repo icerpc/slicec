@@ -59,14 +59,8 @@ mod scope_resolution {
         let s3_type = s3_ptr.borrow().data_type();
         let s4_type = s4_ptr.borrow().data_type();
 
-        assert!(matches!(
-            s1_type.concrete_type(),
-            Types::Primitive(Primitive::Int32),
-        ));
-        assert!(matches!(
-            s2_type.concrete_type(),
-            Types::Primitive(Primitive::Int32),
-        ));
+        assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::Int32)));
+        assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::Int32)));
         assert!(matches!(s3_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(s4_type.concrete_type(), Types::Struct(_)));
     }
@@ -105,22 +99,10 @@ mod scope_resolution {
         let s3_type = s3_ptr.borrow().data_type();
         let s4_type = s4_ptr.borrow().data_type();
 
-        assert!(matches!(
-            s1_type.concrete_type(),
-            Types::Primitive(Primitive::String),
-        ));
-        assert!(matches!(
-            s2_type.concrete_type(),
-            Types::Primitive(Primitive::String),
-        ));
-        assert!(matches!(
-            s3_type.concrete_type(),
-            Types::Primitive(Primitive::String),
-        ));
-        assert!(matches!(
-            s4_type.concrete_type(),
-            Types::Primitive(Primitive::Int32),
-        ));
+        assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::String)));
+        assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
+        assert!(matches!(s3_type.concrete_type(), Types::Primitive(Primitive::String)));
+        assert!(matches!(s4_type.concrete_type(), Types::Primitive(Primitive::Int32)));
     }
 
     #[test]
@@ -154,15 +136,9 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let s1_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::B::C::s1")
-            .unwrap();
-        let s2_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::B::C::s2")
-            .unwrap();
-        let s3_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::B::C::s3")
-            .unwrap();
+        let s1_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s1").unwrap();
+        let s2_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s2").unwrap();
+        let s3_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s3").unwrap();
 
         let s1_type = s1_ptr.borrow().data_type();
         let s2_type = s2_ptr.borrow().data_type();
@@ -170,10 +146,7 @@ mod scope_resolution {
 
         assert!(matches!(s1_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(s2_type.concrete_type(), Types::Struct(_)));
-        assert!(matches!(
-            s3_type.concrete_type(),
-            Types::Primitive(Primitive::Int32),
-        ));
+        assert!(matches!(s3_type.concrete_type(), Types::Primitive(Primitive::Int32)));
     }
 
     #[test]
@@ -210,12 +183,8 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let nested_s1_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::A::B::C::s1")
-            .unwrap();
-        let nested_s2_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::A::B::C::s2")
-            .unwrap();
+        let nested_s1_ptr = ast.find_typed_entity::<DataMember>("A::B::A::B::C::s1").unwrap();
+        let nested_s2_ptr = ast.find_typed_entity::<DataMember>("A::B::A::B::C::s2").unwrap();
         let s1_ptr = ast.find_typed_entity::<DataMember>("A::C::s1").unwrap();
         let s2_ptr = ast.find_typed_entity::<DataMember>("A::C::s2").unwrap();
 
@@ -233,14 +202,8 @@ mod scope_resolution {
             Types::Primitive(Primitive::String),
         ));
 
-        assert!(matches!(
-            s1_type.concrete_type(),
-            Types::Primitive(Primitive::String),
-        ));
-        assert!(matches!(
-            s2_type.concrete_type(),
-            Types::Primitive(Primitive::String),
-        ));
+        assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::String)));
+        assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
     }
 
     #[test]
@@ -294,9 +257,7 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let b_ptr = ast
-            .find_typed_entity::<DataMember>("A::B::C::S::c")
-            .unwrap();
+        let b_ptr = ast.find_typed_entity::<DataMember>("A::B::C::S::c").unwrap();
         let b_type = b_ptr.borrow().data_type();
 
         assert!(matches!(b_type.concrete_type(), Types::Interface(_)));

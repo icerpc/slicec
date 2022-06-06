@@ -13,17 +13,18 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub(crate) fn new(
-        prefix: Option<String>,
-        directive: String,
-        arguments: Vec<String>,
-        location: Location,
-    ) -> Self {
+    pub(crate) fn new(prefix: Option<String>, directive: String, arguments: Vec<String>, location: Location) -> Self {
         let prefixed_directive = prefix.clone().map_or(
             directive.clone(),                   // Default value if prefix == None
             |prefix| prefix + "::" + &directive, // Function to call if prefix == Some
         );
-        Attribute { prefix, directive, prefixed_directive, arguments, location }
+        Attribute {
+            prefix,
+            directive,
+            prefixed_directive,
+            arguments,
+            location,
+        }
     }
 }
 

@@ -10,7 +10,10 @@ pub struct OwnedPtr<T: ?Sized> {
 
 impl<T: Sized + 'static> OwnedPtr<T> {
     pub fn new(value: T) -> Self {
-        OwnedPtr { data: Box::new(value), concrete_type_id: TypeId::of::<T>() }
+        OwnedPtr {
+            data: Box::new(value),
+            concrete_type_id: TypeId::of::<T>(),
+        }
     }
 }
 
@@ -38,7 +41,10 @@ impl<T: ?Sized> OwnedPtr<T> {
     }
 
     pub fn downgrade(&self) -> WeakPtr<T> {
-        WeakPtr { data: Some(&*self.data), concrete_type_id: self.concrete_type_id }
+        WeakPtr {
+            data: Some(&*self.data),
+            concrete_type_id: self.concrete_type_id,
+        }
     }
 
     pub fn downcast<U: 'static>(self) -> Result<OwnedPtr<U>, OwnedPtr<T>> {
@@ -57,7 +63,10 @@ impl<T: ?Sized> OwnedPtr<T> {
     }
 
     pub fn from_inner(inner: (Box<T>, TypeId)) -> Self {
-        OwnedPtr { data: inner.0, concrete_type_id: inner.1 }
+        OwnedPtr {
+            data: inner.0,
+            concrete_type_id: inner.1,
+        }
     }
 
     pub fn into_inner(self) -> (Box<T>, TypeId) {
@@ -73,7 +82,10 @@ pub struct WeakPtr<T: ?Sized> {
 
 impl<T: ?Sized + 'static> WeakPtr<T> {
     pub fn create_uninitialized() -> Self {
-        WeakPtr { data: None, concrete_type_id: TypeId::of::<T>() }
+        WeakPtr {
+            data: None,
+            concrete_type_id: TypeId::of::<T>(),
+        }
     }
 }
 
@@ -107,7 +119,10 @@ impl<T: ?Sized> WeakPtr<T> {
     }
 
     pub fn from_inner(inner: (Option<*const T>, TypeId)) -> Self {
-        WeakPtr { data: inner.0, concrete_type_id: inner.1 }
+        WeakPtr {
+            data: inner.0,
+            concrete_type_id: inner.1,
+        }
     }
 
     pub fn into_inner(self) -> (Option<*const T>, TypeId) {
@@ -117,7 +132,10 @@ impl<T: ?Sized> WeakPtr<T> {
 
 impl<T: ?Sized> Clone for WeakPtr<T> {
     fn clone(&self) -> Self {
-        WeakPtr { data: self.data, concrete_type_id: self.concrete_type_id }
+        WeakPtr {
+            data: self.data,
+            concrete_type_id: self.concrete_type_id,
+        }
     }
 }
 

@@ -99,7 +99,9 @@ impl Ast {
         let mut module_ptr = OwnedPtr::new(module_def);
 
         // Create a visitor for adding the module's contents into the AST's lookup tables.
-        let mut visitor = LookupTableBuilder { lookup_table: &mut self.lookup_table };
+        let mut visitor = LookupTableBuilder {
+            lookup_table: &mut self.lookup_table,
+        };
 
         // Add the module into the lookup tables, then recursively add it's contents too.
         //
@@ -142,10 +144,7 @@ impl Ast {
         self.lookup_table.get(fully_scoped_identifier).cloned()
     }
 
-    pub fn find_typed_entity<T: Entity + 'static>(
-        &self,
-        fully_scoped_identifier: &str,
-    ) -> Option<WeakPtr<T>> {
+    pub fn find_typed_entity<T: Entity + 'static>(&self, fully_scoped_identifier: &str) -> Option<WeakPtr<T>> {
         let entity_ptr = self.find_entity(fully_scoped_identifier);
         entity_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
     }
@@ -160,10 +159,7 @@ impl Ast {
         result.ok()
     }
 
-    pub fn find_typed_type<T: Type + 'static>(
-        &self,
-        fully_scoped_identifier: &str,
-    ) -> Option<WeakPtr<T>> {
+    pub fn find_typed_type<T: Type + 'static>(&self, fully_scoped_identifier: &str) -> Option<WeakPtr<T>> {
         let type_ptr = self.find_type(fully_scoped_identifier);
         type_ptr.and_then(|ptr| ptr.downcast::<T>().ok())
     }

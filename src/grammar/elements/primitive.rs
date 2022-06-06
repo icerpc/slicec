@@ -66,12 +66,7 @@ impl Primitive {
     pub fn is_unsigned_numeric(&self) -> bool {
         matches!(
             self,
-            Self::UInt8
-                | Self::UInt16
-                | Self::UInt32
-                | Self::VarUInt32
-                | Self::UInt64
-                | Self::VarUInt62
+            Self::UInt8 | Self::UInt16 | Self::UInt32 | Self::VarUInt32 | Self::UInt64 | Self::VarUInt62
         )
     }
 

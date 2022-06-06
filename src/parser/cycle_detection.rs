@@ -6,11 +6,11 @@ use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn detect_cycles(
-    slice_files: &HashMap<String, SliceFile>,
-    error_reporter: &mut ErrorReporter,
-) {
-    let mut cycle_detector = CycleDetector { dependency_stack: Vec::new(), error_reporter };
+pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, error_reporter: &mut ErrorReporter) {
+    let mut cycle_detector = CycleDetector {
+        dependency_stack: Vec::new(),
+        error_reporter,
+    };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
     for slice_file in slice_files.values() {
@@ -34,8 +34,7 @@ impl<'a> CycleDetector<'a> {
                 type_id = &type_id,
                 cycle_string = &self.dependency_stack[i..].join(" -> "),
             );
-            self.error_reporter
-                .report_error(message, Some(type_def.location()));
+            self.error_reporter.report_error(message, Some(type_def.location()));
 
             true
         } else {

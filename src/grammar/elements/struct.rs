@@ -48,19 +48,14 @@ impl Struct {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members
-            .iter()
-            .map(|member_ptr| member_ptr.borrow())
-            .collect()
+        self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
     }
 }
 
 impl Type for Struct {
     fn is_fixed_size(&self) -> bool {
         // A struct is fixed size if and only if all its members are fixed size.
-        self.members()
-            .iter()
-            .all(|member| member.data_type.is_fixed_size())
+        self.members().iter().all(|member| member.data_type.is_fixed_size())
     }
 
     fn min_wire_size(&self) -> u32 {
@@ -79,9 +74,7 @@ impl Type for Struct {
     }
 
     fn uses_classes(&self) -> bool {
-        self.members()
-            .iter()
-            .any(|member| member.data_type.uses_classes())
+        self.members().iter().any(|member| member.data_type.uses_classes())
     }
 
     fn is_class_type(&self) -> bool {

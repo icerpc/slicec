@@ -24,10 +24,7 @@ mod sequences {
         let seq_type = seq_def.underlying.concrete_typeref();
 
         if let TypeRefs::Sequence(seq) = seq_type {
-            matches!(
-                &seq.element_type.concrete_type(),
-                Types::Primitive(Primitive::Int8),
-            );
+            matches!(&seq.element_type.concrete_type(), Types::Primitive(Primitive::Int8));
         } else {
             panic!("Expected sequence type");
         }

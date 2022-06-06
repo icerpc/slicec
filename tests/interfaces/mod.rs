@@ -71,8 +71,5 @@ fn cannot_redefine_operations() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "redefinition of op",
-        "op was previously defined here"
-    ]);
+    assert_errors!(error_reporter, ["redefinition of op", "op was previously defined here"]);
 }

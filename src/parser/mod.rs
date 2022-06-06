@@ -30,7 +30,9 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let mut ast = Ast::new();
     let mut error_reporter = ErrorReporter::default();
 
-    let mut parser = slice::SliceParser { error_reporter: &mut error_reporter };
+    let mut parser = slice::SliceParser {
+        error_reporter: &mut error_reporter,
+    };
 
     let source_files = find_slice_files(&options.sources);
     let mut reference_files = find_slice_files(&options.references);
@@ -69,7 +71,9 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::new();
     let mut error_reporter = ErrorReporter::default();
-    let mut parser = slice::SliceParser { error_reporter: &mut error_reporter };
+    let mut parser = slice::SliceParser {
+        error_reporter: &mut error_reporter,
+    };
 
     let identifier = "in-memory-file";
 
@@ -79,8 +83,12 @@ pub fn parse_string(input: &str) -> ParserResult {
         slice_files.insert(identifier.to_owned(), slice_file);
     }
 
-    let mut parsed_data =
-        ParsedData { ast, files: slice_files, error_reporter, warning_as_error: true };
+    let mut parsed_data = ParsedData {
+        ast,
+        files: slice_files,
+        error_reporter,
+        warning_as_error: true,
+    };
 
     patch_ast(&mut parsed_data);
 
@@ -134,11 +142,7 @@ fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
         find_slice_files_in_directory(path.read_dir()?)
     }
     // If the path is not a directory, check if it ends with 'slice'.
-    else if path
-        .extension()
-        .filter(|ext| ext.to_str() == Some("slice"))
-        .is_some()
-    {
+    else if path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some() {
         Ok(vec![path])
     } else {
         Ok(vec![])

@@ -86,8 +86,7 @@ impl CommentParser {
 
                                 // Add a new parameter field to the comment, with an empty
                                 // description.
-                                let identifier =
-                                    subtoken.as_str().trim_end_matches(Self::is_padding);
+                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
                                 comment.params.push((identifier.to_owned(), String::new()));
                                 // Re-point the current string reference to point to the parameter's
                                 // description string, so that any
@@ -179,8 +178,7 @@ impl CommentParser {
                                 }
 
                                 // Add a new throws field to the comment, with an empty description.
-                                let identifier =
-                                    subtoken.as_str().trim_end_matches(Self::is_padding);
+                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
                                 comment.throws.push((identifier.to_owned(), String::new()));
                                 // Re-point the current string reference to point to the throws'
                                 // description string, so that any
@@ -227,8 +225,7 @@ impl CommentParser {
                                 }
 
                                 // Add a new see field to the comment, with an empty description.
-                                let identifier =
-                                    subtoken.as_str().trim_end_matches(Self::is_padding);
+                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
                                 comment.see_also.push(identifier.to_owned());
                                 // Re-point the current string reference to point to the identifier
                                 // string. References shouldn't have

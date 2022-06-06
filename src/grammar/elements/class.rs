@@ -51,10 +51,7 @@ impl Class {
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
-        self.members
-            .iter()
-            .map(|member_ptr| member_ptr.borrow())
-            .collect()
+        self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
     }
 
     pub fn all_inherited_members(&self) -> Vec<&DataMember> {
