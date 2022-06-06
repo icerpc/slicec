@@ -11,8 +11,8 @@ mod attributes {
         use slice::grammar::*;
         use test_case::test_case;
 
-        #[test_case("Compact", ClassFormat::Compact)]
-        #[test_case("Sliced", ClassFormat::Sliced)]
+        #[test_case("Compact", ClassFormat::Compact ; "Compact")]
+        #[test_case("Sliced", ClassFormat::Sliced; "Sliced")]
         fn format(format: &str, expected: ClassFormat) {
             // Arrange
             let slice = format!(
@@ -59,8 +59,8 @@ mod attributes {
             assert_eq!(operation.class_format(), ClassFormat::Compact);
         }
 
-        #[test_case(Some("()"))]
-        #[test_case(None)]
+        #[test_case(Some("()") ; "empty parenthesis")]
+        #[test_case(None; "No parenthesis or arguments")]
         fn format_with_no_argument_fails(arg: Option<&str>) {
             // Arrange
             let slice = format!(

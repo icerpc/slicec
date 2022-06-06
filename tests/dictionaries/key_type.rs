@@ -21,20 +21,20 @@ fn optionals_are_disallowed() {
     ]);
 }
 
-#[test_case("bool")]
-#[test_case("int8")]
-#[test_case("uint8")]
-#[test_case("int16")]
-#[test_case("uint16")]
-#[test_case("int32")]
-#[test_case("uint32")]
-#[test_case("varint32")]
-#[test_case("varuint32")]
-#[test_case("int64")]
-#[test_case("uint64")]
-#[test_case("varint62")]
-#[test_case("varuint62")]
-#[test_case("string")]
+#[test_case("bool"; "bool")]
+#[test_case("int8"; "int8")]
+#[test_case("uint8"; "uint8")]
+#[test_case("int16"; "int16")]
+#[test_case("uint16"; "uint16")]
+#[test_case("int32"; "int32")]
+#[test_case("uint32"; "uint32")]
+#[test_case("varint32"; "varint32")]
+#[test_case("varuint32"; "varuint32")]
+#[test_case("int64"; "int64")]
+#[test_case("uint64"; "uint64")]
+#[test_case("varint62"; "varint62")]
+#[test_case("varuint62"; "varuint62")]
+#[test_case("string"; "string")]
 fn allowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
@@ -52,9 +52,9 @@ fn allowed_primitive_types(key_type: &str) {
     assert_errors!(error_reporter);
 }
 
-#[test_case("float32")]
-#[test_case("float64")]
-#[test_case("AnyClass")]
+#[test_case("float32"; "float32")]
+#[test_case("float64"; "float64")]
+#[test_case("AnyClass"; "AnyClass")]
 fn disallowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
