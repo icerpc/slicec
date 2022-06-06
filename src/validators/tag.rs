@@ -60,23 +60,21 @@ fn parameter_order(parameters: &[&Parameter]) -> ValidationResult {
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
     let mut errors = vec![];
-    parameters.iter().fold(false, |seen, parameter| {
-            match parameter.tag {
-                Some(_) => true,
-                None if seen => {
-                    errors.push(Error {
-                        message: format!(
-                            "invalid parameter `{}`: required parameters must precede tagged parameters",
-                            parameter.identifier(),
-                        ),
-                        location: Some(parameter.data_type.location.clone()),
-                        severity: crate::error::ErrorLevel::Error,
-                    });
-                    true
-                },
-                None => false
-            }
-        });
+    parameters.iter().fold(false, |seen, parameter| match parameter.tag {
+        Some(_) => true,
+        None if seen => {
+            errors.push(Error {
+                message: format!(
+                    "invalid parameter `{}`: required parameters must precede tagged parameters",
+                    parameter.identifier(),
+                ),
+                location: Some(parameter.data_type.location.clone()),
+                severity: crate::error::ErrorLevel::Error,
+            });
+            true
+        }
+        None => false,
+    });
 
     match errors.is_empty() {
         true => Ok(()),
@@ -105,10 +103,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult 
 
         if has_tags {
             errors.push(Error {
-                message: format!(
-                    "struct '{}' is declared compact here",
-                    struct_def.identifier(),
-                ),
+                message: format!("struct '{}' is declared compact here", struct_def.identifier(),),
                 location: Some(struct_def.location.clone()),
                 severity: crate::error::ErrorLevel::Error,
             });
@@ -193,9 +188,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>) -> Valida
                 if c.members().is_empty() {
                     false
                 } else {
-                    !c.members()
-                        .iter()
-                        .any(|m| m.data_type().definition().uses_classes())
+                    !c.members().iter().any(|m| m.data_type().definition().uses_classes())
                 }
             }
             _ => member.data_type().definition().uses_classes(),

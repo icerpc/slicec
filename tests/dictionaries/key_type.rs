@@ -223,15 +223,11 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     assert_errors!(error_reporter, [
         "invalid dictionary key type: sequences cannot be used as a dictionary key type",
         "data member 'seq' cannot be used as a dictionary key type",
-
         "invalid dictionary key type: float32 cannot be used as a dictionary key type",
         "data member 'f32' cannot be used as a dictionary key type",
-
         "invalid dictionary key type: struct 'Inner' contains members that cannot be used as a dictionary key type",
         "struct 'Inner' is defined here:",
-
         "data member 'i' cannot be used as a dictionary key type",
-
         "invalid dictionary key type: struct 'Outer' contains members that cannot be used as a dictionary key type",
         "struct 'Outer' is defined here:",
     ]);

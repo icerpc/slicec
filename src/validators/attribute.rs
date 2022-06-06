@@ -83,14 +83,9 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>) -> ValidationResult {
     let not_supported_on = ["parameter", "data member"];
     let mut errors = vec![];
     members.iter().for_each(|m| {
-        if not_supported_on.contains(&m.kind())
-            && m.attributes().iter().any(|a| a.directive == "deprecated")
-        {
+        if not_supported_on.contains(&m.kind()) && m.attributes().iter().any(|a| a.directive == "deprecated") {
             errors.push(Error {
-                message: format!(
-                    "the deprecated attribute cannot be applied to {}s",
-                    &m.kind()
-                ),
+                message: format!("the deprecated attribute cannot be applied to {}s", &m.kind()),
                 location: Some(m.location().clone()),
                 severity: crate::error::ErrorLevel::Error,
             });
@@ -114,8 +109,7 @@ fn is_compressible(element: &dyn Attributable) -> ValidationResult {
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => errors.push(Error {
-                message: "the compress attribute can only be applied to interfaces and operations"
-                    .to_owned(),
+                message: "the compress attribute can only be applied to interfaces and operations".to_owned(),
                 location: Some(attribute.location.clone()),
                 severity: crate::error::ErrorLevel::Error,
             }),

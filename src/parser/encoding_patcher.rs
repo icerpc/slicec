@@ -15,8 +15,11 @@ pub(super) fn patch_encodings(
     ast: &mut Ast,
     error_reporter: &mut ErrorReporter,
 ) {
-    let mut patcher =
-        EncodingPatcher { slice_files, supported_encodings: HashMap::new(), error_reporter };
+    let mut patcher = EncodingPatcher {
+        slice_files,
+        supported_encodings: HashMap::new(),
+        error_reporter,
+    };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
     for slice_file in slice_files.values() {
@@ -55,19 +58,13 @@ impl<'a> EncodingPatcher<'a> {
     ) {
         if supported_encodings.is_empty() {
             let message = format!("type '{}' isn't supportable by any Slice encoding", type_id);
-            self.error_reporter
-                .report_error(message, Some(type_def.location()));
+            self.error_reporter.report_error(message, Some(type_def.location()));
         } else if !supported_encodings.supports(&file_encoding) {
-            let message = format!(
-                "type '{}' isn't supported by its file's Slice encoding",
-                type_id,
-            );
-            self.error_reporter
-                .report_error(message, Some(type_def.location()));
+            let message = format!("type '{}' isn't supported by its file's Slice encoding", type_id);
+            self.error_reporter.report_error(message, Some(type_def.location()));
             self.print_file_encoding_note(type_def);
         }
-        self.supported_encodings
-            .insert(type_id, supported_encodings);
+        self.supported_encodings.insert(type_id, supported_encodings);
     }
 
     fn get_file_encoding_for(&self, symbol: &impl Symbol) -> Encoding {
@@ -166,22 +163,14 @@ impl<'a> EncodingPatcher<'a> {
                 }
                 .clone()
             }
-            TypeRefs::Sequence(sequence_ref) => self.resolve_encodings_supported_by_type(
-                file_encoding,
-                &sequence_ref.element_type,
-                false,
-            ),
+            TypeRefs::Sequence(sequence_ref) => {
+                self.resolve_encodings_supported_by_type(file_encoding, &sequence_ref.element_type, false)
+            }
             TypeRefs::Dictionary(dictionary_ref) => {
-                let mut key_encodings = self.resolve_encodings_supported_by_type(
-                    file_encoding,
-                    &dictionary_ref.key_type,
-                    false,
-                );
-                let value_encodings = self.resolve_encodings_supported_by_type(
-                    file_encoding,
-                    &dictionary_ref.value_type,
-                    false,
-                );
+                let mut key_encodings =
+                    self.resolve_encodings_supported_by_type(file_encoding, &dictionary_ref.key_type, false);
+                let value_encodings =
+                    self.resolve_encodings_supported_by_type(file_encoding, &dictionary_ref.value_type, false);
                 key_encodings.intersect_with(&value_encodings);
                 key_encodings
             }
@@ -199,8 +188,7 @@ impl<'a> EncodingPatcher<'a> {
                         primitive_def.kind(),
                         file_encoding
                     );
-                    self.error_reporter
-                        .report_error(message, Some(type_ref.location()));
+                    self.error_reporter.report_error(message, Some(type_ref.location()));
                     self.print_file_encoding_note(type_ref);
                     SupportedEncodings::dummy()
                 } else {
@@ -230,14 +218,10 @@ impl<'a> EncodingPatcher<'a> {
         let slice_file = self.slice_files.get(file_name).unwrap();
 
         if let Some(file_encoding) = &slice_file.encoding {
-            let message = format!(
-                "file encoding was set to Slice{} here:",
-                &file_encoding.version,
-            );
-            self.error_reporter
-                .report_note(message, Some(file_encoding.location()));
+            let message = format!("file encoding was set to Slice{} here:", &file_encoding.version);
+            self.error_reporter.report_note(message, Some(file_encoding.location()));
         } else {
-            let message = format!("file is using Slice{} by default", Encoding::default(),);
+            let message = format!("file is using Slice{} by default", Encoding::default());
             self.error_reporter.report_note(message, None);
 
             self.error_reporter.report_note(
@@ -257,11 +241,8 @@ impl<'a> Visitor for EncodingPatcher<'a> {
 
         // Resolve the supported encodings for the data members.
         for member in struct_def.members() {
-            let member_supported_encodings = self.resolve_encodings_supported_by_type(
-                &file_encoding,
-                &member.data_type,
-                member.is_tagged(),
-            );
+            let member_supported_encodings =
+                self.resolve_encodings_supported_by_type(&file_encoding, &member.data_type, member.is_tagged());
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
@@ -288,21 +269,16 @@ impl<'a> Visitor for EncodingPatcher<'a> {
 
         // Resolve the supported encodings for the data members.
         for member in class_def.members() {
-            let member_supported_encodings = self.resolve_encodings_supported_by_type(
-                &file_encoding,
-                &member.data_type,
-                member.is_tagged(),
-            );
+            let member_supported_encodings =
+                self.resolve_encodings_supported_by_type(&file_encoding, &member.data_type, member.is_tagged());
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
         // Classes are only supported with Slice1.
         supported_encodings.disable(Encoding::Slice2);
         if file_encoding == Encoding::Slice2 {
-            self.error_reporter.report_error(
-                "classes are only supported with Slice1",
-                Some(class_def.location()),
-            );
+            self.error_reporter
+                .report_error("classes are only supported with Slice1", Some(class_def.location()));
             self.print_file_encoding_note(class_def);
             supported_encodings = SupportedEncodings::dummy();
         }
@@ -317,11 +293,8 @@ impl<'a> Visitor for EncodingPatcher<'a> {
 
         // Resolve the supported encodings for the data members.
         for member in exception_def.members() {
-            let member_supported_encodings = self.resolve_encodings_supported_by_type(
-                &file_encoding,
-                &member.data_type,
-                member.is_tagged(),
-            );
+            let member_supported_encodings =
+                self.resolve_encodings_supported_by_type(&file_encoding, &member.data_type, member.is_tagged());
             supported_encodings.intersect_with(&member_supported_encodings);
         }
 
@@ -338,12 +311,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             }
         }
 
-        self.add_supported_encodings_entry(
-            exception_def,
-            type_id,
-            supported_encodings,
-            file_encoding,
-        );
+        self.add_supported_encodings_entry(exception_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_interface_start(&mut self, interface_def: &Interface) {
@@ -351,31 +319,22 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         let file_encoding = self.get_file_encoding_for(interface_def);
         let supported_encodings = get_encodings_supported_by(&file_encoding);
 
-        self.add_supported_encodings_entry(
-            interface_def,
-            type_id,
-            supported_encodings,
-            file_encoding,
-        );
+        self.add_supported_encodings_entry(interface_def, type_id, supported_encodings, file_encoding);
     }
 
     fn visit_operation_start(&mut self, operation_def: &Operation) {
         // Ensure the operation's parameters and return type are supported by its encoding.
         let operation_encoding = &operation_def.encoding;
         for member in operation_def.parameters_and_return_members() {
-            let member_supported_encodings = self.resolve_encodings_supported_by_type(
-                operation_encoding,
-                member.data_type(),
-                member.is_tagged(),
-            );
+            let member_supported_encodings =
+                self.resolve_encodings_supported_by_type(operation_encoding, member.data_type(), member.is_tagged());
             if !member_supported_encodings.supports(operation_encoding) {
                 let message = format!(
                     "operation '{}' contains members that are not compatible with its encoding (Slice {}).",
                     operation_def.identifier(),
                     operation_encoding
                 );
-                self.error_reporter
-                    .report_error(message, Some(member.location()));
+                self.error_reporter.report_error(message, Some(member.location()));
                 self.print_file_encoding_note(member);
             }
         }
@@ -410,10 +369,8 @@ impl<'a> Visitor for EncodingPatcher<'a> {
         // Traits are not supported with Slice1.
         supported_encodings.disable(Encoding::Slice1);
         if file_encoding == Encoding::Slice1 {
-            self.error_reporter.report_error(
-                "traits are not supported with Slice1",
-                Some(trait_def.location()),
-            );
+            self.error_reporter
+                .report_error("traits are not supported with Slice1", Some(trait_def.location()));
             self.print_file_encoding_note(trait_def);
             supported_encodings = SupportedEncodings::dummy();
         }
@@ -437,12 +394,7 @@ impl<'a> Visitor for EncodingPatcher<'a> {
             supported_encodings = SupportedEncodings::dummy();
         }
 
-        self.add_supported_encodings_entry(
-            custom_type,
-            type_id,
-            supported_encodings,
-            file_encoding,
-        );
+        self.add_supported_encodings_entry(custom_type, type_id, supported_encodings, file_encoding);
     }
 }
 
@@ -451,49 +403,42 @@ impl<'a> PtrVisitor for EncodingPatcher<'a> {
     unsafe fn visit_struct_start(&mut self, struct_ptr: &mut OwnedPtr<Struct>) {
         let struct_def = struct_ptr.borrow_mut();
         let type_id = struct_def.module_scoped_identifier();
-        struct_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        struct_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_class_start(&mut self, class_ptr: &mut OwnedPtr<Class>) {
         let class_def = class_ptr.borrow_mut();
         let type_id = class_def.module_scoped_identifier();
-        class_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        class_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_exception_start(&mut self, exception_ptr: &mut OwnedPtr<Exception>) {
         let exception_def = exception_ptr.borrow_mut();
         let type_id = exception_def.module_scoped_identifier();
-        exception_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        exception_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_interface_start(&mut self, interface_ptr: &mut OwnedPtr<Interface>) {
         let interface_def = interface_ptr.borrow_mut();
         let type_id = interface_def.module_scoped_identifier();
-        interface_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        interface_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_enum_start(&mut self, enum_ptr: &mut OwnedPtr<Enum>) {
         let enum_def = enum_ptr.borrow_mut();
         let type_id = enum_def.module_scoped_identifier();
-        enum_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        enum_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_trait(&mut self, trait_ptr: &mut OwnedPtr<Trait>) {
         let trait_def = trait_ptr.borrow_mut();
         let type_id = trait_def.module_scoped_identifier();
-        trait_def.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        trait_def.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 
     unsafe fn visit_custom_type(&mut self, custom_type_ptr: &mut OwnedPtr<CustomType>) {
         let custom_type = custom_type_ptr.borrow_mut();
         let type_id = custom_type.module_scoped_identifier();
-        custom_type.supported_encodings =
-            Some(self.supported_encodings.get(&type_id).unwrap().clone());
+        custom_type.supported_encodings = Some(self.supported_encodings.get(&type_id).unwrap().clone());
     }
 }

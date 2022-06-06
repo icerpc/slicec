@@ -59,7 +59,11 @@ impl<'a> Validator<'a> {
         .into_iter()
         .flatten()
         .collect();
-        Validator { error_reporter, validation_functions, errors: Vec::new() }
+        Validator {
+            error_reporter,
+            validation_functions,
+            errors: Vec::new(),
+        }
     }
 
     /// This method is responsible for visiting each slice file with the various validators.
@@ -139,9 +143,7 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Dictionary(function) => Some(function(&container_dictionaries(class))),
                 Validate::Members(function) => Some(function(class.members().massage_this())),
                 Validate::Attributable(function) => Some(function(class)),
-                Validate::Identifiers(function) => {
-                    Some(function(class.members().get_identifiers()))
-                }
+                Validate::Identifiers(function) => Some(function(class.members().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     class.members().get_identifiers(),
                     class.all_inherited_members().get_identifiers(),
@@ -161,14 +163,10 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Struct(function) => Some(function(struct_def)),
-                Validate::Dictionary(function) => {
-                    Some(function(&container_dictionaries(struct_def)))
-                }
+                Validate::Dictionary(function) => Some(function(&container_dictionaries(struct_def))),
                 Validate::Members(function) => Some(function(struct_def.members().massage_this())),
                 Validate::Attributable(function) => Some(function(struct_def)),
-                Validate::Identifiers(function) => {
-                    Some(function(struct_def.members().get_identifiers()))
-                }
+                Validate::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
                 _ => None,
             })
             .for_each(|result| match result {
@@ -199,14 +197,10 @@ impl<'a> Visitor for Validator<'a> {
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
-                Validate::Dictionary(function) => {
-                    Some(function(&container_dictionaries(exception)))
-                }
+                Validate::Dictionary(function) => Some(function(&container_dictionaries(exception))),
                 Validate::Members(function) => Some(function(exception.members().massage_this())),
                 Validate::Attributable(function) => Some(function(exception)),
-                Validate::Identifiers(function) => {
-                    Some(function(exception.members().get_identifiers()))
-                }
+                Validate::Identifiers(function) => Some(function(exception.members().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     exception.members().get_identifiers(),
                     exception.all_inherited_members().get_identifiers(),
@@ -226,9 +220,7 @@ impl<'a> Visitor for Validator<'a> {
             .iter()
             .filter_map(|function| match function {
                 Validate::Attributable(function) => Some(function(interface)),
-                Validate::Identifiers(function) => {
-                    Some(function(interface.operations().get_identifiers()))
-                }
+                Validate::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
                 Validate::InheritedIdentifiers(function) => Some(function(
                     interface.operations().get_identifiers(),
                     interface.all_inherited_operations().get_identifiers(),
@@ -253,9 +245,7 @@ impl<'a> Visitor for Validator<'a> {
                 Validate::Operation(function) => Some(function(operation)),
                 Validate::Attributable(function) => Some(function(operation)),
                 Validate::Parameters(function) => Some(function(operation.parameters().as_slice())),
-                Validate::Members(function) => {
-                    Some(function(operation.parameters().massage_this()))
-                }
+                Validate::Members(function) => Some(function(operation.parameters().massage_this())),
                 Validate::ParametersAndReturnMember(function) => {
                     Some(function(&operation.parameters_and_return_members()))
                 }

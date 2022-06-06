@@ -227,7 +227,7 @@ macro_rules! implement_Member_for {
 }
 
 pub(crate) use {
-    implement_Attributable_for, implement_Commentable_for, implement_Contained_for,
-    implement_Container_for, implement_Element_for, implement_Entity_for, implement_Member_for,
-    implement_Named_Symbol_for, implement_Scoped_Symbol_for, implement_Symbol_for,
+    implement_Attributable_for, implement_Commentable_for, implement_Contained_for, implement_Container_for,
+    implement_Element_for, implement_Entity_for, implement_Member_for, implement_Named_Symbol_for,
+    implement_Scoped_Symbol_for, implement_Symbol_for,
 };

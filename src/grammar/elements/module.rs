@@ -25,7 +25,15 @@ impl Module {
     ) -> Self {
         let contents = Vec::new();
         let parent = None;
-        Module { identifier, contents, parent, scope, attributes, comment, location }
+        Module {
+            identifier,
+            contents,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 
     pub(crate) fn add_definition(&mut self, definition: Definition) {

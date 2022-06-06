@@ -17,10 +17,7 @@ fn supports_single_inheritance() {
 
     let e2_ptr = ast.find_typed_type::<Exception>("Test::E2").unwrap();
     let e2 = e2_ptr.borrow();
-    assert_eq!(
-        e2.base_exception().unwrap().module_scoped_identifier(),
-        "Test::E1",
-    );
+    assert_eq!(e2.base_exception().unwrap().module_scoped_identifier(), "Test::E1");
 }
 
 #[test]

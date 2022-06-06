@@ -59,10 +59,7 @@ impl Enum {
     }
 
     pub fn get_min_max_values(&self) -> Option<(i64, i64)> {
-        let values = self
-            .enumerators
-            .iter()
-            .map(|enumerator| enumerator.borrow().value);
+        let values = self.enumerators.iter().map(|enumerator| enumerator.borrow().value);
 
         // There might not be a minimum value if the enum is empty.
         values.clone().min().map(|min| {

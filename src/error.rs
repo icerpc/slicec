@@ -37,8 +37,11 @@ impl ErrorReporter {
             ErrorLevel::Warning => self.warning_count += 1,
             ErrorLevel::Error => self.error_count += 1,
         };
-        self.errors
-            .push(Error { message, location: location.cloned(), severity })
+        self.errors.push(Error {
+            message,
+            location: location.cloned(),
+            severity,
+        })
     }
 
     pub fn report_note(&mut self, message: impl Into<String>, location: Option<&Location>) {
@@ -51,11 +54,7 @@ impl ErrorReporter {
 
     pub fn report_errors(&mut self, errors: &[Error]) {
         errors.iter().for_each(|error| {
-            self.report(
-                error.message.clone(),
-                error.location.as_ref(),
-                error.severity,
-            );
+            self.report(error.message.clone(), error.location.as_ref(), error.severity);
         });
     }
 
@@ -85,9 +84,7 @@ impl ErrorReporter {
                 // If the location spans between two positions, add a snippet from the slice file.
                 if location.start != location.end {
                     message += ":\n";
-                    let file = slice_files
-                        .get(&location.file)
-                        .expect("Slice file not in file map!");
+                    let file = slice_files.get(&location.file).expect("Slice file not in file map!");
                     message += &file.get_snippet(location.start, location.end);
                 } else {
                     message += "\n";

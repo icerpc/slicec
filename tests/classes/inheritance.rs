@@ -40,9 +40,7 @@ fn does_not_support_multiple_inheritance() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "classes can only inherit from a single base class",
-    ]);
+    assert_errors!(error_reporter, ["classes can only inherit from a single base class",]);
 }
 
 #[test]

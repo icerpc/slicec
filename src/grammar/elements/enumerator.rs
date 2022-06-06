@@ -25,7 +25,15 @@ impl Enumerator {
         location: Location,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
-        Enumerator { identifier, value, parent, scope, attributes, comment, location }
+        Enumerator {
+            identifier,
+            value,
+            parent,
+            scope,
+            attributes,
+            comment,
+            location,
+        }
     }
 }
 

@@ -32,9 +32,7 @@ macro_rules! generate_definition_wrapper {
     };
 }
 
-generate_definition_wrapper!(
-    Module, Struct, Class, Exception, Interface, Enum, Trait, CustomType, TypeAlias
-);
+generate_definition_wrapper!(Module, Struct, Class, Exception, Interface, Enum, Trait, CustomType, TypeAlias);
 
 macro_rules! generate_entities_wrapper {
     ($($variant:ident),*) => {
@@ -68,8 +66,8 @@ pub trait AsEntities {
 }
 
 generate_entities_wrapper!(
-    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
-    Enumerator, Trait, CustomType, TypeAlias
+    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum, Enumerator, Trait, CustomType,
+    TypeAlias
 );
 
 macro_rules! generate_types_wrapper {
@@ -118,6 +116,4 @@ pub trait AsTypes {
     fn concrete_type_mut(&mut self) -> TypesMut;
 }
 
-generate_types_wrapper!(
-    Struct, Class, Exception, Interface, Enum, Trait, CustomType, Sequence, Dictionary, Primitive
-);
+generate_types_wrapper!(Struct, Class, Exception, Interface, Enum, Trait, CustomType, Sequence, Dictionary, Primitive);

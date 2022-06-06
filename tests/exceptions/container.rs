@@ -79,8 +79,5 @@ fn cannot_redefine_data_members() {
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "redefinition of a",
-        "a was previously defined here"
-    ]);
+    assert_errors!(error_reporter, ["redefinition of a", "a was previously defined here"]);
 }

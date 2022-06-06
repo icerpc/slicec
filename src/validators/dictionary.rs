@@ -24,25 +24,24 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary]) -> ValidationResult {
 fn check_dictionary_key_type(type_ref: &TypeRef, errors: &mut Vec<Error>) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        errors.push(Error{
+        errors.push(Error {
             message: "invalid dictionary key type: optional types cannot be used as a dictionary key type".into(),
             location: Some(type_ref.location.clone()),
-            severity: ErrorLevel::Error
+            severity: ErrorLevel::Error,
         });
         return false;
     }
 
     let definition = type_ref.definition();
-    let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition
-        .concrete_type()
-    {
+    let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition.concrete_type() {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                errors.push(Error{
-                    message: "invalid dictionary key type: structs must be compact to be used as a dictionary key type".into(),
+                errors.push(Error {
+                    message: "invalid dictionary key type: structs must be compact to be used as a dictionary key type"
+                        .into(),
                     location: Some(type_ref.location.clone()),
-                    severity: ErrorLevel::Error
+                    severity: ErrorLevel::Error,
                 });
                 errors.push(Error {
                     message: format!("struct '{}' is defined here:", struct_def.identifier()),
@@ -95,10 +94,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, errors: &mut Vec<Error>) -> boo
         Types::Sequence(_) => (false, None),
         Types::Dictionary(_) => (false, None),
         Types::Primitive(primitive) => (
-            !matches!(
-                primitive,
-                Primitive::Float32 | Primitive::Float64 | Primitive::AnyClass
-            ),
+            !matches!(primitive, Primitive::Float32 | Primitive::Float64 | Primitive::AnyClass),
             None,
         ),
     };
