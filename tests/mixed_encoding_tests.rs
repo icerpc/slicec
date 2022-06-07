@@ -57,7 +57,7 @@ fn invalid_mixed_encoding_fails() {
 
     compact struct ACompactStruct
     {
-        data: int32?
+        data: int32?,
     }
     ";
 
