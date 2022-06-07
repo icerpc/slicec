@@ -67,7 +67,7 @@ fn invalid_mixed_encoding_fails() {
     compact struct AStruct
     {
         c: ACustomType,
-        s: ACompactStruct
+        s: ACompactStruct,
     }
     ";
 
