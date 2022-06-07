@@ -28,7 +28,7 @@ fn valid_mixed_encoding_works() {
 
     exception AnException
     {
-        message: string
+        message: string,
     }
     ";
 
