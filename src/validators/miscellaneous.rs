@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::Error;
+use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, ValidationResult, Validator};
 
@@ -22,7 +22,7 @@ fn stream_parameter_is_last(members: &[&Parameter]) -> ValidationResult {
                 errors.push(Error {
                     message: "only the last parameter in an operation can use the stream modifier".to_owned(),
                     location: Some(member.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
             }
         }
@@ -41,7 +41,7 @@ fn validate_compact_struct_not_empty(struct_def: &Struct) -> ValidationResult {
             errors.push(Error {
                 message: "compact structs must be non-empty".to_owned(),
                 location: Some(struct_def.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     }

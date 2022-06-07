@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::Error;
+use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, ValidationResult, Validator};
 use std::str::FromStr;
@@ -42,7 +42,7 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
             0 => errors.push(Error {
                 message: "format attribute arguments cannot be empty".to_owned(),
                 location: Some(attribute.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             }),
             _ => {
                 // Validate format attributes are allowed ones.
@@ -57,7 +57,7 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
                         errors.push(Error {
                             message: format!("invalid format attribute argument `{}`", arg),
                             location: Some(attribute.location.clone()),
-                            severity: crate::error::ErrorLevel::Error,
+                            severity: ErrorLevel::Error,
                         });
                         errors.push(Error {
                             message: format!(
@@ -65,7 +65,7 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
                                 message_value_separator(&["Compact", "Sliced"])
                             ),
                             location: Some(attribute.location.clone()),
-                            severity: crate::error::ErrorLevel::Error,
+                            severity: ErrorLevel::Note,
                         });
                     });
             }
@@ -86,7 +86,7 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>) -> ValidationResult {
             errors.push(Error {
                 message: format!("the deprecated attribute cannot be applied to {}s", m.kind()),
                 location: Some(m.location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     });
@@ -110,7 +110,7 @@ fn is_compressible(element: &dyn Attributable) -> ValidationResult {
             Some(attribute) => errors.push(Error {
                 message: "the compress attribute can only be applied to interfaces and operations".to_owned(),
                 location: Some(attribute.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             }),
             None => (),
         }
@@ -125,7 +125,7 @@ fn is_compressible(element: &dyn Attributable) -> ValidationResult {
                     errors.push(Error {
                         message: format!("invalid argument `{}` for the compress attribute", arg),
                         location: Some(attribute.location.clone()),
-                        severity: crate::error::ErrorLevel::Error,
+                        severity: ErrorLevel::Error,
                     });
                     errors.push(Error {
                         message: format!(
@@ -133,7 +133,7 @@ fn is_compressible(element: &dyn Attributable) -> ValidationResult {
                             message_value_separator(&valid_arguments).as_str(),
                         ),
                         location: Some(attribute.location.clone()),
-                        severity: crate::error::ErrorLevel::Error,
+                        severity: ErrorLevel::Note,
                     });
                 }
             }),
