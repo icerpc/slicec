@@ -39,9 +39,8 @@ pub enum Validate {
 }
 
 pub(crate) struct Validator<'a> {
-    pub error_reporter: &'a mut ErrorReporter,
+    error_reporter: &'a mut ErrorReporter,
     validation_functions: Vec<Validate>,
-    errors: Vec<Error>,
 }
 
 impl<'a> Validator<'a> {
@@ -60,7 +59,6 @@ impl<'a> Validator<'a> {
         Validator {
             error_reporter,
             validation_functions,
-            errors: Vec::new(),
         }
     }
 
@@ -68,7 +66,6 @@ impl<'a> Validator<'a> {
     pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
         for slice_file in slice_files.values() {
             slice_file.visit_with(self);
-            self.error_reporter.report_errors(&self.errors);
         }
     }
 }
@@ -127,7 +124,7 @@ where
 
 impl<'a> Visitor for Validator<'a> {
     fn visit_module_start(&mut self, module_def: &Module) {
-        let mut errors = Vec::new();
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|f| {
@@ -144,13 +141,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_class_start(&mut self, class: &Class) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -166,13 +162,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -185,13 +180,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -201,13 +195,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_exception_start(&mut self, exception: &Exception) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -223,13 +216,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_interface_start(&mut self, interface: &Interface) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -243,13 +235,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_operation_start(&mut self, operation: &Operation) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -266,13 +257,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -281,13 +271,12 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
-        let mut errors = vec![];
+        let error_reporter = &mut self.error_reporter;
         self.validation_functions
             .iter()
             .filter_map(|function| match function {
@@ -299,8 +288,7 @@ impl<'a> Visitor for Validator<'a> {
             })
             .for_each(|result| match result {
                 Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
+                Err(errs) => error_reporter.append_errors(errs),
             });
-        self.errors.append(&mut errors);
     }
 }

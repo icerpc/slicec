@@ -52,10 +52,8 @@ impl ErrorReporter {
         self.report(message.into(), location, ErrorLevel::Warning);
     }
 
-    pub fn report_errors(&mut self, errors: &[Error]) {
-        errors.iter().for_each(|error| {
-            self.report(error.message.clone(), error.location.as_ref(), error.severity);
-        });
+    pub fn append_errors(&mut self, mut errors: Vec<Error>) {
+        self.errors.append(&mut errors);
     }
 
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
