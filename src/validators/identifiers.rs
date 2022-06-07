@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::Error;
+use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, ValidationResult, Validator};
 
@@ -21,12 +21,12 @@ pub fn check_for_redefinition(identifiers: Vec<&Identifier>) -> ValidationResult
             errors.push(Error {
                 message: format!("redefinition of {}", window[1].value),
                 location: Some(window[1].location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
             errors.push(Error {
                 message: format!("{} was previously defined here", window[0].value),
                 location: Some(window[0].location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Note,
             });
         }
     });
@@ -46,12 +46,12 @@ pub fn check_for_shadowing(identifiers: Vec<&Identifier>, inherited_symbols: Vec
                 errors.push(Error {
                     message: format!("{} shadows another symbol", identifier.value),
                     location: Some(identifier.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
                 errors.push(Error {
                     message: format!("{} was previously defined here", inherited_identifier.value),
                     location: Some(inherited_identifier.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Note,
                 });
             });
     });

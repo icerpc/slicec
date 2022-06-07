@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::Error;
+use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, ValidationResult, Validator};
 
@@ -35,7 +35,7 @@ fn tags_are_unique(members: Vec<&dyn Member>) -> ValidationResult {
                     &window[1].identifier()
                 ),
                 location: Some(window[1].location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
             errors.push(Error {
                 message: format!(
@@ -44,7 +44,7 @@ fn tags_are_unique(members: Vec<&dyn Member>) -> ValidationResult {
                     window[0].tag().unwrap()
                 ),
                 location: Some(window[0].location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Note,
             });
         };
     });
@@ -69,7 +69,7 @@ fn parameter_order(parameters: &[&Parameter]) -> ValidationResult {
                     parameter.identifier(),
                 ),
                 location: Some(parameter.data_type.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
             true
         }
@@ -95,7 +95,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult 
                     message: "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
                         .to_owned(),
                     location: Some(member.location().clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
                 has_tags = true;
             }
@@ -105,7 +105,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult 
             errors.push(Error {
                 message: format!("struct '{}' is declared compact here", struct_def.identifier(),),
                 location: Some(struct_def.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Note,
             });
         }
     }
@@ -133,7 +133,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>) -> ValidationResult {
                     member.identifier()
                 ),
                 location: Some(member.location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     }
@@ -161,7 +161,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>) -> ValidationResult {
                     member.identifier()
                 ),
                 location: Some(member.location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     }
@@ -199,7 +199,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>) -> Valida
                     member.identifier()
                 ),
                 location: Some(member.location().clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     }

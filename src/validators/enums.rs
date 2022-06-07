@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::Error;
+use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, ValidationResult, Validator};
 
@@ -31,7 +31,7 @@ fn backing_type_bounds(enum_def: &Enum) -> ValidationResult {
                         &enumerator.identifier()
                     ),
                     location: Some(enumerator.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
             });
         // Enums in Slice1 always have an underlying type of int32.
@@ -47,7 +47,7 @@ fn backing_type_bounds(enum_def: &Enum) -> ValidationResult {
                         max = i32::MAX,
                     ),
                     location: Some(enumerator.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
             });
         match errors.is_empty() {
@@ -74,7 +74,7 @@ fn backing_type_bounds(enum_def: &Enum) -> ValidationResult {
                             max = max,
                         ),
                         location:  Some(enum_def.location.clone()),
-                        severity: crate::error::ErrorLevel::Error,
+                        severity: ErrorLevel::Error,
                     });
                 });
         }
@@ -112,7 +112,7 @@ fn allowed_underlying_types(enum_def: &Enum) -> ValidationResult {
                         underlying = underlying_type.definition().kind(),
                     ),
                     location: Some(enum_def.location.clone()),
-                    severity: crate::error::ErrorLevel::Error,
+                    severity: ErrorLevel::Error,
                 });
             }
         }
@@ -141,7 +141,7 @@ fn enumerators_are_unique(enum_def: &Enum) -> ValidationResult {
                     &window[1].identifier()
                 ),
                 location: Some(window[1].location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
             errors.push(Error {
                 message: format!(
@@ -150,7 +150,7 @@ fn enumerators_are_unique(enum_def: &Enum) -> ValidationResult {
                     window[0].value
                 ),
                 location: Some(window[0].location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Note,
             });
         }
     });
@@ -171,7 +171,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum) -> ValidationResult {
                     typeref.type_string
                 ),
                 location: Some(enum_def.location.clone()),
-                severity: crate::error::ErrorLevel::Error,
+                severity: ErrorLevel::Error,
             });
         }
     }
@@ -188,7 +188,7 @@ fn nonempty_if_checked(enum_def: &Enum) -> ValidationResult {
         errors.push(Error {
             message: "enums must contain at least one enumerator".to_owned(),
             location: Some(enum_def.location.clone()),
-            severity: crate::error::ErrorLevel::Error,
+            severity: ErrorLevel::Error,
         });
     }
     match errors.is_empty() {
