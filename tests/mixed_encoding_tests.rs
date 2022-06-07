@@ -12,7 +12,7 @@ fn valid_mixed_encoding_works() {
 
     compact struct ACompactStruct
     {
-        data: int32
+        data: int32,
     }
 
     enum AnEnum
