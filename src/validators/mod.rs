@@ -140,17 +140,16 @@ where
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_module_start(&mut self, module_def: &Module) {
-        self.validate(|f| {
-            if let Validator::Identifiers(function) = f {
+        self.validate(|function| match function {
+            Validator::Identifiers(function) => {
                 let identifiers = module_def
                     .contents()
                     .iter()
                     .map(|definition| definition.borrow().raw_identifier())
                     .collect::<Vec<_>>();
                 Some(function(identifiers))
-            } else {
-                None
             }
+            _ => None,
         });
     }
 
