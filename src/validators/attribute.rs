@@ -2,14 +2,14 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 use std::str::FromStr;
 
 pub fn attribute_validators() -> ValidationChain {
     vec![
-        Validate::Attributes(is_compressible),
-        Validate::Operations(validate_format_attribute),
-        Validate::Members(cannot_be_deprecated),
+        Validator::Attributes(is_compressible),
+        Validator::Operations(validate_format_attribute),
+        Validator::Members(cannot_be_deprecated),
     ]
 }
 
