@@ -73,7 +73,7 @@ impl<'a> ValidatorVisitor<'a> {
 
     fn validate<F>(&mut self, func: F)
     where
-        F: FnMut(&Validator) -> Option<ValidationResult>,
+        F: Fn(&Validator) -> Option<ValidationResult>,
     {
         let error_reporter = &mut self.error_reporter;
         self.validation_functions
