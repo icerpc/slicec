@@ -79,6 +79,6 @@ fn invalid_mixed_encoding_fails() {
     // TODO: we should provide a better error message to the user here
     assert_errors!(error_reporter, [
         "type 'Test::AStruct' isn't supported by its file's Slice encoding",
-        "file encoding was set to Slice1 here:"
+        "file encoding was set to Slice1 here:",
     ]);
 }
