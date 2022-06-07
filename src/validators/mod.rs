@@ -46,6 +46,7 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
 
     data.into()
 }
+
 struct Validator<'a> {
     error_reporter: &'a mut ErrorReporter,
     validation_functions: Vec<Validate>,
