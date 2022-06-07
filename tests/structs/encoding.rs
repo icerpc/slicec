@@ -42,7 +42,7 @@ mod slice2 {
         module Test;
         struct A
         {
-            c: AnyClass
+            c: AnyClass,
         }
         ";
         let expected_errors = [

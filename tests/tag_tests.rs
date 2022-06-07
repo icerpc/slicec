@@ -118,7 +118,7 @@ mod tags {
 
             class C {}
             compact struct S {
-                c: C
+                c: C,
             }
 
             interface I {
@@ -140,7 +140,7 @@ mod tags {
         let slice = "
             module Test;
             struct S {
-                a: tag(1) int32?
+                a: tag(1) int32?,
             }
             ";
 

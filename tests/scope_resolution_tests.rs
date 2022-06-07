@@ -222,7 +222,7 @@ mod scope_resolution {
 
             struct S
             {
-                b: B
+                b: B,
             }
         }
         ";
@@ -249,7 +249,7 @@ mod scope_resolution {
                 {
                     struct S
                     {
-                        c: C
+                        c: C,
                     }
                 }
             }
@@ -275,7 +275,7 @@ mod scope_resolution {
         {
             struct C
             {
-                b: Nested::C
+                b: Nested::C,
             }
         }
         ";
