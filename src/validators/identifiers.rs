@@ -2,12 +2,12 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn identifier_validators() -> ValidationChain {
     vec![
-        Validate::Identifiers(check_for_redefinition),
-        Validate::InheritedIdentifiers(check_for_shadowing),
+        Validator::Identifiers(check_for_redefinition),
+        Validator::InheritedIdentifiers(check_for_shadowing),
     ]
 }
 

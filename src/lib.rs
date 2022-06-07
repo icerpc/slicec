@@ -16,28 +16,16 @@ pub mod visitor;
 
 use crate::command_line::SliceOptions;
 use crate::parse_result::ParserResult;
-use crate::validators::Validator;
+use crate::validators::validate_parsed_data;
 
 pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
-    parser::parse_files(options).and_then(|mut data| {
-        let mut validator = Validator::new(&mut data.error_reporter);
-        validator.validate(&data.files);
-        data.into()
-    })
+    parser::parse_files(options).and_then(validate_parsed_data)
 }
 
 pub fn parse_from_string(input: &str) -> ParserResult {
-    parser::parse_string(input).and_then(|mut data| {
-        let mut validator = Validator::new(&mut data.error_reporter);
-        validator.validate(&data.files);
-        data.into()
-    })
+    parser::parse_string(input).and_then(validate_parsed_data)
 }
 
 pub fn parse_from_strings(inputs: &[&str]) -> ParserResult {
-    parser::parse_strings(inputs).and_then(|mut data| {
-        let mut validator = Validator::new(&mut data.error_reporter);
-        validator.validate(&data.files);
-        data.into()
-    })
+    parser::parse_strings(inputs).and_then(validate_parsed_data)
 }

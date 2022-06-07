@@ -2,15 +2,15 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn enum_validators() -> ValidationChain {
     vec![
-        Validate::Enums(backing_type_bounds),
-        Validate::Enums(allowed_underlying_types),
-        Validate::Enums(enumerators_are_unique),
-        Validate::Enums(underlying_type_cannot_be_optional),
-        Validate::Enums(nonempty_if_checked),
+        Validator::Enums(backing_type_bounds),
+        Validator::Enums(allowed_underlying_types),
+        Validator::Enums(enumerators_are_unique),
+        Validator::Enums(underlying_type_cannot_be_optional),
+        Validator::Enums(nonempty_if_checked),
     ]
 }
 

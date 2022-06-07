@@ -2,12 +2,12 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn miscellaneous_validators() -> ValidationChain {
     vec![
-        Validate::Parameters(stream_parameter_is_last),
-        Validate::Struct(validate_compact_struct_not_empty),
+        Validator::Parameters(stream_parameter_is_last),
+        Validator::Struct(validate_compact_struct_not_empty),
     ]
 }
 

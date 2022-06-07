@@ -9,10 +9,9 @@ mod tag;
 
 use crate::error::{Error, ErrorReporter};
 use crate::grammar::*;
+use crate::parse_result::{ParsedData, ParserResult};
 use crate::ptr_util::OwnedPtr;
-use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
-use std::collections::HashMap;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
@@ -23,10 +22,10 @@ pub use self::identifiers::*;
 pub use self::miscellaneous::*;
 pub use self::tag::*;
 
-pub type ValidationChain = Vec<Validate>;
+pub type ValidationChain = Vec<Validator>;
 pub type ValidationResult = Result<(), Vec<Error>>;
 
-pub enum Validate {
+pub enum Validator {
     Attributes(fn(&dyn Attributable) -> ValidationResult),
     Dictionaries(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
@@ -38,13 +37,22 @@ pub enum Validate {
     Struct(fn(&Struct) -> ValidationResult),
 }
 
-pub(crate) struct Validator<'a> {
-    pub error_reporter: &'a mut ErrorReporter,
-    validation_functions: Vec<Validate>,
-    errors: Vec<Error>,
+pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
+    let mut validator = ValidatorVisitor::new(&mut data.error_reporter);
+
+    for slice_file in data.files.values() {
+        slice_file.visit_with(&mut validator);
+    }
+
+    data.into()
 }
 
-impl<'a> Validator<'a> {
+struct ValidatorVisitor<'a> {
+    error_reporter: &'a mut ErrorReporter,
+    validation_functions: Vec<Validator>,
+}
+
+impl<'a> ValidatorVisitor<'a> {
     pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
         let validation_functions = vec![
             dictionary_validators(),
@@ -57,19 +65,24 @@ impl<'a> Validator<'a> {
         .into_iter()
         .flatten()
         .collect();
-        Validator {
+        ValidatorVisitor {
             error_reporter,
             validation_functions,
-            errors: Vec::new(),
         }
     }
 
-    /// This method is responsible for visiting each slice file with the various validators.
-    pub fn validate(&mut self, slice_files: &HashMap<String, SliceFile>) {
-        for slice_file in slice_files.values() {
-            slice_file.visit_with(self);
-            self.error_reporter.report_errors(&self.errors);
-        }
+    fn validate<F>(&mut self, func: F)
+    where
+        F: Fn(&Validator) -> Option<ValidationResult>,
+    {
+        let error_reporter = &mut self.error_reporter;
+        self.validation_functions
+            .iter()
+            .filter_map(func)
+            .for_each(|result| match result {
+                Ok(_) => (),
+                Err(errs) => error_reporter.append_errors(errs),
+            });
     }
 }
 
@@ -125,182 +138,108 @@ where
         .collect()
 }
 
-impl<'a> Visitor for Validator<'a> {
+impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_module_start(&mut self, module_def: &Module) {
-        let mut errors = Vec::new();
-        self.validation_functions
-            .iter()
-            .filter_map(|f| {
-                if let Validate::Identifiers(function) = f {
-                    let identifiers = module_def
-                        .contents()
-                        .iter()
-                        .map(|definition| definition.borrow().raw_identifier())
-                        .collect::<Vec<_>>();
-                    Some(function(identifiers))
-                } else {
-                    None
-                }
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|f| {
+            if let Validator::Identifiers(function) = f {
+                let identifiers = module_def
+                    .contents()
+                    .iter()
+                    .map(|definition| definition.borrow().raw_identifier())
+                    .collect::<Vec<_>>();
+                Some(function(identifiers))
+            } else {
+                None
+            }
+        });
     }
 
     fn visit_class_start(&mut self, class: &Class) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(class)),
-                Validate::Dictionaries(function) => Some(function(&container_dictionaries(class))),
-                Validate::Identifiers(function) => Some(function(class.members().get_identifiers())),
-                Validate::InheritedIdentifiers(function) => Some(function(
-                    class.members().get_identifiers(),
-                    class.all_inherited_members().get_identifiers(),
-                )),
-                Validate::Members(function) => Some(function(class.members().as_member_vec())),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(class)),
+            Validator::Dictionaries(function) => Some(function(&container_dictionaries(class))),
+            Validator::Identifiers(function) => Some(function(class.members().get_identifiers())),
+            Validator::InheritedIdentifiers(function) => Some(function(
+                class.members().get_identifiers(),
+                class.all_inherited_members().get_identifiers(),
+            )),
+            Validator::Members(function) => Some(function(class.members().as_member_vec())),
+            _ => None,
+        });
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(struct_def)),
-                Validate::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
-                Validate::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
-                Validate::Members(function) => Some(function(struct_def.members().as_member_vec())),
-                Validate::Struct(function) => Some(function(struct_def)),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(struct_def)),
+            Validator::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
+            Validator::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
+            Validator::Members(function) => Some(function(struct_def.members().as_member_vec())),
+            Validator::Struct(function) => Some(function(struct_def)),
+            _ => None,
+        });
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(enum_def)),
-                Validate::Enums(function) => Some(function(enum_def)),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(enum_def)),
+            Validator::Enums(function) => Some(function(enum_def)),
+            _ => None,
+        });
     }
 
     fn visit_exception_start(&mut self, exception: &Exception) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(exception)),
-                Validate::Dictionaries(function) => Some(function(&container_dictionaries(exception))),
-                Validate::Identifiers(function) => Some(function(exception.members().get_identifiers())),
-                Validate::InheritedIdentifiers(function) => Some(function(
-                    exception.members().get_identifiers(),
-                    exception.all_inherited_members().get_identifiers(),
-                )),
-                Validate::Members(function) => Some(function(exception.members().as_member_vec())),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(exception)),
+            Validator::Dictionaries(function) => Some(function(&container_dictionaries(exception))),
+            Validator::Identifiers(function) => Some(function(exception.members().get_identifiers())),
+            Validator::InheritedIdentifiers(function) => Some(function(
+                exception.members().get_identifiers(),
+                exception.all_inherited_members().get_identifiers(),
+            )),
+            Validator::Members(function) => Some(function(exception.members().as_member_vec())),
+            _ => None,
+        });
     }
 
     fn visit_interface_start(&mut self, interface: &Interface) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(interface)),
-                Validate::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
-                Validate::InheritedIdentifiers(function) => Some(function(
-                    interface.operations().get_identifiers(),
-                    interface.all_inherited_operations().get_identifiers(),
-                )),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(interface)),
+            Validator::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
+            Validator::InheritedIdentifiers(function) => Some(function(
+                interface.operations().get_identifiers(),
+                interface.all_inherited_operations().get_identifiers(),
+            )),
+            _ => None,
+        });
     }
 
     fn visit_operation_start(&mut self, operation: &Operation) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(operation)),
-                Validate::Dictionaries(function) => Some(function(&member_dictionaries(
-                    operation.parameters_and_return_members(),
-                ))),
-                Validate::Members(function) => {
-                    Some(function(operation.parameters_and_return_members().as_member_vec()))
-                }
-                Validate::Operations(function) => Some(function(operation)),
-                Validate::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(operation)),
+            Validator::Dictionaries(function) => Some(function(&member_dictionaries(
+                operation.parameters_and_return_members(),
+            ))),
+            Validator::Members(function) => Some(function(operation.parameters_and_return_members().as_member_vec())),
+            Validator::Operations(function) => Some(function(operation)),
+            Validator::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
+            _ => None,
+        });
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Attributes(function) => Some(function(parameter)),
-                _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(parameter)),
+            _ => None,
+        });
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
-        let mut errors = vec![];
-        self.validation_functions
-            .iter()
-            .filter_map(|function| match function {
-                Validate::Dictionaries(function) => match type_alias.underlying.concrete_type() {
-                    Types::Dictionary(dictionary) => Some(function(&[dictionary])),
-                    _ => None,
-                },
+        self.validate(|function| match function {
+            Validator::Dictionaries(function) => match type_alias.underlying.concrete_type() {
+                Types::Dictionary(dictionary) => Some(function(&[dictionary])),
                 _ => None,
-            })
-            .for_each(|result| match result {
-                Ok(_) => (),
-                Err(mut errs) => errors.append(&mut errs),
-            });
-        self.errors.append(&mut errors);
+            },
+            _ => None,
+        });
     }
 }

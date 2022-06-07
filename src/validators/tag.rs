@@ -2,16 +2,16 @@
 
 use crate::error::Error;
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn tag_validators() -> ValidationChain {
     vec![
-        Validate::Members(tags_have_optional_types),
-        Validate::Members(tagged_containers_cannot_contain_classes),
-        Validate::Members(cannot_tag_classes),
-        Validate::Members(tags_are_unique),
-        Validate::Struct(compact_structs_cannot_contain_tags),
-        Validate::Parameters(parameter_order),
+        Validator::Members(tags_have_optional_types),
+        Validator::Members(tagged_containers_cannot_contain_classes),
+        Validator::Members(cannot_tag_classes),
+        Validator::Members(tags_are_unique),
+        Validator::Struct(compact_structs_cannot_contain_tags),
+        Validator::Parameters(parameter_order),
     ]
 }
 

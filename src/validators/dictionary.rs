@@ -2,10 +2,10 @@
 
 use crate::error::{Error, ErrorLevel};
 use crate::grammar::*;
-use crate::validators::{Validate, ValidationChain, ValidationResult};
+use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn dictionary_validators() -> ValidationChain {
-    vec![Validate::Dictionaries(has_allowed_key_type)]
+    vec![Validator::Dictionaries(has_allowed_key_type)]
 }
 
 pub fn has_allowed_key_type(dictionaries: &[&Dictionary]) -> ValidationResult {
