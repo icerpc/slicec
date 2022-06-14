@@ -70,7 +70,7 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert!(!error_reporter.has_errors());
+        assert_errors!(error_reporter);
     }
 }
 
@@ -139,7 +139,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert!(!error_reporter.has_errors());
+        assert_errors!(error_reporter);
     }
 
     #[test_case("uint8?"; "optional uint8")]
@@ -175,6 +175,6 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert!(!error_reporter.has_errors());
+        assert_errors!(error_reporter);
     }
 }
