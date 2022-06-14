@@ -47,9 +47,7 @@ mod custom {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let custom_ptr = ast.find_typed_entity::<CustomType>("Test::ACustomType").unwrap();
-        let custom = custom_ptr.borrow();
-
-        assert_eq!(custom.identifier(), "ACustomType");
+        let custom_type = ast.find_element::<CustomType>("Test::ACustomType").unwrap();
+        assert_eq!(custom_type.identifier(), "ACustomType");
     }
 }

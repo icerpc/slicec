@@ -24,9 +24,7 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
-        let struct_def = struct_ptr.borrow();
-        let data_members = struct_def.members();
+        let data_members = ast.find_element::<Struct>("Test::S").unwrap().members();
 
         assert_eq!(data_members.len(), 3);
 
@@ -61,10 +59,7 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let struct_ptr = ast.find_typed_type::<Struct>("Test::S").unwrap();
-        let struct_def = struct_ptr.borrow();
-        let data_members = struct_def.members();
-
+        let data_members = ast.find_element::<Struct>("Test::S").unwrap().members();
         assert_eq!(data_members.len(), 0);
     }
 

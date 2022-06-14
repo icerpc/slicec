@@ -13,10 +13,8 @@ fn supports_single_inheritance() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_i_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_j_ptr = ast.find_typed_type::<Interface>("Test::J").unwrap();
-    let interface_i_def = interface_i_ptr.borrow();
-    let interface_j_def = interface_j_ptr.borrow();
+    let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
+    let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
     let interface_j_bases = interface_j_def.base_interfaces();
 
     assert!(interface_i_def.base_interfaces().is_empty());
@@ -37,13 +35,9 @@ fn supports_multiple_inheritance() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_i_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_j_ptr = ast.find_typed_type::<Interface>("Test::J").unwrap();
-    let interface_k_ptr = ast.find_typed_type::<Interface>("Test::K").unwrap();
-
-    let interface_i_def = interface_i_ptr.borrow();
-    let interface_j_def = interface_j_ptr.borrow();
-    let interface_k_def = interface_k_ptr.borrow();
+    let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
+    let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
+    let interface_k_def = ast.find_element::<Interface>("Test::K").unwrap();
 
     let interface_k_bases = interface_k_def.base_interfaces();
 
@@ -122,13 +116,9 @@ fn inherits_correct_operations() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_a_ptr = ast.find_typed_type::<Interface>("Test::A").unwrap();
-    let interface_b_ptr = ast.find_typed_type::<Interface>("Test::B").unwrap();
-    let interface_d_ptr = ast.find_typed_type::<Interface>("Test::D").unwrap();
-
-    let interface_a_def = interface_a_ptr.borrow();
-    let interface_b_def = interface_b_ptr.borrow();
-    let interface_d_def = interface_d_ptr.borrow();
+    let interface_a_def = ast.find_element::<Interface>("Test::A").unwrap();
+    let interface_b_def = ast.find_element::<Interface>("Test::B").unwrap();
+    let interface_d_def = ast.find_element::<Interface>("Test::D").unwrap();
 
     assert_eq!(interface_a_def.operations().len(), 1);
     assert_eq!(interface_a_def.all_inherited_operations().len(), 0);

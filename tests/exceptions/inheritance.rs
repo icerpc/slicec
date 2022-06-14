@@ -15,9 +15,8 @@ fn supports_single_inheritance() {
 
     let ast = parse_for_ast(slice);
 
-    let e2_ptr = ast.find_typed_type::<Exception>("Test::E2").unwrap();
-    let e2 = e2_ptr.borrow();
-    assert_eq!(e2.base_exception().unwrap().module_scoped_identifier(), "Test::E1");
+    let e2_def = ast.find_element::<Exception>("Test::E2").unwrap();
+    assert_eq!(e2_def.base_exception().unwrap().module_scoped_identifier(), "Test::E1");
 }
 
 #[test]
@@ -96,13 +95,9 @@ fn inherits_correct_data_members() {
     ";
 
     let ast = parse_for_ast(slice);
-    let exception_a_ptr = ast.find_typed_type::<Exception>("Test::A").unwrap();
-    let exception_b_ptr = ast.find_typed_type::<Exception>("Test::B").unwrap();
-    let exception_c_ptr = ast.find_typed_type::<Exception>("Test::C").unwrap();
-
-    let exception_a_def = exception_a_ptr.borrow();
-    let exception_b_def = exception_b_ptr.borrow();
-    let exception_c_def = exception_c_ptr.borrow();
+    let exception_a_def = ast.find_element::<Exception>("Test::A").unwrap();
+    let exception_b_def = ast.find_element::<Exception>("Test::B").unwrap();
+    let exception_c_def = ast.find_element::<Exception>("Test::C").unwrap();
 
     assert_eq!(exception_a_def.members().len(), 1);
     assert_eq!(exception_a_def.all_members().len(), 1);

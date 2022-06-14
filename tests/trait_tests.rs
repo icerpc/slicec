@@ -47,9 +47,7 @@ mod traits {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let trait_ptr = ast.find_typed_entity::<Trait>("Test::ATrait").unwrap();
-        let trait_def = trait_ptr.borrow();
-
+        let trait_def = ast.find_element::<Trait>("Test::ATrait").unwrap();
         assert_eq!(trait_def.identifier(), "ATrait");
     }
 }
