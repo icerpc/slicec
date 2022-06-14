@@ -8,7 +8,7 @@
 macro_rules! assert_errors {
     ($error_reporter:expr) => {
         assert!(
-            !$error_reporter.has_errors(true),
+            !$error_reporter.has_errors(),
             "Expected no errors, got {}.\n{:?}",
             $error_reporter.errors().len(),
             $error_reporter.errors(),
