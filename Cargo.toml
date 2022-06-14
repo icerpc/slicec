@@ -10,7 +10,6 @@ license = "Apache-2.0"
 edition = "2018"
 
 [dependencies]
-once_cell = "1.8.0"
 pest = "2.0"
 pest_derive = "2.0"
 pest_consume = "1.0.6"
