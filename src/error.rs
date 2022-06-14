@@ -27,7 +27,6 @@ impl ErrorReporter {
     }
 
     /// Checks if any errors have been reported during compilation.
-    /// This doesn't include notes, and only includes warnings if [`include_warnings`] is set.
     pub fn has_errors(&self) -> bool {
         (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
