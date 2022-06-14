@@ -9,13 +9,11 @@ pub struct ParsedData {
     pub ast: Ast,
     pub error_reporter: ErrorReporter,
     pub files: HashMap<String, SliceFile>,
-
-    pub warning_as_error: bool,
 }
 
 impl ParsedData {
     pub fn has_errors(&self) -> bool {
-        self.error_reporter.has_errors(self.warning_as_error)
+        self.error_reporter.has_errors()
     }
 }
 

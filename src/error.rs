@@ -4,7 +4,7 @@ use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
 use std::mem;
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct ErrorReporter {
     /// Vector where all the errors are stored, in the order they're reported.
     errors: Vec<Error>,
@@ -12,13 +12,24 @@ pub struct ErrorReporter {
     error_count: usize,
     /// The total number of warnings reported.
     warning_count: usize,
+    /// If true, compilation will fail on warnings in addition to errors.
+    treat_warnings_as_errors: bool,
 }
 
 impl ErrorReporter {
+    pub fn new(treat_warnings_as_errors: bool) -> Self {
+        ErrorReporter {
+            errors: Vec::new(),
+            error_count: 0,
+            warning_count: 0,
+            treat_warnings_as_errors,
+        }
+    }
+
     /// Checks if any errors have been reported during compilation.
     /// This doesn't include notes, and only includes warnings if [`include_warnings`] is set.
-    pub fn has_errors(&self, include_warnings: bool) -> bool {
-        (self.error_count != 0) || (include_warnings && (self.warning_count != 0))
+    pub fn has_errors(&self) -> bool {
+        (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
     /// Returns the total number of errors and warnings reported through the error reporter.
