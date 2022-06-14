@@ -28,7 +28,7 @@ use std::{fs, io};
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let mut ast = Ast::new();
-    let mut error_reporter = ErrorReporter::default();
+    let mut error_reporter = ErrorReporter::new(options.warn_as_error);
 
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
@@ -60,7 +60,6 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
         ast,
         files: slice_files,
         error_reporter,
-        warning_as_error: options.warn_as_error,
     };
 
     patch_ast(&mut parsed_data);
@@ -70,7 +69,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::new();
-    let mut error_reporter = ErrorReporter::default();
+    let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
     };
@@ -85,7 +84,6 @@ pub fn parse_string(input: &str) -> ParserResult {
         ast,
         files: slice_files,
         error_reporter,
-        warning_as_error: true,
     };
 
     patch_ast(&mut parsed_data);
@@ -95,7 +93,7 @@ pub fn parse_string(input: &str) -> ParserResult {
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut ast = Ast::new();
-    let mut error_reporter = ErrorReporter::default();
+    let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
     };
@@ -112,7 +110,6 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
         ast,
         files: slice_files,
         error_reporter,
-        warning_as_error: true,
     };
 
     patch_ast(&mut parsed_data);

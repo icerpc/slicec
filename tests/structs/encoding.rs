@@ -78,7 +78,7 @@ mod slice2 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert!(!error_reporter.has_errors(true));
+        assert_errors!(error_reporter);
     }
 }
 
