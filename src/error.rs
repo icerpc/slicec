@@ -34,8 +34,8 @@ impl ErrorReporter {
     /// Returns `Err` if the compiler has encountered an error and should exit gracefully.
     pub fn get_state(&self) -> Result<(), ()> {
         match self.has_errors() {
-            true => Ok(()),
-            false => Err(()),
+            false => Ok(()),
+            true => Err(()),
         }
     }
 
