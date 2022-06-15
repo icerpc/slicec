@@ -161,13 +161,13 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                let message = "optional types are not supported by the Slice 1 encoding (except for classes and proxies)";
-                self.error_reporter.report_error(message, None);
+                let m = "optional types are not supported by the Slice 1 encoding (except for classes and proxies)";
+                self.error_reporter.report_error(m, None);
             }
         }
 
         // Ensure the Slice encoding of the file where the type is being used supports the type.
-        if supported_encodings.supports(&file_encoding) {
+        if supported_encodings.supports(file_encoding) {
             supported_encodings
         } else {
             let message = format!(

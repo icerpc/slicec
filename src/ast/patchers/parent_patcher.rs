@@ -7,8 +7,8 @@
 // unnecessary then, since we can just keep track of the parents while parsing, instead of patching
 // them in later like this.
 
-use super::super::Ast;
 use super::super::node::Node;
+use super::super::Ast;
 use crate::downgrade_as;
 use crate::grammar::*;
 use crate::ptr_util::WeakPtr;

@@ -31,43 +31,43 @@ impl TypeRefPatcher<'_> {
                 Node::Class(class_ptr) => {
                     class_ptr.borrow().base.as_ref()
                         .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(|definition| PatchKind::BaseClass(definition))
+                        .map(PatchKind::BaseClass)
                 }
                 Node::Exception(exception_ptr) => {
                     exception_ptr.borrow().base.as_ref()
                         .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(|definition| PatchKind::BaseException(definition))
+                        .map(PatchKind::BaseException)
                 }
                 Node::DataMember(data_member_ptr) => {
                     let type_ref = &data_member_ptr.borrow().data_type;
                     self.resolve_definition(type_ref, ast)
-                        .map(|definition| PatchKind::DataMemberType(definition))
+                        .map(PatchKind::DataMemberType)
                 }
                 Node::Interface(interface_ptr) => {
                     interface_ptr.borrow().bases.iter()
                         .map(|type_ref| self.resolve_definition(type_ref, ast))
                         .collect::<Option<Vec<_>>>() // None if any of the bases couldn't be resolved.
-                        .map(|definitions| PatchKind::BaseInterfaces(definitions))
+                        .map(PatchKind::BaseInterfaces)
                 }
                 Node::Parameter(parameter_ptr) => {
                     let type_ref = &parameter_ptr.borrow().data_type;
                     self.resolve_definition(type_ref, ast)
-                        .map(|definition| PatchKind::ParameterType(definition))
+                        .map(PatchKind::ParameterType)
                 }
                 Node::Enum(enum_ptr) => {
                     enum_ptr.borrow().underlying.as_ref()
                         .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(|definition| PatchKind::EnumUnderlyingType(definition))
+                        .map(PatchKind::EnumUnderlyingType)
                 }
                 Node::TypeAlias(type_alias_ptr) => {
                     let type_ref = &type_alias_ptr.borrow().underlying;
                     self.resolve_definition(type_ref, ast)
-                        .map(|definition| PatchKind::TypeAliasUnderlyingType(definition))
+                        .map(PatchKind::TypeAliasUnderlyingType)
                 }
                 Node::Sequence(sequence_ptr) => {
                     let type_ref = &sequence_ptr.borrow().element_type;
                     self.resolve_definition(type_ref, ast)
-                        .map(|definition| PatchKind::SequenceType(definition))
+                        .map(PatchKind::SequenceType)
                 }
                 Node::Dictionary(dictionary_ptr) => {
                     let dictionary_def = dictionary_ptr.borrow();
@@ -191,7 +191,7 @@ impl TypeRefPatcher<'_> {
         // Second, Handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result: Result<Patch<T>, String> = ast
-            .find_node_with_scope(&type_ref.type_string, &type_ref.module_scope())
+            .find_node_with_scope(&type_ref.type_string, type_ref.module_scope())
             .and_then(|node| {
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
@@ -230,7 +230,7 @@ impl TypeRefPatcher<'_> {
             let underlying_type = &current_type_alias.underlying;
 
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
-            let node = ast.find_node_with_scope(&underlying_type.type_string, &underlying_type.module_scope())?;
+            let node = ast.find_node_with_scope(&underlying_type.type_string, underlying_type.module_scope())?;
             // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
@@ -240,7 +240,8 @@ impl TypeRefPatcher<'_> {
 
             // Check if we've already seen the next type alias before continuing the loop; if so, it's cyclic and we
             // emit a detailed error message showing each chain in the cycle before returning with an error.
-            if let Some(i) = type_alias_chain.iter().position(|&other| std::ptr::eq(other, current_type_alias)) {
+            let lookup_result = type_alias_chain.iter().position(|&other| std::ptr::eq(other, current_type_alias));
+            if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
 
                 let message = format!(

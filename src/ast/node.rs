@@ -6,9 +6,9 @@ use crate::downgrade_as;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::string_util::prefix_with_article;
+use convert_case::{Case, Casing};
 use std::convert::TryFrom;
 use std::fmt;
-use convert_case::{Case, Casing};
 
 // Helper macro for generating `TryFrom` conversion methods to unwrap `Node`s to concrete types,
 // when the type of element the Node is holding is known.

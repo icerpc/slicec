@@ -9,6 +9,7 @@ pub mod parse_result;
 pub mod parser;
 pub mod ptr_util;
 pub mod slice_file;
+pub mod string_util;
 pub mod supported_encodings;
 pub mod validators;
 pub mod visitor;

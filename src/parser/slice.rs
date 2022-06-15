@@ -86,7 +86,8 @@ impl<'a> SliceParser<'a> {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, top_level_modules, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        let (file_attributes, top_level_modules, file_encoding) =
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         Ok(SliceFile::new(
             file.to_owned(),
@@ -127,7 +128,8 @@ impl<'a> SliceParser<'a> {
         let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
 
         // Consume the contents of the file and add them into the AST.
-        let (file_attributes, top_level_modules, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
+        let (file_attributes, top_level_modules, file_encoding) =
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let slice_file = SliceFile::new(
             identifier.to_owned(),
@@ -815,8 +817,7 @@ impl<'a> SliceParser<'a> {
             .find_node(input.as_str())
             .unwrap()
             .try_into()
-            .unwrap()
-        )
+            .unwrap())
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
