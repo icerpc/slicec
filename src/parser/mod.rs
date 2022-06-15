@@ -116,12 +116,14 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
 
 fn patch_ast(parsed_data: &mut ParsedData) {
     // TODO integrate this better with ParsedData in the future.
-    unsafe {
-        let _ = crate::ast::patch_ast(
-            &mut parsed_data.ast,
-            &parsed_data.files,
-            &mut parsed_data.error_reporter,
-        );
+    if !parsed_data.has_errors() {
+        unsafe {
+            let _ = crate::ast::patch_ast(
+                &mut parsed_data.ast,
+                &parsed_data.files,
+                &mut parsed_data.error_reporter,
+            );
+        }
     }
 
     // TODO move this to a validator now that the patchers can handle traversing cycles on their own.

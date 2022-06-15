@@ -716,8 +716,10 @@ impl<'a> SliceParser<'a> {
             },
         );
 
-        let parser_data = &mut input.user_data().borrow_mut();
-        parser_data.current_enum_value = Some(enum_value);
+        {
+            let parser_data = &mut input.user_data().borrow_mut();
+            parser_data.current_enum_value = Some(enum_value);
+        }
 
         let ast = &mut input.user_data().borrow_mut().ast;
         Ok(ast.add_named_element(OwnedPtr::new(enumerator)))
@@ -1189,7 +1191,6 @@ impl<'a> SliceParser<'a> {
                 }
 
                 // Construct any enclosing modules.
-                let ast = &mut input.user_data().borrow_mut().ast;
                 for module in modules {
                     // Pop the module's scope, and then construct it.
                     pop_scope(&input);
@@ -1201,11 +1202,13 @@ impl<'a> SliceParser<'a> {
                         location.clone(),
                     );
                     // Add the inner module to the outer module, than swap their variables.
+                    let ast = &mut input.user_data().borrow_mut().ast;
                     new_module.add_definition(Definition::Module(ast.add_named_element(OwnedPtr::new(last_module))));
                     last_module = new_module;
                 }
 
                 // Return the outer-most module.
+                let ast = &mut input.user_data().borrow_mut().ast;
                 ast.add_named_element(OwnedPtr::new(last_module))
             },
         ))

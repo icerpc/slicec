@@ -75,10 +75,7 @@ impl TypeRefPatcher<'_> {
                     let dictionary_def = dictionary_ptr.borrow();
                     let key_patch = self.resolve_definition(&dictionary_def.key_type, ast);
                     let value_patch = self.resolve_definition(&dictionary_def.value_type, ast);
-                    match (key_patch, value_patch) {
-                        (Some(key), Some(value)) => Some(PatchKind::DictionaryTypes(key, value)),
-                        _ => None,
-                    }
+                    Some(PatchKind::DictionaryTypes(key_patch, value_patch))
                 }
                 _ => None,
             };
@@ -161,13 +158,16 @@ impl TypeRefPatcher<'_> {
                     element_type_ref.definition = element_type_ptr;
                     element_type_ref.attributes.extend(attributes);
                 }
-                PatchKind::DictionaryTypes((key_type_ptr, key_attributes), (value_type_ptr, value_attributes)) => {
+                PatchKind::DictionaryTypes(key_patch, value_patch) => {
                     let dictionary_ptr: &mut OwnedPtr<Dictionary> = (&mut elements[i]).try_into().unwrap();
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    dictionary_ptr.borrow_mut().key_type.definition = key_type_ptr;
-                    dictionary_ptr.borrow_mut().key_type.attributes.extend(key_attributes);
-                    dictionary_ptr.borrow_mut().value_type.definition = value_type_ptr;
-                    dictionary_ptr.borrow_mut().value_type.attributes.extend(value_attributes);
+                    if let Some((key_type_ptr, key_attributes)) = key_patch {
+                        dictionary_ptr.borrow_mut().key_type.definition = key_type_ptr;
+                        dictionary_ptr.borrow_mut().key_type.attributes.extend(key_attributes);
+                    }
+                    if let Some((value_type_ptr, value_attributes)) = value_patch {
+                        dictionary_ptr.borrow_mut().value_type.definition = value_type_ptr;
+                        dictionary_ptr.borrow_mut().value_type.attributes.extend(value_attributes);
+                    }
                 }
                 PatchKind::None => {}
             }
@@ -279,7 +279,7 @@ enum PatchKind {
     EnumUnderlyingType(Patch<Primitive>),
     TypeAliasUnderlyingType(Patch<dyn Type>),
     SequenceType(Patch<dyn Type>),
-    DictionaryTypes(Patch<dyn Type>, Patch<dyn Type>),
+    DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
 }
 
 impl Default for PatchKind {
