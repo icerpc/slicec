@@ -4,7 +4,8 @@ pub mod helpers;
 
 mod comments {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -94,6 +95,51 @@ mod comments {
         let op_doc_comment = op_def.comment().unwrap();
 
         assert_eq!(op_doc_comment.returns, expected);
+    }
+
+    #[test]
+    fn operation_with_no_return_but_doc_comment_contains_return_fails() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+
+                /// @return This operation will return a bool.
+                testOp(testParam: string);
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "doc comment indicates that operation `testOp` should return a value, but it does not"
+        ]);
+    }
+
+    #[test]
+    fn operation_with_doc_comment_for_param_but_no_param_fails() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+
+                /// @param testParam1 A string param
+                /// @param testParam2 A bool param
+                testOp(testParam1: string);
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "doc comment indicates that operation `testOp` should should contain a parameter named `testParam2`, but it does not"
+        ]);
     }
 
     #[test]

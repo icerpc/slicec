@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 mod attribute;
+mod comments;
 mod dictionary;
 mod enums;
 mod identifiers;
@@ -16,6 +17,7 @@ use crate::visitor::Visitor;
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
 pub use self::attribute::*;
+pub use self::comments::*;
 pub use self::dictionary::*;
 pub use self::enums::*;
 pub use self::identifiers::*;
@@ -55,12 +57,13 @@ struct ValidatorVisitor<'a> {
 impl<'a> ValidatorVisitor<'a> {
     pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
         let validation_functions = vec![
-            dictionary_validators(),
-            tag_validators(),
-            enum_validators(),
             attribute_validators(),
+            comments_validators(),
+            dictionary_validators(),
+            enum_validators(),
             identifier_validators(),
             miscellaneous_validators(),
+            tag_validators(),
         ]
         .into_iter()
         .flatten()
