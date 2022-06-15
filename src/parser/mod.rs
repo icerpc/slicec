@@ -5,11 +5,8 @@
 
 mod comments;
 mod cycle_detection;
-mod encoding_patcher;
-mod parent_patcher;
 mod preprocessor;
 mod slice;
-mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
