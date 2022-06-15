@@ -12,7 +12,7 @@ pub fn prefix_with_article(string: impl Into<String>) -> String {
     string
 }
 
-/// Returns true if the char is either an ASCII vowel ('a', 'e', 'i', 'o', or 'u').
+/// Returns whether the char is an ASCII vowel ('a', 'e', 'i', 'o', or 'u').
 pub fn is_ascii_vowel(c: char) -> bool {
     matches!(c, 'a' | 'e' | 'i' | 'o' | 'u')
 }

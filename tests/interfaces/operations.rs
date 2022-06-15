@@ -52,7 +52,7 @@ fn can_contain_tags() {
 
     // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-    let tag_def = op_ptr.parameters()[0].tag();
+    let tag_def = operation.parameters()[0].tag();
     assert_eq!(tag_def, Some(1));
 }
 
