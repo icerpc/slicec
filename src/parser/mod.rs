@@ -115,24 +115,18 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
 }
 
 fn patch_ast(parsed_data: &mut ParsedData) {
-    if !parsed_data.has_errors() {
-        parent_patcher::patch_parents(&mut parsed_data.ast);
-    }
-
-    if !parsed_data.has_errors() {
-        type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
-    }
-
-    if !parsed_data.has_errors() {
-        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
-    }
-
-    if !parsed_data.has_errors() {
-        encoding_patcher::patch_encodings(
-            &parsed_data.files,
+    // TODO integrate this better with ParsedData in the future.
+    unsafe {
+        let _ = crate::ast::patch_ast(
             &mut parsed_data.ast,
+            &parsed_data.files,
             &mut parsed_data.error_reporter,
         );
+    }
+
+    // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
+    if !parsed_data.has_errors() {
+        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
     }
 }
 

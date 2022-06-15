@@ -13,7 +13,7 @@ pub unsafe fn patch_ast(
     ast: &mut Ast,
     slice_files: &HashMap<String, SliceFile>,
     error_reporter: &mut ErrorReporter,
-) {
+) -> Result<(), ()> {
     // Create a new encoding patcher.
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
@@ -55,6 +55,8 @@ pub unsafe fn patch_ast(
             _ => {}
         }
     }
+
+    error_reporter.get_state()
 }
 
 struct EncodingPatcher<'a> {

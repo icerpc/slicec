@@ -8,7 +8,7 @@ use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use std::convert::{TryFrom, TryInto};
 
-pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
+pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<(), ()> {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
         error_reporter,
@@ -17,6 +17,8 @@ pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
     // TODO explain we split this logic so that we can for sure have an immutable AST.
     patcher.compute_patches(ast);
     patcher.apply_patches(ast);
+
+    error_reporter.get_state()
 }
 
 struct TypeRefPatcher<'a> {

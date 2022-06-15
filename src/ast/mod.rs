@@ -24,11 +24,11 @@ pub(crate) unsafe fn patch_ast(
     ast: &mut Ast,
     slice_files: &HashMap<String, crate::slice_file::SliceFile>,
     error_reporter: &mut crate::error::ErrorReporter,
-) {
-    // TODO this doesn't fail fast right now!
+) -> Result<(), ()> {
     patchers::parent_patcher::patch_ast(ast); // TODO remove this when we switch to LALRpop
-    patchers::type_ref_patcher::patch_ast(ast, error_reporter);
-    patchers::encoding_patcher::patch_ast(ast, slice_files, error_reporter);
+    patchers::type_ref_patcher::patch_ast(ast, error_reporter)?;
+    patchers::encoding_patcher::patch_ast(ast, slice_files, error_reporter)?;
+    Ok(())
 }
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the slice elements
