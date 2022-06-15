@@ -11,7 +11,7 @@ mod tag;
 use crate::error::{Error, ErrorReporter};
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
-use crate::ptr_util::OwnedPtr;
+use crate::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is
@@ -115,7 +115,7 @@ impl<T: Member> AsMemberVecExt for Vec<&T> {
     }
 }
 
-fn container_dictionaries<T>(container: &dyn Container<OwnedPtr<T>>) -> Vec<&Dictionary>
+fn container_dictionaries<T>(container: &dyn Container<WeakPtr<T>>) -> Vec<&Dictionary>
 where
     T: Member,
 {
