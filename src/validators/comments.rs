@@ -6,6 +6,7 @@ use crate::validators::{ValidationChain, ValidationResult, Validator};
 
 pub fn comments_validators() -> ValidationChain {
     vec![
+        Validator::Entities(only_operations_can_throw),
         Validator::Operations(non_empty_return_comment),
         Validator::Operations(missing_parameter_comment),
     ]
@@ -55,6 +56,28 @@ fn missing_parameter_comment(operation: &Operation) -> ValidationResult {
                 });
             }
         })
+    }
+    match errors.is_empty() {
+        true => Ok(()),
+        false => Err(errors),
+    }
+}
+
+fn only_operations_can_throw(commentable: &dyn Entity) -> ValidationResult {
+    let mut errors = vec![];
+    let supported_on = ["operation"];
+    if let Some(comment) = commentable.comment() {
+        if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
+            errors.push(Error {
+                message: format!(
+                    "doc comment indicates that {kind} `{op_identifier}` throws, however, only operations can throw",
+                    kind = &commentable.kind(),
+                    op_identifier = commentable.identifier(),
+                ),
+                location: Some(comment.location.clone()),
+                severity: ErrorLevel::Warning,
+            });
+        };
     }
     match errors.is_empty() {
         true => Ok(()),

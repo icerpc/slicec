@@ -49,14 +49,10 @@ mod comments {
 
             interface TestInterface {
                 /// @param testParam My test param
-                /// @param testParam2 My test param two
                 testOp(testParam: string);
             }
             ";
-        let expected = vec![
-            ("testParam".to_owned(), "My test param".to_owned()),
-            ("testParam2".to_owned(), "My test param two".to_owned()),
-        ];
+        let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
         // Act
         let ast = parse_for_ast(slice);
@@ -104,7 +100,6 @@ mod comments {
             module tests;
 
             interface TestInterface {
-
                 /// @return This operation will return a bool.
                 testOp(testParam: string);
             }
@@ -126,7 +121,6 @@ mod comments {
             module tests;
 
             interface TestInterface {
-
                 /// @param testParam1 A string param
                 /// @param testParam2 A bool param
                 testOp(testParam1: string);
@@ -200,6 +194,25 @@ mod comments {
         let op_doc_comment = op_def.comment().unwrap();
 
         assert_eq!(op_doc_comment.throws, expected);
+    }
+
+    #[test]
+    fn doc_comments_non_operations_cannot_throw() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            /// @throws MyThrownThing Message about my thrown thing.
+            struct S {}
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "doc comment indicates that struct `S` throws, however, only operations can throw",
+        ]);
     }
 
     #[test]

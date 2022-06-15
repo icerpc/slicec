@@ -31,6 +31,7 @@ pub enum Validator {
     Attributes(fn(&dyn Attributable) -> ValidationResult),
     Dictionaries(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
+    Entities(fn(&dyn Entity) -> ValidationResult),
     Members(fn(Vec<&dyn Member>) -> ValidationResult),
     Identifiers(fn(Vec<&Identifier>) -> ValidationResult),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>) -> ValidationResult),
@@ -144,6 +145,7 @@ where
 impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_module_start(&mut self, module_def: &Module) {
         self.validate(|function| match function {
+            Validator::Entities(function) => Some(function(module_def)),
             Validator::Identifiers(function) => {
                 let identifiers = module_def
                     .contents()
@@ -160,6 +162,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(class)),
             Validator::Dictionaries(function) => Some(function(&container_dictionaries(class))),
+            Validator::Entities(function) => Some(function(class)),
             Validator::Identifiers(function) => Some(function(class.members().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 class.members().get_identifiers(),
@@ -174,6 +177,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(struct_def)),
             Validator::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
+            Validator::Entities(function) => Some(function(struct_def)),
             Validator::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
             Validator::Members(function) => Some(function(struct_def.members().as_member_vec())),
             Validator::Struct(function) => Some(function(struct_def)),
@@ -184,6 +188,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_enum_start(&mut self, enum_def: &Enum) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(enum_def)),
+            Validator::Entities(function) => Some(function(enum_def)),
             Validator::Enums(function) => Some(function(enum_def)),
             _ => None,
         });
@@ -193,6 +198,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(exception)),
             Validator::Dictionaries(function) => Some(function(&container_dictionaries(exception))),
+            Validator::Entities(function) => Some(function(exception)),
             Validator::Identifiers(function) => Some(function(exception.members().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 exception.members().get_identifiers(),
@@ -206,6 +212,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_interface_start(&mut self, interface: &Interface) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(interface)),
+            Validator::Entities(function) => Some(function(interface)),
             Validator::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 interface.operations().get_identifiers(),
@@ -221,6 +228,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Dictionaries(function) => Some(function(&member_dictionaries(
                 operation.parameters_and_return_members(),
             ))),
+            Validator::Entities(function) => Some(function(operation)),
             Validator::Members(function) => Some(function(operation.parameters_and_return_members().as_member_vec())),
             Validator::Operations(function) => Some(function(operation)),
             Validator::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
@@ -241,6 +249,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 Types::Dictionary(dictionary) => Some(function(&[dictionary])),
                 _ => None,
             },
+            Validator::Entities(function) => Some(function(type_alias)),
             _ => None,
         });
     }
