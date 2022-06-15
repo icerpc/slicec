@@ -8,7 +8,6 @@ pub mod grammar;
 pub mod parse_result;
 pub mod parser;
 pub mod ptr_util;
-pub mod ptr_visitor;
 pub mod slice_file;
 pub mod supported_encodings;
 pub mod validators;

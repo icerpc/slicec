@@ -24,9 +24,6 @@ use crate::slice_file::SliceFile;
 ///         - visit_data_member (called once per data member, in the order they're defined)
 ///     - visit_struct_end
 /// - visit_module_end
-///
-/// `Visitor` visits through and exposes immutable references to elements.
-/// If mutability or access to the element's enclosing pointers is needed, use [PtrVisitor] instead.
 #[allow(unused_variables)] // Keep parameter names for doc generation, even if not used in the default implementations.
 pub trait Visitor {
     /// This function is called by the visitor when it begins visiting a slice file,
