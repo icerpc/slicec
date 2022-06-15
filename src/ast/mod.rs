@@ -65,7 +65,9 @@ impl Ast {
     ///
     /// # Examples
     /// ```
+    /// # use slice::ast::Ast;
     /// let ast = Ast::new();
+    /// assert_eq!(ast.as_slice().len(), 17); // Only the 17 primitives are defined.
     /// ```
     pub fn new() -> Ast {
         // Primitive types are built in to the compiler. Since they aren't defined in Slice,
@@ -135,6 +137,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
+    /// # use slice::ast::Ast;
+    /// # use slice::grammar::*;
     /// let ast = Ast::new();
     ///
     /// // Lookup a primitive type.
@@ -185,6 +189,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
+    /// # use slice::ast::Ast;
+    /// # use slice::grammar::*;
     /// let ast = Ast::new();
     ///
     /// // TODO write other examples once the other APIs suck less.
@@ -235,6 +241,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
+    /// # use slice::ast::Ast;
+    /// # use slice::grammar::*;
     /// let ast = Ast::new();
     ///
     /// // Look up a primitive type.
@@ -256,7 +264,7 @@ impl Ast {
     /// let wrong_type = ast.find_element::<Exception>("bool");
     /// assert!(fake_element.is_err());
     /// ```
-    pub fn find_element<'a, T: Element>(
+    pub fn find_element<'a, T: Element + ?Sized>(
         &'a self,
         identifier: &str,
     ) -> Result<&'a T, String>
@@ -292,6 +300,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
+    /// # use slice::ast::Ast;
+    /// # use slice::grammar::*;
     /// let ast = Ast::new();
     ///
     /// // TODO write other examples once the other APIs suck less.
@@ -300,7 +310,7 @@ impl Ast {
     /// let fake_element = ast.find_element_with_scope::<dyn Entity>("hello", "foo::bar");
     /// assert!(fake_element.is_err());
     /// ```
-    pub fn find_element_with_scope<'a, T: Element>(
+    pub fn find_element_with_scope<'a, T: Element + ?Sized>(
         &'a self,
         identifier: &str,
         scope: &str,
@@ -317,13 +327,12 @@ impl Ast {
     /// # Examples
     ///
     /// ```
+    /// # use slice::ast::Ast;
     /// let ast = Ast::new();
     ///
-    /// let contents = ast.as_slice();
-    /// assert_eq!(contents.len(), 17); // Only the 17 primitives are defined.
-    ///
     /// // Iterate through the contents of the AST.
-    /// contents.iter().for_each(|x| /* do something */);
+    /// let contents = ast.as_slice();
+    /// contents.iter().for_each(|x| { /* do something */ } );
     /// ```
     pub fn as_slice(&self) -> &[Node] {
         self.elements.as_slice()
@@ -333,14 +342,13 @@ impl Ast {
     ///
     /// # Examples
     ///
-    /// ```
+    /// ```ignore
+    /// # use slice::ast::Ast;
     /// let mut ast = Ast::new();
     ///
-    /// let contents = ast.as_mut_slice();
-    /// assert_eq!(contents.len(), 17); // Only the 17 primitives are defined.
-    ///
     /// // Iterate through the contents of the AST.
-    /// contents.iter_mut().for_each(|x| /* do something */);
+    /// let contents = ast.as_mut_slice();
+    /// contents.iter_mut().for_each(|x| { /* do something */ } );
     /// ```
     pub(crate) fn as_mut_slice(&mut self) -> &mut [Node] {
         self.elements.as_mut_slice()
