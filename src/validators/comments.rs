@@ -84,3 +84,5 @@ fn only_operations_can_throw(commentable: &dyn Entity) -> ValidationResult {
         false => Err(errors),
     }
 }
+
+// TODO: Add @deprecated check once it is implemented.
