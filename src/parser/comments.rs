@@ -65,6 +65,51 @@ impl CommentParser {
                     );
                     current_string.push('\n');
                 }
+                Rule::deprecated_field => {
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // message.
+                    let mut has_space = false;
+                    let mut has_message = false;
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
+                        match subtoken.as_rule() {
+                            Rule::space => {
+                                has_space = true;
+                            }
+                            Rule::message => {
+                                has_message = true;
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
+                                if !has_space {
+                                    // TODO issue an error about missing a space.
+                                }
+
+                                // Issue an error if a return field was already specified in the
+                                // comment.
+                                if comment.deprecate_reason.is_some() {
+                                    // TODO issue an error.
+                                }
+
+                                let deprecated_message = subtoken
+                                    .as_str()
+                                    .trim_end_matches(Self::is_padding)
+                                    .trim_start_matches(char::is_whitespace);
+                                comment.deprecate_reason = Some(deprecated_message.to_owned());
+                                // Re-point the current string reference to point to the return
+                                // message string so that any
+                                // following text (even following lines) is appended to it.
+                                current_string = comment.deprecate_reason.as_mut().unwrap();
+                                current_string.push('\n');
+                            }
+                            _ => panic!("matched impossible token: {:?}", subtoken),
+                        }
+                    }
+
+                    // Issue an error if the parameter field didn't have an identifier.
+                    if !has_message {
+                        // TODO issue an error about not having an identifier.
+                    }
+                }
                 Rule::param_field => {
                     // Iterate through the subtokens. Any of them can be missing, but they will
                     // always be in the following order when present: space,
@@ -158,6 +203,51 @@ impl CommentParser {
                         // TODO issue an error about not having an identifier.
                     }
                 }
+                Rule::see_field => {
+                    // Iterate through the subtokens. Any of them can be missing, but they will
+                    // always be in the following order when present: space,
+                    // identifier, message.
+                    let mut has_space = false;
+                    let mut has_identifier = false;
+                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
+                        match subtoken.as_rule() {
+                            Rule::space => {
+                                has_space = true;
+                            }
+                            Rule::identifier => {
+                                has_identifier = true;
+                                // Issue an error if there's no whitespace between the identifier
+                                // and tag.
+                                if !has_space {
+                                    // TODO issue an error about missing a space.
+                                }
+
+                                // Add a new see field to the comment, with an empty description.
+                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
+                                comment.see_also.push(identifier.to_owned());
+                                // Re-point the current string reference to point to the identifier
+                                // string. References shouldn't have
+                                // additional text, but there's no where else logical
+                                // to append the text to.
+                                current_string = comment.see_also.last_mut().unwrap();
+                            }
+                            Rule::message => {
+                                // The grammar rules make it impossible for a message to not follow
+                                // identifiers.
+                                debug_assert!(has_identifier);
+                                // Issue an error; references shouldn't have additional
+                                // descriptions. TODO issue the
+                                // error.
+                            }
+                            _ => panic!("matched impossible token: {:?}", subtoken),
+                        }
+                    }
+
+                    // Issue an error if the parameter didn't have an identifier field.
+                    if !has_identifier {
+                        // TODO issue an error about not having an identifier.
+                    }
+                }
                 Rule::throws_field => {
                     // Iterate through the subtokens. Any of them can be missing, but they will
                     // always be in the following order when present: space,
@@ -201,51 +291,6 @@ impl CommentParser {
                     }
 
                     // Issue an error if the throws field didn't have an identifier.
-                    if !has_identifier {
-                        // TODO issue an error about not having an identifier.
-                    }
-                }
-                Rule::see_field => {
-                    // Iterate through the subtokens. Any of them can be missing, but they will
-                    // always be in the following order when present: space,
-                    // identifier, message.
-                    let mut has_space = false;
-                    let mut has_identifier = false;
-                    for subtoken in token.into_inner().collect::<Vec<PestPair>>() {
-                        match subtoken.as_rule() {
-                            Rule::space => {
-                                has_space = true;
-                            }
-                            Rule::identifier => {
-                                has_identifier = true;
-                                // Issue an error if there's no whitespace between the identifier
-                                // and tag.
-                                if !has_space {
-                                    // TODO issue an error about missing a space.
-                                }
-
-                                // Add a new see field to the comment, with an empty description.
-                                let identifier = subtoken.as_str().trim_end_matches(Self::is_padding);
-                                comment.see_also.push(identifier.to_owned());
-                                // Re-point the current string reference to point to the identifier
-                                // string. References shouldn't have
-                                // additional text, but there's no where else logical
-                                // to append the text to.
-                                current_string = comment.see_also.last_mut().unwrap();
-                            }
-                            Rule::message => {
-                                // The grammar rules make it impossible for a message to not follow
-                                // identifiers.
-                                debug_assert!(has_identifier);
-                                // Issue an error; references shouldn't have additional
-                                // descriptions. TODO issue the
-                                // error.
-                            }
-                            _ => panic!("matched impossible token: {:?}", subtoken),
-                        }
-                    }
-
-                    // Issue an error if the parameter didn't have an identifier field.
                     if !has_identifier {
                         // TODO issue an error about not having an identifier.
                     }

@@ -9,13 +9,14 @@ message = { (!newline ~ ANY)+ }
 // Match any characters other than separators at least once.
 identifier = { (!separator ~ ANY)+ }
 
-field = _{ param_field | return_field | throws_field | see_field | invalid_field }
+field = _{ deprecated_field | param_field | return_field | see_field | throws_field | invalid_field }
 // `identifier`s always end at a whitespace character, so we don't need to explicitly match a space
 // in between `identifier`s and `message`s. Not having the extra token simplifies parsing later on.
+deprecated_field = { "@deprecated" ~ space? ~ message? }
 param_field = { "@param" ~ space? ~ identifier? ~ message? }
 return_field = { "@return" ~ space? ~ message? }
-throws_field = { "@throws" ~ space? ~ identifier? ~ message? }
 see_field = { "@see" ~ space? ~ identifier? ~ message? }
+throws_field = { "@throws" ~ space? ~ identifier? ~ message? }
 invalid_field = { "@" ~ identifier? ~ message? }
 
 // We don't ignore `space`, since it DOES have a syntactic meaning: delimiting tokens.

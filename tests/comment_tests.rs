@@ -183,6 +183,32 @@ mod comments {
         assert_eq!(op_doc_comment.see_also, expected);
     }
 
+    #[test]
+    fn doc_comments_deprecated() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+                /// @deprecated A reason for deprecation.
+                testOp(testParam: string) -> bool;
+            }
+            ";
+        let expected = Some("A reason for deprecation.".to_owned());
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let op_ptr = ast
+            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
+            .unwrap();
+        let op_def = op_ptr.borrow();
+        let op_doc_comment = op_def.comment().unwrap();
+
+        assert_eq!(op_doc_comment.deprecate_reason, expected);
+    }
+
     #[test_case("/// This is a doc comment.", (4, 13), (5, 13); "doc comment")]
     #[test_case("/**\n* This is a multi line doc comment.\n*/", (4, 13), (6, 3); "multi-line doc comment")]
     fn doc_comments_location(comment: &str, expected_start: (usize, usize), expected_end: (usize, usize)) {
