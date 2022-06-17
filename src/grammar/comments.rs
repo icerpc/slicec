@@ -11,7 +11,6 @@ pub struct DocComment {
     pub params: Vec<(String, String)>,
     pub returns: Option<String>,
     pub throws: Vec<(String, String)>,
-    pub deprecate_reason: Option<String>,
     pub location: Location,
 }
 
@@ -26,7 +25,6 @@ impl DocComment {
             .collect();
 
         self.returns = self.returns.as_ref().map(|s| s.trim().to_owned());
-        self.deprecate_reason = self.deprecate_reason.as_ref().map(|s| s.trim().to_owned());
         self.throws = self
             .throws
             .iter()
