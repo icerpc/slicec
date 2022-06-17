@@ -20,10 +20,7 @@ fn non_empty_return_comment(operation: &Operation) -> ValidationResult {
         // example: @return A description of the return value.`
         if comment.returns.is_some() && operation.return_members().is_empty() {
             errors.push(Error {
-                message: format!(
-                    "void operation must not contain doc comment return tag",
-                    op_identifier = operation.identifier(),
-                ),
+                message: "void operation must not contain doc comment return tag".to_owned(),
                 location: Some(comment.location.clone()),
                 severity: ErrorLevel::Warning,
             });
@@ -47,8 +44,7 @@ fn missing_parameter_comment(operation: &Operation) -> ValidationResult {
             {
                 errors.push(Error {
                     message: format!(
-                        "doc comment indicates that operation `{op_identifier}` should should contain a parameter named `{param_name}`, but it does not",
-                        op_identifier = operation.identifier(),
+                        "doc comment has a param tag for '{param_name}', but there is no parameter by that name",
                         param_name = param.0,
                     ),
                     location: Some(comment.location.clone()),

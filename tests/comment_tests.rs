@@ -110,7 +110,7 @@ mod comments {
 
         // Assert
         assert_errors!(error_reporter, [
-            "doc comment indicates that operation `testOp` should return a value, but it does not"
+            "void operation must not contain doc comment return tag"
         ]);
     }
 
@@ -132,8 +132,29 @@ mod comments {
 
         // Assert
         assert_errors!(error_reporter, [
-            "doc comment indicates that operation `testOp` should should contain a parameter named `testParam2`, but it does not"
+            "doc comment has a param tag for 'testParam2', but there is no parameter by that name",
         ]);
+    }
+
+    #[test]
+    fn operation_with_correct_doc_comments() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+                /// @param testParam1 A string param
+                /// @return bool
+                /// @throws MyException Some message about why testOp throws
+                testOp(testParam1: string) -> bool;
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter);
     }
 
     #[test]
