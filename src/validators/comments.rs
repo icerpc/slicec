@@ -21,7 +21,7 @@ fn non_empty_return_comment(operation: &Operation) -> ValidationResult {
         if comment.returns.is_some() && operation.return_members().is_empty() {
             errors.push(Error {
                 message: format!(
-                    "doc comment indicates that operation `{op_identifier}` should return a value, but it does not",
+                    "void operation must not contain doc comment return tag",
                     op_identifier = operation.identifier(),
                 ),
                 location: Some(comment.location.clone()),
