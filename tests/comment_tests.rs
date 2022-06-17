@@ -4,7 +4,8 @@ pub mod helpers;
 
 mod comments {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -48,14 +49,10 @@ mod comments {
 
             interface TestInterface {
                 /// @param testParam My test param
-                /// @param testParam2 My test param two
                 testOp(testParam: string);
             }
             ";
-        let expected = vec![
-            ("testParam".to_owned(), "My test param".to_owned()),
-            ("testParam2".to_owned(), "My test param two".to_owned()),
-        ];
+        let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
         // Act
         let ast = parse_for_ast(slice);
@@ -94,6 +91,70 @@ mod comments {
         let op_doc_comment = op_def.comment().unwrap();
 
         assert_eq!(op_doc_comment.returns, expected);
+    }
+
+    #[test]
+    fn operation_with_no_return_but_doc_comment_contains_return_fails() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+                /// @return This operation will return a bool.
+                testOp(testParam: string);
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "void operation must not contain doc comment return tag"
+        ]);
+    }
+
+    #[test]
+    fn operation_with_doc_comment_for_param_but_no_param_fails() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+                /// @param testParam1 A string param
+                /// @param testParam2 A bool param
+                testOp(testParam1: string);
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "doc comment has a param tag for 'testParam2', but there is no parameter by that name",
+        ]);
+    }
+
+    #[test]
+    fn operation_with_correct_doc_comments() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface {
+                /// @param testParam1 A string param
+                /// @return bool
+                /// @throws MyException Some message about why testOp throws
+                testOp(testParam1: string) -> bool;
+            }
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter);
     }
 
     #[test]
@@ -154,6 +215,25 @@ mod comments {
         let op_doc_comment = op_def.comment().unwrap();
 
         assert_eq!(op_doc_comment.throws, expected);
+    }
+
+    #[test]
+    fn doc_comments_non_operations_cannot_throw() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            /// @throws MyThrownThing Message about my thrown thing.
+            struct S {}
+            ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter, [
+            "doc comment indicates that struct `S` throws, however, only operations can throw",
+        ]);
     }
 
     #[test]

@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 mod attribute;
+mod comments;
 mod dictionary;
 mod enums;
 mod identifiers;
@@ -16,6 +17,7 @@ use crate::visitor::Visitor;
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
 pub use self::attribute::*;
+pub use self::comments::*;
 pub use self::dictionary::*;
 pub use self::enums::*;
 pub use self::identifiers::*;
@@ -29,6 +31,7 @@ pub enum Validator {
     Attributes(fn(&dyn Attributable) -> ValidationResult),
     Dictionaries(fn(&[&Dictionary]) -> ValidationResult),
     Enums(fn(&Enum) -> ValidationResult),
+    Entities(fn(&dyn Entity) -> ValidationResult),
     Members(fn(Vec<&dyn Member>) -> ValidationResult),
     Identifiers(fn(Vec<&Identifier>) -> ValidationResult),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>) -> ValidationResult),
@@ -55,12 +58,13 @@ struct ValidatorVisitor<'a> {
 impl<'a> ValidatorVisitor<'a> {
     pub fn new(error_reporter: &'a mut ErrorReporter) -> Self {
         let validation_functions = vec![
-            dictionary_validators(),
-            tag_validators(),
-            enum_validators(),
             attribute_validators(),
+            comments_validators(),
+            dictionary_validators(),
+            enum_validators(),
             identifier_validators(),
             miscellaneous_validators(),
+            tag_validators(),
         ]
         .into_iter()
         .flatten()
@@ -139,24 +143,11 @@ where
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
-    fn visit_module_start(&mut self, module_def: &Module) {
-        self.validate(|function| match function {
-            Validator::Identifiers(function) => {
-                let identifiers = module_def
-                    .contents()
-                    .iter()
-                    .map(|definition| definition.borrow().raw_identifier())
-                    .collect::<Vec<_>>();
-                Some(function(identifiers))
-            }
-            _ => None,
-        });
-    }
-
     fn visit_class_start(&mut self, class: &Class) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(class)),
             Validator::Dictionaries(function) => Some(function(&container_dictionaries(class))),
+            Validator::Entities(function) => Some(function(class)),
             Validator::Identifiers(function) => Some(function(class.members().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 class.members().get_identifiers(),
@@ -167,20 +158,10 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.validate(|function| match function {
-            Validator::Attributes(function) => Some(function(struct_def)),
-            Validator::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
-            Validator::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
-            Validator::Members(function) => Some(function(struct_def.members().as_member_vec())),
-            Validator::Struct(function) => Some(function(struct_def)),
-            _ => None,
-        });
-    }
-
     fn visit_enum_start(&mut self, enum_def: &Enum) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(enum_def)),
+            Validator::Entities(function) => Some(function(enum_def)),
             Validator::Enums(function) => Some(function(enum_def)),
             _ => None,
         });
@@ -190,6 +171,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(exception)),
             Validator::Dictionaries(function) => Some(function(&container_dictionaries(exception))),
+            Validator::Entities(function) => Some(function(exception)),
             Validator::Identifiers(function) => Some(function(exception.members().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 exception.members().get_identifiers(),
@@ -203,11 +185,27 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_interface_start(&mut self, interface: &Interface) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(interface)),
+            Validator::Entities(function) => Some(function(interface)),
             Validator::Identifiers(function) => Some(function(interface.operations().get_identifiers())),
             Validator::InheritedIdentifiers(function) => Some(function(
                 interface.operations().get_identifiers(),
                 interface.all_inherited_operations().get_identifiers(),
             )),
+            _ => None,
+        });
+    }
+
+    fn visit_module_start(&mut self, module_def: &Module) {
+        self.validate(|function| match function {
+            Validator::Entities(function) => Some(function(module_def)),
+            Validator::Identifiers(function) => {
+                let identifiers = module_def
+                    .contents()
+                    .iter()
+                    .map(|definition| definition.borrow().raw_identifier())
+                    .collect::<Vec<_>>();
+                Some(function(identifiers))
+            }
             _ => None,
         });
     }
@@ -218,6 +216,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Dictionaries(function) => Some(function(&member_dictionaries(
                 operation.parameters_and_return_members(),
             ))),
+            Validator::Entities(function) => Some(function(operation)),
             Validator::Members(function) => Some(function(operation.parameters_and_return_members().as_member_vec())),
             Validator::Operations(function) => Some(function(operation)),
             Validator::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
@@ -232,12 +231,25 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
+    fn visit_struct_start(&mut self, struct_def: &Struct) {
+        self.validate(|function| match function {
+            Validator::Attributes(function) => Some(function(struct_def)),
+            Validator::Dictionaries(function) => Some(function(&container_dictionaries(struct_def))),
+            Validator::Entities(function) => Some(function(struct_def)),
+            Validator::Identifiers(function) => Some(function(struct_def.members().get_identifiers())),
+            Validator::Members(function) => Some(function(struct_def.members().as_member_vec())),
+            Validator::Struct(function) => Some(function(struct_def)),
+            _ => None,
+        });
+    }
+
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         self.validate(|function| match function {
             Validator::Dictionaries(function) => match type_alias.underlying.concrete_type() {
                 Types::Dictionary(dictionary) => Some(function(&[dictionary])),
                 _ => None,
             },
+            Validator::Entities(function) => Some(function(type_alias)),
             _ => None,
         });
     }
