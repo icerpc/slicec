@@ -21,7 +21,6 @@ impl CommentParser {
             params: Vec::new(),
             returns: None,
             throws: Vec::new(),
-            deprecate_reason: None,
             location,
         };
 
