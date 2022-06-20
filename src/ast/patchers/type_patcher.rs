@@ -9,7 +9,7 @@ use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::ptr_visitor::PtrVisitor;
 use std::collections::HashMap;
 
-pub(super) fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
+pub fn patch_types(ast: &mut Ast, error_reporter: &mut ErrorReporter) {
     let mut patcher = TypePatcher {
         primitive_cache: &ast.primitive_cache,
         lookup_table: &ast.lookup_table,

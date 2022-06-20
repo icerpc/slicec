@@ -6,7 +6,7 @@ use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::ptr_visitor::PtrVisitor;
 
-pub(super) fn patch_parents(ast: &mut Ast) {
+pub fn patch_parents(ast: &mut Ast) {
     let mut patcher = ParentPatcher;
 
     for module in &mut ast.ast {

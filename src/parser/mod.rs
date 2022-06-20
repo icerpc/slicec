@@ -5,11 +5,8 @@
 
 mod comments;
 mod cycle_detection;
-mod encoding_patcher;
-mod parent_patcher;
 mod preprocessor;
 mod slice;
-mod type_patcher;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
@@ -119,11 +116,11 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
 
 fn patch_ast(parsed_data: &mut ParsedData) {
     if !parsed_data.has_errors() {
-        parent_patcher::patch_parents(&mut parsed_data.ast);
+        crate::ast::patchers::parent_patcher::patch_parents(&mut parsed_data.ast);
     }
 
     if !parsed_data.has_errors() {
-        type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
+        crate::ast::patchers::type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
     }
 
     if !parsed_data.has_errors() {
@@ -131,7 +128,7 @@ fn patch_ast(parsed_data: &mut ParsedData) {
     }
 
     if !parsed_data.has_errors() {
-        encoding_patcher::patch_encodings(
+        crate::ast::patchers::encoding_patcher::patch_encodings(
             &parsed_data.files,
             &mut parsed_data.ast,
             &mut parsed_data.error_reporter,

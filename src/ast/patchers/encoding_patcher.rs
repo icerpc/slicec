@@ -10,7 +10,7 @@ use crate::supported_encodings::SupportedEncodings;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn patch_encodings(
+pub fn patch_encodings(
     slice_files: &HashMap<String, SliceFile>,
     ast: &mut Ast,
     error_reporter: &mut ErrorReporter,
