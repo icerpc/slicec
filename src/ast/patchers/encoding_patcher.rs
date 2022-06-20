@@ -87,7 +87,7 @@ impl EncodingPatcher<'_> {
         // Handle any type-specific encoding restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
-        // Ex: Using a trait in a Slice1 file, we specifically say "traits are not supported by the Slice 1 encoding".
+        // Ex: Using a trait in a Slice1 file, we specifically say "traits are not supported by the Slice1 encoding".
         let additional_info = entity_def.compute_supported_encodings(
             self,
             &mut supported_encodings,
@@ -165,11 +165,11 @@ impl EncodingPatcher<'_> {
             Types::Primitive(primitive) => primitive.supported_encodings(),
         };
 
-        // Optional types aren't supported by the Slice 1 encoding (with some exceptions).
+        // Optional types aren't supported by the Slice1 encoding (with some exceptions).
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                let m = "optional types are not supported by the Slice 1 encoding (except for classes and proxies)";
+                let m = "optional types are not supported by the Slice1 encoding (except for classes and proxies)";
                 self.error_reporter.report_error(m, None);
             }
         }
@@ -258,11 +258,11 @@ impl ComputeSupportedEncodings for Struct {
             );
         }
 
-        // Non-compact structs are not supported by the Slice 1 encoding.
+        // Non-compact structs are not supported by the Slice1 encoding.
         if !self.is_compact {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                return Some("structs must be `compact` to be supported by the Slice 1 encoding");
+                return Some("structs must be `compact` to be supported by the Slice1 encoding");
             }
         }
         None
@@ -295,11 +295,11 @@ impl ComputeSupportedEncodings for Exception {
             );
         }
 
-        // Exception inheritance is only supported by the Slice 1 encoding.
+        // Exception inheritance is only supported by the Slice1 encoding.
         if self.base_exception().is_some() {
             supported_encodings.disable(Encoding::Slice2);
             if *file_encoding != Encoding::Slice1 {
-                return Some("exception inheritance is only supported by the Slice 1 encoding");
+                return Some("exception inheritance is only supported by the Slice1 encoding");
             }
         }
         None
@@ -332,10 +332,10 @@ impl ComputeSupportedEncodings for Class {
             );
         }
 
-        // Classes are only supported by the Slice 1 encoding.
+        // Classes are only supported by the Slice1 encoding.
         supported_encodings.disable(Encoding::Slice2);
         if *file_encoding != Encoding::Slice1 {
-            Some("classes are only supported by the Slice 1 encoding")
+            Some("classes are only supported by the Slice1 encoding")
         } else {
             None
         }
@@ -360,9 +360,9 @@ impl ComputeSupportedEncodings for Interface {
                     member.is_tagged(),
                 );
 
-                // Streamed parameters are not supported by the Slice 1 encoding.
+                // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let message = "streamed parameters are not supported by the Slice 1 encoding";
+                    let message = "streamed parameters are not supported by the Slice1 encoding";
                     patcher.emit_file_encoding_mismatch_error(message.to_owned(), member);
                 }
             }
@@ -388,10 +388,10 @@ impl ComputeSupportedEncodings for Enum {
                 )
             );
 
-            // Enums with underlying types are not supported by the Slice 1 encoding.
+            // Enums with underlying types are not supported by the Slice1 encoding.
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                return Some("enums with underlying types are not supported by the Slice 1 encoding");
+                return Some("enums with underlying types are not supported by the Slice1 encoding");
             }
         }
         None
@@ -405,10 +405,10 @@ impl ComputeSupportedEncodings for Trait {
         supported_encodings: &mut SupportedEncodings,
         file_encoding: &Encoding,
     ) -> Option<&'static str> {
-        // Traits are not supported by the Slice 1 encoding.
+        // Traits are not supported by the Slice1 encoding.
         supported_encodings.disable(Encoding::Slice1);
         if *file_encoding == Encoding::Slice1 {
-            Some("traits are not supported by the Slice 1 encoding")
+            Some("traits are not supported by the Slice1 encoding")
         } else {
             None
         }
@@ -422,10 +422,10 @@ impl ComputeSupportedEncodings for CustomType {
         supported_encodings: &mut SupportedEncodings,
         file_encoding: &Encoding,
     ) -> Option<&'static str> {
-        // Custom types are not supported by the Slice 1 encoding.
+        // Custom types are not supported by the Slice1 encoding.
         supported_encodings.disable(Encoding::Slice1);
         if *file_encoding == Encoding::Slice1 {
-            Some("custom types are not supported by the Slice 1 encoding")
+            Some("custom types are not supported by the Slice1 encoding")
         } else {
             None
         }
