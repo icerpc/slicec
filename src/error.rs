@@ -2,7 +2,6 @@
 
 use crate::slice_file::{Location, SliceFile};
 use std::collections::HashMap;
-use std::mem;
 
 #[derive(Debug)]
 pub struct ErrorReporter {
@@ -82,8 +81,8 @@ impl ErrorReporter {
     }
 
     /// Writes the errors stored to stderr, along with any locations and snippets.
-    pub fn print_errors(&mut self, slice_files: &HashMap<String, SliceFile>) {
-        for error in mem::take(&mut self.errors).into_iter() {
+    pub fn print_errors(&self, slice_files: &HashMap<String, SliceFile>) {
+        for error in self.errors.iter() {
             let prefix = match error.severity {
                 ErrorLevel::Note => "note",
                 ErrorLevel::Warning => "warning",
@@ -93,7 +92,7 @@ impl ErrorReporter {
             // Insert the prefix at the start of the message.
             let mut message = prefix.to_owned() + ": " + &error.message;
 
-            if let Some(location) = error.location {
+            if let Some(location) = &error.location {
                 // Specify the location where the error starts on its own line after the message.
                 message = format!(
                     "{}\n@ '{}' ({},{})",
