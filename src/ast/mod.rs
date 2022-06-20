@@ -2,6 +2,8 @@
 
 // TODO this file needs some cleanup now.
 
+pub mod patchers;
+
 use crate::{downgrade_as, upcast_owned_as, upcast_weak_as};
 
 use crate::grammar::*;
