@@ -171,18 +171,18 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
 // Helper macro for generating `Into<Node>` conversion methods for `OwnedPtr`s of Slice elements.
 macro_rules! impl_into_node_for {
     ($variant:ident) => {
-        impl Into<Node> for OwnedPtr<$variant> {
+        impl From<OwnedPtr<$variant>> for Node {
             // Macro variables in comments aren't expanded, so instead of writing a doc comment
             // normally, we generate documentation for this function using a `doc` attribute.
             #[doc = concat!(
                 "Wraps the OwnedPtr<",
                 stringify!($variant),
-                "> into a [Node] of the corresponding variant [Node::",
+                "> in a [Node] of the corresponding variant [Node::",
                 stringify!($variant),
                 "].",
             )]
-            fn into(self) -> Node {
-                Node::$variant(self)
+            fn from(ptr: OwnedPtr<$variant>) -> Node {
+                Node::$variant(ptr)
             }
         }
     };
