@@ -60,6 +60,28 @@ fn can_contain_tags() {
 }
 
 #[test]
+fn parameter_and_return_can_have_the_same_tag() {
+    // Arrange
+    let slice = "
+        module Test;
+        interface I
+        {
+            op(a: tag(1) int32?) -> tag(1) string?;
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let op_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+    let parameter_tag = op_ptr.borrow().parameters()[0].tag();
+    let return_tag = op_ptr.borrow().return_members()[0].tag();
+    assert_eq!(parameter_tag, Some(1));
+    assert_eq!(return_tag, Some(1));
+}
+
+#[test]
 fn can_have_parameters() {
     let slice = "
         module Test;
@@ -164,6 +186,28 @@ fn return_tuple_must_contain_two_or_more_elements() {
 mod streams {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
+    use slice::grammar::*;
+
+    #[test]
+    fn can_have_streamed_parameter_and_return() {
+        let slice = "
+            module Test;
+            interface I
+            {
+                op(a: stream uint32) -> stream uint32;
+            }
+        ";
+
+        let ast = parse_for_ast(slice);
+        let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
+        let operation = operation_ptr.borrow();
+
+        let parameters = operation.parameters();
+        let returns = operation.return_members();
+
+        assert!(parameters[0].is_streamed);
+        assert!(returns[0].is_streamed);
+    }
 
     #[test]
     fn operation_can_have_at_most_one_streamed_parameter() {

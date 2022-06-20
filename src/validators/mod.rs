@@ -213,13 +213,20 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_operation_start(&mut self, operation: &Operation) {
         self.validate(|function| match function {
             Validator::Attributes(function) => Some(function(operation)),
-            Validator::Dictionaries(function) => Some(function(&member_dictionaries(
-                operation.parameters_and_return_members(),
-            ))),
+            Validator::Dictionaries(function) => Some(merge_results(vec![
+                function(&member_dictionaries(operation.parameters())),
+                function(&member_dictionaries(operation.return_members())),
+            ])),
             Validator::Entities(function) => Some(function(operation)),
-            Validator::Members(function) => Some(function(operation.parameters_and_return_members().as_member_vec())),
+            Validator::Members(function) => Some(merge_results(vec![
+                function(operation.parameters().as_member_vec()),
+                function(operation.return_members().as_member_vec()),
+            ])),
             Validator::Operations(function) => Some(function(operation)),
-            Validator::Parameters(function) => Some(function(operation.parameters_and_return_members().as_slice())),
+            Validator::Parameters(function) => Some(merge_results(vec![
+                function(operation.parameters().as_slice()),
+                function(operation.return_members().as_slice()),
+            ])),
             _ => None,
         });
     }
@@ -252,5 +259,22 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Entities(function) => Some(function(type_alias)),
             _ => None,
         });
+    }
+}
+
+fn merge_results(validation_results: Vec<ValidationResult>) -> ValidationResult {
+    let mut errors = vec![];
+
+    for result in validation_results {
+        match result {
+            Ok(_) => (),
+            Err(mut e) => errors.append(&mut e),
+        }
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors)
     }
 }
