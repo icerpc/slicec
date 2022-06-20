@@ -86,11 +86,12 @@ mod slice2 {
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
-            module Test;
-            compact struct S
-            {
-                v: AnyClass,
-            }";
+        module Test;
+        compact struct S
+        {
+            v: AnyClass,
+        }
+        ";
         let expected_errors = [
             "'AnyClass' is not supported with Slice2",
             "file is using Slice2 by default",

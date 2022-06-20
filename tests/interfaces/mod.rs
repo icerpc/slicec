@@ -11,8 +11,8 @@ use slice::grammar::*;
 #[test]
 fn can_have_no_operations() {
     let slice = "
-        module Test;
-        interface I {}
+    module Test;
+    interface I {}
     ";
 
     let ast = parse_for_ast(slice);
@@ -25,11 +25,11 @@ fn can_have_no_operations() {
 #[test]
 fn can_have_one_operation() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op1();
-        }
+    module Test;
+    interface I
+    {
+        op1();
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -42,13 +42,13 @@ fn can_have_one_operation() {
 #[test]
 fn can_have_multiple_operation() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op1();
-            op2();
-            op3();
-        }
+    module Test;
+    interface I
+    {
+        op1();
+        op2();
+        op3();
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -61,13 +61,13 @@ fn can_have_multiple_operation() {
 #[test]
 fn cannot_redefine_operations() {
     let slice = "
-        encoding = 1;
-        module Test;
-        interface I
-        {
-            op();
-            op();
-        }
+    encoding = 1;
+    module Test;
+    interface I
+    {
+        op();
+        op();
+    }
     ";
 
     let error_reporter = parse_for_errors(slice);

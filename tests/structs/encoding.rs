@@ -64,15 +64,15 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-            module Test;
-            trait T;
-            struct A
-            {
-                i: int32,
-                s: string?,
-                t: T,
-            }
-            ";
+        module Test;
+        trait T;
+        struct A
+        {
+            i: int32,
+            s: string?,
+            t: T,
+        }
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);

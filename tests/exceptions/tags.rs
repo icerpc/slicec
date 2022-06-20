@@ -7,13 +7,13 @@ use slice::grammar::*;
 fn can_contain_tags() {
     // Arrange
     let slice = "
-        module Test;
-        exception E {
-            i: int32,
-            s: string,
-            b: tag(10) bool?,
-        }
-        ";
+    module Test;
+    exception E {
+        i: int32,
+        s: string,
+        b: tag(10) bool?,
+    }
+    ";
     let ast = parse_for_ast(slice);
 
     // Assert

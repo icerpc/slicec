@@ -41,11 +41,11 @@ mod attributes {
         fn not_specifying_format_uses_compact_as_default() {
             // Arrange
             let slice = "
-                module Test;
+            module Test;
 
-                interface I {
-                    op(s: string) -> string;
-                }
+            interface I {
+                op(s: string) -> string;
+            }
             ";
 
             // Act
@@ -88,13 +88,13 @@ mod attributes {
         fn format_with_invalid_argument_fails() {
             // Arrange
             let slice = "
-                module Test;
+            module Test;
 
-                interface I {
-                    [format(Foo)]
-                    op(s: string) -> string;
-                }
-                ";
+            interface I {
+                [format(Foo)]
+                op(s: string) -> string;
+            }
+            ";
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -357,12 +357,12 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-            module Test;
-            interface I {{
-                [foo::bar({input})]
-                op(s: string) -> string;
-            }}
-            ",
+                module Test;
+                interface I {{
+                    [foo::bar({input})]
+                    op(s: string) -> string;
+                }}
+                ",
                 input = input,
             );
 

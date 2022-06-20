@@ -140,15 +140,15 @@ mod comments {
     fn operation_with_correct_doc_comments() {
         // Arrange
         let slice = "
-            module tests;
+        module tests;
 
-            interface TestInterface {
-                /// @param testParam1 A string param
-                /// @return bool
-                /// @throws MyException Some message about why testOp throws
-                testOp(testParam1: string) -> bool;
-            }
-            ";
+        interface TestInterface {
+            /// @param testParam1 A string param
+            /// @return bool
+            /// @throws MyException Some message about why testOp throws
+            testOp(testParam1: string) -> bool;
+        }
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -162,16 +162,16 @@ mod comments {
     fn multiline_tag_comment() {
         // Arrange
         let slice = "
-            module tests;
+        module tests;
 
-            interface TestInterface {
-                /**
-                 * @throws MyThrownThing Message about my thrown thing. \n More about the thrown thing.
-                 * @return bool
-                 */
-                testOp(testParam: string) -> bool;
-            }
-            ";
+        interface TestInterface {
+            /**
+             * @throws MyThrownThing Message about my thrown thing. \n More about the thrown thing.
+             * @return bool
+             */
+            testOp(testParam: string) -> bool;
+        }
+        ";
         let expected_throws = vec![(
             "MyThrownThing".to_owned(),
             "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
@@ -195,13 +195,13 @@ mod comments {
     fn doc_comments_throws() {
         // Arrange
         let slice = "
-            module tests;
+        module tests;
 
-            interface TestInterface {
-                /// @throws MyThrownThing Message about my thrown thing.
-                testOp(testParam: string) -> bool;
-            }
-            ";
+        interface TestInterface {
+            /// @throws MyThrownThing Message about my thrown thing.
+            testOp(testParam: string) -> bool;
+        }
+        ";
         let expected = vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
 
         // Act
@@ -221,11 +221,11 @@ mod comments {
     fn doc_comments_non_operations_cannot_throw() {
         // Arrange
         let slice = "
-            module tests;
+        module tests;
 
-            /// @throws MyThrownThing Message about my thrown thing.
-            struct S {}
-            ";
+        /// @throws MyThrownThing Message about my thrown thing.
+        struct S {}
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -241,13 +241,13 @@ mod comments {
     fn doc_comments_see_also() {
         // Arrange
         let slice = "
-            module tests;
+        module tests;
 
-            interface TestInterface {
-                /// @see MySee Message about thing.
-                testOp(testParam: string) -> bool;
-            }
-            ";
+        interface TestInterface {
+            /// @see MySee Message about thing.
+            testOp(testParam: string) -> bool;
+        }
+        ";
         let expected = vec!["MySee".to_owned()];
 
         // Act

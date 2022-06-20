@@ -91,15 +91,15 @@ mod tags {
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+        encoding = 1;
+        module Test;
 
-            class C {}
+        class C {}
 
-            interface I {
-                op(c: tag(1) C?);
-            }
-            ";
+        interface I {
+            op(c: tag(1) C?);
+        }
+        ";
         let expected_errors = ["invalid member `c`: tagged members cannot be classes"];
 
         // Act
@@ -113,18 +113,18 @@ mod tags {
     fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+        encoding = 1;
+        module Test;
 
-            class C {}
-            compact struct S {
-                c: C,
-            }
+        class C {}
+        compact struct S {
+            c: C,
+        }
 
-            interface I {
-                op(s: tag(1) S?);
-            }
-            ";
+        interface I {
+            op(s: tag(1) S?);
+        }
+        ";
         let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
 
         // Act
@@ -138,11 +138,11 @@ mod tags {
     fn valid_tag() {
         // Arrange
         let slice = "
-            module Test;
-            struct S {
-                a: tag(1) int32?,
-            }
-            ";
+        module Test;
+        struct S {
+            a: tag(1) int32?,
+        }
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -159,11 +159,11 @@ mod tags {
     fn cannot_have_duplicate_tags() {
         // Arrange
         let slice = "
-            module Test;
-            struct S {
-                a: tag(1) int32?,
-                b: tag(1) int32?,
-            }
+        module Test;
+        struct S {
+            a: tag(1) int32?,
+            b: tag(1) int32?,
+        }
         ";
 
         // Act
@@ -186,7 +186,7 @@ mod tags {
             interface I {{
                 testOp(a: tag({value}) int32?);
             }}
-        ",
+            ",
             value = max_value + 1
         );
         let expected_errors = [format!(
@@ -226,11 +226,11 @@ mod tags {
     fn strings_invalid_as_tag_value() {
         // Arrange
         let slice = "
-            module Test;
-            interface I {
-                testOp(a: tag(\"test string\") int32?);
-            }
-            ";
+        module Test;
+        interface I {
+            testOp(a: tag(\"test string\") int32?);
+        }
+        ";
 
         // Act
         let err = parse_from_string(slice).err();

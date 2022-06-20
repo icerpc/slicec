@@ -7,9 +7,9 @@ use slice::grammar::*;
 #[test]
 fn supports_single_inheritance() {
     let slice = "
-        module Test;
-        interface I {}
-        interface J : I {}
+    module Test;
+    interface I {}
+    interface J : I {}
     ";
 
     let ast = parse_for_ast(slice);
@@ -30,10 +30,10 @@ fn supports_single_inheritance() {
 #[test]
 fn supports_multiple_inheritance() {
     let slice = "
-        module Test;
-        interface I {}
-        interface J {}
-        interface K : I, J {}
+    module Test;
+    interface I {}
+    interface J {}
+    interface K : I, J {}
     ";
 
     let ast = parse_for_ast(slice);
@@ -81,15 +81,15 @@ fn must_inherit_from_interface() {
 #[test]
 fn operation_shadowing_is_disallowed() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op();
-        }
-        interface J : I
-        {
-            op();
-        }
+    module Test;
+    interface I
+    {
+        op();
+    }
+    interface J : I
+    {
+        op();
+    }
     ";
 
     let error_reporter = parse_for_errors(slice);

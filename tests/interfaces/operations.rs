@@ -7,11 +7,11 @@ use slice::grammar::*;
 #[test]
 fn can_have_no_parameters() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op();
-        }
+    module Test;
+    interface I
+    {
+        op();
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -24,11 +24,11 @@ fn can_have_no_parameters() {
 #[test]
 fn can_have_no_return_type() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op(a: int32);
-        }
+    module Test;
+    interface I
+    {
+        op(a: int32);
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -42,11 +42,11 @@ fn can_have_no_return_type() {
 fn can_contain_tags() {
     // Arrange
     let slice = "
-        module Test;
-        interface I
-        {
-            op(a: tag(1) int32?);
-        }
+    module Test;
+    interface I
+    {
+        op(a: tag(1) int32?);
+    }
     ";
 
     // Act
@@ -63,11 +63,11 @@ fn can_contain_tags() {
 fn parameter_and_return_can_have_the_same_tag() {
     // Arrange
     let slice = "
-        module Test;
-        interface I
-        {
-            op(a: tag(1) int32?) -> tag(1) string?;
-        }
+    module Test;
+    interface I
+    {
+        op(a: tag(1) int32?) -> tag(1) string?;
+    }
     ";
 
     // Act
@@ -84,11 +84,11 @@ fn parameter_and_return_can_have_the_same_tag() {
 #[test]
 fn can_have_parameters() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op(a: int32, b: string, c: varuint62);
-        }
+    module Test;
+    interface I
+    {
+        op(a: int32, b: string, c: varuint62);
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -118,11 +118,11 @@ fn can_have_parameters() {
 #[test]
 fn can_have_return_value() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op() -> string;
-        }
+    module Test;
+    interface I
+    {
+        op() -> string;
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -142,11 +142,11 @@ fn can_have_return_value() {
 #[test]
 fn can_have_return_tuple() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op() -> (r1: string, r2: bool);
-        }
+    module Test;
+    interface I
+    {
+        op() -> (r1: string, r2: bool);
+    }
     ";
 
     let ast = parse_for_ast(slice);
@@ -171,11 +171,11 @@ fn can_have_return_tuple() {
 #[test]
 fn return_tuple_must_contain_two_or_more_elements() {
     let slice = "
-        module Test;
-        interface I
-        {
-            op() -> ();
-        }
+    module Test;
+    interface I
+    {
+        op() -> ();
+    }
     ";
 
     let error_reporter = parse_for_errors(slice);
@@ -191,11 +191,11 @@ mod streams {
     #[test]
     fn can_have_streamed_parameter_and_return() {
         let slice = "
-            module Test;
-            interface I
-            {
-                op(a: stream uint32) -> stream uint32;
-            }
+        module Test;
+        interface I
+        {
+            op(a: stream uint32) -> stream uint32;
+        }
         ";
 
         let ast = parse_for_ast(slice);
@@ -212,11 +212,11 @@ mod streams {
     #[test]
     fn operation_can_have_at_most_one_streamed_parameter() {
         let slice = "
-            module Test;
-            interface I
-            {
-                op(s: stream varuint62, s2: stream string);
-            }
+        module Test;
+        interface I
+        {
+            op(s: stream varuint62, s2: stream string);
+        }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -228,11 +228,11 @@ mod streams {
     #[test]
     fn stream_parameter_must_be_last() {
         let slice = "
-            module Test;
-            interface I
-            {
-                op(s: stream varuint62, i: int32);
-            }
+        module Test;
+        interface I
+        {
+            op(s: stream varuint62, i: int32);
+        }
         ";
 
         let error_reporter = parse_for_errors(slice);

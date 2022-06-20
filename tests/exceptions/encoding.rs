@@ -43,11 +43,11 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-            // encoding = 2;
-            module Test;
-            exception A {}
-            exception B : A {}
-            ";
+        // encoding = 2;
+        module Test;
+        exception A {}
+        exception B : A {}
+        ";
         let expected_errors = [
             "exception inheritance is only supported with Slice1",
             "file is using Slice2 by default",
@@ -67,13 +67,13 @@ mod slice2 {
     fn can_be_data_members() {
         // Arrange
         let slice = "
-            module Test;
-            exception E {}
-            struct S
-            {
-                e: E,
-            }
-            ";
+        module Test;
+        exception E {}
+        struct S
+        {
+            e: E,
+        }
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);

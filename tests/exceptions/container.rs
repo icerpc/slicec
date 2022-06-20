@@ -68,13 +68,13 @@ fn can_be_empty() {
 #[test]
 fn cannot_redefine_data_members() {
     let slice = "
-        encoding = 1;
-        module Test;
-        exception E
-        {
-            a: int32,
-            a: string,
-        }
+    encoding = 1;
+    module Test;
+    exception E
+    {
+        a: int32,
+        a: string,
+    }
     ";
 
     let error_reporter = parse_for_errors(slice);

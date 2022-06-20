@@ -77,7 +77,7 @@ mod structs {
             a: int32,
             a: string,
         }
-    ";
+        ";
 
         let error_reporter = parse_for_errors(slice);
 
@@ -95,8 +95,8 @@ mod compact_structs {
     fn must_not_be_empty() {
         // Arrange
         let slice = "
-            module Test;
-            compact struct S {}
+        module Test;
+        compact struct S {}
         ";
         let expected_errors = ["compact structs must be non-empty"];
 

@@ -11,10 +11,10 @@ mod slice1 {
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
-            unchecked enum E : int32 {}
-            ";
+        encoding = 1;
+        module Test;
+        unchecked enum E : int32 {}
+        ";
         let expected_errors = [
             "enums with underlying types are not supported with Slice1",
             "file encoding was set to Slice1 here:",

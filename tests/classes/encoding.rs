@@ -8,8 +8,8 @@ mod slice2 {
     #[test]
     fn unsupported_error() {
         let slice = "
-            module Test;
-            class C {}
+        module Test;
+        class C {}
         ";
 
         let error_reporter = parse_for_errors(slice);

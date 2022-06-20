@@ -7,11 +7,11 @@ use slice::grammar::*;
 #[test]
 fn supports_single_inheritance() {
     let slice = "
-        encoding = 1;
-        module Test;
-        exception E1 {}
-        exception E2 : E1 {}
-        ";
+    encoding = 1;
+    module Test;
+    exception E1 {}
+    exception E2 : E1 {}
+    ";
 
     let ast = parse_for_ast(slice);
 
@@ -23,12 +23,12 @@ fn supports_single_inheritance() {
 #[test]
 fn does_not_support_multiple_inheritance() {
     let slice = "
-        encoding = 1;
-        module Test;
-        exception E1 {}
-        exception E2 {}
-        exception E3 : E1, E2 {}
-        ";
+    encoding = 1;
+    module Test;
+    exception E1 {}
+    exception E2 {}
+    exception E3 : E1, E2 {}
+    ";
 
     let error_reporter = parse_for_errors(slice);
 
@@ -56,16 +56,16 @@ fn must_inherit_from_exception() {
 #[test]
 fn data_member_shadowing_is_disallowed() {
     let slice = "
-        encoding = 1;
-        module Test;
-        exception I
-        {
-            i: int32
-        }
-        exception J : I
-        {
-            i: int32
-        }
+    encoding = 1;
+    module Test;
+    exception I
+    {
+        i: int32
+    }
+    exception J : I
+    {
+        i: int32
+    }
     ";
 
     let error_reporter = parse_for_errors(slice);
