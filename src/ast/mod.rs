@@ -49,7 +49,7 @@ pub struct Ast {
     /// Stores all the slice elements in this AST as a flattened vector of [Node]s.
     ///
     /// Elements are stored in the order they're parsed, but this shouldn't be relied upon.
-    /// Only the order of the primitive types is guaranteed by the AST (see [Ast::new]).
+    /// Only the order of the primitive types is guaranteed by the AST (see [Ast::create]).
     elements: Vec<Node>,
 
     /// A hash-based lookup table with entries for every Slice element stored in this AST that
@@ -61,15 +61,15 @@ pub struct Ast {
 }
 
 impl Ast {
-    /// Creates a new Ast that contains only the primitive types.
+    /// Creates an Ast that contains only the primitive types.
     ///
     /// # Examples
     /// ```
     /// # use slice::ast::Ast;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     /// assert_eq!(ast.as_slice().len(), 17); // Only the 17 primitives are defined.
     /// ```
-    pub fn new() -> Ast {
+    pub fn create() -> Ast {
         // Primitive types are built in to the compiler. Since they aren't defined in Slice,
         // we 'define' them here, when the AST is created, to ensure they're always available.
 
@@ -139,7 +139,7 @@ impl Ast {
     /// ```
     /// # use slice::ast::Ast;
     /// # use slice::grammar::*;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     ///
     /// // Lookup a primitive type.
     /// let int32_node = ast.find_node("int32");
@@ -191,7 +191,7 @@ impl Ast {
     /// ```
     /// # use slice::ast::Ast;
     /// # use slice::grammar::*;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     ///
     /// // TODO write other examples once the other APIs suck less.
     ///
@@ -243,7 +243,7 @@ impl Ast {
     /// ```
     /// # use slice::ast::Ast;
     /// # use slice::grammar::*;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     ///
     /// // Look up a primitive type.
     /// let int32_def = ast.find_element::<Primitive>("int32");
@@ -302,7 +302,7 @@ impl Ast {
     /// ```
     /// # use slice::ast::Ast;
     /// # use slice::grammar::*;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     ///
     /// // TODO write other examples once the other APIs suck less.
     ///
@@ -328,7 +328,7 @@ impl Ast {
     ///
     /// ```
     /// # use slice::ast::Ast;
-    /// let ast = Ast::new();
+    /// let ast = Ast::create();
     ///
     /// // Iterate through the contents of the AST.
     /// let contents = ast.as_slice();
@@ -344,7 +344,7 @@ impl Ast {
     ///
     /// ```ignore
     /// # use slice::ast::Ast;
-    /// let mut ast = Ast::new();
+    /// let mut ast = Ast::create();
     ///
     /// // Iterate through the contents of the AST.
     /// let contents = ast.as_mut_slice();

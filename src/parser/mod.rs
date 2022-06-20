@@ -24,7 +24,7 @@ use std::{fs, io};
 // TODO This module is a mess.
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(options.warn_as_error);
 
     let mut parser = slice::SliceParser {
@@ -65,7 +65,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 }
 
 pub fn parse_string(input: &str) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
@@ -89,7 +89,7 @@ pub fn parse_string(input: &str) -> ParserResult {
 }
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
