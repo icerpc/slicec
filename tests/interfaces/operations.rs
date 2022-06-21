@@ -71,9 +71,9 @@ fn parameter_and_return_can_have_the_same_tag() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let op_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-    let parameter_tag = op_ptr.borrow().parameters()[0].tag();
-    let return_tag = op_ptr.borrow().return_members()[0].tag();
+    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let parameter_tag = operation.parameters()[0].tag();
+    let return_tag = operation.return_members()[0].tag();
     assert_eq!(parameter_tag, Some(1));
     assert_eq!(return_tag, Some(1));
 }
@@ -196,9 +196,8 @@ mod streams {
         ";
 
         let ast = parse_for_ast(slice);
-        let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-        let operation = operation_ptr.borrow();
 
+        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
         let parameters = operation.parameters();
         let returns = operation.return_members();
 
