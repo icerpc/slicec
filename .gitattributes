@@ -1,5 +1,1 @@
 * text=auto
-
-# On Windows, files are checked out with CRLF. Line endings are normalized as LF during commit. We checkout the license
-# with LF so that when rustfmt runs in the pre-commit hook the license template matches the commited files.
-.rustfmt-license-template text eol=lf
