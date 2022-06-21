@@ -117,6 +117,7 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
 fn patch_ast(parsed_data: &mut ParsedData) {
     // TODO integrate this better with ParsedData in the future.
     if !parsed_data.has_errors() {
+<<<<<<< HEAD
         unsafe {
             let _ = crate::ast::patch_ast(
                 &mut parsed_data.ast,
@@ -124,12 +125,30 @@ fn patch_ast(parsed_data: &mut ParsedData) {
                 &mut parsed_data.error_reporter,
             );
         }
+=======
+        crate::ast::patchers::parent_patcher::patch_parents(&mut parsed_data.ast);
+    }
+
+    if !parsed_data.has_errors() {
+        crate::ast::patchers::type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
+>>>>>>> eeface3f18dd2e3c7f6234476994d89d8b13ca33
     }
 
     // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
     if !parsed_data.has_errors() {
         cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
     }
+<<<<<<< HEAD
+=======
+
+    if !parsed_data.has_errors() {
+        crate::ast::patchers::encoding_patcher::patch_encodings(
+            &parsed_data.files,
+            &mut parsed_data.ast,
+            &mut parsed_data.error_reporter,
+        );
+    }
+>>>>>>> eeface3f18dd2e3c7f6234476994d89d8b13ca33
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {
