@@ -10,14 +10,14 @@ use test_case::test_case;
 fn can_contain_data_members() {
     // Arrange
     let slice = "
-    encoding = 1;
-    module Test;
-    class C
-    {
-        i: int32,
-        s: string,
-        b: bool,
-    }
+        encoding = 1;
+        module Test;
+        class C
+        {
+            i: int32,
+            s: string,
+            b: bool,
+        }
     ";
 
     // Act
@@ -49,31 +49,33 @@ fn can_contain_data_members() {
 
 #[test_case(
     "
-    class C
-    {
-        c: C,
-    }
-    "; "single class circular reference"
+        class C
+        {
+            c: C,
+        }
+    ";
+    "single class circular reference"
 )]
 #[test_case(
     "
-    class C1
-    {
-        c2: C2,
-    }
-    class C2
-    {
-        c1: C1,
-    }
-    "; "multi class circular reference"
+        class C1
+        {
+            c2: C2,
+        }
+        class C2
+        {
+            c1: C1,
+        }
+    ";
+    "multi class circular reference"
 )]
 fn cycles_are_allowed(cycle_string: &str) {
     let slice = format!(
         "
-    encoding = 1;
-    module Test;
-    {}
-    ",
+            encoding = 1;
+            module Test;
+            {}
+        ",
         cycle_string,
     );
 
@@ -87,9 +89,9 @@ fn cycles_are_allowed(cycle_string: &str) {
 fn can_be_empty() {
     // Arrange
     let slice = "
-    encoding = 1;
-    module Test;
-    class C {}
+        encoding = 1;
+        module Test;
+        class C {}
     ";
 
     // Act
@@ -106,14 +108,14 @@ fn can_be_empty() {
 #[test]
 fn cannot_redefine_data_members() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class C
-    {
-        a: int32,
-        a: string,
-    }
-";
+        encoding = 1;
+        module Test;
+        class C
+        {
+            a: int32,
+            a: string,
+        }
+    ";
 
     let error_reporter = parse_for_errors(slice);
 

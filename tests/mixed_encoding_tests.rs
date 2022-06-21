@@ -7,41 +7,41 @@ use slice::parse_from_strings;
 #[test]
 fn valid_mixed_encoding_works() {
     let encoding1_slice = "
-    encoding = 1;
-    module Test;
+        encoding = 1;
+        module Test;
 
-    compact struct ACompactStruct
-    {
-        data: int32,
-    }
+        compact struct ACompactStruct
+        {
+            data: int32,
+        }
 
-    enum AnEnum
-    {
-        A,
-        B,
-    }
+        enum AnEnum
+        {
+            A,
+            B,
+        }
 
-    interface AnInterface
-    {
-        op() -> AnEnum;
-    }
+        interface AnInterface
+        {
+            op() -> AnEnum;
+        }
 
-    exception AnException
-    {
-        message: string,
-    }
+        exception AnException
+        {
+            message: string,
+        }
     ";
 
     let encoding2_slice = "
-    encoding = 2;
-    module Test;
-    struct AStruct
-    {
-        e: AnEnum,
-        i: AnInterface,
-        c: ACompactStruct,
-        ex: AnException,
-    }
+        encoding = 2;
+        module Test;
+        struct AStruct
+        {
+            e: AnEnum,
+            i: AnInterface,
+            c: ACompactStruct,
+            ex: AnException,
+        }
     ";
 
     assert!(parse_from_strings(&[encoding2_slice, encoding1_slice]).ok().is_some());
@@ -50,25 +50,25 @@ fn valid_mixed_encoding_works() {
 #[test]
 fn invalid_mixed_encoding_fails() {
     let encoding2_slice = "
-    encoding = 2;
-    module Test;
+        encoding = 2;
+        module Test;
 
-    custom ACustomType;
+        custom ACustomType;
 
-    compact struct ACompactStruct
-    {
-        data: int32?,
-    }
+        compact struct ACompactStruct
+        {
+            data: int32?,
+        }
     ";
 
     let encoding1_slice = "
-    encoding = 1;
-    module Test;
-    compact struct AStruct
-    {
-        c: ACustomType,
-        s: ACompactStruct,
-    }
+        encoding = 1;
+        module Test;
+        compact struct AStruct
+        {
+            c: ACustomType,
+            s: ACompactStruct,
+        }
     ";
 
     let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])

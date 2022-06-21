@@ -9,12 +9,12 @@ mod structs {
     fn can_contain_tags() {
         // Arrange
         let slice = "
-        module Test;
-        struct S {
-            i: int32,
-            s: string,
-            b: tag(10) bool?,
-        }
+            module Test;
+            struct S {
+                i: int32,
+                s: string,
+                b: tag(10) bool?,
+            }
         ";
         let ast = parse_for_ast(slice);
 
@@ -35,12 +35,12 @@ mod compact_structs {
     fn cannot_contain_tags() {
         // Arrange
         let slice = "
-        module Test;
-        compact struct S {
-            i: int32,
-            s: string,
-            b: tag(10) bool?,
-        }
+            module Test;
+            compact struct S {
+                i: int32,
+                s: string,
+                b: tag(10) bool?,
+            }
         ";
         let expected_errors = [
             "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact",

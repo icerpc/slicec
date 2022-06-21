@@ -11,9 +11,9 @@ mod slice1 {
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        unchecked enum E : int32 {}
+            encoding = 1;
+            module Test;
+            unchecked enum E : int32 {}
         ";
         let expected_errors = [
             "enums with underlying types are not supported with Slice1",
@@ -47,8 +47,8 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-            module Test;
-            unchecked enum E : {} {{}}
+                module Test;
+                unchecked enum E : {} {{}}
             ",
             valid_type,
         );

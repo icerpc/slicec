@@ -14,7 +14,7 @@ mod slice1 {
             encoding = 1;
             module Test;
             struct A {}
-            ";
+        ";
         let expected_errors = [
             "non-compact structs are not supported with Slice1",
             "file encoding was set to Slice1 here:",
@@ -39,11 +39,11 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-        module Test;
-        struct A
-        {
-            c: AnyClass,
-        }
+            module Test;
+            struct A
+            {
+                c: AnyClass,
+            }
         ";
         let expected_errors = [
             "'AnyClass' is not supported with Slice2",
@@ -64,14 +64,14 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-        module Test;
-        trait T;
-        struct A
-        {
-            i: int32,
-            s: string?,
-            t: T,
-        }
+            module Test;
+            trait T;
+            struct A
+            {
+                i: int32,
+                s: string?,
+                t: T,
+            }
         ";
 
         // Act

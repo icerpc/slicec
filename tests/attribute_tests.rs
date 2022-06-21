@@ -17,12 +17,12 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                module Test;
+                    module Test;
 
-                interface I {{
-                    [format({})]
-                    op(s: string) -> string;
-                }}
+                    interface I {{
+                        [format({})]
+                        op(s: string) -> string;
+                    }}
                 ",
                 format,
             );
@@ -41,11 +41,11 @@ mod attributes {
         fn not_specifying_format_uses_compact_as_default() {
             // Arrange
             let slice = "
-            module Test;
+                    module Test;
 
-            interface I {
-                op(s: string) -> string;
-            }
+                    interface I {
+                        op(s: string) -> string;
+                    }
             ";
 
             // Act
@@ -65,12 +65,12 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                module Test;
+                    module Test;
 
-                interface I {{
-                    [format{}]
-                    op(s: string) -> string;
-                }}
+                    interface I {{
+                        [format{}]
+                        op(s: string) -> string;
+                    }}
                 ",
                 arg.unwrap_or(""),
             );
@@ -88,12 +88,12 @@ mod attributes {
         fn format_with_invalid_argument_fails() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [format(Foo)]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [format(Foo)]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -110,12 +110,12 @@ mod attributes {
         fn deprecated() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [deprecated]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [deprecated]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -132,11 +132,11 @@ mod attributes {
         fn cannot_deprecate_parameters() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                op([deprecated] s: string) -> string;
-            }
+                interface I {
+                    op([deprecated] s: string) -> string;
+                }
             ";
 
             // Act
@@ -152,12 +152,12 @@ mod attributes {
         fn cannot_deprecate_data_members() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            struct S {
-                [deprecated]
-                s: string,
-            }
+                struct S {
+                    [deprecated]
+                    s: string,
+                }
             ";
 
             // Act
@@ -173,12 +173,12 @@ mod attributes {
         fn deprecated_can_contain_message() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [deprecated(\"Deprecation message here\")]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [deprecated(\"Deprecation message here\")]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -199,12 +199,12 @@ mod attributes {
         fn compress() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [compress(Args, Return)]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [compress(Args, Return)]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -222,12 +222,12 @@ mod attributes {
         fn compress_with_invalid_arguments_fails() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [compress(Foo)]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [compress(Foo)]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -244,12 +244,12 @@ mod attributes {
         fn cannot_compress_structs() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            [compress()]
-            struct S {
-                s: string,
-            }
+                [compress()]
+                struct S {
+                    s: string,
+                }
             ";
 
             // Act
@@ -265,12 +265,12 @@ mod attributes {
         fn compress_with_no_arguments() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [compress()]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [compress()]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -297,12 +297,12 @@ mod attributes {
         fn foo_attribute() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [foo::bar]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [foo::bar]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -324,12 +324,12 @@ mod attributes {
         fn foo_attribute_with_arguments() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [foo::bar(1, 2, 3)]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [foo::bar(1, 2, 3)]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act
@@ -357,11 +357,11 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                module Test;
-                interface I {{
-                    [foo::bar({input})]
-                    op(s: string) -> string;
-                }}
+                    module Test;
+                    interface I {{
+                        [foo::bar({input})]
+                        op(s: string) -> string;
+                    }}
                 ",
                 input = input,
             );
@@ -384,11 +384,11 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                module Test;
-                interface I {{
-                    [foo::bar({input})]
-                    op(s: string) -> string;
-                }}
+                    module Test;
+                    interface I {{
+                        [foo::bar({input})]
+                        op(s: string) -> string;
+                    }}
                 ",
                 input = input,
             );
@@ -406,12 +406,12 @@ mod attributes {
         fn foo_attribute_with_spaces_fails() {
             // Arrange
             let slice = "
-            module Test;
+                module Test;
 
-            interface I {
-                [foo::bar(abcdefgh)]
-                op(s: string) -> string;
-            }
+                interface I {
+                    [foo::bar(abcdefgh)]
+                    op(s: string) -> string;
+                }
             ";
 
             // Act

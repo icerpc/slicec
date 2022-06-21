@@ -10,8 +10,8 @@ mod typealias {
     #[test]
     fn is_resolvable_as_an_entity() {
         let slice = "
-        module Test;
-        typealias MyInt = varuint32;
+            module Test;
+            typealias MyInt = varuint32;
         ";
 
         let ast = parse_for_ast(slice);
@@ -29,12 +29,12 @@ mod typealias {
     #[test]
     fn is_resolved_as_the_aliased_type_when_used() {
         let slice = "
-        module Test;
-        typealias MyInt = varuint32;
-        compact struct S
-        {
-            a: MyInt,
-        }
+            module Test;
+            typealias MyInt = varuint32;
+            compact struct S
+            {
+                a: MyInt,
+            }
         ";
 
         let ast = parse_for_ast(slice);

@@ -11,9 +11,9 @@ use slice::grammar::*;
 #[test]
 fn support_compact_type_id() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class C(42) {}
+        encoding = 1;
+        module Test;
+        class C(42) {}
     ";
 
     let ast = parse_for_ast(slice);

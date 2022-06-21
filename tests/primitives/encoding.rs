@@ -21,12 +21,13 @@ mod slice1 {
         // Test setup
         let slice = &format!(
             "
-            encoding = 1;
-            module Test;
-            compact struct S
-            {{
-                v: {value},
-            }}",
+                encoding = 1;
+                module Test;
+                compact struct S
+                {{
+                    v: {value},
+                }}
+            ",
             value = value,
         );
 
@@ -57,12 +58,13 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 1;
-            module Test;
-            compact struct S
-            {{
-                v: {value},
-            }}",
+                encoding = 1;
+                module Test;
+                compact struct S
+                {{
+                    v: {value},
+                }}
+            ",
             value = value,
         );
 
@@ -86,11 +88,11 @@ mod slice2 {
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
-        module Test;
-        compact struct S
-        {
-            v: AnyClass,
-        }
+            module Test;
+            compact struct S
+            {
+                v: AnyClass,
+            }
         ";
         let expected_errors = [
             "'AnyClass' is not supported with Slice2",
@@ -164,10 +166,10 @@ mod slice2 {
         // Arrange
         let slice = format!(
             "
-            module Test;
-            struct MyStruct {{
-                myVar: {value},
-            }}
+                module Test;
+                struct MyStruct {{
+                    myVar: {value},
+                }}
             ",
             value = value,
         );

@@ -18,7 +18,7 @@ mod structs {
                 s: string,
                 b: bool,
             }
-            ";
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -53,8 +53,8 @@ mod structs {
     fn can_be_empty() {
         // Arrange
         let slice = "
-        module Test;
-        struct S {}
+            module Test;
+            struct S {}
         ";
 
         // Act
@@ -71,12 +71,12 @@ mod structs {
     #[test]
     fn cannot_redefine_data_members() {
         let slice = "
-        module Test;
-        struct S
-        {
-            a: int32,
-            a: string,
-        }
+            module Test;
+            struct S
+            {
+                a: int32,
+                a: string,
+            }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -95,8 +95,8 @@ mod compact_structs {
     fn must_not_be_empty() {
         // Arrange
         let slice = "
-        module Test;
-        compact struct S {}
+            module Test;
+            compact struct S {}
         ";
         let expected_errors = ["compact structs must be non-empty"];
 

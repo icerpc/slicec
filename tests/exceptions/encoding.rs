@@ -18,7 +18,7 @@ mod slice1 {
             {
                 e: E,
             }
-            ";
+        ";
         let expected_errors = [
             "type 'Test::S' isn't supported by its file's Slice encoding",
             "file encoding was set to Slice1 here:",
@@ -43,10 +43,10 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-        // encoding = 2;
-        module Test;
-        exception A {}
-        exception B : A {}
+            // encoding = 2;
+            module Test;
+            exception A {}
+            exception B : A {}
         ";
         let expected_errors = [
             "exception inheritance is only supported with Slice1",
@@ -67,12 +67,12 @@ mod slice2 {
     fn can_be_data_members() {
         // Arrange
         let slice = "
-        module Test;
-        exception E {}
-        struct S
-        {
-            e: E,
-        }
+            module Test;
+            exception E {}
+            struct S
+            {
+                e: E,
+            }
         ";
 
         // Act

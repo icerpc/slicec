@@ -9,11 +9,11 @@ use crate::helpers::parsing_helpers::parse_for_errors;
 fn cannot_contain_tags() {
     // Arrange
     let slice = "
-    module Test;
-    enum E: int32 {
-        A = 1,
-        B: tag(10) = 2,
-    }
+        module Test;
+        enum E: int32 {
+            A = 1,
+            B: tag(10) = 2,
+        }
     ";
 
     // Act & Assert

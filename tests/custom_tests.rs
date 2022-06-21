@@ -18,9 +18,9 @@ mod custom {
             fn is_not_supported() {
                 // Arrange
                 let slice = "
-                encoding = 1;
-                module Test;
-                custom ACustomType;
+                    encoding = 1;
+                    module Test;
+                    custom ACustomType;
                 ";
 
                 // Act
@@ -39,8 +39,8 @@ mod custom {
     fn type_parses() {
         // Arrange
         let slice = "
-        module Test;
-        custom ACustomType;
+            module Test;
+            custom ACustomType;
         ";
 
         // Act

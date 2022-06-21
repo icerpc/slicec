@@ -7,10 +7,10 @@ use slice::grammar::*;
 #[test]
 fn supports_single_inheritance() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class I {}
-    class J : I {}
+        encoding = 1;
+        module Test;
+        class I {}
+        class J : I {}
     ";
 
     let ast = parse_for_ast(slice);
@@ -31,11 +31,11 @@ fn supports_single_inheritance() {
 #[test]
 fn does_not_support_multiple_inheritance() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class I {}
-    class J {}
-    class K : I, J {}
+        encoding = 1;
+        module Test;
+        class I {}
+        class J {}
+        class K : I, J {}
     ";
 
     let error_reporter = parse_for_errors(slice);
@@ -46,16 +46,16 @@ fn does_not_support_multiple_inheritance() {
 #[test]
 fn data_member_shadowing_is_disallowed() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class I
-    {
-        i: int32
-    }
-    class J : I
-    {
-        i: int32
-    }
+        encoding = 1;
+        module Test;
+        class I
+        {
+            i: int32
+        }
+        class J : I
+        {
+            i: int32
+        }
     ";
 
     let error_reporter = parse_for_errors(slice);
@@ -69,20 +69,20 @@ fn data_member_shadowing_is_disallowed() {
 #[test]
 fn inherits_correct_data_members() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class A
-    {
-        a: int32
-    }
-    class B : A
-    {
-        b: string
-    }
-    class C : B
-    {
-        c: float64
-    }
+        encoding = 1;
+        module Test;
+        class A
+        {
+            a: int32
+        }
+        class B : A
+        {
+            b: string
+        }
+        class C : B
+        {
+            c: float64
+        }
     ";
 
     let ast = parse_for_ast(slice);

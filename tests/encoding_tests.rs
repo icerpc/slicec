@@ -16,7 +16,7 @@ mod encodings {
         // Arrange
         let slice = format!(
             "
-            encoding = {value};
+                encoding = {value};
             ",
             value = value,
         );
@@ -34,7 +34,7 @@ mod encodings {
         // Arrange
         let slice = "
             encoding = 3;
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -47,8 +47,8 @@ mod encodings {
     fn encoding_must_be_first() {
         // Arrange
         let slice = "
-        module Test;
-        encoding = 2;
+            module Test;
+            encoding = 2;
         ";
 
         // Act
