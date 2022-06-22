@@ -13,15 +13,30 @@ mod typealias {
     fn can_be_used_as_data_member() {
         // Arrange
         let slice = "
-            typealias ParameterFields = dictionary<varint32, sequence<uint8>>;
-
-            compact struct InitializeBody
+            module Test;
+            typealias MyDict = dictionary<varint32, sequence<uint8>>;
+            compact struct S
             {
-                /// The application protocol name.
-                applicationProtocolName: string,
+                dict: MyDict,
+            }
+        ";
 
-                /// The parameters.
-                parameters: ParameterFields,
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter);
+    }
+
+    #[test]
+    #[ignore]
+    fn can_be_used_as_parameter() {
+        // Arrange
+        let slice = "
+            module Test;
+            typealias MyDict = dictionary<varint32, sequence<uint8>>;
+            interface I {
+                op(dict: MyDict);
             }
         ";
 
