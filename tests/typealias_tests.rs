@@ -4,8 +4,33 @@ pub mod helpers;
 
 mod typealias {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use slice::grammar::*;
+
+    #[test]
+    #[ignore]
+    fn is_useable_inside_compact_struct() {
+        // Arrange
+        let slice = "
+            typealias ParameterFields = dictionary<varint32, sequence<uint8>>;
+
+            compact struct InitializeBody
+            {
+                /// The application protocol name.
+                applicationProtocolName: string,
+
+                /// The parameters.
+                parameters: ParameterFields,
+            }
+        ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter);
+    }
 
     #[test]
     fn is_resolvable_as_an_entity() {
