@@ -365,7 +365,7 @@ impl Ast {
     }
 
     /// Moves a Slice element into this AST, and returns a [WeakPtr] to it, after adding an entry for the element into
-    /// this AST's [lookup table](lookup_table), allowing it to be retrieved by identifier.
+    /// this AST's [lookup table](Ast::lookup_table), allowing it to be retrieved by identifier.
     pub(crate) fn add_named_element<T: NamedSymbol>(&mut self, element: OwnedPtr<T>) -> WeakPtr<T>
     where
         OwnedPtr<T>: Into<Node>,
