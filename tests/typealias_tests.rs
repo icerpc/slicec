@@ -10,7 +10,7 @@ mod typealias {
 
     #[test]
     #[ignore]
-    fn is_useable_inside_compact_struct() {
+    fn can_be_used_as_data_member() {
         // Arrange
         let slice = "
             typealias ParameterFields = dictionary<varint32, sequence<uint8>>;
