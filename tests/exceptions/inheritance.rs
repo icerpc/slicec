@@ -11,7 +11,7 @@ fn supports_single_inheritance() {
         module Test;
         exception E1 {}
         exception E2 : E1 {}
-        ";
+    ";
 
     let ast = parse_for_ast(slice);
 
@@ -27,7 +27,7 @@ fn does_not_support_multiple_inheritance() {
         exception E1 {}
         exception E2 {}
         exception E3 : E1, E2 {}
-        ";
+    ";
 
     let error_reporter = parse_for_errors(slice);
 
@@ -39,10 +39,10 @@ fn does_not_support_multiple_inheritance() {
 #[test]
 fn must_inherit_from_exception() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class C {}
-    exception E : C {}
+        encoding = 1;
+        module Test;
+        class C {}
+        exception E : C {}
     ";
 
     let error_reporter = parse_for_errors(slice);
@@ -78,20 +78,20 @@ fn data_member_shadowing_is_disallowed() {
 #[test]
 fn inherits_correct_data_members() {
     let slice = "
-    encoding = 1;
-    module Test;
-    exception A
-    {
-        a: int32
-    }
-    exception B : A
-    {
-        b: string
-    }
-    exception C : B
-    {
-        c: float64
-    }
+        encoding = 1;
+        module Test;
+        exception A
+        {
+            a: int32
+        }
+        exception B : A
+        {
+            b: string
+        }
+        exception C : B
+        {
+            c: float64
+        }
     ";
 
     let ast = parse_for_ast(slice);

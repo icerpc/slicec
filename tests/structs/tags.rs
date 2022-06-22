@@ -15,7 +15,7 @@ mod structs {
                 s: string,
                 b: tag(10) bool?,
             }
-            ";
+        ";
         let ast = parse_for_ast(slice);
 
         // Assert
@@ -39,7 +39,7 @@ mod compact_structs {
                 s: string,
                 b: tag(10) bool?,
             }
-            ";
+        ";
         let expected_errors = [
             "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact",
             "struct 'S' is declared compact here",

@@ -39,8 +39,8 @@ fn allowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        typealias Dict = dictionary<{}, int8>;
+            module Test;
+            typealias Dict = dictionary<{}, int8>;
         ",
         key_type,
     );
@@ -59,8 +59,8 @@ fn disallowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        typealias Dict = dictionary<{}, int8>;
+            module Test;
+            typealias Dict = dictionary<{}, int8>;
         ",
         key_type,
     );
@@ -81,8 +81,8 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        typealias Dict = dictionary<{}, int8>;
+            module Test;
+            typealias Dict = dictionary<{}, int8>;
         ",
         key_type,
     );
@@ -103,9 +103,9 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        {}
-        typealias Dict = dictionary<{}, int8>;
+            module Test;
+            {}
+            typealias Dict = dictionary<{}, int8>;
         ",
         key_type_def, key_type,
     );
@@ -125,10 +125,10 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     // Arrange
     let slice = format!(
         "
-        encoding = {file_encoding};
-        module Test;
-        {key_type_definition}
-        typealias Dict = dictionary<{key_type}, int8>;
+            encoding = {file_encoding};
+            module Test;
+            {key_type_definition}
+            typealias Dict = dictionary<{key_type}, int8>;
         ",
         file_encoding = if key_kind == "class" { "1" } else { "2" },
         key_type_definition = key_type_def,

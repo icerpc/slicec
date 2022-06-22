@@ -14,7 +14,7 @@ fn can_contain_tags() {
             s: string,
             b: tag(10) bool?,
         }
-        ";
+    ";
     let ast = parse_for_ast(slice);
 
     // Assert

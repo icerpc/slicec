@@ -18,9 +18,9 @@ mod traits {
             fn are_not_supported() {
                 // Arrange
                 let slice = "
-                encoding = 1;
-                module Test;
-                trait ATrait;
+                    encoding = 1;
+                    module Test;
+                    trait ATrait;
                 ";
 
                 // Act
@@ -40,8 +40,8 @@ mod traits {
     fn type_parses() {
         // Arrange
         let slice = "
-        module Test;
-        trait ATrait;
+            module Test;
+            trait ATrait;
         ";
 
         // Act

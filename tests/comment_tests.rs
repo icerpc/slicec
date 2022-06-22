@@ -22,10 +22,10 @@ mod comments {
         // Arrange
         let slice = format!(
             "
-            module tests;
+                module tests;
 
-            {}
-            interface MyInterface {{}}
+                {}
+                interface MyInterface {{}}
             ",
             doc_comment
         );
@@ -50,7 +50,7 @@ mod comments {
                 /// @param testParam My test param
                 testOp(testParam: string);
             }
-            ";
+        ";
         let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
         // Act
@@ -73,7 +73,7 @@ mod comments {
                 /// @return bool
                 testOp(testParam: string) -> bool;
             }
-            ";
+        ";
         let expected = Some("bool".to_owned());
 
         // Act
@@ -96,7 +96,7 @@ mod comments {
                 /// @return This operation will return a bool.
                 testOp(testParam: string);
             }
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -118,7 +118,7 @@ mod comments {
                 /// @param testParam2 A bool param
                 testOp(testParam1: string);
             }
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -141,7 +141,7 @@ mod comments {
                 /// @throws MyException Some message about why testOp throws
                 testOp(testParam1: string) -> bool;
             }
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -164,7 +164,7 @@ mod comments {
                  */
                 testOp(testParam: string) -> bool;
             }
-            ";
+        ";
         let expected_throws = vec![(
             "MyThrownThing".to_owned(),
             "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
@@ -191,7 +191,7 @@ mod comments {
                 /// @throws MyThrownThing Message about my thrown thing.
                 testOp(testParam: string) -> bool;
             }
-            ";
+        ";
         let expected = vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
 
         // Act
@@ -212,7 +212,7 @@ mod comments {
 
             /// @throws MyThrownThing Message about my thrown thing.
             struct S {}
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -234,7 +234,7 @@ mod comments {
                 /// @see MySee Message about thing.
                 testOp(testParam: string) -> bool;
             }
-            ";
+        ";
         let expected = vec!["MySee".to_owned()];
 
         // Act
@@ -279,10 +279,10 @@ mod comments {
         // Arrange
         let slice = format!(
             "
-            module tests;
+                module tests;
 
-            {}
-            interface MyInterface {{}}
+                {}
+                interface MyInterface {{}}
             ",
             comment,
         );

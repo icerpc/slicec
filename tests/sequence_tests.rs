@@ -11,8 +11,8 @@ mod sequences {
     fn can_contain_primitive_types() {
         // Arrange
         let slice = "
-            module Test;
-            typealias Seq = sequence<int8>;
+        module Test;
+        typealias Seq = sequence<int8>;
         ";
 
         // Act

@@ -59,10 +59,10 @@ fn supports_multiple_inheritance() {
 #[test]
 fn must_inherit_from_interface() {
     let slice = "
-    encoding = 1;
-    module Test;
-    class C {}
-    interface I : C {}
+        encoding = 1;
+        module Test;
+        class C {}
+        interface I : C {}
     ";
 
     let error_reporter = parse_for_errors(slice);
@@ -97,22 +97,22 @@ fn operation_shadowing_is_disallowed() {
 #[test]
 fn inherits_correct_operations() {
     let slice = "
-    module Test;
-    interface A
-    {
-        opA();
-    }
-    interface B : A
-    {
-        opB();
-    }
-    interface C : A
-    {
-    }
-    interface D : B, C
-    {
-        opD();
-    }
+        module Test;
+        interface A
+        {
+            opA();
+        }
+        interface B : A
+        {
+            opB();
+        }
+        interface C : A
+        {
+        }
+        interface D : B, C
+        {
+            opD();
+        }
     ";
 
     let ast = parse_for_ast(slice);

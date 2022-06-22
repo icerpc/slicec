@@ -11,15 +11,15 @@ mod module {
     #[test]
     fn can_be_reopened() {
         let slice = "
-        module Test
-        {
-            struct S1 {}
-        }
+            module Test
+            {
+                struct S1 {}
+            }
 
-        module Test
-        {
-            struct S2 {}
-        }
+            module Test
+            {
+                struct S2 {}
+            }
         ";
 
         let ast = parse_for_ast(slice);
@@ -31,10 +31,10 @@ mod module {
     #[test]
     fn can_be_nested() {
         let slice = "
-        module A
-        {
-            module B {}
-        }
+            module A
+            {
+                module B {}
+            }
         ";
 
         let ast = parse_for_ast(slice);
@@ -45,7 +45,7 @@ mod module {
     #[test]
     fn can_use_nested_syntax() {
         let slice = "
-        module A::B::C::D {}
+            module A::B::C::D {}
         ";
 
         let ast = parse_for_ast(slice);
@@ -56,7 +56,9 @@ mod module {
     #[test]
     fn is_required() {
         // TODO: better error message once we replace the parser
-        let slice = "custom C;";
+        let slice = "
+            custom C;
+        ";
         let err = parse_from_string(slice).err();
         assert!(err.is_some());
     }

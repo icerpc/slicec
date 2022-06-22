@@ -18,7 +18,7 @@ mod slice1 {
             {
                 e: E,
             }
-            ";
+        ";
         let expected_errors = [
             "exceptions cannot be used as a data type with the Slice1 encoding",
             "file encoding was set to Slice1 here:",
@@ -47,7 +47,7 @@ mod slice2 {
             module Test;
             exception A {}
             exception B : A {}
-            ";
+        ";
         let expected_errors = [
             "exception `B` is not supported by the Slice2 encoding",
             "file is using the Slice2 encoding by default",
@@ -74,7 +74,7 @@ mod slice2 {
             {
                 e: E,
             }
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);

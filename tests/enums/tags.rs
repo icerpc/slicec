@@ -14,7 +14,7 @@ fn cannot_contain_tags() {
             A = 1,
             B: tag(10) = 2,
         }
-        ";
+    ";
 
     // Act & Assert
     assert_errors!(parse_for_errors(slice));

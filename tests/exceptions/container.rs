@@ -9,13 +9,13 @@ use slice::grammar::*;
 fn can_contain_data_members() {
     // Arrange
     let slice = "
-    module Test;
-    exception E
-    {
-        i: int32,
-        s: string,
-        b: bool,
-    }
+        module Test;
+        exception E
+        {
+            i: int32,
+            s: string,
+            b: bool,
+        }
     ";
 
     // Act
@@ -48,8 +48,8 @@ fn can_contain_data_members() {
 fn can_be_empty() {
     // Arrange
     let slice = "
-    module Test;
-    exception E {}
+        module Test;
+        exception E {}
     ";
 
     // Act

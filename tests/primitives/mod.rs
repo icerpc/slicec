@@ -26,9 +26,9 @@ use test_case::test_case;
 fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str>) {
     let slice = format!(
         "
-        {encoding}
-        module Test;
-        typealias P = {slice_component};
+            {encoding}
+            module Test;
+            typealias P = {slice_component};
         ",
         encoding = encoding.unwrap_or(""),
         slice_component = slice_component,

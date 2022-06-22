@@ -14,7 +14,7 @@ mod slice1 {
             encoding = 1;
             module Test;
             struct A {}
-            ";
+        ";
         let expected_errors = [
             "struct `A` is not supported by the Slice1 encoding",
             "file encoding was set to Slice1 here:",
@@ -40,11 +40,11 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-        module Test;
-        struct A
-        {
-            c: AnyClass,
-        }
+            module Test;
+            struct A
+            {
+                c: AnyClass,
+            }
         ";
         let expected_errors = [
             "the type `AnyClass` is not supported by the Slice2 encoding",
@@ -73,7 +73,7 @@ mod slice2 {
                 s: string?,
                 t: T,
             }
-            ";
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);

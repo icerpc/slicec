@@ -72,21 +72,21 @@ fn data_member_shadowing_is_disallowed() {
 fn inherits_correct_data_members() {
     // Arrange
     let slice = "
-    encoding = 1;
-    module Test;
-    class A
-    {
-        a: int32
-    }
-    class B : A
-    {
-        b: string
-    }
-    class C : B
-    {
-        c: float64
-    }
-";
+        encoding = 1;
+        module Test;
+        class A
+        {
+            a: int32
+        }
+        class B : A
+        {
+            b: string
+        }
+        class C : B
+        {
+            c: float64
+        }
+    ";
 
     // Act
     let ast = parse_for_ast(slice);

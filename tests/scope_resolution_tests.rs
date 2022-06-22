@@ -11,8 +11,8 @@ mod scope_resolution {
     #[test]
     fn file_level_modules_can_not_contain_sub_modules() {
         let slice = "
-        module T;
-        module S {}
+            module T;
+            module S {}
         ";
         let error_reporter = parse_for_errors(slice);
 
@@ -25,26 +25,26 @@ mod scope_resolution {
     #[test]
     fn identifier_exists_in_module_and_submodule() {
         let slice = "
-        module A
-        {
-            typealias S = int32;
-
-            module B
+            module A
             {
-                struct S
+                typealias S = int32;
+
+                module B
                 {
-                    v: string,
+                    struct S
+                    {
+                        v: string,
+                    }
+                }
+
+                struct C
+                {
+                    s1: S,
+                    s2: A::S,
+                    s3: B::S,
+                    s4: A::B::S,
                 }
             }
-
-            struct C
-            {
-                s1: S,
-                s2: A::S,
-                s3: B::S,
-                s4: A::B::S,
-            }
-        }
         ";
 
         let ast = parse_for_ast(slice);
@@ -63,23 +63,23 @@ mod scope_resolution {
     #[test]
     fn identifier_exists_in_module_and_parent_module() {
         let slice = "
-        module A
-        {
-            typealias S = int32;
-
-            module B
+            module A
             {
-                typealias S = string;
+                typealias S = int32;
 
-                struct C
+                module B
                 {
-                    s1: S,
-                    s2: B::S,
-                    s3: A::B::S,
-                    s4: A::S,
+                    typealias S = string;
+
+                    struct C
+                    {
+                        s1: S,
+                        s2: B::S,
+                        s3: A::B::S,
+                        s4: A::S,
+                    }
                 }
             }
-        }
         ";
 
         let ast = parse_for_ast(slice);
@@ -98,30 +98,30 @@ mod scope_resolution {
     #[test]
     fn identifier_exists_in_multiple_parent_modules() {
         let slice = "
-        module A
-        {
-            typealias S = int32;
-
-            module B
+            module A
             {
-
-                struct S
-                {
-                    v: string,
-                }
+                typealias S = int32;
 
                 module B
                 {
 
-                    struct C
+                    struct S
                     {
-                        s1: S,
-                        s2: B::S,
-                        s3: A::S,
+                        v: string,
+                    }
+
+                    module B
+                    {
+
+                        struct C
+                        {
+                            s1: S,
+                            s2: B::S,
+                            s3: A::S,
+                        }
                     }
                 }
             }
-        }
         ";
 
         let ast = parse_for_ast(slice);
@@ -138,33 +138,33 @@ mod scope_resolution {
     #[test]
     fn identifier_exists_in_multiple_modules_with_common_partial_scope() {
         let slice = "
-        module A
-        {
-            module B
+            module A
             {
-                typealias S = string;
-
-                module A
+                module B
                 {
-                    module B
-                    {
-                        typealias S = int32;
+                    typealias S = string;
 
-                        struct C
+                    module A
+                    {
+                        module B
                         {
-                            s1: A::B::S,
-                            s2: ::A::B::S,
+                            typealias S = int32;
+
+                            struct C
+                            {
+                                s1: A::B::S,
+                                s2: ::A::B::S,
+                            }
                         }
                     }
                 }
-            }
 
-            struct C
-            {
-                s1: A::B::S,
-                s2: ::A::B::S,
+                struct C
+                {
+                    s1: A::B::S,
+                    s2: ::A::B::S,
+                }
             }
-        }
         ";
 
         let ast = parse_for_ast(slice);
@@ -191,52 +191,49 @@ mod scope_resolution {
     fn interface_has_same_identifier_as_module() {
         // Arrange
         let slice = "
-        module A
-        {
-            module B
+            module A
             {
-            }
+                module B
+                {
+                }
 
-            interface B
-            {
-            }
+                interface B
+                {
+                }
 
-            struct S
-            {
-                b: B,
+                struct S
+                {
+                    b: B,
+                }
             }
-        }
         ";
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
-            "redefinition of B",
-            "B was previously defined here",
-        ]);
+        assert_errors!(error_reporter, ["redefinition of B", "B was previously defined here",]);
     }
 
     #[test]
     fn relative_scope_is_module_before_interface() {
         // Arrange
         let slice = "
-        module A
-        {
-            module B
+            module A
             {
-                module C
+                module B
                 {
-                    struct S
+                    module C
                     {
-                        c: C,
+                        struct S
+                        {
+                            c: C,
+                        }
                     }
                 }
-            }
 
-            interface C {}
-        }
+                interface C {}
+            }
         ";
 
         // Act
@@ -252,13 +249,13 @@ mod scope_resolution {
     fn missing_type_should_fail() {
         // Arrange
         let slice = "
-        module A
-        {
-            struct C
+            module A
             {
-                b: Nested::C,
+                struct C
+                {
+                    b: Nested::C,
+                }
             }
-        }
         ";
 
         // Act

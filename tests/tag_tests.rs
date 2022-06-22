@@ -13,13 +13,13 @@ mod tags {
     fn tagged_data_members_must_be_optional() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        class C {
-            i: int32,
-            s: string,
-            b: tag(10) bool,
-        }
+            encoding = 1;
+            module Test;
+            class C {
+                i: int32,
+                s: string,
+                b: tag(10) bool,
+            }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -32,11 +32,11 @@ mod tags {
     fn tagged_parameters_must_be_optional() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        interface I {
-            op(myParam: tag(10) int32);
-        }
+            encoding = 1;
+            module Test;
+            interface I {
+                op(myParam: tag(10) int32);
+            }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -51,11 +51,11 @@ mod tags {
     fn non_tagged_optional_types_fail() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        interface I {
-            myOp(a: int32?);
-        }
+            encoding = 1;
+            module Test;
+            interface I {
+                myOp(a: int32?);
+            }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -71,11 +71,11 @@ mod tags {
     fn tagged_parameters_must_be_after_required_parameters() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        interface I {
-            op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
-        }
+            encoding = 1;
+            module Test;
+            interface I {
+                op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
+            }
         ";
 
         let error_reporter = parse_for_errors(slice);
@@ -99,7 +99,7 @@ mod tags {
             interface I {
                 op(c: tag(1) C?);
             }
-            ";
+        ";
         let expected_errors = ["invalid member `c`: tagged members cannot be classes"];
 
         // Act
@@ -124,7 +124,7 @@ mod tags {
             interface I {
                 op(s: tag(1) S?);
             }
-            ";
+        ";
         let expected_errors = ["invalid type `s`: tagged members cannot contain classes"];
 
         // Act
@@ -142,7 +142,7 @@ mod tags {
             struct S {
                 a: tag(1) int32?,
             }
-            ";
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -180,11 +180,11 @@ mod tags {
         let max_value = i32::MAX as i64;
         let slice = format!(
             "
-            module Test;
-            interface I {{
-                testOp(a: tag({value}) int32?);
-            }}
-        ",
+                module Test;
+                interface I {{
+                    testOp(a: tag({value}) int32?);
+                }}
+            ",
             value = max_value + 1
         );
         let expected_errors = [format!(
@@ -204,10 +204,10 @@ mod tags {
         // Arrange
         let slice = format!(
             "
-            module Test;
-            interface I {{
-                testOp(a: tag({value}) int32?);
-            }}
+                module Test;
+                interface I {{
+                    testOp(a: tag({value}) int32?);
+                }}
             ",
             value = -1
         );
@@ -228,7 +228,7 @@ mod tags {
             interface I {
                 testOp(a: tag(\"test string\") int32?);
             }
-            ";
+        ";
 
         // Act
         let err = parse_from_string(slice).err();

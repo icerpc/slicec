@@ -9,12 +9,12 @@ use test_case::test_case;
 fn enumerator_default_values() {
     // Arrange
     let slice = "
-    module Test;
-    enum E {
-        A,
-        B,
-        C,
-    }
+        module Test;
+        enum E {
+            A,
+            B,
+            C,
+        }
     ";
 
     // Act
@@ -31,12 +31,12 @@ fn enumerator_default_values() {
 fn subsequent_unsigned_value_is_incremented_previous_value() {
     // Arrange
     let slice = "
-        module Test;
-        enum E {
-            A = 2,
-            B,
-            C,
-        }
+            module Test;
+            enum E {
+                A = 2,
+                B,
+                C,
+            }
         ";
 
     // Act
@@ -52,11 +52,11 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
 fn enumerator_values_can_be_out_of_order() {
     // Arrange
     let slice = "
-        module Test;
-        enum E {
-            A = 2,
-            B = 1,
-        }
+            module Test;
+            enum E {
+                A = 2,
+                B = 1,
+            }
         ";
 
     // Act
@@ -72,10 +72,10 @@ fn validate_backing_type_out_of_bounds() {
     let out_of_bounds_value = i16::MAX as i32 + 1;
     let slice = format!(
         "
-        module Test;
-        enum E: int16 {{
-            A = {out_of_bounds_value},
-        }}
+            module Test;
+            enum E: int16 {{
+                A = {out_of_bounds_value},
+            }}
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
@@ -100,7 +100,7 @@ fn validate_backing_type_bounds() {
                 A = {min},
                 B = {max},
             }}
-            ",
+        ",
         min = bounds.0,
         max = bounds.1,
     );
@@ -119,10 +119,10 @@ fn invalid_underlying_type(underlying_type: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        enum E: {} {{
-            A
-        }}
+            module Test;
+            enum E: {} {{
+                A
+            }}
         ",
         underlying_type,
     );
@@ -144,10 +144,10 @@ fn enumerator_invalid_identifiers(identifier: &str) {
     // Arrange
     let slice = format!(
         "
-        module Test;
-        enum E {{
-            {identifier},
-        }}
+            module Test;
+            enum E {{
+                {identifier},
+            }}
         ",
         identifier = identifier,
     );
@@ -165,7 +165,7 @@ fn optional_underlying_types_fail() {
     let slice = "
         module Test;
         enum E: int32? { A = 1 }
-        ";
+    ";
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -185,7 +185,7 @@ fn enumerators_must_be_unique() {
             A = 1,
             B = 1,
         }
-        ";
+    ";
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -200,11 +200,13 @@ fn enumerators_must_be_unique() {
 #[test]
 fn automatically_assigned_values_will_not_overflow() {
     let slice = format!(
-        "module Test;
-        enum E {{
-            A = {max_value},
-            B,
-        }}",
+        "
+            module Test;
+            enum E {{
+                A = {max_value},
+                B,
+            }}
+        ",
         max_value = i64::MAX,
     );
 
@@ -220,11 +222,11 @@ fn automatically_assigned_values_will_not_overflow() {
 fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
     let slice = format!(
         "
-        module Test;
-        {enum_definition} E {{
-            A,
-            B,
-        }}
+            module Test;
+            {enum_definition} E {{
+                A,
+                B,
+            }}
         ",
         enum_definition = enum_definition,
     );
@@ -240,7 +242,7 @@ fn checked_enums_can_not_be_empty() {
     let slice = "
         module Test;
         enum E {}
-        ";
+    ";
 
     let error_reporter = parse_for_errors(slice);
 
@@ -252,7 +254,7 @@ fn unchecked_enums_can_be_empty() {
     let slice = "
         module Test;
         unchecked enum E {}
-        ";
+    ";
 
     let ast = parse_for_ast(slice);
 
@@ -269,13 +271,13 @@ mod slice1 {
     fn enumerators_cannot_contain_negative_values() {
         // Arrange
         let slice = "
-        encoding = 1;
-        module Test;
-        enum E {
-            A = -1,
-            B = -2,
-            C = -3,
-        }
+            encoding = 1;
+            module Test;
+            enum E {
+                A = -1,
+                B = -2,
+                C = -3,
+            }
         ";
         let expected_errors = [
             "invalid enumerator value on enumerator `A`: enumerators must be non-negative",
@@ -295,11 +297,11 @@ mod slice1 {
         // Arrange
         let slice = format!(
             "
-            encoding = 1;
-            module Test;
-            enum E {{
-                A = {value},
-            }}
+                encoding = 1;
+                module Test;
+                enum E {{
+                    A = {value},
+                }}
             ",
             value = i32::MAX as i64 + 1
         );
@@ -323,12 +325,12 @@ mod slice2 {
     fn enumerators_can_contain_negative_values() {
         // Arrange
         let slice = "
-        module Test;
-        enum E: int32 {
-            A = -1,
-            B = -2,
-            C = -3,
-        }
+            module Test;
+            enum E: int32 {
+                A = -1,
+                B = -2,
+                C = -3,
+            }
         ";
 
         // Act
@@ -342,12 +344,12 @@ mod slice2 {
     fn enumerators_can_contain_values() {
         // Arrange
         let slice = "
-        module Test;
-        enum E: int16 {
-            A = 1,
-            B = 2,
-            C = 3,
-        }
+            module Test;
+            enum E: int16 {
+                A = 1,
+                B = 2,
+                C = 3,
+            }
         ";
 
         // Act
