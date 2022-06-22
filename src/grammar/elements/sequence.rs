@@ -6,6 +6,7 @@ use crate::supported_encodings::SupportedEncodings;
 #[derive(Debug)]
 pub struct Sequence {
     pub element_type: TypeRef,
+    pub(crate) index: usize,
 }
 
 impl Sequence {
