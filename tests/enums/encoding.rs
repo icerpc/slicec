@@ -16,8 +16,9 @@ mod slice1 {
             unchecked enum E : int32 {}
             ";
         let expected_errors = [
-            "enums with underlying types are not supported with Slice1",
+            "enum `E` is not supported by the Slice1 encoding",
             "file encoding was set to Slice1 here:",
+            "enums with underlying types are not supported by the Slice1 encoding",
         ];
 
         // Act

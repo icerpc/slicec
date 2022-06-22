@@ -10,8 +10,8 @@ use convert_case::{Case, Casing};
 use std::convert::TryFrom;
 use std::fmt;
 
-// Helper macro for generating `TryFrom` conversion methods to unwrap `Node`s to concrete types,
-// when the type of element the Node is holding is known.
+// Helper macro for generating `TryFrom` conversion functions to unwrap `Node`s to concrete types, when the type of
+// element the Node is holding is known.
 macro_rules! generate_try_from_node_impl {
     ($variant:ident, $from_type:ty, $to_type:ty, $convert:path) => {
         impl<'a> TryFrom<$from_type> for $to_type {
@@ -19,15 +19,14 @@ macro_rules! generate_try_from_node_impl {
 
             /// Attempts to unwrap a node to the specified concrete type.
             ///
-            /// If the Slice element held by the node is the specified type, this succeeds,
-            /// and returns the unwrapped element in the requested container.
-            /// Otherwise this method fails and returns an error message.
+            /// If the Slice element held by the node is the specified type, this succeeds, and returns the unwrapped
+            /// element in the requested container. Otherwise this method fails and returns an error message.
             fn try_from(node: $from_type) -> Result<$to_type, Self::Error> {
                 if let Node::$variant(x) = node {
                     Ok($convert(x))
                 } else {
                     Err(format!(
-                        "type mismatch: attempted to unwrap {} from a node holding {}",
+                        "type mismatch: expected {} but found {}",
                         prefix_with_article(stringify!($variant).to_case(Case::Lower)),
                         prefix_with_article(node.to_string().to_case(Case::Lower)),
                     ))
@@ -40,10 +39,10 @@ macro_rules! generate_try_from_node_impl {
 // Helper macro for generating the `Node` enum and its enumerators.
 macro_rules! generate_node_enum {
     ($($variant:ident),*) => {
-        /// Represents a node in the [Abstract Syntax Tree](AST).
+        /// Represents a node in the [Abstract Syntax Tree](super::Ast).
         ///
-        /// There is a variant for each kind of Slice element that can be stored in the AST,
-        /// each variant holds an instance of its corresponding element wrapped in an [OwnedPtr].
+        /// There is one variant for each kind of Slice element that can be stored in the AST, and each variant holds
+        /// a single instance of its corresponding element wrapped in an [`OwnedPtr`].
         #[derive(Debug)]
         pub enum Node {
             $($variant(OwnedPtr<$variant>),)*
@@ -84,7 +83,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
 
     /// Attempts to unwrap a node to a dynamically typed [WeakPtr] holding a Slice [Type].
     ///
-    /// If the Slice element held by the node implements [Type], this succeeds,
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a reference to the type,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Type>, Self::Error> {
         match node {
@@ -100,9 +99,8 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
             Node::Dictionary(dictionary_ptr)  => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr)    => Ok(downgrade_as!(primitive_ptr, dyn Type)),
             _ => Err(format!(
-                "type mismatch: attempted to unwrap a node holding {} as an `Type`, but {} doesn't implement `Type`",
+                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
                 prefix_with_article(node.to_string().to_case(Case::Lower)),
-                node.to_string().to_case(Case::Lower),
             )),
         }
     }
@@ -113,7 +111,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Type].
     ///
-    /// If the Slice element held by the node implements [Type], this succeeds,
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a reference to the type,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Type, Self::Error> {
         match node {
@@ -129,9 +127,8 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Dictionary(dictionary_ptr)  => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr)    => Ok(primitive_ptr.borrow()),
             _ => Err(format!(
-                "type mismatch: attempted to unwrap a node holding {} as an `Type`, but {} doesn't implement `Type`",
+                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
                 prefix_with_article(node.to_string().to_case(Case::Lower)),
-                node.to_string().to_case(Case::Lower),
             )),
         }
     }
@@ -142,7 +139,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Entity].
     ///
-    /// If the Slice element held by the node implements [Entity], this succeeds,
+    /// If the Slice element held by the node implements [Entity], this succeeds and returns a reference to the entity,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Entity, Self::Error> {
         match node {
@@ -160,9 +157,8 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr)   => Ok(type_alias_ptr.borrow()),
             _ => Err(format!(
-                "type mismatch: attempted to unwrap a node holding {} as an `Entity`, but {} doesn't implement `Entity`",
+                "type mismatch: expected an `Entity` but found {} (which doesn't implement `Entity`)",
                 prefix_with_article(node.to_string().to_case(Case::Lower)),
-                node.to_string().to_case(Case::Lower),
             )),
         }
     }
@@ -172,8 +168,8 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
 macro_rules! impl_into_node_for {
     ($variant:ident) => {
         impl From<OwnedPtr<$variant>> for Node {
-            // Macro variables in comments aren't expanded, so instead of writing a doc comment
-            // normally, we generate documentation for this function using a `doc` attribute.
+            // Macro variables in comments aren't expanded, so instead of writing a doc comment normally, we generate
+            // documentation for this function using a `doc` attribute.
             #[doc = concat!(
                 "Wraps the OwnedPtr<",
                 stringify!($variant),
@@ -204,5 +200,5 @@ impl_into_node_for!(CustomType);
 impl_into_node_for!(TypeAlias);
 impl_into_node_for!(Sequence);
 impl_into_node_for!(Dictionary);
-// We don't implement it on `Primitive`, because primitive types are baked into the compiler,
-// so we don't need conversion methods for wrapping them into `Node`s.
+// We don't implement it on `Primitive`, because primitive types are baked into the compiler, so we don't need
+// conversion methods for wrapping them into `Node`s.

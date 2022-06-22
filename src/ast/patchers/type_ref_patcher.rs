@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-/// TODO EVERYTHING IN HERE NEEDS COMMENTS!!!
-
 use crate::ast::{Ast, Node};
 use crate::error::ErrorReporter;
 use crate::grammar::*;
@@ -14,7 +12,7 @@ pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Re
         error_reporter,
     };
 
-    // TODO explain we split this logic so that we can for sure have an immutable AST.
+    // TODO why explain we split this logic so that we can for sure have an immutable AST.
     patcher.compute_patches(ast);
     patcher.apply_patches(ast);
 
@@ -86,13 +84,13 @@ impl TypeRefPatcher<'_> {
     unsafe fn apply_patches(self, ast: &mut Ast) {
         let elements = ast.as_mut_slice();
 
-        // There should 1 patch per AST node.
+        // There should be 1 patch per AST node.
         debug_assert_eq!(elements.len(), self.type_ref_patches.len());
 
         // Simultaneously iterate through patches and AST nodes, and apply each patch to its corresponding node.
         //
         // Each match arm is broken into 2 steps, separated by a comment. First we navigate to the TypeRefs that needs
-        // patching, then we patch in it's definition and any attributes it might of picked up from type aliases.
+        // patching, then we patch in its definition and any attributes it might of picked up from type aliases.
         for (i, patch) in self.type_ref_patches.into_iter().enumerate() {
             match patch {
                 PatchKind::BaseClass((base_class_ptr, attributes)) => {
@@ -190,7 +188,7 @@ impl TypeRefPatcher<'_> {
 
         // There are 3 steps to type resolution.
         // First, lookup the type as a node in the AST.
-        // Second, Handle the case where the type is an alias (by resolving down to its concrete underlying type).
+        // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result: Result<Patch<T>, String> = ast
             .find_node_with_scope(&type_ref.type_string, type_ref.module_scope())
@@ -221,7 +219,7 @@ impl TypeRefPatcher<'_> {
         ast: &'a Ast,
     ) -> Result<(&'a Node, Vec<Attribute>), String> {
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
-        // While resolving the chain, if we see a type alias already in this vector, an illegal cycle is present.
+        // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
         let mut type_alias_chain = Vec::new();
 
         let mut attributes = Vec::new();
@@ -283,5 +281,7 @@ enum PatchKind {
 }
 
 impl Default for PatchKind {
-    fn default() -> Self { Self::None }
+    fn default() -> Self {
+        Self::None
+    }
 }

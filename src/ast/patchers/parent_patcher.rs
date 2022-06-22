@@ -2,11 +2,6 @@
 
 // TODO delete this entire file when we switch to LALRpop.
 
-// This is poorly written, but that's fine. This is just a stop-gap to get the new AST working with
-// the old parser. Once we switch to LALRpop (which is what I'm doing next), this will be completely
-// unnecessary then, since we can just keep track of the parents while parsing, instead of patching
-// them in later like this.
-
 use super::super::node::Node;
 use super::super::Ast;
 use crate::downgrade_as;

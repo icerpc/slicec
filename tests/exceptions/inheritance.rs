@@ -48,7 +48,7 @@ fn must_inherit_from_exception() {
     let error_reporter = parse_for_errors(slice);
 
     assert_errors!(error_reporter, [
-        "The Entity 'C' is not a valid type for this definition.",
+        "type mismatch: expected an exception but found a class",
     ]);
 }
 

@@ -244,7 +244,7 @@ mod scope_resolution {
 
         // Assert
         assert_errors!(error_reporter, [
-            "module `A::B::C` cannot be used as a type",
+            "type mismatch: expected a `Type` but found a module (which doesn't implement `Type`)",
         ]);
     }
 
@@ -266,7 +266,7 @@ mod scope_resolution {
 
         // Assert
         assert_errors!(error_reporter, [
-            "No entity with the identifier 'Nested::C' could be found in this scope.",
+            "no element with identifier `Nested::C` exists in the scope `A`",
         ]);
     }
 }

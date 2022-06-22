@@ -62,7 +62,7 @@ mod tags {
 
         // Assert
         assert_errors!(error_reporter, [
-            "optional types can only be used with tags using Slice1",
+            "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)",
             "file encoding was set to Slice1 here:",
         ]);
     }
