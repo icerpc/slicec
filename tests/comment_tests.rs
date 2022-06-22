@@ -34,8 +34,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
-        let interface_def = interface_ptr.borrow();
+        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment().unwrap();
 
         assert_eq!(interface_doc.overview, expected);
@@ -58,11 +57,8 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let op_ptr = ast
-            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
-            .unwrap();
-        let op_def = op_ptr.borrow();
-        let op_doc_comment = op_def.comment().unwrap();
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let op_doc_comment = operation.comment().unwrap();
 
         assert_eq!(op_doc_comment.params, expected);
     }
@@ -84,11 +80,8 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let op_ptr = ast
-            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
-            .unwrap();
-        let op_def = op_ptr.borrow();
-        let op_doc_comment = op_def.comment().unwrap();
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let op_doc_comment = operation.comment().unwrap();
 
         assert_eq!(op_doc_comment.returns, expected);
     }
@@ -181,11 +174,8 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let op_ptr = ast
-            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
-            .unwrap();
-        let op_def = op_ptr.borrow();
-        let op_doc_comment = op_def.comment().unwrap();
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let op_doc_comment = operation.comment().unwrap();
 
         assert_eq!(op_doc_comment.throws, expected_throws);
         assert_eq!(op_doc_comment.returns, Some("bool\n".to_owned()));
@@ -208,11 +198,8 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let op_ptr = ast
-            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
-            .unwrap();
-        let op_def = op_ptr.borrow();
-        let op_doc_comment = op_def.comment().unwrap();
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let op_doc_comment = operation.comment().unwrap();
 
         assert_eq!(op_doc_comment.throws, expected);
     }
@@ -254,11 +241,8 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let op_ptr = ast
-            .find_typed_entity::<Operation>("tests::TestInterface::testOp")
-            .unwrap();
-        let op_def = op_ptr.borrow();
-        let op_doc_comment = op_def.comment().unwrap();
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let op_doc_comment = operation.comment().unwrap();
 
         assert_eq!(op_doc_comment.see_also, expected);
     }
@@ -281,8 +265,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
-        let interface_def = interface_ptr.borrow();
+        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment().unwrap();
 
         assert_eq!(interface_doc.location.start, expected_start);
@@ -308,8 +291,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_ptr = ast.find_typed_type::<Interface>("tests::MyInterface").unwrap();
-        let interface_def = interface_ptr.borrow();
+        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment();
 
         assert!(interface_doc.is_none());

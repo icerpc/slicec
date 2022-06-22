@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Enum {
     pub identifier: Identifier,
-    pub enumerators: Vec<OwnedPtr<Enumerator>>,
+    pub enumerators: Vec<WeakPtr<Enumerator>>,
     pub underlying: Option<TypeRef<Primitive>>,
     pub is_unchecked: bool,
     pub parent: WeakPtr<Module>,
@@ -47,8 +47,8 @@ impl Enum {
         }
     }
 
-    pub(crate) fn add_enumerator(&mut self, enumerator: Enumerator) {
-        self.enumerators.push(OwnedPtr::new(enumerator));
+    pub(crate) fn add_enumerator(&mut self, enumerator: WeakPtr<Enumerator>) {
+        self.enumerators.push(enumerator);
     }
 
     pub fn enumerators(&self) -> Vec<&Enumerator> {
@@ -108,5 +108,5 @@ impl Type for Enum {
 
 implement_Element_for!(Enum, "enum");
 implement_Entity_for!(Enum);
-implement_Container_for!(Enum, OwnedPtr<Enumerator>, enumerators);
+implement_Container_for!(Enum, WeakPtr<Enumerator>, enumerators);
 implement_Contained_for!(Enum, Module);

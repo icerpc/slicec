@@ -19,8 +19,7 @@ mod sequences {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let seq_ptr = ast.find_typed_entity::<TypeAlias>("Test::Seq").unwrap();
-        let seq_def = seq_ptr.borrow();
+        let seq_def = ast.find_element::<TypeAlias>("Test::Seq").unwrap();
         let seq_type = seq_def.underlying.concrete_typeref();
 
         if let TypeRefs::Sequence(seq) = seq_type {

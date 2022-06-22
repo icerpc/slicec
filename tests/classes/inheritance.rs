@@ -6,6 +6,7 @@ use slice::grammar::*;
 
 #[test]
 fn supports_single_inheritance() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -13,11 +14,12 @@ fn supports_single_inheritance() {
         class J : I {}
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
-    let class_i_ptr = ast.find_typed_type::<Class>("Test::I").unwrap();
-    let class_j_ptr = ast.find_typed_type::<Class>("Test::J").unwrap();
-    let class_i_def = class_i_ptr.borrow();
-    let class_j_def = class_j_ptr.borrow();
+
+    // Assert
+    let class_i_def = ast.find_element::<Class>("Test::I").unwrap();
+    let class_j_def = ast.find_element::<Class>("Test::J").unwrap();
 
     assert!(class_i_def.base_class().is_none());
     assert!(class_j_def.base_class().is_some());
@@ -68,6 +70,7 @@ fn data_member_shadowing_is_disallowed() {
 
 #[test]
 fn inherits_correct_data_members() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -85,14 +88,13 @@ fn inherits_correct_data_members() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
-    let class_a_ptr = ast.find_typed_type::<Class>("Test::A").unwrap();
-    let class_b_ptr = ast.find_typed_type::<Class>("Test::B").unwrap();
-    let class_c_ptr = ast.find_typed_type::<Class>("Test::C").unwrap();
 
-    let class_a_def = class_a_ptr.borrow();
-    let class_b_def = class_b_ptr.borrow();
-    let class_c_def = class_c_ptr.borrow();
+    // Assert
+    let class_a_def = ast.find_element::<Class>("Test::A").unwrap();
+    let class_b_def = ast.find_element::<Class>("Test::B").unwrap();
+    let class_c_def = ast.find_element::<Class>("Test::C").unwrap();
 
     assert_eq!(class_a_def.members().len(), 1);
     assert_eq!(class_a_def.all_members().len(), 1);

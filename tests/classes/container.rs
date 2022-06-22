@@ -24,9 +24,7 @@ fn can_contain_data_members() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let class_ptr = ast.find_typed_type::<Class>("Test::C").unwrap();
-    let class_def = class_ptr.borrow();
-    let data_members = class_def.members();
+    let data_members = ast.find_element::<Class>("Test::C").unwrap().members();
 
     assert_eq!(data_members.len(), 3);
     assert!(matches!(data_members[0].identifier(), "i"));
@@ -98,10 +96,7 @@ fn can_be_empty() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let class_ptr = ast.find_typed_type::<Class>("Test::C").unwrap();
-    let class_def = class_ptr.borrow();
-    let data_members = class_def.members();
-
+    let data_members = ast.find_element::<Class>("Test::C").unwrap().members();
     assert_eq!(data_members.len(), 0);
 }
 

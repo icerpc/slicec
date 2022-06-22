@@ -8,6 +8,7 @@ use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
 use crate::upcast_weak_as;
 use std::cell::RefCell;
+use std::convert::TryInto;
 use std::default::Default;
 use std::fs;
 
@@ -46,6 +47,7 @@ struct ParserData<'a> {
     current_file: String,
     current_encoding: Encoding,
     current_enum_value: Option<i64>,
+    is_in_return_tuple: bool,
     current_scope: Scope,
     error_reporter: &'a mut ErrorReporter,
 }
@@ -73,6 +75,7 @@ impl<'a> SliceParser<'a> {
             current_file: file.to_owned(),
             current_encoding: Encoding::default(),
             current_enum_value: None,
+            is_in_return_tuple: false,
             current_scope: Scope::default(),
             error_reporter: self.error_reporter,
         });
@@ -83,12 +86,8 @@ impl<'a> SliceParser<'a> {
         let raw_ast = node.single().expect("Failed to unwrap raw_ast!");
 
         // Consume the raw ast into an unpatched ast, then store it in a `SliceFile`.
-        let (file_attributes, file_contents, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-
-        let top_level_modules = file_contents
-            .into_iter()
-            .map(|module_def| ast.add_module(module_def))
-            .collect::<Vec<_>>();
+        let (file_attributes, top_level_modules, file_encoding) =
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         Ok(SliceFile::new(
             file.to_owned(),
@@ -116,6 +115,7 @@ impl<'a> SliceParser<'a> {
             current_file: identifier.to_owned(),
             current_encoding: Encoding::default(),
             current_enum_value: None,
+            is_in_return_tuple: false,
             current_scope: Scope::default(),
             error_reporter: self.error_reporter,
         });
@@ -128,12 +128,8 @@ impl<'a> SliceParser<'a> {
         let raw_ast = unwrapped_node.single().expect("Failed to unwrap AST");
 
         // Consume the contents of the file and add them into the AST.
-        let (file_attributes, file_contents, file_encoding) = SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
-
-        let top_level_modules = file_contents
-            .into_iter()
-            .map(|module_def| ast.add_module(module_def))
-            .collect::<Vec<_>>();
+        let (file_attributes, top_level_modules, file_encoding) =
+            SliceParser::main(raw_ast).map_err(|e| e.to_string())?;
 
         let slice_file = SliceFile::new(
             identifier.to_owned(),
@@ -148,9 +144,12 @@ impl<'a> SliceParser<'a> {
     }
 }
 
+// Make Clippy happy until Pest goes away.
+type MainReturnType = PestResult<(Vec<Attribute>, Vec<WeakPtr<Module>>, Option<FileEncoding>)>;
+
 #[pest_consume::parser]
 impl<'a> SliceParser<'a> {
-    fn main(input: PestNode) -> PestResult<(Vec<Attribute>, Vec<Module>, Option<FileEncoding>)> {
+    fn main(input: PestNode) -> MainReturnType {
         let module_ids = match_nodes!(input.into_children();
             [file_attributes(attributes), module_def(modules).., EOI(_)] => {
                 (attributes, modules.collect(), None)
@@ -192,15 +191,15 @@ impl<'a> SliceParser<'a> {
 
     fn definition(input: PestNode) -> PestResult<Definition> {
         Ok(match_nodes!(input.into_children();
-            [module_def(module_def)]       => Definition::Module(OwnedPtr::new(module_def)),
-            [struct_def(struct_def)]       => Definition::Struct(OwnedPtr::new(struct_def)),
-            [class_def(class_def)]         => Definition::Class(OwnedPtr::new(class_def)),
-            [exception_def(exception_def)] => Definition::Exception(OwnedPtr::new(exception_def)),
-            [interface_def(interface_def)] => Definition::Interface(OwnedPtr::new(interface_def)),
-            [enum_def(enum_def)]           => Definition::Enum(OwnedPtr::new(enum_def)),
-            [trait_def(trait_def)]         => Definition::Trait(OwnedPtr::new(trait_def)),
-            [custom_type(custom_type)]     => Definition::CustomType(OwnedPtr::new(custom_type)),
-            [type_alias(type_alias)]       => Definition::TypeAlias(OwnedPtr::new(type_alias)),
+            [module_def(module_ptr)]       => Definition::Module(module_ptr),
+            [struct_def(struct_ptr)]       => Definition::Struct(struct_ptr),
+            [class_def(class_ptr)]         => Definition::Class(class_ptr),
+            [exception_def(exception_ptr)] => Definition::Exception(exception_ptr),
+            [interface_def(interface_ptr)] => Definition::Interface(interface_ptr),
+            [enum_def(enum_ptr)]           => Definition::Enum(enum_ptr),
+            [trait_def(trait_ptr)]         => Definition::Trait(trait_ptr),
+            [custom_type(custom_type_ptr)] => Definition::CustomType(custom_type_ptr),
+            [type_alias(type_alias_ptr)]   => Definition::TypeAlias(type_alias_ptr),
         ))
     }
 
@@ -217,11 +216,11 @@ impl<'a> SliceParser<'a> {
         Ok((identifier, location))
     }
 
-    fn module_def(input: PestNode) -> PestResult<Module> {
+    fn module_def(input: PestNode) -> PestResult<WeakPtr<Module>> {
         Self::parse_module(input, true)
     }
 
-    fn file_level_module(input: PestNode) -> PestResult<Module> {
+    fn file_level_module(input: PestNode) -> PestResult<WeakPtr<Module>> {
         Self::parse_module(input, false)
     }
 
@@ -235,7 +234,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn struct_def(input: PestNode) -> PestResult<Struct> {
+    fn struct_def(input: PestNode) -> PestResult<WeakPtr<Struct>> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), struct_start(struct_start), data_member_list(members)] => {
@@ -246,7 +245,9 @@ impl<'a> SliceParser<'a> {
                     struct_def.add_member(member);
                 }
                 pop_scope(&input);
-                struct_def
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(struct_def))
             },
         ))
     }
@@ -276,7 +277,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn class_def(input: PestNode) -> PestResult<Class> {
+    fn class_def(input: PestNode) -> PestResult<WeakPtr<Class>> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), class_start(class_start), data_member_list(members)] => {
@@ -287,7 +288,9 @@ impl<'a> SliceParser<'a> {
                     class.add_member(member);
                 }
                 pop_scope(&input);
-                class
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(class))
             },
         ))
     }
@@ -316,7 +319,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn exception_def(input: PestNode) -> PestResult<Exception> {
+    fn exception_def(input: PestNode) -> PestResult<WeakPtr<Exception>> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), exception_start(exception_start), data_member_list(members)] => {
@@ -327,7 +330,9 @@ impl<'a> SliceParser<'a> {
                     exception.add_member(member);
                 }
                 pop_scope(&input);
-                exception
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(exception))
             },
         ))
     }
@@ -350,7 +355,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn interface_def(input: PestNode) -> PestResult<Interface> {
+    fn interface_def(input: PestNode) -> PestResult<WeakPtr<Interface>> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
@@ -368,7 +373,9 @@ impl<'a> SliceParser<'a> {
                     interface.add_operation(operation);
                 }
                 pop_scope(&input);
-                interface
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(interface))
             },
         ))
     }
@@ -394,7 +401,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enum_def(input: PestNode) -> PestResult<Enum> {
+    fn enum_def(input: PestNode) -> PestResult<WeakPtr<Enum>> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), enum_start(enum_start), enumerator_list(enumerators)] => {
@@ -413,13 +420,15 @@ impl<'a> SliceParser<'a> {
                     enum_def.add_enumerator(enumerator);
                 }
                 pop_scope(&input);
-                enum_def
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(enum_def))
             },
             [prelude(prelude), enum_start(enum_start)] => {
                 let (is_unchecked, identifier, location, underlying) = enum_start;
                 let (attributes, comment) = prelude;
                 pop_scope(&input);
-                Enum::new(
+                let enum_def = Enum::new(
                     identifier,
                     underlying,
                     is_unchecked,
@@ -427,29 +436,38 @@ impl<'a> SliceParser<'a> {
                     attributes,
                     comment,
                     location,
-                )
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(enum_def))
             },
         ))
     }
 
-    fn trait_def(input: PestNode) -> PestResult<Trait> {
+    fn trait_def(input: PestNode) -> PestResult<WeakPtr<Trait>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier)] => {
                 let (attributes, comment) = prelude;
-                Trait::new(identifier, scope, attributes, comment, location)
+                let trait_def = Trait::new(identifier, scope, attributes, comment, location);
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(trait_def))
             },
         ))
     }
 
-    fn custom_type(input: PestNode) -> PestResult<CustomType> {
+    fn custom_type(input: PestNode) -> PestResult<WeakPtr<CustomType>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier)] => {
                 let (attributes, comment) = prelude;
-                CustomType::new(identifier, scope, attributes, comment, location)
+                let custom_type = CustomType::new(identifier, scope, attributes, comment, location);
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(custom_type))
             },
         ))
     }
@@ -457,14 +475,14 @@ impl<'a> SliceParser<'a> {
     // Parses an operation's return type. There are 2 possible syntaxes for a return type:
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
-    fn return_type(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
+    fn return_type(input: PestNode) -> PestResult<Vec<WeakPtr<Parameter>>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [return_tuple(tuple)] => tuple,
             [local_attributes(attributes), tag_modifier(tag), stream_modifier(is_streamed), typeref(data_type)] => {
                 let identifier = Identifier::new("returnValue".to_owned(), location.clone());
-                vec![OwnedPtr::new(Parameter::new(
+                let parameter = Parameter::new(
                     identifier,
                     data_type,
                     tag,
@@ -474,14 +492,18 @@ impl<'a> SliceParser<'a> {
                     attributes,
                     None,
                     location,
-                ))]
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                vec![ast.add_named_element(OwnedPtr::new(parameter))]
             },
         ))
     }
 
     // Parses a return type that is written in return tuple syntax.
-    fn return_tuple(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
-        Ok(match_nodes!(input.children();
+    fn return_tuple(input: PestNode) -> PestResult<Vec<WeakPtr<Parameter>>> {
+        input.user_data().borrow_mut().is_in_return_tuple = true;
+        let result = match_nodes!(input.children();
             // Return tuple elements and parameters have the same syntax, so we re-use the parsing
             // for parameter lists, then change their member type here, after the fact.
             [parameter_list(return_elements)] => {
@@ -494,11 +516,11 @@ impl<'a> SliceParser<'a> {
                         Some(&location),
                     );
                 }
-                return_elements.into_iter().map(
-                    |mut parameter| { parameter.is_returned = true; OwnedPtr::new(parameter) }
-                ).collect::<Vec<_>>()
+                return_elements
             },
-        ))
+        );
+        input.user_data().borrow_mut().is_in_return_tuple = false;
+        Ok(result)
     }
 
     fn operation_start(input: PestNode) -> PestResult<(bool, Identifier)> {
@@ -510,14 +532,14 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn operation_return(input: PestNode) -> PestResult<Vec<OwnedPtr<Parameter>>> {
+    fn operation_return(input: PestNode) -> PestResult<Vec<WeakPtr<Parameter>>> {
         Ok(match_nodes!(input.into_children();
             [] => Vec::new(),
             [return_type(return_type)] => return_type,
         ))
     }
 
-    fn operation(input: PestNode) -> PestResult<Operation> {
+    fn operation(input: PestNode) -> PestResult<WeakPtr<Operation>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
         let operation = match_nodes!(input.children();
@@ -531,13 +553,15 @@ impl<'a> SliceParser<'a> {
                     operation.add_parameter(parameter);
                 }
                 pop_scope(&input);
-                operation
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(operation))
             },
         );
         Ok(operation)
     }
 
-    fn data_member_list(input: PestNode) -> PestResult<Vec<DataMember>> {
+    fn data_member_list(input: PestNode) -> PestResult<Vec<WeakPtr<DataMember>>> {
         Ok(match_nodes!(input.into_children();
             [] => Vec::new(),
             [data_member(data_member)] => vec![data_member],
@@ -550,10 +574,10 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn data_member(input: PestNode) -> PestResult<DataMember> {
+    fn data_member(input: PestNode) -> PestResult<WeakPtr<DataMember>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), typeref(mut data_type)] => {
                 let (attributes, comment) = prelude;
 
@@ -561,7 +585,7 @@ impl<'a> SliceParser<'a> {
                 // TODO: in the future we should only forward type metadata by filtering metadata.
                 data_type.attributes = attributes.clone();
 
-                DataMember::new(
+                let data_member = DataMember::new(
                     identifier,
                     data_type,
                     tag,
@@ -569,12 +593,15 @@ impl<'a> SliceParser<'a> {
                     attributes,
                     comment,
                     location,
-                )
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(data_member))
             },
         ))
     }
 
-    fn parameter_list(input: PestNode) -> PestResult<Vec<Parameter>> {
+    fn parameter_list(input: PestNode) -> PestResult<Vec<WeakPtr<Parameter>>> {
         Ok(match_nodes!(input.into_children();
             [] => Vec::new(),
             [parameter(parameter)] => vec![parameter],
@@ -587,10 +614,10 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn parameter(input: PestNode) -> PestResult<Parameter> {
+    fn parameter(input: PestNode) -> PestResult<WeakPtr<Parameter>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), stream_modifier(is_streamed), typeref(mut data_type)] => {
                 let (attributes, comment) = prelude;
 
@@ -598,17 +625,20 @@ impl<'a> SliceParser<'a> {
                 // TODO: in the future we should only forward type metadata by filtering metadata.
                 data_type.attributes = attributes.clone();
 
-                Parameter::new(
+                let parameter = Parameter::new(
                     identifier,
                     data_type,
                     tag,
                     is_streamed,
-                    false,
+                    input.user_data().borrow().is_in_return_tuple,
                     scope,
                     attributes,
                     comment,
                     location,
-                )
+                );
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(parameter))
             },
         ))
     }
@@ -644,7 +674,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enumerator_list(input: PestNode) -> PestResult<Vec<Enumerator>> {
+    fn enumerator_list(input: PestNode) -> PestResult<Vec<WeakPtr<Enumerator>>> {
         Ok(match_nodes!(input.into_children();
             [enumerator(enumerator)] => {
                 vec![enumerator]
@@ -658,7 +688,7 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enumerator(input: PestNode) -> PestResult<Enumerator> {
+    fn enumerator(input: PestNode) -> PestResult<WeakPtr<Enumerator>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
 
@@ -689,9 +719,13 @@ impl<'a> SliceParser<'a> {
             },
         );
 
-        let parser_data = &mut input.user_data().borrow_mut();
-        parser_data.current_enum_value = Some(enum_value);
-        Ok(enumerator)
+        {
+            let parser_data = &mut input.user_data().borrow_mut();
+            parser_data.current_enum_value = Some(enum_value);
+        }
+
+        let ast = &mut input.user_data().borrow_mut().ast;
+        Ok(ast.add_named_element(OwnedPtr::new(enumerator)))
     }
 
     fn inheritance_list(input: PestNode) -> PestResult<Vec<TypeRef>> {
@@ -708,13 +742,16 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn type_alias(input: PestNode) -> PestResult<TypeAlias> {
+    fn type_alias(input: PestNode) -> PestResult<WeakPtr<TypeAlias>> {
         let location = location_from_span(&input);
         let scope = get_scope(&input);
-        Ok(match_nodes!(input.into_children();
+        Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier), typeref(type_ref)] => {
                 let (attributes, comment) = prelude;
-                TypeAlias::new(identifier, type_ref, scope, attributes, comment, location)
+                let type_alias = TypeAlias::new(identifier, type_ref, scope, attributes, comment, location);
+
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(type_alias))
             },
         ))
     }
@@ -738,19 +775,16 @@ impl<'a> SliceParser<'a> {
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
             Rule::primitive => {
-                type_ref.definition = upcast_weak_as!(Self::primitive(type_node).unwrap(), dyn Type);
+                let primitive = Self::primitive(type_node).unwrap();
+                type_ref.definition = upcast_weak_as!(primitive, dyn Type);
             }
             Rule::sequence => {
-                // Store the sequence in the AST's anonymous types vector.
                 let sequence = Self::sequence(type_node).unwrap();
-                let ast = &mut input.user_data().borrow_mut().ast;
-                type_ref.definition = ast.add_anonymous_type(sequence).downgrade();
+                type_ref.definition = upcast_weak_as!(sequence, dyn Type);
             }
             Rule::dictionary => {
-                // Store the dictionary in the AST's anonymous types vector.
                 let dictionary = Self::dictionary(type_node).unwrap();
-                let ast = &mut input.user_data().borrow_mut().ast;
-                type_ref.definition = ast.add_anonymous_type(dictionary).downgrade();
+                type_ref.definition = upcast_weak_as!(dictionary, dyn Type);
             }
             // Nothing to do, we wait until after we've generated a lookup table to patch user
             // defined types.
@@ -759,18 +793,22 @@ impl<'a> SliceParser<'a> {
         Ok(type_ref)
     }
 
-    fn sequence(input: PestNode) -> PestResult<Sequence> {
-        Ok(match_nodes!(input.into_children();
+    fn sequence(input: PestNode) -> PestResult<WeakPtr<Sequence>> {
+        Ok(match_nodes!(input.children();
             [_, typeref(element_type)] => {
-                Sequence { element_type }
+                let sequence = Sequence { element_type };
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_element(OwnedPtr::new(sequence))
             },
         ))
     }
 
-    fn dictionary(input: PestNode) -> PestResult<Dictionary> {
-        Ok(match_nodes!(input.into_children();
+    fn dictionary(input: PestNode) -> PestResult<WeakPtr<Dictionary>> {
+        Ok(match_nodes!(input.children();
             [_, typeref(key_type), typeref(value_type)] => {
-                Dictionary { key_type, value_type }
+                let dictionary = Dictionary { key_type, value_type };
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_element(OwnedPtr::new(dictionary))
             },
         ))
     }
@@ -781,8 +819,10 @@ impl<'a> SliceParser<'a> {
             .user_data()
             .borrow()
             .ast
-            .lookup_primitive(input.as_str())
-            .downgrade())
+            .find_node(input.as_str())
+            .unwrap()
+            .try_into()
+            .unwrap())
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
@@ -1107,7 +1147,7 @@ impl<'a> SliceParser<'a> {
 }
 
 impl<'a> SliceParser<'a> {
-    fn parse_module(input: PestNode, allow_sub_modules: bool) -> PestResult<Module> {
+    fn parse_module(input: PestNode, allow_sub_modules: bool) -> PestResult<WeakPtr<Module>> {
         Ok(match_nodes!(input.children();
             [prelude(prelude), module_start(module_start), definition(definitions)..] => {
                 let (identifier, location) = module_start;
@@ -1165,12 +1205,14 @@ impl<'a> SliceParser<'a> {
                         location.clone(),
                     );
                     // Add the inner module to the outer module, than swap their variables.
-                    new_module.add_definition(Definition::Module(OwnedPtr::new(last_module)));
+                    let ast = &mut input.user_data().borrow_mut().ast;
+                    new_module.add_definition(Definition::Module(ast.add_named_element(OwnedPtr::new(last_module))));
                     last_module = new_module;
                 }
 
                 // Return the outer-most module.
-                last_module
+                let ast = &mut input.user_data().borrow_mut().ast;
+                ast.add_named_element(OwnedPtr::new(last_module))
             },
         ))
     }

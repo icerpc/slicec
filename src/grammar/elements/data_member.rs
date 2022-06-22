@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
 
 #[derive(Debug)]
@@ -9,7 +9,7 @@ pub struct DataMember {
     pub identifier: Identifier,
     pub data_type: TypeRef,
     pub tag: Option<u32>,
-    pub parent: WeakPtr<dyn Container<OwnedPtr<DataMember>>>,
+    pub parent: WeakPtr<dyn Container<WeakPtr<DataMember>>>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
@@ -42,5 +42,5 @@ impl DataMember {
 
 implement_Element_for!(DataMember, "data member");
 implement_Entity_for!(DataMember);
-implement_Contained_for!(DataMember, dyn Container<OwnedPtr<DataMember>> + 'static);
+implement_Contained_for!(DataMember, dyn Container<WeakPtr<DataMember>> + 'static);
 implement_Member_for!(DataMember);

@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Interface {
     pub identifier: Identifier,
-    pub operations: Vec<OwnedPtr<Operation>>,
+    pub operations: Vec<WeakPtr<Operation>>,
     pub bases: Vec<TypeRef<Interface>>,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,
@@ -43,8 +43,8 @@ impl Interface {
         }
     }
 
-    pub(crate) fn add_operation(&mut self, operation: Operation) {
-        self.operations.push(OwnedPtr::new(operation));
+    pub(crate) fn add_operation(&mut self, operation: WeakPtr<Operation>) {
+        self.operations.push(operation);
     }
 
     pub fn operations(&self) -> Vec<&Operation> {
@@ -131,5 +131,5 @@ impl Type for Interface {
 
 implement_Element_for!(Interface, "interface");
 implement_Entity_for!(Interface);
-implement_Container_for!(Interface, OwnedPtr<Operation>, operations);
+implement_Container_for!(Interface, WeakPtr<Operation>, operations);
 implement_Contained_for!(Interface, Module);

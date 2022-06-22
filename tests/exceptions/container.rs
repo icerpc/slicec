@@ -22,9 +22,7 @@ fn can_contain_data_members() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let exception_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();
-    let exception_def = exception_ptr.borrow();
-    let data_members = exception_def.members();
+    let data_members = ast.find_element::<Exception>("Test::E").unwrap().members();
 
     assert_eq!(data_members.len(), 3);
     assert!(matches!(data_members[0].identifier(), "i"));
@@ -58,10 +56,7 @@ fn can_be_empty() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let exception_ptr = ast.find_typed_type::<Exception>("Test::E").unwrap();
-    let exception_def = exception_ptr.borrow();
-    let data_members = exception_def.members();
-
+    let data_members = ast.find_element::<Exception>("Test::E").unwrap().members();
     assert_eq!(data_members.len(), 0);
 }
 

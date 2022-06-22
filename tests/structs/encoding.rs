@@ -16,8 +16,9 @@ mod slice1 {
             struct A {}
         ";
         let expected_errors = [
-            "non-compact structs are not supported with Slice1",
+            "struct `A` is not supported by the Slice1 encoding",
             "file encoding was set to Slice1 here:",
+            "structs must be `compact` to be supported by the Slice1 encoding",
         ];
 
         // Act
@@ -46,8 +47,8 @@ mod slice2 {
             }
         ";
         let expected_errors = [
-            "'AnyClass' is not supported with Slice2",
-            "file is using Slice2 by default",
+            "the type `AnyClass` is not supported by the Slice2 encoding",
+            "file is using the Slice2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
         ];
 

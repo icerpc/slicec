@@ -19,7 +19,7 @@ impl Type for Dictionary {
     }
 
     fn uses_classes(&self) -> bool {
-        // It is illegal for key types to use classes, so we only have to check the value type.
+        // It is disallowed for key types to use classes, so we only have to check the value type.
         self.value_type.uses_classes()
     }
 

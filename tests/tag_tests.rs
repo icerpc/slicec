@@ -62,7 +62,7 @@ mod tags {
 
         // Assert
         assert_errors!(error_reporter, [
-            "optional types can only be used with tags using Slice1",
+            "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)",
             "file encoding was set to Slice1 here:",
         ]);
     }
@@ -148,11 +148,9 @@ mod tags {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_member_ptr = ast.find_typed_entity::<DataMember>("Test::S::a").unwrap();
-        let data_member_tag = data_member_ptr.borrow().tag();
-
-        assert_eq!(data_member_tag, Some(1));
-        assert!(data_member_ptr.borrow().data_type.is_optional);
+        let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
+        assert_eq!(data_member.tag(), Some(1));
+        assert!(data_member.data_type.is_optional);
     }
 
     #[test]

@@ -18,8 +18,6 @@ fn support_compact_type_id() {
 
     let ast = parse_for_ast(slice);
 
-    let class_ptr = ast.find_typed_type::<Class>("Test::C").unwrap();
-    let class_def = class_ptr.borrow();
-
+    let class_def = ast.find_element::<Class>("Test::C").unwrap();
     assert_eq!(class_def.compact_id, Some(42));
 }

@@ -9,16 +9,17 @@ mod typealias {
 
     #[test]
     fn is_resolvable_as_an_entity() {
+        // Arrange
         let slice = "
             module Test;
             typealias MyInt = varuint32;
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
-        let type_alias_ptr = ast.find_typed_entity::<TypeAlias>("Test::MyInt").unwrap();
-        let type_alias = type_alias_ptr.borrow();
-
+        // Assert
+        let type_alias = ast.find_element::<TypeAlias>("Test::MyInt").unwrap();
         assert_eq!(type_alias.identifier(), "MyInt");
         assert!(matches!(
             type_alias.underlying.concrete_type(),
@@ -28,6 +29,7 @@ mod typealias {
 
     #[test]
     fn is_resolved_as_the_aliased_type_when_used() {
+        // Arrange
         let slice = "
             module Test;
             typealias MyInt = varuint32;
@@ -37,11 +39,11 @@ mod typealias {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
-        let data_member_ptr = ast.find_typed_entity::<DataMember>("Test::S::a").unwrap();
-        let data_member = data_member_ptr.borrow();
-
+        // Assert
+        let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
         assert_eq!(data_member.identifier(), "a");
         assert!(matches!(
             data_member.data_type.concrete_type(),
