@@ -6,6 +6,40 @@ mod typealias {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
+    use test_case::test_case;
+
+    #[test_case("struct S {}",     "S"; "structs")]
+    #[test_case("exception E { }", "E"; "exceptions")]
+    #[test_case("class C {}",      "C"; "classes")]
+    #[test_case("interface I {}",  "I"; "interfaces")]
+    #[test_case("enum E { Foo }",  "E"; "enums")]
+    #[test_case("trait T;",        "T"; "traits")]
+    #[test_case("custom C;",       "C"; "custom types")]
+    #[test_case("", "bool"; "primitives")]
+    #[test_case("", "sequence<bool>"; "sequences")]
+    #[test_case("", "dictionary<bool, bool>"; "dictionaries")]
+    #[test_case("typealias T = bool;", "T"; "type aliases")]
+    fn can_have_type_alias_of(definition: &str, identifier: &str) {
+        // Arrange
+        let slice = format!(
+            "
+                encoding = {};
+                module Test;
+                {}
+                typealias Alias = {};
+            ",
+            if definition == "class C {}" { 1 } else { 2 },
+            definition,
+            identifier,
+        );
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let type_alias = ast.find_element::<TypeAlias>("Test::Alias").unwrap();
+        assert!(type_alias.underlying.definition.is_initialized())
+    }
 
     #[test]
     fn is_resolvable_as_an_entity() {
