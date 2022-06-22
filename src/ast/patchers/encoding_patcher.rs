@@ -424,15 +424,10 @@ impl ComputeSupportedEncodings for CustomType {
     fn compute_supported_encodings(
         &self,
         _: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        file_encoding: &Encoding,
+        _: &mut SupportedEncodings,
+        _: &Encoding,
     ) -> Option<&'static str> {
-        // Custom types are not supported by the Slice1 encoding.
-        supported_encodings.disable(Encoding::Slice1);
-        if *file_encoding == Encoding::Slice1 {
-            Some("custom types are not supported by the Slice1 encoding")
-        } else {
-            None
-        }
+        // Custom types are supported by all encodings.
+        None
     }
 }

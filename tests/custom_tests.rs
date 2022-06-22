@@ -6,43 +6,20 @@ mod custom {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
+    use test_case::test_case;
 
-    mod encoding {
-
-        mod slice1 {
-
-            use crate::assert_errors;
-            use crate::helpers::parsing_helpers::parse_for_errors;
-
-            #[test]
-            fn is_not_supported() {
-                // Arrange
-                let slice = "
-                    encoding = 1;
-                    module Test;
-                    custom ACustomType;
-                ";
-
-                // Act
-                let error_reporter = parse_for_errors(slice);
-
-                // Assert
-                assert_errors!(error_reporter, [
-                    "custom type `ACustomType` is not supported by the Slice1 encoding",
-                    "file encoding was set to Slice1 here:",
-                    "custom types are not supported by the Slice1 encoding",
-                ]);
-            }
-        }
-    }
-
-    #[test]
-    fn type_parses() {
+    #[test_case(1; "Slice1")]
+    #[test_case(2; "Slice2")]
+    fn type_parses(encoding: u8) {
         // Arrange
-        let slice = "
-            module Test;
-            custom ACustomType;
-        ";
+        let slice = format!(
+            "
+                encoding = {};
+                module Test;
+                custom ACustomType;
+            ",
+            encoding,
+        );
 
         // Act
         let ast = parse_for_ast(slice);
