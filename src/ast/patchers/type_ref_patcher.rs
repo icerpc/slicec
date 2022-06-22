@@ -245,7 +245,7 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
 
                 let message = format!(
-                    "self-referential type alias '{}' has no concrete type.",
+                    "self-referential type alias '{}' has no concrete type",
                     current_type_alias.module_scoped_identifier()
                 );
                 self.error_reporter.report_error(message, Some(current_type_alias.location()));
