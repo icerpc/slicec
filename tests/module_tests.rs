@@ -24,8 +24,8 @@ mod module {
 
         let ast = parse_for_ast(slice);
 
-        assert!(ast.find_typed_type::<Struct>("Test::S1").is_some());
-        assert!(ast.find_typed_type::<Struct>("Test::S2").is_some());
+        assert!(ast.find_element::<Struct>("Test::S1").is_ok());
+        assert!(ast.find_element::<Struct>("Test::S2").is_ok());
     }
 
     #[test]
@@ -39,7 +39,7 @@ mod module {
 
         let ast = parse_for_ast(slice);
 
-        assert!(ast.find_typed_entity::<Module>("A::B").is_some());
+        assert!(ast.find_element::<Module>("A::B").is_ok());
     }
 
     #[test]
@@ -50,7 +50,7 @@ mod module {
 
         let ast = parse_for_ast(slice);
 
-        assert!(ast.find_typed_entity::<Module>("A::B::C::D").is_some());
+        assert!(ast.find_element::<Module>("A::B::C::D").is_ok());
     }
 
     #[test]

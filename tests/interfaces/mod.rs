@@ -16,8 +16,8 @@ fn can_have_no_operations() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
+
+    let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.identifier(), "I");
     assert_eq!(interface_def.operations().len(), 0);
 }
@@ -33,9 +33,8 @@ fn can_have_one_operation() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
 
+    let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.operations().len(), 1);
 }
 
@@ -52,9 +51,8 @@ fn can_have_multiple_operation() {
     ";
 
     let ast = parse_for_ast(slice);
-    let interface_ptr = ast.find_typed_type::<Interface>("Test::I").unwrap();
-    let interface_def = interface_ptr.borrow();
 
+    let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.operations().len(), 3);
 }
 

@@ -28,8 +28,9 @@ mod custom {
 
                 // Assert
                 assert_errors!(error_reporter, [
-                    "custom types are not supported with Slice1",
+                    "custom type `ACustomType` is not supported by the Slice1 encoding",
                     "file encoding was set to Slice1 here:",
+                    "custom types are not supported by the Slice1 encoding",
                 ]);
             }
         }
@@ -47,9 +48,7 @@ mod custom {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let custom_ptr = ast.find_typed_entity::<CustomType>("Test::ACustomType").unwrap();
-        let custom = custom_ptr.borrow();
-
-        assert_eq!(custom.identifier(), "ACustomType");
+        let custom_type = ast.find_element::<CustomType>("Test::ACustomType").unwrap();
+        assert_eq!(custom_type.identifier(), "ACustomType");
     }
 }

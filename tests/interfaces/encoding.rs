@@ -22,7 +22,7 @@ fn operation_members_are_compatible_with_encoding() {
     let result = parse_from_strings(&[slice1, slice2]).err().unwrap();
 
     assert_errors!(result.error_reporter, [
-        "operation 'op' contains members that are not compatible with its encoding (Slice 2).",
+        "the type `C` is not supported by the Slice2 encoding",
         "file encoding was set to Slice2 here:"
     ]);
 }

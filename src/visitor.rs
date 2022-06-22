@@ -24,9 +24,6 @@ use crate::slice_file::SliceFile;
 ///         - visit_data_member (called once per data member, in the order they're defined)
 ///     - visit_struct_end
 /// - visit_module_end
-///
-/// `Visitor` visits through and exposes immutable references to elements.
-/// If mutability or access to the element's enclosing pointers is needed, use [PtrVisitor] instead.
 #[allow(unused_variables)] // Keep parameter names for doc generation, even if not used in the default implementations.
 pub trait Visitor {
     /// This function is called by the visitor when it begins visiting a slice file,
@@ -180,9 +177,6 @@ impl Module {
     ///
     /// This function first calls `visitor.visit_module_start`, then recursively visits
     /// the contents of the module, and finally calls `visitor.visit_module_end`.
-    ///
-    /// If mutability or access to the module's owning pointer are needed,
-    /// use [OwnedPtr<Module>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_module_start(self);
         for definition in &self.contents {
@@ -207,9 +201,6 @@ impl Struct {
     ///
     /// This function first calls `visitor.visit_struct_start`, then recursively visits
     /// the contents of the struct, and finally calls `visitor.visit_struct_end`.
-    ///
-    /// If mutability or access to the struct's owning pointer are needed,
-    /// use [OwnedPtr<Struct>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_struct_start(self);
         for data_member in &self.members {
@@ -224,9 +215,6 @@ impl Class {
     ///
     /// This function first calls `visitor.visit_class_start`, then recursively visits
     /// the contents of the class, and finally calls `visitor.visit_class_end`.
-    ///
-    /// If mutability or access to the class' owning pointer are needed,
-    /// use [OwnedPtr<Class>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_class_start(self);
         for data_member in &self.members {
@@ -241,9 +229,6 @@ impl Exception {
     ///
     /// This function first calls `visitor.visit_exception_start`, then recursively visits
     /// the contents of the exception, and finally calls `visitor.visit_exception_end`.
-    ///
-    /// If mutability or access to the exception's owning pointer are needed,
-    /// use [OwnedPtr<Exception>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_exception_start(self);
         for data_member in &self.members {
@@ -258,9 +243,6 @@ impl Interface {
     ///
     /// This function first calls `visitor.visit_interface_start`, then recursively visits
     /// the contents of the interface, and finally calls `visitor.visit_interface_end`.
-    ///
-    /// If mutability or access to the interface's owning pointer are needed,
-    /// use [OwnedPtr<Interface>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_interface_start(self);
         for operation in &self.operations {
@@ -275,9 +257,6 @@ impl Enum {
     ///
     /// This function first calls `visitor.visit_enum_start`, then recursively visits
     /// the contents of the enum, and finally calls `visitor.visit_enum_end`.
-    ///
-    /// If mutability or access to the enum's owning pointer are needed,
-    /// use [OwnedPtr<Enum>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_enum_start(self);
         for enumerators in &self.enumerators {
@@ -292,9 +271,6 @@ impl Operation {
     ///
     /// This function first calls `visitor.visit_operation_start`, then recursively visits
     /// the contents of the operation, and finally calls `visitor.visit_operation_end`.
-    ///
-    /// If mutability or access to the operation's owning pointer are needed,
-    /// use [OwnedPtr<Operation>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_operation_start(self);
         for parameter in &self.parameters {
@@ -311,9 +287,6 @@ impl Trait {
     /// Visits the [Trait] with the provided `visitor`.
     ///
     /// This function delegates to `visitor.visit_trait`.
-    ///
-    /// If mutability or access to the trait's owning pointer are needed,
-    /// use [OwnedPtr<Trait>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_trait(self);
     }
@@ -323,9 +296,6 @@ impl CustomType {
     /// Visits the [CustomType] with the provided `visitor`.
     ///
     /// This function delegates to `visitor.visit_custom_type`.
-    ///
-    /// If mutability or access to the custom type's owning pointer are needed,
-    /// use [OwnedPtr<CustomType>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_custom_type(self);
     }
@@ -335,9 +305,6 @@ impl TypeAlias {
     /// Visits the [TypeAlias] with the provided `visitor`.
     ///
     /// This function delegates to `visitor.visit_type_alias`.
-    ///
-    /// If mutability or access to the type alias' owning pointer are needed,
-    /// use [OwnedPtr<TypeAlias>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_type_alias(self);
     }
@@ -347,9 +314,6 @@ impl DataMember {
     /// Visits the [DataMember] with the provided `visitor`.
     ///
     /// This function delegates to `visitor.visit_data_member`.
-    ///
-    /// If mutability or access to the data member's owning pointer are needed,
-    /// use [OwnedPtr<DataMember>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_data_member(self);
     }
@@ -361,9 +325,6 @@ impl Parameter {
     /// This function delegates to `visitor.visit_parameter` for parameters,
     /// and `visitor.visit_return_member` for return members. It handles both
     /// cases because both semantic types are implemented by the [Parameter] struct.
-    ///
-    /// If mutability or access to the parameter's owning pointer are needed,
-    /// use [OwnedPtr<Parameter>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor, is_parameter: bool) {
         if is_parameter {
             visitor.visit_parameter(self);
@@ -377,9 +338,6 @@ impl Enumerator {
     /// Visits the [Enumerator] with the provided `visitor`.
     ///
     /// This function delegates to `visitor.visit_enumerator`.
-    ///
-    /// If mutability or access to the enumerator's owning pointer are needed,
-    /// use [OwnedPtr<Enumerator>::visit_ptr_with] instead.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_enumerator(self);
     }

@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Exception {
     pub identifier: Identifier,
-    pub members: Vec<OwnedPtr<DataMember>>,
+    pub members: Vec<WeakPtr<DataMember>>,
     pub base: Option<TypeRef<Exception>>,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,
@@ -43,8 +43,8 @@ impl Exception {
         }
     }
 
-    pub(crate) fn add_member(&mut self, member: DataMember) {
-        self.members.push(OwnedPtr::new(member));
+    pub(crate) fn add_member(&mut self, member: WeakPtr<DataMember>) {
+        self.members.push(member);
     }
 
     pub fn members(&self) -> Vec<&DataMember> {
@@ -107,5 +107,5 @@ impl Type for Exception {
 
 implement_Element_for!(Exception, "exception");
 implement_Entity_for!(Exception);
-implement_Container_for!(Exception, OwnedPtr<DataMember>, members);
+implement_Container_for!(Exception, WeakPtr<DataMember>, members);
 implement_Contained_for!(Exception, Module);

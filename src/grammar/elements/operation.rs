@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::ptr_util::WeakPtr;
 use crate::slice_file::Location;
 
 #[derive(Debug)]
 pub struct Operation {
     pub identifier: Identifier,
-    pub return_type: Vec<OwnedPtr<Parameter>>,
-    pub parameters: Vec<OwnedPtr<Parameter>>,
+    pub return_type: Vec<WeakPtr<Parameter>>,
+    pub parameters: Vec<WeakPtr<Parameter>>,
     pub is_idempotent: bool,
     pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,
@@ -22,7 +22,7 @@ impl Operation {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         identifier: Identifier,
-        return_type: Vec<OwnedPtr<Parameter>>,
+        return_type: Vec<WeakPtr<Parameter>>,
         is_idempotent: bool,
         encoding: Encoding,
         scope: Scope,
@@ -46,8 +46,8 @@ impl Operation {
         }
     }
 
-    pub(crate) fn add_parameter(&mut self, parameter: Parameter) {
-        self.parameters.push(OwnedPtr::new(parameter));
+    pub(crate) fn add_parameter(&mut self, parameter: WeakPtr<Parameter>) {
+        self.parameters.push(parameter);
     }
 
     pub fn parameters(&self) -> Vec<&Parameter> {

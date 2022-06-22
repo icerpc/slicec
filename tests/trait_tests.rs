@@ -28,8 +28,9 @@ mod traits {
 
                 // Assert
                 assert_errors!(error_reporter, [
-                    "traits are not supported with Slice1",
+                    "trait `ATrait` is not supported by the Slice1 encoding",
                     "file encoding was set to Slice1 here:",
+                    "traits are not supported by the Slice1 encoding",
                 ]);
             }
         }
@@ -47,9 +48,7 @@ mod traits {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let trait_ptr = ast.find_typed_entity::<Trait>("Test::ATrait").unwrap();
-        let trait_def = trait_ptr.borrow();
-
+        let trait_def = ast.find_element::<Trait>("Test::ATrait").unwrap();
         assert_eq!(trait_def.identifier(), "ATrait");
     }
 }

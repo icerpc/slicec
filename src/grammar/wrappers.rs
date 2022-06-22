@@ -2,13 +2,13 @@
 
 use super::elements::*;
 use super::traits::*;
-use crate::ptr_util::OwnedPtr;
+use crate::ptr_util::WeakPtr;
 
 macro_rules! generate_definition_wrapper {
     ($($variant:ident),*) => {
         #[derive(Debug)]
         pub enum Definition {
-            $($variant(OwnedPtr<$variant>),)*
+            $($variant(WeakPtr<$variant>),)*
         }
 
         impl Definition {
@@ -16,16 +16,6 @@ macro_rules! generate_definition_wrapper {
             pub fn borrow(&self) -> &dyn Entity {
                 match self {
                     $(Self::$variant(x) => x.borrow(),)*
-                }
-            }
-
-            /// # Safety
-            ///
-            /// The invoker must guarantee there are no other borrows.
-            #[allow(clippy::should_implement_trait)]
-            pub unsafe fn borrow_mut(&mut self) -> &mut dyn Entity {
-                match self {
-                    $(Self::$variant(x) => x.borrow_mut(),)*
                 }
             }
         }

@@ -20,7 +20,7 @@ mod slice1 {
             }
             ";
         let expected_errors = [
-            "type 'Test::S' isn't supported by its file's Slice encoding",
+            "exceptions cannot be used as a data type with the Slice1 encoding",
             "file encoding was set to Slice1 here:",
         ];
 
@@ -49,9 +49,10 @@ mod slice2 {
             exception B : A {}
             ";
         let expected_errors = [
-            "exception inheritance is only supported with Slice1",
-            "file is using Slice2 by default",
+            "exception `B` is not supported by the Slice2 encoding",
+            "file is using the Slice2 encoding by default",
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            "exception inheritance is only supported by the Slice1 encoding",
         ];
 
         // Act

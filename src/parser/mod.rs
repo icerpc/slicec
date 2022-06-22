@@ -24,7 +24,7 @@ use std::{fs, io};
 // TODO This module is a mess.
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(options.warn_as_error);
 
     let mut parser = slice::SliceParser {
@@ -65,7 +65,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 }
 
 pub fn parse_string(input: &str) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
@@ -89,7 +89,7 @@ pub fn parse_string(input: &str) -> ParserResult {
 }
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
-    let mut ast = Ast::new();
+    let mut ast = Ast::create();
     let mut error_reporter = ErrorReporter::new(true);
     let mut parser = slice::SliceParser {
         error_reporter: &mut error_reporter,
@@ -115,24 +115,20 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
 }
 
 fn patch_ast(parsed_data: &mut ParsedData) {
+    // TODO integrate this better with ParsedData in the future.
     if !parsed_data.has_errors() {
-        crate::ast::patchers::parent_patcher::patch_parents(&mut parsed_data.ast);
+        unsafe {
+            let _ = crate::ast::patch_ast(
+                &mut parsed_data.ast,
+                &parsed_data.files,
+                &mut parsed_data.error_reporter,
+            );
+        }
     }
 
-    if !parsed_data.has_errors() {
-        crate::ast::patchers::type_patcher::patch_types(&mut parsed_data.ast, &mut parsed_data.error_reporter);
-    }
-
+    // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
     if !parsed_data.has_errors() {
         cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
-    }
-
-    if !parsed_data.has_errors() {
-        crate::ast::patchers::encoding_patcher::patch_encodings(
-            &parsed_data.files,
-            &mut parsed_data.ast,
-            &mut parsed_data.error_reporter,
-        );
     }
 }
 

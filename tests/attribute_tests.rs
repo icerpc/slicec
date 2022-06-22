@@ -31,9 +31,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(operation.class_format(), expected);
         }
 
@@ -52,10 +50,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
-            // Assert
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(operation.class_format(), ClassFormat::Compact);
         }
 
@@ -122,9 +117,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(operation.get_deprecated_attribute(false).is_some());
         }
 
@@ -185,9 +178,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(operation.get_deprecated_attribute(false).is_some());
             assert_eq!(
                 operation.get_deprecated_attribute(false).unwrap()[0],
@@ -211,9 +202,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(operation.compress_arguments());
             assert!(operation.compress_return());
         }
@@ -277,9 +266,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
-
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(!operation.compress_arguments());
             assert!(!operation.compress_return());
         }
@@ -309,8 +296,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
 
@@ -336,8 +322,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
 
@@ -370,8 +355,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation_ptr = ast.find_typed_entity::<Operation>("Test::I::op").unwrap();
-            let operation = operation_ptr.borrow();
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             for (i, v) in operation.attributes[0].arguments.iter().enumerate() {
                 assert_eq!(v, expected.get(i).unwrap().to_owned());

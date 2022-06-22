@@ -21,10 +21,7 @@ fn enumerator_default_values() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-    let enum_def = enum_ptr.borrow();
-    let enumerators = enum_def.enumerators();
-
+    let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
     assert_eq!(enumerators[0].value, 0);
     assert_eq!(enumerators[1].value, 1);
     assert_eq!(enumerators[2].value, 2);
@@ -46,10 +43,7 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-    let enum_def = enum_ptr.borrow();
-    let enumerators = enum_def.enumerators();
-
+    let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
     assert_eq!(enumerators[1].value, 3);
     assert_eq!(enumerators[2].value, 4);
 }
@@ -237,9 +231,7 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
 
     let ast = parse_for_ast(slice);
 
-    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-    let enum_def = enum_ptr.borrow();
-
+    let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
     assert_eq!(enum_def.is_unchecked, expected_result);
 }
 
@@ -264,9 +256,7 @@ fn unchecked_enums_can_be_empty() {
 
     let ast = parse_for_ast(slice);
 
-    let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-    let enum_def = enum_ptr.borrow();
-
+    let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
     assert_eq!(enum_def.enumerators.len(), 0);
 }
 
@@ -364,8 +354,7 @@ mod slice2 {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_ptr = ast.find_typed_type::<Enum>("Test::E").unwrap();
-        let enum_def = enum_ptr.borrow();
+        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
         let enumerators = enum_def.enumerators();
 
         assert_eq!(enumerators.len(), 3);

@@ -49,15 +49,10 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let s1_ptr = ast.find_typed_entity::<DataMember>("A::C::s1").unwrap();
-        let s2_ptr = ast.find_typed_entity::<DataMember>("A::C::s2").unwrap();
-        let s3_ptr = ast.find_typed_entity::<DataMember>("A::C::s3").unwrap();
-        let s4_ptr = ast.find_typed_entity::<DataMember>("A::C::s4").unwrap();
-
-        let s1_type = s1_ptr.borrow().data_type();
-        let s2_type = s2_ptr.borrow().data_type();
-        let s3_type = s3_ptr.borrow().data_type();
-        let s4_type = s4_ptr.borrow().data_type();
+        let s1_type = ast.find_element::<DataMember>("A::C::s1").unwrap().data_type();
+        let s2_type = ast.find_element::<DataMember>("A::C::s2").unwrap().data_type();
+        let s3_type = ast.find_element::<DataMember>("A::C::s3").unwrap().data_type();
+        let s4_type = ast.find_element::<DataMember>("A::C::s4").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::Int32)));
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::Int32)));
@@ -89,15 +84,10 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let s1_ptr = ast.find_typed_entity::<DataMember>("A::B::C::s1").unwrap();
-        let s2_ptr = ast.find_typed_entity::<DataMember>("A::B::C::s2").unwrap();
-        let s3_ptr = ast.find_typed_entity::<DataMember>("A::B::C::s3").unwrap();
-        let s4_ptr = ast.find_typed_entity::<DataMember>("A::B::C::s4").unwrap();
-
-        let s1_type = s1_ptr.borrow().data_type();
-        let s2_type = s2_ptr.borrow().data_type();
-        let s3_type = s3_ptr.borrow().data_type();
-        let s4_type = s4_ptr.borrow().data_type();
+        let s1_type = ast.find_element::<DataMember>("A::B::C::s1").unwrap().data_type();
+        let s2_type = ast.find_element::<DataMember>("A::B::C::s2").unwrap().data_type();
+        let s3_type = ast.find_element::<DataMember>("A::B::C::s3").unwrap().data_type();
+        let s4_type = ast.find_element::<DataMember>("A::B::C::s4").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::String)));
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
@@ -136,13 +126,9 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let s1_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s1").unwrap();
-        let s2_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s2").unwrap();
-        let s3_ptr = ast.find_typed_entity::<DataMember>("A::B::B::C::s3").unwrap();
-
-        let s1_type = s1_ptr.borrow().data_type();
-        let s2_type = s2_ptr.borrow().data_type();
-        let s3_type = s3_ptr.borrow().data_type();
+        let s1_type = ast.find_element::<DataMember>("A::B::B::C::s1").unwrap().data_type();
+        let s2_type = ast.find_element::<DataMember>("A::B::B::C::s2").unwrap().data_type();
+        let s3_type = ast.find_element::<DataMember>("A::B::B::C::s3").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(s2_type.concrete_type(), Types::Struct(_)));
@@ -183,15 +169,10 @@ mod scope_resolution {
 
         let ast = parse_for_ast(slice);
 
-        let nested_s1_ptr = ast.find_typed_entity::<DataMember>("A::B::A::B::C::s1").unwrap();
-        let nested_s2_ptr = ast.find_typed_entity::<DataMember>("A::B::A::B::C::s2").unwrap();
-        let s1_ptr = ast.find_typed_entity::<DataMember>("A::C::s1").unwrap();
-        let s2_ptr = ast.find_typed_entity::<DataMember>("A::C::s2").unwrap();
-
-        let nested_s1_type = nested_s1_ptr.borrow().data_type();
-        let nested_s2_type = nested_s2_ptr.borrow().data_type();
-        let s1_type = s1_ptr.borrow().data_type();
-        let s2_type = s2_ptr.borrow().data_type();
+        let nested_s1_type = ast.find_element::<DataMember>("A::B::A::B::C::s1").unwrap().data_type();
+        let nested_s2_type = ast.find_element::<DataMember>("A::B::A::B::C::s2").unwrap().data_type();
+        let s1_type = ast.find_element::<DataMember>("A::C::s1").unwrap().data_type();
+        let s2_type = ast.find_element::<DataMember>("A::C::s2").unwrap().data_type();
 
         assert!(matches!(
             nested_s1_type.concrete_type(),
@@ -263,7 +244,7 @@ mod scope_resolution {
 
         // Assert
         assert_errors!(error_reporter, [
-            "module `A::B::C` cannot be used as a type",
+            "type mismatch: expected a `Type` but found a module (which doesn't implement `Type`)",
         ]);
     }
 
@@ -285,7 +266,7 @@ mod scope_resolution {
 
         // Assert
         assert_errors!(error_reporter, [
-            "No entity with the identifier 'Nested::C' could be found in this scope.",
+            "no element with identifier `Nested::C` exists in the scope `A`",
         ]);
     }
 }
