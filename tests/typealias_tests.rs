@@ -7,9 +7,40 @@ mod typealias {
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
     use slice::parse_from_string;
+    use test_case::test_case;
+
+    #[test_case("struct S {}", "S", 2 ; "structs")]
+    #[test_case("exception E { }", "E", 2; "exceptions")]
+    #[test_case("class C {}", "C", 1; "classes")]
+    #[test_case("interface I {}", "I", 2; "interfaces")]
+    #[test_case("enum E { Foo }", "E", 2; "enums")]
+    #[test_case("trait T;", "T", 2; "traits")]
+    #[test_case("custom C;", "C", 2; "custom types")]
+    #[test_case("", "bool", 2; "primitives")]
+    #[test_case("", "sequence<bool>", 2; "sequences")]
+    #[test_case("", "dictionary<bool, bool>", 2; "dictionaries")]
+    #[test_case("typealias T = bool;", "T", 2; "type aliases")]
+    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: i32) {
+        // Arrange
+        let slice = format!(
+            "
+                encoding = {};
+                module Test;
+                {}
+                typealias Alias = {};
+            ",
+            encoding, definition, identifier,
+        );
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let type_alias = ast.find_element::<TypeAlias>("Test::Alias").unwrap();
+        assert!(type_alias.underlying.definition.is_initialized());
+    }
 
     #[test]
-    #[ignore]
     fn can_be_used_as_data_member() {
         // Arrange
         let slice = "
@@ -29,7 +60,6 @@ mod typealias {
     }
 
     #[test]
-    #[ignore]
     fn can_be_used_as_parameter() {
         // Arrange
         let slice = "

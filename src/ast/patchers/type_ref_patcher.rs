@@ -229,6 +229,18 @@ impl TypeRefPatcher<'_> {
             attributes.extend(current_type_alias.attributes().clone());
             let underlying_type = &current_type_alias.underlying;
 
+            // If we hit a type alias that is already patched, we immediately return its underlying type.
+            // If should only be possible to hit types that aren't user defined.
+            if underlying_type.definition.is_initialized() {
+                let node = match underlying_type.concrete_type() {
+                    Types::Sequence(sequence_def) => ast.get_node(sequence_def.index),
+                    Types::Dictionary(dictionary_def) => ast.get_node(dictionary_def.index),
+                    Types::Primitive(primitive) => ast.find_node(primitive.kind()).unwrap(),
+                    _ => panic!("type alias with user defined type is already patched:\n{:?}", current_type_alias),
+                };
+                return Ok((node, attributes));
+            }
+
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
             let node = ast.find_node_with_scope(&underlying_type.type_string, underlying_type.module_scope())?;
             // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.

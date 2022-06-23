@@ -796,8 +796,8 @@ impl<'a> SliceParser<'a> {
     fn sequence(input: PestNode) -> PestResult<WeakPtr<Sequence>> {
         Ok(match_nodes!(input.children();
             [_, typeref(element_type)] => {
-                let sequence = Sequence { element_type };
                 let ast = &mut input.user_data().borrow_mut().ast;
+                let sequence = Sequence { element_type, index: ast.as_slice().len() };
                 ast.add_element(OwnedPtr::new(sequence))
             },
         ))
@@ -806,8 +806,8 @@ impl<'a> SliceParser<'a> {
     fn dictionary(input: PestNode) -> PestResult<WeakPtr<Dictionary>> {
         Ok(match_nodes!(input.children();
             [_, typeref(key_type), typeref(value_type)] => {
-                let dictionary = Dictionary { key_type, value_type };
                 let ast = &mut input.user_data().borrow_mut().ast;
+                let dictionary = Dictionary { key_type, value_type, index: ast.as_slice().len() };
                 ast.add_element(OwnedPtr::new(dictionary))
             },
         ))

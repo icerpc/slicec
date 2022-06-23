@@ -7,6 +7,7 @@ use crate::supported_encodings::SupportedEncodings;
 pub struct Dictionary {
     pub key_type: TypeRef,
     pub value_type: TypeRef,
+    pub(crate) index: usize,
 }
 
 impl Type for Dictionary {
