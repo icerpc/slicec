@@ -229,7 +229,7 @@ impl TypeRefPatcher<'_> {
             attributes.extend(current_type_alias.attributes().clone());
             let underlying_type = &current_type_alias.underlying;
 
-            // If we hit a type alias that is already patched, we immediately return it's underlying type.
+            // If we hit a type alias that is already patched, we immediately return its underlying type.
             // If should only be possible to hit types that aren't user defined.
             if underlying_type.definition.is_initialized() {
                 let node = match underlying_type.concrete_type() {
