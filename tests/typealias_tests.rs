@@ -6,6 +6,7 @@ mod typealias {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
+    use slice::parse_from_string;
     use test_case::test_case;
 
     #[test_case("struct S {}",     "S"; "structs")]
@@ -38,7 +39,44 @@ mod typealias {
 
         // Assert
         let type_alias = ast.find_element::<TypeAlias>("Test::Alias").unwrap();
-        assert!(type_alias.underlying.definition.is_initialized())
+        assert!(type_alias.underlying.definition.is_initialized());
+    }
+
+    #[test]
+    fn can_be_used_as_data_member() {
+        // Arrange
+        let slice = "
+            module Test;
+            typealias MyDict = dictionary<varint32, sequence<uint8>>;
+            compact struct S
+            {
+                dict: MyDict,
+            }
+        ";
+
+        // Act
+        let result = parse_from_string(slice);
+
+        // Assert
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn can_be_used_as_parameter() {
+        // Arrange
+        let slice = "
+            module Test;
+            typealias MyDict = dictionary<varint32, sequence<uint8>>;
+            interface I {
+                op(dict: MyDict);
+            }
+        ";
+
+        // Act
+        let result = parse_from_string(slice);
+
+        // Assert
+        assert!(result.is_ok());
     }
 
     #[test]

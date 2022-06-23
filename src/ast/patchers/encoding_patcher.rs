@@ -353,6 +353,13 @@ impl ComputeSupportedEncodings for Interface {
         _: &mut SupportedEncodings,
         file_encoding: &Encoding,
     ) -> Option<&'static str> {
+        // Insert a dummy entry for the interface into the cache to prevent infinite lookup cycles.
+        // The correct encoding is computed and inserted later.
+        patcher.supported_encodings_cache.insert(
+            self.parser_scoped_identifier(),
+            SupportedEncodings::dummy(),
+        );
+
         // Interfaces have no restrictions apart from those imposed by its file's encoding.
         // However, all the operations in an interface must support its file's encoding too.
         for operation in self.all_operations() {
