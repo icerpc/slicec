@@ -4,7 +4,6 @@ pub mod helpers;
 
 mod typealias {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
     use slice::parse_from_string;
@@ -26,7 +25,7 @@ mod typealias {
         let result = parse_from_string(slice);
 
         // Assert
-        assert_errors!(result.is_ok());
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -45,7 +44,7 @@ mod typealias {
         let result = parse_from_string(slice);
 
         // Assert
-        assert_errors!(result.is_ok());
+        assert!(result.is_ok());
     }
 
     #[test]
