@@ -9,18 +9,18 @@ mod typealias {
     use slice::parse_from_string;
     use test_case::test_case;
 
-    #[test_case("struct S {}",     "S"; "structs")]
-    #[test_case("exception E { }", "E"; "exceptions")]
-    #[test_case("class C {}",      "C"; "classes")]
-    #[test_case("interface I {}",  "I"; "interfaces")]
-    #[test_case("enum E { Foo }",  "E"; "enums")]
-    #[test_case("trait T;",        "T"; "traits")]
-    #[test_case("custom C;",       "C"; "custom types")]
-    #[test_case("", "bool"; "primitives")]
-    #[test_case("", "sequence<bool>"; "sequences")]
-    #[test_case("", "dictionary<bool, bool>"; "dictionaries")]
-    #[test_case("typealias T = bool;", "T"; "type aliases")]
-    fn can_have_type_alias_of(definition: &str, identifier: &str) {
+    #[test_case("struct S {}", "S", 2 ; "structs")]
+    #[test_case("exception E { }", "E", 2; "exceptions")]
+    #[test_case("class C {}", "C", 1; "classes")]
+    #[test_case("interface I {}", "I", 2; "interfaces")]
+    #[test_case("enum E { Foo }", "E", 2; "enums")]
+    #[test_case("trait T;", "T", 2; "traits")]
+    #[test_case("custom C;", "C", 2; "custom types")]
+    #[test_case("", "bool", 2; "primitives")]
+    #[test_case("", "sequence<bool>", 2; "sequences")]
+    #[test_case("", "dictionary<bool, bool>", 2; "dictionaries")]
+    #[test_case("typealias T = bool;", "T", 2; "type aliases")]
+    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: i32) {
         // Arrange
         let slice = format!(
             "
@@ -29,9 +29,7 @@ mod typealias {
                 {}
                 typealias Alias = {};
             ",
-            if definition == "class C {}" { 1 } else { 2 },
-            definition,
-            identifier,
+            encoding, definition, identifier,
         );
 
         // Act
