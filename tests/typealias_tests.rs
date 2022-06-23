@@ -20,7 +20,7 @@ mod typealias {
     #[test_case("", "sequence<bool>", 2; "sequences")]
     #[test_case("", "dictionary<bool, bool>", 2; "dictionaries")]
     #[test_case("typealias T = bool;", "T", 2; "type aliases")]
-    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: i32) {
+    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: u8) {
         // Arrange
         let slice = format!(
             "
@@ -29,7 +29,9 @@ mod typealias {
                 {}
                 typealias Alias = {};
             ",
-            encoding, definition, identifier,
+            encoding,
+            definition,
+            identifier,
         );
 
         // Act
