@@ -24,7 +24,6 @@ fn can_have_no_operations() {
 }
 
 #[test]
-#[ignore = "overflows stack"]
 fn can_have_self_referencing_operations() {
     let slice = "
         module Test;
