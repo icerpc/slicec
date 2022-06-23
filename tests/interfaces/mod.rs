@@ -7,6 +7,7 @@ mod operations;
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::grammar::*;
+use slice::parse_from_string;
 
 #[test]
 fn can_have_no_operations() {
@@ -20,6 +21,23 @@ fn can_have_no_operations() {
     let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.identifier(), "I");
     assert_eq!(interface_def.operations().len(), 0);
+}
+
+#[test]
+#[ignore = "overflows stack"]
+fn can_have_self_referencing_operations() {
+    let slice = "
+        module Test;
+        interface I {
+            myOp() -> I;
+        }
+    ";
+
+    // Act
+    let result = parse_from_string(slice);
+
+    // Assert
+    assert!(result.is_ok());
 }
 
 #[test]
