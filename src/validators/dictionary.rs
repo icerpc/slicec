@@ -1,34 +1,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::{Error, ErrorLevel};
+use crate::error::ErrorReporter;
 use crate::grammar::*;
-use crate::validators::{ValidationChain, ValidationResult, Validator};
+use crate::validators::{ValidationChain, Validator};
 
 pub fn dictionary_validators() -> ValidationChain {
     vec![Validator::Dictionaries(has_allowed_key_type)]
 }
 
-pub fn has_allowed_key_type(dictionaries: &[&Dictionary]) -> ValidationResult {
-    let mut errors = vec![];
-
+pub fn has_allowed_key_type(dictionaries: &[&Dictionary], error_reporter: &mut ErrorReporter) {
     for dictionary in dictionaries {
-        check_dictionary_key_type(&dictionary.key_type, &mut errors);
-    }
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
+        check_dictionary_key_type(&dictionary.key_type, error_reporter);
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef, errors: &mut Vec<Error>) -> bool {
+fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        errors.push(Error {
-            message: "invalid dictionary key type: optional types cannot be used as a dictionary key type".into(),
-            location: Some(type_ref.location.clone()),
-            severity: ErrorLevel::Error,
-        });
+        error_reporter.report_error(
+            "invalid dictionary key type: optional types cannot be used as a dictionary key type",
+            Some(type_ref.location()),
+        );
         return false;
     }
 
@@ -37,50 +29,41 @@ fn check_dictionary_key_type(type_ref: &TypeRef, errors: &mut Vec<Error>) -> boo
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                errors.push(Error {
-                    message: "invalid dictionary key type: structs must be compact to be used as a dictionary key type"
-                        .into(),
-                    location: Some(type_ref.location.clone()),
-                    severity: ErrorLevel::Error,
-                });
-                errors.push(Error {
-                    message: format!("struct '{}' is defined here:", struct_def.identifier()),
-                    location: Some(struct_def.location.clone()),
-                    severity: ErrorLevel::Note,
-                });
+                error_reporter.report_error(
+                    "invalid dictionary key type: structs must be compact to be used as a dictionary key type",
+                    Some(type_ref.location()),
+                );
+                error_reporter.report_note(
+                    format!("struct '{}' is defined here:", struct_def.identifier()),
+                    Some(struct_def.location()),
+                );
                 return false;
             }
 
             // Check that all the data members of the struct are also valid key types.
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
-                if !check_dictionary_key_type(member.data_type(), errors) {
-                    errors.push(Error {
-                        message: format!(
-                            "data member '{}' cannot be used as a dictionary key type",
-                            member.identifier(),
-                        ),
-                        location: Some(member.location.clone()),
-                        severity: ErrorLevel::Error,
-                    });
+                if !check_dictionary_key_type(member.data_type(), error_reporter) {
+                    error_reporter.report_error(
+                        format!("data member '{}' cannot be used as a dictionary key type", member.identifier()),
+                        Some(member.location()),
+                    );
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                errors.push(Error{
-                    message: format!(
+                error_reporter.report_error(
+                    format!(
                         "invalid dictionary key type: struct '{}' contains members that cannot be used as a dictionary key type",
                         struct_def.identifier(),
                     ),
-                    location: Some(type_ref.location.clone()),
-                    severity: ErrorLevel::Error
-                });
-                errors.push(Error {
-                    message: format!("struct '{}' is defined here:", struct_def.identifier()),
-                    location: Some(struct_def.location.clone()),
-                    severity: ErrorLevel::Note,
-                });
+                    Some(type_ref.location()),
+                );
+                error_reporter.report_note(
+                    format!("struct '{}' is defined here:", struct_def.identifier()),
+                    Some(struct_def.location()),
+                );
                 return false;
             }
             return true;
@@ -107,26 +90,24 @@ fn check_dictionary_key_type(type_ref: &TypeRef, errors: &mut Vec<Error>) -> boo
             _ => definition.kind().to_owned() + "s",
         };
 
-        errors.push(Error {
-            message: format!(
+        error_reporter.report_error(
+            format!(
                 "invalid dictionary key type: {} cannot be used as a dictionary key type",
                 pluralized_kind,
             ),
-            location: Some(type_ref.location.clone()),
-            severity: ErrorLevel::Error,
-        });
+            Some(type_ref.location()),
+        );
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {
-            errors.push(Error {
-                message: format!(
+            error_reporter.report_note(
+                format!(
                     "{} '{}' is defined here:",
                     named_symbol_def.kind(),
                     named_symbol_def.identifier(),
                 ),
-                location: Some(named_symbol_def.location().clone()),
-                severity: ErrorLevel::Note,
-            });
+                Some(named_symbol_def.location()),
+            );
         }
     }
     is_valid

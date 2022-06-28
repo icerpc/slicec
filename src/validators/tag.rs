@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::{Error, ErrorLevel};
+use crate::error::ErrorReporter;
 use crate::grammar::*;
-use crate::validators::{ValidationChain, ValidationResult, Validator};
+use crate::validators::{ValidationChain, Validator};
 
 pub fn tag_validators() -> ValidationChain {
     vec![
@@ -16,7 +16,7 @@ pub fn tag_validators() -> ValidationChain {
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&dyn Member>) -> ValidationResult {
+fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -26,98 +26,75 @@ fn tags_are_unique(members: Vec<&dyn Member>) -> ValidationResult {
         .cloned()
         .collect::<Vec<_>>();
     tagged_members.sort_by_key(|member| member.tag().unwrap());
-    let mut errors = vec![];
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            errors.push(Error {
-                message: format!(
+            error_reporter.report_error(
+                format!(
                     "invalid tag on member `{}`: tags must be unique",
-                    &window[1].identifier()
+                    &window[1].identifier(),
                 ),
-                location: Some(window[1].location().clone()),
-                severity: ErrorLevel::Error,
-            });
-            errors.push(Error {
-                message: format!(
+                Some(window[1].location()),
+            );
+            error_reporter.report_note(
+                format!(
                     "The data member `{}` has previous used the tag value `{}`",
                     &window[0].identifier(),
                     window[0].tag().unwrap()
                 ),
-                location: Some(window[0].location().clone()),
-                severity: ErrorLevel::Note,
-            });
+                Some(window[0].location()),
+            );
         };
     });
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
 
 /// Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter]) -> ValidationResult {
+fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter) {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
-    let mut errors = vec![];
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            errors.push(Error {
-                message: format!(
+            error_reporter.report_error(
+                format!(
                     "invalid parameter `{}`: required parameters must precede tagged parameters",
                     parameter.identifier(),
                 ),
-                location: Some(parameter.data_type.location.clone()),
-                severity: ErrorLevel::Error,
-            });
+                Some(parameter.data_type.location()),
+            );
             true
         }
         None => false,
     });
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct) -> ValidationResult {
+fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut ErrorReporter) {
     // Compact structs must be non-empty.
-    let mut errors = vec![];
     if struct_def.is_compact && !struct_def.members.is_empty() {
         // Compact structs cannot have tagged data members.
         let mut has_tags = false;
         for member in struct_def.members() {
             if member.tag.is_some() {
-                errors.push(Error {
-                    message: "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
-                        .to_owned(),
-                    location: Some(member.location().clone()),
-                    severity: ErrorLevel::Error,
-                });
+                error_reporter.report_error(
+                    "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact",
+                    Some(member.location()),
+                );
                 has_tags = true;
             }
         }
 
         if has_tags {
-            errors.push(Error {
-                message: format!("struct '{}' is declared compact here", struct_def.identifier(),),
-                location: Some(struct_def.location.clone()),
-                severity: ErrorLevel::Note,
-            });
+            error_reporter.report_note(
+                format!("struct '{}' is declared compact here", struct_def.identifier()),
+                Some(struct_def.location())
+            );
         }
-    }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&dyn Member>) -> ValidationResult {
-    let mut errors = vec![];
+fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -127,26 +104,16 @@ fn tags_have_optional_types(members: Vec<&dyn Member>) -> ValidationResult {
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            errors.push(Error {
-                message: format!(
-                    "invalid member `{}`: tagged members must be optional",
-                    member.identifier()
-                ),
-                location: Some(member.location().clone()),
-                severity: ErrorLevel::Error,
-            });
+            error_reporter.report_error(
+                format!("invalid member `{}`: tagged members must be optional", member.identifier()),
+                Some(member.location()),
+            );
         }
-    }
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
 
 /// Validate that classes cannot be tagged.
-fn cannot_tag_classes(members: Vec<&dyn Member>) -> ValidationResult {
-    let mut errors = vec![];
+fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -155,25 +122,16 @@ fn cannot_tag_classes(members: Vec<&dyn Member>) -> ValidationResult {
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            errors.push(Error {
-                message: format!(
-                    "invalid member `{}`: tagged members cannot be classes",
-                    member.identifier()
-                ),
-                location: Some(member.location().clone()),
-                severity: ErrorLevel::Error,
-            });
+            error_reporter.report_error(
+                format!("invalid member `{}`: tagged members cannot be classes", member.identifier()),
+                Some(member.location()),
+            );
         }
-    }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
 
 /// Validate that tagged container types cannot contain class members.
-fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>) -> ValidationResult {
-    let mut errors = vec![];
+fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -193,18 +151,10 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>) -> Valida
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            errors.push(Error {
-                message: format!(
-                    "invalid type `{}`: tagged members cannot contain classes",
-                    member.identifier()
-                ),
-                location: Some(member.location().clone()),
-                severity: ErrorLevel::Error,
-            });
+            error_reporter.report_error(
+                format!("invalid type `{}`: tagged members cannot contain classes", member.identifier()),
+                Some(member.location()),
+            );
         }
-    }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
