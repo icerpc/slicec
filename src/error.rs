@@ -90,8 +90,8 @@ impl ErrorReporter {
     }
 
     /// Writes the errors stored to stderr, along with any locations and snippets.
-    pub fn print_errors(&self, slice_files: &HashMap<String, SliceFile>) {
-        for error in self.errors.iter() {
+    pub fn print_errors(self, slice_files: &HashMap<String, SliceFile>) {
+        for error in self.errors.into_iter() {
             let prefix = match error.severity {
                 ErrorLevel::Note => "note",
                 ErrorLevel::Warning => "warning",
