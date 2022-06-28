@@ -74,8 +74,7 @@ impl<'a> ValidatorVisitor<'a> {
         }
     }
 
-    fn validate(&mut self, func: impl Fn(&Validator, &mut ErrorReporter))
-    {
+    fn validate(&mut self, func: impl Fn(&Validator, &mut ErrorReporter)) {
         for validator_function in &self.validation_functions {
             func(validator_function, &mut self.error_reporter);
         }
@@ -147,7 +146,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 error_reporter,
             ),
             Validator::Members(function) => function(class.members().as_member_vec(), error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -156,7 +155,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Attributes(function) => function(enum_def, error_reporter),
             Validator::Entities(function) => function(enum_def, error_reporter),
             Validator::Enums(function) => function(enum_def, error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -172,7 +171,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 error_reporter,
             ),
             Validator::Members(function) => function(exception.members().as_member_vec(), error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -189,7 +188,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 interface.all_inherited_operations().get_identifiers(),
                 error_reporter,
             ),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -204,7 +203,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                     .collect::<Vec<_>>();
                 function(identifiers, error_reporter)
             }
-            _ => {},
+            _ => {}
         });
     }
 
@@ -225,14 +224,14 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 function(operation.parameters().as_slice(), error_reporter);
                 function(operation.return_members().as_slice(), error_reporter);
             }
-            _ => {},
+            _ => {}
         });
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
         self.validate(|validator, error_reporter| match validator {
             Validator::Attributes(function) => function(parameter, error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -244,7 +243,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Identifiers(function) => function(struct_def.members().get_identifiers(), error_reporter),
             Validator::Members(function) => function(struct_def.members().as_member_vec(), error_reporter),
             Validator::Struct(function) => function(struct_def, error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 
@@ -252,10 +251,10 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|validator, error_reporter| match validator {
             Validator::Dictionaries(function) => match type_alias.underlying.concrete_type() {
                 Types::Dictionary(dictionary) => function(&[dictionary], error_reporter),
-                _ => {},
+                _ => {}
             },
             Validator::Entities(function) => function(type_alias, error_reporter),
-            _ => {},
+            _ => {}
         });
     }
 }

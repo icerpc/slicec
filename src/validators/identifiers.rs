@@ -31,8 +31,8 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, error_reporter:
 pub fn check_for_shadowing(
     identifiers: Vec<&Identifier>,
     inherited_symbols: Vec<&Identifier>,
-    error_reporter: &mut ErrorReporter)
-{
+    error_reporter: &mut ErrorReporter,
+) {
     identifiers.iter().for_each(|identifier| {
         inherited_symbols
             .iter()

@@ -87,7 +87,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
         if has_tags {
             error_reporter.report_note(
                 format!("struct '{}' is declared compact here", struct_def.identifier()),
-                Some(struct_def.location())
+                Some(struct_def.location()),
             );
         }
     }
