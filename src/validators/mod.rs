@@ -76,7 +76,7 @@ impl<'a> ValidatorVisitor<'a> {
 
     fn validate(&mut self, func: impl Fn(&Validator, &mut ErrorReporter)) {
         for validator_function in &self.validation_functions {
-            func(validator_function, &mut self.error_reporter);
+            func(validator_function, self.error_reporter);
         }
     }
 }
