@@ -297,6 +297,7 @@ impl Default for PatchKind {
     }
 }
 
+/// Trait to provide a uniform API for converting [`Node`]s and [`WeakPtr`]s into patches.
 trait TryIntoPatch<T: ?Sized> {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String>;
 }
