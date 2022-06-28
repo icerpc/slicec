@@ -2,7 +2,6 @@
 
 //! TODO write a doc comment for the module.
 
-use crate::downgrade_as;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::string_util::prefix_with_article;
@@ -76,34 +75,6 @@ macro_rules! generate_node_enum {
 generate_node_enum! {
     Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
     Enumerator, Trait, CustomType, TypeAlias, Sequence, Dictionary, Primitive
-}
-
-impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
-    type Error = String;
-
-    /// Attempts to unwrap a node to a dynamically typed [WeakPtr] holding a Slice [Type].
-    ///
-    /// If the Slice element held by the node implements [Type], this succeeds and returns a reference to the type,
-    /// otherwise this fails and returns an error message.
-    fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Type>, Self::Error> {
-        match node {
-            Node::Struct(struct_ptr)          => Ok(downgrade_as!(struct_ptr, dyn Type)),
-            Node::Class(class_ptr)            => Ok(downgrade_as!(class_ptr, dyn Type)),
-            Node::Exception(exception_ptr)    => Ok(downgrade_as!(exception_ptr, dyn Type)),
-            Node::Interface(interface_ptr)    => Ok(downgrade_as!(interface_ptr, dyn Type)),
-            Node::Enum(enum_ptr)              => Ok(downgrade_as!(enum_ptr, dyn Type)),
-            Node::Trait(trait_ptr)            => Ok(downgrade_as!(trait_ptr, dyn Type)),
-            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
-            Node::TypeAlias(type_alias_ptr)   => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
-            Node::Sequence(sequence_ptr)      => Ok(downgrade_as!(sequence_ptr, dyn Type)),
-            Node::Dictionary(dictionary_ptr)  => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
-            Node::Primitive(primitive_ptr)    => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => Err(format!(
-                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
-                prefix_with_article(node.to_string().to_case(Case::Lower)),
-            )),
-        }
-    }
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Type {
