@@ -229,10 +229,11 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
-        self.validate(|validator, error_reporter| match validator {
-            Validator::Attributes(function) => function(parameter, error_reporter),
-            _ => {}
-        });
+        self.validate(|validator, error_reporter| {
+            if let Validator::Attributes(function) = validator {
+                function(parameter, error_reporter)
+            }
+        })
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
@@ -249,10 +250,11 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         self.validate(|validator, error_reporter| match validator {
-            Validator::Dictionaries(function) => match type_alias.underlying.concrete_type() {
-                Types::Dictionary(dictionary) => function(&[dictionary], error_reporter),
-                _ => {}
-            },
+            Validator::Dictionaries(function) =>  {
+                if let Types::Dictionary(dictionary) = type_alias.underlying.concrete_type() {
+                    function(&[dictionary], error_reporter)
+                }
+            }
             Validator::Entities(function) => function(type_alias, error_reporter),
             _ => {}
         });
