@@ -1,10 +1,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::downgrade_as;
 use crate::ast::{Ast, Node};
 use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
-use std::convert::{TryFrom, TryInto};
+use crate::string_util::prefix_with_article;
+use std::convert::TryInto;
+use convert_case::{Case, Casing};
 
 pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<(), ()> {
     let mut patcher = TypeRefPatcher {
@@ -179,7 +182,8 @@ impl TypeRefPatcher<'_> {
     ) -> Option<Patch<T>>
     where
         T: Element + ?Sized,
-        WeakPtr<T>: TryFrom<&'a Node, Error = String>,
+        &'a Node: TryIntoPatch<T>,
+        WeakPtr<dyn Type>: TryIntoPatch<T>,
     {
         // If the definition has already been patched return `None` immediately.
         if type_ref.definition.is_initialized() {
@@ -196,11 +200,8 @@ impl TypeRefPatcher<'_> {
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
                 } else {
-                    Ok((node, Vec::new()))
+                    node.try_into_patch(Vec::new())
                 }
-            })
-            .and_then(|(node, attributes)| {
-                node.try_into().map(|ptr| (ptr, attributes))
             });
 
         // If we resolved a definition for the type reference, return it, otherwise report what went wrong.
@@ -213,11 +214,16 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn resolve_type_alias<'a>(
+    fn resolve_type_alias<'a, T>(
         &mut self,
         type_alias: &'a TypeAlias,
         ast: &'a Ast,
-    ) -> Result<(&'a Node, Vec<Attribute>), String> {
+    ) -> Result<Patch<T>, String>
+    where
+        T: ?Sized,
+        &'a Node: TryIntoPatch<T>,
+        WeakPtr<dyn Type>: TryIntoPatch<T>,
+    {
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
         let mut type_alias_chain = Vec::new();
@@ -230,15 +236,8 @@ impl TypeRefPatcher<'_> {
             let underlying_type = &current_type_alias.underlying;
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.
-            // If should only be possible to hit types that aren't user defined.
             if underlying_type.definition.is_initialized() {
-                let node = match underlying_type.concrete_type() {
-                    Types::Sequence(sequence_def) => ast.get_node(sequence_def.index),
-                    Types::Dictionary(dictionary_def) => ast.get_node(dictionary_def.index),
-                    Types::Primitive(primitive) => ast.find_node(primitive.kind()).unwrap(),
-                    _ => panic!("type alias with user defined type is already patched:\n{:?}", current_type_alias),
-                };
-                return Ok((node, attributes));
+                return underlying_type.definition.clone().try_into_patch(attributes);
             }
 
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
@@ -247,7 +246,7 @@ impl TypeRefPatcher<'_> {
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
             } else {
-                return Ok((node, attributes));
+                return node.try_into_patch(attributes);
             }
 
             // Check if we've already seen the next type alias before continuing the loop; if so, it's cyclic and we
@@ -295,5 +294,54 @@ enum PatchKind {
 impl Default for PatchKind {
     fn default() -> Self {
         Self::None
+    }
+}
+
+/// Trait to provide a uniform API for converting [`Node`]s and [`WeakPtr`]s into patches.
+trait TryIntoPatch<T: ?Sized> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String>;
+}
+
+impl<'a, T> TryIntoPatch<T> for &'a Node where
+    &'a Node: TryInto<WeakPtr<T>, Error = String>,
+{
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
+        self.try_into().map(|ptr| (ptr, attributes))
+    }
+}
+
+impl<'a> TryIntoPatch<dyn Type> for &'a Node
+{
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
+        let converted_ptr = match self {
+            Node::Struct(struct_ptr)          => Ok(downgrade_as!(struct_ptr, dyn Type)),
+            Node::Class(class_ptr)            => Ok(downgrade_as!(class_ptr, dyn Type)),
+            Node::Exception(exception_ptr)    => Ok(downgrade_as!(exception_ptr, dyn Type)),
+            Node::Interface(interface_ptr)    => Ok(downgrade_as!(interface_ptr, dyn Type)),
+            Node::Enum(enum_ptr)              => Ok(downgrade_as!(enum_ptr, dyn Type)),
+            Node::Trait(trait_ptr)            => Ok(downgrade_as!(trait_ptr, dyn Type)),
+            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
+            Node::TypeAlias(type_alias_ptr)   => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
+            Node::Sequence(sequence_ptr)      => Ok(downgrade_as!(sequence_ptr, dyn Type)),
+            Node::Dictionary(dictionary_ptr)  => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
+            Node::Primitive(primitive_ptr)    => Ok(downgrade_as!(primitive_ptr, dyn Type)),
+            _ => Err(format!(
+                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
+                prefix_with_article(self.to_string().to_case(Case::Lower)),
+            )),
+        };
+        converted_ptr.map(|ptr| (ptr, attributes))
+    }
+}
+
+impl<'a, T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
+        self.downcast().map(|ptr| (ptr, attributes)).map_err(|_| "todo".to_owned())
+    }
+}
+
+impl<'a> TryIntoPatch<dyn Type> for WeakPtr<dyn Type> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
+        Ok((self, attributes))
     }
 }

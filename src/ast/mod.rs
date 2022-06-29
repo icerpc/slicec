@@ -116,31 +116,6 @@ impl Ast {
         Ast { elements, lookup_table }
     }
 
-    /// Returns a reference to the node at the specified index.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use slice::ast::Ast;
-    /// let ast = Ast::create();
-    ///
-    /// let node = ast.get_node(4);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Accessing an index which is outside the bounds of the AST will trigger a panic:
-    ///
-    /// ```should_panic
-    /// # use slice::ast::Ast;
-    /// let ast = Ast::create();
-    ///
-    /// let node = ast.get_node(42);
-    /// ```
-    pub fn get_node(&self, index: usize) -> &Node {
-        &self.elements[index]
-    }
-
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
     /// The identifier must be globally scoped, since this method performs no scope resolution.
     ///
@@ -374,7 +349,7 @@ impl Ast {
     /// let contents = ast.as_mut_slice();
     /// contents.iter_mut().for_each(|x| { /* do something */ } );
     /// ```
-    pub(crate) fn as_mut_slice(&mut self) -> &mut [Node] {
+    pub fn as_mut_slice(&mut self) -> &mut [Node] {
         self.elements.as_mut_slice()
     }
 
