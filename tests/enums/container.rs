@@ -212,9 +212,7 @@ fn automatically_assigned_values_will_not_overflow() {
 
     let error_reporter = parse_for_errors(&slice);
 
-    assert!(error_reporter.errors()[0]
-        .message
-        .ends_with("Enumerator value out of range: B"));
+    assert_errors!(error_reporter, [" --> 5:17\n  |\n5 |                 B,␊\n  |                 ^\n  |\n  = Enumerator value out of range: B"]);
 }
 
 #[test_case("unchecked enum", true ; "unchecked")]

@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::slice_file::{Location, SliceFile};
-use std::collections::HashMap;
+use crate::slice_file::Location;
 
 #[derive(Debug)]
 pub struct ErrorReporter {
@@ -44,9 +43,9 @@ impl ErrorReporter {
         (self.error_count, self.warning_count)
     }
 
-    /// Returns a slice of the errors that have been reported.
-    pub fn errors(&self) -> &[Error] {
-        &self.errors
+    /// Consumes the error reporter, returning all the errors that have been reported with it.
+    pub fn into_errors(self) -> Vec<Error> {
+        self.errors
     }
 
     /// Adds a new error to the error reporter. The warning count and error count are also incremented.
@@ -73,39 +72,6 @@ impl ErrorReporter {
 
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
         self.report(message, location, ErrorLevel::Error);
-    }
-
-    /// Writes the errors stored to stderr, along with any locations and snippets.
-    pub fn print_errors(&self, slice_files: &HashMap<String, SliceFile>) {
-        for error in self.errors.iter() {
-            let prefix = match error.severity {
-                ErrorLevel::Note => "note",
-                ErrorLevel::Warning => "warning",
-                ErrorLevel::Error => "error",
-            };
-
-            // Insert the prefix at the start of the message.
-            let mut message = prefix.to_owned() + ": " + &error.message;
-
-            if let Some(location) = &error.location {
-                // Specify the location where the error starts on its own line after the message.
-                message = format!(
-                    "{}\n@ '{}' ({},{})",
-                    message, &location.file, location.start.0, location.start.1
-                );
-
-                // If the location spans between two positions, add a snippet from the slice file.
-                if location.start != location.end {
-                    message += ":\n";
-                    let file = slice_files.get(&location.file).expect("Slice file not in file map!");
-                    message += &file.get_snippet(location.start, location.end);
-                } else {
-                    message += "\n";
-                }
-            }
-            // Print the message to stderr.
-            eprintln!("{}", message);
-        }
     }
 }
 
