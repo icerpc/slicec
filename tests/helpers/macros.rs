@@ -7,24 +7,26 @@
 #[macro_export]
 macro_rules! assert_errors {
     ($error_reporter:expr) => {
+        let errors = $error_reporter.into_errors();
         assert!(
-            !$error_reporter.has_errors(),
+            errors.is_empty(),
             "Expected no errors, got {}.\n{:?}",
-            $error_reporter.errors().len(),
-            $error_reporter.errors(),
+            errors.len(),
+            errors,
         );
     };
 
     ($error_reporter:expr, $expected_errors:expr) => {
+        let errors = $error_reporter.into_errors();
         assert_eq!(
-            $error_reporter.errors().len(),
+            errors.len(),
             $expected_errors.len(),
             "Expected {} errors, got {}.\n{:?}",
             $expected_errors.len(),
-            $error_reporter.errors().len(),
-            $error_reporter.errors(),
+            errors.len(),
+            errors,
         );
-        for (i, error) in $error_reporter.errors().iter().enumerate() {
+        for (i, error) in errors.iter().enumerate() {
             assert_eq!(error.message, $expected_errors[i]);
         }
     };
