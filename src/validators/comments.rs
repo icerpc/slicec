@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::{Error, ErrorLevel};
+use crate::error::ErrorReporter;
 use crate::grammar::*;
-use crate::validators::{ValidationChain, ValidationResult, Validator};
+use crate::validators::{ValidationChain, Validator};
 
 pub fn comments_validators() -> ValidationChain {
     vec![
@@ -12,28 +12,21 @@ pub fn comments_validators() -> ValidationChain {
     ]
 }
 
-fn non_empty_return_comment(operation: &Operation) -> ValidationResult {
-    let mut errors = vec![];
+fn non_empty_return_comment(operation: &Operation, error_reporter: &mut ErrorReporter) {
     if let Some(comment) = operation.comment() {
         // Return doc comment exists but operation has no return members.
         // `DocComment.return_members` contains a list of descriptions of the return members.
         // example: @return A description of the return value.`
         if comment.returns.is_some() && operation.return_members().is_empty() {
-            errors.push(Error {
-                message: "void operation must not contain doc comment return tag".to_owned(),
-                location: Some(comment.location.clone()),
-                severity: ErrorLevel::Warning,
-            });
+            error_reporter.report_warning(
+                "void operation must not contain doc comment return tag",
+                Some(&comment.location),
+            );
         }
-    }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
 
-fn missing_parameter_comment(operation: &Operation) -> ValidationResult {
-    let mut errors = vec![];
+fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorReporter) {
     if let Some(comment) = operation.comment() {
         comment.params.iter().for_each(|param| {
             if !operation
@@ -42,43 +35,30 @@ fn missing_parameter_comment(operation: &Operation) -> ValidationResult {
                 .map(|p| p.identifier.value.clone())
                 .any(|identifier| identifier == param.0)
             {
-                errors.push(Error {
-                    message: format!(
+                error_reporter.report_warning(
+                    format!(
                         "doc comment has a param tag for '{param_name}', but there is no parameter by that name",
                         param_name = param.0,
                     ),
-                    location: Some(comment.location.clone()),
-                    severity: ErrorLevel::Warning,
-                });
+                    Some(&comment.location),
+                );
             }
         })
     }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
 
-fn only_operations_can_throw(commentable: &dyn Entity) -> ValidationResult {
-    let mut errors = vec![];
+fn only_operations_can_throw(commentable: &dyn Entity, error_reporter: &mut ErrorReporter) {
     let supported_on = ["operation"];
     if let Some(comment) = commentable.comment() {
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
-            errors.push(Error {
-                message: format!(
+            error_reporter.report_warning(
+                format!(
                     "doc comment indicates that {kind} `{op_identifier}` throws, however, only operations can throw",
                     kind = &commentable.kind(),
                     op_identifier = commentable.identifier(),
                 ),
-                location: Some(comment.location.clone()),
-                severity: ErrorLevel::Warning,
-            });
+                Some(&comment.location),
+            );
         };
     }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
-
-// TODO: Add @deprecated check once it is implemented.

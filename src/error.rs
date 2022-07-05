@@ -50,43 +50,29 @@ impl ErrorReporter {
     }
 
     /// Adds a new error to the error reporter. The warning count and error count are also incremented.
-    fn report(&mut self, error: Error) {
-        match error.severity {
+    fn report(&mut self, message: impl Into<String>, location: Option<&Location>, severity: ErrorLevel) {
+        match severity {
             ErrorLevel::Note => {}
             ErrorLevel::Warning => self.warning_count += 1,
             ErrorLevel::Error => self.error_count += 1,
         };
-        self.errors.push(error);
-    }
-
-    pub fn append_errors(&mut self, errors: Vec<Error>) {
-        for error in errors {
-            self.report(error);
-        }
+        self.errors.push(Error {
+            message: message.into(),
+            location: location.cloned(),
+            severity,
+        });
     }
 
     pub fn report_note(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(Error {
-            message: message.into(),
-            location: location.cloned(),
-            severity: ErrorLevel::Note,
-        });
+        self.report(message, location, ErrorLevel::Note);
     }
 
     pub fn report_warning(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(Error {
-            message: message.into(),
-            location: location.cloned(),
-            severity: ErrorLevel::Warning,
-        });
+        self.report(message, location, ErrorLevel::Warning);
     }
 
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(Error {
-            message: message.into(),
-            location: location.cloned(),
-            severity: ErrorLevel::Error,
-        });
+        self.report(message, location, ErrorLevel::Error);
     }
 
     /// Writes the errors stored to stderr, along with any locations and snippets.

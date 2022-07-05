@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::{Error, ErrorLevel};
+use crate::error::ErrorReporter;
 use crate::grammar::*;
-use crate::validators::{ValidationChain, ValidationResult, Validator};
+use crate::validators::{ValidationChain, Validator};
 use std::str::FromStr;
 
 pub fn attribute_validators() -> ValidationChain {
@@ -34,16 +34,14 @@ fn message_value_separator(valid_strings: &[&str]) -> String {
 }
 
 /// Attribute validators
-fn validate_format_attribute(operation: &Operation) -> ValidationResult {
-    let mut errors = vec![];
+fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorReporter) {
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => errors.push(Error {
-                message: "format attribute arguments cannot be empty".to_owned(),
-                location: Some(attribute.location.clone()),
-                severity: ErrorLevel::Error,
-            }),
+            0 => error_reporter.report_error(
+                "format attribute arguments cannot be empty",
+                Some(attribute.location()),
+            ),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute
@@ -54,64 +52,48 @@ fn validate_format_attribute(operation: &Operation) -> ValidationResult {
                         format.is_err()
                     })
                     .for_each(|arg| {
-                        errors.push(Error {
-                            message: format!("invalid format attribute argument `{}`", arg),
-                            location: Some(attribute.location.clone()),
-                            severity: ErrorLevel::Error,
-                        });
-                        errors.push(Error {
-                            message: format!(
+                        error_reporter.report_error(
+                            format!("invalid format attribute argument `{}`", arg),
+                            Some(attribute.location()),
+                        );
+                        error_reporter.report_note(
+                            format!(
                                 "The valid arguments for the format attribute are {}",
                                 message_value_separator(&["Compact", "Sliced"])
                             ),
-                            location: Some(attribute.location.clone()),
-                            severity: ErrorLevel::Note,
-                        });
+                            Some(attribute.location()),
+                        );
                     });
             }
         }
     }
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to members.
-fn cannot_be_deprecated(members: Vec<&dyn Member>) -> ValidationResult {
-    let mut errors = vec![];
+fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            errors.push(Error {
-                message: format!("the deprecated attribute cannot be applied to {}s", m.kind()),
-                location: Some(m.location().clone()),
-                severity: ErrorLevel::Error,
-            });
+            error_reporter.report_error(
+                format!("the deprecated attribute cannot be applied to {}s", m.kind()),
+                Some(m.location()),
+            );
         }
     });
-
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
-    }
 }
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn is_compressible(element: &dyn Attributable) -> ValidationResult {
+fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporter) {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
-    let mut errors = vec![];
     let supported_on = ["interface", "operation"];
     let kind = element.kind();
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
-            Some(attribute) => errors.push(Error {
-                message: "the compress attribute can only be applied to interfaces and operations".to_owned(),
-                location: Some(attribute.location.clone()),
-                severity: ErrorLevel::Error,
-            }),
+            Some(attribute) => error_reporter.report_error(
+                "the compress attribute can only be applied to interfaces and operations",
+                Some(attribute.location()),
+            ),
             None => (),
         }
     }
@@ -122,26 +104,20 @@ fn is_compressible(element: &dyn Attributable) -> ValidationResult {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    errors.push(Error {
-                        message: format!("invalid argument `{}` for the compress attribute", arg),
-                        location: Some(attribute.location.clone()),
-                        severity: ErrorLevel::Error,
-                    });
-                    errors.push(Error {
-                        message: format!(
+                    error_reporter.report_error(
+                        format!("invalid argument `{}` for the compress attribute", arg),
+                        Some(attribute.location()),
+                    );
+                    error_reporter.report_note(
+                        format!(
                             "The valid argument(s) for the compress attribute are {}",
                             message_value_separator(&valid_arguments).as_str(),
                         ),
-                        location: Some(attribute.location.clone()),
-                        severity: ErrorLevel::Note,
-                    });
+                        Some(attribute.location()),
+                    );
                 }
             }),
             None => (),
         }
-    }
-    match errors.is_empty() {
-        true => Ok(()),
-        false => Err(errors),
     }
 }
