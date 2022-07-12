@@ -47,7 +47,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
                     error_reporter.report_error(
                         format!(
                             "data member '{}' cannot be used as a dictionary key type",
-                            member.identifier()
+                            member.identifier(),
                         ),
                         Some(member.location()),
                     );
