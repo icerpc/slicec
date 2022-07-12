@@ -153,9 +153,6 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report_error(
-            "enums must contain at least one enumerator",
-            Some(enum_def.location()),
-        );
+        error_reporter.report_error("enums must contain at least one enumerator", Some(enum_def.location()));
     }
 }

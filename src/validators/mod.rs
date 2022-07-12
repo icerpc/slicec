@@ -179,10 +179,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|validator, error_reporter| match validator {
             Validator::Attributes(function) => function(interface, error_reporter),
             Validator::Entities(function) => function(interface, error_reporter),
-            Validator::Identifiers(function) => function(
-                interface.operations().get_identifiers(),
-                error_reporter,
-            ),
+            Validator::Identifiers(function) => function(interface.operations().get_identifiers(), error_reporter),
             Validator::InheritedIdentifiers(function) => function(
                 interface.operations().get_identifiers(),
                 interface.all_inherited_operations().get_identifiers(),
@@ -250,7 +247,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         self.validate(|validator, error_reporter| match validator {
-            Validator::Dictionaries(function) =>  {
+            Validator::Dictionaries(function) => {
                 if let Types::Dictionary(dictionary) = type_alias.underlying.concrete_type() {
                     function(&[dictionary], error_reporter)
                 }

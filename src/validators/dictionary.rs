@@ -45,7 +45,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), error_reporter) {
                     error_reporter.report_error(
-                        format!("data member '{}' cannot be used as a dictionary key type", member.identifier()),
+                        format!(
+                            "data member '{}' cannot be used as a dictionary key type",
+                            member.identifier()
+                        ),
                         Some(member.location()),
                     );
                     contains_invalid_key_types = true;
