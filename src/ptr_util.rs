@@ -150,7 +150,7 @@ impl<T: ?Sized> Clone for WeakPtr<T> {
 #[macro_export]
 macro_rules! downgrade_as {
     ($owned:expr, $new_type:ty) => {
-        crate::upcast_weak_as!($owned.downgrade(), $new_type)
+        $crate::upcast_weak_as!($owned.downgrade(), $new_type)
     };
 }
 
