@@ -38,10 +38,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => error_reporter.report_error(
-                "format attribute arguments cannot be empty",
-                Some(attribute.location()),
-            ),
+            0 => error_reporter.report_error("format attribute arguments cannot be empty", Some(attribute.location())),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute

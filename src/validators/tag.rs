@@ -105,7 +105,10 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     for member in tagged_members {
         if !member.data_type().is_optional {
             error_reporter.report_error(
-                format!("invalid member `{}`: tagged members must be optional", member.identifier()),
+                format!(
+                    "invalid member `{}`: tagged members must be optional",
+                    member.identifier(),
+                ),
                 Some(member.location()),
             );
         }
@@ -123,7 +126,10 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
             error_reporter.report_error(
-                format!("invalid member `{}`: tagged members cannot be classes", member.identifier()),
+                format!(
+                    "invalid member `{}`: tagged members cannot be classes",
+                    member.identifier(),
+                ),
                 Some(member.location()),
             );
         }
@@ -152,7 +158,10 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             _ => member.data_type().definition().uses_classes(),
         } {
             error_reporter.report_error(
-                format!("invalid type `{}`: tagged members cannot contain classes", member.identifier()),
+                format!(
+                    "invalid type `{}`: tagged members cannot contain classes",
+                    member.identifier(),
+                ),
                 Some(member.location()),
             );
         }
