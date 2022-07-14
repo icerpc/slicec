@@ -58,7 +58,10 @@ impl ParsedData {
             eprintln!("{}", message);
         }
 
-        println!("Compilation failed with {} error(s) and {} warning(s).\n", counts.0, counts.1);
+        println!(
+            "Compilation failed with {} error(s) and {} warning(s).\n",
+            counts.0, counts.1
+        );
     }
 }
 
