@@ -4,14 +4,16 @@ use crate::error::{Error, ErrorLevel};
 use crate::slice_file::Location;
 use std::string::ToString;
 
+mod rules;
 mod warnings;
 
+pub use self::rules::*;
 pub use self::warnings::WarningKind;
 
 pub enum ErrorType {
-    Warning(Box<dyn ErrorKind>, Option<Location>),
-    RuleError(Box<dyn ErrorKind>, Option<Location>),
-    SyntaxError(Box<dyn ErrorKind>, Option<Location>),
+    Warning(WarningKind, Option<Location>),
+    RuleError(WarningKind, Option<Location>),
+    SyntaxError(WarningKind, Option<Location>),
 }
 
 impl From<ErrorType> for Error {
@@ -36,9 +38,9 @@ impl ErrorType {
 
     pub fn kind(&self) -> &dyn ErrorKind {
         match self {
-            ErrorType::Warning(kind, _) => &**kind,
-            ErrorType::RuleError(kind, _) => &**kind,
-            ErrorType::SyntaxError(kind, _) => &**kind,
+            ErrorType::Warning(kind, _) => kind,
+            ErrorType::RuleError(kind, _) => kind,
+            ErrorType::SyntaxError(kind, _) => kind,
         }
     }
 
@@ -54,9 +56,6 @@ impl ErrorType {
 pub(crate) trait ErrorKind {
     fn get_error_code(&self) -> u32;
     fn get_description(&self) -> String;
-    // DocCommentIndicatesThrow { kind: String, op_identifier: String },
-    // DocCommentIndicatesReturn,
-    // DocCommentIndicatesParam { param_name: String },
 }
 
 impl ToString for &dyn ErrorKind {

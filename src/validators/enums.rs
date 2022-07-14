@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::error::ErrorReporter;
+use crate::errors::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -24,13 +25,11 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                error_reporter.report_error(
-                    format!(
-                        "invalid enumerator value on enumerator `{}`: enumerators must be non-negative",
-                        &enumerator.identifier()
-                    ),
-                    Some(enumerator.location()),
-                );
+                let rule_error = RuleKind::InvalidEnumerator {
+                    identifier: enumerator.identifier().to_string(),
+                    kind: InvalidEnumeratorKind::MustBeNonNegative,
+                };
+                error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -38,14 +37,15 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                error_reporter.report_error(
-                    format!(
-                        "invalid enumerator value on enumerator `{identifier}`: must be smaller than than {max}",
-                        identifier = enumerator.identifier(),
-                        max = i32::MAX,
-                    ),
-                    Some(enumerator.location()),
-                );
+                let rule_error = RuleKind::InvalidEnumerator {
+                    identifier: enumerator.identifier().to_string(),
+                    kind: InvalidEnumeratorKind::MustBeBounded {
+                        value: enumerator.value,
+                        min: 0,
+                        max: i32::MAX as i64,
+                    },
+                };
+                error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -55,22 +55,19 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             enum_def
                 .enumerators()
                 .iter()
-                .map(|enumerator| enumerator.value)
-                .filter(|value| *value < min || *value > max)
-                .for_each(|value| {
-                    error_reporter.report_error(
-                        format!(
-                            "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
-                            value = value,
-                            underlying = underlying_type.kind(),
-                            min = min,
-                            max = max,
-                        ),
-                        Some(enum_def.location()),
-                    );
+                .filter(|enumerator| enumerator.value < min || enumerator.value > max)
+                .for_each(|enumerator| {
+                    let rule_error = RuleKind::InvalidEnumerator {
+                        identifier: enumerator.identifier().to_string(),
+                        kind: InvalidEnumeratorKind::MustBeBounded {
+                            value: enumerator.value,
+                            min,
+                            max,
+                        },
+                    };
+                    error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
                 });
         }
-
         match &enum_def.underlying {
             Some(underlying_type) => {
                 if underlying_type.is_integral() {
@@ -93,13 +90,13 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                error_reporter.report_error(
-                    format!(
-                        "underlying type '{underlying}' is not allowed for enums",
-                        underlying = underlying_type.definition().kind(),
+                let rule_error = RuleKind::InvalidEnumerator {
+                    identifier: enum_def.identifier().to_string(),
+                    kind: InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(
+                        underlying_type.definition().kind().to_string(),
                     ),
-                    Some(enum_def.location()),
-                );
+                };
+                error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
