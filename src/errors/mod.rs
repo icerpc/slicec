@@ -12,7 +12,7 @@ pub use self::warnings::WarningKind;
 
 pub enum ErrorType {
     Warning(WarningKind, Option<Location>),
-    RuleError(WarningKind, Option<Location>),
+    RuleError(RuleKind, Option<Location>),
     SyntaxError(WarningKind, Option<Location>),
 }
 
@@ -36,7 +36,7 @@ impl ErrorType {
         }
     }
 
-    pub fn kind(&self) -> &dyn ErrorKind {
+    fn kind(&self) -> &dyn ErrorKind {
         match self {
             ErrorType::Warning(kind, _) => kind,
             ErrorType::RuleError(kind, _) => kind,
@@ -60,7 +60,7 @@ pub(crate) trait ErrorKind {
 
 impl ToString for &dyn ErrorKind {
     fn to_string(&self) -> String {
-        let mut prefix = "Warning: ";
+        let prefix = "Warning: ";
         let description: String = self.get_description();
         let error_code = format!(" [Error code {}]", self.get_error_code());
         prefix.to_owned() + &description + error_code.as_str()

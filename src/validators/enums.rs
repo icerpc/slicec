@@ -113,13 +113,11 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            error_reporter.report_error(
-                format!(
-                    "invalid enumerator value on enumerator `{}`: enumerators must be unique",
-                    window[1].identifier()
-                ),
-                Some(window[1].location()),
-            );
+            let rule_error = RuleKind::InvalidEnumerator {
+                identifier: window[1].identifier().to_string(),
+                kind: InvalidEnumeratorKind::MustBeUnique,
+            };
+            error_reporter.report_rule_error(rule_error, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
                     "The enumerator `{}` has previous used the value `{}`",
@@ -136,13 +134,11 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            error_reporter.report_error(
-                format!(
-                    "underlying type '{}' cannot be optional: enums cannot have optional underlying types",
-                    typeref.type_string
-                ),
-                Some(enum_def.location()),
-            );
+            let rule_error = RuleKind::InvalidEnumerator {
+                identifier: enum_def.identifier().to_string(),
+                kind: InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType,
+            };
+            error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
         }
     }
 }
@@ -150,6 +146,10 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report_error("enums must contain at least one enumerator", Some(enum_def.location()));
+        let rule_error = RuleKind::InvalidEnumerator {
+            identifier: enum_def.identifier().to_string(),
+            kind: InvalidEnumeratorKind::MustContainAtLeastOneValue,
+        };
+        error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
     }
 }

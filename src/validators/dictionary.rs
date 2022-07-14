@@ -82,7 +82,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             Types::Dictionary(_) => "dictionaries".to_owned(),
             _ => definition.kind().to_owned() + "s",
         };
-        let rule_error = RuleKind::InvalidKey(InvalidKeyKind::TypeCannotBeUsedAsAKey(pluralized_kind.to_string()));
+        let rule_error = RuleKind::InvalidKey(InvalidKeyKind::TypeCannotBeUsedAsAKey(pluralized_kind));
         error_reporter.report_rule_error(rule_error, Some(type_ref.location()));
 
         // If the key type is a user-defined type, point to where it was defined.

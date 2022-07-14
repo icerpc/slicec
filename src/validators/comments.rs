@@ -34,7 +34,9 @@ fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorRe
                 .map(|p| p.identifier.value.clone())
                 .any(|identifier| identifier == param.0)
             {
-                let warning = WarningKind::DocCommentIndicatesParam { param_name: param.0 };
+                let warning = WarningKind::DocCommentIndicatesParam {
+                    param_name: param.0.clone(),
+                };
                 error_reporter.report_warning(warning, Some(&comment.location));
             }
         });

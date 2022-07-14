@@ -69,15 +69,15 @@ impl ErrorReporter {
 
     pub fn report_warning(&mut self, warning_kind: WarningKind, location: Option<&Location>) {
         let warning = ErrorType::Warning(warning_kind, location.cloned());
-        self.report_error(warning);
+        self.report_error_new(warning);
     }
 
     pub fn report_rule_error(&mut self, rule_kind: RuleKind, location: Option<&Location>) {
         let rule_error = ErrorType::RuleError(rule_kind, location.cloned());
-        self.report_error(rule_error);
+        self.report_error_new(rule_error);
     }
 
-    pub fn report_error(&mut self, error: impl Into<Error>) {
+    pub fn report_error_new(&mut self, error: impl Into<Error>) {
         let error = error.into();
         match error.severity {
             ErrorLevel::Note => {}
@@ -85,6 +85,10 @@ impl ErrorReporter {
             ErrorLevel::Error => self.error_count += 1,
         };
         self.errors.push(error);
+    }
+
+    pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
+        self.report(message, location, ErrorLevel::Error);
     }
 }
 

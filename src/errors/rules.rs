@@ -16,6 +16,7 @@ pub enum RuleKind {
         kind: InvalidEnumeratorKind,
     },
     InvalidStruct,
+    InvalidIdentifier(InvalidIdentifierKind),
     InvalidException,
     InvalidModule,
     InvalidTypeAlias,
@@ -25,14 +26,14 @@ pub enum RuleKind {
 impl ErrorKind for RuleKind {
     fn get_error_code(&self) -> u32 {
         match self {
-            RuleKind::InvalidAttribute(InvalidAttributeKind) => InvalidAttributeKind.get_error_code(),
+            RuleKind::InvalidAttribute(invalid_attribute_kind) => invalid_attribute_kind.get_error_code(),
             _ => 0,
         }
     }
 
     fn get_description(&self) -> String {
         match self {
-            RuleKind::InvalidAttribute(InvalidAttributeKind) => InvalidAttributeKind.get_description(),
+            RuleKind::InvalidAttribute(invalid_attribute_kind) => invalid_attribute_kind.get_description(),
             _ => "".to_string(),
         }
     }
@@ -64,9 +65,6 @@ impl InvalidAttributeKind {
 }
 
 pub enum InvalidArgumentKind {
-    ArgumentNameMustBeSpecified(String),
-    ArgumentNameMustBeUnique(String),
-    ArgumentNameMustBeValid(String),
     ArgumentCannotBeEmpty(String),
     ArgumentNotSupported(String, String),
 }
@@ -74,9 +72,6 @@ pub enum InvalidArgumentKind {
 impl InvalidArgumentKind {
     pub fn get_error_code(&self) -> u32 {
         match self {
-            InvalidArgumentKind::ArgumentNameMustBeSpecified(_) => 3,
-            InvalidArgumentKind::ArgumentNameMustBeUnique(_) => 4,
-            InvalidArgumentKind::ArgumentNameMustBeValid(_) => 5,
             InvalidArgumentKind::ArgumentCannotBeEmpty(_) => 6,
             InvalidArgumentKind::ArgumentNotSupported(_, _) => 7,
         }
@@ -84,9 +79,6 @@ impl InvalidArgumentKind {
 
     pub fn get_description(&self) -> String {
         match self {
-            InvalidArgumentKind::ArgumentNameMustBeSpecified(_) => "",
-            InvalidArgumentKind::ArgumentNameMustBeUnique(_) => "",
-            InvalidArgumentKind::ArgumentNameMustBeValid(_) => "",
             InvalidArgumentKind::ArgumentCannotBeEmpty(method) => format!("{} arguments cannot be empty", method),
             InvalidArgumentKind::ArgumentNotSupported(arg, method) => {
                 format!("argument '{}' is not supported for {}", arg, method)
@@ -137,9 +129,9 @@ pub enum InvalidEnumeratorKind {
     MustBeNonNegative,
     MustBeBounded { value: i64, min: i64, max: i64 },
     UnderlyingTypeMustBeIntegral(String),
-    MustBeUnique(String),
-    CannotHaveOptionalUnderlyingType(String),
-    MustContainAtLeastOneValue(String),
+    MustBeUnique,
+    CannotHaveOptionalUnderlyingType,
+    MustContainAtLeastOneValue,
 }
 
 impl InvalidEnumeratorKind {
@@ -148,9 +140,9 @@ impl InvalidEnumeratorKind {
             InvalidEnumeratorKind::MustBeNonNegative => 1,
             InvalidEnumeratorKind::MustBeBounded { .. } => 2,
             InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(_) => 3,
-            InvalidEnumeratorKind::MustBeUnique(_) => 4,
-            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType(_) => 5,
-            InvalidEnumeratorKind::MustContainAtLeastOneValue(_) => 6,
+            InvalidEnumeratorKind::MustBeUnique => 4,
+            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => 5,
+            InvalidEnumeratorKind::MustContainAtLeastOneValue => 6,
         }
     }
 
@@ -166,9 +158,38 @@ impl InvalidEnumeratorKind {
             InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(underlying) => {
                 format!("underlying type '{}' is not allowed for enums", underlying)
             }
-            InvalidEnumeratorKind::MustBeUnique(identifier) => 4,
-            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType(identifier) => 5,
-            InvalidEnumeratorKind::MustContainAtLeastOneValue(identifier) => 6,
+            InvalidEnumeratorKind::MustBeUnique => "enumerators must be unique".to_string(),
+            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => {
+                "enums cannot have optional underlying types".to_string()
+            }
+            InvalidEnumeratorKind::MustContainAtLeastOneValue => {
+                "enums must contain at least one enumerator".to_string()
+            }
+        }
+    }
+}
+
+pub enum InvalidIdentifierKind {
+    IdentifierCannotBeARedefinition(String),
+    IdentifierCannotShadowAnotherSymbol(String),
+}
+
+impl InvalidIdentifierKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidIdentifierKind::IdentifierCannotBeARedefinition(_) => 1,
+            InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(_) => 2,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidIdentifierKind::IdentifierCannotBeARedefinition(identifier) => {
+                format!("redefinition of {}", identifier)
+            }
+            InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(identifier) => {
+                format!("{} shadows another symbol", identifier)
+            }
         }
     }
 }
