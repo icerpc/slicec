@@ -114,7 +114,8 @@ impl EncodingPatcher<'_> {
         }
 
         // Cache and return this entity's supported encodings.
-        self.supported_encodings_cache.insert(type_id, supported_encodings.clone());
+        self.supported_encodings_cache
+            .insert(type_id, supported_encodings.clone());
         supported_encodings
     }
 
@@ -186,8 +187,7 @@ impl EncodingPatcher<'_> {
             if error_messages.is_empty() {
                 error_messages.push(format!(
                     "the type `{}` is not supported by the Slice{} encoding",
-                    &type_ref.type_string,
-                    file_encoding,
+                    &type_ref.type_string, file_encoding,
                 ));
             }
             for message in error_messages {
@@ -209,15 +209,10 @@ impl EncodingPatcher<'_> {
         // Emit a note explaining why the file has the slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
             let encoding_message = format!("file encoding was set to Slice{} here:", &file_encoding.version);
-            self.error_reporter.report_note(
-                encoding_message,
-                Some(file_encoding.location()),
-            )
+            self.error_reporter
+                .report_note(encoding_message, Some(file_encoding.location()))
         } else {
-            let encoding_message = format!(
-                "file is using the Slice{} encoding by default",
-                Encoding::default(),
-            );
+            let encoding_message = format!("file is using the Slice{} encoding by default", Encoding::default());
             self.error_reporter.report_note(encoding_message, None);
 
             self.error_reporter.report_note(
@@ -247,19 +242,16 @@ impl ComputeSupportedEncodings for Struct {
         // Insert a dummy entry for the struct into the cache to prevent infinite lookup cycles.
         // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
         // error for structs to be cyclic, so it's fine if the supported encodings are bogus.
-        patcher.supported_encodings_cache.insert(
-            self.parser_scoped_identifier(),
-            SupportedEncodings::dummy(),
-        );
+        patcher
+            .supported_encodings_cache
+            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
         // Structs only support encodings that all its data members also support.
         for member in self.members() {
-            supported_encodings.intersect_with(
-                &patcher.get_supported_encodings_for_type_ref(
-                    member.data_type(),
-                    file_encoding,
-                    member.is_tagged(),
-                )
-            );
+            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+                member.data_type(),
+                file_encoding,
+                member.is_tagged(),
+            ));
         }
 
         // Non-compact structs are not supported by the Slice1 encoding.
@@ -283,20 +275,17 @@ impl ComputeSupportedEncodings for Exception {
         // Insert a dummy entry for the exception into the cache to prevent infinite lookup cycles.
         // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
         // error for exceptions to be cyclic, so it's fine if the supported encodings are bogus.
-        patcher.supported_encodings_cache.insert(
-            self.parser_scoped_identifier(),
-            SupportedEncodings::dummy(),
-        );
+        patcher
+            .supported_encodings_cache
+            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
         // Exceptions only support encodings that all its data members also support
         // (including inherited ones).
         for member in self.all_members() {
-            supported_encodings.intersect_with(
-                &patcher.get_supported_encodings_for_type_ref(
-                    member.data_type(),
-                    file_encoding,
-                    member.is_tagged(),
-                )
-            );
+            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+                member.data_type(),
+                file_encoding,
+                member.is_tagged(),
+            ));
         }
 
         // Exception inheritance is only supported by the Slice1 encoding.
@@ -320,20 +309,17 @@ impl ComputeSupportedEncodings for Class {
         // Insert a dummy entry for the class into the cache to prevent infinite lookup cycles.
         // Cycles are allowed with classes, but the only encoding that supports classes is Slice1,
         // so using this approach to break cycles will still yield the correct supported encodings.
-        patcher.supported_encodings_cache.insert(
-            self.parser_scoped_identifier(),
-            SupportedEncodings::dummy(),
-        );
+        patcher
+            .supported_encodings_cache
+            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
         // Classes only support encodings that all its data members also support
         // (including inherited ones).
         for member in self.all_members() {
-            supported_encodings.intersect_with(
-                &patcher.get_supported_encodings_for_type_ref(
-                    member.data_type(),
-                    file_encoding,
-                    member.is_tagged(),
-                )
-            );
+            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+                member.data_type(),
+                file_encoding,
+                member.is_tagged(),
+            ));
         }
 
         // Classes are only supported by the Slice1 encoding.
@@ -355,21 +341,16 @@ impl ComputeSupportedEncodings for Interface {
     ) -> Option<&'static str> {
         // Insert a dummy entry for the interface into the cache to prevent infinite lookup cycles.
         // The correct encoding is computed and inserted later.
-        patcher.supported_encodings_cache.insert(
-            self.parser_scoped_identifier(),
-            SupportedEncodings::dummy(),
-        );
+        patcher
+            .supported_encodings_cache
+            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
 
         // Interfaces have no restrictions apart from those imposed by its file's encoding.
         // However, all the operations in an interface must support its file's encoding too.
         for operation in self.all_operations() {
             for member in operation.parameters_and_return_members() {
                 // This method automatically emits errors for encoding mismatches.
-                patcher.get_supported_encodings_for_type_ref(
-                    member.data_type(),
-                    file_encoding,
-                    member.is_tagged(),
-                );
+                patcher.get_supported_encodings_for_type_ref(member.data_type(), file_encoding, member.is_tagged());
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
@@ -392,13 +373,11 @@ impl ComputeSupportedEncodings for Enum {
     ) -> Option<&'static str> {
         if let Some(underlying_type) = &self.underlying {
             // Enums only support encodings that its underlying type also supports.
-            supported_encodings.intersect_with(
-                &patcher.get_supported_encodings_for_type_ref(
-                    underlying_type,
-                    file_encoding,
-                    false,
-                )
-            );
+            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+                underlying_type,
+                file_encoding,
+                false,
+            ));
 
             // Enums with underlying types are not supported by the Slice1 encoding.
             supported_encodings.disable(Encoding::Slice1);

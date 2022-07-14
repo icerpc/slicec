@@ -149,10 +149,7 @@ impl Ast {
     /// let fake_node = ast.find_node("foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node<'a>(
-        &'a self,
-        identifier: &str,
-    ) -> Result<&'a Node, String> {
+    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, String> {
         self.lookup_table
             .get(identifier)
             .map(|i| &self.elements[*i])
@@ -197,11 +194,7 @@ impl Ast {
     /// let fake_node = ast.find_node_with_scope("hello", "foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node_with_scope<'a>(
-        &'a self,
-        identifier: &str,
-        scope: &str,
-    ) -> Result<&'a Node, String> {
+    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, String> {
         // If the identifier is globally scoped (starts with '::'), find the node without scoping.
         if let Some(unprefixed_identifier) = identifier.strip_prefix("::") {
             return self.find_node(unprefixed_identifier);
@@ -222,8 +215,12 @@ impl Ast {
         }
 
         // If the identifier wasn't defined in any of the scopes, check for it at global scope.
-        self.find_node(identifier)
-            .map_err(|_| format!("no element with identifier `{}` exists in the scope `{}`", identifier, scope))
+        self.find_node(identifier).map_err(|_| {
+            format!(
+                "no element with identifier `{}` exists in the scope `{}`",
+                identifier, scope
+            )
+        })
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
@@ -264,15 +261,11 @@ impl Ast {
     /// let wrong_type = ast.find_element::<Exception>("bool");
     /// assert!(fake_element.is_err());
     /// ```
-    pub fn find_element<'a, T: Element + ?Sized>(
-        &'a self,
-        identifier: &str,
-    ) -> Result<&'a T, String>
+    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, String>
     where
         &'a T: TryFrom<&'a Node, Error = String>,
     {
-        self.find_node(identifier)
-            .and_then(|x| x.try_into())
+        self.find_node(identifier).and_then(|x| x.try_into())
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
@@ -317,8 +310,7 @@ impl Ast {
     where
         &'a T: TryFrom<&'a Node, Error = String>,
     {
-        self.find_node_with_scope(identifier, scope)
-            .and_then(|x| x.try_into())
+        self.find_node_with_scope(identifier, scope).and_then(|x| x.try_into())
     }
 
     /// Returns an immutable slice of all the [nodes](Node) contained in this AST.

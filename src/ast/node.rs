@@ -86,17 +86,17 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Type, Self::Error> {
         match node {
-            Node::Struct(struct_ptr)          => Ok(struct_ptr.borrow()),
-            Node::Class(class_ptr)            => Ok(class_ptr.borrow()),
-            Node::Exception(exception_ptr)    => Ok(exception_ptr.borrow()),
-            Node::Interface(interface_ptr)    => Ok(interface_ptr.borrow()),
-            Node::Enum(enum_ptr)              => Ok(enum_ptr.borrow()),
-            Node::Trait(trait_ptr)            => Ok(trait_ptr.borrow()),
+            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
+            Node::Class(class_ptr) => Ok(class_ptr.borrow()),
+            Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
+            Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
+            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
+            Node::Trait(trait_ptr) => Ok(trait_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
-            Node::TypeAlias(type_alias_ptr)   => Ok(type_alias_ptr.borrow()),
-            Node::Sequence(sequence_ptr)      => Ok(sequence_ptr.borrow()),
-            Node::Dictionary(dictionary_ptr)  => Ok(dictionary_ptr.borrow()),
-            Node::Primitive(primitive_ptr)    => Ok(primitive_ptr.borrow()),
+            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
+            Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
+            Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
+            Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
             _ => Err(format!(
                 "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
                 prefix_with_article(node.to_string().to_case(Case::Lower)),
@@ -114,19 +114,19 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Entity, Self::Error> {
         match node {
-            Node::Module(module_ptr)          => Ok(module_ptr.borrow()),
-            Node::Struct(struct_ptr)          => Ok(struct_ptr.borrow()),
-            Node::Class(class_ptr)            => Ok(class_ptr.borrow()),
-            Node::Exception(exception_ptr)    => Ok(exception_ptr.borrow()),
+            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
+            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
+            Node::Class(class_ptr) => Ok(class_ptr.borrow()),
+            Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
             Node::DataMember(data_member_ptr) => Ok(data_member_ptr.borrow()),
-            Node::Interface(interface_ptr)    => Ok(interface_ptr.borrow()),
-            Node::Operation(operation_ptr)    => Ok(operation_ptr.borrow()),
-            Node::Parameter(parameter_ptr)    => Ok(parameter_ptr.borrow()),
-            Node::Enum(enum_ptr)              => Ok(enum_ptr.borrow()),
-            Node::Enumerator(enumerator_ptr)  => Ok(enumerator_ptr.borrow()),
-            Node::Trait(trait_ptr)            => Ok(trait_ptr.borrow()),
+            Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
+            Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
+            Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
+            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
+            Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
+            Node::Trait(trait_ptr) => Ok(trait_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
-            Node::TypeAlias(type_alias_ptr)   => Ok(type_alias_ptr.borrow()),
+            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
             _ => Err(format!(
                 "type mismatch: expected an `Entity` but found {} (which doesn't implement `Entity`)",
                 prefix_with_article(node.to_string().to_case(Case::Lower)),
@@ -141,13 +141,7 @@ macro_rules! impl_into_node_for {
         impl From<OwnedPtr<$variant>> for Node {
             // Macro variables in comments aren't expanded, so instead of writing a doc comment normally, we generate
             // documentation for this function using a `doc` attribute.
-            #[doc = concat!(
-                "Wraps the OwnedPtr<",
-                stringify!($variant),
-                "> in a [Node] of the corresponding variant [Node::",
-                stringify!($variant),
-                "].",
-            )]
+            #[doc = concat!("Wraps the OwnedPtr<", stringify!($variant), "> in a [Node] of the corresponding variant [Node::", stringify!($variant), "].")]
             fn from(ptr: OwnedPtr<$variant>) -> Node {
                 Node::$variant(ptr)
             }

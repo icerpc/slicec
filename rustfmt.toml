@@ -31,6 +31,3 @@ use_try_shorthand = true
 
 reorder_impl_items = true
 
-ignore = [
-    "src/ast"
-]

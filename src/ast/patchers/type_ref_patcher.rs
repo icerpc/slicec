@@ -1,13 +1,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::downgrade_as;
 use crate::ast::{Ast, Node};
+use crate::downgrade_as;
 use crate::error::ErrorReporter;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::string_util::prefix_with_article;
-use std::convert::TryInto;
 use convert_case::{Case, Casing};
+use std::convert::TryInto;
 
 pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<(), ()> {
     let mut patcher = TypeRefPatcher {
@@ -31,20 +31,21 @@ impl TypeRefPatcher<'_> {
     fn compute_patches(&mut self, ast: &Ast) {
         for node in ast.as_slice() {
             let patch = match node {
-                Node::Class(class_ptr) => {
-                    class_ptr.borrow().base.as_ref()
-                        .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(PatchKind::BaseClass)
-                }
-                Node::Exception(exception_ptr) => {
-                    exception_ptr.borrow().base.as_ref()
-                        .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(PatchKind::BaseException)
-                }
+                Node::Class(class_ptr) => class_ptr
+                    .borrow()
+                    .base
+                    .as_ref()
+                    .and_then(|type_ref| self.resolve_definition(type_ref, ast))
+                    .map(PatchKind::BaseClass),
+                Node::Exception(exception_ptr) => exception_ptr
+                    .borrow()
+                    .base
+                    .as_ref()
+                    .and_then(|type_ref| self.resolve_definition(type_ref, ast))
+                    .map(PatchKind::BaseException),
                 Node::DataMember(data_member_ptr) => {
                     let type_ref = &data_member_ptr.borrow().data_type;
-                    self.resolve_definition(type_ref, ast)
-                        .map(PatchKind::DataMemberType)
+                    self.resolve_definition(type_ref, ast).map(PatchKind::DataMemberType)
                 }
                 Node::Interface(interface_ptr) => {
                     interface_ptr.borrow().bases.iter()
@@ -54,14 +55,14 @@ impl TypeRefPatcher<'_> {
                 }
                 Node::Parameter(parameter_ptr) => {
                     let type_ref = &parameter_ptr.borrow().data_type;
-                    self.resolve_definition(type_ref, ast)
-                        .map(PatchKind::ParameterType)
+                    self.resolve_definition(type_ref, ast).map(PatchKind::ParameterType)
                 }
-                Node::Enum(enum_ptr) => {
-                    enum_ptr.borrow().underlying.as_ref()
-                        .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                        .map(PatchKind::EnumUnderlyingType)
-                }
+                Node::Enum(enum_ptr) => enum_ptr
+                    .borrow()
+                    .underlying
+                    .as_ref()
+                    .and_then(|type_ref| self.resolve_definition(type_ref, ast))
+                    .map(PatchKind::EnumUnderlyingType),
                 Node::TypeAlias(type_alias_ptr) => {
                     let type_ref = &type_alias_ptr.borrow().underlying;
                     self.resolve_definition(type_ref, ast)
@@ -69,8 +70,7 @@ impl TypeRefPatcher<'_> {
                 }
                 Node::Sequence(sequence_ptr) => {
                     let type_ref = &sequence_ptr.borrow().element_type;
-                    self.resolve_definition(type_ref, ast)
-                        .map(PatchKind::SequenceType)
+                    self.resolve_definition(type_ref, ast).map(PatchKind::SequenceType)
                 }
                 Node::Dictionary(dictionary_ptr) => {
                     let dictionary_def = dictionary_ptr.borrow();
@@ -167,7 +167,11 @@ impl TypeRefPatcher<'_> {
                     }
                     if let Some((value_type_ptr, value_attributes)) = value_patch {
                         dictionary_ptr.borrow_mut().value_type.definition = value_type_ptr;
-                        dictionary_ptr.borrow_mut().value_type.attributes.extend(value_attributes);
+                        dictionary_ptr
+                            .borrow_mut()
+                            .value_type
+                            .attributes
+                            .extend(value_attributes);
                     }
                 }
                 PatchKind::None => {}
@@ -175,11 +179,7 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn resolve_definition<'a, T>(
-        &mut self,
-        type_ref: &TypeRef<T>,
-        ast: &'a Ast,
-    ) -> Option<Patch<T>>
+    fn resolve_definition<'a, T>(&mut self, type_ref: &TypeRef<T>, ast: &'a Ast) -> Option<Patch<T>>
     where
         T: Element + ?Sized,
         &'a Node: TryIntoPatch<T>,
@@ -214,11 +214,7 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn resolve_type_alias<'a, T>(
-        &mut self,
-        type_alias: &'a TypeAlias,
-        ast: &'a Ast,
-    ) -> Result<Patch<T>, String>
+    fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, String>
     where
         T: ?Sized,
         &'a Node: TryIntoPatch<T>,
@@ -251,7 +247,9 @@ impl TypeRefPatcher<'_> {
 
             // Check if we've already seen the next type alias before continuing the loop; if so, it's cyclic and we
             // emit a detailed error message showing each chain in the cycle before returning with an error.
-            let lookup_result = type_alias_chain.iter().position(|&other| std::ptr::eq(other, current_type_alias));
+            let lookup_result = type_alias_chain
+                .iter()
+                .position(|&other| std::ptr::eq(other, current_type_alias));
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
 
@@ -259,7 +257,8 @@ impl TypeRefPatcher<'_> {
                     "self-referential type alias '{}' has no concrete type",
                     current_type_alias.module_scoped_identifier()
                 );
-                self.error_reporter.report_error(message, Some(current_type_alias.location()));
+                self.error_reporter
+                    .report_error(message, Some(current_type_alias.location()));
 
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
@@ -267,7 +266,8 @@ impl TypeRefPatcher<'_> {
                         window[0].identifier(),
                         window[1].identifier(),
                     );
-                    self.error_reporter.report_note(message, Some(window[0].underlying.location()));
+                    self.error_reporter
+                        .report_note(message, Some(window[0].underlying.location()));
                 }
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());
@@ -302,7 +302,8 @@ trait TryIntoPatch<T: ?Sized> {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String>;
 }
 
-impl<'a, T> TryIntoPatch<T> for &'a Node where
+impl<'a, T> TryIntoPatch<T> for &'a Node
+where
     &'a Node: TryInto<WeakPtr<T>, Error = String>,
 {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
@@ -310,21 +311,20 @@ impl<'a, T> TryIntoPatch<T> for &'a Node where
     }
 }
 
-impl<'a> TryIntoPatch<dyn Type> for &'a Node
-{
+impl<'a> TryIntoPatch<dyn Type> for &'a Node {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
         let converted_ptr = match self {
-            Node::Struct(struct_ptr)          => Ok(downgrade_as!(struct_ptr, dyn Type)),
-            Node::Class(class_ptr)            => Ok(downgrade_as!(class_ptr, dyn Type)),
-            Node::Exception(exception_ptr)    => Ok(downgrade_as!(exception_ptr, dyn Type)),
-            Node::Interface(interface_ptr)    => Ok(downgrade_as!(interface_ptr, dyn Type)),
-            Node::Enum(enum_ptr)              => Ok(downgrade_as!(enum_ptr, dyn Type)),
-            Node::Trait(trait_ptr)            => Ok(downgrade_as!(trait_ptr, dyn Type)),
+            Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Type)),
+            Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Type)),
+            Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Type)),
+            Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Type)),
+            Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Type)),
+            Node::Trait(trait_ptr) => Ok(downgrade_as!(trait_ptr, dyn Type)),
             Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
-            Node::TypeAlias(type_alias_ptr)   => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
-            Node::Sequence(sequence_ptr)      => Ok(downgrade_as!(sequence_ptr, dyn Type)),
-            Node::Dictionary(dictionary_ptr)  => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
-            Node::Primitive(primitive_ptr)    => Ok(downgrade_as!(primitive_ptr, dyn Type)),
+            Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
+            Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
+            Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
+            Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
             _ => Err(format!(
                 "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
                 prefix_with_article(self.to_string().to_case(Case::Lower)),
@@ -334,13 +334,15 @@ impl<'a> TryIntoPatch<dyn Type> for &'a Node
     }
 }
 
-impl<'a, T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
+impl<T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
-        self.downcast().map(|ptr| (ptr, attributes)).map_err(|_| "todo".to_owned())
+        self.downcast()
+            .map(|ptr| (ptr, attributes))
+            .map_err(|_| "todo".to_owned())
     }
 }
 
-impl<'a> TryIntoPatch<dyn Type> for WeakPtr<dyn Type> {
+impl TryIntoPatch<dyn Type> for WeakPtr<dyn Type> {
     fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
         Ok((self, attributes))
     }
