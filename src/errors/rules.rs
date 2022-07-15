@@ -1,6 +1,7 @@
 // // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::ErrorKind;
+use crate::grammar::identifier;
 
 pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
@@ -15,11 +16,12 @@ pub enum RuleKind {
         identifier: String,
         kind: InvalidEnumeratorKind,
     },
+    InvalidEncoding(InvalidEncodingKind),
     InvalidStruct(String, InvalidStructKind),
     InvalidIdentifier(InvalidIdentifierKind),
     InvalidException,
     InvalidModule,
-    InvalidTypeAlias,
+    InvalidTypeAlias(InvalidTypeAliasKind),
     InvalidKey(InvalidKeyKind),
 }
 
@@ -277,6 +279,81 @@ impl InvalidStructKind {
     pub fn get_description(&self) -> String {
         match self {
             InvalidStructKind::CompactStructIsEmpty => "compact structs must be non-empty".to_string(),
+        }
+    }
+}
+
+pub enum InvalidEncodingKind {
+    NotSupported {
+        kind: String,
+        identifier: String,
+        encoding: String,
+    },
+    UnsupportedType {
+        type_string: String,
+        encoding: String,
+    },
+    ExceptionNotSupported(String),
+    OptionalsNotSupported(String),
+    StreamedParametersNotSupported(String),
+}
+
+impl InvalidEncodingKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidEncodingKind::NotSupported { .. } => 1,
+            InvalidEncodingKind::UnsupportedType { .. } => 2,
+            InvalidEncodingKind::ExceptionNotSupported { .. } => 3,
+            InvalidEncodingKind::OptionalsNotSupported { .. } => 4,
+            InvalidEncodingKind::StreamedParametersNotSupported { .. } => 5,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidEncodingKind::NotSupported {
+                kind,
+                identifier,
+                encoding,
+            } => {
+                format!(
+                    "{} `{}` is not supported by the Slice{} encoding",
+                    kind, identifier, encoding,
+                )
+            }
+            InvalidEncodingKind::UnsupportedType { type_string, encoding } => {
+                format!(
+                    "the type `{}` is not supported by the Slice{} encoding",
+                    type_string, encoding,
+                )
+            }
+            InvalidEncodingKind::ExceptionNotSupported(encoding) => format!(
+                "exceptions cannot be used as a data type with the {} encoding",
+                encoding
+            ),
+            InvalidEncodingKind::StreamedParametersNotSupported(encoding) => {
+                format!("streamed parameters are not supported by the {} encoding", encoding)
+            }
+        }
+    }
+}
+
+pub enum InvalidTypeAliasKind {
+    SelfReferentialTypeAliasNeedsConcreteType(String),
+}
+
+impl InvalidTypeAliasKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(_) => 1,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(identifier) => {
+                format!("self-referential type alias '{}' has no concrete type", identifier)
+            }
         }
     }
 }

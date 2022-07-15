@@ -2,6 +2,7 @@
 
 use super::super::{Ast, Node};
 use crate::error::ErrorReporter;
+use crate::errors::*;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::supported_encodings::SupportedEncodings;
@@ -94,13 +95,13 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let message = format!(
-                "{} `{}` is not supported by the Slice{} encoding",
-                entity_def.kind(),
-                entity_def.identifier(),
-                file_encoding,
-            );
-            self.error_reporter.report_error(message, Some(entity_def.location()));
+            let rule_error = RuleKind::InvalidEncoding(InvalidEncodingKind::NotSupported {
+                kind: entity_def.kind().to_string(),
+                identifier: entity_def.identifier().to_string(),
+                encoding: file_encoding.to_string(),
+            });
+            self.error_reporter
+                .report_rule_error(rule_error, Some(entity_def.location()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -127,7 +128,7 @@ impl EncodingPatcher<'_> {
     ) -> SupportedEncodings {
         // If we encounter a type that isn't supported by its file's encodings, and we know a specific reason why, we
         // store an explanation in this variable. If it's empty, we report a generic message.
-        let mut error_messages = Vec::new();
+        let mut rule_errors = Vec::new();
 
         let mut supported_encodings = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_encodings_for(struct_def),
@@ -136,7 +137,9 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    error_messages.push("exceptions cannot be used as a data type with the Slice1 encoding".to_owned());
+                    let rule_error =
+                        RuleKind::InvalidEncoding(InvalidEncodingKind::ExceptionNotSupported("Slice1".to_string()));
+                    rule_errors.push(rule_error);
                 }
                 encodings
             }
@@ -173,9 +176,9 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                error_messages.push(
-                    "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)".to_owned(),
-                );
+                let rule_error =
+                    RuleKind::InvalidEncoding(InvalidEncodingKind::OptionalsNotSupported("Slice1".to_string()));
+                rule_errors.push(rule_error);
             }
         }
 
@@ -184,14 +187,16 @@ impl EncodingPatcher<'_> {
             supported_encodings
         } else {
             // If no specific reasons were given for the error, generate a generic one.
-            if error_messages.is_empty() {
-                error_messages.push(format!(
-                    "the type `{}` is not supported by the Slice{} encoding",
-                    &type_ref.type_string, file_encoding,
-                ));
+            if rule_errors.is_empty() {
+                let rule_error = RuleKind::InvalidEncoding(InvalidEncodingKind::UnsupportedType {
+                    type_string: type_ref.type_string.to_string(),
+                    encoding: file_encoding.to_string(),
+                });
+                rule_errors.push(rule_error);
             }
-            for message in error_messages {
-                self.error_reporter.report_error(message, Some(type_ref.location()));
+            for rule_error in rule_errors {
+                self.error_reporter
+                    .report_rule_error(rule_error, Some(type_ref.location()));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -354,8 +359,12 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let message = "streamed parameters are not supported by the Slice1 encoding";
-                    patcher.error_reporter.report_error(message, Some(member.location()));
+                    let rule_error = RuleKind::InvalidEncoding(InvalidEncodingKind::StreamedParametersNotSupported(
+                        "Slice1".to_owned(),
+                    ));
+                    patcher
+                        .error_reporter
+                        .report_rule_error(rule_error, Some(member.location()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }
