@@ -53,15 +53,13 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
         }
     }
 
-    let mut parsed_data = ParsedData {
+    let parsed_data = ParsedData {
         ast,
         files: slice_files,
         error_reporter,
     };
 
-    patch_ast(&mut parsed_data);
-
-    parsed_data.into()
+    patch_ast(parsed_data)
 }
 
 pub fn parse_string(input: &str) -> ParserResult {
@@ -77,15 +75,13 @@ pub fn parse_string(input: &str) -> ParserResult {
         slice_files.insert(slice_file.filename.clone(), slice_file);
     }
 
-    let mut parsed_data = ParsedData {
+    let parsed_data = ParsedData {
         ast,
         files: slice_files,
         error_reporter,
     };
 
-    patch_ast(&mut parsed_data);
-
-    parsed_data.into()
+    patch_ast(parsed_data)
 }
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
@@ -103,26 +99,20 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
         }
     }
 
-    let mut parsed_data = ParsedData {
+    let parsed_data = ParsedData {
         ast,
         files: slice_files,
         error_reporter,
     };
 
-    patch_ast(&mut parsed_data);
-
-    parsed_data.into()
+    patch_ast(parsed_data)
 }
 
-fn patch_ast(parsed_data: &mut ParsedData) {
+fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     // TODO integrate this better with ParsedData in the future.
     if !parsed_data.has_errors() {
         unsafe {
-            let _ = crate::ast::patch_ast(
-                &mut parsed_data.ast,
-                &parsed_data.files,
-                &mut parsed_data.error_reporter,
-            );
+            parsed_data = crate::ast::patch_ast(parsed_data)?;
         }
     }
 
@@ -130,6 +120,8 @@ fn patch_ast(parsed_data: &mut ParsedData) {
     if !parsed_data.has_errors() {
         cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
     }
+
+    parsed_data.into()
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {

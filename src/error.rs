@@ -30,15 +30,6 @@ impl ErrorReporter {
         (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
-    /// Returns `Ok` if the compiler hasn't encountered any errors and should continue execution.
-    /// Returns `Err` if the compiler has encountered an error and should exit gracefully.
-    pub fn get_state(&self) -> Result<(), ()> {
-        match self.has_errors() {
-            false => Ok(()),
-            true => Err(()),
-        }
-    }
-
     /// Returns the total number of errors and warnings reported through the error reporter.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)

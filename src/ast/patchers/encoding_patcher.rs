@@ -1,23 +1,20 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use super::super::{Ast, Node};
+use super::super::Node;
 use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
+use crate::parse_result::{ParsedData, ParserResult};
 use crate::slice_file::SliceFile;
 use crate::supported_encodings::SupportedEncodings;
 use std::collections::HashMap;
 
-pub unsafe fn patch_ast(
-    ast: &mut Ast,
-    slice_files: &HashMap<String, SliceFile>,
-    error_reporter: &mut ErrorReporter,
-) -> Result<(), ()> {
+pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     // Create a new encoding patcher.
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
-        slice_files,
-        error_reporter,
+        slice_files: &mut parsed_data.files,
+        error_reporter: &mut parsed_data.error_reporter,
     };
 
     // Iterate through each node in the AST and patch any `supported_encodings` fields.
@@ -25,7 +22,7 @@ pub unsafe fn patch_ast(
     //
     // For types where it's trivial to compute their encodings (primitives, sequences, etc.) we compute them on the fly
     // but other types that are computationally intensive (like containers) we compute it once (here) and cache it.
-    for node in ast.as_mut_slice() {
+    for node in parsed_data.ast.as_mut_slice() {
         match node {
             Node::Struct(struct_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(struct_ptr.borrow());
@@ -59,7 +56,7 @@ pub unsafe fn patch_ast(
         }
     }
 
-    error_reporter.get_state()
+    parsed_data.into()
 }
 
 struct EncodingPatcher<'a> {

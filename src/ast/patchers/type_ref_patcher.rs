@@ -5,22 +5,23 @@ use crate::downgrade_as;
 use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
+use crate::parse_result::{ParsedData, ParserResult};
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
 use std::convert::TryInto;
 
-pub unsafe fn patch_ast(ast: &mut Ast, error_reporter: &mut ErrorReporter) -> Result<(), ()> {
+pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
-        error_reporter,
+        error_reporter: &mut parsed_data.error_reporter,
     };
 
     // TODO why explain we split this logic so that we can for sure have an immutable AST.
-    patcher.compute_patches(ast);
-    patcher.apply_patches(ast);
+    patcher.compute_patches(&parsed_data.ast);
+    patcher.apply_patches(&mut parsed_data.ast);
 
-    error_reporter.get_state()
+    parsed_data.into()
 }
 
 struct TypeRefPatcher<'a> {
