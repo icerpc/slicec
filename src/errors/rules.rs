@@ -5,17 +5,17 @@ use crate::errors::ErrorKind;
 pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
     InvalidArgument(InvalidArgumentKind),
-    InvalidTag,
-    InvalidParameter,
+    InvalidTag(String, InvalidTagKind),
+    InvalidParameter(String, InvalidParameterKind),
     InvalidReturn,
-    InvalidMember,
+    InvalidMember(String, InvalidMemberKind),
     InvalidType,
     InvalidEnum,
     InvalidEnumerator {
         identifier: String,
         kind: InvalidEnumeratorKind,
     },
-    InvalidStruct,
+    InvalidStruct(String, InvalidStructKind),
     InvalidIdentifier(InvalidIdentifierKind),
     InvalidException,
     InvalidModule,
@@ -190,6 +190,93 @@ impl InvalidIdentifierKind {
             InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(identifier) => {
                 format!("{} shadows another symbol", identifier)
             }
+        }
+    }
+}
+
+pub enum InvalidTagKind {
+    TagsMustBeUnique,
+}
+
+impl InvalidTagKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidTagKind::TagsMustBeUnique => 1,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidTagKind::TagsMustBeUnique => "tags must be unique".to_string(),
+        }
+    }
+}
+
+pub enum InvalidParameterKind {
+    RequiredParametersMustBeFirst,
+    StreamsMustBeLast,
+}
+
+impl InvalidParameterKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidParameterKind::RequiredParametersMustBeFirst => 1,
+            InvalidParameterKind::StreamsMustBeLast => 2,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidParameterKind::RequiredParametersMustBeFirst => {
+                "required parameters must precede tagged parameters".to_string()
+            }
+            InvalidParameterKind::StreamsMustBeLast => {
+                "only the last parameter in an operation can use the stream modifier".to_string()
+            }
+        }
+    }
+}
+
+pub enum InvalidMemberKind {
+    TaggedDataMemberNotSupportedInCompactStructs,
+    TaggedDataMemberMustBeOptional,
+    TaggedDataMemberCannotBeClass,
+}
+
+impl InvalidMemberKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs => 1,
+            InvalidMemberKind::TaggedDataMemberMustBeOptional => 2,
+            InvalidMemberKind::TaggedDataMemberCannotBeClass => 2,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs => {
+                "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact".to_string()
+            }
+            InvalidMemberKind::TaggedDataMemberMustBeOptional => "tagged members must be optional".to_string(),
+            InvalidMemberKind::TaggedDataMemberCannotBeClass => "tagged members cannot be classes".to_string(),
+        }
+    }
+}
+
+pub enum InvalidStructKind {
+    CompactStructIsEmpty,
+}
+
+impl InvalidStructKind {
+    pub fn get_error_code(&self) -> u32 {
+        match self {
+            InvalidStructKind::CompactStructIsEmpty => 1,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidStructKind::CompactStructIsEmpty => "compact structs must be non-empty".to_string(),
         }
     }
 }
