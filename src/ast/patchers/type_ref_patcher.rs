@@ -256,7 +256,7 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
                 let rule_error =
                     RuleKind::InvalidTypeAlias(InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(
-                        current_type_alias.module_scoped_identifier().to_owned(),
+                        current_type_alias.module_scoped_identifier(),
                     ));
                 self.error_reporter
                     .report_rule_error(rule_error, Some(current_type_alias.location()));

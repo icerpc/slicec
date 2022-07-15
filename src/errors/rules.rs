@@ -1,7 +1,6 @@
-// // Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::ErrorKind;
-use crate::grammar::identifier;
 
 pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
@@ -319,6 +318,12 @@ impl InvalidEncodingKind {
                 format!(
                     "{} `{}` is not supported by the Slice{} encoding",
                     kind, identifier, encoding,
+                )
+            }
+            InvalidEncodingKind::OptionalsNotSupported(encoding) => {
+                format!(
+                    "optional types are not supported by the {} encoding (except for classes, proxies, and with tags)",
+                    encoding
                 )
             }
             InvalidEncodingKind::UnsupportedType { type_string, encoding } => {
