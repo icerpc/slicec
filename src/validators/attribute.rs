@@ -40,9 +40,8 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
         match attribute.arguments.len() {
             // The format attribute must have arguments
             0 => {
-                let rule_warning = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty(
-                    "format attribute".to_string(),
-                ));
+                let rule_warning =
+                    RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute"));
                 error_reporter.report_rule_error(rule_warning, Some(attribute.location()))
             }
             _ => {

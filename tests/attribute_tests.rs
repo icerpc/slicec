@@ -8,6 +8,8 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+        use slice::error::Error;
+        use slice::errors::{ErrorKind, InvalidArgumentKind, RuleKind, TempError};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -69,14 +71,15 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
+            let rule_kind = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute"));
+            let error: Error = TempError::new(ErrorKind::RuleError(rule_kind, None)).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "format attribute arguments cannot be empty" // Should be error here
-            ]);
+
+            assert_errors!(error_reporter, [error]);
         }
 
         #[test]

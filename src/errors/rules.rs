@@ -8,10 +8,7 @@ pub enum RuleKind {
     InvalidArgument(InvalidArgumentKind),
     InvalidTag(String, InvalidTagKind),
     InvalidParameter(String, InvalidParameterKind),
-    InvalidReturn,
     InvalidMember(String, InvalidMemberKind),
-    InvalidType,
-    InvalidEnum,
     InvalidEnumerator {
         identifier: String,
         kind: InvalidEnumeratorKind,
@@ -19,30 +16,37 @@ pub enum RuleKind {
     InvalidEncoding(InvalidEncodingKind),
     InvalidStruct(String, InvalidStructKind),
     InvalidIdentifier(InvalidIdentifierKind),
-    InvalidException,
-    InvalidModule,
     InvalidTypeAlias(InvalidTypeAliasKind),
     InvalidKey(InvalidKeyKind),
 }
 
 impl RuleKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            RuleKind::InvalidAttribute(invalid_attribute_kind) => invalid_attribute_kind.get_error_code(),
-            _ => 0,
+            RuleKind::InvalidAttribute(kind) => kind.error_code(),
+            RuleKind::InvalidArgument(kind) => kind.error_code(),
+            RuleKind::InvalidEncoding(kind) => kind.error_code(),
+            RuleKind::InvalidEnumerator { identifier: _, kind } => kind.error_code(),
+            RuleKind::InvalidIdentifier(kind) => kind.error_code(),
+            RuleKind::InvalidKey(kind) => kind.error_code(),
+            RuleKind::InvalidParameter(_, kind) => kind.error_code(),
+            RuleKind::InvalidStruct(_, kind) => kind.error_code(),
+            RuleKind::InvalidTag(_, kind) => kind.error_code(),
+            RuleKind::InvalidTypeAlias(kind) => kind.error_code(),
+            RuleKind::InvalidMember(_, kind) => kind.error_code(),
         }
     }
 
     pub fn get_description(&self) -> String {
         match self {
             RuleKind::InvalidAttribute(attribute_kind) => {
-                "invalid attribute: ".to_owned() + &attribute_kind.get_description()
+                "[InvalidAttribute]: ".to_owned() + &attribute_kind.get_description()
             }
-            RuleKind::InvalidArgument(arg_kind) => "invalid argument: ".to_owned() + &arg_kind.get_description(),
+            RuleKind::InvalidArgument(arg_kind) => "[InvalidArgument]: ".to_owned() + &arg_kind.get_description(),
             RuleKind::InvalidTag(tag, invalid_tag_kind) => {
-                format!("invalid tag `{}`: ", tag) + &invalid_tag_kind.get_description()
+                format!("[InvalidTag `{}`]: ", tag) + &invalid_tag_kind.get_description()
             }
-            _ => "".to_string(),
+            _ => "Todo".to_string(),
         }
     }
 }
@@ -54,10 +58,10 @@ pub enum InvalidAttributeKind {
 }
 
 impl InvalidAttributeKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidAttributeKind::CompressAttributeCannotBeApplied() => 1,
-            InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(_) => 2,
+            InvalidAttributeKind::CompressAttributeCannotBeApplied() => 0,
+            InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(_) => 5,
         }
     }
 
@@ -75,15 +79,15 @@ impl InvalidAttributeKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidArgumentKind {
-    ArgumentCannotBeEmpty(String),
+    ArgumentCannotBeEmpty(&'static str),
     ArgumentNotSupported(String, String),
 }
 
 impl InvalidArgumentKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidArgumentKind::ArgumentCannotBeEmpty(_) => 6,
-            InvalidArgumentKind::ArgumentNotSupported(_, _) => 7,
+            InvalidArgumentKind::ArgumentCannotBeEmpty(_) => 10,
+            InvalidArgumentKind::ArgumentNotSupported(_, _) => 15,
         }
     }
 
@@ -106,12 +110,12 @@ pub enum InvalidKeyKind {
 }
 
 impl InvalidKeyKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidKeyKind::CannotUseOptionalAsKey => 0,
-            InvalidKeyKind::StructsMustBeCompactToBeAKey => 1,
-            InvalidKeyKind::TypeCannotBeUsedAsAKey(_) => 2,
-            InvalidKeyKind::StructContainsDisallowedType(_) => 3,
+            InvalidKeyKind::CannotUseOptionalAsKey => 20,
+            InvalidKeyKind::StructsMustBeCompactToBeAKey => 25,
+            InvalidKeyKind::TypeCannotBeUsedAsAKey(_) => 30,
+            InvalidKeyKind::StructContainsDisallowedType(_) => 35,
         }
     }
 
@@ -147,14 +151,14 @@ pub enum InvalidEnumeratorKind {
 }
 
 impl InvalidEnumeratorKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidEnumeratorKind::MustBeNonNegative => 1,
-            InvalidEnumeratorKind::MustBeBounded { .. } => 2,
-            InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(_) => 3,
-            InvalidEnumeratorKind::MustBeUnique => 4,
-            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => 5,
-            InvalidEnumeratorKind::MustContainAtLeastOneValue => 6,
+            InvalidEnumeratorKind::MustBeNonNegative => 40,
+            InvalidEnumeratorKind::MustBeBounded { .. } => 45,
+            InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(_) => 50,
+            InvalidEnumeratorKind::MustBeUnique => 55,
+            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => 60,
+            InvalidEnumeratorKind::MustContainAtLeastOneValue => 75,
         }
     }
 
@@ -188,10 +192,10 @@ pub enum InvalidIdentifierKind {
 }
 
 impl InvalidIdentifierKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidIdentifierKind::IdentifierCannotBeARedefinition(_) => 1,
-            InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(_) => 2,
+            InvalidIdentifierKind::IdentifierCannotBeARedefinition(_) => 80,
+            InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(_) => 85,
         }
     }
 
@@ -213,7 +217,7 @@ pub enum InvalidTagKind {
 }
 
 impl InvalidTagKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
             InvalidTagKind::TagsMustBeUnique => 1,
         }
@@ -233,7 +237,7 @@ pub enum InvalidParameterKind {
 }
 
 impl InvalidParameterKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
             InvalidParameterKind::RequiredParametersMustBeFirst => 1,
             InvalidParameterKind::StreamsMustBeLast => 2,
@@ -260,11 +264,11 @@ pub enum InvalidMemberKind {
 }
 
 impl InvalidMemberKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs => 1,
-            InvalidMemberKind::TaggedDataMemberMustBeOptional => 2,
-            InvalidMemberKind::TaggedDataMemberCannotBeClass => 2,
+            InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs => 90,
+            InvalidMemberKind::TaggedDataMemberMustBeOptional => 95,
+            InvalidMemberKind::TaggedDataMemberCannotBeClass => 100,
         }
     }
 
@@ -285,7 +289,7 @@ pub enum InvalidStructKind {
 }
 
 impl InvalidStructKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
             InvalidStructKind::CompactStructIsEmpty => 1,
         }
@@ -315,13 +319,13 @@ pub enum InvalidEncodingKind {
 }
 
 impl InvalidEncodingKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidEncodingKind::NotSupported { .. } => 1,
-            InvalidEncodingKind::UnsupportedType { .. } => 2,
-            InvalidEncodingKind::ExceptionNotSupported { .. } => 3,
-            InvalidEncodingKind::OptionalsNotSupported { .. } => 4,
-            InvalidEncodingKind::StreamedParametersNotSupported { .. } => 5,
+            InvalidEncodingKind::NotSupported { .. } => 105,
+            InvalidEncodingKind::UnsupportedType { .. } => 110,
+            InvalidEncodingKind::ExceptionNotSupported { .. } => 115,
+            InvalidEncodingKind::OptionalsNotSupported { .. } => 120,
+            InvalidEncodingKind::StreamedParametersNotSupported { .. } => 125,
         }
     }
 
@@ -366,9 +370,9 @@ pub enum InvalidTypeAliasKind {
 }
 
 impl InvalidTypeAliasKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(_) => 1,
+            InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(_) => 130,
         }
     }
 

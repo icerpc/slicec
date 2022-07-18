@@ -15,8 +15,19 @@ pub use self::warnings::WarningKind;
 #[derive(Debug, Clone)]
 pub struct TempError {
     pub error_kind: ErrorKind,
+    pub error_code: u32,
+    pub message: String,
 }
 
+impl TempError {
+    pub fn new(error_kind: ErrorKind) -> Self {
+        TempError {
+            error_kind: error_kind.clone(),
+            error_code: error_kind.error_code(),
+            message: error_kind.message(),
+        }
+    }
+}
 impl fmt::Display for TempError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.error_kind.message())
@@ -42,11 +53,19 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
+    pub fn error_code(&self) -> u32 {
+        match self {
+            ErrorKind::Warning(warning_kind, _) => 1000 + warning_kind.error_code(),
+            ErrorKind::RuleError(rule_kind, _) => 2000 + rule_kind.error_code(),
+            ErrorKind::SyntaxError(syntax_kind, _) => 3000 + syntax_kind.error_code(),
+        }
+    }
+
     pub fn message(&self) -> String {
         match self {
-            ErrorKind::Warning(warning_kind, _) => "warning: ".to_owned() + &warning_kind.get_description(),
-            ErrorKind::RuleError(rule_kind, _) => "error: ".to_owned() + &rule_kind.get_description(),
-            ErrorKind::SyntaxError(warning_kind, _) => "syntax error: ".to_owned() + &warning_kind.get_description(),
+            ErrorKind::Warning(warning_kind, _) => warning_kind.get_description(),
+            ErrorKind::RuleError(rule_kind, _) => rule_kind.get_description(),
+            ErrorKind::SyntaxError(warning_kind, _) => warning_kind.get_description(),
         }
     }
 

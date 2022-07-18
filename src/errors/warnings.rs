@@ -10,11 +10,11 @@ pub enum WarningKind {
 }
 
 impl WarningKind {
-    pub fn get_error_code(&self) -> u32 {
+    pub fn error_code(&self) -> u32 {
         match self {
-            WarningKind::DocCommentIndicatesThrow { .. } => 5,
-            WarningKind::DocCommentIndicatesReturn { .. } => 6,
-            WarningKind::DocCommentIndicatesParam { .. } => 7,
+            WarningKind::DocCommentIndicatesThrow { .. } => 0,
+            WarningKind::DocCommentIndicatesReturn { .. } => 10,
+            WarningKind::DocCommentIndicatesParam { .. } => 20,
         }
     }
 
