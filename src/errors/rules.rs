@@ -2,6 +2,7 @@
 
 use crate::errors::*;
 
+#[derive(Debug, Clone)]
 pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
     InvalidArgument(InvalidArgumentKind),
@@ -46,6 +47,7 @@ impl RuleKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidAttributeKind {
     CompressAttributeCannotBeApplied(),
     DeprecatedAttributeCannotBeApplied(String),
@@ -71,6 +73,7 @@ impl InvalidAttributeKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidArgumentKind {
     ArgumentCannotBeEmpty(String),
     ArgumentNotSupported(String, String),
@@ -94,6 +97,7 @@ impl InvalidArgumentKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidKeyKind {
     CannotUseOptionalAsKey,
     StructsMustBeCompactToBeAKey,
@@ -132,6 +136,7 @@ impl InvalidKeyKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidEnumeratorKind {
     MustBeNonNegative,
     MustBeBounded { value: i64, min: i64, max: i64 },
@@ -176,6 +181,7 @@ impl InvalidEnumeratorKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidIdentifierKind {
     IdentifierCannotBeARedefinition(String),
     IdentifierCannotShadowAnotherSymbol(String),
@@ -201,6 +207,7 @@ impl InvalidIdentifierKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidTagKind {
     TagsMustBeUnique,
 }
@@ -219,6 +226,7 @@ impl InvalidTagKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidParameterKind {
     RequiredParametersMustBeFirst,
     StreamsMustBeLast,
@@ -244,6 +252,7 @@ impl InvalidParameterKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidMemberKind {
     TaggedDataMemberNotSupportedInCompactStructs,
     TaggedDataMemberMustBeOptional,
@@ -270,6 +279,7 @@ impl InvalidMemberKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidStructKind {
     CompactStructIsEmpty,
 }
@@ -288,6 +298,7 @@ impl InvalidStructKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidEncodingKind {
     NotSupported {
         kind: String,
@@ -349,6 +360,7 @@ impl InvalidEncodingKind {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum InvalidTypeAliasKind {
     SelfReferentialTypeAliasNeedsConcreteType(String),
 }

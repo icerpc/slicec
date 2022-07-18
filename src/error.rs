@@ -60,13 +60,13 @@ impl ErrorReporter {
 
     pub fn report_warning(&mut self, warning_kind: WarningKind, location: Option<&Location>) {
         let error_kind = ErrorKind::Warning(warning_kind, location.cloned());
-        let error = ReecesError { error_kind };
+        let error = TempError { error_kind };
         self.report_error_new(error);
     }
 
     pub fn report_rule_error(&mut self, rule_kind: RuleKind, location: Option<&Location>) {
         let error_kind = ErrorKind::RuleError(rule_kind, location.cloned());
-        let error = ReecesError { error_kind };
+        let error = TempError { error_kind };
         self.report_error_new(error);
     }
 

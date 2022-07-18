@@ -1,7 +1,8 @@
-// // Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::*;
 
+#[derive(Debug, Clone)]
 pub enum WarningKind {
     DocCommentIndicatesThrow { kind: String, op_identifier: String },
     DocCommentIndicatesReturn,
