@@ -77,10 +77,10 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
 fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            let rule_error = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
+            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
                 m.kind().to_string(),
             ));
-            error_reporter.report_rule_error(rule_error, Some(m.location()));
+            error_reporter.report_rule_error(rule_kind, Some(m.location()));
         }
     });
 }
@@ -95,8 +95,8 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => {
-                let rule_error = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied());
-                error_reporter.report_rule_error(rule_error, Some(attribute.location()))
+                let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied());
+                error_reporter.report_rule_error(rule_kind, Some(attribute.location()))
             }
             None => (),
         }

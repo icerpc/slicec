@@ -1,6 +1,6 @@
 // // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::ErrorKind;
+use crate::errors::*;
 
 pub enum WarningKind {
     DocCommentIndicatesThrow { kind: String, op_identifier: String },
@@ -8,8 +8,8 @@ pub enum WarningKind {
     DocCommentIndicatesParam { param_name: String },
 }
 
-impl ErrorKind for WarningKind {
-    fn get_error_code(&self) -> u32 {
+impl WarningKind {
+    pub fn get_error_code(&self) -> u32 {
         match self {
             WarningKind::DocCommentIndicatesThrow { .. } => 5,
             WarningKind::DocCommentIndicatesReturn { .. } => 6,
@@ -17,7 +17,7 @@ impl ErrorKind for WarningKind {
         }
     }
 
-    fn get_description(&self) -> String {
+    pub fn get_description(&self) -> String {
         match self {
             WarningKind::DocCommentIndicatesThrow { kind, op_identifier } => format!(
                 "doc comment indicates that {kind} `{op_identifier}` throws, however, only operations can throw",

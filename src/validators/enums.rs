@@ -25,11 +25,11 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let rule_error = RuleKind::InvalidEnumerator {
+                let rule_kind = RuleKind::InvalidEnumerator {
                     identifier: enumerator.identifier().to_string(),
                     kind: InvalidEnumeratorKind::MustBeNonNegative,
                 };
-                error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
+                error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -37,7 +37,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let rule_error = RuleKind::InvalidEnumerator {
+                let rule_kind = RuleKind::InvalidEnumerator {
                     identifier: enumerator.identifier().to_string(),
                     kind: InvalidEnumeratorKind::MustBeBounded {
                         value: enumerator.value,
@@ -45,7 +45,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                         max: i32::MAX as i64,
                     },
                 };
-                error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
+                error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -57,7 +57,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let rule_error = RuleKind::InvalidEnumerator {
+                    let rule_kind = RuleKind::InvalidEnumerator {
                         identifier: enumerator.identifier().to_string(),
                         kind: InvalidEnumeratorKind::MustBeBounded {
                             value: enumerator.value,
@@ -65,7 +65,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                             max,
                         },
                     };
-                    error_reporter.report_rule_error(rule_error, Some(enumerator.location()));
+                    error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
                 });
         }
         match &enum_def.underlying {
@@ -90,13 +90,13 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let rule_error = RuleKind::InvalidEnumerator {
+                let rule_kind = RuleKind::InvalidEnumerator {
                     identifier: enum_def.identifier().to_string(),
                     kind: InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(
                         underlying_type.definition().kind().to_string(),
                     ),
                 };
-                error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
+                error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -113,11 +113,11 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let rule_error = RuleKind::InvalidEnumerator {
+            let rule_kind = RuleKind::InvalidEnumerator {
                 identifier: window[1].identifier().to_string(),
                 kind: InvalidEnumeratorKind::MustBeUnique,
             };
-            error_reporter.report_rule_error(rule_error, Some(window[1].location()));
+            error_reporter.report_rule_error(rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
                     "The enumerator `{}` has previous used the value `{}`",
@@ -134,11 +134,11 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            let rule_error = RuleKind::InvalidEnumerator {
+            let rule_kind = RuleKind::InvalidEnumerator {
                 identifier: enum_def.identifier().to_string(),
                 kind: InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType,
             };
-            error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
+            error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
         }
     }
 }
@@ -146,10 +146,10 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        let rule_error = RuleKind::InvalidEnumerator {
+        let rule_kind = RuleKind::InvalidEnumerator {
             identifier: enum_def.identifier().to_string(),
             kind: InvalidEnumeratorKind::MustContainAtLeastOneValue,
         };
-        error_reporter.report_rule_error(rule_error, Some(enum_def.location()));
+        error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
     }
 }

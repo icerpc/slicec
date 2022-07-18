@@ -17,10 +17,10 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, error_reporter:
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let rule_error = RuleKind::InvalidIdentifier(InvalidIdentifierKind::IdentifierCannotBeARedefinition(
+            let rule_kind = RuleKind::InvalidIdentifier(InvalidIdentifierKind::IdentifierCannotBeARedefinition(
                 window[1].value.clone(),
             ));
-            error_reporter.report_rule_error(rule_error, Some(window[1].location()));
+            error_reporter.report_rule_error(rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!("{} was previously defined here", window[0].value),
                 Some(window[0].location()),
@@ -39,10 +39,10 @@ pub fn check_for_shadowing(
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                let rule_error = RuleKind::InvalidIdentifier(
+                let rule_kind = RuleKind::InvalidIdentifier(
                     InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(identifier.value.clone()),
                 );
-                error_reporter.report_rule_error(rule_error, Some(identifier.location()));
+                error_reporter.report_rule_error(rule_kind, Some(identifier.location()));
                 error_reporter.report_note(
                     format!("{} was previously defined here", inherited_identifier.value),
                     Some(inherited_identifier.location()),

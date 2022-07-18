@@ -19,9 +19,9 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
     if let Some((_, nonstreamed_members)) = members.split_last() {
         for member in nonstreamed_members {
             if member.is_streamed {
-                let rule_error =
+                let rule_kind =
                     RuleKind::InvalidParameter(member.identifier().to_owned(), InvalidParameterKind::StreamsMustBeLast);
-                error_reporter.report_rule_error(rule_error, Some(member.location()));
+                error_reporter.report_rule_error(rule_kind, Some(member.location()));
             }
         }
     }
@@ -30,10 +30,10 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
 fn validate_compact_struct_not_empty(struct_def: &Struct, error_reporter: &mut ErrorReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && struct_def.members().is_empty() {
-        let rule_error = RuleKind::InvalidStruct(
+        let rule_kind = RuleKind::InvalidStruct(
             struct_def.identifier().to_string(),
             InvalidStructKind::CompactStructIsEmpty,
         );
-        error_reporter.report_rule_error(rule_error, Some(struct_def.location()));
+        error_reporter.report_rule_error(rule_kind, Some(struct_def.location()));
     }
 }

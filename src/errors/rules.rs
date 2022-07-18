@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::ErrorKind;
+use crate::errors::*;
 
 pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
@@ -24,17 +24,23 @@ pub enum RuleKind {
     InvalidKey(InvalidKeyKind),
 }
 
-impl ErrorKind for RuleKind {
-    fn get_error_code(&self) -> u32 {
+impl RuleKind {
+    pub fn get_error_code(&self) -> u32 {
         match self {
             RuleKind::InvalidAttribute(invalid_attribute_kind) => invalid_attribute_kind.get_error_code(),
             _ => 0,
         }
     }
 
-    fn get_description(&self) -> String {
+    pub fn get_description(&self) -> String {
         match self {
-            RuleKind::InvalidAttribute(invalid_attribute_kind) => invalid_attribute_kind.get_description(),
+            RuleKind::InvalidAttribute(attribute_kind) => {
+                "invalid attribute: ".to_owned() + &attribute_kind.get_description()
+            }
+            RuleKind::InvalidArgument(arg_kind) => "invalid argument: ".to_owned() + &arg_kind.get_description(),
+            RuleKind::InvalidTag(tag, invalid_tag_kind) => {
+                format!("invalid tag `{}`: ", tag) + &invalid_tag_kind.get_description()
+            }
             _ => "".to_string(),
         }
     }

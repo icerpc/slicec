@@ -254,12 +254,12 @@ impl TypeRefPatcher<'_> {
                 .position(|&other| std::ptr::eq(other, current_type_alias));
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
-                let rule_error =
+                let rule_kind =
                     RuleKind::InvalidTypeAlias(InvalidTypeAliasKind::SelfReferentialTypeAliasNeedsConcreteType(
                         current_type_alias.module_scoped_identifier(),
                     ));
                 self.error_reporter
-                    .report_rule_error(rule_error, Some(current_type_alias.location()));
+                    .report_rule_error(rule_kind, Some(current_type_alias.location()));
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
                         "type alias '{}' uses type alias '{}' here:",
