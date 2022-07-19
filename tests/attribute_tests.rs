@@ -6,10 +6,9 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::assert_errors;
+        use crate::assert_errors_new;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
-        use slice::error::Error;
-        use slice::errors::{ErrorKind, InvalidArgumentKind, RuleKind, TempError};
+        use slice::errors::*;
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -72,14 +71,13 @@ mod attributes {
                 arg.unwrap_or(""),
             );
             let rule_kind = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute"));
-            let error: Error = TempError::new(ErrorKind::RuleError(rule_kind, None)).into();
+            let expected = ErrorKind::RuleError(rule_kind, None);
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-
-            assert_errors!(error_reporter, [error]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -93,15 +91,24 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-
+            let expected = [
+                ErrorKind::RuleError(
+                    RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
+                        "Foo".to_owned(),
+                        "format attribute",
+                    )),
+                    None,
+                ),
+                ErrorKind::Note(
+                    "The valid arguments for the format attribute are `Compact` and `Sliced`".to_owned(),
+                    None,
+                ),
+            ];
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "invalid format attribute argument `Foo`",
-                "The valid arguments for the format attribute are `Compact` and `Sliced`",
-            ]);
+            assert_errors_new!(error_reporter, expected);
         }
 
         #[test]
@@ -134,14 +141,16 @@ mod attributes {
                     op([deprecated] s: string) -> string;
                 }
             ";
+            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
+                "parameter(s)".to_owned(),
+            ));
+            let expected = ErrorKind::RuleError(rule_kind, None);
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the deprecated attribute cannot be applied to parameters"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -155,14 +164,16 @@ mod attributes {
                     s: string,
                 }
             ";
+            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
+                "data member(s)".to_owned(),
+            ));
+            let expected = ErrorKind::RuleError(rule_kind, None);
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the deprecated attribute cannot be applied to data members"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -221,15 +232,25 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
+            let expected = [
+                ErrorKind::RuleError(
+                    RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
+                        "Foo".to_owned(),
+                        "compress attribute",
+                    )),
+                    None,
+                ),
+                ErrorKind::Note(
+                    "The valid argument(s) for the compress attribute are `Args` and `Return`".to_owned(),
+                    None,
+                ),
+            ];
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "invalid argument `Foo` for the compress attribute",
-                "The valid argument(s) for the compress attribute are `Args` and `Return`",
-            ]);
+            assert_errors_new!(error_reporter, expected);
         }
 
         #[test]
@@ -243,14 +264,14 @@ mod attributes {
                     s: string,
                 }
             ";
+            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied);
+            let expected = ErrorKind::RuleError(rule_kind, None);
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the compress attribute can only be applied to interfaces and operations"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -277,7 +298,6 @@ mod attributes {
 
     mod generalized_api {
 
-        use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
         use slice::grammar::*;
         use slice::parse_from_string;
@@ -404,10 +424,10 @@ mod attributes {
             // Act
             let error_reporter = parse_for_errors(slice);
 
-            // Assert
-            assert_errors!(error_reporter, [
-                "", // Should be error here
-            ]);
+            // // Assert
+            // assert_errors_new!(error_reporter, [
+            //     "", // Should be error here
+            // ]);
         }
     }
 }

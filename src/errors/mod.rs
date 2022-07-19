@@ -50,6 +50,7 @@ pub enum ErrorKind {
     Warning(WarningKind, Option<Location>),
     RuleError(RuleKind, Option<Location>),
     SyntaxError(WarningKind, Option<Location>),
+    Note(String, Option<Location>),
 }
 
 impl ErrorKind {
@@ -58,6 +59,7 @@ impl ErrorKind {
             ErrorKind::Warning(warning_kind, _) => 1000 + warning_kind.error_code(),
             ErrorKind::RuleError(rule_kind, _) => 2000 + rule_kind.error_code(),
             ErrorKind::SyntaxError(syntax_kind, _) => 3000 + syntax_kind.error_code(),
+            ErrorKind::Note(_, _) => 0,
         }
     }
 
@@ -66,6 +68,7 @@ impl ErrorKind {
             ErrorKind::Warning(warning_kind, _) => warning_kind.get_description(),
             ErrorKind::RuleError(rule_kind, _) => rule_kind.get_description(),
             ErrorKind::SyntaxError(warning_kind, _) => warning_kind.get_description(),
+            ErrorKind::Note(message, _) => message.clone(),
         }
     }
 
@@ -74,6 +77,7 @@ impl ErrorKind {
             ErrorKind::Warning(_, _) => ErrorLevel::Warning,
             ErrorKind::RuleError(_, _) => ErrorLevel::Error,
             ErrorKind::SyntaxError(_, _) => ErrorLevel::Error,
+            ErrorKind::Note(_, _) => ErrorLevel::Note,
         }
     }
 
@@ -82,6 +86,7 @@ impl ErrorKind {
             ErrorKind::Warning(_, location) => location.clone(),
             ErrorKind::RuleError(_, location) => location.clone(),
             ErrorKind::SyntaxError(_, location) => location.clone(),
+            ErrorKind::Note(_, location) => location.clone(),
         }
     }
 }

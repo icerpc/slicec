@@ -53,25 +53,25 @@ impl RuleKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidAttributeKind {
-    CompressAttributeCannotBeApplied(),
+    CompressAttributeCannotBeApplied,
     DeprecatedAttributeCannotBeApplied(String),
 }
 
 impl InvalidAttributeKind {
     pub fn error_code(&self) -> u32 {
         match self {
-            InvalidAttributeKind::CompressAttributeCannotBeApplied() => 0,
+            InvalidAttributeKind::CompressAttributeCannotBeApplied => 0,
             InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(_) => 5,
         }
     }
 
     pub fn get_description(&self) -> String {
         match self {
-            InvalidAttributeKind::CompressAttributeCannotBeApplied() => {
+            InvalidAttributeKind::CompressAttributeCannotBeApplied => {
                 "the compress attribute can only be applied to interfaces and operations".to_string()
             }
             InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(kind) => {
-                format!("the deprecated attribute cannot be applied to {}s", kind)
+                format!("the deprecated attribute cannot be applied to {}", kind)
             }
         }
     }
@@ -80,7 +80,7 @@ impl InvalidAttributeKind {
 #[derive(Debug, Clone)]
 pub enum InvalidArgumentKind {
     ArgumentCannotBeEmpty(&'static str),
-    ArgumentNotSupported(String, String),
+    ArgumentNotSupported(String, &'static str),
 }
 
 impl InvalidArgumentKind {
@@ -95,7 +95,7 @@ impl InvalidArgumentKind {
         match self {
             InvalidArgumentKind::ArgumentCannotBeEmpty(method) => format!("{} arguments cannot be empty", method),
             InvalidArgumentKind::ArgumentNotSupported(arg, method) => {
-                format!("argument '{}' is not supported for {}", arg, method)
+                format!("argument '{}' is not supported for `{}`", arg, method)
             }
         }
     }

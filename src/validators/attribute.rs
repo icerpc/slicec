@@ -55,8 +55,8 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                     })
                     .for_each(|arg| {
                         let rule_warning = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
-                            arg.to_string(),
-                            "format attribute".to_string(),
+                            arg.to_owned(),
+                            "format attribute",
                         ));
                         error_reporter.report_rule_error(rule_warning, Some(attribute.location()));
                         error_reporter.report_note(
@@ -77,7 +77,7 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorRep
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
             let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
-                m.kind().to_string(),
+                m.kind().to_owned() + "(s)",
             ));
             error_reporter.report_rule_error(rule_kind, Some(m.location()));
         }
@@ -94,7 +94,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => {
-                let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied());
+                let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied);
                 error_reporter.report_rule_error(rule_kind, Some(attribute.location()))
             }
             None => (),
@@ -108,8 +108,8 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
                     let rule_warning = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
-                        arg.to_string(),
-                        "compress attribute".to_string(),
+                        arg.to_owned(),
+                        "compress attribute",
                     ));
                     error_reporter.report_rule_error(rule_warning, Some(attribute.location()));
                     error_reporter.report_note(
