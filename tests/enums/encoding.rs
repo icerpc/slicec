@@ -2,8 +2,10 @@
 
 mod slice1 {
 
-    use crate::assert_errors;
+    use slice::errors::*;
+
     use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::{assert_errors, assert_errors_new};
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -15,17 +17,21 @@ mod slice1 {
             module Test;
             unchecked enum E : int32 {}
         ";
-        let expected_errors = [
-            "enum `E` is not supported by the Slice1 encoding",
-            "file encoding was set to Slice1 here:",
-            "enums with underlying types are not supported by the Slice1 encoding",
+        let expected_errors: [&dyn ErrorType; 3] = [
+            &RuleKind::from(InvalidEncodingKind::NotSupported {
+                kind: "enum".to_owned(),
+                identifier: "E".to_owned(),
+                encoding: "1".to_owned(),
+            }),
+            &Note::new("file encoding was set to Slice1 here:"),
+            &Note::new("enums with underlying types are not supported by the Slice1 encoding"),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected_errors);
     }
 }
 

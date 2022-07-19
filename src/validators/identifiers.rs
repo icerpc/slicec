@@ -22,7 +22,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, error_reporter:
             ));
             error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
-                format!("{} was previously defined here", window[0].value),
+                format!("`{}` was previously defined here", window[0].value),
                 Some(window[0].location()),
             );
         }
@@ -44,7 +44,7 @@ pub fn check_for_shadowing(
                 );
                 error_reporter.report_error_new(&rule_kind, Some(identifier.location()));
                 error_reporter.report_note(
-                    format!("{} was previously defined here", inherited_identifier.value),
+                    format!("`{}` was previously defined here", inherited_identifier.value),
                     Some(inherited_identifier.location()),
                 );
             });

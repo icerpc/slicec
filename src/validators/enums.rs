@@ -27,7 +27,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .for_each(|enumerator| {
                 let rule_kind = RuleKind::InvalidEnumerator {
                     identifier: enumerator.identifier().to_string(),
-                    kind: InvalidEnumeratorKind::MustBeNonNegative,
+                    kind: InvalidEnumeratorKind::MustBePositive,
                 };
                 error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
             });
@@ -90,12 +90,10 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let rule_kind = RuleKind::InvalidEnumerator {
-                    identifier: enum_def.identifier().to_string(),
-                    kind: InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(
-                        underlying_type.definition().kind().to_string(),
-                    ),
-                };
+                let rule_kind = RuleKind::InvalidEnum(
+                    enum_def.identifier().to_string(),
+                    InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_string()),
+                );
                 error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
             }
         }
@@ -134,10 +132,10 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            let rule_kind = RuleKind::InvalidEnumerator {
-                identifier: enum_def.identifier().to_string(),
-                kind: InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType,
-            };
+            let rule_kind = RuleKind::InvalidEnum(
+                enum_def.identifier().to_string(),
+                InvalidEnumKind::CannotHaveOptionalUnderlyingType,
+            );
             error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
         }
     }
@@ -146,10 +144,10 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        let rule_kind = RuleKind::InvalidEnumerator {
-            identifier: enum_def.identifier().to_string(),
-            kind: InvalidEnumeratorKind::MustContainAtLeastOneValue,
-        };
+        let rule_kind = RuleKind::InvalidEnum(
+            enum_def.identifier().to_string(),
+            InvalidEnumKind::MustContainAtLeastOneValue,
+        );
         error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
     }
 }

@@ -10,6 +10,7 @@ pub enum RuleKind {
     InvalidTag(String, InvalidTagKind),
     InvalidParameter(String, InvalidParameterKind),
     InvalidMember(String, InvalidMemberKind),
+    InvalidEnum(String, InvalidEnumKind),
     InvalidEnumerator {
         identifier: String,
         kind: InvalidEnumeratorKind,
@@ -27,6 +28,7 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidAttribute(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidArgument(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidEncoding(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidEnum(_, kind) => 2000 + kind.error_code(),
             RuleKind::InvalidEnumerator { identifier: _, kind } => 2000 + kind.error_code(),
             RuleKind::InvalidIdentifier(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidKey(kind) => 2000 + kind.error_code(),
@@ -47,6 +49,12 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidTag(tag, invalid_tag_kind) => {
                 format!("[InvalidTag `{}`]: ", tag) + &invalid_tag_kind.get_description()
             }
+            RuleKind::InvalidKey(key_kind) => "[InvalidKey]: ".to_owned() + &key_kind.get_description(),
+            RuleKind::InvalidEnumerator { identifier, kind } => {
+                format!("[InvalidEnumerator `{}`]: ", identifier) + &kind.get_description()
+            }
+            RuleKind::InvalidEnum(id, kind) => format!("[InvalidEnum `{}`]: ", id) + &kind.get_description(),
+            RuleKind::InvalidEncoding(kind) => "[InvalidEncoding]: ".to_owned() + &kind.get_description(),
             _ => "Todo".to_string(),
         }
     }
@@ -126,6 +134,12 @@ pub enum InvalidKeyKind {
     StructContainsDisallowedType(String),
 }
 
+impl From<InvalidKeyKind> for RuleKind {
+    fn from(original: InvalidKeyKind) -> RuleKind {
+        RuleKind::InvalidKey(original)
+    }
+}
+
 impl InvalidKeyKind {
     pub fn error_code(&self) -> u32 {
         match self {
@@ -158,46 +172,60 @@ impl InvalidKeyKind {
 }
 
 #[derive(Debug, Clone)]
-pub enum InvalidEnumeratorKind {
-    MustBeNonNegative,
-    MustBeBounded { value: i64, min: i64, max: i64 },
+pub enum InvalidEnumKind {
     UnderlyingTypeMustBeIntegral(String),
-    MustBeUnique,
     CannotHaveOptionalUnderlyingType,
     MustContainAtLeastOneValue,
 }
 
-impl InvalidEnumeratorKind {
+impl InvalidEnumKind {
     pub fn error_code(&self) -> u32 {
         match self {
-            InvalidEnumeratorKind::MustBeNonNegative => 40,
-            InvalidEnumeratorKind::MustBeBounded { .. } => 45,
-            InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(_) => 50,
-            InvalidEnumeratorKind::MustBeUnique => 55,
-            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => 60,
-            InvalidEnumeratorKind::MustContainAtLeastOneValue => 75,
+            InvalidEnumKind::UnderlyingTypeMustBeIntegral(_) => 50,
+            InvalidEnumKind::CannotHaveOptionalUnderlyingType => 60,
+            InvalidEnumKind::MustContainAtLeastOneValue => 75,
         }
     }
 
     pub fn get_description(&self) -> String {
         match self {
-            InvalidEnumeratorKind::MustBeNonNegative => "enumerators must be non-negative".to_owned(),
+            InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying) => {
+                format!("underlying type '{}' is not supported for enums", underlying)
+            }
+            InvalidEnumKind::CannotHaveOptionalUnderlyingType => {
+                "enums cannot have optional underlying types".to_string()
+            }
+            InvalidEnumKind::MustContainAtLeastOneValue => "enums must contain at least one enumerator".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum InvalidEnumeratorKind {
+    MustBePositive,
+    MustBeBounded { value: i64, min: i64, max: i64 },
+    MustBeUnique,
+}
+
+impl InvalidEnumeratorKind {
+    pub fn error_code(&self) -> u32 {
+        match self {
+            InvalidEnumeratorKind::MustBePositive => 40,
+            InvalidEnumeratorKind::MustBeBounded { .. } => 45,
+            InvalidEnumeratorKind::MustBeUnique => 55,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidEnumeratorKind::MustBePositive => "enumerators must be non-negative".to_owned(),
             InvalidEnumeratorKind::MustBeBounded { value, min, max } => format!(
                 "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
                 value = value,
                 min = min,
                 max = max,
             ),
-            InvalidEnumeratorKind::UnderlyingTypeMustBeIntegral(underlying) => {
-                format!("underlying type '{}' is not allowed for enums", underlying)
-            }
             InvalidEnumeratorKind::MustBeUnique => "enumerators must be unique".to_string(),
-            InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType => {
-                "enums cannot have optional underlying types".to_string()
-            }
-            InvalidEnumeratorKind::MustContainAtLeastOneValue => {
-                "enums must contain at least one enumerator".to_string()
-            }
         }
     }
 }
@@ -206,6 +234,11 @@ impl InvalidEnumeratorKind {
 pub enum InvalidIdentifierKind {
     IdentifierCannotBeARedefinition(String),
     IdentifierCannotShadowAnotherSymbol(String),
+}
+impl From<InvalidIdentifierKind> for RuleKind {
+    fn from(original: InvalidIdentifierKind) -> RuleKind {
+        RuleKind::InvalidIdentifier(original)
+    }
 }
 
 impl InvalidIdentifierKind {
@@ -222,7 +255,7 @@ impl InvalidIdentifierKind {
                 format!("redefinition of {}", identifier)
             }
             InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(identifier) => {
-                format!("{} shadows another symbol", identifier)
+                format!("`{}` shadows another symbol", identifier)
             }
         }
     }

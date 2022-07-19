@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::{assert_errors, assert_errors_new};
+use slice::errors::*;
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -79,14 +80,20 @@ fn validate_backing_type_out_of_bounds() {
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
+    let expected = RuleKind::InvalidEnumerator {
+        identifier: "A".to_owned(),
+        kind: InvalidEnumeratorKind::MustBeBounded {
+            value: out_of_bounds_value as i64,
+            min: -32768_i64,
+            max: 32767_i64,
+        },
+    };
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "enumerator value '32768' is out of bounds. The value must be between `-32768..32767`, inclusive, for the underlying type `int16`",
-    ]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test]
@@ -126,15 +133,16 @@ fn invalid_underlying_type(underlying_type: &str) {
         ",
         underlying_type,
     );
+    let expected = RuleKind::InvalidEnum(
+        "E".to_owned(),
+        InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()),
+    );
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [format!(
-        "underlying type '{}' is not allowed for enums",
-        underlying_type,
-    )]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test_case("10"; "numeric identifier")]
@@ -166,14 +174,13 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
+    let expected = RuleKind::InvalidEnum("E".to_owned(), InvalidEnumKind::CannotHaveOptionalUnderlyingType);
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "underlying type 'int32' cannot be optional: enums cannot have optional underlying types",
-    ]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test]
@@ -186,15 +193,19 @@ fn enumerators_must_be_unique() {
             B = 1,
         }
     ";
+    let expected: [&dyn ErrorType; 2] = [
+        &RuleKind::InvalidEnumerator {
+            identifier: "B".to_owned(),
+            kind: InvalidEnumeratorKind::MustBeUnique,
+        },
+        &Note::new("The enumerator `A` has previous used the value `1`"),
+    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "invalid enumerator value on enumerator `B`: enumerators must be unique",
-        "The enumerator `A` has previous used the value `1`",
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }
 
 #[test]
@@ -243,10 +254,11 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
+    let expected = RuleKind::InvalidEnum("E".to_owned(), InvalidEnumKind::MustContainAtLeastOneValue);
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, ["enums must contain at least one enumerator",]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test]
@@ -264,8 +276,9 @@ fn unchecked_enums_can_be_empty() {
 
 mod slice1 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
+    use crate::{assert_errors, assert_errors_new};
+    use slice::errors::*;
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -279,17 +292,26 @@ mod slice1 {
                 C = -3,
             }
         ";
-        let expected_errors = [
-            "invalid enumerator value on enumerator `A`: enumerators must be non-negative",
-            "invalid enumerator value on enumerator `B`: enumerators must be non-negative",
-            "invalid enumerator value on enumerator `C`: enumerators must be non-negative",
+        let expected_errors: [&dyn ErrorType; 3] = [
+            &RuleKind::InvalidEnumerator {
+                identifier: "A".to_owned(),
+                kind: InvalidEnumeratorKind::MustBePositive,
+            },
+            &RuleKind::InvalidEnumerator {
+                identifier: "B".to_owned(),
+                kind: InvalidEnumeratorKind::MustBePositive,
+            },
+            &RuleKind::InvalidEnumerator {
+                identifier: "C".to_owned(),
+                kind: InvalidEnumeratorKind::MustBePositive,
+            },
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected_errors);
     }
 
     #[test]
@@ -305,13 +327,20 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected_errors = ["invalid enumerator value on enumerator `A`: must be smaller than than 2147483647"];
+        let expected = RuleKind::InvalidEnumerator {
+            identifier: "A".to_owned(),
+            kind: InvalidEnumeratorKind::MustBeBounded {
+                value: i32::MAX as i64 + 1,
+                min: 0_i64,
+                max: i32::MAX as i64,
+            },
+        };
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, [&expected]);
     }
 }
 
