@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::{assert_errors, assert_errors_new};
+use slice::errors::*;
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -102,6 +103,7 @@ fn can_be_empty() {
 
 #[test]
 fn cannot_redefine_data_members() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -111,8 +113,11 @@ fn cannot_redefine_data_members() {
             a: string,
         }
     ";
+    let expected = RuleKind::InvalidIdentifier(InvalidIdentifierKind::IdentifierCannotBeARedefinition("a".to_string()));
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, ["redefinition of a", "a was previously defined here"]);
+    // Assert
+    assert_errors_new!(error_reporter, [&expected]);
 }

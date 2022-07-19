@@ -108,7 +108,7 @@ impl EncodingPatcher<'_> {
         }
         // Report any additional information as a note after reporting any errors above.
         if let Some(note) = additional_info {
-            self.error_reporter.report_note(note, None);
+            self.error_reporter.report_error_new(&Note::new(note), None);
         }
 
         // Cache and return this entity's supported encodings.
@@ -210,17 +210,27 @@ impl EncodingPatcher<'_> {
 
         // Emit a note explaining why the file has the slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
-            let encoding_message = format!("file encoding was set to Slice{} here:", &file_encoding.version);
-            self.error_reporter
-                .report_note(encoding_message, Some(file_encoding.location()))
-        } else {
-            let encoding_message = format!("file is using the Slice{} encoding by default", Encoding::default());
-            self.error_reporter.report_note(encoding_message, None);
-
-            self.error_reporter.report_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                None,
+            self.error_reporter.report_error_new(
+                &Note {
+                    message: format!("file encoding was set to Slice{} here:", &file_encoding.version),
+                },
+                Some(file_encoding.location()),
             )
+        } else {
+            self.error_reporter.report_error_new(
+                &Note {
+                    message: format!("file is using the Slice{} encoding by default", Encoding::default()),
+                },
+                None,
+            );
+            self.error_reporter.report_error_new(
+                &Note {
+                    message:
+                        "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
+                            .to_owned(),
+                },
+                None,
+            );
         }
     }
 }

@@ -70,14 +70,13 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
-            let rule_kind = RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute"));
-            let expected = ErrorKind::RuleError(rule_kind, None);
+            let rule_kind: RuleKind = InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute").into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors_new!(error_reporter, [&expected]);
+            assert_errors_new!(error_reporter, [&rule_kind]);
         }
 
         #[test]
@@ -91,18 +90,14 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-            let expected = [
-                ErrorKind::RuleError(
-                    RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
-                        "Foo".to_owned(),
-                        "format attribute",
-                    )),
-                    None,
-                ),
-                ErrorKind::Note(
-                    "The valid arguments for the format attribute are `Compact` and `Sliced`".to_owned(),
-                    None,
-                ),
+            let expected: [&dyn ErrorType; 2] = [
+                &RuleKind::from(InvalidArgumentKind::ArgumentNotSupported(
+                    "Foo".to_owned(),
+                    "format attribute",
+                )),
+                &Note {
+                    message: "The valid arguments for the format attribute are `Compact` and `Sliced`".to_owned(),
+                },
             ];
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -141,10 +136,8 @@ mod attributes {
                     op([deprecated] s: string) -> string;
                 }
             ";
-            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
-                "parameter(s)".to_owned(),
-            ));
-            let expected = ErrorKind::RuleError(rule_kind, None);
+            let expected: RuleKind =
+                InvalidAttributeKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -164,10 +157,8 @@ mod attributes {
                     s: string,
                 }
             ";
-            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
-                "data member(s)".to_owned(),
-            ));
-            let expected = ErrorKind::RuleError(rule_kind, None);
+            let expected: RuleKind =
+                InvalidAttributeKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -232,18 +223,14 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-            let expected = [
-                ErrorKind::RuleError(
-                    RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentNotSupported(
-                        "Foo".to_owned(),
-                        "compress attribute",
-                    )),
-                    None,
-                ),
-                ErrorKind::Note(
-                    "The valid argument(s) for the compress attribute are `Args` and `Return`".to_owned(),
-                    None,
-                ),
+            let expected: [&dyn ErrorType; 2] = [
+                &RuleKind::from(InvalidArgumentKind::ArgumentNotSupported(
+                    "Foo".to_owned(),
+                    "compress attribute",
+                )),
+                &Note {
+                    message: "The valid argument(s) for the compress attribute are `Args` and `Return`".to_owned(),
+                },
             ];
 
             // Act
@@ -264,8 +251,7 @@ mod attributes {
                     s: string,
                 }
             ";
-            let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied);
-            let expected = ErrorKind::RuleError(rule_kind, None);
+            let expected: RuleKind = InvalidAttributeKind::CompressAttributeCannotBeApplied.into();
 
             // Act
             let error_reporter = parse_for_errors(slice);

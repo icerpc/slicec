@@ -62,6 +62,12 @@ pub enum InvalidAttributeKind {
     DeprecatedAttributeCannotBeApplied(String),
 }
 
+impl From<InvalidAttributeKind> for RuleKind {
+    fn from(original: InvalidAttributeKind) -> RuleKind {
+        RuleKind::InvalidAttribute(original)
+    }
+}
+
 impl InvalidAttributeKind {
     pub fn error_code(&self) -> u32 {
         match self {
@@ -86,6 +92,12 @@ impl InvalidAttributeKind {
 pub enum InvalidArgumentKind {
     ArgumentCannotBeEmpty(&'static str),
     ArgumentNotSupported(String, &'static str),
+}
+
+impl From<InvalidArgumentKind> for RuleKind {
+    fn from(original: InvalidArgumentKind) -> RuleKind {
+        RuleKind::InvalidArgument(original)
+    }
 }
 
 impl InvalidArgumentKind {
@@ -321,6 +333,12 @@ pub enum InvalidEncodingKind {
     ExceptionNotSupported(String),
     OptionalsNotSupported(String),
     StreamedParametersNotSupported(String),
+}
+
+impl From<InvalidEncodingKind> for RuleKind {
+    fn from(original: InvalidEncodingKind) -> RuleKind {
+        RuleKind::InvalidEncoding(original)
+    }
 }
 
 impl InvalidEncodingKind {

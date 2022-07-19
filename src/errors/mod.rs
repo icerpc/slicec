@@ -5,9 +5,11 @@ use crate::slice_file::Location;
 use std::fmt;
 use std::string::ToString;
 
+mod note;
 mod rules;
 mod warnings;
 
+pub use self::note::Note;
 pub use self::rules::*;
 pub use self::warnings::WarningKind;
 

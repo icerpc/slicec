@@ -3,8 +3,16 @@
 use crate::errors::*;
 
 #[derive(Debug, Clone)]
-struct Note {
-    message: String,
+pub struct Note {
+    pub message: String,
+}
+
+impl Note {
+    pub fn new(message: impl Into<String>) -> Self {
+        Note {
+            message: message.into(),
+        }
+    }
 }
 
 impl ErrorType for Note {
@@ -13,7 +21,7 @@ impl ErrorType for Note {
     }
 
     fn message(&self) -> String {
-        return self.message.clone();
+        self.message.clone()
     }
 
     fn severity(&self) -> ErrorLevel {
