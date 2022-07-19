@@ -21,7 +21,7 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
             if member.is_streamed {
                 let rule_kind =
                     RuleKind::InvalidParameter(member.identifier().to_owned(), InvalidParameterKind::StreamsMustBeLast);
-                error_reporter.report_rule_error(rule_kind, Some(member.location()));
+                error_reporter.report_error_new(&rule_kind, Some(member.location()));
             }
         }
     }
@@ -34,6 +34,6 @@ fn validate_compact_struct_not_empty(struct_def: &Struct, error_reporter: &mut E
             struct_def.identifier().to_string(),
             InvalidStructKind::CompactStructIsEmpty,
         );
-        error_reporter.report_rule_error(rule_kind, Some(struct_def.location()));
+        error_reporter.report_error_new(&rule_kind, Some(struct_def.location()));
     }
 }

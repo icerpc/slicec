@@ -20,7 +20,7 @@ fn non_empty_return_comment(operation: &Operation, error_reporter: &mut ErrorRep
         // example: @return A description of the return value.`
         if comment.returns.is_some() && operation.return_members().is_empty() {
             let warning = WarningKind::DocCommentIndicatesReturn;
-            error_reporter.report_warning(warning, Some(&comment.location));
+            error_reporter.report_error_new(&warning, Some(&comment.location));
         }
     }
 }
@@ -37,7 +37,7 @@ fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorRe
                 let warning = WarningKind::DocCommentIndicatesParam {
                     param_name: param.0.clone(),
                 };
-                error_reporter.report_warning(warning, Some(&comment.location));
+                error_reporter.report_error_new(&warning, Some(&comment.location));
             }
         });
     }
@@ -51,7 +51,7 @@ fn only_operations_can_throw(commentable: &dyn Entity, error_reporter: &mut Erro
                 kind: commentable.kind().to_string(),
                 op_identifier: commentable.identifier().to_string(),
             };
-            error_reporter.report_warning(warning, Some(&comment.location));
+            error_reporter.report_error_new(&warning, Some(&comment.location));
         };
     }
 }

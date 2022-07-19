@@ -98,7 +98,7 @@ impl EncodingPatcher<'_> {
                 encoding: file_encoding.to_string(),
             });
             self.error_reporter
-                .report_rule_error(rule_kind, Some(entity_def.location()));
+                .report_error_new(&rule_kind, Some(entity_def.location()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -193,7 +193,7 @@ impl EncodingPatcher<'_> {
             }
             for rule_kind in rule_errors {
                 self.error_reporter
-                    .report_rule_error(rule_kind, Some(type_ref.location()));
+                    .report_error_new(&rule_kind, Some(type_ref.location()));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -361,7 +361,7 @@ impl ComputeSupportedEncodings for Interface {
                     ));
                     patcher
                         .error_reporter
-                        .report_rule_error(rule_kind, Some(member.location()));
+                        .report_error_new(&rule_kind, Some(member.location()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }

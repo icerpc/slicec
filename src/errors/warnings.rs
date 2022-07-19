@@ -9,16 +9,16 @@ pub enum WarningKind {
     DocCommentIndicatesParam { param_name: String },
 }
 
-impl WarningKind {
-    pub fn error_code(&self) -> u32 {
+impl ErrorType for WarningKind {
+    fn error_code(&self) -> u32 {
         match self {
-            WarningKind::DocCommentIndicatesThrow { .. } => 0,
-            WarningKind::DocCommentIndicatesReturn { .. } => 10,
-            WarningKind::DocCommentIndicatesParam { .. } => 20,
+            WarningKind::DocCommentIndicatesThrow { .. } => 1000 + 0,
+            WarningKind::DocCommentIndicatesReturn { .. } => 1000 + 10,
+            WarningKind::DocCommentIndicatesParam { .. } => 1000 + 20,
         }
     }
 
-    pub fn get_description(&self) -> String {
+    fn message(&self) -> String {
         match self {
             WarningKind::DocCommentIndicatesThrow { kind, op_identifier } => format!(
                 "doc comment indicates that {kind} `{op_identifier}` throws, however, only operations can throw",
@@ -33,5 +33,9 @@ impl WarningKind {
                 "void operation must not contain doc comment return tag".to_string()
             }
         }
+    }
+
+    fn severity(&self) -> ErrorLevel {
+        ErrorLevel::Warning
     }
 }

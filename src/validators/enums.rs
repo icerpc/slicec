@@ -29,7 +29,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                     identifier: enumerator.identifier().to_string(),
                     kind: InvalidEnumeratorKind::MustBeNonNegative,
                 };
-                error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
+                error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -45,7 +45,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                         max: i32::MAX as i64,
                     },
                 };
-                error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
+                error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -65,7 +65,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                             max,
                         },
                     };
-                    error_reporter.report_rule_error(rule_kind, Some(enumerator.location()));
+                    error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
                 });
         }
         match &enum_def.underlying {
@@ -96,7 +96,7 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
                         underlying_type.definition().kind().to_string(),
                     ),
                 };
-                error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
+                error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -117,7 +117,7 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 identifier: window[1].identifier().to_string(),
                 kind: InvalidEnumeratorKind::MustBeUnique,
             };
-            error_reporter.report_rule_error(rule_kind, Some(window[1].location()));
+            error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
                     "The enumerator `{}` has previous used the value `{}`",
@@ -138,7 +138,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
                 identifier: enum_def.identifier().to_string(),
                 kind: InvalidEnumeratorKind::CannotHaveOptionalUnderlyingType,
             };
-            error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
+            error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
         }
     }
 }
@@ -150,6 +150,6 @@ fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             identifier: enum_def.identifier().to_string(),
             kind: InvalidEnumeratorKind::MustContainAtLeastOneValue,
         };
-        error_reporter.report_rule_error(rule_kind, Some(enum_def.location()));
+        error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
     }
 }

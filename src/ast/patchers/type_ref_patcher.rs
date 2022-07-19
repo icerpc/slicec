@@ -259,7 +259,7 @@ impl TypeRefPatcher<'_> {
                         current_type_alias.module_scoped_identifier(),
                     ));
                 self.error_reporter
-                    .report_rule_error(rule_kind, Some(current_type_alias.location()));
+                    .report_error_new(&rule_kind, Some(current_type_alias.location()));
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
                         "type alias '{}' uses type alias '{}' here:",

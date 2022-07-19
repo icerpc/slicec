@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::error::ErrorLevel;
 use crate::errors::*;
 
 #[derive(Debug, Clone)]
@@ -20,24 +21,24 @@ pub enum RuleKind {
     InvalidKey(InvalidKeyKind),
 }
 
-impl RuleKind {
-    pub fn error_code(&self) -> u32 {
-        match self {
-            RuleKind::InvalidAttribute(kind) => kind.error_code(),
-            RuleKind::InvalidArgument(kind) => kind.error_code(),
-            RuleKind::InvalidEncoding(kind) => kind.error_code(),
-            RuleKind::InvalidEnumerator { identifier: _, kind } => kind.error_code(),
-            RuleKind::InvalidIdentifier(kind) => kind.error_code(),
-            RuleKind::InvalidKey(kind) => kind.error_code(),
-            RuleKind::InvalidParameter(_, kind) => kind.error_code(),
-            RuleKind::InvalidStruct(_, kind) => kind.error_code(),
-            RuleKind::InvalidTag(_, kind) => kind.error_code(),
-            RuleKind::InvalidTypeAlias(kind) => kind.error_code(),
-            RuleKind::InvalidMember(_, kind) => kind.error_code(),
+impl ErrorType for RuleKind {
+    fn error_code(&self) -> u32 {
+        match &self {
+            RuleKind::InvalidAttribute(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidArgument(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidEncoding(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidEnumerator { identifier: _, kind } => 2000 + kind.error_code(),
+            RuleKind::InvalidIdentifier(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidKey(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidParameter(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidStruct(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidTag(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidTypeAlias(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidMember(_, kind) => 2000 + kind.error_code(),
         }
     }
 
-    pub fn get_description(&self) -> String {
+    fn message(&self) -> String {
         match self {
             RuleKind::InvalidAttribute(attribute_kind) => {
                 "[InvalidAttribute]: ".to_owned() + &attribute_kind.get_description()
@@ -48,6 +49,10 @@ impl RuleKind {
             }
             _ => "Todo".to_string(),
         }
+    }
+
+    fn severity(&self) -> ErrorLevel {
+        ErrorLevel::Error
     }
 }
 

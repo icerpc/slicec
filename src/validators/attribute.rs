@@ -42,7 +42,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
             0 => {
                 let rule_warning =
                     RuleKind::InvalidArgument(InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute"));
-                error_reporter.report_rule_error(rule_warning, Some(attribute.location()))
+                error_reporter.report_error_new(&rule_warning, Some(attribute.location()))
             }
             _ => {
                 // Validate format attributes are allowed ones.
@@ -58,7 +58,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                             arg.to_owned(),
                             "format attribute",
                         ));
-                        error_reporter.report_rule_error(rule_warning, Some(attribute.location()));
+                        error_reporter.report_error_new(&rule_warning, Some(attribute.location()));
                         error_reporter.report_note(
                             format!(
                                 "The valid arguments for the format attribute are {}",
@@ -79,7 +79,7 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorRep
             let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(
                 m.kind().to_owned() + "(s)",
             ));
-            error_reporter.report_rule_error(rule_kind, Some(m.location()));
+            error_reporter.report_error_new(&rule_kind, Some(m.location()));
         }
     });
 }
@@ -95,7 +95,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => {
                 let rule_kind = RuleKind::InvalidAttribute(InvalidAttributeKind::CompressAttributeCannotBeApplied);
-                error_reporter.report_rule_error(rule_kind, Some(attribute.location()))
+                error_reporter.report_error_new(&rule_kind, Some(attribute.location()))
             }
             None => (),
         }
@@ -111,7 +111,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
                         arg.to_owned(),
                         "compress attribute",
                     ));
-                    error_reporter.report_rule_error(rule_warning, Some(attribute.location()));
+                    error_reporter.report_error_new(&rule_warning, Some(attribute.location()));
                     error_reporter.report_note(
                         format!(
                             "The valid argument(s) for the compress attribute are {}",

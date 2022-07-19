@@ -30,7 +30,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
             let rule_kind = RuleKind::InvalidTag(window[1].identifier().to_string(), InvalidTagKind::TagsMustBeUnique);
-            error_reporter.report_rule_error(rule_kind, Some(window[1].location()));
+            error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
                     "The data member `{}` has previous used the tag value `{}`",
@@ -55,7 +55,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
                 parameter.identifier().to_string(),
                 InvalidParameterKind::RequiredParametersMustBeFirst,
             );
-            error_reporter.report_rule_error(rule_kind, Some(parameter.data_type.location()));
+            error_reporter.report_error_new(&rule_kind, Some(parameter.data_type.location()));
             true
         }
         None => false,
@@ -73,7 +73,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
                     member.identifier().to_string(),
                     InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs,
                 );
-                error_reporter.report_rule_error(rule_kind, Some(member.location()));
+                error_reporter.report_error_new(&rule_kind, Some(member.location()));
                 error_reporter.report_note(
                     format!("struct '{}' is declared compact here", struct_def.identifier()),
                     Some(struct_def.location()),
@@ -98,7 +98,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
                 member.identifier().to_string(),
                 InvalidMemberKind::TaggedDataMemberMustBeOptional,
             );
-            error_reporter.report_rule_error(rule_kind, Some(member.location()));
+            error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }
 }
@@ -117,7 +117,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
                 member.identifier().to_string(),
                 InvalidMemberKind::TaggedDataMemberCannotBeClass,
             );
-            error_reporter.report_rule_error(rule_kind, Some(member.location()));
+            error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }
 }
@@ -147,7 +147,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
                 member.identifier().to_string(),
                 InvalidMemberKind::TaggedDataMemberCannotBeClass,
             );
-            error_reporter.report_rule_error(rule_kind, Some(member.location()));
+            error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }
 }
