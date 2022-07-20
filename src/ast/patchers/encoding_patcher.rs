@@ -135,7 +135,7 @@ impl EncodingPatcher<'_> {
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
                     let rule_kind =
-                        RuleKind::InvalidEncoding(InvalidEncodingKind::ExceptionNotSupported("Slice1".to_string()));
+                        RuleKind::InvalidEncoding(InvalidEncodingKind::ExceptionNotSupported("1".to_string()));
                     rule_errors.push(rule_kind);
                 }
                 encodings

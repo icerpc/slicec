@@ -2,7 +2,9 @@
 
 mod slice1 {
 
-    use crate::assert_errors;
+    use slice::errors::*;
+
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
@@ -19,23 +21,24 @@ mod slice1 {
                 e: E,
             }
         ";
-        let expected_errors = [
-            "exceptions cannot be used as a data type with the Slice1 encoding",
-            "file encoding was set to Slice1 here:",
+        let expected: [&dyn ErrorType; 2] = [
+            &RuleKind::from(InvalidEncodingKind::ExceptionNotSupported("1".to_owned())),
+            &Note::new("file encoding was set to Slice1 here:"),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::{assert_errors, assert_errors_new};
+    use slice::errors::*;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
     /// exception that inherits from another exception.
@@ -43,23 +46,26 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-            // encoding = 2;
             module Test;
             exception A {}
             exception B : A {}
         ";
-        let expected_errors = [
-            "exception `B` is not supported by the Slice2 encoding",
-            "file is using the Slice2 encoding by default",
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-            "exception inheritance is only supported by the Slice1 encoding",
+        let expected: [&dyn ErrorType; 4] = [
+            &RuleKind::from(InvalidEncodingKind::NotSupported {
+                kind: "exception".to_owned(),
+                identifier: "B".to_owned(),
+                encoding: "2".to_owned(),
+            }),
+            &Note::new("file is using the Slice2 encoding by default"),
+            &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
+            &Note::new("exception inheritance is only supported by the Slice1 encoding"),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected);
     }
 
     /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing

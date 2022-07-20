@@ -3,6 +3,7 @@
 use super::comments::CommentParser;
 use crate::ast::Ast;
 use crate::error::ErrorReporter;
+use crate::errors::*;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
 use crate::slice_file::{Location, SliceFile};
@@ -511,8 +512,9 @@ impl<'a> SliceParser<'a> {
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
                     let location = location_from_span(&input);
-                    input.user_data().borrow_mut().error_reporter.report_error(
-                        "return tuples must have at least 2 elements",
+                    let rule_kind: RuleKind = InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements.into();
+                    input.user_data().borrow_mut().error_reporter.report_error_new(
+                        &rule_kind,
                         Some(&location),
                     );
                 }

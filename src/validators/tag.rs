@@ -51,10 +51,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let rule_kind = RuleKind::InvalidParameter(
-                parameter.identifier().to_string(),
-                InvalidParameterKind::RequiredParametersMustBeFirst,
-            );
+            let rule_kind: RuleKind = InvalidParameterKind::RequiredParametersMustBeFirst.into();
             error_reporter.report_error_new(&rule_kind, Some(parameter.data_type.location()));
             true
         }

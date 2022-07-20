@@ -19,8 +19,7 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
     if let Some((_, nonstreamed_members)) = members.split_last() {
         for member in nonstreamed_members {
             if member.is_streamed {
-                let rule_kind =
-                    RuleKind::InvalidParameter(member.identifier().to_owned(), InvalidParameterKind::StreamsMustBeLast);
+                let rule_kind: RuleKind = InvalidParameterKind::StreamsMustBeLast.into();
                 error_reporter.report_error_new(&rule_kind, Some(member.location()));
             }
         }

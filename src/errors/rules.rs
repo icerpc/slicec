@@ -8,7 +8,7 @@ pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
     InvalidArgument(InvalidArgumentKind),
     InvalidTag(String, InvalidTagKind),
-    InvalidParameter(String, InvalidParameterKind),
+    InvalidParameter(InvalidParameterKind),
     InvalidMember(String, InvalidMemberKind),
     InvalidEnum(String, InvalidEnumKind),
     InvalidEnumerator {
@@ -16,10 +16,12 @@ pub enum RuleKind {
         kind: InvalidEnumeratorKind,
     },
     InvalidEncoding(InvalidEncodingKind),
+    InvalidException(InvalidExceptionKind),
     InvalidStruct(String, InvalidStructKind),
     InvalidIdentifier(InvalidIdentifierKind),
     InvalidTypeAlias(InvalidTypeAliasKind),
     InvalidKey(InvalidKeyKind),
+    InvalidType(InvalidTypeKind),
 }
 
 impl ErrorType for RuleKind {
@@ -32,11 +34,13 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidEnumerator { identifier: _, kind } => 2000 + kind.error_code(),
             RuleKind::InvalidIdentifier(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidKey(kind) => 2000 + kind.error_code(),
-            RuleKind::InvalidParameter(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidParameter(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidStruct(_, kind) => 2000 + kind.error_code(),
             RuleKind::InvalidTag(_, kind) => 2000 + kind.error_code(),
             RuleKind::InvalidTypeAlias(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidMember(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidException(kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidType(kind) => 2000 + kind.error_code(),
         }
     }
 
@@ -55,6 +59,10 @@ impl ErrorType for RuleKind {
             }
             RuleKind::InvalidEnum(id, kind) => format!("[InvalidEnum `{}`]: ", id) + &kind.get_description(),
             RuleKind::InvalidEncoding(kind) => "[InvalidEncoding]: ".to_owned() + &kind.get_description(),
+            RuleKind::InvalidIdentifier(kind) => "[InvalidIdentifier]: ".to_owned() + &kind.get_description(),
+            RuleKind::InvalidException(kind) => "[InvalidException]: ".to_owned() + &kind.get_description(),
+            RuleKind::InvalidType(kind) => "[InvalidType]: ".to_owned() + &kind.get_description(),
+            RuleKind::InvalidParameter(kind) => "[InvalidParameter]: ".to_owned() + &kind.get_description(),
             _ => "Todo".to_string(),
         }
     }
@@ -252,7 +260,7 @@ impl InvalidIdentifierKind {
     pub fn get_description(&self) -> String {
         match self {
             InvalidIdentifierKind::IdentifierCannotBeARedefinition(identifier) => {
-                format!("redefinition of {}", identifier)
+                format!("redefinition of `{}`", identifier)
             }
             InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(identifier) => {
                 format!("`{}` shadows another symbol", identifier)
@@ -284,6 +292,13 @@ impl InvalidTagKind {
 pub enum InvalidParameterKind {
     RequiredParametersMustBeFirst,
     StreamsMustBeLast,
+    ReturnTuplesMustContainAtleastTwoElements,
+}
+
+impl From<InvalidParameterKind> for RuleKind {
+    fn from(original: InvalidParameterKind) -> RuleKind {
+        RuleKind::InvalidParameter(original)
+    }
 }
 
 impl InvalidParameterKind {
@@ -291,6 +306,7 @@ impl InvalidParameterKind {
         match self {
             InvalidParameterKind::RequiredParametersMustBeFirst => 1,
             InvalidParameterKind::StreamsMustBeLast => 2,
+            InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements => 3,
         }
     }
 
@@ -301,6 +317,9 @@ impl InvalidParameterKind {
             }
             InvalidParameterKind::StreamsMustBeLast => {
                 "only the last parameter in an operation can use the stream modifier".to_string()
+            }
+            InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements => {
+                "return tuples must have at least 2 elements".to_string()
             }
         }
     }
@@ -329,6 +348,66 @@ impl InvalidMemberKind {
             }
             InvalidMemberKind::TaggedDataMemberMustBeOptional => "tagged members must be optional".to_string(),
             InvalidMemberKind::TaggedDataMemberCannotBeClass => "tagged members cannot be classes".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum InvalidExceptionKind {
+    CanOnlyInheritFromSingleBase,
+}
+impl From<InvalidExceptionKind> for RuleKind {
+    fn from(original: InvalidExceptionKind) -> RuleKind {
+        RuleKind::InvalidException(original)
+    }
+}
+
+impl InvalidExceptionKind {
+    pub fn error_code(&self) -> u32 {
+        match self {
+            InvalidExceptionKind::CanOnlyInheritFromSingleBase => 1,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidExceptionKind::CanOnlyInheritFromSingleBase => {
+                "exceptions can only inherit from a single base exception".to_string()
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum InvalidTypeKind {
+    TypeMismatch(String, String),
+    ConcreteTypeMismatch(String, String),
+}
+impl From<InvalidTypeKind> for RuleKind {
+    fn from(original: InvalidTypeKind) -> RuleKind {
+        RuleKind::InvalidType(original)
+    }
+}
+
+impl InvalidTypeKind {
+    pub fn error_code(&self) -> u32 {
+        match self {
+            InvalidTypeKind::TypeMismatch(_, _) => 1,
+            InvalidTypeKind::ConcreteTypeMismatch(_, _) => 2,
+        }
+    }
+
+    pub fn get_description(&self) -> String {
+        match self {
+            InvalidTypeKind::TypeMismatch(expected, found) => {
+                format!(
+                    "type mismatch: expected a `{}` but found {} (which doesn't implement `{}`)",
+                    expected, found, expected
+                )
+            }
+            InvalidTypeKind::ConcreteTypeMismatch(expected, found) => {
+                format!("type mismatch: expected `{}` but found `{}`", expected, found)
+            }
         }
     }
 }
@@ -410,7 +489,7 @@ impl InvalidEncodingKind {
                 )
             }
             InvalidEncodingKind::ExceptionNotSupported(encoding) => format!(
-                "exceptions cannot be used as a data type with the {} encoding",
+                "exceptions cannot be used as a data type with the Slice{} encoding",
                 encoding
             ),
             InvalidEncodingKind::StreamedParametersNotSupported(encoding) => {

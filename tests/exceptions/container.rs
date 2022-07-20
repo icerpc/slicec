@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
+use crate::{assert_errors, assert_errors_new};
+use slice::errors::*;
 use slice::grammar::*;
 
 /// Verifies that exceptions can contain data members.
@@ -71,8 +72,12 @@ fn cannot_redefine_data_members() {
             a: string,
         }
     ";
+    let expected: [&dyn ErrorType; 2] = [
+        &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("a".to_owned())),
+        &Note::new("`a` was previously defined here"),
+    ];
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, ["redefinition of a", "a was previously defined here"]);
+    assert_errors_new!(error_reporter, expected);
 }
