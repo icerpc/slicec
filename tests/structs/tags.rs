@@ -26,7 +26,9 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::assert_errors;
+    use slice::errors::*;
+
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
 
     #[test]
@@ -40,15 +42,18 @@ mod compact_structs {
                 b: tag(10) bool?,
             }
         ";
-        let expected_errors = [
-            "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact",
-            "struct 'S' is declared compact here",
+        let expected: [&dyn ErrorType; 2] = [
+            &RuleKind::InvalidMember(
+                "b".to_owned(),
+                InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs,
+            ),
+            &Note::new("struct 'S' is declared compact here"),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected);
     }
 }

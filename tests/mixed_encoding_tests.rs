@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
-
+use slice::errors::*;
 use slice::parse_from_strings;
 
 #[test]
@@ -60,7 +60,6 @@ fn invalid_mixed_encoding_fails() {
             data: int32?,
         }
     ";
-
     let encoding1_slice = "
         encoding = 1;
         module Test;
@@ -70,17 +69,23 @@ fn invalid_mixed_encoding_fails() {
             s: ACompactStruct,
         }
     ";
-
+    let expected: [&dyn ErrorType; 4] = [
+        &RuleKind::from(InvalidEncodingKind::UnsupportedType {
+            type_string: "ACustomType".to_owned(),
+            encoding: "1".to_owned(),
+        }),
+        &Note::new("file encoding was set to Slice1 here:"),
+        &RuleKind::from(InvalidEncodingKind::UnsupportedType {
+            type_string: "ACompactStruct".to_owned(),
+            encoding: "1".to_owned(),
+        }),
+        &Note::new("file encoding was set to Slice1 here:"),
+    ];
     let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])
         .err()
         .unwrap()
         .error_reporter;
 
     // TODO: we should provide a better error message to the user here
-    assert_errors!(error_reporter, [
-        "the type `ACustomType` is not supported by the Slice1 encoding",
-        "file encoding was set to Slice1 here:",
-        "the type `ACompactStruct` is not supported by the Slice1 encoding",
-        "file encoding was set to Slice1 here:",
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }

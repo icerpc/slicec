@@ -175,7 +175,10 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
-    let expected: RuleKind = InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements.into();
+    let expected = RuleKind::InvalidParameter(
+        "return tuple".to_owned(),
+        InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements,
+    );
 
     let error_reporter = parse_for_errors(slice);
 
@@ -183,8 +186,8 @@ fn return_tuple_must_contain_two_or_more_elements() {
 }
 
 mod streams {
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
     use slice::grammar::*;
 
@@ -217,7 +220,7 @@ mod streams {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
-        let expected: RuleKind = InvalidParameterKind::StreamsMustBeLast.into();
+        let expected = RuleKind::InvalidParameter("s".to_owned(), InvalidParameterKind::StreamsMustBeLast);
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);
@@ -232,7 +235,7 @@ mod streams {
                 op(s: stream varuint62, i: int32);
             }
         ";
-        let expected: RuleKind = InvalidParameterKind::StreamsMustBeLast.into();
+        let expected = RuleKind::InvalidParameter("s".to_owned(), InvalidParameterKind::StreamsMustBeLast);
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);

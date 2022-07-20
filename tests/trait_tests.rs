@@ -11,7 +11,9 @@ mod traits {
 
         mod slice1 {
 
-            use crate::assert_errors;
+            use slice::errors::*;
+
+            use crate::assert_errors_new;
             use crate::helpers::parsing_helpers::parse_for_errors;
 
             #[test]
@@ -22,16 +24,21 @@ mod traits {
                     module Test;
                     trait ATrait;
                 ";
+                let expected: [&dyn ErrorType; 3] = [
+                    &RuleKind::from(InvalidEncodingKind::NotSupported {
+                        kind: "trait".to_owned(),
+                        identifier: "ATrait".to_owned(),
+                        encoding: "1".to_owned(),
+                    }),
+                    &Note::new("file encoding was set to Slice1 here:"),
+                    &Note::new("traits are not supported by the Slice1 encoding"),
+                ];
 
                 // Act
                 let error_reporter = parse_for_errors(slice);
 
                 // Assert
-                assert_errors!(error_reporter, [
-                    "trait `ATrait` is not supported by the Slice1 encoding",
-                    "file encoding was set to Slice1 here:",
-                    "traits are not supported by the Slice1 encoding",
-                ]);
+                assert_errors_new!(error_reporter, expected);
             }
         }
     }

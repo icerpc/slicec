@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use crate::{assert_errors, assert_errors_new};
 use slice::errors::*;
 use slice::grammar::*;
 

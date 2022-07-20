@@ -2,8 +2,9 @@
 
 mod structs {
 
-    use crate::assert_errors;
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
+    use slice::errors::*;
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -73,18 +74,22 @@ mod structs {
                 a: string,
             }
         ";
+        let expected: [&dyn ErrorType; 2] = [
+            &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("a".to_owned())),
+            &Note::new("`a` was previously defined here".to_owned()),
+        ];
 
         let error_reporter = parse_for_errors(slice);
 
-        assert_errors!(error_reporter, ["redefinition of a", "a was previously defined here"]);
+        assert_errors_new!(error_reporter, expected);
     }
 }
 
 mod compact_structs {
 
-    use crate::assert_errors;
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-
+    use slice::errors::*;
     /// Verifies that compact structs must contain at least one data member.
     #[test]
     fn must_not_be_empty() {
@@ -93,12 +98,12 @@ mod compact_structs {
             module Test;
             compact struct S {}
         ";
-        let expected_errors = ["compact structs must be non-empty"];
+        let expected: RuleKind = InvalidStructKind::CompactStructIsEmpty.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, [&expected]);
     }
 }

@@ -4,8 +4,8 @@ mod slice1 {
 
     use slice::errors::*;
 
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-    use crate::{assert_errors, assert_errors_new};
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.

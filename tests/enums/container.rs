@@ -276,8 +276,8 @@ fn unchecked_enums_can_be_empty() {
 
 mod slice1 {
 
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
 
     #[test]

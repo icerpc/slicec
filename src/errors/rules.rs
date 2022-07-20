@@ -8,7 +8,7 @@ pub enum RuleKind {
     InvalidAttribute(InvalidAttributeKind),
     InvalidArgument(InvalidArgumentKind),
     InvalidTag(String, InvalidTagKind),
-    InvalidParameter(InvalidParameterKind),
+    InvalidParameter(String, InvalidParameterKind),
     InvalidMember(String, InvalidMemberKind),
     InvalidEnum(String, InvalidEnumKind),
     InvalidEnumerator {
@@ -17,7 +17,7 @@ pub enum RuleKind {
     },
     InvalidEncoding(InvalidEncodingKind),
     InvalidException(InvalidExceptionKind),
-    InvalidStruct(String, InvalidStructKind),
+    InvalidStruct(InvalidStructKind),
     InvalidIdentifier(InvalidIdentifierKind),
     InvalidTypeAlias(InvalidTypeAliasKind),
     InvalidKey(InvalidKeyKind),
@@ -34,8 +34,8 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidEnumerator { identifier: _, kind } => 2000 + kind.error_code(),
             RuleKind::InvalidIdentifier(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidKey(kind) => 2000 + kind.error_code(),
-            RuleKind::InvalidParameter(kind) => 2000 + kind.error_code(),
-            RuleKind::InvalidStruct(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidParameter(_, kind) => 2000 + kind.error_code(),
+            RuleKind::InvalidStruct(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidTag(_, kind) => 2000 + kind.error_code(),
             RuleKind::InvalidTypeAlias(kind) => 2000 + kind.error_code(),
             RuleKind::InvalidMember(_, kind) => 2000 + kind.error_code(),
@@ -51,7 +51,7 @@ impl ErrorType for RuleKind {
             }
             RuleKind::InvalidArgument(arg_kind) => "[InvalidArgument]: ".to_owned() + &arg_kind.get_description(),
             RuleKind::InvalidTag(tag, invalid_tag_kind) => {
-                format!("[InvalidTag `{}`]: ", tag) + &invalid_tag_kind.get_description()
+                format!("[InvalidTag on `{}`]: ", tag) + &invalid_tag_kind.get_description()
             }
             RuleKind::InvalidKey(key_kind) => "[InvalidKey]: ".to_owned() + &key_kind.get_description(),
             RuleKind::InvalidEnumerator { identifier, kind } => {
@@ -62,8 +62,13 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidIdentifier(kind) => "[InvalidIdentifier]: ".to_owned() + &kind.get_description(),
             RuleKind::InvalidException(kind) => "[InvalidException]: ".to_owned() + &kind.get_description(),
             RuleKind::InvalidType(kind) => "[InvalidType]: ".to_owned() + &kind.get_description(),
-            RuleKind::InvalidParameter(kind) => "[InvalidParameter]: ".to_owned() + &kind.get_description(),
-            _ => "Todo".to_string(),
+            RuleKind::InvalidParameter(identifier, kind) => {
+                format!("[InvalidParameter `{}`]: ", identifier) + &kind.get_description()
+            }
+            RuleKind::InvalidMember(identifier, kind) => {
+                format!("[InvalidMember `{}`]: ", identifier) + &kind.get_description()
+            }
+            _ => "TODO".to_string(),
         }
     }
 
@@ -271,19 +276,27 @@ impl InvalidIdentifierKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidTagKind {
-    TagsMustBeUnique,
+    DuplicateTag,
+    MustBePositive,
+    MustBeBounded,
 }
 
 impl InvalidTagKind {
     pub fn error_code(&self) -> u32 {
         match self {
-            InvalidTagKind::TagsMustBeUnique => 1,
+            InvalidTagKind::DuplicateTag => 1,
+            InvalidTagKind::MustBePositive => 2,
+            InvalidTagKind::MustBeBounded => 3,
         }
     }
 
     pub fn get_description(&self) -> String {
         match self {
-            InvalidTagKind::TagsMustBeUnique => "tags must be unique".to_string(),
+            InvalidTagKind::DuplicateTag => "tags must be unique".to_string(),
+            InvalidTagKind::MustBePositive => "tag values must be positive".to_string(),
+            InvalidTagKind::MustBeBounded => {
+                "tag values must be greater than or equal to 0 and less than 2147483647".to_owned()
+            }
         }
     }
 }
@@ -293,12 +306,6 @@ pub enum InvalidParameterKind {
     RequiredParametersMustBeFirst,
     StreamsMustBeLast,
     ReturnTuplesMustContainAtleastTwoElements,
-}
-
-impl From<InvalidParameterKind> for RuleKind {
-    fn from(original: InvalidParameterKind) -> RuleKind {
-        RuleKind::InvalidParameter(original)
-    }
 }
 
 impl InvalidParameterKind {
@@ -330,6 +337,7 @@ pub enum InvalidMemberKind {
     TaggedDataMemberNotSupportedInCompactStructs,
     TaggedDataMemberMustBeOptional,
     TaggedDataMemberCannotBeClass,
+    TaggedDataMemberCannotContainClasses,
 }
 
 impl InvalidMemberKind {
@@ -338,6 +346,7 @@ impl InvalidMemberKind {
             InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs => 90,
             InvalidMemberKind::TaggedDataMemberMustBeOptional => 95,
             InvalidMemberKind::TaggedDataMemberCannotBeClass => 100,
+            InvalidMemberKind::TaggedDataMemberCannotContainClasses => 105,
         }
     }
 
@@ -348,6 +357,7 @@ impl InvalidMemberKind {
             }
             InvalidMemberKind::TaggedDataMemberMustBeOptional => "tagged members must be optional".to_string(),
             InvalidMemberKind::TaggedDataMemberCannotBeClass => "tagged members cannot be classes".to_string(),
+            InvalidMemberKind::TaggedDataMemberCannotContainClasses => "tagged members cannot contain classes".to_owned(),
         }
     }
 }
@@ -415,6 +425,12 @@ impl InvalidTypeKind {
 #[derive(Debug, Clone)]
 pub enum InvalidStructKind {
     CompactStructIsEmpty,
+}
+
+impl From<InvalidStructKind> for RuleKind {
+    fn from(original: InvalidStructKind) -> RuleKind {
+        RuleKind::InvalidStruct(original)
+    }
 }
 
 impl InvalidStructKind {

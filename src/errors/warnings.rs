@@ -12,7 +12,7 @@ pub enum WarningKind {
 impl ErrorType for WarningKind {
     fn error_code(&self) -> u32 {
         match self {
-            WarningKind::DocCommentIndicatesThrow { .. } => 1000 + 0,
+            WarningKind::DocCommentIndicatesThrow { .. } => 1000,
             WarningKind::DocCommentIndicatesReturn { .. } => 1000 + 10,
             WarningKind::DocCommentIndicatesParam { .. } => 1000 + 20,
         }

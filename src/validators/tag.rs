@@ -29,7 +29,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            let rule_kind = RuleKind::InvalidTag(window[1].identifier().to_string(), InvalidTagKind::TagsMustBeUnique);
+            let rule_kind = RuleKind::InvalidTag(window[1].identifier().to_string(), InvalidTagKind::DuplicateTag);
             error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
@@ -51,7 +51,10 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let rule_kind: RuleKind = InvalidParameterKind::RequiredParametersMustBeFirst.into();
+            let rule_kind = RuleKind::InvalidParameter(
+                parameter.identifier().to_owned(),
+                InvalidParameterKind::RequiredParametersMustBeFirst,
+            );
             error_reporter.report_error_new(&rule_kind, Some(parameter.data_type.location()));
             true
         }
@@ -142,7 +145,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
         } {
             let rule_kind = RuleKind::InvalidMember(
                 member.identifier().to_string(),
-                InvalidMemberKind::TaggedDataMemberCannotBeClass,
+                InvalidMemberKind::TaggedDataMemberCannotContainClasses,
             );
             error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }

@@ -284,6 +284,7 @@ mod attributes {
 
     mod generalized_api {
 
+        use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
         use slice::grammar::*;
         use slice::parse_from_string;
@@ -410,10 +411,10 @@ mod attributes {
             // Act
             let error_reporter = parse_for_errors(slice);
 
-            // // Assert
-            // assert_errors_new!(error_reporter, [
-            //     "", // Should be error here
-            // ]);
+            // Assert
+            assert_errors!(error_reporter, [
+                "", // Should be error here
+            ]);
         }
     }
 }
