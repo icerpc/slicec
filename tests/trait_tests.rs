@@ -25,11 +25,11 @@ mod traits {
                     trait ATrait;
                 ";
                 let expected: [&dyn ErrorType; 3] = [
-                    &RuleKind::from(InvalidEncodingKind::NotSupported {
-                        kind: "trait".to_owned(),
-                        identifier: "ATrait".to_owned(),
-                        encoding: "1".to_owned(),
-                    }),
+                    &RuleKind::from(InvalidEncodingKind::NotSupported(
+                        "trait".to_owned(),
+                        "ATrait".to_owned(),
+                        "1".to_owned(),
+                    )),
                     &Note::new("file encoding was set to Slice1 here:"),
                     &Note::new("traits are not supported by the Slice1 encoding"),
                 ];

@@ -25,10 +25,10 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let rule_kind = RuleKind::InvalidEnumerator {
-                    identifier: enumerator.identifier().to_string(),
-                    kind: InvalidEnumeratorKind::MustBePositive,
-                };
+                let rule_kind = RuleKind::InvalidEnumerator(
+                    enumerator.identifier().to_string(),
+                    InvalidEnumeratorKind::MustBePositive,
+                );
                 error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
@@ -37,14 +37,10 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let rule_kind = RuleKind::InvalidEnumerator {
-                    identifier: enumerator.identifier().to_string(),
-                    kind: InvalidEnumeratorKind::MustBeBounded {
-                        value: enumerator.value,
-                        min: 0,
-                        max: i32::MAX as i64,
-                    },
-                };
+                let rule_kind = RuleKind::InvalidEnumerator(
+                    enumerator.identifier().to_string(),
+                    InvalidEnumeratorKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64),
+                );
                 error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
             });
     } else {
@@ -57,14 +53,10 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let rule_kind = RuleKind::InvalidEnumerator {
-                        identifier: enumerator.identifier().to_string(),
-                        kind: InvalidEnumeratorKind::MustBeBounded {
-                            value: enumerator.value,
-                            min,
-                            max,
-                        },
-                    };
+                    let rule_kind = RuleKind::InvalidEnumerator(
+                        enumerator.identifier().to_string(),
+                        InvalidEnumeratorKind::MustBeBounded(enumerator.value, min, max),
+                    );
                     error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
                 });
         }
@@ -111,10 +103,8 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let rule_kind = RuleKind::InvalidEnumerator {
-                identifier: window[1].identifier().to_string(),
-                kind: InvalidEnumeratorKind::MustBeUnique,
-            };
+            let rule_kind =
+                RuleKind::InvalidEnumerator(window[1].identifier().to_string(), InvalidEnumeratorKind::MustBeUnique);
             error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(

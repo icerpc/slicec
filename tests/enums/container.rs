@@ -80,14 +80,10 @@ fn validate_backing_type_out_of_bounds() {
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
-    let expected = RuleKind::InvalidEnumerator {
-        identifier: "A".to_owned(),
-        kind: InvalidEnumeratorKind::MustBeBounded {
-            value: out_of_bounds_value as i64,
-            min: -32768_i64,
-            max: 32767_i64,
-        },
-    };
+    let expected = RuleKind::InvalidEnumerator(
+        "A".to_owned(),
+        InvalidEnumeratorKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64),
+    );
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -194,10 +190,7 @@ fn enumerators_must_be_unique() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::InvalidEnumerator {
-            identifier: "B".to_owned(),
-            kind: InvalidEnumeratorKind::MustBeUnique,
-        },
+        &RuleKind::InvalidEnumerator("B".to_owned(), InvalidEnumeratorKind::MustBeUnique),
         &Note::new("The enumerator `A` has previous used the value `1`"),
     ];
 
@@ -293,18 +286,9 @@ mod slice1 {
             }
         ";
         let expected_errors: [&dyn ErrorType; 3] = [
-            &RuleKind::InvalidEnumerator {
-                identifier: "A".to_owned(),
-                kind: InvalidEnumeratorKind::MustBePositive,
-            },
-            &RuleKind::InvalidEnumerator {
-                identifier: "B".to_owned(),
-                kind: InvalidEnumeratorKind::MustBePositive,
-            },
-            &RuleKind::InvalidEnumerator {
-                identifier: "C".to_owned(),
-                kind: InvalidEnumeratorKind::MustBePositive,
-            },
+            &RuleKind::InvalidEnumerator("A".to_owned(), InvalidEnumeratorKind::MustBePositive),
+            &RuleKind::InvalidEnumerator("B".to_owned(), InvalidEnumeratorKind::MustBePositive),
+            &RuleKind::InvalidEnumerator("C".to_owned(), InvalidEnumeratorKind::MustBePositive),
         ];
 
         // Act
@@ -327,14 +311,10 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected = RuleKind::InvalidEnumerator {
-            identifier: "A".to_owned(),
-            kind: InvalidEnumeratorKind::MustBeBounded {
-                value: i32::MAX as i64 + 1,
-                min: 0_i64,
-                max: i32::MAX as i64,
-            },
-        };
+        let expected = RuleKind::InvalidEnumerator(
+            "A".to_owned(),
+            InvalidEnumeratorKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64),
+        );
 
         // Act
         let error_reporter = parse_for_errors(slice);

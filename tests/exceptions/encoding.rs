@@ -51,11 +51,11 @@ mod slice2 {
             exception B : A {}
         ";
         let expected: [&dyn ErrorType; 4] = [
-            &RuleKind::from(InvalidEncodingKind::NotSupported {
-                kind: "exception".to_owned(),
-                identifier: "B".to_owned(),
-                encoding: "2".to_owned(),
-            }),
+            &RuleKind::from(InvalidEncodingKind::NotSupported(
+                "exception".to_owned(),
+                "B".to_owned(),
+                "2".to_owned(),
+            )),
             &Note::new("file is using the Slice2 encoding by default"),
             &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
             &Note::new("exception inheritance is only supported by the Slice1 encoding"),

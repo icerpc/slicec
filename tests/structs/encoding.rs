@@ -17,11 +17,11 @@ mod slice1 {
             struct A {}
         ";
         let expected: [&dyn ErrorType; 3] = [
-            &RuleKind::from(InvalidEncodingKind::NotSupported {
-                kind: "struct".to_owned(),
-                identifier: "A".to_owned(),
-                encoding: "1".to_owned(),
-            }),
+            &RuleKind::from(InvalidEncodingKind::NotSupported(
+                "struct".to_owned(),
+                "A".to_owned(),
+                "1".to_owned(),
+            )),
             &Note::new("file encoding was set to Slice1 here:"),
             &Note::new("structs must be `compact` to be supported by the Slice1 encoding"),
         ];
@@ -52,10 +52,10 @@ mod slice2 {
             }
         ";
         let expected: [&dyn ErrorType; 3] = [
-            &RuleKind::from(InvalidEncodingKind::UnsupportedType {
-                type_string: "AnyClass".to_owned(),
-                encoding: "2".to_owned(),
-            }),
+            &RuleKind::from(InvalidEncodingKind::UnsupportedType(
+                "AnyClass".to_owned(),
+                "2".to_owned(),
+            )),
             &Note::new("file is using the Slice2 encoding by default"),
             &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
         ];

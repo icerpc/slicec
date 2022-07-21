@@ -92,11 +92,11 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let rule_kind = RuleKind::InvalidEncoding(InvalidEncodingKind::NotSupported {
-                kind: entity_def.kind().to_string(),
-                identifier: entity_def.identifier().to_string(),
-                encoding: file_encoding.to_string(),
-            });
+            let rule_kind = RuleKind::InvalidEncoding(InvalidEncodingKind::NotSupported(
+                entity_def.kind().to_string(),
+                entity_def.identifier().to_string(),
+                file_encoding.to_string(),
+            ));
             self.error_reporter
                 .report_error_new(&rule_kind, Some(entity_def.location()));
             self.emit_file_encoding_mismatch_error(entity_def);
@@ -185,10 +185,10 @@ impl EncodingPatcher<'_> {
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if rule_errors.is_empty() {
-                let rule_kind = RuleKind::InvalidEncoding(InvalidEncodingKind::UnsupportedType {
-                    type_string: type_ref.type_string.to_string(),
-                    encoding: file_encoding.to_string(),
-                });
+                let rule_kind = RuleKind::InvalidEncoding(InvalidEncodingKind::UnsupportedType(
+                    type_ref.type_string.to_string(),
+                    file_encoding.to_string(),
+                ));
                 rule_errors.push(rule_kind);
             }
             for rule_kind in rule_errors {

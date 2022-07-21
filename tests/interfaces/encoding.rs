@@ -19,10 +19,7 @@ fn operation_members_are_compatible_with_encoding() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidEncodingKind::UnsupportedType {
-            type_string: "C".to_owned(),
-            encoding: "2".to_owned(),
-        }),
+        &RuleKind::from(InvalidEncodingKind::UnsupportedType("C".to_owned(), "2".to_owned())),
         &Note::new("file encoding was set to Slice2 here:"),
     ];
 
