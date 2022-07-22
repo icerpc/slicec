@@ -61,9 +61,7 @@ fn data_member_shadowing_is_disallowed() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(
-            "i".to_owned(),
-        )),
+        &RuleKind::from(InvalidIdentifierKind::Shadows("i".to_owned())),
         &Note::new("`i` was previously defined here"),
     ];
 

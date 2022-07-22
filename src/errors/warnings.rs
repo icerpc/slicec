@@ -30,7 +30,7 @@ impl ErrorType for WarningKind {
                 param_name = param_name,
             ),
             WarningKind::DocCommentIndicatesReturn => {
-                "void operation must not contain doc comment return tag".to_string()
+                "void operation must not contain doc comment return tag".to_owned()
             }
         }
     }

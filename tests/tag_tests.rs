@@ -22,7 +22,7 @@ mod tags {
                 b: tag(10) bool,
             }
         ";
-        let expected = RuleKind::InvalidMember("b".to_owned(), InvalidMemberKind::TaggedDataMemberMustBeOptional);
+        let expected = RuleKind::InvalidMember("b".to_owned(), InvalidMemberKind::MustBeOptional);
         let error_reporter = parse_for_errors(slice);
 
         // Assert
@@ -39,7 +39,7 @@ mod tags {
                 op(myParam: tag(10) int32);
             }
         ";
-        let expected = RuleKind::InvalidMember("myParam".to_owned(), InvalidMemberKind::TaggedDataMemberMustBeOptional);
+        let expected = RuleKind::InvalidMember("myParam".to_owned(), InvalidMemberKind::MustBeOptional);
 
         let error_reporter = parse_for_errors(slice);
 
@@ -101,7 +101,7 @@ mod tags {
                 op(c: tag(1) C?);
             }
         ";
-        let expected = RuleKind::InvalidMember("c".to_owned(), InvalidMemberKind::TaggedDataMemberCannotBeClass);
+        let expected = RuleKind::InvalidMember("c".to_owned(), InvalidMemberKind::CannotBeClass);
 
         // Act
         let errors = parse_for_errors(slice);
@@ -126,7 +126,7 @@ mod tags {
                 op(s: tag(1) S?);
             }
         ";
-        let expected = RuleKind::InvalidMember("s".to_owned(), InvalidMemberKind::TaggedDataMemberCannotContainClasses);
+        let expected = RuleKind::InvalidMember("s".to_owned(), InvalidMemberKind::CannotContainClasses);
 
         // Act
         let errors = parse_for_errors(slice);

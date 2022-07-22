@@ -86,7 +86,7 @@ fn cannot_redefine_operations() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("op".to_owned())),
+        &RuleKind::from(InvalidIdentifierKind::Redefinition("op".to_owned())),
         &Note::new("`op` was previously defined here"),
     ];
 

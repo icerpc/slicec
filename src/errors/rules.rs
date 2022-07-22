@@ -61,7 +61,7 @@ impl ErrorType for RuleKind {
             RuleKind::InvalidMember(identifier, kind) => {
                 format!("[InvalidMember `{}`]: ", identifier) + &kind.get_description()
             }
-            _ => "TODO".to_string(),
+            _ => "TODO".to_owned(),
         }
     }
 
@@ -78,8 +78,8 @@ pub enum InvalidAttributeKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidArgumentKind {
-    ArgumentCannotBeEmpty(&'static str),
-    ArgumentNotSupported(String, &'static str),
+    CannotBeEmpty(&'static str),
+    NotSupported(String, &'static str),
 }
 
 #[derive(Debug, Clone)]
@@ -106,8 +106,8 @@ pub enum InvalidEnumeratorKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidIdentifierKind {
-    IdentifierCannotBeARedefinition(String),
-    IdentifierCannotShadowAnotherSymbol(String),
+    Redefinition(String),
+    Shadows(String),
 }
 
 #[derive(Debug, Clone)]
@@ -126,10 +126,10 @@ pub enum InvalidParameterKind {
 
 #[derive(Debug, Clone)]
 pub enum InvalidMemberKind {
-    TaggedDataMemberNotSupportedInCompactStructs,
-    TaggedDataMemberMustBeOptional,
-    TaggedDataMemberCannotBeClass,
-    TaggedDataMemberCannotContainClasses,
+    NotSupportedInCompactStructs,
+    MustBeOptional,
+    CannotBeClass,
+    CannotContainClasses,
 }
 
 #[derive(Debug, Clone)]
@@ -200,13 +200,13 @@ implement_kind_for_enumerator!(
 implement_kind_for_enumerator!(
     InvalidArgumentKind,
     (
-        InvalidArgumentKind::ArgumentCannotBeEmpty,
+        InvalidArgumentKind::CannotBeEmpty,
         2002,
         format!("{} arguments cannot be empty", method),
         method
     ),
     (
-        InvalidArgumentKind::ArgumentNotSupported,
+        InvalidArgumentKind::NotSupported,
         2003,
         format!("argument '{}' is not supported for `{}`", arg, method),
         arg,
@@ -218,12 +218,12 @@ implement_kind_for_enumerator!(
     (
         InvalidKeyKind::CannotUseOptionalAsKey,
         2004,
-        "optional types cannot be used as a dictionary key type".to_string()
+        "optional types cannot be used as a dictionary key type".to_owned()
     ),
     (
         InvalidKeyKind::StructsMustBeCompactToBeAKey,
         2005,
-        "structs must be compact to be used as a dictionary key type".to_string(),
+        "structs must be compact to be used as a dictionary key type".to_owned(),
         method
     ),
     (
@@ -247,12 +247,12 @@ implement_kind_for_enumerator!(
     (
         InvalidEnumKind::CannotHaveOptionalUnderlyingType,
         2008,
-        "enums cannot have optional underlying types".to_string()
+        "enums cannot have optional underlying types".to_owned()
     ),
     (
         InvalidEnumKind::MustContainAtLeastOneValue,
         2009,
-        "enums must contain at least one enumerator".to_string()
+        "enums must contain at least one enumerator".to_owned()
     ),
     (
         InvalidEnumKind::UnderlyingTypeMustBeIntegral,
@@ -264,13 +264,13 @@ implement_kind_for_enumerator!(
 implement_kind_for_enumerator!(
     InvalidIdentifierKind,
     (
-        InvalidIdentifierKind::IdentifierCannotBeARedefinition,
+        InvalidIdentifierKind::Redefinition,
         2011,
         format!("redefinition of `{}`", identifier),
         identifier
     ),
     (
-        InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol,
+        InvalidIdentifierKind::Shadows,
         2012,
         format!("`{}` shadows another symbol", identifier),
         identifier
@@ -295,38 +295,38 @@ implement_kind_for_enumerator!(
     (
         InvalidParameterKind::RequiredParametersMustBeFirst,
         2015,
-        "required parameters must precede tagged parameters".to_string()
+        "required parameters must precede tagged parameters".to_owned()
     ),
     (
         InvalidParameterKind::StreamsMustBeLast,
         2016,
-        "only the last parameter in an operation can use the stream modifier".to_string()
+        "only the last parameter in an operation can use the stream modifier".to_owned()
     ),
     (
         InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements,
         2017,
-        "return tuples must have at least 2 elements".to_string()
+        "return tuples must have at least 2 elements".to_owned()
     )
 );
 implement_kind_for_enumerator!(
     InvalidMemberKind,
     (
-        InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs,
+        InvalidMemberKind::NotSupportedInCompactStructs,
         2018,
-        "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact".to_string()
+        "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact".to_owned()
     ),
     (
-        InvalidMemberKind::TaggedDataMemberMustBeOptional,
+        InvalidMemberKind::MustBeOptional,
         2019,
-        "tagged members must be optional".to_string()
+        "tagged members must be optional".to_owned()
     ),
     (
-        InvalidMemberKind::TaggedDataMemberCannotBeClass,
+        InvalidMemberKind::CannotBeClass,
         2020,
-        "tagged members cannot be classes".to_string()
+        "tagged members cannot be classes".to_owned()
     ),
     (
-        InvalidMemberKind::TaggedDataMemberCannotContainClasses,
+        InvalidMemberKind::CannotContainClasses,
         2021,
         "tagged members cannot contain classes".to_owned()
     )
@@ -336,7 +336,7 @@ implement_kind_for_enumerator!(
     (
         InvalidExceptionKind::CanOnlyInheritFromSingleBase,
         2022,
-        "exceptions can only inherit from a single base exception".to_string()
+        "exceptions can only inherit from a single base exception".to_owned()
     )
 );
 implement_kind_for_enumerator!(
@@ -364,7 +364,7 @@ implement_kind_for_enumerator!(
     (
         InvalidStructKind::CompactStructIsEmpty,
         2025,
-        "compact structs must be non-empty".to_string()
+        "compact structs must be non-empty".to_owned()
     )
 );
 implement_kind_for_enumerator!(
@@ -397,7 +397,7 @@ implement_kind_for_enumerator!(
     (
         InvalidEnumeratorKind::MustBeUnique,
         2012,
-        "enumerators must be unique".to_string()
+        "enumerators must be unique".to_owned()
     )
 );
 
@@ -457,13 +457,6 @@ macro_rules! implement_from_for_rule_kind {
             }
         }
     };
-    ($type:ty, $identifier:expr, $enumerator:path) => {
-        impl From<$type> for RuleKind {
-            fn from(original: $type) -> RuleKind {
-                $enumerator(expr, original)
-            }
-        }
-    };
 }
 
 implement_from_for_rule_kind!(InvalidAttributeKind, RuleKind::InvalidAttribute);
@@ -474,3 +467,4 @@ implement_from_for_rule_kind!(InvalidExceptionKind, RuleKind::InvalidException);
 implement_from_for_rule_kind!(InvalidTypeKind, RuleKind::InvalidType);
 implement_from_for_rule_kind!(InvalidStructKind, RuleKind::InvalidStruct);
 implement_from_for_rule_kind!(InvalidEncodingKind, RuleKind::InvalidEncoding);
+implement_from_for_rule_kind!(InvalidTypeAliasKind, RuleKind::InvalidTypeAlias);

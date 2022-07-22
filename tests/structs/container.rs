@@ -75,7 +75,7 @@ mod structs {
             }
         ";
         let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("a".to_owned())),
+            &RuleKind::from(InvalidIdentifierKind::Redefinition("a".to_owned())),
             &Note::new("`a` was previously defined here".to_owned()),
         ];
 

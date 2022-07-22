@@ -40,7 +40,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
         match attribute.arguments.len() {
             // The format attribute must have arguments
             0 => {
-                let rule_warning: RuleKind = InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute").into();
+                let rule_warning: RuleKind = InvalidArgumentKind::CannotBeEmpty("format attribute").into();
                 error_reporter.report_error_new(&rule_warning, Some(attribute.location()))
             }
             _ => {
@@ -54,7 +54,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                     })
                     .for_each(|arg| {
                         let rule_warning: RuleKind =
-                            InvalidArgumentKind::ArgumentNotSupported(arg.to_owned(), "format attribute").into();
+                            InvalidArgumentKind::NotSupported(arg.to_owned(), "format attribute").into();
                         error_reporter.report_error_new(&rule_warning, Some(attribute.location()));
                         error_reporter.report_note(
                             format!(
@@ -104,7 +104,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
                     let rule_warning: RuleKind =
-                        InvalidArgumentKind::ArgumentNotSupported(arg.to_owned(), "compress attribute").into();
+                        InvalidArgumentKind::NotSupported(arg.to_owned(), "compress attribute").into();
                     error_reporter.report_error_new(&rule_warning, Some(attribute.location()));
                     error_reporter.report_note(
                         format!(

@@ -3,7 +3,6 @@
 use crate::error::{Error, ErrorLevel};
 use crate::slice_file::Location;
 use std::fmt;
-use std::string::ToString;
 
 mod note;
 mod rules;

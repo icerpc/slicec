@@ -42,7 +42,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), error_reporter) {
                     let rule_kind =
-                        RuleKind::InvalidKey(InvalidKeyKind::TypeCannotBeUsedAsAKey(member.identifier().to_string()));
+                        RuleKind::InvalidKey(InvalidKeyKind::TypeCannotBeUsedAsAKey(member.identifier().to_owned()));
                     error_reporter.report_error_new(&rule_kind, Some(member.location()));
                     contains_invalid_key_types = true;
                 }
@@ -50,7 +50,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
 
             if contains_invalid_key_types {
                 let rule_kind = RuleKind::InvalidKey(InvalidKeyKind::StructContainsDisallowedType(
-                    struct_def.identifier().to_string(),
+                    struct_def.identifier().to_owned(),
                 ));
                 error_reporter.report_error_new(&rule_kind, Some(type_ref.location()));
                 error_reporter.report_note(

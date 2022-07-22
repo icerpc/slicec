@@ -43,10 +43,7 @@ mod compact_structs {
             }
         ";
         let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::InvalidMember(
-                "b".to_owned(),
-                InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs,
-            ),
+            &RuleKind::InvalidMember("b".to_owned(), InvalidMemberKind::NotSupportedInCompactStructs),
             &Note::new("struct 'S' is declared compact here"),
         ];
 

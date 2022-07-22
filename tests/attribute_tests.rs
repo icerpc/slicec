@@ -70,7 +70,7 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
-            let rule_kind: RuleKind = InvalidArgumentKind::ArgumentCannotBeEmpty("format attribute").into();
+            let rule_kind: RuleKind = InvalidArgumentKind::CannotBeEmpty("format attribute").into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -91,10 +91,7 @@ mod attributes {
                 }
             ";
             let expected: [&dyn ErrorType; 2] = [
-                &RuleKind::from(InvalidArgumentKind::ArgumentNotSupported(
-                    "Foo".to_owned(),
-                    "format attribute",
-                )),
+                &RuleKind::from(InvalidArgumentKind::NotSupported("Foo".to_owned(), "format attribute")),
                 &Note {
                     message: "The valid arguments for the format attribute are `Compact` and `Sliced`".to_owned(),
                 },
@@ -224,7 +221,7 @@ mod attributes {
                 }
             ";
             let expected: [&dyn ErrorType; 2] = [
-                &RuleKind::from(InvalidArgumentKind::ArgumentNotSupported(
+                &RuleKind::from(InvalidArgumentKind::NotSupported(
                     "Foo".to_owned(),
                     "compress attribute",
                 )),

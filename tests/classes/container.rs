@@ -114,7 +114,7 @@ fn cannot_redefine_data_members() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("a".to_string())),
+        &RuleKind::from(InvalidIdentifierKind::Redefinition("a".to_string())),
         &Note::new("`a` was previously defined here"),
     ];
 

@@ -29,7 +29,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            let rule_kind = RuleKind::InvalidTag(window[1].identifier().to_string(), InvalidTagKind::DuplicateTag);
+            let rule_kind = RuleKind::InvalidTag(window[1].identifier().to_owned(), InvalidTagKind::DuplicateTag);
             error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
@@ -70,8 +70,8 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
         for member in struct_def.members() {
             if member.tag.is_some() {
                 let rule_kind = RuleKind::InvalidMember(
-                    member.identifier().to_string(),
-                    InvalidMemberKind::TaggedDataMemberNotSupportedInCompactStructs,
+                    member.identifier().to_owned(),
+                    InvalidMemberKind::NotSupportedInCompactStructs,
                 );
                 error_reporter.report_error_new(&rule_kind, Some(member.location()));
                 error_reporter.report_note(
@@ -94,10 +94,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            let rule_kind = RuleKind::InvalidMember(
-                member.identifier().to_string(),
-                InvalidMemberKind::TaggedDataMemberMustBeOptional,
-            );
+            let rule_kind = RuleKind::InvalidMember(member.identifier().to_owned(), InvalidMemberKind::MustBeOptional);
             error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }
@@ -113,10 +110,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            let rule_kind = RuleKind::InvalidMember(
-                member.identifier().to_string(),
-                InvalidMemberKind::TaggedDataMemberCannotBeClass,
-            );
+            let rule_kind = RuleKind::InvalidMember(member.identifier().to_owned(), InvalidMemberKind::CannotBeClass);
             error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }
@@ -143,10 +137,8 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            let rule_kind = RuleKind::InvalidMember(
-                member.identifier().to_string(),
-                InvalidMemberKind::TaggedDataMemberCannotContainClasses,
-            );
+            let rule_kind =
+                RuleKind::InvalidMember(member.identifier().to_owned(), InvalidMemberKind::CannotContainClasses);
             error_reporter.report_error_new(&rule_kind, Some(member.location()));
         }
     }

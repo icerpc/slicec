@@ -26,7 +26,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
                 let rule_kind = RuleKind::InvalidEnumerator(
-                    enumerator.identifier().to_string(),
+                    enumerator.identifier().to_owned(),
                     InvalidEnumeratorKind::MustBePositive,
                 );
                 error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
@@ -38,7 +38,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
                 let rule_kind = RuleKind::InvalidEnumerator(
-                    enumerator.identifier().to_string(),
+                    enumerator.identifier().to_owned(),
                     InvalidEnumeratorKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64),
                 );
                 error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
@@ -54,7 +54,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
                     let rule_kind = RuleKind::InvalidEnumerator(
-                        enumerator.identifier().to_string(),
+                        enumerator.identifier().to_owned(),
                         InvalidEnumeratorKind::MustBeBounded(enumerator.value, min, max),
                     );
                     error_reporter.report_error_new(&rule_kind, Some(enumerator.location()));
@@ -83,8 +83,8 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
                 let rule_kind = RuleKind::InvalidEnum(
-                    enum_def.identifier().to_string(),
-                    InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_string()),
+                    enum_def.identifier().to_owned(),
+                    InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned()),
                 );
                 error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
             }
@@ -104,7 +104,7 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
             let rule_kind =
-                RuleKind::InvalidEnumerator(window[1].identifier().to_string(), InvalidEnumeratorKind::MustBeUnique);
+                RuleKind::InvalidEnumerator(window[1].identifier().to_owned(), InvalidEnumeratorKind::MustBeUnique);
             error_reporter.report_error_new(&rule_kind, Some(window[1].location()));
             error_reporter.report_note(
                 format!(
@@ -123,7 +123,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
             let rule_kind = RuleKind::InvalidEnum(
-                enum_def.identifier().to_string(),
+                enum_def.identifier().to_owned(),
                 InvalidEnumKind::CannotHaveOptionalUnderlyingType,
             );
             error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));
@@ -135,7 +135,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
         let rule_kind = RuleKind::InvalidEnum(
-            enum_def.identifier().to_string(),
+            enum_def.identifier().to_owned(),
             InvalidEnumKind::MustContainAtLeastOneValue,
         );
         error_reporter.report_error_new(&rule_kind, Some(enum_def.location()));

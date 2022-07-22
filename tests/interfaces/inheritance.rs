@@ -88,9 +88,7 @@ fn operation_shadowing_is_disallowed() {
         }
     ";
     let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::IdentifierCannotShadowAnotherSymbol(
-            "op".to_owned(),
-        )),
+        &RuleKind::from(InvalidIdentifierKind::Shadows("op".to_owned())),
         &Note::new("`op` was previously defined here"),
     ];
 

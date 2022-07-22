@@ -48,8 +48,8 @@ fn only_operations_can_throw(commentable: &dyn Entity, error_reporter: &mut Erro
     if let Some(comment) = commentable.comment() {
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
             let warning = WarningKind::DocCommentIndicatesThrow {
-                kind: commentable.kind().to_string(),
-                op_identifier: commentable.identifier().to_string(),
+                kind: commentable.kind().to_owned(),
+                op_identifier: commentable.identifier().to_owned(),
             };
             error_reporter.report_error_new(&warning, Some(&comment.location));
         };

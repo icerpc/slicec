@@ -209,7 +209,7 @@ mod scope_resolution {
             }
         ";
         let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidIdentifierKind::IdentifierCannotBeARedefinition("B".to_string())),
+            &RuleKind::from(InvalidIdentifierKind::Redefinition("B".to_string())),
             &Note::new("`B` was previously defined here"),
         ];
 
