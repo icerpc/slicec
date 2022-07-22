@@ -163,23 +163,39 @@ pub enum InvalidEncodingKind {
 }
 
 macro_rules! implement_kind_for_enumerator {
-    ($enumerator:ty, $(($kind:path , $code:expr, $message:expr $(, $args:pat)*)),*) => {
+    ($enumerator:ty, $(($kind:path, $code:expr, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
             pub fn error_code(&self) -> u32 {
                 match self {
                     $(
-                        $kind$(($args))* => $code,
+                        implement_kind_for_enumerator!(@error $kind, $($variant),*) => $code,
                     )*
                 }
             }
             pub fn get_description(&self) -> String {
                 match self {
                     $(
-                        $kind$(($args))* => $message,
+                        implement_kind_for_enumerator!(@description $kind, $($variant),*) => $message,
                     )*
                 }
             }
         }
+    };
+
+    (@error $kind:path,) => {
+        $kind
+    };
+
+    (@error $kind:path, $($variant:pat),+) => {
+        $kind(..)
+    };
+
+    (@description $kind:path,) => {
+        $kind
+    };
+
+    (@description $kind:path, $($variant:pat),+) => {
+        $kind($($variant),*)
     };
 }
 
@@ -197,6 +213,7 @@ implement_kind_for_enumerator!(
         kind
     )
 );
+
 implement_kind_for_enumerator!(
     InvalidArgumentKind,
     (
@@ -213,6 +230,7 @@ implement_kind_for_enumerator!(
         method
     )
 );
+
 implement_kind_for_enumerator!(
     InvalidKeyKind,
     (
@@ -376,6 +394,7 @@ implement_kind_for_enumerator!(
         identifier
     )
 );
+
 implement_kind_for_enumerator!(
     InvalidEnumeratorKind,
     (
@@ -388,7 +407,9 @@ implement_kind_for_enumerator!(
         2012,
         format!(
             "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
-            value, min, max,
+            value = value,
+            min = min,
+            max = max
         ),
         value,
         min,
@@ -446,9 +467,10 @@ implement_kind_for_enumerator!(
         InvalidEncodingKind::StreamedParametersNotSupported,
         2026,
         format!("streamed parameters are not supported by the {} encoding", encoding),
-        identifier
+        encoding
     )
 );
+
 macro_rules! implement_from_for_rule_kind {
     ($type:ty, $enumerator:path) => {
         impl From<$type> for RuleKind {
