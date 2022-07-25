@@ -241,8 +241,7 @@ implement_kind_for_enumerator!(
     (
         InvalidKeyKind::StructsMustBeCompactToBeAKey,
         2005,
-        "structs must be compact to be used as a dictionary key type".to_owned(),
-        method
+        "structs must be compact to be used as a dictionary key type".to_owned()
     ),
     (
         InvalidKeyKind::TypeCannotBeUsedAsAKey,

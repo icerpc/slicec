@@ -13,11 +13,11 @@ mod slice2 {
             class C {}
         ";
         let expected: [&dyn ErrorType; 4] = [
-            &RuleKind::from(InvalidEncodingKind::NotSupported {
-                kind: "class".to_owned(),
-                identifier: "C".to_owned(),
-                encoding: "2".to_owned(),
-            }),
+            &RuleKind::from(InvalidEncodingKind::NotSupported(
+                "class".to_owned(),
+                "C".to_owned(),
+                "2".to_owned(),
+            )),
             &Note::new("file is using the Slice2 encoding by default"),
             &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
             &Note::new("classes are only supported by the Slice1 encoding"),
