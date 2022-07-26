@@ -18,13 +18,12 @@ pub struct TempError<'a> {
 
 impl fmt::Display for TempError<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error_kind.as_str())
+        write!(f, "{}", self.error_kind.as_string())
     }
 }
 
 impl From<TempError<'_>> for Error {
     fn from(temp_error: TempError) -> Self {
-        let error_kind = temp_error.error_kind;
         Self {
             message: temp_error.to_string(),
             location: temp_error.location.cloned(),
@@ -40,15 +39,15 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    pub fn as_str(self) -> &'static str {
+    pub fn as_string(&self) -> String {
         match self {
-            ErrorKind::Warning(warning_kind) => warning_kind.as_str(),
-            ErrorKind::Rule(rule_kind) => rule_kind.as_str(),
-            ErrorKind::Note(message) => message.as_str(),
+            ErrorKind::Warning(warning_kind) => warning_kind.message(),
+            ErrorKind::Rule(rule_kind) => rule_kind.message(),
+            ErrorKind::Note(message) => message.to_owned(),
         }
     }
 
-    pub fn severity(self) -> ErrorLevel {
+    pub fn severity(&self) -> ErrorLevel {
         match self {
             ErrorKind::Warning(_) => ErrorLevel::Warning,
             ErrorKind::Rule(_) => ErrorLevel::Error,
@@ -79,7 +78,7 @@ macro_rules! implement_kind_for_enumerator {
                     )*
                 }
             }
-            pub fn as_str(&self) -> &'static str {
+            pub fn message(&self) -> String {
                 match self {
                     $(
                         implement_kind_for_enumerator!(@description $kind, $($variant),*) => $message,

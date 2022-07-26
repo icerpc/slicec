@@ -18,14 +18,13 @@ implement_kind_for_enumerator!(
         format!(
             "doc comment has a param tag for '{}', but there is no parameter by that name",
             param_name
-        )
-        .as_str(),
+        ),
         param_name
     ),
     (
         WarningKind::DocCommentIndicatesReturn,
         1001,
-        "void operation must not contain doc comment return tag"
+        "void operation must not contain doc comment return tag".to_owned()
     ),
     (
         WarningKind::DocCommentIndicatesThrow,
@@ -33,8 +32,7 @@ implement_kind_for_enumerator!(
         format!(
             "doc comment indicates that {} `{}` throws, however, only operations can throw",
             kind, op_identifier,
-        )
-        .as_str(),
+        ),
         kind,
         op_identifier
     )

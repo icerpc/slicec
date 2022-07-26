@@ -16,11 +16,12 @@ pub enum RuleKind {
     DuplicateTag,
     ExceptionNotSupported(String),
     MustBeBounded(i64, i64, i64), // (value, min, max)
+    MustBeInI32Range,
     MustBeOptional,
-    MustBePositive,
+    MustBePositive(String), // (kind)
     MustBeUnique,
     MustContainAtLeastOneValue,
-    NotSupported(String, &'static str),
+    ArgumentNotSupported(String, String), // (arg, method)
     NotSupportedInCompactStructs,
     NotSupportedWithEncoding(String, String, String), // (kind, identifier, encoding)
     OptionalsNotSupported(String),
@@ -45,41 +46,41 @@ implement_kind_for_enumerator!(
     (
         RuleKind::CompressAttributeCannotBeApplied,
         2000,
-        "the compress attribute can only be applied to interfaces and operations"
+        "the compress attribute can only be applied to interfaces and operations".to_owned()
     ),
     (
         RuleKind::DeprecatedAttributeCannotBeApplied,
         2001,
-        format!("the deprecated attribute cannot be applied to {}", kind).as_str(),
+        format!("the deprecated attribute cannot be applied to {}", kind),
         kind
     ),
     (
         RuleKind::CannotBeEmpty,
         2002,
-        format!("{} arguments cannot be empty", method).as_str(),
+        format!("{} arguments cannot be empty", method),
         method
     ),
     (
-        RuleKind::NotSupported,
+        RuleKind::ArgumentNotSupported,
         2003,
-        format!("argument '{}' is not supported for `{}`", arg, method).as_str(),
+        format!("argument '{}' is not supported for `{}`", arg, method),
         arg,
         method
     ),
     (
         RuleKind::CannotUseOptionalAsKey,
         2004,
-        "optional types cannot be used as a dictionary key type"
+        "optional types cannot be used as a dictionary key type".to_owned()
     ),
     (
         RuleKind::StructsMustBeCompactToBeAKey,
         2005,
-        "structs must be compact to be used as a dictionary key type"
+        "structs must be compact to be used as a dictionary key type".to_owned()
     ),
     (
         RuleKind::TypeCannotBeUsedAsAKey,
         2006,
-        format!("'{}' cannot be used as a dictionary key type", identifier).as_str(),
+        format!("'{}' cannot be used as a dictionary key type", identifier),
         identifier
     ),
     (
@@ -88,87 +89,88 @@ implement_kind_for_enumerator!(
         format!(
             "struct '{}' contains members that cannot be used as a dictionary key type",
             identifier
-        ).as_str(),
+        ),
         identifier
     ),
     (
         RuleKind::CannotHaveOptionalUnderlyingType,
         2008,
-        "enums cannot have optional underlying types"
+        "enums cannot have optional underlying types".to_owned()
     ),
     (
         RuleKind::MustContainAtLeastOneValue,
         2009,
-        "enums must contain at least one enumerator"
+        "enums must contain at least one enumerator".to_owned()
     ),
     (
         RuleKind::UnderlyingTypeMustBeIntegral,
         2010,
-        format!("underlying type '{}' is not supported for enums", underlying).as_str(),
+        format!("underlying type '{}' is not supported for enums", underlying),
         underlying
     ),
     (
         RuleKind::Redefinition,
         2011,
-        format!("redefinition of `{}`", identifier).as_str(),
+        format!("redefinition of `{}`", identifier),
         identifier
     ),
     (
         RuleKind::Shadows,
         2012,
-        format!("`{}` shadows another symbol", identifier).as_str(),
+        format!("`{}` shadows another symbol", identifier),
         identifier
     ),
-    (RuleKind::DuplicateTag, 2000, "tags must be unique"),
+    (RuleKind::DuplicateTag, 2000, "tags must be unique".to_owned()),
     (
         RuleKind::MustBePositive,
         2013,
-        "tag values must be positive"
+        format!("{kind} must be positive"),
+        kind
     ),
     (
-        RuleKind::MustBeBounded,
+        RuleKind::MustBeInI32Range,
         2014,
-        "tag values must be greater than or equal to 0 and less than 2147483647"
+        "tag values must be greater than or equal to 0 and less than 2147483647".to_owned()
     ),
     (
         RuleKind::RequiredParametersMustBeFirst,
         2015,
-        "required parameters must precede tagged parameters"
+        "required parameters must precede tagged parameters".to_owned()
     ),
     (
         RuleKind::StreamsMustBeLast,
         2016,
-        "only the last parameter in an operation can use the stream modifier"
+        "only the last parameter in an operation can use the stream modifier".to_owned()
     ),
     (
         RuleKind::ReturnTuplesMustContainAtleastTwoElements,
         2017,
-        "return tuples must have at least 2 elements"
+        "return tuples must have at least 2 elements".to_owned()
     ),
     (
         RuleKind::NotSupportedInCompactStructs,
         2018,
-        "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
+        "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact".to_owned()
     ),
     (
         RuleKind::MustBeOptional,
         2019,
-        "tagged members must be optional"
+        "tagged members must be optional".to_owned()
     ),
     (
         RuleKind::CannotBeClass,
         2020,
-        "tagged members cannot be classes"
+        "tagged members cannot be classes".to_owned()
     ),
     (
         RuleKind::CannotContainClasses,
         2021,
-        "tagged members cannot contain classes"
+        "tagged members cannot contain classes".to_owned()
     ),
     (
         RuleKind::CanOnlyInheritFromSingleBase,
         2022,
-        "exceptions can only inherit from a single base exception"
+        "exceptions can only inherit from a single base exception".to_owned()
     ),
     (
         RuleKind::TypeMismatch,
@@ -176,32 +178,27 @@ implement_kind_for_enumerator!(
         format!(
             "type mismatch: expected a `{}` but found {} (which doesn't implement `{}`)",
             expected, found, expected
-        ).as_str(),
+        ),
         expected,
         found
     ),
     (
         RuleKind::ConcreteTypeMismatch,
         2024,
-        format!("type mismatch: expected `{}` but found `{}`", expected, found).as_str(),
+        format!("type mismatch: expected `{}` but found `{}`", expected, found),
         expected,
         found
     ),
     (
         RuleKind::CompactStructIsEmpty,
         2025,
-        "compact structs must be non-empty"
+        "compact structs must be non-empty".to_owned()
     ),
     (
         RuleKind::SelfReferentialTypeAliasNeedsConcreteType,
         2026,
-        format!("self-referential type alias '{}' has no concrete type", identifier).as_str(),
+        format!("self-referential type alias '{}' has no concrete type", identifier),
         identifier
-    ),
-    (
-        RuleKind::MustBePositive,
-        2011,
-        "enumerators must be non-negative"
     ),
     (
         RuleKind::MustBeBounded,
@@ -211,7 +208,7 @@ implement_kind_for_enumerator!(
             value = value,
             min = min,
             max = max
-        ).as_str(),
+        ),
         value,
         min,
         max
@@ -219,15 +216,15 @@ implement_kind_for_enumerator!(
     (
         RuleKind::MustBeUnique,
         2012,
-        "enumerators must be unique"
+        "enumerators must be unique".to_owned()
     ),
     (
-        RuleKind::NotSupported,
+        RuleKind::NotSupportedWithEncoding,
         2026,
         format!(
             "{} `{}` is not supported by the Slice{} encoding",
             kind, identifier, encoding,
-        ).as_str(),
+        ),
         kind,
         identifier,
         encoding
@@ -238,7 +235,7 @@ implement_kind_for_enumerator!(
         format!(
             "the type `{}` is not supported by the Slice{} encoding",
             type_string, encoding,
-        ).as_str(),
+        ),
         type_string,
         encoding
     ),
@@ -248,7 +245,7 @@ implement_kind_for_enumerator!(
         format!(
             "exceptions cannot be used as a data type with the Slice{} encoding",
             encoding
-        ).as_str(),
+        ),
         encoding
     ),
     (
@@ -257,13 +254,13 @@ implement_kind_for_enumerator!(
         format!(
             "optional types are not supported by the {} encoding (except for classes, proxies, and with tags)",
             encoding
-        ).as_str(),
+        ),
         encoding
     ),
     (
         RuleKind::StreamedParametersNotSupported,
         2026,
-        format!("streamed parameters are not supported by the {} encoding", encoding).as_str(),
+        format!("streamed parameters are not supported by the {} encoding", encoding),
         encoding
     )
 );

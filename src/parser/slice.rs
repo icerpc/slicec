@@ -512,9 +512,9 @@ impl<'a> SliceParser<'a> {
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
                     let location = location_from_span(&input);
-                    let rule_kind: RuleKind = RuleKind::InvalidParameter("return tuple".to_owned(), InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements);
+                    let rule_kind: RuleKind = RuleKind::ReturnTuplesMustContainAtleastTwoElements;
                     input.user_data().borrow_mut().error_reporter.report_error_new(
-                        &rule_kind,
+                        rule_kind,
                         Some(&location),
                     );
                 }
