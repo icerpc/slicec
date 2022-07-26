@@ -58,13 +58,14 @@ impl ErrorReporter {
         self.report(message, location, ErrorLevel::Note);
     }
 
-    pub fn report_error_new(&mut self, error_type: &dyn ErrorType, location: Option<&Location>) {
-        match error_type.severity() {
-            ErrorLevel::Note => {}
-            ErrorLevel::Warning => self.warning_count += 1,
-            ErrorLevel::Error => self.error_count += 1,
+    pub fn report_error_new(&mut self, error_kind: impl Into<ErrorKind>, location: Option<&Location>) {
+        let error_kind: ErrorKind = error_kind.into();
+        match error_kind {
+            ErrorKind::Note(_) => {}
+            ErrorKind::Warning(_) => self.warning_count += 1,
+            ErrorKind::Rule(_) => self.error_count += 1,
         };
-        self.errors.push(TempError::new(error_type, location).into());
+        self.errors.push(TempError { error_kind, location }.into());
     }
 
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {

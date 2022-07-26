@@ -73,9 +73,10 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
 fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            let rule_kind: RuleKind =
-                InvalidAttributeKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)").into();
-            error_reporter.report_error_new(&rule_kind, Some(m.location()));
+            error_reporter.report_error_new(
+                RuleKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
+                Some(m.location()),
+            );
         }
     });
 }
@@ -90,8 +91,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => {
-                let rule_kind: RuleKind = InvalidAttributeKind::CompressAttributeCannotBeApplied.into();
-                error_reporter.report_error_new(&rule_kind, Some(attribute.location()))
+                error_reporter.report_error_new(RuleKind::CompressAttributeCannotBeApplied, Some(attribute.location()))
             }
             None => (),
         }
@@ -103,9 +103,10 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    let rule_warning: RuleKind =
-                        InvalidArgumentKind::NotSupported(arg.to_owned(), "compress attribute").into();
-                    error_reporter.report_error_new(&rule_warning, Some(attribute.location()));
+                    error_reporter.report_error_new(
+                        RuleKind::NotSupported(arg.to_owned(), "compress attribute"),
+                        Some(attribute.location()),
+                    );
                     error_reporter.report_note(
                         format!(
                             "The valid argument(s) for the compress attribute are {}",
