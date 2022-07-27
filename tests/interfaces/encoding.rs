@@ -20,7 +20,7 @@ fn operation_members_are_compatible_with_encoding() {
     ";
     let expected = [
         RuleKind::UnsupportedType("C".to_owned(), "2".to_owned()).into(),
-        ErrorKind::Note("file encoding was set to Slice2 here:".to_owned()),
+        ErrorKind::new("file encoding was set to Slice2 here:".to_owned()),
     ];
 
     let result = parse_from_strings(&[slice1, slice2]).err().unwrap();

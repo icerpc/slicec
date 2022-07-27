@@ -44,7 +44,7 @@ mod compact_structs {
         ";
         let expected = [
             RuleKind::NotSupportedInCompactStructs.into(),
-            ErrorKind::create_note("struct 'S' is declared compact here"),
+            ErrorKind::new("struct 'S' is declared compact here"),
         ];
 
         // Act

@@ -71,9 +71,9 @@ fn invalid_mixed_encoding_fails() {
     ";
     let expected = [
         RuleKind::UnsupportedType("ACustomType".to_owned(), "1".to_owned()).into(),
-        ErrorKind::create_note("file encoding was set to Slice1 here:"),
+        ErrorKind::new("file encoding was set to Slice1 here:"),
         RuleKind::UnsupportedType("ACompactStruct".to_owned(), "1".to_owned()).into(),
-        ErrorKind::create_note("file encoding was set to Slice1 here:"),
+        ErrorKind::new("file encoding was set to Slice1 here:"),
     ];
     let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])
         .err()

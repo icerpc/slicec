@@ -11,53 +11,54 @@ pub use self::rules::*;
 pub use self::warnings::WarningKind;
 
 // TODO: Rename this error in a future PR when Error is removed.
-pub struct TempError<'a> {
+pub struct TempError {
     pub error_kind: ErrorKind,
-    pub location: Option<&'a Location>,
+    pub location: Option<Location>,
 }
 
-impl fmt::Display for TempError<'_> {
+impl fmt::Display for TempError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error_kind.as_string())
+        write!(f, "{}", self.error_kind)
     }
 }
 
-impl From<TempError<'_>> for Error {
+impl From<TempError> for Error {
     fn from(temp_error: TempError) -> Self {
         Self {
             message: temp_error.to_string(),
-            location: temp_error.location.cloned(),
+            location: temp_error.location,
             severity: temp_error.error_kind.severity(),
         }
     }
 }
 
 pub enum ErrorKind {
-    Warning(WarningKind),
     Rule(RuleKind),
+    Warning(WarningKind),
     Note(String),
 }
 
-impl ErrorKind {
-    pub fn create_note(note: impl Into<String>) -> ErrorKind {
-        let message = note.into();
-        ErrorKind::Note(message)
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ErrorKind::Rule(rule_kind) => write!(f, "{}", rule_kind.message()),
+            ErrorKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
+            ErrorKind::Note(note) => write!(f, "{}", note),
+        }
     }
 }
 
 impl ErrorKind {
-    pub fn as_string(&self) -> String {
-        match self {
-            ErrorKind::Warning(warning_kind) => warning_kind.message(),
-            ErrorKind::Rule(rule_kind) => rule_kind.message(),
-            ErrorKind::Note(message) => message.to_owned(),
-        }
+    pub fn new(message: impl Into<String>) -> ErrorKind {
+        ErrorKind::Note(message.into())
     }
+}
 
+impl ErrorKind {
     pub fn severity(&self) -> ErrorLevel {
         match self {
-            ErrorKind::Warning(_) => ErrorLevel::Warning,
             ErrorKind::Rule(_) => ErrorLevel::Error,
+            ErrorKind::Warning(_) => ErrorLevel::Warning,
             ErrorKind::Note(_) => ErrorLevel::Note,
         }
     }
@@ -88,7 +89,7 @@ macro_rules! implement_kind_for_enumerator {
             pub fn message(&self) -> String {
                 match self {
                     $(
-                        implement_kind_for_enumerator!(@description $kind, $($variant),*) => $message,
+                        implement_kind_for_enumerator!(@description $kind, $($variant),*) => $message.into(),
                     )*
                 }
             }

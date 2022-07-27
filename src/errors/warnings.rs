@@ -24,7 +24,7 @@ implement_kind_for_enumerator!(
     (
         WarningKind::DocCommentIndicatesReturn,
         1001,
-        "void operation must not contain doc comment return tag".to_owned()
+        "void operation must not contain doc comment return tag"
     ),
     (
         WarningKind::DocCommentIndicatesThrow,

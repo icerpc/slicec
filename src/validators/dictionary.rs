@@ -39,15 +39,15 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), error_reporter) {
-                    let rule_kind = RuleKind::TypeCannotBeUsedAsAKey(member.identifier().to_owned());
-                    error_reporter.report_error_new(rule_kind, Some(member.location()));
+                    let error = RuleKind::TypeCannotBeUsedAsAKey(member.identifier().to_owned());
+                    error_reporter.report_error_new(error, Some(member.location()));
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                let rule_kind = RuleKind::StructContainsDisallowedType(struct_def.identifier().to_owned());
-                error_reporter.report_error_new(rule_kind, Some(type_ref.location()));
+                let error = RuleKind::StructContainsDisallowedType(struct_def.identifier().to_owned());
+                error_reporter.report_error_new(error, Some(type_ref.location()));
                 error_reporter.report_note(
                     format!("struct '{}' is defined here:", struct_def.identifier()),
                     Some(struct_def.location()),

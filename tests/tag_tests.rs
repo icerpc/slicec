@@ -170,7 +170,7 @@ mod tags {
 
         let expected = [
             RuleKind::DuplicateTag.into(),
-            ErrorKind::Note("The data member `a` has previous used the tag value `1`".to_owned()),
+            ErrorKind::new("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
 
         // Assert

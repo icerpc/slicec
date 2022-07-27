@@ -62,7 +62,7 @@ fn data_member_shadowing_is_disallowed() {
     ";
     let expected = [
         RuleKind::Shadows("i".to_owned()).into(),
-        ErrorKind::Note("`i` was previously defined here".to_owned()),
+        ErrorKind::new("`i` was previously defined here".to_owned()),
     ];
 
     // Act

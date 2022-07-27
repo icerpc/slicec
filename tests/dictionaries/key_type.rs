@@ -132,7 +132,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     );
     let expected: [ErrorKind; 2] = [
         RuleKind::TypeCannotBeUsedAsAKey(pluralize_kind(key_kind)).into(),
-        ErrorKind::Note(format!("{} '{}' is defined here:", key_kind, key_type)),
+        ErrorKind::new(format!("{} '{}' is defined here:", key_kind, key_type)),
     ];
 
     // Act
@@ -152,7 +152,7 @@ fn non_compact_structs_are_disallowed() {
     ";
     let expected: [ErrorKind; 2] = [
         RuleKind::StructsMustBeCompactToBeAKey.into(),
-        ErrorKind::Note("struct 'MyStruct' is defined here:".to_owned()),
+        ErrorKind::new("struct 'MyStruct' is defined here:".to_owned()),
     ];
 
     // Act
@@ -216,10 +216,10 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
         RuleKind::TypeCannotBeUsedAsAKey("float32".to_owned()).into(),
         RuleKind::TypeCannotBeUsedAsAKey("f32".to_owned()).into(),
         RuleKind::StructContainsDisallowedType("Inner".to_owned()).into(),
-        ErrorKind::Note("struct 'Inner' is defined here:".into()),
+        ErrorKind::new("struct 'Inner' is defined here:"),
         RuleKind::TypeCannotBeUsedAsAKey("i".to_owned()).into(),
         RuleKind::StructContainsDisallowedType("Outer".to_owned()).into(),
-        ErrorKind::Note("struct 'Outer' is defined here:".to_owned()),
+        ErrorKind::new("struct 'Outer' is defined here:".to_owned()),
     ];
 
     // Act

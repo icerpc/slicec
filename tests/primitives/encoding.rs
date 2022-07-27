@@ -33,7 +33,7 @@ mod slice1 {
         );
         let expected = [
             RuleKind::UnsupportedType(value.to_owned(), "1".to_owned()).into(),
-            ErrorKind::create_note("file encoding was set to Slice1 here:"),
+            ErrorKind::new("file encoding was set to Slice1 here:"),
         ];
 
         // Act
@@ -97,10 +97,8 @@ mod slice2 {
         ";
         let expected = [
             RuleKind::UnsupportedType("AnyClass".to_owned(), "2".to_owned()).into(),
-            ErrorKind::create_note("file is using the Slice2 encoding by default"),
-            ErrorKind::create_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-            ),
+            ErrorKind::new("file is using the Slice2 encoding by default"),
+            ErrorKind::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
         ];
 
         // Act

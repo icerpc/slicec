@@ -185,7 +185,7 @@ fn enumerators_must_be_unique() {
     ";
     let expected = [
         RuleKind::MustBeUnique.into(),
-        ErrorKind::Note("The enumerator `A` has previous used the value `1`".to_owned()),
+        ErrorKind::new("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
     // Act

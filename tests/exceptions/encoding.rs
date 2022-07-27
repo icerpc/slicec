@@ -23,7 +23,7 @@ mod slice1 {
         ";
         let expected = [
             RuleKind::ExceptionNotSupported("1".to_owned()).into(),
-            ErrorKind::Note("file encoding was set to Slice1 here:".to_owned()),
+            ErrorKind::new("file encoding was set to Slice1 here:".to_owned()),
         ];
 
         // Act
@@ -39,6 +39,7 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
+    use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
     /// exception that inherits from another exception.
@@ -51,12 +52,12 @@ mod slice2 {
             exception B : A {}
         ";
         let expected = [
-            RuleKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), "2".to_owned()).into(),
-            ErrorKind::Note("file is using the Slice2 encoding by default".to_owned()),
-            ErrorKind::Note(
+            RuleKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2).into(),
+            ErrorKind::new("file is using the Slice2 encoding by default".to_owned()),
+            ErrorKind::new(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'".to_owned(),
             ),
-            ErrorKind::Note("exception inheritance is only supported by the Slice1 encoding".to_owned()),
+            ErrorKind::new("exception inheritance is only supported by the Slice1 encoding".to_owned()),
         ];
 
         // Act

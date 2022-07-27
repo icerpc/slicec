@@ -74,7 +74,7 @@ fn cannot_redefine_data_members() {
     ";
     let expected = [
         RuleKind::Redefinition("a".to_owned()).into(),
-        ErrorKind::Note("`a` was previously defined here".to_owned()),
+        ErrorKind::new("`a` was previously defined here".to_owned()),
     ];
 
     let error_reporter = parse_for_errors(slice);

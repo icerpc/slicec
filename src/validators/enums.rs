@@ -25,8 +25,8 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let rule_kind = RuleKind::MustBePositive("enumerator values".to_owned());
-                error_reporter.report_error_new(rule_kind, Some(enumerator.location()));
+                let error = RuleKind::MustBePositive("enumerator values".to_owned());
+                error_reporter.report_error_new(error, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -34,8 +34,8 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let rule_kind = RuleKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64);
-                error_reporter.report_error_new(rule_kind, Some(enumerator.location()));
+                let error = RuleKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64);
+                error_reporter.report_error_new(error, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -47,8 +47,8 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let rule_kind = RuleKind::MustBeBounded(enumerator.value, min, max);
-                    error_reporter.report_error_new(rule_kind, Some(enumerator.location()));
+                    let error = RuleKind::MustBeBounded(enumerator.value, min, max);
+                    error_reporter.report_error_new(error, Some(enumerator.location()));
                 });
         }
         match &enum_def.underlying {
@@ -73,8 +73,8 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let rule_kind = RuleKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
-                error_reporter.report_error_new(rule_kind, Some(enum_def.location()));
+                let error = RuleKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
+                error_reporter.report_error_new(error, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.

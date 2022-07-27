@@ -87,7 +87,7 @@ fn cannot_redefine_operations() {
     ";
     let expected: [ErrorKind; 2] = [
         RuleKind::Redefinition("op".to_owned()).into(),
-        ErrorKind::Note("`op` was previously defined here".to_owned()),
+        ErrorKind::new("`op` was previously defined here".to_owned()),
     ];
 
     let error_reporter = parse_for_errors(slice);

@@ -76,7 +76,7 @@ mod structs {
         ";
         let expected = [
             RuleKind::Redefinition("a".to_owned()).into(),
-            ErrorKind::create_note("`a` was previously defined here".to_owned()),
+            ErrorKind::new("`a` was previously defined here".to_owned()),
         ];
 
         let error_reporter = parse_for_errors(slice);

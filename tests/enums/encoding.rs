@@ -3,6 +3,7 @@
 mod slice1 {
 
     use slice::errors::*;
+    use slice::grammar::Encoding;
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
@@ -18,9 +19,9 @@ mod slice1 {
             unchecked enum E : int32 {}
         ";
         let expected_errors = [
-            RuleKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), "1".to_owned()).into(),
-            ErrorKind::Note("file encoding was set to Slice1 here:".to_owned()),
-            ErrorKind::Note("enums with underlying types are not supported by the Slice1 encoding".to_owned()),
+            RuleKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new("file encoding was set to Slice1 here:".to_owned()),
+            ErrorKind::new("enums with underlying types are not supported by the Slice1 encoding".to_owned()),
         ];
 
         // Act

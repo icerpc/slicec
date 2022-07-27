@@ -210,7 +210,7 @@ mod scope_resolution {
         ";
         let expected = [
             RuleKind::Redefinition("B".to_string()).into(),
-            ErrorKind::create_note("`B` was previously defined here"),
+            ErrorKind::new("`B` was previously defined here"),
         ];
 
         // Act

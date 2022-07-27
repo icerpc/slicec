@@ -92,13 +92,12 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let rule_kind = RuleKind::NotSupportedWithEncoding(
-                entity_def.kind().to_string(),
-                entity_def.identifier().to_string(),
-                file_encoding.to_string(),
+            let error = RuleKind::NotSupportedWithEncoding(
+                entity_def.kind().to_owned(),
+                entity_def.identifier().to_owned(),
+                file_encoding,
             );
-            self.error_reporter
-                .report_error_new(rule_kind, Some(entity_def.location()));
+            self.error_reporter.report_error_new(error, Some(entity_def.location()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -125,7 +124,7 @@ impl EncodingPatcher<'_> {
     ) -> SupportedEncodings {
         // If we encounter a type that isn't supported by its file's encodings, and we know a specific reason why, we
         // store an explanation in this variable. If it's empty, we report a generic message.
-        let mut rule_errors = Vec::new();
+        let mut errors = Vec::new();
 
         let mut supported_encodings = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_encodings_for(struct_def),
@@ -134,7 +133,7 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    rule_errors.push(RuleKind::ExceptionNotSupported("1".to_string()));
+                    errors.push(RuleKind::ExceptionNotSupported("1".to_string()));
                 }
                 encodings
             }
@@ -171,7 +170,7 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                rule_errors.push(RuleKind::OptionalsNotSupported("Slice1".to_string()));
+                errors.push(RuleKind::OptionalsNotSupported("Slice1".to_string()));
             }
         }
 
@@ -180,13 +179,12 @@ impl EncodingPatcher<'_> {
             supported_encodings
         } else {
             // If no specific reasons were given for the error, generate a generic one.
-            if rule_errors.is_empty() {
-                let rule_kind = RuleKind::UnsupportedType(type_ref.type_string.to_string(), file_encoding.to_string());
-                rule_errors.push(rule_kind);
+            if errors.is_empty() {
+                let error = RuleKind::UnsupportedType(type_ref.type_string.to_string(), file_encoding.to_string());
+                errors.push(error);
             }
-            for rule_kind in rule_errors {
-                self.error_reporter
-                    .report_error_new(rule_kind, Some(type_ref.location()));
+            for error in errors {
+                self.error_reporter.report_error_new(error, Some(type_ref.location()));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -204,7 +202,7 @@ impl EncodingPatcher<'_> {
         // Emit a note explaining why the file has the slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
             self.error_reporter.report_error_new(
-                ErrorKind::Note(format!(
+                ErrorKind::new(format!(
                     "file encoding was set to Slice{} here:",
                     &file_encoding.version
                 )),
@@ -212,14 +210,14 @@ impl EncodingPatcher<'_> {
             );
         } else {
             self.error_reporter.report_error_new(
-                ErrorKind::Note(format!(
+                ErrorKind::new(format!(
                     "file is using the Slice{} encoding by default",
                     Encoding::default()
                 )),
                 None,
             );
             self.error_reporter.report_error_new(
-                ErrorKind::Note(
+                ErrorKind::new(
                     "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
                         .to_owned(),
                 ),
@@ -360,10 +358,8 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let rule_kind = RuleKind::StreamedParametersNotSupported("Slice1".to_owned());
-                    patcher
-                        .error_reporter
-                        .report_error_new(rule_kind, Some(member.location()));
+                    let error = RuleKind::StreamedParametersNotSupported("Slice1".to_owned());
+                    patcher.error_reporter.report_error_new(error, Some(member.location()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }

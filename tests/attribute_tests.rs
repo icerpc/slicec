@@ -70,13 +70,13 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
-            let rule_kind: ErrorKind = RuleKind::CannotBeEmpty("format attribute").into();
+            let error: ErrorKind = RuleKind::CannotBeEmpty("format attribute").into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors_new!(error_reporter, [&rule_kind]);
+            assert_errors_new!(error_reporter, [&error]);
         }
 
         #[test]
@@ -92,7 +92,7 @@ mod attributes {
             ";
             let expected = [
                 RuleKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
-                ErrorKind::create_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
+                ErrorKind::new("The valid arguments for the format attribute are `Compact` and `Sliced`"),
             ];
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -218,7 +218,7 @@ mod attributes {
             ";
             let expected = [
                 RuleKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
-                ErrorKind::create_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
+                ErrorKind::new("The valid argument(s) for the compress attribute are `Args` and `Return`"),
             ];
 
             // Act

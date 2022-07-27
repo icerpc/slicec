@@ -5,6 +5,7 @@ mod slice1 {
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
     use slice::errors::*;
+    use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
     /// non-compact structs.
@@ -17,9 +18,9 @@ mod slice1 {
             struct A {}
         ";
         let expected = [
-            RuleKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), "1".to_owned()).into(),
-            ErrorKind::create_note("file encoding was set to Slice1 here:"),
-            ErrorKind::create_note("structs must be `compact` to be supported by the Slice1 encoding"),
+            RuleKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new("file encoding was set to Slice1 here:"),
+            ErrorKind::new("structs must be `compact` to be supported by the Slice1 encoding"),
         ];
 
         // Act
@@ -49,10 +50,8 @@ mod slice2 {
         ";
         let expected: [ErrorKind; 3] = [
             RuleKind::UnsupportedType("AnyClass".to_owned(), "2".to_owned()).into(),
-            ErrorKind::create_note("file is using the Slice2 encoding by default"),
-            ErrorKind::create_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-            ),
+            ErrorKind::new("file is using the Slice2 encoding by default"),
+            ErrorKind::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
         ];
 
         // Act

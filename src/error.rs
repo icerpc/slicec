@@ -65,7 +65,13 @@ impl ErrorReporter {
             ErrorKind::Warning(_) => self.warning_count += 1,
             ErrorKind::Rule(_) => self.error_count += 1,
         };
-        self.errors.push(TempError { error_kind, location }.into());
+        self.errors.push(
+            TempError {
+                error_kind,
+                location: location.cloned(),
+            }
+            .into(),
+        );
     }
 
     pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {

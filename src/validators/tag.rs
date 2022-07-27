@@ -50,8 +50,8 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let rule_kind = RuleKind::RequiredParametersMustBeFirst;
-            error_reporter.report_error_new(rule_kind, Some(parameter.data_type.location()));
+            let error = RuleKind::RequiredParametersMustBeFirst;
+            error_reporter.report_error_new(error, Some(parameter.data_type.location()));
             true
         }
         None => false,
@@ -65,8 +65,8 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let rule_kind = RuleKind::NotSupportedInCompactStructs;
-                error_reporter.report_error_new(rule_kind, Some(member.location()));
+                let error = RuleKind::NotSupportedInCompactStructs;
+                error_reporter.report_error_new(error, Some(member.location()));
                 error_reporter.report_note(
                     format!("struct '{}' is declared compact here", struct_def.identifier()),
                     Some(struct_def.location()),
