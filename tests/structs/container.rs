@@ -74,9 +74,9 @@ mod structs {
                 a: string,
             }
         ";
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidIdentifierKind::Redefinition("a".to_owned())),
-            &Note::new("`a` was previously defined here".to_owned()),
+        let expected = [
+            RuleKind::Redefinition("a".to_owned()).into(),
+            ErrorKind::create_note("`a` was previously defined here".to_owned()),
         ];
 
         let error_reporter = parse_for_errors(slice);
@@ -98,7 +98,7 @@ mod compact_structs {
             module Test;
             compact struct S {}
         ";
-        let expected: RuleKind = InvalidStructKind::CompactStructIsEmpty.into();
+        let expected: ErrorKind = RuleKind::CompactStructIsEmpty.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

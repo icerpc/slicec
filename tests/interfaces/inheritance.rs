@@ -87,9 +87,9 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::Shadows("op".to_owned())),
-        &Note::new("`op` was previously defined here"),
+    let expected = [
+        RuleKind::Shadows("op".to_owned()).into(),
+        ErrorKind::Note("`op` was previously defined here".to_owned()),
     ];
 
     let error_reporter = parse_for_errors(slice);

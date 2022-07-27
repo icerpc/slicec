@@ -70,7 +70,7 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
-            let rule_kind: RuleKind = InvalidArgumentKind::CannotBeEmpty("format attribute").into();
+            let rule_kind: ErrorKind = RuleKind::CannotBeEmpty("format attribute").into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -90,11 +90,9 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-            let expected: [&dyn ErrorType; 2] = [
-                &RuleKind::from(InvalidArgumentKind::NotSupported("Foo".to_owned(), "format attribute")),
-                &Note {
-                    message: "The valid arguments for the format attribute are `Compact` and `Sliced`".to_owned(),
-                },
+            let expected = [
+                RuleKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
+                ErrorKind::create_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
             ];
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -133,8 +131,7 @@ mod attributes {
                     op([deprecated] s: string) -> string;
                 }
             ";
-            let expected: RuleKind =
-                InvalidAttributeKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
+            let expected: ErrorKind = RuleKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -154,8 +151,7 @@ mod attributes {
                     s: string,
                 }
             ";
-            let expected: RuleKind =
-                InvalidAttributeKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
+            let expected: ErrorKind = RuleKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
@@ -220,14 +216,9 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-            let expected: [&dyn ErrorType; 2] = [
-                &RuleKind::from(InvalidArgumentKind::NotSupported(
-                    "Foo".to_owned(),
-                    "compress attribute",
-                )),
-                &Note {
-                    message: "The valid argument(s) for the compress attribute are `Args` and `Return`".to_owned(),
-                },
+            let expected = [
+                RuleKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
+                ErrorKind::create_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
             ];
 
             // Act
@@ -248,7 +239,7 @@ mod attributes {
                     s: string,
                 }
             ";
-            let expected: RuleKind = InvalidAttributeKind::CompressAttributeCannotBeApplied.into();
+            let expected: ErrorKind = RuleKind::CompressAttributeCannotBeApplied.into();
 
             // Act
             let error_reporter = parse_for_errors(slice);

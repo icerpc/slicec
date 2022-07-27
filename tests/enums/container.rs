@@ -80,10 +80,7 @@ fn validate_backing_type_out_of_bounds() {
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
-    let expected = RuleKind::InvalidEnumerator(
-        "A".to_owned(),
-        InvalidEnumeratorKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64),
-    );
+    let expected: ErrorKind = RuleKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -129,10 +126,7 @@ fn invalid_underlying_type(underlying_type: &str) {
         ",
         underlying_type,
     );
-    let expected = RuleKind::InvalidEnum(
-        "E".to_owned(),
-        InvalidEnumKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()),
-    );
+    let expected: ErrorKind = RuleKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -170,7 +164,7 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected = RuleKind::InvalidEnum("E".to_owned(), InvalidEnumKind::CannotHaveOptionalUnderlyingType);
+    let expected: ErrorKind = RuleKind::CannotHaveOptionalUnderlyingType.into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -189,9 +183,9 @@ fn enumerators_must_be_unique() {
             B = 1,
         }
     ";
-    let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::InvalidEnumerator("B".to_owned(), InvalidEnumeratorKind::MustBeUnique),
-        &Note::new("The enumerator `A` has previous used the value `1`"),
+    let expected = [
+        RuleKind::MustBeUnique.into(),
+        ErrorKind::Note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
     // Act
@@ -247,7 +241,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected = RuleKind::InvalidEnum("E".to_owned(), InvalidEnumKind::MustContainAtLeastOneValue);
+    let expected: ErrorKind = RuleKind::MustContainAtLeastOneValue.into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -285,10 +279,10 @@ mod slice1 {
                 C = -3,
             }
         ";
-        let expected_errors: [&dyn ErrorType; 3] = [
-            &RuleKind::InvalidEnumerator("A".to_owned(), InvalidEnumeratorKind::MustBePositive),
-            &RuleKind::InvalidEnumerator("B".to_owned(), InvalidEnumeratorKind::MustBePositive),
-            &RuleKind::InvalidEnumerator("C".to_owned(), InvalidEnumeratorKind::MustBePositive),
+        let expected_errors: [ErrorKind; 3] = [
+            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
+            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
+            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
         ];
 
         // Act
@@ -311,10 +305,7 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected = RuleKind::InvalidEnumerator(
-            "A".to_owned(),
-            InvalidEnumeratorKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64),
-        );
+        let expected: ErrorKind = RuleKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

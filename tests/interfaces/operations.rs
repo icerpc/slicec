@@ -175,10 +175,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
-    let expected = RuleKind::InvalidParameter(
-        "return tuple".to_owned(),
-        InvalidParameterKind::ReturnTuplesMustContainAtleastTwoElements,
-    );
+    let expected: ErrorKind = RuleKind::ReturnTuplesMustContainAtleastTwoElements.into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -220,7 +217,7 @@ mod streams {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
-        let expected = RuleKind::InvalidParameter("s".to_owned(), InvalidParameterKind::StreamsMustBeLast);
+        let expected: ErrorKind = RuleKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);
@@ -235,7 +232,7 @@ mod streams {
                 op(s: stream varuint62, i: int32);
             }
         ";
-        let expected = RuleKind::InvalidParameter("s".to_owned(), InvalidParameterKind::StreamsMustBeLast);
+        let expected: ErrorKind = RuleKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);

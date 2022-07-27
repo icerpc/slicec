@@ -21,9 +21,9 @@ mod slice1 {
                 e: E,
             }
         ";
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidEncodingKind::ExceptionNotSupported("1".to_owned())),
-            &Note::new("file encoding was set to Slice1 here:"),
+        let expected = [
+            RuleKind::ExceptionNotSupported("1".to_owned()).into(),
+            ErrorKind::Note("file encoding was set to Slice1 here:".to_owned()),
         ];
 
         // Act
@@ -50,15 +50,13 @@ mod slice2 {
             exception A {}
             exception B : A {}
         ";
-        let expected: [&dyn ErrorType; 4] = [
-            &RuleKind::from(InvalidEncodingKind::NotSupported(
-                "exception".to_owned(),
-                "B".to_owned(),
-                "2".to_owned(),
-            )),
-            &Note::new("file is using the Slice2 encoding by default"),
-            &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
-            &Note::new("exception inheritance is only supported by the Slice1 encoding"),
+        let expected = [
+            RuleKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), "2".to_owned()).into(),
+            ErrorKind::Note("file is using the Slice2 encoding by default".to_owned()),
+            ErrorKind::Note(
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'".to_owned(),
+            ),
+            ErrorKind::Note("exception inheritance is only supported by the Slice1 encoding".to_owned()),
         ];
 
         // Act

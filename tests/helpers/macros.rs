@@ -45,7 +45,7 @@ macro_rules! assert_errors_new {
             errors,
         );
         for (i, error) in errors.iter().enumerate() {
-            assert_eq!(&error.message, &$expected_errors[i].message());
+            assert_eq!(&error.message, &$expected_errors[i].as_string());
         }
     };
 }

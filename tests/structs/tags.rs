@@ -42,9 +42,9 @@ mod compact_structs {
                 b: tag(10) bool?,
             }
         ";
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::InvalidMember("b".to_owned(), InvalidMemberKind::NotSupportedInCompactStructs),
-            &Note::new("struct 'S' is declared compact here"),
+        let expected = [
+            RuleKind::NotSupportedInCompactStructs.into(),
+            ErrorKind::create_note("struct 'S' is declared compact here"),
         ];
 
         // Act

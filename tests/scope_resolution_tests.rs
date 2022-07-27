@@ -208,9 +208,9 @@ mod scope_resolution {
                 }
             }
         ";
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidIdentifierKind::Redefinition("B".to_string())),
-            &Note::new("`B` was previously defined here"),
+        let expected = [
+            RuleKind::Redefinition("B".to_string()).into(),
+            ErrorKind::create_note("`B` was previously defined here"),
         ];
 
         // Act

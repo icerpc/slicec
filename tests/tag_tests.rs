@@ -22,7 +22,7 @@ mod tags {
                 b: tag(10) bool,
             }
         ";
-        let expected = RuleKind::InvalidMember("b".to_owned(), InvalidMemberKind::MustBeOptional);
+        let expected: ErrorKind = RuleKind::MustBeOptional.into();
         let error_reporter = parse_for_errors(slice);
 
         // Assert
@@ -39,7 +39,7 @@ mod tags {
                 op(myParam: tag(10) int32);
             }
         ";
-        let expected = RuleKind::InvalidMember("myParam".to_owned(), InvalidMemberKind::MustBeOptional);
+        let expected: ErrorKind = RuleKind::MustBeOptional.into();
 
         let error_reporter = parse_for_errors(slice);
 
@@ -78,9 +78,9 @@ mod tags {
                 op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
             }
         ";
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::InvalidParameter("p3".to_owned(), InvalidParameterKind::RequiredParametersMustBeFirst),
-            &RuleKind::InvalidParameter("p4".to_owned(), InvalidParameterKind::RequiredParametersMustBeFirst),
+        let expected: [ErrorKind; 2] = [
+            RuleKind::RequiredParametersMustBeFirst.into(),
+            RuleKind::RequiredParametersMustBeFirst.into(),
         ];
         let error_reporter = parse_for_errors(slice);
 
@@ -101,7 +101,7 @@ mod tags {
                 op(c: tag(1) C?);
             }
         ";
-        let expected = RuleKind::InvalidMember("c".to_owned(), InvalidMemberKind::CannotBeClass);
+        let expected: ErrorKind = RuleKind::CannotBeClass.into();
 
         // Act
         let errors = parse_for_errors(slice);
@@ -126,7 +126,7 @@ mod tags {
                 op(s: tag(1) S?);
             }
         ";
-        let expected = RuleKind::InvalidMember("s".to_owned(), InvalidMemberKind::CannotContainClasses);
+        let expected: ErrorKind = RuleKind::CannotContainClasses.into();
 
         // Act
         let errors = parse_for_errors(slice);
@@ -168,9 +168,9 @@ mod tags {
         // Act
         let error_reporter = parse_for_errors(slice);
 
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::InvalidTag("b".to_owned(), InvalidTagKind::DuplicateTag),
-            &Note::new("The data member `a` has previous used the tag value `1`"),
+        let expected = [
+            RuleKind::DuplicateTag.into(),
+            ErrorKind::Note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
 
         // Assert
@@ -191,7 +191,7 @@ mod tags {
             ",
             value = max_value + 1
         );
-        let expected = RuleKind::InvalidTag("a".to_owned(), InvalidTagKind::MustBeBounded);
+        let expected: ErrorKind = RuleKind::TagOutOfBounds.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -213,7 +213,7 @@ mod tags {
             ",
             value = -1
         );
-        let expected = RuleKind::InvalidTag("a".to_owned(), InvalidTagKind::MustBePositive);
+        let expected: ErrorKind = RuleKind::MustBePositive("a".to_owned()).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

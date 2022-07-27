@@ -34,6 +34,7 @@ pub enum RuleKind {
     StreamsMustBeLast,
     StructContainsDisallowedType(String),
     StructsMustBeCompactToBeAKey,
+    TagOutOfBounds,
     TypeCannotBeUsedAsAKey(String),
     TypeMismatch(String, String),
     UnderlyingTypeMustBeIntegral(String),
@@ -212,6 +213,11 @@ implement_kind_for_enumerator!(
         value,
         min,
         max
+    ),
+    (
+        RuleKind::TagOutOfBounds,
+        2090,
+        "tag values must be greater than or equal to 0 and less than 2147483647".to_owned()
     ),
     (
         RuleKind::MustBeUnique,

@@ -69,17 +69,11 @@ fn invalid_mixed_encoding_fails() {
             s: ACompactStruct,
         }
     ";
-    let expected: [&dyn ErrorType; 4] = [
-        &RuleKind::from(InvalidEncodingKind::UnsupportedType(
-            "ACustomType".to_owned(),
-            "1".to_owned(),
-        )),
-        &Note::new("file encoding was set to Slice1 here:"),
-        &RuleKind::from(InvalidEncodingKind::UnsupportedType(
-            "ACompactStruct".to_owned(),
-            "1".to_owned(),
-        )),
-        &Note::new("file encoding was set to Slice1 here:"),
+    let expected = [
+        RuleKind::UnsupportedType("ACustomType".to_owned(), "1".to_owned()).into(),
+        ErrorKind::create_note("file encoding was set to Slice1 here:"),
+        RuleKind::UnsupportedType("ACompactStruct".to_owned(), "1".to_owned()).into(),
+        ErrorKind::create_note("file encoding was set to Slice1 here:"),
     ];
     let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])
         .err()

@@ -31,9 +31,9 @@ mod slice1 {
             ",
             value = value,
         );
-        let expected: [&dyn ErrorType; 2] = [
-            &RuleKind::from(InvalidEncodingKind::UnsupportedType(value.to_owned(), "1".to_owned())),
-            &Note::new("file encoding was set to Slice1 here:"),
+        let expected = [
+            RuleKind::UnsupportedType(value.to_owned(), "1".to_owned()).into(),
+            ErrorKind::create_note("file encoding was set to Slice1 here:"),
         ];
 
         // Act
@@ -95,13 +95,12 @@ mod slice2 {
                 v: AnyClass,
             }
         ";
-        let expected: [&dyn ErrorType; 3] = [
-            &RuleKind::from(InvalidEncodingKind::UnsupportedType(
-                "AnyClass".to_owned(),
-                "2".to_owned(),
-            )),
-            &Note::new("file is using the Slice2 encoding by default"),
-            &Note::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
+        let expected = [
+            RuleKind::UnsupportedType("AnyClass".to_owned(), "2".to_owned()).into(),
+            ErrorKind::create_note("file is using the Slice2 encoding by default"),
+            ErrorKind::create_note(
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            ),
         ];
 
         // Act

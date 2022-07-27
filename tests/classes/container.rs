@@ -113,9 +113,9 @@ fn cannot_redefine_data_members() {
             a: string,
         }
     ";
-    let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::Redefinition("a".to_string())),
-        &Note::new("`a` was previously defined here"),
+    let expected = [
+        RuleKind::Redefinition("a".to_string()).into(),
+        ErrorKind::Note("`a` was previously defined here".to_owned()),
     ];
 
     // Act

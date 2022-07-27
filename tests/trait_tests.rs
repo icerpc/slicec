@@ -24,14 +24,10 @@ mod traits {
                     module Test;
                     trait ATrait;
                 ";
-                let expected: [&dyn ErrorType; 3] = [
-                    &RuleKind::from(InvalidEncodingKind::NotSupported(
-                        "trait".to_owned(),
-                        "ATrait".to_owned(),
-                        "1".to_owned(),
-                    )),
-                    &Note::new("file encoding was set to Slice1 here:"),
-                    &Note::new("traits are not supported by the Slice1 encoding"),
+                let expected = [
+                    RuleKind::NotSupportedWithEncoding("trait".to_owned(), "ATrait".to_owned(), "1".to_owned()).into(),
+                    ErrorKind::Note("file encoding was set to Slice1 here:".to_owned()),
+                    ErrorKind::Note("traits are not supported by the Slice1 encoding".to_owned()),
                 ];
 
                 // Act

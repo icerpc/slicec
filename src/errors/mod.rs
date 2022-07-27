@@ -39,6 +39,13 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
+    pub fn create_note(note: impl Into<String>) -> ErrorKind {
+        let message = note.into();
+        ErrorKind::Note(message)
+    }
+}
+
+impl ErrorKind {
     pub fn as_string(&self) -> String {
         match self {
             ErrorKind::Warning(warning_kind) => warning_kind.message(),

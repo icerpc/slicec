@@ -60,9 +60,9 @@ fn data_member_shadowing_is_disallowed() {
             i: int32
         }
     ";
-    let expected: [&dyn ErrorType; 2] = [
-        &RuleKind::from(InvalidIdentifierKind::Shadows("i".to_owned())),
-        &Note::new("`i` was previously defined here"),
+    let expected = [
+        RuleKind::Shadows("i".to_owned()).into(),
+        ErrorKind::Note("`i` was previously defined here".to_owned()),
     ];
 
     // Act

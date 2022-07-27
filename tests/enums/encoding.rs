@@ -17,14 +17,10 @@ mod slice1 {
             module Test;
             unchecked enum E : int32 {}
         ";
-        let expected_errors: [&dyn ErrorType; 3] = [
-            &RuleKind::from(InvalidEncodingKind::NotSupported(
-                "enum".to_owned(),
-                "E".to_owned(),
-                "1".to_owned(),
-            )),
-            &Note::new("file encoding was set to Slice1 here:"),
-            &Note::new("enums with underlying types are not supported by the Slice1 encoding"),
+        let expected_errors = [
+            RuleKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), "1".to_owned()).into(),
+            ErrorKind::Note("file encoding was set to Slice1 here:".to_owned()),
+            ErrorKind::Note("enums with underlying types are not supported by the Slice1 encoding".to_owned()),
         ];
 
         // Act
