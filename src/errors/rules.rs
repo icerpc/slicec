@@ -2,6 +2,7 @@
 
 use crate::errors::*;
 use crate::{implement_from_for_error_sub_kind, implement_kind_for_enumerator};
+
 pub enum RuleKind {
     CannotBeClass,
     CannotBeEmpty(&'static str),

@@ -134,7 +134,7 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    rule_errors.push(RuleKind::ExceptionNotSupported("1".to_string()));
+                    rule_errors.push(RuleKind::ExceptionNotSupported("1".to_owned()));
                 }
                 encodings
             }
@@ -171,7 +171,7 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                rule_errors.push(RuleKind::OptionalsNotSupported("Slice1".to_string()));
+                rule_errors.push(RuleKind::OptionalsNotSupported("Slice1".to_owned()));
             }
         }
 
@@ -206,7 +206,7 @@ impl EncodingPatcher<'_> {
             self.error_reporter.report_error_new(
                 ErrorKind::Note(format!(
                     "file encoding was set to Slice{} here:",
-                    &file_encoding.version
+                    &file_encoding.version,
                 )),
                 None,
             );
@@ -214,7 +214,7 @@ impl EncodingPatcher<'_> {
             self.error_reporter.report_error_new(
                 ErrorKind::Note(format!(
                     "file is using the Slice{} encoding by default",
-                    Encoding::default()
+                    Encoding::default(),
                 )),
                 None,
             );
