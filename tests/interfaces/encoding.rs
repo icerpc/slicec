@@ -2,6 +2,7 @@
 
 use crate::assert_errors_new;
 use slice::errors::*;
+use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
 #[test]
@@ -19,7 +20,7 @@ fn operation_members_are_compatible_with_encoding() {
         }
     ";
     let expected = [
-        RuleKind::UnsupportedType("C".to_owned(), "2".to_owned()).into(),
+        RuleKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
         ErrorKind::new("file encoding was set to Slice2 here:".to_owned()),
     ];
 

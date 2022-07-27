@@ -180,7 +180,7 @@ impl EncodingPatcher<'_> {
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if errors.is_empty() {
-                let error = RuleKind::UnsupportedType(type_ref.type_string.to_string(), file_encoding.to_string());
+                let error = RuleKind::UnsupportedType(type_ref.type_string.clone(), *file_encoding);
                 errors.push(error);
             }
             for error in errors {
@@ -358,7 +358,7 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let error = RuleKind::StreamedParametersNotSupported("Slice1".to_owned());
+                    let error = RuleKind::StreamedParametersNotSupported(Encoding::Slice1);
                     patcher.error_reporter.report_error_new(error, Some(member.location()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }

@@ -32,7 +32,7 @@ pub enum RuleKind {
     ReturnTuplesMustContainAtleastTwoElements,
     SelfReferentialTypeAliasNeedsConcreteType(String),
     Shadows(String),
-    StreamedParametersNotSupported(String),
+    StreamedParametersNotSupported(Encoding),
     StreamsMustBeLast,
     StructContainsDisallowedType(String),
     StructsMustBeCompactToBeAKey,
@@ -40,7 +40,7 @@ pub enum RuleKind {
     TypeCannotBeUsedAsAKey(String),
     TypeMismatch(String, String),
     UnderlyingTypeMustBeIntegral(String),
-    UnsupportedType(String, String), // (type_string, encoding)
+    UnsupportedType(String, Encoding), // (type_string, encoding)
 }
 
 implement_from_for_error_sub_kind!(RuleKind, ErrorKind::Rule);

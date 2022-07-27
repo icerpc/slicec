@@ -5,6 +5,7 @@ mod slice1 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
+    use slice::grammar::Encoding;
     use test_case::test_case;
 
     /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -32,7 +33,7 @@ mod slice1 {
             value = value,
         );
         let expected = [
-            RuleKind::UnsupportedType(value.to_owned(), "1".to_owned()).into(),
+            RuleKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
             ErrorKind::new("file encoding was set to Slice1 here:"),
         ];
 
@@ -81,6 +82,7 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
+    use slice::grammar::Encoding;
     use test_case::test_case;
 
     /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
@@ -96,7 +98,7 @@ mod slice2 {
             }
         ";
         let expected = [
-            RuleKind::UnsupportedType("AnyClass".to_owned(), "2".to_owned()).into(),
+            RuleKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new("file is using the Slice2 encoding by default"),
             ErrorKind::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
         ];

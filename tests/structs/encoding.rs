@@ -36,6 +36,8 @@ mod slice2 {
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
     use slice::errors::*;
+    use slice::grammar::Encoding;
+
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
     /// structs that contain Slice1 types.
     #[test]
@@ -49,7 +51,7 @@ mod slice2 {
             }
         ";
         let expected: [ErrorKind; 3] = [
-            RuleKind::UnsupportedType("AnyClass".to_owned(), "2".to_owned()).into(),
+            RuleKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new("file is using the Slice2 encoding by default"),
             ErrorKind::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
         ];
