@@ -2,7 +2,6 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
@@ -64,7 +63,7 @@ impl<'a> SliceParser<'a> {
         match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
-                self.error_reporter.report_error(message, None);
+                self.error_reporter.report(ErrorKind::Parse(message), None);
                 None
             }
         }
@@ -104,7 +103,7 @@ impl<'a> SliceParser<'a> {
         match self.parse_string(identifier, input, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
-                self.error_reporter.report_error(message, None);
+                self.error_reporter.report(ErrorKind::Parse(message), None);
                 None
             }
         }
@@ -264,8 +263,8 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
-                    input.user_data().borrow_mut().error_reporter.report_error(
-                        "classes can only inherit from a single base class",
+                    input.user_data().borrow_mut().error_reporter.report(
+                        RuleKind::ClassesCanOnlyInheritFromSingleBase,
                         Some(&location),
                     );
                 }
@@ -306,8 +305,8 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    input.user_data().borrow_mut().error_reporter.report_error(
-                        "exceptions can only inherit from a single base exception",
+                    input.user_data().borrow_mut().error_reporter.report(
+                        RuleKind::CanOnlyInheritFromSingleBase,
                         Some(&location),
                     )
                 }
@@ -512,8 +511,8 @@ impl<'a> SliceParser<'a> {
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
                     let location = location_from_span(&input);
-                    input.user_data().borrow_mut().error_reporter.report_error_new(
-                        RuleKind::ReturnTuplesMustContainAtleastTwoElements,
+                    input.user_data().borrow_mut().error_reporter.report(
+                        RuleKind::ReturnTuplesMustContainAtLeastTwoElements,
                         Some(&location),
                     );
                 }
@@ -658,8 +657,8 @@ impl<'a> SliceParser<'a> {
                             integer, i32::MAX
                         )
                     };
-                    input.user_data().borrow_mut().error_reporter.report_error(
-                        error_string,
+                    input.user_data().borrow_mut().error_reporter.report(
+                        ErrorKind::Parse(error_string),
                         Some(&location),
                     );
                 }
@@ -1180,13 +1179,13 @@ impl<'a> SliceParser<'a> {
                         if let Definition::Module(module_def) = &definition {
                             let error_reporter = &mut input.user_data().borrow_mut().error_reporter;
 
-                            error_reporter.report_error(
-                                "file level modules cannot contain sub-modules",
+                            error_reporter.report(
+                                ErrorKind::Parse("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().location),
                             );
 
-                            error_reporter.report_note(
-                                format!("file level module '{}' declared here", &identifier.value),
+                            error_reporter.report(
+                                ErrorKind::new(format!("file level module '{}' declared here", &identifier.value)),
                                 Some(&location),
                             );
                         }

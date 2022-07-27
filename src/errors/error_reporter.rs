@@ -40,55 +40,17 @@ impl ErrorReporter {
         self.errors
     }
 
-    /// Adds a new error to the error reporter. The warning count and error count are also incremented.
-    fn report(&mut self, message: impl Into<String>, location: Option<&Location>, severity: ErrorLevel) {
-        match severity {
-            ErrorLevel::Note => {}
-            ErrorLevel::Warning => self.warning_count += 1,
-            ErrorLevel::Error => self.error_count += 1,
-        };
-        self.errors.push(Error {
-            message: message.into(),
-            location: location.cloned(),
-            severity,
-        });
-    }
-
-    pub fn report_note(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Note);
-    }
-
-    pub fn report_error_new(&mut self, error_kind: impl Into<ErrorKind>, location: Option<&Location>) {
+    pub fn report(&mut self, error_kind: impl Into<ErrorKind>, location: Option<&Location>) {
         let error_kind: ErrorKind = error_kind.into();
         match error_kind {
             ErrorKind::Note(_) => {}
             ErrorKind::Warning(_) => self.warning_count += 1,
             ErrorKind::Rule(_) => self.error_count += 1,
+            ErrorKind::Parse(_) => self.error_count += 1,
         };
-        self.errors.push(
-            TempError {
-                error_kind,
-                location: location.cloned(),
-            }
-            .into(),
-        );
+        self.errors.push(Error {
+            error_kind,
+            location: location.cloned(),
+        });
     }
-
-    pub fn report_error(&mut self, message: impl Into<String>, location: Option<&Location>) {
-        self.report(message, location, ErrorLevel::Error);
-    }
-}
-
-#[derive(Debug)]
-pub struct Error {
-    pub message: String,
-    pub location: Option<Location>,
-    pub severity: ErrorLevel,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum ErrorLevel {
-    Error,
-    Warning,
-    Note,
 }

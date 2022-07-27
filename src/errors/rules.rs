@@ -4,6 +4,7 @@ use crate::errors::*;
 use crate::grammar::Encoding;
 use crate::{implement_from_for_error_sub_kind, implement_kind_for_enumerator};
 
+#[derive(Debug)]
 pub enum RuleKind {
     CannotBeClass,
     CannotBeEmpty(&'static str),
@@ -14,6 +15,7 @@ pub enum RuleKind {
     CompactStructIsEmpty,
     CompressAttributeCannotBeApplied,
     ConcreteTypeMismatch(String, String),
+    ClassesCanOnlyInheritFromSingleBase,
     DeprecatedAttributeCannotBeApplied(String),
     DuplicateTag,
     ExceptionNotSupported(String),
@@ -29,7 +31,7 @@ pub enum RuleKind {
     OptionalsNotSupported(String),
     Redefinition(String),
     RequiredParametersMustBeFirst,
-    ReturnTuplesMustContainAtleastTwoElements,
+    ReturnTuplesMustContainAtLeastTwoElements,
     SelfReferentialTypeAliasNeedsConcreteType(String),
     Shadows(String),
     StreamedParametersNotSupported(Encoding),
@@ -146,7 +148,7 @@ implement_kind_for_enumerator!(
         "only the last parameter in an operation can use the stream modifier"
     ),
     (
-        RuleKind::ReturnTuplesMustContainAtleastTwoElements,
+        RuleKind::ReturnTuplesMustContainAtLeastTwoElements,
         2017,
         "return tuples must have at least 2 elements"
     ),
@@ -270,5 +272,10 @@ implement_kind_for_enumerator!(
         2026,
         format!("streamed parameters are not supported by the {} encoding", encoding),
         encoding
+    ),
+    (
+        RuleKind::ClassesCanOnlyInheritFromSingleBase,
+        2027,
+        "classes can only inherit from a single base class"
     )
 );

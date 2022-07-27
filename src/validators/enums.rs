@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
@@ -26,7 +25,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
                 let error = RuleKind::MustBePositive("enumerator values".to_owned());
-                error_reporter.report_error_new(error, Some(enumerator.location()));
+                error_reporter.report(error, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -35,7 +34,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
                 let error = RuleKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64);
-                error_reporter.report_error_new(error, Some(enumerator.location()));
+                error_reporter.report(error, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -48,7 +47,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
                     let error = RuleKind::MustBeBounded(enumerator.value, min, max);
-                    error_reporter.report_error_new(error, Some(enumerator.location()));
+                    error_reporter.report(error, Some(enumerator.location()));
                 });
         }
         match &enum_def.underlying {
@@ -74,7 +73,7 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
                 let error = RuleKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
-                error_reporter.report_error_new(error, Some(enum_def.location()));
+                error_reporter.report(error, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -91,13 +90,13 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            error_reporter.report_error_new(RuleKind::MustBeUnique, Some(window[1].location()));
-            error_reporter.report_note(
-                format!(
+            error_reporter.report(RuleKind::MustBeUnique, Some(window[1].location()));
+            error_reporter.report(
+                ErrorKind::new(format!(
                     "The enumerator `{}` has previous used the value `{}`",
                     window[0].identifier(),
                     window[0].value
-                ),
+                )),
                 Some(window[0].location()),
             );
         }
@@ -108,7 +107,7 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            error_reporter.report_error_new(RuleKind::CannotHaveOptionalUnderlyingType, Some(enum_def.location()));
+            error_reporter.report(RuleKind::CannotHaveOptionalUnderlyingType, Some(enum_def.location()));
         }
     }
 }
@@ -116,6 +115,6 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report_error_new(RuleKind::MustContainAtLeastOneValue, Some(enum_def.location()));
+        error_reporter.report(RuleKind::MustContainAtLeastOneValue, Some(enum_def.location()));
     }
 }

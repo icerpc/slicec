@@ -2,7 +2,6 @@
 
 use crate::ast::{Ast, Node};
 use crate::downgrade_as;
-use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
@@ -210,7 +209,8 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.error_reporter.report_error(message, Some(type_ref.location()));
+                self.error_reporter
+                    .report(ErrorKind::Parse(message), Some(type_ref.location()));
                 None
             }
         }
@@ -256,8 +256,7 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
                 let error =
                     RuleKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
-                self.error_reporter
-                    .report_error_new(error, Some(current_type_alias.location()));
+                self.error_reporter.report(error, Some(current_type_alias.location()));
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
                         "type alias '{}' uses type alias '{}' here:",
@@ -265,7 +264,7 @@ impl TypeRefPatcher<'_> {
                         window[1].identifier(),
                     );
                     self.error_reporter
-                        .report_note(message, Some(window[0].underlying.location()));
+                        .report(ErrorKind::new(message), Some(window[0].underlying.location()));
                 }
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());

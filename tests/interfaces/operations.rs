@@ -175,7 +175,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
-    let expected: ErrorKind = RuleKind::ReturnTuplesMustContainAtleastTwoElements.into();
+    let expected: ErrorKind = RuleKind::ReturnTuplesMustContainAtLeastTwoElements.into();
 
     let error_reporter = parse_for_errors(slice);
 

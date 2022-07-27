@@ -3,6 +3,7 @@
 use crate::errors::*;
 use crate::{implement_from_for_error_sub_kind, implement_kind_for_enumerator};
 
+#[derive(Debug)]
 pub enum WarningKind {
     DocCommentIndicatesParam(String), // (param_name)
     DocCommentIndicatesReturn,

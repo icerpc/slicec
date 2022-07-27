@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
 use crate::errors::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
@@ -29,13 +28,13 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            error_reporter.report_error_new(RuleKind::DuplicateTag, Some(window[1].location()));
-            error_reporter.report_note(
-                format!(
+            error_reporter.report(RuleKind::DuplicateTag, Some(window[1].location()));
+            error_reporter.report(
+                ErrorKind::new(format!(
                     "The data member `{}` has previous used the tag value `{}`",
                     &window[0].identifier(),
                     window[0].tag().unwrap()
-                ),
+                )),
                 Some(window[0].location()),
             );
         };
@@ -51,7 +50,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
         Some(_) => true,
         None if seen => {
             let error = RuleKind::RequiredParametersMustBeFirst;
-            error_reporter.report_error_new(error, Some(parameter.data_type.location()));
+            error_reporter.report(error, Some(parameter.data_type.location()));
             true
         }
         None => false,
@@ -66,9 +65,9 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
         for member in struct_def.members() {
             if member.tag.is_some() {
                 let error = RuleKind::NotSupportedInCompactStructs;
-                error_reporter.report_error_new(error, Some(member.location()));
-                error_reporter.report_note(
-                    format!("struct '{}' is declared compact here", struct_def.identifier()),
+                error_reporter.report(error, Some(member.location()));
+                error_reporter.report(
+                    ErrorKind::new(format!("struct '{}' is declared compact here", struct_def.identifier())),
                     Some(struct_def.location()),
                 );
             }
@@ -87,7 +86,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            error_reporter.report_error_new(RuleKind::MustBeOptional, Some(member.location()));
+            error_reporter.report(RuleKind::MustBeOptional, Some(member.location()));
         }
     }
 }
@@ -102,7 +101,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            error_reporter.report_error_new(RuleKind::CannotBeClass, Some(member.location()));
+            error_reporter.report(RuleKind::CannotBeClass, Some(member.location()));
         }
     }
 }
@@ -128,7 +127,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            error_reporter.report_error_new(RuleKind::CannotContainClasses, Some(member.location()));
+            error_reporter.report(RuleKind::CannotContainClasses, Some(member.location()));
         }
     }
 }

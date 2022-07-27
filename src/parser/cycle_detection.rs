@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
+use crate::errors::{ErrorKind, ErrorReporter};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
@@ -34,7 +34,8 @@ impl<'a> CycleDetector<'a> {
                 type_id = &type_id,
                 cycle_string = &self.dependency_stack[i..].join(" -> "),
             );
-            self.error_reporter.report_error(message, Some(type_def.location()));
+            self.error_reporter
+                .report(ErrorKind::Parse(message), Some(type_def.location()));
 
             true
         } else {

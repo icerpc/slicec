@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
-use crate::errors::*;
+use crate::errors::{ErrorReporter, *};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -19,7 +18,7 @@ fn non_empty_return_comment(operation: &Operation, error_reporter: &mut ErrorRep
         // `DocComment.return_members` contains a list of descriptions of the return members.
         // example: @return A description of the return value.`
         if comment.returns.is_some() && operation.return_members().is_empty() {
-            error_reporter.report_error_new(WarningKind::DocCommentIndicatesReturn, Some(&comment.location));
+            error_reporter.report(WarningKind::DocCommentIndicatesReturn, Some(&comment.location));
         }
     }
 }
@@ -33,7 +32,7 @@ fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorRe
                 .map(|p| p.identifier.value.clone())
                 .any(|identifier| identifier == param.0)
             {
-                error_reporter.report_error_new(
+                error_reporter.report(
                     WarningKind::DocCommentIndicatesParam(param.0.clone()),
                     Some(&comment.location),
                 );
@@ -50,7 +49,7 @@ fn only_operations_can_throw(commentable: &dyn Entity, error_reporter: &mut Erro
                 commentable.kind().to_owned(),
                 commentable.identifier().to_owned(),
             );
-            error_reporter.report_error_new(warning, Some(&comment.location));
+            error_reporter.report(warning, Some(&comment.location));
         };
     }
 }
