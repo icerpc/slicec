@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -80,7 +80,7 @@ fn validate_backing_type_out_of_bounds() {
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
-    let expected: ErrorKind = RuleKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
+    let expected: ErrorKind = LogicKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -126,7 +126,7 @@ fn invalid_underlying_type(underlying_type: &str) {
         ",
         underlying_type,
     );
-    let expected: ErrorKind = RuleKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
+    let expected: ErrorKind = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -164,7 +164,7 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: ErrorKind = RuleKind::CannotHaveOptionalUnderlyingType.into();
+    let expected: ErrorKind = LogicKind::CannotHaveOptionalUnderlyingType.into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -184,8 +184,8 @@ fn enumerators_must_be_unique() {
         }
     ";
     let expected = [
-        RuleKind::MustBeUnique.into(),
-        ErrorKind::new("The enumerator `A` has previous used the value `1`".to_owned()),
+        LogicKind::MustBeUnique.into(),
+        ErrorKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
     // Act
@@ -241,7 +241,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: ErrorKind = RuleKind::MustContainAtLeastOneValue.into();
+    let expected: ErrorKind = LogicKind::MustContainAtLeastOneValue.into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -265,7 +265,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -280,9 +280,9 @@ mod slice1 {
             }
         ";
         let expected_errors: [ErrorKind; 3] = [
-            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
-            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
-            RuleKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
         ];
 
         // Act
@@ -305,7 +305,7 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected: ErrorKind = RuleKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
+        let expected: ErrorKind = LogicKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::*;
-use crate::{implement_from_for_error_sub_kind, implement_kind_for_enumerator};
+use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
 #[derive(Debug)]
 pub enum WarningKind {
@@ -11,7 +11,7 @@ pub enum WarningKind {
 }
 
 implement_from_for_error_sub_kind!(WarningKind, ErrorKind::Warning);
-implement_kind_for_enumerator!(
+implement_error_functions!(
     WarningKind,
     (
         WarningKind::DocCommentIndicatesParam,

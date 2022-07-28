@@ -6,7 +6,7 @@ mod tags {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
     use slice::parse_from_string;
 
@@ -22,7 +22,7 @@ mod tags {
                 b: tag(10) bool,
             }
         ";
-        let expected: ErrorKind = RuleKind::MustBeOptional.into();
+        let expected: ErrorKind = LogicKind::MustBeOptional.into();
         let error_reporter = parse_for_errors(slice);
 
         // Assert
@@ -39,7 +39,7 @@ mod tags {
                 op(myParam: tag(10) int32);
             }
         ";
-        let expected: ErrorKind = RuleKind::MustBeOptional.into();
+        let expected: ErrorKind = LogicKind::MustBeOptional.into();
 
         let error_reporter = parse_for_errors(slice);
 
@@ -79,8 +79,8 @@ mod tags {
             }
         ";
         let expected: [ErrorKind; 2] = [
-            RuleKind::RequiredParametersMustBeFirst.into(),
-            RuleKind::RequiredParametersMustBeFirst.into(),
+            LogicKind::RequiredParametersMustBeFirst.into(),
+            LogicKind::RequiredParametersMustBeFirst.into(),
         ];
         let error_reporter = parse_for_errors(slice);
 
@@ -101,7 +101,7 @@ mod tags {
                 op(c: tag(1) C?);
             }
         ";
-        let expected: ErrorKind = RuleKind::CannotBeClass.into();
+        let expected: ErrorKind = LogicKind::CannotBeClass.into();
 
         // Act
         let errors = parse_for_errors(slice);
@@ -126,7 +126,7 @@ mod tags {
                 op(s: tag(1) S?);
             }
         ";
-        let expected: ErrorKind = RuleKind::CannotContainClasses.into();
+        let expected: ErrorKind = LogicKind::CannotContainClasses.into();
 
         // Act
         let errors = parse_for_errors(slice);
@@ -169,8 +169,8 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         let expected = [
-            RuleKind::DuplicateTag.into(),
-            ErrorKind::new("The data member `a` has previous used the tag value `1`".to_owned()),
+            LogicKind::DuplicateTag.into(),
+            ErrorKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
 
         // Assert
@@ -191,7 +191,7 @@ mod tags {
             ",
             value = max_value + 1
         );
-        let expected: ErrorKind = RuleKind::TagOutOfBounds.into();
+        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
@@ -213,7 +213,7 @@ mod tags {
             ",
             value = -1
         );
-        let expected: ErrorKind = RuleKind::MustBePositive("a".to_owned()).into();
+        let expected: ErrorKind = LogicKind::MustBePositive("a".to_owned()).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

@@ -38,7 +38,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => error_reporter.report(RuleKind::CannotBeEmpty("format attribute"), Some(attribute.location())),
+            0 => error_reporter.report(LogicKind::CannotBeEmpty("format attribute"), Some(attribute.location())),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute
@@ -50,11 +50,11 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                     })
                     .for_each(|arg| {
                         error_reporter.report(
-                            RuleKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
+                            LogicKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.location()),
                         );
                         error_reporter.report(
-                            ErrorKind::new(format!(
+                            ErrorKind::new_note(format!(
                                 "The valid arguments for the format attribute are {}",
                                 message_value_separator(&["Compact", "Sliced"])
                             )),
@@ -71,7 +71,7 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorRep
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
             error_reporter.report(
-                RuleKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
+                LogicKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.location()),
             );
         }
@@ -88,7 +88,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => {
-                error_reporter.report(RuleKind::CompressAttributeCannotBeApplied, Some(attribute.location()))
+                error_reporter.report(LogicKind::CompressAttributeCannotBeApplied, Some(attribute.location()))
             }
             None => (),
         }
@@ -101,11 +101,11 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
                     error_reporter.report(
-                        RuleKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
+                        LogicKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.location()),
                     );
                     error_reporter.report(
-                        ErrorKind::new(format!(
+                        ErrorKind::new_note(format!(
                             "The valid argument(s) for the compress attribute are {}",
                             message_value_separator(&valid_arguments).as_str(),
                         )),

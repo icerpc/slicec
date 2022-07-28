@@ -30,14 +30,13 @@ impl ParsedData {
 
         for error in error_reporter.into_errors() {
             let prefix = match error.error_kind {
-                ErrorKind::Rule(_) => "error",
+                ErrorKind::Syntax(_) | ErrorKind::Logic(_) => "error",
                 ErrorKind::Warning(_) => "warning",
                 ErrorKind::Note(_) => "note",
-                _ => "error",
             };
 
             // Insert the prefix at the start of the message.
-            let mut message = prefix.to_owned() + ": " + &error.error_kind.to_string();
+            let mut message = prefix.to_owned() + ": " + &error.to_string();
 
             if let Some(location) = error.location {
                 // Specify the location where the error starts on its own line after the message.

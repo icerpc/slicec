@@ -26,7 +26,7 @@ mod structs {
 
 mod compact_structs {
 
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
@@ -43,8 +43,8 @@ mod compact_structs {
             }
         ";
         let expected = [
-            RuleKind::NotSupportedInCompactStructs.into(),
-            ErrorKind::new("struct 'S' is declared compact here"),
+            LogicKind::NotSupportedInCompactStructs.into(),
+            ErrorKind::new_note("struct 'S' is declared compact here"),
         ];
 
         // Act

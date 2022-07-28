@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
@@ -18,9 +18,9 @@ mod slice1 {
             struct A {}
         ";
         let expected = [
-            RuleKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
-            ErrorKind::new("file encoding was set to Slice1 here:"),
-            ErrorKind::new("structs must be `compact` to be supported by the Slice1 encoding"),
+            LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new_note("file encoding was set to Slice1 here:"),
+            ErrorKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
         ];
 
         // Act
@@ -35,7 +35,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
@@ -51,9 +51,11 @@ mod slice2 {
             }
         ";
         let expected: [ErrorKind; 3] = [
-            RuleKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
-            ErrorKind::new("file is using the Slice2 encoding by default"),
-            ErrorKind::new("to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"),
+            LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
+            ErrorKind::new_note("file is using the Slice2 encoding by default"),
+            ErrorKind::new_note(
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            ),
         ];
 
         // Act

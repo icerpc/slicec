@@ -4,7 +4,7 @@ mod structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -75,8 +75,8 @@ mod structs {
             }
         ";
         let expected = [
-            RuleKind::Redefinition("a".to_owned()).into(),
-            ErrorKind::new("`a` was previously defined here".to_owned()),
+            LogicKind::Redefinition("a".to_owned()).into(),
+            ErrorKind::new_note("`a` was previously defined here".to_owned()),
         ];
 
         let error_reporter = parse_for_errors(slice);
@@ -89,7 +89,7 @@ mod compact_structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     /// Verifies that compact structs must contain at least one data member.
     #[test]
     fn must_not_be_empty() {
@@ -98,7 +98,7 @@ mod compact_structs {
             module Test;
             compact struct S {}
         ";
-        let expected: ErrorKind = RuleKind::CompactStructIsEmpty.into();
+        let expected: ErrorKind = LogicKind::CompactStructIsEmpty.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);

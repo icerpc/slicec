@@ -8,7 +8,7 @@ mod rules;
 mod warnings;
 
 pub use self::error_reporter::ErrorReporter;
-pub use self::rules::RuleKind;
+pub use self::rules::LogicKind;
 pub use self::warnings::WarningKind;
 
 #[derive(Debug)]
@@ -25,25 +25,25 @@ impl fmt::Display for Error {
 
 #[derive(Debug)]
 pub enum ErrorKind {
-    Rule(RuleKind),
+    Syntax(String),
+    Logic(LogicKind),
     Warning(WarningKind),
     Note(String),
-    Parse(String),
 }
 
 impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ErrorKind::Rule(rule_kind) => write!(f, "{}", rule_kind.message()),
+            ErrorKind::Syntax(error) => write!(f, "{}", error),
+            ErrorKind::Logic(rule_kind) => write!(f, "{}", rule_kind.message()),
             ErrorKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
             ErrorKind::Note(note) => write!(f, "{}", note),
-            ErrorKind::Parse(error) => write!(f, "{}", error),
         }
     }
 }
 
 impl ErrorKind {
-    pub fn new(message: impl Into<String>) -> ErrorKind {
+    pub fn new_note(message: impl Into<String>) -> ErrorKind {
         ErrorKind::Note(message.into())
     }
 }
@@ -60,20 +60,21 @@ macro_rules! implement_from_for_error_sub_kind {
 }
 
 #[macro_export]
-macro_rules! implement_kind_for_enumerator {
+macro_rules! implement_error_functions {
     ($enumerator:ty, $(($kind:path, $code:expr, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
-            pub fn as_error_code(&self) -> u32 {
+            pub fn error_code(&self) -> u32 {
                 match self {
                     $(
-                        implement_kind_for_enumerator!(@error $kind, $($variant),*) => $code,
+                        implement_error_functions!(@error $kind, $($variant),*) => $code,
                     )*
                 }
             }
+
             pub fn message(&self) -> String {
                 match self {
                     $(
-                        implement_kind_for_enumerator!(@description $kind, $($variant),*) => $message.into(),
+                        implement_error_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
                 }
             }

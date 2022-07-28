@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -114,8 +114,8 @@ fn cannot_redefine_data_members() {
         }
     ";
     let expected = [
-        RuleKind::Redefinition("a".to_string()).into(),
-        ErrorKind::new("`a` was previously defined here".to_owned()),
+        LogicKind::Redefinition("a".to_string()).into(),
+        ErrorKind::new_note("`a` was previously defined here".to_owned()),
     ];
 
     // Act

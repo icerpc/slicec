@@ -2,10 +2,10 @@
 
 use crate::errors::*;
 use crate::grammar::Encoding;
-use crate::{implement_from_for_error_sub_kind, implement_kind_for_enumerator};
+use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
 #[derive(Debug)]
-pub enum RuleKind {
+pub enum LogicKind {
     CannotBeClass,
     CannotBeEmpty(&'static str),
     CannotContainClasses,
@@ -45,51 +45,51 @@ pub enum RuleKind {
     UnsupportedType(String, Encoding), // (type_string, encoding)
 }
 
-implement_from_for_error_sub_kind!(RuleKind, ErrorKind::Rule);
-implement_kind_for_enumerator!(
-    RuleKind,
+implement_from_for_error_sub_kind!(LogicKind, ErrorKind::Logic);
+implement_error_functions!(
+    LogicKind,
     (
-        RuleKind::CompressAttributeCannotBeApplied,
+        LogicKind::CompressAttributeCannotBeApplied,
         2000,
         "the compress attribute can only be applied to interfaces and operations"
     ),
     (
-        RuleKind::DeprecatedAttributeCannotBeApplied,
+        LogicKind::DeprecatedAttributeCannotBeApplied,
         2001,
         format!("the deprecated attribute cannot be applied to {}", kind),
         kind
     ),
     (
-        RuleKind::CannotBeEmpty,
+        LogicKind::CannotBeEmpty,
         2002,
         format!("{} arguments cannot be empty", method),
         method
     ),
     (
-        RuleKind::ArgumentNotSupported,
+        LogicKind::ArgumentNotSupported,
         2003,
         format!("argument '{}' is not supported for `{}`", arg, method),
         arg,
         method
     ),
     (
-        RuleKind::CannotUseOptionalAsKey,
+        LogicKind::CannotUseOptionalAsKey,
         2004,
         "optional types cannot be used as a dictionary key type"
     ),
     (
-        RuleKind::StructsMustBeCompactToBeAKey,
+        LogicKind::StructsMustBeCompactToBeAKey,
         2005,
         "structs must be compact to be used as a dictionary key type"
     ),
     (
-        RuleKind::TypeCannotBeUsedAsAKey,
+        LogicKind::TypeCannotBeUsedAsAKey,
         2006,
         format!("'{}' cannot be used as a dictionary key type", identifier),
         identifier
     ),
     (
-        RuleKind::StructContainsDisallowedType,
+        LogicKind::StructContainsDisallowedType,
         2007,
         format!(
             "struct '{}' contains members that cannot be used as a dictionary key type",
@@ -98,87 +98,87 @@ implement_kind_for_enumerator!(
         identifier
     ),
     (
-        RuleKind::CannotHaveOptionalUnderlyingType,
+        LogicKind::CannotHaveOptionalUnderlyingType,
         2008,
         "enums cannot have optional underlying types"
     ),
     (
-        RuleKind::MustContainAtLeastOneValue,
+        LogicKind::MustContainAtLeastOneValue,
         2009,
         "enums must contain at least one enumerator"
     ),
     (
-        RuleKind::UnderlyingTypeMustBeIntegral,
+        LogicKind::UnderlyingTypeMustBeIntegral,
         2010,
         format!("underlying type '{}' is not supported for enums", underlying),
         underlying
     ),
     (
-        RuleKind::Redefinition,
+        LogicKind::Redefinition,
         2011,
         format!("redefinition of `{}`", identifier),
         identifier
     ),
     (
-        RuleKind::Shadows,
+        LogicKind::Shadows,
         2012,
         format!("`{}` shadows another symbol", identifier),
         identifier
     ),
-    (RuleKind::DuplicateTag, 2000, "tags must be unique"),
+    (LogicKind::DuplicateTag, 2000, "tags must be unique"),
     (
-        RuleKind::MustBePositive,
+        LogicKind::MustBePositive,
         2013,
         format!("{kind} must be positive"),
         kind
     ),
     (
-        RuleKind::MustBeInI32Range,
+        LogicKind::MustBeInI32Range,
         2014,
         "tag values must be greater than or equal to 0 and less than 2147483647"
     ),
     (
-        RuleKind::RequiredParametersMustBeFirst,
+        LogicKind::RequiredParametersMustBeFirst,
         2015,
         "required parameters must precede tagged parameters"
     ),
     (
-        RuleKind::StreamsMustBeLast,
+        LogicKind::StreamsMustBeLast,
         2016,
         "only the last parameter in an operation can use the stream modifier"
     ),
     (
-        RuleKind::ReturnTuplesMustContainAtLeastTwoElements,
+        LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
         2017,
         "return tuples must have at least 2 elements"
     ),
     (
-        RuleKind::NotSupportedInCompactStructs,
+        LogicKind::NotSupportedInCompactStructs,
         2018,
         "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
-        RuleKind::MustBeOptional,
+        LogicKind::MustBeOptional,
         2019,
         "tagged members must be optional"
     ),
     (
-        RuleKind::CannotBeClass,
+        LogicKind::CannotBeClass,
         2020,
         "tagged members cannot be classes"
     ),
     (
-        RuleKind::CannotContainClasses,
+        LogicKind::CannotContainClasses,
         2021,
         "tagged members cannot contain classes"
     ),
     (
-        RuleKind::CanOnlyInheritFromSingleBase,
+        LogicKind::CanOnlyInheritFromSingleBase,
         2022,
         "exceptions can only inherit from a single base exception"
     ),
     (
-        RuleKind::TypeMismatch,
+        LogicKind::TypeMismatch,
         2023,
         format!(
             "type mismatch: expected a `{}` but found {} (which doesn't implement `{}`)",
@@ -188,25 +188,25 @@ implement_kind_for_enumerator!(
         found
     ),
     (
-        RuleKind::ConcreteTypeMismatch,
+        LogicKind::ConcreteTypeMismatch,
         2024,
         format!("type mismatch: expected `{}` but found `{}`", expected, found),
         expected,
         found
     ),
     (
-        RuleKind::CompactStructIsEmpty,
+        LogicKind::CompactStructIsEmpty,
         2025,
         "compact structs must be non-empty"
     ),
     (
-        RuleKind::SelfReferentialTypeAliasNeedsConcreteType,
+        LogicKind::SelfReferentialTypeAliasNeedsConcreteType,
         2026,
         format!("self-referential type alias '{}' has no concrete type", identifier),
         identifier
     ),
     (
-        RuleKind::MustBeBounded,
+        LogicKind::MustBeBounded,
         2012,
         format!(
             "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
@@ -219,17 +219,17 @@ implement_kind_for_enumerator!(
         max
     ),
     (
-        RuleKind::TagOutOfBounds,
+        LogicKind::TagOutOfBounds,
         2090,
         "tag values must be greater than or equal to 0 and less than 2147483647"
     ),
     (
-        RuleKind::MustBeUnique,
+        LogicKind::MustBeUnique,
         2012,
         "enumerators must be unique"
     ),
     (
-        RuleKind::NotSupportedWithEncoding,
+        LogicKind::NotSupportedWithEncoding,
         2026,
         format!(
             "{} `{}` is not supported by the Slice{} encoding",
@@ -240,7 +240,7 @@ implement_kind_for_enumerator!(
         encoding
     ),
     (
-        RuleKind::UnsupportedType,
+        LogicKind::UnsupportedType,
         2026,
         format!(
             "the type `{}` is not supported by the Slice{} encoding",
@@ -250,7 +250,7 @@ implement_kind_for_enumerator!(
         encoding
     ),
     (
-        RuleKind::ExceptionNotSupported,
+        LogicKind::ExceptionNotSupported,
         2026,
         format!(
             "exceptions cannot be used as a data type with the Slice{} encoding",
@@ -259,7 +259,7 @@ implement_kind_for_enumerator!(
         encoding
     ),
     (
-        RuleKind::OptionalsNotSupported,
+        LogicKind::OptionalsNotSupported,
         2026,
         format!(
             "optional types are not supported by the {} encoding (except for classes, proxies, and with tags)",
@@ -268,13 +268,13 @@ implement_kind_for_enumerator!(
         encoding
     ),
     (
-        RuleKind::StreamedParametersNotSupported,
+        LogicKind::StreamedParametersNotSupported,
         2026,
         format!("streamed parameters are not supported by the {} encoding", encoding),
         encoding
     ),
     (
-        RuleKind::ClassesCanOnlyInheritFromSingleBase,
+        LogicKind::ClassesCanOnlyInheritFromSingleBase,
         2027,
         "classes can only inherit from a single base class"
     )

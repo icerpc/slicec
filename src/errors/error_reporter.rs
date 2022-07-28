@@ -45,8 +45,7 @@ impl ErrorReporter {
         match error_kind {
             ErrorKind::Note(_) => {}
             ErrorKind::Warning(_) => self.warning_count += 1,
-            ErrorKind::Rule(_) => self.error_count += 1,
-            ErrorKind::Parse(_) => self.error_count += 1,
+            ErrorKind::Logic(_) | ErrorKind::Syntax(_) => self.error_count += 1,
         };
         self.errors.push(Error {
             error_kind,

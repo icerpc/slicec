@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
 
     #[test]
@@ -209,8 +209,8 @@ mod scope_resolution {
             }
         ";
         let expected = [
-            RuleKind::Redefinition("B".to_string()).into(),
-            ErrorKind::new("`B` was previously defined here"),
+            LogicKind::Redefinition("B".to_string()).into(),
+            ErrorKind::new_note("`B` was previously defined here"),
         ];
 
         // Act

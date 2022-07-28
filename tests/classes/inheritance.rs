@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::*;
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -61,8 +61,8 @@ fn data_member_shadowing_is_disallowed() {
         }
     ";
     let expected = [
-        RuleKind::Shadows("i".to_owned()).into(),
-        ErrorKind::new("`i` was previously defined here".to_owned()),
+        LogicKind::Shadows("i".to_owned()).into(),
+        ErrorKind::new_note("`i` was previously defined here".to_owned()),
     ];
 
     // Act

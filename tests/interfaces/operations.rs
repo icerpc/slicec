@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -175,7 +175,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
-    let expected: ErrorKind = RuleKind::ReturnTuplesMustContainAtLeastTwoElements.into();
+    let expected: ErrorKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -185,7 +185,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
 mod streams {
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, RuleKind};
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
 
     #[test]
@@ -217,7 +217,7 @@ mod streams {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
-        let expected: ErrorKind = RuleKind::StreamsMustBeLast.into();
+        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);
@@ -232,7 +232,7 @@ mod streams {
                 op(s: stream varuint62, i: int32);
             }
         ";
-        let expected: ErrorKind = RuleKind::StreamsMustBeLast.into();
+        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);

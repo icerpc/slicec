@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
@@ -71,10 +71,10 @@ fn invalid_mixed_encoding_fails() {
         }
     ";
     let expected = [
-        RuleKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1).into(),
-        ErrorKind::new("file encoding was set to Slice1 here:"),
-        RuleKind::UnsupportedType("ACompactStruct".to_owned(), Encoding::Slice1).into(),
-        ErrorKind::new("file encoding was set to Slice1 here:"),
+        LogicKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1).into(),
+        ErrorKind::new_note("file encoding was set to Slice1 here:"),
+        LogicKind::UnsupportedType("ACompactStruct".to_owned(), Encoding::Slice1).into(),
+        ErrorKind::new_note("file encoding was set to Slice1 here:"),
     ];
     let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])
         .err()

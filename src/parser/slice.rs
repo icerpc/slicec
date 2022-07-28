@@ -63,7 +63,7 @@ impl<'a> SliceParser<'a> {
         match self.parse_file(file, is_source, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
-                self.error_reporter.report(ErrorKind::Parse(message), None);
+                self.error_reporter.report(ErrorKind::Syntax(message), None);
                 None
             }
         }
@@ -103,7 +103,7 @@ impl<'a> SliceParser<'a> {
         match self.parse_string(identifier, input, ast) {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
-                self.error_reporter.report(ErrorKind::Parse(message), None);
+                self.error_reporter.report(ErrorKind::Syntax(message), None);
                 None
             }
         }
@@ -264,7 +264,7 @@ impl<'a> SliceParser<'a> {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
-                        RuleKind::ClassesCanOnlyInheritFromSingleBase,
+                        LogicKind::ClassesCanOnlyInheritFromSingleBase,
                         Some(&location),
                     );
                 }
@@ -306,7 +306,7 @@ impl<'a> SliceParser<'a> {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
-                        RuleKind::CanOnlyInheritFromSingleBase,
+                        LogicKind::CanOnlyInheritFromSingleBase,
                         Some(&location),
                     )
                 }
@@ -512,7 +512,7 @@ impl<'a> SliceParser<'a> {
                 if return_elements.len() < 2 {
                     let location = location_from_span(&input);
                     input.user_data().borrow_mut().error_reporter.report(
-                        RuleKind::ReturnTuplesMustContainAtLeastTwoElements,
+                        LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
                         Some(&location),
                     );
                 }
@@ -658,7 +658,7 @@ impl<'a> SliceParser<'a> {
                         )
                     };
                     input.user_data().borrow_mut().error_reporter.report(
-                        ErrorKind::Parse(error_string),
+                        ErrorKind::Syntax(error_string),
                         Some(&location),
                     );
                 }
@@ -1180,12 +1180,12 @@ impl<'a> SliceParser<'a> {
                             let error_reporter = &mut input.user_data().borrow_mut().error_reporter;
 
                             error_reporter.report(
-                                ErrorKind::Parse("file level modules cannot contain sub-modules".to_owned()),
+                                ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().location),
                             );
 
                             error_reporter.report(
-                                ErrorKind::new(format!("file level module '{}' declared here", &identifier.value)),
+                                ErrorKind::new_note(format!("file level module '{}' declared here", &identifier.value)),
                                 Some(&location),
                             );
                         }

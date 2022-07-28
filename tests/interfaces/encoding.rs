@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::assert_errors_new;
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
@@ -20,8 +20,8 @@ fn operation_members_are_compatible_with_encoding() {
         }
     ";
     let expected = [
-        RuleKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
-        ErrorKind::new("file encoding was set to Slice2 here:".to_owned()),
+        LogicKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
+        ErrorKind::new_note("file encoding was set to Slice2 here:".to_owned()),
     ];
 
     let result = parse_from_strings(&[slice1, slice2]).err().unwrap();

@@ -210,7 +210,7 @@ impl TypeRefPatcher<'_> {
             Ok(definition) => Some(definition),
             Err(message) => {
                 self.error_reporter
-                    .report(ErrorKind::Parse(message), Some(type_ref.location()));
+                    .report(ErrorKind::Syntax(message), Some(type_ref.location()));
                 None
             }
         }
@@ -255,7 +255,7 @@ impl TypeRefPatcher<'_> {
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
                 let error =
-                    RuleKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
+                    LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
                 self.error_reporter.report(error, Some(current_type_alias.location()));
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
@@ -264,7 +264,7 @@ impl TypeRefPatcher<'_> {
                         window[1].identifier(),
                     );
                     self.error_reporter
-                        .report(ErrorKind::new(message), Some(window[0].underlying.location()));
+                        .report(ErrorKind::new_note(message), Some(window[0].underlying.location()));
                 }
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());

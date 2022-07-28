@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::*;
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, RuleKind};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -88,8 +88,8 @@ fn operation_shadowing_is_disallowed() {
         }
     ";
     let expected = [
-        RuleKind::Shadows("op".to_owned()).into(),
-        ErrorKind::new("`op` was previously defined here".to_owned()),
+        LogicKind::Shadows("op".to_owned()).into(),
+        ErrorKind::new_note("`op` was previously defined here".to_owned()),
     ];
 
     let error_reporter = parse_for_errors(slice);
