@@ -36,7 +36,7 @@ impl ParsedData {
             };
 
             // Insert the prefix at the start of the message.
-            let mut message = prefix.to_owned() + ": " + &error.to_string();
+            let mut message = format!("{}: {}", prefix, &error);
 
             if let Some(location) = error.location {
                 // Specify the location where the error starts on its own line after the message.
