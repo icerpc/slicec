@@ -210,7 +210,7 @@ impl EncodingPatcher<'_> {
         } else {
             self.error_reporter.report(
                 ErrorKind::new_note(format!(
-                    "file is using the Slice{} encoding by default",
+                    "file is using the {} encoding by default",
                     Encoding::default(),
                 )),
                 None,
