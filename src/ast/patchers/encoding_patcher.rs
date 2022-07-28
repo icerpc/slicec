@@ -132,7 +132,7 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    errors.push(LogicKind::ExceptionNotSupported("1".to_owned()));
+                    errors.push(LogicKind::ExceptionNotSupported(Encoding::Slice1));
                 }
                 encodings
             }
@@ -169,7 +169,7 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                errors.push(LogicKind::OptionalsNotSupported("Slice1".to_owned()));
+                errors.push(LogicKind::OptionalsNotSupported(Encoding::Slice1));
             }
         }
 

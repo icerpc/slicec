@@ -3,6 +3,7 @@
 mod slice1 {
 
     use slice::errors::{ErrorKind, LogicKind};
+    use slice::grammar::Encoding;
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
@@ -22,7 +23,7 @@ mod slice1 {
             }
         ";
         let expected = [
-            LogicKind::ExceptionNotSupported("1".to_owned()).into(),
+            LogicKind::ExceptionNotSupported(Encoding::Slice1).into(),
             ErrorKind::new_note("file encoding was set to Slice1 here:".to_owned()),
         ];
 

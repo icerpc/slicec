@@ -18,7 +18,7 @@ pub enum LogicKind {
     ClassesCanOnlyInheritFromSingleBase,
     DeprecatedAttributeCannotBeApplied(String),
     DuplicateTag,
-    ExceptionNotSupported(String),
+    ExceptionNotSupported(Encoding),
     MustBeBounded(i64, i64, i64), // (value, min, max)
     MustBeInI32Range,
     MustBeOptional,
@@ -28,7 +28,7 @@ pub enum LogicKind {
     ArgumentNotSupported(String, String), // (arg, method)
     NotSupportedInCompactStructs,
     NotSupportedWithEncoding(String, String, Encoding), // (kind, identifier, encoding)
-    OptionalsNotSupported(String),
+    OptionalsNotSupported(Encoding),
     Redefinition(String),
     RequiredParametersMustBeFirst,
     ReturnTuplesMustContainAtLeastTwoElements,
@@ -232,7 +232,7 @@ implement_error_functions!(
         LogicKind::NotSupportedWithEncoding,
         2026,
         format!(
-            "{} `{}` is not supported by the Slice{} encoding",
+            "{} `{}` is not supported by the {} encoding",
             kind, identifier, encoding,
         ),
         kind,
@@ -243,7 +243,7 @@ implement_error_functions!(
         LogicKind::UnsupportedType,
         2026,
         format!(
-            "the type `{}` is not supported by the Slice{} encoding",
+            "the type `{}` is not supported by the {} encoding",
             type_string, encoding,
         ),
         type_string,
@@ -253,7 +253,7 @@ implement_error_functions!(
         LogicKind::ExceptionNotSupported,
         2026,
         format!(
-            "exceptions cannot be used as a data type with the Slice{} encoding",
+            "exceptions cannot be used as a data type with the {} encoding",
             encoding
         ),
         encoding
