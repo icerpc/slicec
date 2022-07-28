@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
     use slice::grammar::Encoding;
 
     use crate::assert_errors_new;

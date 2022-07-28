@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::{ErrorReporter, *};
+use crate::errors::{ErrorReporter, WarningKind};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 

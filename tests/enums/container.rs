@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -265,7 +265,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {

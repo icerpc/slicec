@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::*;
 
 #[test]
@@ -185,7 +185,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
 mod streams {
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
     use slice::grammar::*;
 
     #[test]

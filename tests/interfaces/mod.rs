@@ -6,7 +6,7 @@ mod operations;
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::*;
 use slice::parse_from_string;
 

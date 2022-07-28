@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
@@ -38,7 +38,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an

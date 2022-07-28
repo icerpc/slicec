@@ -4,7 +4,7 @@ mod structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -89,7 +89,7 @@ mod compact_structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
     /// Verifies that compact structs must contain at least one data member.
     #[test]
     fn must_not_be_empty() {

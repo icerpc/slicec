@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::*;
 use test_case::test_case;
 

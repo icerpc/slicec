@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::*;
 
 /// Verifies that exceptions can contain data members.

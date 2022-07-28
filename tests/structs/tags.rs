@@ -26,7 +26,7 @@ mod structs {
 
 mod compact_structs {
 
-    use slice::errors::*;
+    use slice::errors::{ErrorKind, RuleKind};
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;

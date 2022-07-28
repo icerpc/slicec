@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
-use slice::errors::*;
+use slice::errors::{ErrorKind, RuleKind};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 

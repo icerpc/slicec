@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use crate::errors::{Error, ErrorKind};
 use crate::slice_file::Location;
 
 #[derive(Debug)]
