@@ -30,10 +30,9 @@ impl ParsedData {
 
         for error in error_reporter.into_errors() {
             let prefix = match error.error_kind {
-                ErrorKind::Rule(_) => "error",
+                ErrorKind::Parse(_) | ErrorKind::Rule(_) => "error",
                 ErrorKind::Warning(_) => "warning",
                 ErrorKind::Note(_) => "note",
-                _ => "error",
             };
 
             // Insert the prefix at the start of the message.

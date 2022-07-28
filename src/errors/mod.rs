@@ -60,16 +60,17 @@ macro_rules! implement_from_for_error_sub_kind {
 }
 
 #[macro_export]
-macro_rules! implement_kind_for_enumerator {
+macro_rules! implement_error_functions {
     ($enumerator:ty, $(($kind:path, $code:expr, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
-            pub fn as_error_code(&self) -> u32 {
+            pub fn error_code(&self) -> u32 {
                 match self {
                     $(
                         implement_kind_for_enumerator!(@error $kind, $($variant),*) => $code,
                     )*
                 }
             }
+
             pub fn message(&self) -> String {
                 match self {
                     $(

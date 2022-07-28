@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use super::ErrorKind;
 use crate::slice_file::Location;
 
 #[derive(Debug)]
@@ -45,8 +45,7 @@ impl ErrorReporter {
         match error_kind {
             ErrorKind::Note(_) => {}
             ErrorKind::Warning(_) => self.warning_count += 1,
-            ErrorKind::Rule(_) => self.error_count += 1,
-            ErrorKind::Parse(_) => self.error_count += 1,
+            ErrorKind::Rule(_) | ErrorKind::Parse(_) => self.error_count += 1,
         };
         self.errors.push(Error {
             error_kind,
