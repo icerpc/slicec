@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_errors, pluralize_kind};
+use crate::{assert_errors, assert_errors_new};
+use slice::errors::{ErrorKind, LogicKind};
 use test_case::test_case;
 
 #[test]
@@ -11,14 +12,13 @@ fn optionals_are_disallowed() {
         module Test;
         typealias Dict = dictionary<int32?, int8>;
     ";
+    let expected: ErrorKind = LogicKind::CannotUseOptionalAsKey.into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "invalid dictionary key type: optional types cannot be used as a dictionary key type",
-    ]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test_case("bool"; "bool")]
@@ -64,15 +64,13 @@ fn disallowed_primitive_types(key_type: &str) {
         ",
         key_type,
     );
+    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_type.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [format!(
-        "invalid dictionary key type: {} cannot be used as a dictionary key type",
-        key_type,
-    )]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test_case("sequence<int8>", "sequences" ; "sequences")]
@@ -86,15 +84,13 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
         ",
         key_type,
     );
+    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_kind.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [format!(
-        "invalid dictionary key type: {} cannot be used as a dictionary key type",
-        key_kind,
-    )]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
@@ -134,18 +130,16 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
         key_type_definition = key_type_def,
         key_type = key_type,
     );
+    let expected: [ErrorKind; 2] = [
+        LogicKind::TypeCannotBeUsedAsAKey(pluralize_kind(key_kind)).into(),
+        ErrorKind::new_note(format!("{} '{}' is defined here:", key_kind, key_type)),
+    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        format!(
-            "invalid dictionary key type: {} cannot be used as a dictionary key type",
-            pluralize_kind(key_kind),
-        ),
-        format!("{} '{}' is defined here:", key_kind, key_type),
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }
 
 #[test]
@@ -156,15 +150,16 @@ fn non_compact_structs_are_disallowed() {
         struct MyStruct {}
         typealias Dict = dictionary<MyStruct, int8>;
     ";
+    let expected: [ErrorKind; 2] = [
+        LogicKind::StructsMustBeCompactToBeAKey.into(),
+        ErrorKind::new_note("struct 'MyStruct' is defined here:".to_owned()),
+    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "invalid dictionary key type: structs must be compact to be used as a dictionary key type",
-        "struct 'MyStruct' is defined here:",
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }
 
 #[test]
@@ -215,20 +210,21 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
         typealias Dict = dictionary<Outer, int8>;
     ";
+    let expected: [ErrorKind; 9] = [
+        LogicKind::TypeCannotBeUsedAsAKey("sequences".to_owned()).into(),
+        LogicKind::TypeCannotBeUsedAsAKey("seq".to_owned()).into(),
+        LogicKind::TypeCannotBeUsedAsAKey("float32".to_owned()).into(),
+        LogicKind::TypeCannotBeUsedAsAKey("f32".to_owned()).into(),
+        LogicKind::StructContainsDisallowedType("Inner".to_owned()).into(),
+        ErrorKind::new_note("struct 'Inner' is defined here:"),
+        LogicKind::TypeCannotBeUsedAsAKey("i".to_owned()).into(),
+        LogicKind::StructContainsDisallowedType("Outer".to_owned()).into(),
+        ErrorKind::new_note("struct 'Outer' is defined here:".to_owned()),
+    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
-        "invalid dictionary key type: sequences cannot be used as a dictionary key type",
-        "data member 'seq' cannot be used as a dictionary key type",
-        "invalid dictionary key type: float32 cannot be used as a dictionary key type",
-        "data member 'f32' cannot be used as a dictionary key type",
-        "invalid dictionary key type: struct 'Inner' contains members that cannot be used as a dictionary key type",
-        "struct 'Inner' is defined here:",
-        "data member 'i' cannot be used as a dictionary key type",
-        "invalid dictionary key type: struct 'Outer' contains members that cannot be used as a dictionary key type",
-        "struct 'Outer' is defined here:",
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }

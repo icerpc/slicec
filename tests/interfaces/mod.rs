@@ -4,8 +4,9 @@ mod encoding;
 mod inheritance;
 mod operations;
 
-use crate::assert_errors;
+use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 use slice::parse_from_string;
 
@@ -84,8 +85,12 @@ fn cannot_redefine_operations() {
             op();
         }
     ";
+    let expected: [ErrorKind; 2] = [
+        LogicKind::Redefinition("op".to_owned()).into(),
+        ErrorKind::new_note("`op` was previously defined here".to_owned()),
+    ];
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, ["redefinition of op", "op was previously defined here"]);
+    assert_errors_new!(error_reporter, expected);
 }

@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
+use crate::errors::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 use std::str::FromStr;
@@ -38,7 +38,7 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => error_reporter.report_error("format attribute arguments cannot be empty", Some(attribute.location())),
+            0 => error_reporter.report(LogicKind::CannotBeEmpty("format attribute"), Some(attribute.location())),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute
@@ -49,15 +49,15 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                         format.is_err()
                     })
                     .for_each(|arg| {
-                        error_reporter.report_error(
-                            format!("invalid format attribute argument `{}`", arg),
+                        error_reporter.report(
+                            LogicKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.location()),
                         );
-                        error_reporter.report_note(
-                            format!(
+                        error_reporter.report(
+                            ErrorKind::new_note(format!(
                                 "The valid arguments for the format attribute are {}",
                                 message_value_separator(&["Compact", "Sliced"])
-                            ),
+                            )),
                             Some(attribute.location()),
                         );
                     });
@@ -70,8 +70,8 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
 fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            error_reporter.report_error(
-                format!("the deprecated attribute cannot be applied to {}s", m.kind()),
+            error_reporter.report(
+                LogicKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.location()),
             );
         }
@@ -87,10 +87,9 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     let kind = element.kind();
     if !supported_on.contains(&kind) {
         match element.get_raw_attribute("compress", false) {
-            Some(attribute) => error_reporter.report_error(
-                "the compress attribute can only be applied to interfaces and operations",
-                Some(attribute.location()),
-            ),
+            Some(attribute) => {
+                error_reporter.report(LogicKind::CompressAttributeCannotBeApplied, Some(attribute.location()))
+            }
             None => (),
         }
     }
@@ -101,15 +100,15 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
         match element.get_raw_attribute("compress", false) {
             Some(attribute) => attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    error_reporter.report_error(
-                        format!("invalid argument `{}` for the compress attribute", arg),
+                    error_reporter.report(
+                        LogicKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.location()),
                     );
-                    error_reporter.report_note(
-                        format!(
+                    error_reporter.report(
+                        ErrorKind::new_note(format!(
                             "The valid argument(s) for the compress attribute are {}",
                             message_value_separator(&valid_arguments).as_str(),
-                        ),
+                        )),
                         Some(attribute.location()),
                     );
                 }

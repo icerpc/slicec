@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
+use crate::{assert_errors, assert_errors_new};
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -59,13 +60,15 @@ fn data_member_shadowing_is_disallowed() {
             i: int32
         }
     ";
+    let expected = [
+        LogicKind::Shadows("i".to_owned()).into(),
+        ErrorKind::new_note("`i` was previously defined here".to_owned()),
+    ];
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, [
-        "i shadows another symbol",
-        "i was previously defined here"
-    ]);
+    assert_errors_new!(error_reporter, expected);
 }
 
 #[test]

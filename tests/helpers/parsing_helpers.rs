@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Ast;
-use slice::error::ErrorReporter;
+use slice::errors::ErrorReporter;
 use slice::parse_from_string;
 
 /// This function is used to parse a Slice file and return the AST.

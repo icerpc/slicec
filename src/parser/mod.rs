@@ -10,7 +10,7 @@ mod slice;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::error::ErrorReporter;
+use crate::errors::ErrorReporter;
 use crate::parse_result::{ParsedData, ParserResult};
 use std::collections::HashMap;
 use std::path::PathBuf;

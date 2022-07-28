@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
+use crate::errors::{ErrorReporter, *};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -18,10 +18,7 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
     if let Some((_, nonstreamed_members)) = members.split_last() {
         for member in nonstreamed_members {
             if member.is_streamed {
-                error_reporter.report_error(
-                    "only the last parameter in an operation can use the stream modifier",
-                    Some(member.location()),
-                );
+                error_reporter.report(LogicKind::StreamsMustBeLast, Some(member.location()));
             }
         }
     }
@@ -30,6 +27,6 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
 fn validate_compact_struct_not_empty(struct_def: &Struct, error_reporter: &mut ErrorReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && struct_def.members().is_empty() {
-        error_reporter.report_error("compact structs must be non-empty", Some(struct_def.location()));
+        error_reporter.report(LogicKind::CompactStructIsEmpty, Some(struct_def.location()));
     }
 }

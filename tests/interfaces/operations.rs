@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors;
+use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
+use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -174,15 +175,17 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
+    let expected: ErrorKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
 
     let error_reporter = parse_for_errors(slice);
 
-    assert_errors!(error_reporter, ["return tuples must have at least 2 elements",]);
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 mod streams {
-    use crate::assert_errors;
+    use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
+    use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
 
     #[test]
@@ -214,11 +217,10 @@ mod streams {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
+        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
-        assert_errors!(error_reporter, [
-            "only the last parameter in an operation can use the stream modifier",
-        ]);
+        assert_errors_new!(error_reporter, [&expected]);
     }
 
     #[test]
@@ -230,10 +232,9 @@ mod streams {
                 op(s: stream varuint62, i: int32);
             }
         ";
+        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
         let error_reporter = parse_for_errors(slice);
-        assert_errors!(error_reporter, [
-            "only the last parameter in an operation can use the stream modifier",
-        ]);
+        assert_errors_new!(error_reporter, [&expected]);
     }
 }

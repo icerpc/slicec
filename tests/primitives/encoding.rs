@@ -2,8 +2,10 @@
 
 mod slice1 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::{assert_errors, assert_errors_new};
+    use slice::errors::{ErrorKind, LogicKind};
+    use slice::grammar::Encoding;
     use test_case::test_case;
 
     /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -30,17 +32,16 @@ mod slice1 {
             ",
             value = value,
         );
-
-        let expected_errors: &[&str] = &[
-            &format!("the type `{}` is not supported by the Slice1 encoding", value),
-            "file encoding was set to Slice1 here:",
+        let expected = [
+            LogicKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new_note("file encoding was set to Slice1 here:"),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected);
     }
 
     /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -78,8 +79,10 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::{assert_errors, assert_errors_new};
+    use slice::errors::{ErrorKind, LogicKind};
+    use slice::grammar::Encoding;
     use test_case::test_case;
 
     /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
@@ -94,17 +97,19 @@ mod slice2 {
                 v: AnyClass,
             }
         ";
-        let expected_errors = [
-            "the type `AnyClass` is not supported by the Slice2 encoding",
-            "file is using the Slice2 encoding by default",
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+        let expected = [
+            LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
+            ErrorKind::new_note("file is using the Slice2 encoding by default"),
+            ErrorKind::new_note(
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            ),
         ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, expected_errors);
+        assert_errors_new!(error_reporter, expected);
     }
 
     /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,

@@ -54,6 +54,7 @@ mod module {
     }
 
     #[test]
+    #[ignore = "Reece"]
     fn is_required() {
         // TODO: better error message once we replace the parser
         let slice = "

@@ -8,7 +8,7 @@ mod identifiers;
 mod miscellaneous;
 mod tag;
 
-use crate::error::ErrorReporter;
+use crate::errors::ErrorReporter;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::ptr_util::WeakPtr;

@@ -3,7 +3,7 @@
 pub mod ast;
 pub mod code_gen_util;
 pub mod command_line;
-pub mod error;
+pub mod errors;
 pub mod grammar;
 pub mod parse_result;
 pub mod parser;

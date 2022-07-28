@@ -6,8 +6,9 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::assert_errors;
+        use crate::assert_errors_new;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+        use slice::errors::{ErrorKind, LogicKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -69,14 +70,13 @@ mod attributes {
                 ",
                 arg.unwrap_or(""),
             );
+            let error: ErrorKind = LogicKind::CannotBeEmpty("format attribute").into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "format attribute arguments cannot be empty" // Should be error here
-            ]);
+            assert_errors_new!(error_reporter, [&error]);
         }
 
         #[test]
@@ -90,15 +90,15 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
-
+            let expected = [
+                LogicKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
+                ErrorKind::new_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
+            ];
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "invalid format attribute argument `Foo`",
-                "The valid arguments for the format attribute are `Compact` and `Sliced`",
-            ]);
+            assert_errors_new!(error_reporter, expected);
         }
 
         #[test]
@@ -131,14 +131,13 @@ mod attributes {
                     op([deprecated] s: string) -> string;
                 }
             ";
+            let expected: ErrorKind = LogicKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the deprecated attribute cannot be applied to parameters"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -152,14 +151,13 @@ mod attributes {
                     s: string,
                 }
             ";
+            let expected: ErrorKind = LogicKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the deprecated attribute cannot be applied to data members"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]
@@ -218,15 +216,16 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
+            let expected = [
+                LogicKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
+                ErrorKind::new_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
+            ];
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "invalid argument `Foo` for the compress attribute",
-                "The valid argument(s) for the compress attribute are `Args` and `Return`",
-            ]);
+            assert_errors_new!(error_reporter, expected);
         }
 
         #[test]
@@ -240,14 +239,13 @@ mod attributes {
                     s: string,
                 }
             ";
+            let expected: ErrorKind = LogicKind::CompressAttributeCannotBeApplied.into();
 
             // Act
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "the compress attribute can only be applied to interfaces and operations"
-            ]);
+            assert_errors_new!(error_reporter, [&expected]);
         }
 
         #[test]

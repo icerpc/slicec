@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::error::ErrorReporter;
+use crate::errors::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -24,13 +24,8 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                error_reporter.report_error(
-                    format!(
-                        "invalid enumerator value on enumerator `{}`: enumerators must be non-negative",
-                        &enumerator.identifier()
-                    ),
-                    Some(enumerator.location()),
-                );
+                let error = LogicKind::MustBePositive("enumerator values".to_owned());
+                error_reporter.report(error, Some(enumerator.location()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -38,14 +33,8 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                error_reporter.report_error(
-                    format!(
-                        "invalid enumerator value on enumerator `{identifier}`: must be smaller than than {max}",
-                        identifier = enumerator.identifier(),
-                        max = i32::MAX,
-                    ),
-                    Some(enumerator.location()),
-                );
+                let error = LogicKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64);
+                error_reporter.report(error, Some(enumerator.location()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -55,22 +44,12 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             enum_def
                 .enumerators()
                 .iter()
-                .map(|enumerator| enumerator.value)
-                .filter(|value| *value < min || *value > max)
-                .for_each(|value| {
-                    error_reporter.report_error(
-                        format!(
-                            "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive, for the underlying type `{underlying}`",
-                            value = value,
-                            underlying = underlying_type.kind(),
-                            min = min,
-                            max = max,
-                        ),
-                        Some(enum_def.location()),
-                    );
+                .filter(|enumerator| enumerator.value < min || enumerator.value > max)
+                .for_each(|enumerator| {
+                    let error = LogicKind::MustBeBounded(enumerator.value, min, max);
+                    error_reporter.report(error, Some(enumerator.location()));
                 });
         }
-
         match &enum_def.underlying {
             Some(underlying_type) => {
                 if underlying_type.is_integral() {
@@ -93,13 +72,8 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                error_reporter.report_error(
-                    format!(
-                        "underlying type '{underlying}' is not allowed for enums",
-                        underlying = underlying_type.definition().kind(),
-                    ),
-                    Some(enum_def.location()),
-                );
+                let error = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
+                error_reporter.report(error, Some(enum_def.location()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -116,19 +90,13 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            error_reporter.report_error(
-                format!(
-                    "invalid enumerator value on enumerator `{}`: enumerators must be unique",
-                    window[1].identifier()
-                ),
-                Some(window[1].location()),
-            );
-            error_reporter.report_note(
-                format!(
+            error_reporter.report(LogicKind::MustBeUnique, Some(window[1].location()));
+            error_reporter.report(
+                ErrorKind::new_note(format!(
                     "The enumerator `{}` has previous used the value `{}`",
                     window[0].identifier(),
                     window[0].value
-                ),
+                )),
                 Some(window[0].location()),
             );
         }
@@ -139,13 +107,7 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            error_reporter.report_error(
-                format!(
-                    "underlying type '{}' cannot be optional: enums cannot have optional underlying types",
-                    typeref.type_string
-                ),
-                Some(enum_def.location()),
-            );
+            error_reporter.report(LogicKind::CannotHaveOptionalUnderlyingType, Some(enum_def.location()));
         }
     }
 }
@@ -153,6 +115,6 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report_error("enums must contain at least one enumerator", Some(enum_def.location()));
+        error_reporter.report(LogicKind::MustContainAtLeastOneValue, Some(enum_def.location()));
     }
 }
