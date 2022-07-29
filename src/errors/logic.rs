@@ -43,6 +43,11 @@ pub enum LogicKind {
     TypeMismatch(String, String),
     UnderlyingTypeMustBeIntegral(String),
     UnsupportedType(String, Encoding), // (type_string, encoding)
+
+    // The following are errors that are needed to report cs attribute errors.
+    UnexpectedAttribute(String),     // (attribute)
+    MissingRequiredArgument(String), // (arg)
+    TooManyArguments(String),        // (expected)
 }
 
 implement_from_for_error_sub_kind!(LogicKind, ErrorKind::Logic);
@@ -277,5 +282,23 @@ implement_error_functions!(
         LogicKind::ClassesCanOnlyInheritFromSingleBase,
         2027,
         "classes can only inherit from a single base class"
+    ),
+    (
+        LogicKind::UnexpectedAttribute,
+        2200,
+        format!("unexpected attribute `{}`", attribute),
+        attribute
+    ),
+    (
+        LogicKind::MissingRequiredArgument,
+        2201,
+        format!("missing required argument `{}`", argument),
+        argument
+    ),
+    (
+        LogicKind::TooManyArguments,
+        2202,
+        format!("too many arguments, expected `{}`", expected),
+        expected
     )
 );

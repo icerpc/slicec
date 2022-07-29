@@ -4,11 +4,11 @@ use crate::slice_file::Location;
 use std::fmt;
 
 mod error_reporter;
-mod rules;
+mod logic;
 mod warnings;
 
 pub use self::error_reporter::ErrorReporter;
-pub use self::rules::LogicKind;
+pub use self::logic::LogicKind;
 pub use self::warnings::WarningKind;
 
 #[derive(Debug)]
