@@ -29,6 +29,7 @@ pub enum ErrorKind {
     Logic(LogicKind),
     Warning(WarningKind),
     Note(String),
+    IO(String),
 }
 
 impl fmt::Display for ErrorKind {
@@ -38,6 +39,7 @@ impl fmt::Display for ErrorKind {
             ErrorKind::Logic(rule_kind) => write!(f, "{}", rule_kind.message()),
             ErrorKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
             ErrorKind::Note(note) => write!(f, "{}", note),
+            ErrorKind::IO(error) => write!(f, "{}", error),
         }
     }
 }

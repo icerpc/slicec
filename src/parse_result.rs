@@ -30,7 +30,7 @@ impl ParsedData {
 
         for error in error_reporter.into_errors() {
             let prefix = match error.error_kind {
-                ErrorKind::Syntax(_) | ErrorKind::Logic(_) => "error",
+                ErrorKind::Syntax(_) | ErrorKind::Logic(_) | ErrorKind::IO(_) => "error",
                 ErrorKind::Warning(_) => "warning",
                 ErrorKind::Note(_) => "note",
             };
