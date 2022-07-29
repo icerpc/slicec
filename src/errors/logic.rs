@@ -45,9 +45,11 @@ pub enum LogicKind {
     UnsupportedType(String, Encoding), // (type_string, encoding)
 
     // The following are errors that are needed to report cs attribute errors.
-    UnexpectedAttribute(String),     // (attribute)
-    MissingRequiredArgument(String), // (arg)
-    TooManyArguments(String),        // (expected)
+    UnexpectedAttribute(String),                  // (attribute)
+    MissingRequiredArgument(String),              // (arg)
+    TooManyArguments(String),                     // (expected)
+    MissingRequiredAttribute(String),             // (attribute)
+    AttributeOnlyValidForTopLevelModules(String), // (attribute)
 }
 
 implement_from_for_error_sub_kind!(LogicKind, ErrorKind::Logic);
@@ -300,5 +302,17 @@ implement_error_functions!(
         2202,
         format!("too many arguments, expected `{}`", expected),
         expected
+    ),
+    (
+        LogicKind::MissingRequiredAttribute,
+        2203,
+        format!("missing required attribute `{}`", attribute),
+        attribute
+    ),
+    (
+        LogicKind::AttributeOnlyValidForTopLevelModules,
+        2204,
+        format!("The `{}` attribute is only valid for top-level modules", attribute),
+        attribute
     )
 );
