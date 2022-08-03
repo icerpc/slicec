@@ -42,7 +42,7 @@ impl ParsedData {
                 // Specify the span where the error starts on its own line after the message.
                 message = format!("{}\n@ '{}' ({},{})", message, &span.file, span.start.0, span.start.1);
 
-                // If the span spans between two positions, add a snippet from the slice file.
+                // If the span isn't empty, extract a snippet of the text contained within the span.
                 if span.start != span.end {
                     message += ":\n";
                     let file = files.get(&span.file).expect("Slice file not in file map!");
