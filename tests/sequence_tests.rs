@@ -11,8 +11,8 @@ mod sequences {
     fn can_contain_primitive_types() {
         // Arrange
         let slice = "
-        module Test;
-        typealias Seq = sequence<int8>;
+            module Test;
+            typealias Seq = sequence<int8>;
         ";
 
         // Act
@@ -22,6 +22,7 @@ mod sequences {
         let seq_def = ast.find_element::<TypeAlias>("Test::Seq").unwrap();
         let seq_type = seq_def.underlying.concrete_typeref();
 
+        // TODO: Remove if check from test
         if let TypeRefs::Sequence(seq) = seq_type {
             matches!(&seq.element_type.concrete_type(), Types::Primitive(Primitive::Int8));
         } else {

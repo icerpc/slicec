@@ -12,12 +12,12 @@ fn optionals_are_disallowed() {
         module Test;
         typealias Dict = dictionary<int32?, int8>;
     ";
-    let expected: ErrorKind = LogicKind::CannotUseOptionalAsKey.into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: ErrorKind = LogicKind::CannotUseOptionalAsKey.into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -64,12 +64,12 @@ fn disallowed_primitive_types(key_type: &str) {
         ",
         key_type,
     );
-    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_type.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_type.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -84,12 +84,12 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
         ",
         key_type,
     );
-    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_kind.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_kind.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -130,15 +130,15 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
         key_type_definition = key_type_def,
         key_type = key_type,
     );
-    let expected: [ErrorKind; 2] = [
-        LogicKind::TypeCannotBeUsedAsAKey(pluralize_kind(key_kind)).into(),
-        ErrorKind::new_note(format!("{} '{}' is defined here:", key_kind, key_type)),
-    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: [ErrorKind; 2] = [
+        LogicKind::TypeCannotBeUsedAsAKey(pluralize_kind(key_kind)).into(),
+        ErrorKind::new_note(format!("{} '{}' is defined here:", key_kind, key_type)),
+    ];
     assert_errors_new!(error_reporter, expected);
 }
 
@@ -150,15 +150,15 @@ fn non_compact_structs_are_disallowed() {
         struct MyStruct {}
         typealias Dict = dictionary<MyStruct, int8>;
     ";
-    let expected: [ErrorKind; 2] = [
-        LogicKind::StructsMustBeCompactToBeAKey.into(),
-        ErrorKind::new_note("struct 'MyStruct' is defined here:".to_owned()),
-    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: [ErrorKind; 2] = [
+        LogicKind::StructsMustBeCompactToBeAKey.into(),
+        ErrorKind::new_note("struct 'MyStruct' is defined here:".to_owned()),
+    ];
     assert_errors_new!(error_reporter, expected);
 }
 
@@ -210,6 +210,11 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
         typealias Dict = dictionary<Outer, int8>;
     ";
+
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
+    // Assert
     let expected: [ErrorKind; 9] = [
         LogicKind::TypeCannotBeUsedAsAKey("sequences".to_owned()).into(),
         LogicKind::TypeCannotBeUsedAsAKey("seq".to_owned()).into(),
@@ -221,10 +226,5 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
         LogicKind::StructContainsDisallowedType("Outer".to_owned()).into(),
         ErrorKind::new_note("struct 'Outer' is defined here:".to_owned()),
     ];
-
-    // Act
-    let error_reporter = parse_for_errors(slice);
-
-    // Assert
     assert_errors_new!(error_reporter, expected);
 }

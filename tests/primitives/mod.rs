@@ -24,6 +24,7 @@ use test_case::test_case;
 #[test_case("string", Primitive::String, None; "string")]
 #[test_case("AnyClass", Primitive::AnyClass, Some("encoding = 1;"); "AnyClass")]
 fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str>) {
+    // Arrange
     let slice = format!(
         "
             {encoding}
@@ -34,8 +35,10 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
         slice_component = slice_component,
     );
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let primitive_ptr = ast
         .find_element::<TypeAlias>("Test::P")
         .unwrap()

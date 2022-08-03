@@ -16,6 +16,8 @@ mod structs {
                 b: tag(10) bool?,
             }
         ";
+
+        // Act
         let ast = parse_for_ast(slice);
 
         // Assert
@@ -26,10 +28,9 @@ mod structs {
 
 mod compact_structs {
 
-    use slice::errors::{ErrorKind, LogicKind};
-
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
+    use slice::errors::{ErrorKind, LogicKind};
 
     #[test]
     fn cannot_contain_tags() {
@@ -42,15 +43,15 @@ mod compact_structs {
                 b: tag(10) bool?,
             }
         ";
-        let expected = [
-            LogicKind::NotSupportedInCompactStructs.into(),
-            ErrorKind::new_note("struct 'S' is declared compact here"),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected = [
+            LogicKind::NotSupportedInCompactStructs.into(),
+            ErrorKind::new_note("struct 'S' is declared compact here"),
+        ];
         assert_errors_new!(error_reporter, expected);
     }
 }

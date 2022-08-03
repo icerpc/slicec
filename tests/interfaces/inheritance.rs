@@ -7,13 +7,17 @@ use slice::grammar::*;
 
 #[test]
 fn supports_single_inheritance() {
+    // Arrange
     let slice = "
         module Test;
         interface I {}
         interface J : I {}
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
+
+    // Assert
     let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
     let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
     let interface_j_bases = interface_j_def.base_interfaces();
@@ -28,6 +32,7 @@ fn supports_single_inheritance() {
 
 #[test]
 fn supports_multiple_inheritance() {
+    // Arrange
     let slice = "
         module Test;
         interface I {}
@@ -35,22 +40,22 @@ fn supports_multiple_inheritance() {
         interface K : I, J {}
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
+
+    // Assert
     let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
     let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
     let interface_k_def = ast.find_element::<Interface>("Test::K").unwrap();
-
     let interface_k_bases = interface_k_def.base_interfaces();
 
     assert!(interface_i_def.base_interfaces().is_empty());
     assert!(interface_j_def.base_interfaces().is_empty());
     assert_eq!(interface_k_bases.len(), 2);
-
     assert_eq!(
         interface_k_bases[0].module_scoped_identifier(),
         interface_i_def.module_scoped_identifier(),
     );
-
     assert_eq!(
         interface_k_bases[1].module_scoped_identifier(),
         interface_j_def.module_scoped_identifier(),
@@ -60,6 +65,7 @@ fn supports_multiple_inheritance() {
 #[test]
 #[ignore = "reason: TODO Need to update AST Error emission"]
 fn must_inherit_from_interface() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -67,8 +73,10 @@ fn must_inherit_from_interface() {
         interface I : C {}
     ";
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
+    // Assert
     assert_errors!(error_reporter, [
         "type mismatch: expected an interface but found a class",
     ]);
@@ -76,6 +84,7 @@ fn must_inherit_from_interface() {
 
 #[test]
 fn operation_shadowing_is_disallowed() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -92,13 +101,16 @@ fn operation_shadowing_is_disallowed() {
         ErrorKind::new_note("`op` was previously defined here".to_owned()),
     ];
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
+    // Assert
     assert_errors_new!(error_reporter, expected);
 }
 
 #[test]
 fn inherits_correct_operations() {
+    // Arrange
     let slice = "
         module Test;
         interface A
@@ -118,7 +130,10 @@ fn inherits_correct_operations() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
+
+    // Assert
     let interface_a_def = ast.find_element::<Interface>("Test::A").unwrap();
     let interface_b_def = ast.find_element::<Interface>("Test::B").unwrap();
     let interface_d_def = ast.find_element::<Interface>("Test::D").unwrap();

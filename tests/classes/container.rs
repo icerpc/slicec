@@ -31,7 +31,6 @@ fn can_contain_data_members() {
     assert!(matches!(data_members[0].identifier(), "i"));
     assert!(matches!(data_members[1].identifier(), "s"));
     assert!(matches!(data_members[2].identifier(), "b"));
-
     assert!(matches!(
         data_members[0].data_type.concrete_type(),
         Types::Primitive(Primitive::Int32),
@@ -52,8 +51,7 @@ fn can_contain_data_members() {
         {
             c: C,
         }
-    ";
-    "single class circular reference"
+    "; "single class circular reference"
 )]
 #[test_case(
     "
@@ -65,8 +63,7 @@ fn can_contain_data_members() {
         {
             c1: C1,
         }
-    ";
-    "multi class circular reference"
+    "; "multi class circular reference"
 )]
 fn cycles_are_allowed(cycle_string: &str) {
     let slice = format!(
@@ -113,14 +110,14 @@ fn cannot_redefine_data_members() {
             a: string,
         }
     ";
-    let expected = [
-        LogicKind::Redefinition("a".to_string()).into(),
-        ErrorKind::new_note("`a` was previously defined here".to_owned()),
-    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected = [
+        LogicKind::Redefinition("a".to_string()).into(),
+        ErrorKind::new_note("`a` was previously defined here".to_owned()),
+    ];
     assert_errors_new!(error_reporter, &expected);
 }

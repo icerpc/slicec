@@ -9,10 +9,16 @@ mod slice2 {
 
     #[test]
     fn unsupported_error() {
+        // Arrange
         let slice = "
             module Test;
             class C {}
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected = [
             LogicKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new_note("file is using the Slice2 encoding by default".to_owned()),
@@ -21,9 +27,6 @@ mod slice2 {
             ),
             ErrorKind::new_note("classes are only supported by the Slice1 encoding".to_owned()),
         ];
-
-        let error_reporter = parse_for_errors(slice);
-
         assert_errors_new!(error_reporter, expected);
     }
 }

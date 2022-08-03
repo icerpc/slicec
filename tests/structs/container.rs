@@ -28,11 +28,9 @@ mod structs {
         let data_members = ast.find_element::<Struct>("Test::S").unwrap().members();
 
         assert_eq!(data_members.len(), 3);
-
         assert_eq!(data_members[0].identifier(), "i");
         assert_eq!(data_members[1].identifier(), "s");
         assert_eq!(data_members[2].identifier(), "b");
-
         assert!(matches!(
             data_members[0].data_type.concrete_type(),
             Types::Primitive(Primitive::Int32),
@@ -66,6 +64,7 @@ mod structs {
 
     #[test]
     fn cannot_redefine_data_members() {
+        // Arrange
         let slice = "
             module Test;
             struct S
@@ -74,13 +73,15 @@ mod structs {
                 a: string,
             }
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected = [
             LogicKind::Redefinition("a".to_owned()).into(),
             ErrorKind::new_note("`a` was previously defined here".to_owned()),
         ];
-
-        let error_reporter = parse_for_errors(slice);
-
         assert_errors_new!(error_reporter, expected);
     }
 }
@@ -98,12 +99,12 @@ mod compact_structs {
             module Test;
             compact struct S {}
         ";
-        let expected: ErrorKind = LogicKind::CompactStructIsEmpty.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::CompactStructIsEmpty.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 }

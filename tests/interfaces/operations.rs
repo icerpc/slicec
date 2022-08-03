@@ -7,6 +7,7 @@ use slice::grammar::*;
 
 #[test]
 fn can_have_no_parameters() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -15,14 +16,17 @@ fn can_have_no_parameters() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     assert!(operation.parameters().is_empty());
 }
 
 #[test]
 fn can_have_no_return_type() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -31,8 +35,10 @@ fn can_have_no_return_type() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     assert!(operation.return_members().is_empty());
 }
@@ -81,6 +87,7 @@ fn parameter_and_return_can_have_the_same_tag() {
 
 #[test]
 fn can_have_parameters() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -89,8 +96,10 @@ fn can_have_parameters() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     let parameters = operation.parameters();
 
@@ -98,7 +107,6 @@ fn can_have_parameters() {
     assert_eq!(parameters[0].identifier(), "a");
     assert_eq!(parameters[1].identifier(), "b");
     assert_eq!(parameters[2].identifier(), "c");
-
     assert!(matches!(
         parameters[0].data_type.concrete_type(),
         Types::Primitive(Primitive::Int32),
@@ -115,6 +123,7 @@ fn can_have_parameters() {
 
 #[test]
 fn can_have_return_value() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -123,14 +132,15 @@ fn can_have_return_value() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 1);
     assert_eq!(returns[0].identifier(), "returnValue");
-
     assert!(matches!(
         returns[0].data_type.concrete_type(),
         Types::Primitive(Primitive::String),
@@ -139,6 +149,7 @@ fn can_have_return_value() {
 
 #[test]
 fn can_have_return_tuple() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -147,15 +158,16 @@ fn can_have_return_tuple() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 2);
     assert_eq!(returns[0].identifier(), "r1");
     assert_eq!(returns[1].identifier(), "r2");
-
     assert!(matches!(
         returns[0].data_type.concrete_type(),
         Types::Primitive(Primitive::String),
@@ -168,6 +180,7 @@ fn can_have_return_tuple() {
 
 #[test]
 fn return_tuple_must_contain_two_or_more_elements() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -175,10 +188,12 @@ fn return_tuple_must_contain_two_or_more_elements() {
             op() -> ();
         }
     ";
-    let expected: ErrorKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
+    // Assert
+    let expected: ErrorKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -190,6 +205,7 @@ mod streams {
 
     #[test]
     fn can_have_streamed_parameter_and_return() {
+        // Arrange
         let slice = "
             module Test;
             interface I
@@ -198,8 +214,10 @@ mod streams {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
         let parameters = operation.parameters();
         let returns = operation.return_members();
@@ -210,6 +228,7 @@ mod streams {
 
     #[test]
     fn operation_can_have_at_most_one_streamed_parameter() {
+        // Arrange
         let slice = "
             module Test;
             interface I
@@ -217,14 +236,18 @@ mod streams {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
-        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
+        // Act
         let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
     #[test]
     fn stream_parameter_must_be_last() {
+        // Arrange
         let slice = "
             module Test;
             interface I
@@ -232,8 +255,11 @@ mod streams {
                 op(s: stream varuint62, i: int32);
             }
         ";
+
+        // Act
         let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
 
+        // Assert
         let error_reporter = parse_for_errors(slice);
         assert_errors_new!(error_reporter, [&expected]);
     }

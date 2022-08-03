@@ -51,12 +51,12 @@ mod comments {
                 testOp(testParam: string);
             }
         ";
-        let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
+        let expected = vec![("testParam".to_owned(), "My test param".to_owned())];
         let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
         let op_doc_comment = operation.comment().unwrap();
 
@@ -74,12 +74,12 @@ mod comments {
                 testOp(testParam: string) -> bool;
             }
         ";
-        let expected = Some("bool".to_owned());
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
+        let expected = Some("bool".to_owned());
         let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
         let op_doc_comment = operation.comment().unwrap();
 
@@ -165,15 +165,15 @@ mod comments {
                 testOp(testParam: string) -> bool;
             }
         ";
-        let expected_throws = vec![(
-            "MyThrownThing".to_owned(),
-            "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
-        )];
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
+        let expected_throws = vec![(
+            "MyThrownThing".to_owned(),
+            "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
+        )];
         let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
         let op_doc_comment = operation.comment().unwrap();
 
@@ -192,12 +192,12 @@ mod comments {
                 testOp(testParam: string) -> bool;
             }
         ";
-        let expected = vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
+        let expected = vec![("MyThrownThing".to_owned(), "Message about my thrown thing.".to_owned())];
         let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
         let op_doc_comment = operation.comment().unwrap();
 
@@ -235,12 +235,12 @@ mod comments {
                 testOp(testParam: string) -> bool;
             }
         ";
-        let expected = vec!["MySee".to_owned()];
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
+        let expected = vec!["MySee".to_owned()];
         let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
         let op_doc_comment = operation.comment().unwrap();
 

@@ -22,10 +22,12 @@ mod tags {
                 b: tag(10) bool,
             }
         ";
-        let expected: ErrorKind = LogicKind::MustBeOptional.into();
+
+        // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::MustBeOptional.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -39,11 +41,12 @@ mod tags {
                 op(myParam: tag(10) int32);
             }
         ";
-        let expected: ErrorKind = LogicKind::MustBeOptional.into();
 
+        // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::MustBeOptional.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -59,6 +62,7 @@ mod tags {
             }
         ";
 
+        // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
@@ -78,13 +82,15 @@ mod tags {
                 op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
             }
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected: [ErrorKind; 2] = [
             LogicKind::RequiredParametersMustBeFirst.into(),
             LogicKind::RequiredParametersMustBeFirst.into(),
         ];
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
         assert_errors_new!(error_reporter, expected);
     }
 
@@ -101,12 +107,12 @@ mod tags {
                 op(c: tag(1) C?);
             }
         ";
-        let expected: ErrorKind = LogicKind::CannotBeClass.into();
 
         // Act
         let errors = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::CannotBeClass.into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -126,12 +132,12 @@ mod tags {
                 op(s: tag(1) S?);
             }
         ";
-        let expected: ErrorKind = LogicKind::CannotContainClasses.into();
 
         // Act
         let errors = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::CannotContainClasses.into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -150,6 +156,7 @@ mod tags {
 
         // Assert
         let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
+
         assert_eq!(data_member.tag(), Some(1));
         assert!(data_member.data_type.is_optional);
     }
@@ -168,12 +175,11 @@ mod tags {
         // Act
         let error_reporter = parse_for_errors(slice);
 
+        // Assert
         let expected = [
             LogicKind::DuplicateTag.into(),
             ErrorKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
-
-        // Assert
         assert_errors_new!(error_reporter, expected);
     }
 
@@ -191,12 +197,12 @@ mod tags {
             ",
             value = max_value + 1
         );
-        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -213,12 +219,12 @@ mod tags {
             ",
             value = -1
         );
-        let expected: ErrorKind = LogicKind::MustBePositive("a".to_owned()).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::MustBePositive("a".to_owned()).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 

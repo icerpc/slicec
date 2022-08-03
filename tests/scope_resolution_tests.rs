@@ -11,12 +11,16 @@ mod scope_resolution {
 
     #[test]
     fn file_level_modules_can_not_contain_sub_modules() {
+        // Arrange
         let slice = "
             module T;
             module S {}
         ";
+
+        // Act
         let error_reporter = parse_for_errors(slice);
 
+        // Assert
         assert_errors!(error_reporter, [
             "file level modules cannot contain sub-modules",
             "file level module 'T' declared here",
@@ -25,6 +29,7 @@ mod scope_resolution {
 
     #[test]
     fn identifier_exists_in_module_and_submodule() {
+        // Arrange
         let slice = "
             module A
             {
@@ -48,8 +53,10 @@ mod scope_resolution {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         let s1_type = ast.find_element::<DataMember>("A::C::s1").unwrap().data_type();
         let s2_type = ast.find_element::<DataMember>("A::C::s2").unwrap().data_type();
         let s3_type = ast.find_element::<DataMember>("A::C::s3").unwrap().data_type();
@@ -63,6 +70,7 @@ mod scope_resolution {
 
     #[test]
     fn identifier_exists_in_module_and_parent_module() {
+        // Arrange
         let slice = "
             module A
             {
@@ -83,8 +91,10 @@ mod scope_resolution {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         let s1_type = ast.find_element::<DataMember>("A::B::C::s1").unwrap().data_type();
         let s2_type = ast.find_element::<DataMember>("A::B::C::s2").unwrap().data_type();
         let s3_type = ast.find_element::<DataMember>("A::B::C::s3").unwrap().data_type();
@@ -98,6 +108,7 @@ mod scope_resolution {
 
     #[test]
     fn identifier_exists_in_multiple_parent_modules() {
+        // Arrange
         let slice = "
             module A
             {
@@ -125,8 +136,10 @@ mod scope_resolution {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         let s1_type = ast.find_element::<DataMember>("A::B::B::C::s1").unwrap().data_type();
         let s2_type = ast.find_element::<DataMember>("A::B::B::C::s2").unwrap().data_type();
         let s3_type = ast.find_element::<DataMember>("A::B::B::C::s3").unwrap().data_type();
@@ -138,6 +151,7 @@ mod scope_resolution {
 
     #[test]
     fn identifier_exists_in_multiple_modules_with_common_partial_scope() {
+        // Arrange
         let slice = "
             module A
             {
@@ -168,8 +182,10 @@ mod scope_resolution {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         let nested_s1_type = ast.find_element::<DataMember>("A::B::A::B::C::s1").unwrap().data_type();
         let nested_s2_type = ast.find_element::<DataMember>("A::B::A::B::C::s2").unwrap().data_type();
         let s1_type = ast.find_element::<DataMember>("A::C::s1").unwrap().data_type();
@@ -183,7 +199,6 @@ mod scope_resolution {
             nested_s2_type.concrete_type(),
             Types::Primitive(Primitive::String),
         ));
-
         assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::String)));
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
     }
@@ -208,15 +223,15 @@ mod scope_resolution {
                 }
             }
         ";
-        let expected = [
-            LogicKind::Redefinition("B".to_string()).into(),
-            ErrorKind::new_note("`B` was previously defined here"),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected = [
+            LogicKind::Redefinition("B".to_string()).into(),
+            ErrorKind::new_note("`B` was previously defined here"),
+        ];
         assert_errors_new!(error_reporter, expected);
     }
 

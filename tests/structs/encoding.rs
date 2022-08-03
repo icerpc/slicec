@@ -17,16 +17,16 @@ mod slice1 {
             module Test;
             struct A {}
         ";
-        let expected = [
-            LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
-            ErrorKind::new_note("file encoding was set to Slice1 here:"),
-            ErrorKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected = [
+            LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new_note("file encoding was set to Slice1 here:"),
+            ErrorKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
+        ];
         assert_errors_new!(error_reporter, expected);
     }
 }
@@ -50,6 +50,11 @@ mod slice2 {
                 c: AnyClass,
             }
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected: [ErrorKind; 3] = [
             LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new_note("file is using the Slice2 encoding by default"),
@@ -57,11 +62,6 @@ mod slice2 {
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             ),
         ];
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
         assert_errors_new!(error_reporter, expected);
     }
 
@@ -88,5 +88,3 @@ mod slice2 {
         assert_errors!(error_reporter);
     }
 }
-
-mod compact_structs {}
