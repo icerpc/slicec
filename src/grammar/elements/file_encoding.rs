@@ -1,12 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Clone, Debug)]
 pub struct FileEncoding {
     pub version: Encoding,
-    pub location: Location,
+    pub span: Span,
 }
 
 implement_Element_for!(FileEncoding, "file encoding");

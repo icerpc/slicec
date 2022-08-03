@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct Module {
@@ -12,7 +12,7 @@ pub struct Module {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
 }
 
 impl Module {
@@ -21,7 +21,7 @@ impl Module {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let contents = Vec::new();
         let parent = None;
@@ -32,7 +32,7 @@ impl Module {
             scope,
             attributes,
             comment,
-            location,
+            span,
         }
     }
 

@@ -3,10 +3,12 @@
 use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
 use crate::ptr_util::WeakPtr;
 
+type Location = (usize, usize);
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Location {
-    pub start: (usize, usize),
-    pub end: (usize, usize),
+pub struct Span {
+    pub start: Location,
+    pub end: Location,
     pub file: String,
 }
 

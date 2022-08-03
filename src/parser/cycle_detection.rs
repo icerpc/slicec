@@ -35,7 +35,7 @@ impl<'a> CycleDetector<'a> {
                 cycle_string = &self.dependency_stack[i..].join(" -> "),
             );
             self.error_reporter
-                .report(ErrorKind::Syntax(message), Some(type_def.location()));
+                .report(ErrorKind::Syntax(message), Some(type_def.span()));
 
             true
         } else {

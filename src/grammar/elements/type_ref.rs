@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
@@ -11,7 +11,7 @@ pub struct TypeRef<T: Element + ?Sized = dyn Type> {
     pub is_optional: bool,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
-    pub location: Location,
+    pub span: Span,
 }
 
 impl<T: Element + ?Sized + 'static> TypeRef<T> {
@@ -20,7 +20,7 @@ impl<T: Element + ?Sized + 'static> TypeRef<T> {
         is_optional: bool,
         scope: Scope,
         attributes: Vec<Attribute>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let definition = WeakPtr::create_uninitialized();
         TypeRef {
@@ -29,7 +29,7 @@ impl<T: Element + ?Sized + 'static> TypeRef<T> {
             is_optional,
             scope,
             attributes,
-            location,
+            span,
         }
     }
 }
@@ -55,7 +55,7 @@ impl<T: Element + ?Sized> TypeRef<T> {
             is_optional: self.is_optional,
             scope: self.scope.clone(),
             attributes: self.attributes.clone(),
-            location: self.location.clone(),
+            span: self.span.clone(),
         })
     }
 }
@@ -95,7 +95,7 @@ impl<T: Element + ?Sized> Clone for TypeRef<T> {
             is_optional: self.is_optional,
             scope: self.scope.clone(),
             attributes: self.attributes.clone(),
-            location: self.location.clone(),
+            span: self.span.clone(),
         }
     }
 }

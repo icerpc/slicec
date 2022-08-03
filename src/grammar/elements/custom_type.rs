@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
@@ -12,7 +12,7 @@ pub struct CustomType {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
@@ -22,7 +22,7 @@ impl CustomType {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
         let supported_encodings = None; // Patched later by the encoding_patcher.
@@ -32,7 +32,7 @@ impl CustomType {
             scope,
             attributes,
             comment,
-            location,
+            span,
             supported_encodings,
         }
     }

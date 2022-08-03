@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
@@ -14,7 +14,7 @@ pub struct Struct {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
@@ -25,7 +25,7 @@ impl Struct {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let members = Vec::new();
         let parent = WeakPtr::create_uninitialized();
@@ -38,7 +38,7 @@ impl Struct {
             scope,
             attributes,
             comment,
-            location,
+            span,
             supported_encodings,
         }
     }

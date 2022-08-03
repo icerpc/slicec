@@ -249,7 +249,7 @@ mod comments {
 
     #[test_case("/// This is a doc comment.", (4, 13), (5, 13); "doc comment")]
     #[test_case("/**\n* This is a multi line doc comment.\n*/", (4, 13), (6, 3); "multi-line doc comment")]
-    fn doc_comments_location(comment: &str, expected_start: (usize, usize), expected_end: (usize, usize)) {
+    fn doc_comments_span(comment: &str, expected_start: (usize, usize), expected_end: (usize, usize)) {
         // Arrange
         let slice = format!(
             "
@@ -268,8 +268,8 @@ mod comments {
         let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment().unwrap();
 
-        assert_eq!(interface_doc.location.start, expected_start);
-        assert_eq!(interface_doc.location.end, expected_end);
+        assert_eq!(interface_doc.span.start, expected_start);
+        assert_eq!(interface_doc.span.end, expected_end);
     }
 
     #[test_case("/* This is a block comment. */"; "block comment")]

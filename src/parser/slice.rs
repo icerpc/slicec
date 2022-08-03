@@ -5,7 +5,7 @@ use crate::ast::Ast;
 use crate::errors::*;
 use crate::grammar::*;
 use crate::ptr_util::{OwnedPtr, WeakPtr};
-use crate::slice_file::{Location, SliceFile};
+use crate::slice_file::{SliceFile, Span};
 use crate::upcast_weak_as;
 use std::cell::RefCell;
 use std::convert::TryInto;
@@ -18,9 +18,9 @@ use pest_consume::{match_nodes, Error as PestError, Parser as PestParser};
 type PestResult<T> = Result<T, PestError<Rule>>;
 type PestNode<'a, 'b, 'ast> = pest_consume::Node<'a, Rule, &'b RefCell<ParserData<'ast>>>;
 
-fn location_from_span(input: &PestNode) -> Location {
+fn span_from_span(input: &PestNode) -> Span {
     let span = input.as_span();
-    Location {
+    Span {
         start: span.start_pos().line_col(),
         end: span.end_pos().line_col(),
         file: input.user_data().borrow().current_file.clone(),
@@ -171,7 +171,7 @@ impl<'a> SliceParser<'a> {
         Ok(match_nodes!(input.children();
             [_, encoding_version(encoding)] => {
                 input.user_data().borrow_mut().current_encoding = encoding;
-                FileEncoding { version: encoding, location: location_from_span(&input) }
+                FileEncoding { version: encoding, span: span_from_span(&input) }
             }
         ))
     }
@@ -203,8 +203,8 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn module_start(input: PestNode) -> PestResult<(Identifier, Location)> {
-        let location = location_from_span(&input);
+    fn module_start(input: PestNode) -> PestResult<(Identifier, Span)> {
+        let span = span_from_span(&input);
         let identifier = match_nodes!(input.children();
             [_, scoped_identifier(ident)] => ident,
         );
@@ -213,7 +213,7 @@ impl<'a> SliceParser<'a> {
         for module_identifier in identifier.value.split("::") {
             push_scope(&input, module_identifier, true);
         }
-        Ok((identifier, location))
+        Ok((identifier, span))
     }
 
     fn module_def(input: PestNode) -> PestResult<WeakPtr<Module>> {
@@ -224,12 +224,12 @@ impl<'a> SliceParser<'a> {
         Self::parse_module(input, false)
     }
 
-    fn struct_start(input: PestNode) -> PestResult<(bool, Identifier, Location)> {
-        let location = location_from_span(&input);
+    fn struct_start(input: PestNode) -> PestResult<(bool, Identifier, Span)> {
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.children();
             [compact_modifier(is_compact), _, identifier(identifier)] => {
                 push_scope(&input, &identifier.value, false);
-                (is_compact, identifier, location)
+                (is_compact, identifier, span)
             }
         ))
     }
@@ -238,9 +238,9 @@ impl<'a> SliceParser<'a> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), struct_start(struct_start), data_member_list(members)] => {
-                let (is_compact, identifier, location) = struct_start;
+                let (is_compact, identifier, span) = struct_start;
                 let (attributes, comment) = prelude;
-                let mut struct_def = Struct::new(identifier, is_compact, scope, attributes, comment, location);
+                let mut struct_def = Struct::new(identifier, is_compact, scope, attributes, comment, span);
                 for member in members {
                     struct_def.add_member(member);
                 }
@@ -253,26 +253,26 @@ impl<'a> SliceParser<'a> {
     }
 
     #[allow(clippy::type_complexity)]
-    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Location, Option<TypeRef<Class>>)> {
-        let location = location_from_span(&input);
+    fn class_start(input: PestNode) -> PestResult<(Identifier, Option<u32>, Span, Option<TypeRef<Class>>)> {
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier), compact_id(compact_id)] => {
                 push_scope(&input, &identifier.value, false);
-                (identifier, compact_id, location, None)
+                (identifier, compact_id, span, None)
             },
             [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
                         LogicKind::ClassesCanOnlyInheritFromSingleBase,
-                        Some(&location),
+                        Some(&span),
                     );
                 }
 
                 push_scope(&input, &identifier.value, false);
 
                 let base = bases.into_iter().next().unwrap().downcast::<Class>().unwrap();
-                (identifier, compact_id, location, Some(base))
+                (identifier, compact_id, span, Some(base))
             }
         ))
     }
@@ -281,9 +281,9 @@ impl<'a> SliceParser<'a> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), class_start(class_start), data_member_list(members)] => {
-                let (identifier, compact_id, location, base) = class_start;
+                let (identifier, compact_id, span, base) = class_start;
                 let (attributes, comment) = prelude;
-                let mut class = Class::new(identifier, compact_id, base, scope, attributes, comment, location);
+                let mut class = Class::new(identifier, compact_id, base, scope, attributes, comment, span);
                 for member in members {
                     class.add_member(member);
                 }
@@ -295,26 +295,26 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn exception_start(input: PestNode) -> PestResult<(Identifier, Location, Option<TypeRef<Exception>>)> {
-        let location = location_from_span(&input);
+    fn exception_start(input: PestNode) -> PestResult<(Identifier, Span, Option<TypeRef<Exception>>)> {
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
                 push_scope(&input, &identifier.value, false);
-                (identifier, location, None)
+                (identifier, span, None)
             },
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
                         LogicKind::CanOnlyInheritFromSingleBase,
-                        Some(&location),
+                        Some(&span),
                     )
                 }
 
                 push_scope(&input, &identifier.value, false);
 
                 let base = bases.into_iter().next().unwrap().downcast::<Exception>().unwrap();
-                (identifier, location, Some(base))
+                (identifier, span, Some(base))
             }
         ))
     }
@@ -323,9 +323,9 @@ impl<'a> SliceParser<'a> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), exception_start(exception_start), data_member_list(members)] => {
-                let (identifier, location, base) = exception_start;
+                let (identifier, span, base) = exception_start;
                 let (attributes, comment) = prelude;
-                let mut exception = Exception::new(identifier, base, scope, attributes, comment, location);
+                let mut exception = Exception::new(identifier, base, scope, attributes, comment, span);
                 for member in members {
                     exception.add_member(member);
                 }
@@ -337,12 +337,12 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn interface_start(input: PestNode) -> PestResult<(Identifier, Location, Vec<TypeRef<Interface>>)> {
-        let location = location_from_span(&input);
+    fn interface_start(input: PestNode) -> PestResult<(Identifier, Span, Vec<TypeRef<Interface>>)> {
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.children();
             [_, identifier(identifier)] => {
                 push_scope(&input, &identifier.value, false);
-                (identifier, location, Vec::new())
+                (identifier, span, Vec::new())
             },
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 let mut bases_vector = Vec::new();
@@ -350,7 +350,7 @@ impl<'a> SliceParser<'a> {
                     bases_vector.push(base.downcast::<Interface>().unwrap());
                 }
                 push_scope(&input, &identifier.value, false);
-                (identifier, location, bases_vector)
+                (identifier, span, bases_vector)
             }
         ))
     }
@@ -359,7 +359,7 @@ impl<'a> SliceParser<'a> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), interface_start(interface_start), operation(operations)..] => {
-                let (identifier, location, bases) = interface_start;
+                let (identifier, span, bases) = interface_start;
                 let (attributes, comment) = prelude;
                 let mut interface = Interface::new(
                     identifier,
@@ -367,7 +367,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     comment,
-                    location,
+                    span,
                 );
                 for operation in operations {
                     interface.add_operation(operation);
@@ -380,15 +380,15 @@ impl<'a> SliceParser<'a> {
         ))
     }
 
-    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Location, Option<TypeRef<Primitive>>)> {
+    fn enum_start(input: PestNode) -> PestResult<(bool, Identifier, Span, Option<TypeRef<Primitive>>)> {
         // Reset the current enumerator value back to None.
         input.user_data().borrow_mut().current_enum_value = None;
 
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.children();
             [unchecked_modifier(unchecked), _, identifier(identifier)] => {
                 push_scope(&input, &identifier.value, false);
-                (unchecked, identifier, location, None)
+                (unchecked, identifier, span, None)
             },
             [unchecked_modifier(unchecked), _, identifier(identifier), _, typeref(type_ref)] => {
                 let underlying = match type_ref.downcast::<Primitive>() {
@@ -396,7 +396,7 @@ impl<'a> SliceParser<'a> {
                     _ => panic!("MUST BE A PRIMITIVE TODO"),
                 };
                 push_scope(&input, &identifier.value, false);
-                (unchecked, identifier, location, Some(underlying))
+                (unchecked, identifier, span, Some(underlying))
             },
         ))
     }
@@ -405,7 +405,7 @@ impl<'a> SliceParser<'a> {
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), enum_start(enum_start), enumerator_list(enumerators)] => {
-                let (is_unchecked, identifier, location, underlying) = enum_start;
+                let (is_unchecked, identifier, span, underlying) = enum_start;
                 let (attributes, comment) = prelude;
                 let mut enum_def = Enum::new(
                     identifier,
@@ -414,7 +414,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     comment,
-                    location,
+                    span,
                 );
                 for enumerator in enumerators {
                     enum_def.add_enumerator(enumerator);
@@ -425,7 +425,7 @@ impl<'a> SliceParser<'a> {
                 ast.add_named_element(OwnedPtr::new(enum_def))
             },
             [prelude(prelude), enum_start(enum_start)] => {
-                let (is_unchecked, identifier, location, underlying) = enum_start;
+                let (is_unchecked, identifier, span, underlying) = enum_start;
                 let (attributes, comment) = prelude;
                 pop_scope(&input);
                 let enum_def = Enum::new(
@@ -435,7 +435,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     comment,
-                    location,
+                    span,
                 );
 
                 let ast = &mut input.user_data().borrow_mut().ast;
@@ -445,12 +445,12 @@ impl<'a> SliceParser<'a> {
     }
 
     fn trait_def(input: PestNode) -> PestResult<WeakPtr<Trait>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier)] => {
                 let (attributes, comment) = prelude;
-                let trait_def = Trait::new(identifier, scope, attributes, comment, location);
+                let trait_def = Trait::new(identifier, scope, attributes, comment, span);
 
                 let ast = &mut input.user_data().borrow_mut().ast;
                 ast.add_named_element(OwnedPtr::new(trait_def))
@@ -459,12 +459,12 @@ impl<'a> SliceParser<'a> {
     }
 
     fn custom_type(input: PestNode) -> PestResult<WeakPtr<CustomType>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier)] => {
                 let (attributes, comment) = prelude;
-                let custom_type = CustomType::new(identifier, scope, attributes, comment, location);
+                let custom_type = CustomType::new(identifier, scope, attributes, comment, span);
 
                 let ast = &mut input.user_data().borrow_mut().ast;
                 ast.add_named_element(OwnedPtr::new(custom_type))
@@ -476,12 +476,12 @@ impl<'a> SliceParser<'a> {
     //   A single unnamed return type, specified by a typename.
     //   A return tuple, specified as a list of named elements enclosed in parenthesis.
     fn return_type(input: PestNode) -> PestResult<Vec<WeakPtr<Parameter>>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [return_tuple(tuple)] => tuple,
             [local_attributes(attributes), tag_modifier(tag), stream_modifier(is_streamed), typeref(data_type)] => {
-                let identifier = Identifier::new("returnValue".to_owned(), location.clone());
+                let identifier = Identifier::new("returnValue".to_owned(), span.clone());
                 let parameter = Parameter::new(
                     identifier,
                     data_type,
@@ -491,7 +491,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     None,
-                    location,
+                    span,
                 );
 
                 let ast = &mut input.user_data().borrow_mut().ast;
@@ -510,10 +510,10 @@ impl<'a> SliceParser<'a> {
                 // Validate that return tuples must contain at least two elements.
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
-                    let location = location_from_span(&input);
+                    let span = span_from_span(&input);
                     input.user_data().borrow_mut().error_reporter.report(
                         LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
-                        Some(&location),
+                        Some(&span),
                     );
                 }
                 return_elements
@@ -540,7 +540,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn operation(input: PestNode) -> PestResult<WeakPtr<Operation>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         let operation = match_nodes!(input.children();
             [prelude(prelude), operation_start(operation_start), parameter_list(parameters), operation_return(return_type)] => {
@@ -548,7 +548,7 @@ impl<'a> SliceParser<'a> {
                 let (is_idempotent, identifier) = operation_start;
                 let encoding = input.user_data().borrow().current_encoding;
 
-                let mut operation = Operation::new(identifier, return_type, is_idempotent, encoding, scope, attributes, comment, location);
+                let mut operation = Operation::new(identifier, return_type, is_idempotent, encoding, scope, attributes, comment, span);
                 for parameter in parameters {
                     operation.add_parameter(parameter);
                 }
@@ -575,7 +575,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn data_member(input: PestNode) -> PestResult<WeakPtr<DataMember>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), typeref(mut data_type)] => {
@@ -592,7 +592,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     comment,
-                    location,
+                    span,
                 );
 
                 let ast = &mut input.user_data().borrow_mut().ast;
@@ -615,7 +615,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn parameter(input: PestNode) -> PestResult<WeakPtr<Parameter>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), identifier(identifier), tag_modifier(tag), stream_modifier(is_streamed), typeref(mut data_type)] => {
@@ -634,7 +634,7 @@ impl<'a> SliceParser<'a> {
                     scope,
                     attributes,
                     comment,
-                    location,
+                    span,
                 );
 
                 let ast = &mut input.user_data().borrow_mut().ast;
@@ -648,7 +648,7 @@ impl<'a> SliceParser<'a> {
             [_, integer(integer)] => {
                 // Checking that tags must fit in an i32 and be non-negative.
                 if integer < 0 || integer > i32::MAX.into() {
-                    let location = location_from_span(&input);
+                    let span = span_from_span(&input);
                     let error_string = if integer < 0 {
                         format!("tag is out of range: {}. Tag values must be positive", integer)
                     } else {
@@ -659,7 +659,7 @@ impl<'a> SliceParser<'a> {
                     };
                     input.user_data().borrow_mut().error_reporter.report(
                         ErrorKind::Syntax(error_string),
-                        Some(&location),
+                        Some(&span),
                     );
                 }
                 integer as u32
@@ -689,7 +689,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn enumerator(input: PestNode) -> PestResult<WeakPtr<Enumerator>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
 
         let enum_value: i64;
@@ -710,12 +710,12 @@ impl<'a> SliceParser<'a> {
                     None => Ok(0),
                 }?;
 
-                Enumerator::new(ident, enum_value, scope, attributes, comment, location)
+                Enumerator::new(ident, enum_value, scope, attributes, comment, span)
             },
             [prelude(prelude), identifier(ident), integer(value)] => {
                 enum_value = value;
                 let (attributes, comment) = prelude;
-                Enumerator::new(ident, value, scope, attributes, comment, location)
+                Enumerator::new(ident, value, scope, attributes, comment, span)
             },
         );
 
@@ -743,12 +743,12 @@ impl<'a> SliceParser<'a> {
     }
 
     fn type_alias(input: PestNode) -> PestResult<WeakPtr<TypeAlias>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let scope = get_scope(&input);
         Ok(match_nodes!(input.children();
             [prelude(prelude), _, identifier(identifier), typeref(type_ref)] => {
                 let (attributes, comment) = prelude;
-                let type_alias = TypeAlias::new(identifier, type_ref, scope, attributes, comment, location);
+                let type_alias = TypeAlias::new(identifier, type_ref, scope, attributes, comment, span);
 
                 let ast = &mut input.user_data().borrow_mut().ast;
                 ast.add_named_element(OwnedPtr::new(type_alias))
@@ -757,7 +757,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn typeref(input: PestNode) -> PestResult<TypeRef> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         let mut nodes = input.children();
 
         // The first node is always a `local_attribute`. This is guaranteed by the grammar rules.
@@ -770,7 +770,7 @@ impl<'a> SliceParser<'a> {
 
         let is_optional = input.as_str().ends_with('?');
         let scope = get_scope(&input);
-        let mut type_ref: TypeRef<dyn Type> = TypeRef::new(type_name, is_optional, scope, attributes, location);
+        let mut type_ref: TypeRef<dyn Type> = TypeRef::new(type_name, is_optional, scope, attributes, span);
 
         // Resolve and/or construct non user defined types.
         match type_node.as_rule() {
@@ -826,15 +826,15 @@ impl<'a> SliceParser<'a> {
     }
 
     fn identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
+        Ok(Identifier::new(input.as_str().to_owned(), span_from_span(&input)))
     }
 
     fn scoped_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
+        Ok(Identifier::new(input.as_str().to_owned(), span_from_span(&input)))
     }
 
     fn global_identifier(input: PestNode) -> PestResult<Identifier> {
-        Ok(Identifier::new(input.as_str().to_owned(), location_from_span(&input)))
+        Ok(Identifier::new(input.as_str().to_owned(), span_from_span(&input)))
     }
 
     fn prelude(input: PestNode) -> PestResult<(Vec<Attribute>, Option<DocComment>)> {
@@ -860,16 +860,16 @@ impl<'a> SliceParser<'a> {
     }
 
     fn attribute(input: PestNode) -> PestResult<Attribute> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
 
         Ok(match_nodes!(input.into_children();
             [attribute_directive(attribute)] => {
                 let (prefix, directive) = attribute;
-                Attribute::new(prefix, directive, Vec::new(), location)
+                Attribute::new(prefix, directive, Vec::new(), span)
             },
             [attribute_directive(attribute), attribute_arguments(arguments)] => {
                 let (prefix, directive) = attribute;
-                Attribute::new(prefix, directive, arguments, location)
+                Attribute::new(prefix, directive, arguments, span)
             },
         ))
     }
@@ -914,7 +914,7 @@ impl<'a> SliceParser<'a> {
     }
 
     fn doc_comment(input: PestNode) -> PestResult<Option<DocComment>> {
-        let location = location_from_span(&input);
+        let span = span_from_span(&input);
         Ok(match_nodes!(input.into_children();
             [] => {
                 None
@@ -922,10 +922,10 @@ impl<'a> SliceParser<'a> {
             [line_doc_comment(comments)..] => {
                 // Merge all the line comments together.
                 let combined = comments.collect::<Vec<String>>().join("\n");
-                Some(CommentParser::parse_doc_comment(&combined, location))
+                Some(CommentParser::parse_doc_comment(&combined, span))
             },
             [block_doc_comment(comment)] => {
-                Some(CommentParser::parse_doc_comment(&comment, location))
+                Some(CommentParser::parse_doc_comment(&comment, span))
             }
         ))
     }
@@ -957,7 +957,7 @@ impl<'a> SliceParser<'a> {
             [integer(value)] => {
                 // compact ids must fit in an i32 and be non-negative.
                 if value < 0 || value > i32::MAX.into() {
-                    // TODO let location = from_span(&input);
+                    // TODO let span = from_span(&input);
                     // TODO let error_string = if integer < 0 {
                     // TODO     format!("ID is out of range: {}. Compact IDs must be positive", integer)
                     // TODO } else {
@@ -1150,7 +1150,7 @@ impl<'a> SliceParser<'a> {
     fn parse_module(input: PestNode, allow_sub_modules: bool) -> PestResult<WeakPtr<Module>> {
         Ok(match_nodes!(input.children();
             [prelude(prelude), module_start(module_start), definition(definitions)..] => {
-                let (identifier, location) = module_start;
+                let (identifier, span) = module_start;
                 let (attributes, comment) = prelude;
 
                 // Split the identifier in case it uses nested module syntax.
@@ -1164,12 +1164,12 @@ impl<'a> SliceParser<'a> {
                     // There must be at least one module identifier, so it's safe to unwrap here.
                     Identifier::new(
                         modules.next().unwrap().to_owned(),
-                        identifier.location.clone(),
+                        identifier.span.clone(),
                     ),
                     get_scope(&input),
                     attributes,
                     comment,
-                    location.clone(),
+                    span.clone(),
                 );
                 // Add the definitions into the inner-most module.
                 for definition in definitions {
@@ -1181,12 +1181,12 @@ impl<'a> SliceParser<'a> {
 
                             error_reporter.report(
                                 ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
-                                Some(&module_def.borrow().location),
+                                Some(&module_def.borrow().span),
                             );
 
                             error_reporter.report(
                                 ErrorKind::new_note(format!("file level module '{}' declared here", &identifier.value)),
-                                Some(&location),
+                                Some(&span),
                             );
                         }
                     }
@@ -1198,11 +1198,11 @@ impl<'a> SliceParser<'a> {
                     // Pop the module's scope, and then construct it.
                     pop_scope(&input);
                     let mut new_module = Module::new(
-                        Identifier::new(module.to_owned(), identifier.location.clone()),
+                        Identifier::new(module.to_owned(), identifier.span.clone()),
                         get_scope(&input),
                         Vec::new(),
                         None,
-                        location.clone(),
+                        span.clone(),
                     );
                     // Add the inner module to the outer module, than swap their variables.
                     let ast = &mut input.user_data().borrow_mut().ast;

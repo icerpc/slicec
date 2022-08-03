@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct Enum {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
@@ -28,7 +28,7 @@ impl Enum {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let enumerators = Vec::new();
         let parent = WeakPtr::create_uninitialized();
@@ -42,7 +42,7 @@ impl Enum {
             scope,
             attributes,
             comment,
-            location,
+            span,
             supported_encodings,
         }
     }

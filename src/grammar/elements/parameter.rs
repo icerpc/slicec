@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct Parameter {
@@ -15,7 +15,7 @@ pub struct Parameter {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
 }
 
 impl Parameter {
@@ -29,7 +29,7 @@ impl Parameter {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
         Parameter {
@@ -42,7 +42,7 @@ impl Parameter {
             scope,
             attributes,
             comment,
-            location,
+            span,
         }
     }
 }

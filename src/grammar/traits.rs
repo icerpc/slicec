@@ -4,7 +4,7 @@ use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
 pub trait Element: std::fmt::Debug {
@@ -12,7 +12,7 @@ pub trait Element: std::fmt::Debug {
 }
 
 pub trait Symbol: Element {
-    fn location(&self) -> &Location;
+    fn span(&self) -> &Span;
 }
 
 pub trait ScopedSymbol: Symbol {
@@ -108,8 +108,8 @@ macro_rules! implement_Element_for {
 macro_rules! implement_Symbol_for {
     ($type:ty$(, $($bounds:tt)+)?) => {
         impl$(<T: $($bounds)+>)? Symbol for $type {
-            fn location(&self) -> &Location {
-                &self.location
+            fn span(&self) -> &Span {
+                &self.span
             }
         }
     };
