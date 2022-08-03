@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use std::fmt;
 
 mod error_reporter;
@@ -14,7 +14,7 @@ pub use self::warnings::WarningKind;
 #[derive(Debug)]
 pub struct Error {
     pub error_kind: ErrorKind,
-    pub location: Option<Location>,
+    pub span: Option<Span>,
 }
 
 impl fmt::Display for Error {

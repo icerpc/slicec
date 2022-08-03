@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct DataMember {
@@ -13,7 +13,7 @@ pub struct DataMember {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
 }
 
 impl DataMember {
@@ -24,7 +24,7 @@ impl DataMember {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let parent = WeakPtr::create_uninitialized();
         DataMember {
@@ -35,7 +35,7 @@ impl DataMember {
             scope,
             attributes,
             comment,
-            location,
+            span,
         }
     }
 }

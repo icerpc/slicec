@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::ptr_util::WeakPtr;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct Operation {
@@ -15,7 +15,7 @@ pub struct Operation {
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
-    pub location: Location,
+    pub span: Span,
 }
 
 impl Operation {
@@ -28,7 +28,7 @@ impl Operation {
         scope: Scope,
         attributes: Vec<Attribute>,
         comment: Option<DocComment>,
-        location: Location,
+        span: Span,
     ) -> Self {
         let parameters = Vec::new();
         let parent = WeakPtr::create_uninitialized();
@@ -42,7 +42,7 @@ impl Operation {
             scope,
             attributes,
             comment,
-            location,
+            span,
         }
     }
 

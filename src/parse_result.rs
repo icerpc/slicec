@@ -38,18 +38,15 @@ impl ParsedData {
             // Insert the prefix at the start of the message.
             let mut message = format!("{}: {}", prefix, &error);
 
-            if let Some(location) = error.location {
-                // Specify the location where the error starts on its own line after the message.
-                message = format!(
-                    "{}\n@ '{}' ({},{})",
-                    message, &location.file, location.start.0, location.start.1
-                );
+            if let Some(span) = error.span {
+                // Specify the span where the error starts on its own line after the message.
+                message = format!("{}\n@ '{}' ({},{})", message, &span.file, span.start.0, span.start.1);
 
-                // If the location spans between two positions, add a snippet from the slice file.
-                if location.start != location.end {
+                // If the span isn't empty, extract a snippet of the text contained within the span.
+                if span.start != span.end {
                     message += ":\n";
-                    let file = files.get(&location.file).expect("Slice file not in file map!");
-                    message += &file.get_snippet(location.start, location.end);
+                    let file = files.get(&span.file).expect("Slice file not in file map!");
+                    message += &file.get_snippet(span.start, span.end);
                 } else {
                     message += "\n";
                 }

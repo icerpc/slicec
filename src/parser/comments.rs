@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser as PestParser;
@@ -13,7 +13,7 @@ type PestPair<'i> = Pair<'i, Rule>;
 pub struct CommentParser;
 
 impl CommentParser {
-    pub fn parse_doc_comment(raw_comment: &str, location: Location) -> DocComment {
+    pub fn parse_doc_comment(raw_comment: &str, span: Span) -> DocComment {
         // Create an empty comment that the parser will populate as it traverses the parse tree.
         let mut comment = DocComment {
             overview: String::new(),
@@ -21,7 +21,7 @@ impl CommentParser {
             params: Vec::new(),
             returns: None,
             throws: Vec::new(),
-            location,
+            span,
         };
 
         // Attempt to parse the raw string as a comment (via the `main` rule in `comment.pest`).

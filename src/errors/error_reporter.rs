@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::{Error, ErrorKind};
-use crate::slice_file::Location;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct ErrorReporter {
@@ -40,7 +40,7 @@ impl ErrorReporter {
         self.errors
     }
 
-    pub fn report(&mut self, error_kind: impl Into<ErrorKind>, location: Option<&Location>) {
+    pub fn report(&mut self, error_kind: impl Into<ErrorKind>, span: Option<&Span>) {
         let error_kind: ErrorKind = error_kind.into();
         match error_kind {
             ErrorKind::Note(_) => {}
@@ -49,7 +49,7 @@ impl ErrorReporter {
         };
         self.errors.push(Error {
             error_kind,
-            location: location.cloned(),
+            span: span.cloned(),
         });
     }
 }

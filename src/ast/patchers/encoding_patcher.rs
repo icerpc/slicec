@@ -76,7 +76,7 @@ impl EncodingPatcher<'_> {
         }
 
         // Retrieve the encodings supported by the file that the entity is defined in.
-        let file_name = &entity_def.location().file;
+        let file_name = &entity_def.span().file;
         let file_encoding = self.slice_files.get(file_name).unwrap().encoding();
         let mut supported_encodings = SupportedEncodings::new(match &file_encoding {
             Encoding::Slice1 => vec![Encoding::Slice1, Encoding::Slice2],
@@ -96,7 +96,7 @@ impl EncodingPatcher<'_> {
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            self.error_reporter.report(error, Some(entity_def.location()));
+            self.error_reporter.report(error, Some(entity_def.span()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -183,7 +183,7 @@ impl EncodingPatcher<'_> {
                 errors.push(error);
             }
             for error in errors {
-                self.error_reporter.report(error, Some(type_ref.location()));
+                self.error_reporter.report(error, Some(type_ref.span()));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -195,7 +195,7 @@ impl EncodingPatcher<'_> {
     }
 
     fn emit_file_encoding_mismatch_error(&mut self, symbol: &impl Symbol) {
-        let file_name = &symbol.location().file;
+        let file_name = &symbol.span().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
         // Emit a note explaining why the file has the slice encoding it does.
@@ -358,7 +358,7 @@ impl ComputeSupportedEncodings for Interface {
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
                     let error = LogicKind::StreamedParametersNotSupported(Encoding::Slice1);
-                    patcher.error_reporter.report(error, Some(member.location()));
+                    patcher.error_reporter.report(error, Some(member.span()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }
