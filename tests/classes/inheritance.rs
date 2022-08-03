@@ -24,7 +24,6 @@ fn supports_single_inheritance() {
 
     assert!(class_i_def.base_class().is_none());
     assert!(class_j_def.base_class().is_some());
-
     assert_eq!(
         class_j_def.base_class().unwrap().module_scoped_identifier(),
         class_i_def.module_scoped_identifier(),
@@ -33,6 +32,7 @@ fn supports_single_inheritance() {
 
 #[test]
 fn does_not_support_multiple_inheritance() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -41,13 +41,16 @@ fn does_not_support_multiple_inheritance() {
         class K : I, J {}
     ";
 
+    // Act
     let error_reporter = parse_for_errors(slice);
 
+    // Assert
     assert_errors!(error_reporter, ["classes can only inherit from a single base class",]);
 }
 
 #[test]
 fn data_member_shadowing_is_disallowed() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -60,14 +63,15 @@ fn data_member_shadowing_is_disallowed() {
             i: int32
         }
     ";
-    let expected = [
-        LogicKind::Shadows("i".to_owned()).into(),
-        ErrorKind::new_note("`i` was previously defined here".to_owned()),
-    ];
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
+    // Assert
+    let expected = [
+        LogicKind::Shadows("i".to_owned()).into(),
+        ErrorKind::new_note("`i` was previously defined here".to_owned()),
+    ];
     assert_errors_new!(error_reporter, expected);
 }
 

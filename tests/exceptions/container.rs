@@ -29,7 +29,6 @@ fn can_contain_data_members() {
     assert!(matches!(data_members[0].identifier(), "i"));
     assert!(matches!(data_members[1].identifier(), "s"));
     assert!(matches!(data_members[2].identifier(), "b"));
-
     assert!(matches!(
         data_members[0].data_type.concrete_type(),
         Types::Primitive(Primitive::Int32),
@@ -63,6 +62,7 @@ fn can_be_empty() {
 
 #[test]
 fn cannot_redefine_data_members() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -72,12 +72,14 @@ fn cannot_redefine_data_members() {
             a: string,
         }
     ";
+
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
+    // Assert
     let expected = [
         LogicKind::Redefinition("a".to_owned()).into(),
         ErrorKind::new_note("`a` was previously defined here".to_owned()),
     ];
-
-    let error_reporter = parse_for_errors(slice);
-
     assert_errors_new!(error_reporter, expected);
 }

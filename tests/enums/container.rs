@@ -80,12 +80,12 @@ fn validate_backing_type_out_of_bounds() {
         ",
         out_of_bounds_value = out_of_bounds_value,
     );
-    let expected: ErrorKind = LogicKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: ErrorKind = LogicKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -126,12 +126,12 @@ fn invalid_underlying_type(underlying_type: &str) {
         ",
         underlying_type,
     );
-    let expected: ErrorKind = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
 
     // Assert
+    let expected: ErrorKind = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -197,6 +197,7 @@ fn enumerators_must_be_unique() {
 
 #[test]
 fn automatically_assigned_values_will_not_overflow() {
+    // Arrange
     let slice = format!(
         "
             module Test;
@@ -208,8 +209,10 @@ fn automatically_assigned_values_will_not_overflow() {
         max_value = i64::MAX,
     );
 
+    // Act
     let error_reporter = parse_for_errors(&slice);
 
+    // Assert
     assert_errors!(error_reporter, [
         " --> 5:17\n  |\n5 |                 B,\n  |                 ^\n  |\n  = Enumerator value out of range: B"
     ]);
@@ -218,6 +221,7 @@ fn automatically_assigned_values_will_not_overflow() {
 #[test_case("unchecked enum", true ; "unchecked")]
 #[test_case("enum", false ; "checked")]
 fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
+    // Arrange
     let slice = format!(
         "
             module Test;
@@ -229,8 +233,10 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
         enum_definition = enum_definition,
     );
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
     assert_eq!(enum_def.is_unchecked, expected_result);
 }
@@ -250,13 +256,16 @@ fn checked_enums_can_not_be_empty() {
 
 #[test]
 fn unchecked_enums_can_be_empty() {
+    // Arrange
     let slice = "
         module Test;
         unchecked enum E {}
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
     assert_eq!(enum_def.enumerators.len(), 0);
 }
@@ -279,16 +288,16 @@ mod slice1 {
                 C = -3,
             }
         ";
-        let expected_errors: [ErrorKind; 3] = [
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected_errors: [ErrorKind; 3] = [
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+        ];
         assert_errors_new!(error_reporter, expected_errors);
     }
 
@@ -305,12 +314,12 @@ mod slice1 {
             ",
             value = i32::MAX as i64 + 1
         );
-        let expected: ErrorKind = LogicKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected: ErrorKind = LogicKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 }
@@ -360,15 +369,12 @@ mod slice2 {
         let enumerators = enum_def.enumerators();
 
         assert_eq!(enumerators.len(), 3);
-
         assert_eq!(enumerators[0].identifier(), "A");
         assert_eq!(enumerators[1].identifier(), "B");
         assert_eq!(enumerators[2].identifier(), "C");
-
         assert_eq!(enumerators[0].value, 1);
         assert_eq!(enumerators[1].value, 2);
         assert_eq!(enumerators[2].value, 3);
-
         assert!(matches!(
             enum_def.underlying.as_ref().unwrap().definition(),
             Primitive::Int16,

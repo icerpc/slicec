@@ -16,6 +16,9 @@ fn cannot_contain_tags() {
         }
     ";
 
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
     // Act & Assert
-    assert_errors!(parse_for_errors(slice));
+    assert_errors!(error_reporter);
 }

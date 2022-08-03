@@ -22,15 +22,15 @@ mod slice1 {
                 e: E,
             }
         ";
-        let expected = [
-            LogicKind::ExceptionNotSupported(Encoding::Slice1).into(),
-            ErrorKind::new_note("file encoding was set to Slice1 here:".to_owned()),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected = [
+            LogicKind::ExceptionNotSupported(Encoding::Slice1).into(),
+            ErrorKind::new_note("file encoding was set to Slice1 here:".to_owned()),
+        ];
         assert_errors_new!(error_reporter, expected);
     }
 }
@@ -52,6 +52,11 @@ mod slice2 {
             exception A {}
             exception B : A {}
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected = [
             LogicKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new_note("file is using the Slice2 encoding by default".to_owned()),
@@ -60,11 +65,6 @@ mod slice2 {
             ),
             ErrorKind::new_note("exception inheritance is only supported by the Slice1 encoding".to_owned()),
         ];
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
         assert_errors_new!(error_reporter, expected);
     }
 

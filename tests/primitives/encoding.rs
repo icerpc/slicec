@@ -32,15 +32,15 @@ mod slice1 {
             ",
             value = value,
         );
-        let expected = [
-            LogicKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
-            ErrorKind::new_note("file encoding was set to Slice1 here:"),
-        ];
 
         // Act
         let error_reporter = parse_for_errors(slice);
 
         // Assert
+        let expected = [
+            LogicKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
+            ErrorKind::new_note("file encoding was set to Slice1 here:"),
+        ];
         assert_errors_new!(error_reporter, expected);
     }
 
@@ -97,6 +97,11 @@ mod slice2 {
                 v: AnyClass,
             }
         ";
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
         let expected = [
             LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             ErrorKind::new_note("file is using the Slice2 encoding by default"),
@@ -104,11 +109,6 @@ mod slice2 {
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             ),
         ];
-
-        // Act
-        let error_reporter = parse_for_errors(slice);
-
-        // Assert
         assert_errors_new!(error_reporter, expected);
     }
 

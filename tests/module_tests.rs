@@ -10,6 +10,7 @@ mod module {
 
     #[test]
     fn can_be_reopened() {
+        // Arrange
         let slice = "
             module Test
             {
@@ -22,14 +23,17 @@ mod module {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         assert!(ast.find_element::<Struct>("Test::S1").is_ok());
         assert!(ast.find_element::<Struct>("Test::S2").is_ok());
     }
 
     #[test]
     fn can_be_nested() {
+        // Arrange
         let slice = "
             module A
             {
@@ -37,30 +41,39 @@ mod module {
             }
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         assert!(ast.find_element::<Module>("A::B").is_ok());
     }
 
     #[test]
     fn can_use_nested_syntax() {
+        // Arrange
         let slice = "
             module A::B::C::D {}
         ";
 
+        // Act
         let ast = parse_for_ast(slice);
 
+        // Assert
         assert!(ast.find_element::<Module>("A::B::C::D").is_ok());
     }
 
     #[test]
-    #[ignore = "Reece"]
     fn is_required() {
-        // TODO: better error message once we replace the parser
+        // Arrange
         let slice = "
             custom C;
         ";
+
+        // Act
         let err = parse_from_string(slice).err();
+
+        // Assert
+        // TODO: better error message once we replace the parser
         assert!(err.is_some());
     }
 }

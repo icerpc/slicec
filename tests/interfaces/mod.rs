@@ -12,13 +12,16 @@ use slice::parse_from_string;
 
 #[test]
 fn can_have_no_operations() {
+    // Arrange
     let slice = "
         module Test;
         interface I {}
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.identifier(), "I");
     assert_eq!(interface_def.operations().len(), 0);
@@ -26,6 +29,7 @@ fn can_have_no_operations() {
 
 #[test]
 fn can_have_self_referencing_operations() {
+    // Arrange
     let slice = "
         module Test;
         interface I {
@@ -42,6 +46,7 @@ fn can_have_self_referencing_operations() {
 
 #[test]
 fn can_have_one_operation() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -50,14 +55,17 @@ fn can_have_one_operation() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.operations().len(), 1);
 }
 
 #[test]
 fn can_have_multiple_operation() {
+    // Arrange
     let slice = "
         module Test;
         interface I
@@ -68,14 +76,17 @@ fn can_have_multiple_operation() {
         }
     ";
 
+    // Act
     let ast = parse_for_ast(slice);
 
+    // Assert
     let interface_def = ast.find_element::<Interface>("Test::I").unwrap();
     assert_eq!(interface_def.operations().len(), 3);
 }
 
 #[test]
 fn cannot_redefine_operations() {
+    // Arrange
     let slice = "
         encoding = 1;
         module Test;
@@ -85,12 +96,14 @@ fn cannot_redefine_operations() {
             op();
         }
     ";
+
+    // Act
+    let error_reporter = parse_for_errors(slice);
+
+    // Assert
     let expected: [ErrorKind; 2] = [
         LogicKind::Redefinition("op".to_owned()).into(),
         ErrorKind::new_note("`op` was previously defined here".to_owned()),
     ];
-
-    let error_reporter = parse_for_errors(slice);
-
     assert_errors_new!(error_reporter, expected);
 }

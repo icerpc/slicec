@@ -7,6 +7,7 @@ use slice::parse_from_strings;
 
 #[test]
 fn valid_mixed_encoding_works() {
+    // Arrange
     let encoding1_slice = "
         encoding = 1;
         module Test;
@@ -32,7 +33,6 @@ fn valid_mixed_encoding_works() {
             message: string,
         }
     ";
-
     let encoding2_slice = "
         encoding = 2;
         module Test;
@@ -45,11 +45,16 @@ fn valid_mixed_encoding_works() {
         }
     ";
 
-    assert!(parse_from_strings(&[encoding2_slice, encoding1_slice]).ok().is_some());
+    // Act
+    let parser_result = parse_from_strings(&[encoding2_slice, encoding1_slice]);
+
+    // Assert
+    assert!(parser_result.ok().is_some());
 }
 
 #[test]
 fn invalid_mixed_encoding_fails() {
+    // Arrange
     let encoding2_slice = "
         encoding = 2;
         module Test;
@@ -70,17 +75,19 @@ fn invalid_mixed_encoding_fails() {
             s: ACompactStruct,
         }
     ";
+
+    // Act
+    let parser_result = parse_from_strings(&[encoding1_slice, encoding2_slice]);
+
+    // Assert
+    // TODO: we should provide a better error message to the user here
+    let error_reporter = parser_result.err().unwrap().error_reporter;
     let expected = [
         LogicKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1).into(),
         ErrorKind::new_note("file encoding was set to Slice1 here:"),
         LogicKind::UnsupportedType("ACompactStruct".to_owned(), Encoding::Slice1).into(),
         ErrorKind::new_note("file encoding was set to Slice1 here:"),
     ];
-    let error_reporter = parse_from_strings(&[encoding1_slice, encoding2_slice])
-        .err()
-        .unwrap()
-        .error_reporter;
 
-    // TODO: we should provide a better error message to the user here
     assert_errors_new!(error_reporter, expected);
 }

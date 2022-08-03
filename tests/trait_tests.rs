@@ -25,17 +25,17 @@ mod traits {
                     module Test;
                     trait ATrait;
                 ";
+
+                // Act
+                let error_reporter = parse_for_errors(slice);
+
+                // Assert
                 let expected = [
                     LogicKind::NotSupportedWithEncoding("trait".to_owned(), "ATrait".to_owned(), Encoding::Slice1)
                         .into(),
                     ErrorKind::new_note("file encoding was set to Slice1 here:".to_owned()),
                     ErrorKind::new_note("traits are not supported by the Slice1 encoding".to_owned()),
                 ];
-
-                // Act
-                let error_reporter = parse_for_errors(slice);
-
-                // Assert
                 assert_errors_new!(error_reporter, expected);
             }
         }

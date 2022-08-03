@@ -90,6 +90,7 @@ mod typealias {
 
         // Assert
         let type_alias = ast.find_element::<TypeAlias>("Test::MyInt").unwrap();
+
         assert_eq!(type_alias.identifier(), "MyInt");
         assert!(matches!(
             type_alias.underlying.concrete_type(),
@@ -114,6 +115,7 @@ mod typealias {
 
         // Assert
         let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
+
         assert_eq!(data_member.identifier(), "a");
         assert!(matches!(
             data_member.data_type.concrete_type(),
