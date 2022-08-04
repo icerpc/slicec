@@ -76,8 +76,8 @@ impl Default for Encoding {
 impl fmt::Display for Encoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Slice1 => write!(f, "1"),
-            Self::Slice2 => write!(f, "2"),
+            Self::Slice1 => write!(f, "Slice1"),
+            Self::Slice2 => write!(f, "Slice2"),
         }
     }
 }
