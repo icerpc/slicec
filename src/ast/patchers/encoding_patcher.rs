@@ -201,18 +201,12 @@ impl EncodingPatcher<'_> {
         // Emit a note explaining why the file has the slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
             self.error_reporter.report(
-                ErrorKind::new_note(format!(
-                    "file encoding was set to Slice{} here:",
-                    &file_encoding.version,
-                )),
+                ErrorKind::new_note(format!("file encoding was set to {} here:", &file_encoding.version)),
                 None,
             );
         } else {
             self.error_reporter.report(
-                ErrorKind::new_note(format!(
-                    "file is using the Slice{} encoding by default",
-                    Encoding::default(),
-                )),
+                ErrorKind::new_note(format!("file is using the {} encoding by default", Encoding::default())),
                 None,
             );
             self.error_reporter.report(
