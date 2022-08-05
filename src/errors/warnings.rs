@@ -7,7 +7,8 @@ use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 pub enum WarningKind {
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `parameter_name` - The name of the parameter from the user-supplied doc comment
     DocCommentIndicatesParam(String),
 
@@ -16,7 +17,8 @@ pub enum WarningKind {
 
     /// The user-supplied doc comment indicated that the entity should throw, but the entity does not support throwing
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `kind` - The kind of that entity that was indicated to throw
     /// * `identifier` - The identifier of that entity that was indicated to throw
     DocCommentIndicatesThrow(String, String),

@@ -11,7 +11,8 @@ pub enum LogicKind {
 
     /// Used to indicate when a method must contain arguments
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `method_name` - The name of the method
     CannotBeEmpty(&'static str),
 
@@ -35,7 +36,8 @@ pub enum LogicKind {
 
     /// Used to indicate when two concrete types should match, but do not
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `expected type` - The name of the expected type
     /// * `actual type` - The name of the found type
     ConcreteTypeMismatch(String, String),
@@ -45,7 +47,8 @@ pub enum LogicKind {
 
     /// Used to indicate when the deprecated attribute cannot be applied
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `type` - The type which the deprecated attribute was applied to
     DeprecatedAttributeCannotBeApplied(String),
 
@@ -54,13 +57,15 @@ pub enum LogicKind {
 
     /// Exceptions cannot be used as a data type with the specified encoding
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `encoding` - The encoding that was specified
     ExceptionNotSupported(Encoding),
 
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `value` - The value of the out of bounds enumerator
     /// * `min` - The minimum value of the underlying type of the enum
     /// * `max` - The maximum value of the underlying type of the enum
@@ -71,7 +76,8 @@ pub enum LogicKind {
 
     /// The provided kind should be positive
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `kind` - The kind that was not positive
     MustBePositive(String),
 
@@ -83,7 +89,8 @@ pub enum LogicKind {
 
     /// The provided argument is not supported for the given method
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `argument_name` - The name of the argument
     /// * `method_name` - The name of the method
     ArgumentNotSupported(String, String),
@@ -93,7 +100,8 @@ pub enum LogicKind {
 
     /// The provided kind with identifier is not supported in the specified encoding
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `kind` - The kind that was is not supported
     /// * `identifier` - The identifier of the kind that is not supported
     /// * `encoding` - The encoding that was specified
@@ -101,13 +109,15 @@ pub enum LogicKind {
 
     /// Optional are not supported in the specified encoding
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `encoding` - The encoding that was specified
     OptionalsNotSupported(Encoding),
 
     /// An identifier was redefined
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `identifier` - The identifier that was redefined
     Redefinition(String),
 
@@ -119,19 +129,22 @@ pub enum LogicKind {
 
     /// A self-referential type alias has no concrete type
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `identifier` - The name of the type alias
     SelfReferentialTypeAliasNeedsConcreteType(String),
 
     /// An identifier was used to shadow another identifier
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `identifier` - The identifier that is shadowing previously defined identifier
     Shadows(String),
 
     /// Streamed parameters are not supported with the specified encoding
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `encoding` - The encoding that was specified
     StreamedParametersNotSupported(Encoding),
 
@@ -140,7 +153,8 @@ pub enum LogicKind {
 
     /// Struct contains a member that cannot be used as a dictionary key type
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `struct_identifier` - The identifier of the struct
     StructContainsDisallowedType(String),
 
@@ -152,26 +166,30 @@ pub enum LogicKind {
 
     /// An unsupported type was used as a dictionary key type
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `identifier` - The identifier of the type that was used as a dictionary key type
     TypeCannotBeUsedAsAKey(String),
 
     /// Used to indicate when two types should match, but do not
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `expected type` - The name of the expected type
     /// * `actual type` - The name of the found type
     TypeMismatch(String, String),
 
     /// Enum underlying types must be integral types
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
     UnderlyingTypeMustBeIntegral(String),
 
     /// An unsupported type was used in the specified encoding
     ///
-    /// #Fields
+    /// # Fields
+    ///
     /// * `type` - The name of the type that was used in the specified encoding
     /// * `encoding` - The encoding that was specified
     UnsupportedType(String, Encoding),
