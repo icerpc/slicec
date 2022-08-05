@@ -1,50 +1,183 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use crate::errors::ErrorKind;
 use crate::grammar::Encoding;
 use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
 #[derive(Debug)]
 pub enum LogicKind {
+    /// Cannot tag a class
     CannotBeClass,
+
+    /// Used to indicate when a method must contain arguments
+    ///
+    /// #Fields
+    /// * `method_name` - The name of the method
     CannotBeEmpty(&'static str),
+
+    /// Cannot tag a member that contains a class
     CannotContainClasses,
+
+    /// Enums cannot have optional underlying types
     CannotHaveOptionalUnderlyingType,
+
+    /// Dictionaries cannot use optional types as keys
     CannotUseOptionalAsKey,
+
+    /// Exceptions can only inherit from a single base exception
     CanOnlyInheritFromSingleBase,
+
+    /// Compact structs cannot be empty
     CompactStructIsEmpty,
+
+    /// Used to indicate when the compress attribute cannot be applied
     CompressAttributeCannotBeApplied,
+
+    /// Used to indicate when two concrete types should match, but do not
+    ///
+    /// #Fields
+    /// * `expected type` - The name of the expected type
+    /// * `actual type` - The name of the found type
     ConcreteTypeMismatch(String, String),
+
+    /// Classes can only inherit from a single base class
     ClassesCanOnlyInheritFromSingleBase,
+
+    /// Used to indicate when the deprecated attribute cannot be applied
+    ///
+    /// #Fields
+    /// * `type` - The type which the deprecated attribute was applied to
     DeprecatedAttributeCannotBeApplied(String),
+
+    /// A duplicate tag value was found
     DuplicateTag,
+
+    /// Exceptions cannot be used as a data type with the specified encoding
+    ///
+    /// #Fields
+    /// * `encoding` - The encoding that was specified
     ExceptionNotSupported(Encoding),
-    MustBeBounded(i64, i64, i64), // (value, min, max)
-    MustBeInI32Range,
+
+    /// An enumerator was found that was out of bounds of the underlying type of the parent enum
+    ///
+    /// #Fields
+    /// * `value` - The value of the out of bounds enumerator
+    /// * `min` - The minimum value of the underlying type of the enum
+    /// * `max` - The maximum value of the underlying type of the enum
+    MustBeBounded(i64, i64, i64),
+
+    /// A tagged data member was not set to optional
     MustBeOptional,
-    MustBePositive(String), // (kind)
+
+    /// The provided kind should be positive
+    ///
+    /// #Fields
+    /// * `kind` - The kind that was not positive
+    MustBePositive(String),
+
+    /// Enumerators must be unique
     MustBeUnique,
+
+    /// Enums must be contain at least one enumerator
     MustContainAtLeastOneValue,
-    ArgumentNotSupported(String, String), // (arg, method)
+
+    /// The provided argument is not supported for the given method
+    ///
+    /// #Fields
+    /// * `argument_name` - The name of the argument
+    /// * `method_name` - The name of the method
+    ArgumentNotSupported(String, String),
+
+    /// Compact structs cannot contain tagged data members
     NotSupportedInCompactStructs,
-    NotSupportedWithEncoding(String, String, Encoding), // (kind, identifier, encoding)
+
+    /// The provided kind with identifier is not supported in the specified encoding
+    ///
+    /// #Fields
+    /// * `kind` - The kind that was is not supported
+    /// * `identifier` - The identifier of the kind that is not supported
+    /// * `encoding` - The encoding that was specified
+    NotSupportedWithEncoding(String, String, Encoding),
+
+    /// Optional are not supported in the specified encoding
+    ///
+    /// #Fields
+    /// * `encoding` - The encoding that was specified
     OptionalsNotSupported(Encoding),
+
+    /// An identifier was redefined
+    ///
+    /// #Fields
+    /// * `identifier` - The identifier that was redefined
     Redefinition(String),
-    RequiredParametersMustBeFirst,
-    ReturnTuplesMustContainAtLeastTwoElements,
+
+    /// The required parameters of an operation did not precede the optional parameters.
+    RequiredParametersMustBeFirst, // TODO: Perhaps this should be a warning?
+
+    /// Return tuples for an operation must contain at least two element
+    ReturnTuplesMustContainAtLeastTwoElements, // TODO: Perhaps this should be a warning?
+
+    /// A self-referential type alias has no concrete type
+    ///
+    /// #Fields
+    /// * `identifier` - The name of the type alias
     SelfReferentialTypeAliasNeedsConcreteType(String),
+
+    /// An identifier was used to shadow another identifier
+    ///
+    /// #Fields
+    /// * `identifier` - The identifier that is shadowing previously defined identifier
     Shadows(String),
+
+    /// Streamed parameters are not supported with the specified encoding
+    ///
+    /// #Fields
+    /// * `encoding` - The encoding that was specified
     StreamedParametersNotSupported(Encoding),
+
+    /// A streamed parameter was not the last parameter in the operation
     StreamsMustBeLast,
+
+    /// Struct contains a member that cannot be used as a dictionary key type
+    ///
+    /// #Fields
+    /// * `struct_identifier` - The identifier of the struct
     StructContainsDisallowedType(String),
+
+    /// Structs must be compact to be used as a dictionary key type
     StructsMustBeCompactToBeAKey,
+
+    /// A tag value was not in the expected range, 0 .. i32::MAX
     TagOutOfBounds,
+
+    /// An unsupported type was used as a dictionary key type
+    ///
+    /// #Fields
+    /// * `identifier` - The identifier of the type that was used as a dictionary key type
     TypeCannotBeUsedAsAKey(String),
+
+    /// Used to indicate when two types should match, but do not
+    ///
+    /// #Fields
+    /// * `expected type` - The name of the expected type
+    /// * `actual type` - The name of the found type
     TypeMismatch(String, String),
+
+    /// Enum underlying types must be integral types
+    ///
+    /// #Fields
+    /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
     UnderlyingTypeMustBeIntegral(String),
-    UnsupportedType(String, Encoding), // (type_string, encoding)
+
+    /// An unsupported type was used in the specified encoding
+    ///
+    /// #Fields
+    /// * `type` - The name of the type that was used in the specified encoding
+    /// * `encoding` - The encoding that was specified
+    UnsupportedType(String, Encoding),
 
     // The following are errors that are needed to report cs attribute errors.
+    // TODO: Clean up these errors
     UnexpectedAttribute(String),                  // (attribute)
     MissingRequiredArgument(String),              // (arg)
     TooManyArguments(String),                     // (expected)
@@ -138,11 +271,6 @@ implement_error_functions!(
         2013,
         format!("{kind} must be positive"),
         kind
-    ),
-    (
-        LogicKind::MustBeInI32Range,
-        2014,
-        "tag values must be greater than or equal to 0 and less than 2147483647"
     ),
     (
         LogicKind::RequiredParametersMustBeFirst,
