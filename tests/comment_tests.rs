@@ -10,16 +10,16 @@ mod comments {
     use test_case::test_case;
 
     #[test_case("/** This is a block doc comment. */", "This is a block doc comment."; "block doc comment")]
+    #[test_case("/// This is a doc comment.", "This is a doc comment."; "doc comment")]
     #[test_case(
         "/**\n
         * This is a multi-line block doc comment.\n
         */",
-        "This is a multi-line block doc comment.\n"
-        ; "multi-line block doc comment"
-    )]
-    #[test_case("/// This is a doc comment.", "This is a doc comment."; "doc comment")]
-    #[ignore] // TODO: fix the parsing of block doc comments to remove /** */ from overview and remove \n from
-              // end of doc comment.
+        "This is a multi-line block doc comment."
+
+        => ignore["reason"];
+        "multi-line block doc comment"
+    )] // TODO: Multi-line block doc comments parsing needs to be fixed to properly support multi-line block doc comments.
     fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
         // Arrange
         let slice = format!(
