@@ -59,10 +59,11 @@ impl CommentParser {
                     current_string.push_str(
                         token
                             .as_str()
+                            .trim_start_matches(r#"/**"#)
+                            .trim_end_matches(r#"*/"#)
                             .trim_end_matches(Self::is_padding)
                             .trim_start_matches(char::is_whitespace),
                     );
-                    current_string.push('\n');
                 }
                 Rule::param_field => {
                     // Iterate through the subtokens. Any of them can be missing, but they will
