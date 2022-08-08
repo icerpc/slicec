@@ -9,6 +9,7 @@ mod tags {
     use slice::errors::{ErrorKind, LogicKind};
     use slice::grammar::*;
     use slice::parse_from_string;
+    use test_case::test_case;
 
     #[test]
     fn tagged_data_members_must_be_optional() {
@@ -183,11 +184,10 @@ mod tags {
         assert_errors_new!(error_reporter, expected);
     }
 
-    #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
-    fn cannot_have_tag_with_value_larger_than_max() {
+    #[test_case(77757348128678234_i64 ; "Random large value")]
+    #[test_case((i32::MAX as i64) + 1; "Slightly over")]
+    fn cannot_have_tag_with_value_larger_than_max(value: i64) {
         // Arrange
-        let max_value = i32::MAX as i64;
         let slice = format!(
             "
                 module Test;
@@ -195,7 +195,7 @@ mod tags {
                     testOp(a: tag({value}) int32?);
                 }}
             ",
-            value = max_value + 1
+            value = value
         );
 
         // Act
@@ -207,7 +207,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
         let slice = format!(
@@ -224,7 +223,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::MustBePositive("a".to_owned()).into();
+        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
