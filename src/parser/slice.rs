@@ -921,7 +921,6 @@ impl<'a> SliceParser<'a> {
             },
             [line_doc_comment(comments)..] => {
                 // Merge all the line comments together.
-
                 let combined = comments.collect::<Vec<String>>().join("\n");
                 Some(CommentParser::parse_doc_comment(&combined, span))
             },
