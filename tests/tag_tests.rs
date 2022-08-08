@@ -184,7 +184,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn cannot_have_tag_with_value_larger_than_max() {
         // Arrange
         let max_value = i32::MAX as i64;
@@ -207,7 +206,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
         let slice = format!(
@@ -224,7 +222,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::MustBePositive("a".to_owned()).into();
+        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 

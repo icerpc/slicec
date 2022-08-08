@@ -11,6 +11,7 @@ use std::cell::RefCell;
 use std::convert::TryInto;
 use std::default::Default;
 use std::fs;
+use std::ops::RangeInclusive;
 
 use pest::error::ErrorVariant as PestErrorVariant;
 use pest_consume::{match_nodes, Error as PestError, Parser as PestParser};
@@ -647,20 +648,9 @@ impl<'a> SliceParser<'a> {
         Ok(match_nodes!(input.children();
             [_, integer(integer)] => {
                 // Checking that tags must fit in an i32 and be non-negative.
-                if integer < 0 || integer > i32::MAX.into() {
+                if !RangeInclusive::new(0, i32::MAX - 1).contains(&(integer as i32)) {
                     let span = get_span_for(&input);
-                    let error_string = if integer < 0 {
-                        format!("tag is out of range: {}. Tag values must be positive", integer)
-                    } else {
-                        format!(
-                            "tag is out of range: {}. Tag values must be less than {}",
-                            integer, i32::MAX
-                        )
-                    };
-                    input.user_data().borrow_mut().error_reporter.report(
-                        ErrorKind::Syntax(error_string),
-                        Some(&span),
-                    );
+                    input.user_data().borrow_mut().error_reporter.report(LogicKind::TagOutOfBounds, Some(&span));
                 }
                 integer as u32
             }
