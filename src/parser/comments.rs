@@ -61,7 +61,7 @@ impl CommentParser {
                             .as_str()
                             .trim_start_matches(r#"/**"#)
                             .trim_end_matches(r#"*/"#)
-                            .trim_end_matches(Self::is_padding) // Trim padding and whitespace
+                            .trim_end_matches(Self::is_padding)
                             .trim_start_matches(char::is_whitespace),
                     );
                 }
