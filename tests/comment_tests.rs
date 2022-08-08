@@ -11,7 +11,9 @@ mod comments {
 
     #[test_case("/** This is a block doc comment. */", "This is a block doc comment."; "block doc comment")]
     #[test_case(
-        "/**\n* This is a multi-line block doc comment.\n*/",
+        "/**\n
+        * This is a multi-line block doc comment.\n
+        */",
         "This is a multi-line block doc comment.\n"
         ; "multi-line block doc comment"
     )]

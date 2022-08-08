@@ -56,13 +56,13 @@ impl CommentParser {
                 Rule::message => {
                     // Remove any trailing padding from the message, and append it to the current
                     // field being written into the comment.
+                    println!("{:?}", token.as_str());
                     current_string.push_str(
                         token
                             .as_str()
-                            .trim_end_matches(Self::is_padding)
+                            .trim_end_matches(Self::is_padding) // Trim padding and whitespace
                             .trim_start_matches(char::is_whitespace),
                     );
-                    current_string.push('\n');
                 }
                 Rule::param_field => {
                     // Iterate through the subtokens. Any of them can be missing, but they will
