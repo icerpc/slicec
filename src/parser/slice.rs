@@ -648,7 +648,7 @@ impl<'a> SliceParser<'a> {
         Ok(match_nodes!(input.children();
             [_, integer(integer)] => {
                 // Checking that tags must fit in an i32 and be non-negative.
-                if !RangeInclusive::new(0, i32::MAX - 1).contains(&(integer as i32)) {
+                if !RangeInclusive::new(0, (i32::MAX - 1) as i64).contains(&integer) {
                     let span = get_span_for(&input);
                     input.user_data().borrow_mut().error_reporter.report(LogicKind::TagOutOfBounds, Some(&span));
                 }
