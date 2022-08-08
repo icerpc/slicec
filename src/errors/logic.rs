@@ -20,7 +20,6 @@ pub enum LogicKind {
     DuplicateTag,
     ExceptionNotSupported(Encoding),
     MustBeBounded(i64, i64, i64), // (value, min, max)
-    MustBeInI32Range,
     MustBeOptional,
     MustBePositive(String), // (kind)
     MustBeUnique,
@@ -138,11 +137,6 @@ implement_error_functions!(
         2013,
         format!("{kind} must be positive"),
         kind
-    ),
-    (
-        LogicKind::MustBeInI32Range,
-        2014,
-        "tag values must be greater than or equal to 0 and less than 2147483647"
     ),
     (
         LogicKind::RequiredParametersMustBeFirst,
