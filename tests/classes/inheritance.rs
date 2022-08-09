@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use crate::{assert_errors, assert_errors_new};
 use slice::errors::{ErrorKind, LogicKind};
 use slice::grammar::*;
 
@@ -45,7 +45,8 @@ fn does_not_support_multiple_inheritance() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, ["classes can only inherit from a single base class",]);
+    let expected: ErrorKind = LogicKind::CanOnlyInheritFromSingleBase("class".to_owned()).into();
+    assert_errors_new!(error_reporter, [&expected]);
 }
 
 #[test]

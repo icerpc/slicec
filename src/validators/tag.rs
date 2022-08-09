@@ -28,7 +28,10 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            error_reporter.report(LogicKind::CannotHaveDuplicateTag, Some(window[1].span()));
+            error_reporter.report(
+                LogicKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
+                Some(window[1].span()),
+            );
             error_reporter.report(
                 ErrorKind::new_note(format!(
                     "The data member `{}` has previous used the tag value `{}`",
@@ -86,7 +89,10 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            error_reporter.report(LogicKind::TaggedMemberMustBeOptional, Some(member.span()));
+            error_reporter.report(
+                LogicKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }
@@ -101,7 +107,10 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            error_reporter.report(LogicKind::CannotTagClass, Some(member.span()));
+            error_reporter.report(
+                LogicKind::CannotTagClass(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }
@@ -127,7 +136,10 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            error_reporter.report(LogicKind::CannotTagContainingClass, Some(member.span()));
+            error_reporter.report(
+                LogicKind::CannotTagContainingClass(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }

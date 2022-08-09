@@ -28,19 +28,35 @@ pub enum LogicKind {
 
     // ----------------  Tag Errors ---------------- //
     /// Cannot tag a class
-    CannotTagClass,
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagClass(String),
 
     /// Cannot tag a member that contains a class
-    CannotTagContainingClass,
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagContainingClass(String),
 
     /// A duplicate tag value was found
-    CannotHaveDuplicateTag,
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotHaveDuplicateTag(String),
 
     /// A tag value was not in the expected range, 0 .. i32::MAX
     TagValueOutOfBounds,
 
     /// A tagged data member was not set to optional
-    TaggedMemberMustBeOptional,
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    TaggedMemberMustBeOptional(String),
 
     // ----------------  Enum Errors ---------------- //
     /// Enums cannot have optional underlying types
@@ -294,7 +310,12 @@ implement_error_functions!(
         format!("`{}` shadows another symbol", identifier),
         identifier
     ),
-    (LogicKind::CannotHaveDuplicateTag, 2000, "tags must be unique"),
+    (
+        LogicKind::CannotHaveDuplicateTag,
+        2000,
+        format!("invalid tag on member `{}`: tags must be unique", identifier),
+        identifier
+    ),
     (
         LogicKind::MustBePositive,
         2013,
@@ -324,17 +345,20 @@ implement_error_functions!(
     (
         LogicKind::TaggedMemberMustBeOptional,
         2019,
-        "tagged members must be optional"
+        format!("invalid tag on member `{}`: tagged members must be optional", identifier),
+        identifier
     ),
     (
         LogicKind::CannotTagClass,
         2020,
-        "tagged members cannot be classes"
+        format!("invalid tag on member `{}`: tagged members cannot be classes", identifier),
+        identifier
     ),
     (
         LogicKind::CannotTagContainingClass,
         2021,
-        "tagged members cannot contain classes"
+        format!("invalid tag on member `{}`: tagged members cannot contain classes", identifier),
+        identifier
     ),
     (
         LogicKind::CanOnlyInheritFromSingleBase,

@@ -28,7 +28,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional.into();
+        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("b".to_owned()).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -47,7 +47,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional.into();
+        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -113,7 +113,7 @@ mod tags {
         let errors = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotTagClass.into();
+        let expected: ErrorKind = LogicKind::CannotTagClass("c".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -138,7 +138,7 @@ mod tags {
         let errors = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotTagContainingClass.into();
+        let expected: ErrorKind = LogicKind::CannotTagContainingClass("s".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -178,7 +178,7 @@ mod tags {
 
         // Assert
         let expected = [
-            LogicKind::CannotHaveDuplicateTag.into(),
+            LogicKind::CannotHaveDuplicateTag("b".to_owned()).into(),
             ErrorKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
         assert_errors_new!(error_reporter, expected);
