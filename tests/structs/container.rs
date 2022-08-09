@@ -104,7 +104,7 @@ mod compact_structs {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CompactStructIsEmpty.into();
+        let expected: ErrorKind = LogicKind::CompactStructCannotBeEmpty.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 }

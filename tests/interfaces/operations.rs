@@ -241,7 +241,7 @@ mod streams {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
+        let expected: ErrorKind = LogicKind::StreamedMembersMustBeLast.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -257,7 +257,7 @@ mod streams {
         ";
 
         // Act
-        let expected: ErrorKind = LogicKind::StreamsMustBeLast.into();
+        let expected: ErrorKind = LogicKind::StreamedMembersMustBeLast.into();
 
         // Assert
         let error_reporter = parse_for_errors(slice);

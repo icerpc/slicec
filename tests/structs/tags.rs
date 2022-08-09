@@ -49,7 +49,7 @@ mod compact_structs {
 
         // Assert
         let expected = [
-            LogicKind::NotSupportedInCompactStructs.into(),
+            LogicKind::CompactStructCannotContainTaggedMembers.into(),
             ErrorKind::new_note("struct 'S' is declared compact here"),
         ];
         assert_errors_new!(error_reporter, expected);

@@ -39,7 +39,7 @@ fn does_not_support_multiple_inheritance() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::CanOnlyInheritFromSingleBase.into();
+    let expected: ErrorKind = LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 

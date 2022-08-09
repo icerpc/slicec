@@ -85,7 +85,8 @@ fn validate_backing_type_out_of_bounds() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::MustBeBounded(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
+    let expected: ErrorKind =
+        LogicKind::EnumeratorValueOutOfBounds(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -164,7 +165,7 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: ErrorKind = LogicKind::CannotHaveOptionalUnderlyingType.into();
+    let expected: ErrorKind = LogicKind::CannotUseOptionalUnderlyingType.into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -184,7 +185,7 @@ fn enumerators_must_be_unique() {
         }
     ";
     let expected = [
-        LogicKind::MustBeUnique.into(),
+        LogicKind::CannotHaveDuplicateEnumerators.into(),
         ErrorKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
@@ -247,7 +248,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: ErrorKind = LogicKind::MustContainAtLeastOneValue.into();
+    let expected: ErrorKind = LogicKind::MustContainEnumerators.into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -319,7 +320,8 @@ mod slice1 {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::MustBeBounded(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
+        let expected: ErrorKind =
+            LogicKind::EnumeratorValueOutOfBounds(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 }
