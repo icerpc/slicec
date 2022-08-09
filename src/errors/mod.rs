@@ -60,12 +60,12 @@ impl fmt::Display for ErrorKind {
     }
 }
 
-/// A convenience constructor for creating a note from a string or ref string.
+/// Creates a new note from a string.
 ///
 /// # Examples
 /// ```
-/// use slice::errors::ErrorKind;
-/// let note = ErrorKind::new_note("This is the contents of a note.");
+/// # use slice::errors::ErrorKind;
+/// let note = ErrorKind::new_note("This is the content of a note.");
 /// ```
 impl ErrorKind {
     pub fn new_note(message: impl Into<String>) -> ErrorKind {
