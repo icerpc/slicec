@@ -9,11 +9,11 @@ pub enum WarningKind {
     ///
     /// # Fields
     ///
-    /// * `parameter_name` - The name of the parameter from the user-supplied doc comment
-    DocCommentIndicatesParam(String),
+    /// * `identifier` - The name of the parameter from the user-supplied doc comment
+    ExtraParameterInDocComment(String),
 
     /// The user-supplied doc comment indicated that the operation should return a value, but the operation does not
-    DocCommentIndicatesReturn,
+    ExtraReturnValueInDocComment,
 
     /// The user-supplied doc comment indicated that the entity should throw, but the entity does not support throwing
     ///
@@ -21,14 +21,14 @@ pub enum WarningKind {
     ///
     /// * `kind` - The kind of that entity that was indicated to throw
     /// * `identifier` - The identifier of that entity that was indicated to throw
-    DocCommentIndicatesThrow(String, String),
+    ExtraThrowInDocComment(String, String),
 }
 
 implement_from_for_error_sub_kind!(WarningKind, ErrorKind::Warning);
 implement_error_functions!(
     WarningKind,
     (
-        WarningKind::DocCommentIndicatesParam,
+        WarningKind::ExtraParameterInDocComment,
         1000,
         format!(
             "doc comment has a param tag for '{}', but there is no parameter by that name",
@@ -37,12 +37,12 @@ implement_error_functions!(
         param_name
     ),
     (
-        WarningKind::DocCommentIndicatesReturn,
+        WarningKind::ExtraReturnValueInDocComment,
         1001,
         "void operation must not contain doc comment return tag"
     ),
     (
-        WarningKind::DocCommentIndicatesThrow,
+        WarningKind::ExtraThrowInDocComment,
         1002,
         format!(
             "doc comment indicates that {} `{}` throws, however, only operations can throw",

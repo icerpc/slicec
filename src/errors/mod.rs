@@ -29,11 +29,11 @@ impl fmt::Display for Error {
 
 #[derive(Debug)]
 pub enum ErrorKind {
-    /// An error related to the syntax of the slice code such as missing semicolons or defining classes in a Slice2
-    /// encoded slice file.
+    /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
+    /// Slice2 encoded slice file.
     Syntax(String),
 
-    /// An error related to the logic of the slice code such as using the same tag twice.
+    /// An error related to the logic of the slice source code such as using the same tag twice.
     Logic(LogicKind),
 
     /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
@@ -44,7 +44,7 @@ pub enum ErrorKind {
     /// encoding of a Slice1 encoded slice file was defined.
     Note(String),
 
-    /// An error related to the IO of the slice code such as opening a file that doesn't exist.
+    /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
     IO(String),
 }
 
