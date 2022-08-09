@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::{Error, ErrorKind};
+use crate::grammar::Locatable;
 use crate::slice_file::Span;
 
 #[derive(Debug)]
@@ -40,7 +41,18 @@ impl ErrorReporter {
         self.errors
     }
 
-    pub fn report(&mut self, error_kind: impl Into<ErrorKind>, span: Option<&Span>) {
+    pub fn report(&mut self, error_kind: impl Into<ErrorKind>, locatable: Option<&dyn Locatable>) {
+        let error_kind: ErrorKind = error_kind.into();
+        match error_kind {
+            ErrorKind::Note(_) => {}
+            ErrorKind::Warning(_) => self.warning_count += 1,
+            ErrorKind::Logic(_) | ErrorKind::Syntax(_) | ErrorKind::IO(_) => self.error_count += 1,
+        };
+        let span = locatable.map(|locatable| locatable.span().clone());
+        self.errors.push(Error { error_kind, span });
+    }
+
+    pub fn report_span(&mut self, error_kind: impl Into<ErrorKind>, span: &Span) {
         let error_kind: ErrorKind = error_kind.into();
         match error_kind {
             ErrorKind::Note(_) => {}
@@ -49,7 +61,7 @@ impl ErrorReporter {
         };
         self.errors.push(Error {
             error_kind,
-            span: span.cloned(),
+            span: Some(span.clone()),
         });
     }
 }

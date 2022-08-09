@@ -21,4 +21,5 @@ impl Identifier {
 }
 
 implement_Element_for!(Identifier, "identifier");
+implement_Locatable_for!(Identifier);
 implement_Symbol_for!(Identifier);

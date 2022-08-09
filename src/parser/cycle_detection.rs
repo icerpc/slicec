@@ -34,8 +34,7 @@ impl<'a> CycleDetector<'a> {
                 type_id = &type_id,
                 cycle_string = &self.dependency_stack[i..].join(" -> "),
             );
-            self.error_reporter
-                .report(ErrorKind::Syntax(message), Some(type_def.span()));
+            self.error_reporter.report(ErrorKind::Syntax(message), Some(type_def));
 
             true
         } else {

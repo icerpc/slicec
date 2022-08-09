@@ -29,4 +29,5 @@ impl Attribute {
 }
 
 implement_Element_for!(Attribute, "attribute");
+implement_Locatable_for!(Attribute);
 implement_Symbol_for!(Attribute);

@@ -128,5 +128,6 @@ impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {
 }
 
 implement_Element_for!(TypeRef<T>, "type reference", Element + ?Sized);
+implement_Locatable_for!(TypeRef<T>, Element + ?Sized);
 implement_Symbol_for!(TypeRef<T>, Element + ?Sized);
 implement_Scoped_Symbol_for!(TypeRef<T>, Element + ?Sized);

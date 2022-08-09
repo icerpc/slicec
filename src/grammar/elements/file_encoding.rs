@@ -10,4 +10,5 @@ pub struct FileEncoding {
 }
 
 implement_Element_for!(FileEncoding, "file encoding");
+implement_Locatable_for!(FileEncoding);
 implement_Symbol_for!(FileEncoding);

@@ -17,7 +17,7 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], error_reporter: &mut E
 fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        error_reporter.report(LogicKind::CannotUseOptionalAsKey, Some(type_ref.span()));
+        error_reporter.report(LogicKind::CannotUseOptionalAsKey, Some(type_ref));
         return false;
     }
 
@@ -26,10 +26,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                error_reporter.report(LogicKind::StructsMustBeCompactToBeAKey, Some(type_ref.span()));
+                error_reporter.report(LogicKind::StructsMustBeCompactToBeAKey, Some(type_ref));
                 error_reporter.report(
                     ErrorKind::new_note(format!("struct '{}' is defined here:", struct_def.identifier())),
-                    Some(struct_def.span()),
+                    Some(struct_def),
                 );
                 return false;
             }
@@ -39,17 +39,17 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), error_reporter) {
                     let error = LogicKind::TypeCannotBeUsedAsAKey(member.identifier().to_owned());
-                    error_reporter.report(error, Some(member.span()));
+                    error_reporter.report(error, Some(member));
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
                 let error = LogicKind::StructContainsDisallowedType(struct_def.identifier().to_owned());
-                error_reporter.report(error, Some(type_ref.span()));
+                error_reporter.report(error, Some(type_ref));
                 error_reporter.report(
                     ErrorKind::new_note(format!("struct '{}' is defined here:", struct_def.identifier())),
-                    Some(struct_def.span()),
+                    Some(struct_def),
                 );
                 return false;
             }
@@ -77,20 +77,17 @@ fn check_dictionary_key_type(type_ref: &TypeRef, error_reporter: &mut ErrorRepor
             _ => definition.kind().to_owned() + "s",
         };
 
-        error_reporter.report(
-            LogicKind::TypeCannotBeUsedAsAKey(pluralized_kind),
-            Some(type_ref.span()),
-        );
+        error_reporter.report(LogicKind::TypeCannotBeUsedAsAKey(pluralized_kind), Some(type_ref));
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {
-            error_reporter.report(
+            error_reporter.report_span(
                 ErrorKind::new_note(format!(
                     "{} '{}' is defined here:",
                     named_symbol_def.kind(),
                     named_symbol_def.identifier(),
                 )),
-                Some(named_symbol_def.span()),
+                named_symbol_def.span(),
             );
         }
     }

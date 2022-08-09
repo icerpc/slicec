@@ -1,6 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::grammar::Locatable;
 use crate::slice_file::Span;
+
+use super::implement_Locatable_for;
 
 // TODO improve this to track the span of individual doc comment fields, so we can check for
 // comment validity: EX: making sure 'params' match the operation's actual parameters, etc.
@@ -32,3 +35,5 @@ impl DocComment {
             .collect();
     }
 }
+
+implement_Locatable_for!(DocComment);

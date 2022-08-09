@@ -96,7 +96,7 @@ impl EncodingPatcher<'_> {
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            self.error_reporter.report(error, Some(entity_def.span()));
+            self.error_reporter.report(error, Some(entity_def));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -183,7 +183,7 @@ impl EncodingPatcher<'_> {
                 errors.push(error);
             }
             for error in errors {
-                self.error_reporter.report(error, Some(type_ref.span()));
+                self.error_reporter.report(error, Some(type_ref));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -352,7 +352,7 @@ impl ComputeSupportedEncodings for Interface {
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
                     let error = LogicKind::StreamedParametersNotSupported(Encoding::Slice1);
-                    patcher.error_reporter.report(error, Some(member.span()));
+                    patcher.error_reporter.report(error, Some(member));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }

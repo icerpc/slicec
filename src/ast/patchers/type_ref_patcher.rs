@@ -209,8 +209,7 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.error_reporter
-                    .report(ErrorKind::Syntax(message), Some(type_ref.span()));
+                self.error_reporter.report(ErrorKind::Syntax(message), Some(type_ref));
                 None
             }
         }
@@ -256,7 +255,7 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
                 let error =
                     LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
-                self.error_reporter.report(error, Some(current_type_alias.span()));
+                self.error_reporter.report(error, Some(current_type_alias));
                 for window in type_alias_chain[i..].windows(2) {
                     let message = format!(
                         "type alias '{}' uses type alias '{}' here:",
@@ -264,7 +263,7 @@ impl TypeRefPatcher<'_> {
                         window[1].identifier(),
                     );
                     self.error_reporter
-                        .report(ErrorKind::new_note(message), Some(window[0].underlying.span()));
+                        .report(ErrorKind::new_note(message), Some(&window[0].underlying));
                 }
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());

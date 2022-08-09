@@ -25,7 +25,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
                 let error = LogicKind::MustBePositive("enumerator values".to_owned());
-                error_reporter.report(error, Some(enumerator.span()));
+                error_reporter.report(error, Some(*enumerator));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -34,7 +34,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
                 let error = LogicKind::MustBeBounded(enumerator.value, 0, i32::MAX as i64);
-                error_reporter.report(error, Some(enumerator.span()));
+                error_reporter.report(error, Some(*enumerator));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -47,7 +47,7 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
                     let error = LogicKind::MustBeBounded(enumerator.value, min, max);
-                    error_reporter.report(error, Some(enumerator.span()));
+                    error_reporter.report(error, Some(*enumerator));
                 });
         }
         match &enum_def.underlying {
@@ -73,7 +73,7 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
                 let error = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
-                error_reporter.report(error, Some(enum_def.span()));
+                error_reporter.report(error, Some(enum_def));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -90,14 +90,14 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            error_reporter.report(LogicKind::MustBeUnique, Some(window[1].span()));
+            error_reporter.report(LogicKind::MustBeUnique, Some(window[1]));
             error_reporter.report(
                 ErrorKind::new_note(format!(
                     "The enumerator `{}` has previous used the value `{}`",
                     window[0].identifier(),
                     window[0].value
                 )),
-                Some(window[0].span()),
+                Some(window[0]),
             );
         }
     });
@@ -107,7 +107,7 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            error_reporter.report(LogicKind::CannotHaveOptionalUnderlyingType, Some(enum_def.span()));
+            error_reporter.report(LogicKind::CannotHaveOptionalUnderlyingType, Some(enum_def));
         }
     }
 }
@@ -115,6 +115,6 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report(LogicKind::MustContainAtLeastOneValue, Some(enum_def.span()));
+        error_reporter.report(LogicKind::MustContainAtLeastOneValue, Some(enum_def));
     }
 }

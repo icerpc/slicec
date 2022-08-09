@@ -264,9 +264,9 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), compact_id(compact_id), _, inheritance_list(bases)] => {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
-                    input.user_data().borrow_mut().error_reporter.report(
+                    input.user_data().borrow_mut().error_reporter.report_span(
                         LogicKind::ClassesCanOnlyInheritFromSingleBase,
-                        Some(&span),
+                        &span,
                     );
                 }
 
@@ -306,9 +306,9 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    input.user_data().borrow_mut().error_reporter.report(
+                    input.user_data().borrow_mut().error_reporter.report_span(
                         LogicKind::CanOnlyInheritFromSingleBase,
-                        Some(&span),
+                        &span,
                     )
                 }
 
@@ -512,9 +512,9 @@ impl<'a> SliceParser<'a> {
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
                     let span = get_span_for(&input);
-                    input.user_data().borrow_mut().error_reporter.report(
+                    input.user_data().borrow_mut().error_reporter.report_span(
                         LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
-                        Some(&span),
+                        &span,
                     );
                 }
                 return_elements
@@ -650,7 +650,7 @@ impl<'a> SliceParser<'a> {
                 // Checking that tags must fit in an i32 and be non-negative.
                 if !RangeInclusive::new(0, (i32::MAX - 1) as i64).contains(&integer) {
                     let span = get_span_for(&input);
-                    input.user_data().borrow_mut().error_reporter.report(LogicKind::TagOutOfBounds, Some(&span));
+                    input.user_data().borrow_mut().error_reporter.report_span(LogicKind::TagOutOfBounds, &span);
                 }
                 integer as u32
             }
@@ -1171,12 +1171,12 @@ impl<'a> SliceParser<'a> {
 
                             error_reporter.report(
                                 ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
-                                Some(&module_def.borrow().span),
+                                Some(module_def.borrow()),
                             );
 
-                            error_reporter.report(
+                            error_reporter.report_span(
                                 ErrorKind::new_note(format!("file level module '{}' declared here", &identifier.value)),
-                                Some(&span),
+                                &span,
                             );
                         }
                     }

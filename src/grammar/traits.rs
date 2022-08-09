@@ -11,9 +11,11 @@ pub trait Element: std::fmt::Debug {
     fn kind(&self) -> &'static str;
 }
 
-pub trait Symbol: Element {
+pub trait Locatable {
     fn span(&self) -> &Span;
 }
+
+pub trait Symbol: Element + Locatable {}
 
 pub trait ScopedSymbol: Symbol {
     fn module_scope(&self) -> &str;
@@ -105,13 +107,19 @@ macro_rules! implement_Element_for {
     };
 }
 
-macro_rules! implement_Symbol_for {
+macro_rules! implement_Locatable_for {
     ($type:ty$(, $($bounds:tt)+)?) => {
-        impl$(<T: $($bounds)+>)? Symbol for $type {
+        impl$(<T: $($bounds)+>)? Locatable for $type {
             fn span(&self) -> &Span {
                 &self.span
             }
         }
+    };
+}
+
+macro_rules! implement_Symbol_for {
+    ($type:ty$(, $($bounds:tt)+)?) => {
+        impl$(<T: $($bounds)+>)? Symbol for $type { }
     };
 }
 
@@ -182,6 +190,7 @@ macro_rules! implement_Commentable_for {
 
 macro_rules! implement_Entity_for {
     ($type:ty) => {
+        implement_Locatable_for!($type);
         implement_Symbol_for!($type);
         implement_Named_Symbol_for!($type);
         implement_Scoped_Symbol_for!($type);
@@ -228,6 +237,6 @@ macro_rules! implement_Member_for {
 
 pub(crate) use {
     implement_Attributable_for, implement_Commentable_for, implement_Contained_for, implement_Container_for,
-    implement_Element_for, implement_Entity_for, implement_Member_for, implement_Named_Symbol_for,
-    implement_Scoped_Symbol_for, implement_Symbol_for,
+    implement_Element_for, implement_Entity_for, implement_Locatable_for, implement_Member_for,
+    implement_Named_Symbol_for, implement_Scoped_Symbol_for, implement_Symbol_for,
 };
