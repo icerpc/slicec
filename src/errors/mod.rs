@@ -11,6 +11,10 @@ pub use self::error_reporter::ErrorReporter;
 pub use self::logic::LogicKind;
 pub use self::warnings::WarningKind;
 
+/// An Error contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
+///
+/// Each error has a kind, specifying the type of error encountered, such as Syntax, Logic, or IO. Additionally, an
+/// Error can have an optional Span which specifies the location in the source code where the error occurred.
 #[derive(Debug)]
 pub struct Error {
     pub error_kind: ErrorKind,
@@ -25,10 +29,22 @@ impl fmt::Display for Error {
 
 #[derive(Debug)]
 pub enum ErrorKind {
+    /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
+    /// Slice2 encoded slice file.
     Syntax(String),
+
+    /// An error related to the logic of the slice source code such as using the same tag twice.
     Logic(LogicKind),
+
+    /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
+    /// indicates that an operation should return a value, but the operation does not.
     Warning(WarningKind),
+
+    /// Additional information about another kind of error that was encountered. For example, indicating where the
+    /// encoding of a Slice1 encoded slice file was defined.
     Note(String),
+
+    /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
     IO(String),
 }
 
@@ -44,6 +60,13 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+/// Creates a new note from a string.
+///
+/// # Examples
+/// ```
+/// # use slice::errors::ErrorKind;
+/// let note = ErrorKind::new_note("This is the content of a note.");
+/// ```
 impl ErrorKind {
     pub fn new_note(message: impl Into<String>) -> ErrorKind {
         ErrorKind::Note(message.into())
