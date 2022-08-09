@@ -33,7 +33,12 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let error = LogicKind::EnumeratorValueOutOfBounds(enumerator.value, 0, i32::MAX as i64);
+                let error = LogicKind::EnumeratorValueOutOfBounds(
+                    enumerator.identifier().to_owned(),
+                    enumerator.value,
+                    0,
+                    i32::MAX as i64,
+                );
                 error_reporter.report(error, Some(enumerator.span()));
             });
     } else {
@@ -46,7 +51,12 @@ fn backing_type_bounds(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let error = LogicKind::EnumeratorValueOutOfBounds(enumerator.value, min, max);
+                    let error = LogicKind::EnumeratorValueOutOfBounds(
+                        enumerator.identifier().to_owned(),
+                        enumerator.value,
+                        min,
+                        max,
+                    );
                     error_reporter.report(error, Some(enumerator.span()));
                 });
         }
@@ -72,7 +82,10 @@ fn allowed_underlying_types(enum_def: &Enum, error_reporter: &mut ErrorReporter)
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let error = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.definition().kind().to_owned());
+                let error = LogicKind::UnderlyingTypeMustBeIntegral(
+                    enum_def.identifier().to_owned(),
+                    underlying_type.definition().kind().to_owned(),
+                );
                 error_reporter.report(error, Some(enum_def.span()));
             }
         }
@@ -90,7 +103,10 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            error_reporter.report(LogicKind::CannotHaveDuplicateEnumerators, Some(window[1].span()));
+            error_reporter.report(
+                LogicKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
+                Some(window[1].span()),
+            );
             error_reporter.report(
                 ErrorKind::new_note(format!(
                     "The enumerator `{}` has previous used the value `{}`",
@@ -107,7 +123,10 @@ fn enumerators_are_unique(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
 fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            error_reporter.report(LogicKind::CannotUseOptionalUnderlyingType, Some(enum_def.span()));
+            error_reporter.report(
+                LogicKind::CannotUseOptionalUnderlyingType(enum_def.identifier().to_owned()),
+                Some(enum_def.span()),
+            );
         }
     }
 }
@@ -115,6 +134,9 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, error_reporter: &mut Erro
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, error_reporter: &mut ErrorReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        error_reporter.report(LogicKind::MustContainEnumerators, Some(enum_def.span()));
+        error_reporter.report(
+            LogicKind::MustContainEnumerators(enum_def.identifier().to_owned()),
+            Some(enum_def.span()),
+        );
     }
 }

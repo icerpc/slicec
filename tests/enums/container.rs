@@ -86,7 +86,7 @@ fn validate_backing_type_out_of_bounds() {
 
     // Assert
     let expected: ErrorKind =
-        LogicKind::EnumeratorValueOutOfBounds(out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
+        LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -132,7 +132,8 @@ fn invalid_underlying_type(underlying_type: &str) {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::UnderlyingTypeMustBeIntegral(underlying_type.to_owned()).into();
+    let expected: ErrorKind =
+        LogicKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -165,7 +166,7 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: ErrorKind = LogicKind::CannotUseOptionalUnderlyingType.into();
+    let expected: ErrorKind = LogicKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
 
     // Act
     let error_reporter = parse_for_errors(slice);
@@ -185,7 +186,7 @@ fn enumerators_must_be_unique() {
         }
     ";
     let expected = [
-        LogicKind::CannotHaveDuplicateEnumerators.into(),
+        LogicKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
         ErrorKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
@@ -248,7 +249,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: ErrorKind = LogicKind::MustContainEnumerators.into();
+    let expected: ErrorKind = LogicKind::MustContainEnumerators("E".to_owned()).into();
 
     let error_reporter = parse_for_errors(slice);
 
@@ -321,7 +322,7 @@ mod slice1 {
 
         // Assert
         let expected: ErrorKind =
-            LogicKind::EnumeratorValueOutOfBounds(i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
+            LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 }

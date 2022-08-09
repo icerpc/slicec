@@ -60,29 +60,43 @@ pub enum LogicKind {
 
     // ----------------  Enum Errors ---------------- //
     /// Enums cannot have optional underlying types
-    CannotUseOptionalUnderlyingType,
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    CannotUseOptionalUnderlyingType(String),
 
     /// Enums must be contain at least one enumerator
-    MustContainEnumerators,
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    MustContainEnumerators(String),
 
     /// Enumerators must be unique
-    CannotHaveDuplicateEnumerators,
+    ///
+    /// # Fields
+    ///
+    /// * `enumerator_identifier` - The identifier of the enumerator
+    CannotHaveDuplicateEnumerators(String),
 
     /// Enum underlying types must be integral types
     ///
     /// # Fields
     ///
+    /// * `enum_identifier` - The identifier of the enum
     /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
-    UnderlyingTypeMustBeIntegral(String),
+    UnderlyingTypeMustBeIntegral(String, String),
 
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum
     ///
     /// # Fields
     ///
+    /// * `enumerator_identifier` - The identifier of the enumerator
     /// * `value` - The value of the out of bounds enumerator
     /// * `min` - The minimum value of the underlying type of the enum
     /// * `max` - The maximum value of the underlying type of the enum
-    EnumeratorValueOutOfBounds(i64, i64, i64),
+    EnumeratorValueOutOfBounds(String, i64, i64, i64),
 
     // ---------------- Dictionary Errors ---------------- //
     /// Dictionaries cannot use optional types as keys
@@ -285,17 +299,20 @@ implement_error_functions!(
     (
         LogicKind::CannotUseOptionalUnderlyingType,
         2008,
-        "enums cannot have optional underlying types"
+        format!("invalid enum `{}`: enums cannot have optional underlying types", identifier),
+        identifier
     ),
     (
         LogicKind::MustContainEnumerators,
         2009,
-        "enums must contain at least one enumerator"
+        format!("invalid enum `{}`: enums must contain at least one enumerator", identifier),
+        identifier
     ),
     (
         LogicKind::UnderlyingTypeMustBeIntegral,
         2010,
-        format!("underlying type '{}' is not supported for enums", underlying),
+        format!("invalid enum `{}`: underlying type '{}' is not supported for enums", identifier, underlying),
+        identifier,
         underlying
     ),
     (
@@ -398,11 +415,13 @@ implement_error_functions!(
         LogicKind::EnumeratorValueOutOfBounds,
         2012,
         format!(
-            "enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
+            "invalid enumerator `{}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
+            identifier,
             value = value,
             min = min,
             max = max
         ),
+        identifier,
         value,
         min,
         max
@@ -415,7 +434,8 @@ implement_error_functions!(
     (
         LogicKind::CannotHaveDuplicateEnumerators,
         2012,
-        "enumerators must be unique"
+        format!("invalid enumerator `{}`: enumerators must be unique", identifier),
+        identifier
     ),
     (
         LogicKind::NotSupportedWithEncoding,
