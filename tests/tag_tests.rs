@@ -89,8 +89,8 @@ mod tags {
 
         // Assert
         let expected: [ErrorKind; 2] = [
-            LogicKind::RequiredMustPrecedeOptional.into(),
-            LogicKind::RequiredMustPrecedeOptional.into(),
+            LogicKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
+            LogicKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
         ];
         assert_errors_new!(error_reporter, expected);
     }

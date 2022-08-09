@@ -52,7 +52,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let error = LogicKind::RequiredMustPrecedeOptional;
+            let error = LogicKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
             error_reporter.report(error, Some(parameter.data_type.span()));
             true
         }

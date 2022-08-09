@@ -136,13 +136,21 @@ pub enum LogicKind {
 
     // ----------------  Operation Errors ---------------- //
     /// The required parameters of an operation did not precede the optional parameters.
-    RequiredMustPrecedeOptional,
+    ///
+    /// # Fields
+    ///
+    /// * `parameter_identifier` - The identifier of the parameter that caused the error
+    RequiredMustPrecedeOptional(String),
 
     /// Return tuples for an operation must contain at least two element
     ReturnTuplesMustContainAtLeastTwoElements,
 
     /// A streamed parameter was not the last parameter in the operation
-    StreamedMembersMustBeLast,
+    ///
+    /// # Fields
+    ///
+    /// * `parameter_identifier` - The identifier of the parameter that caused the error
+    StreamedMembersMustBeLast(String),
 
     // ----------------  Encoding Errors ---------------- //
     /// The provided kind with identifier is not supported in the specified encoding
@@ -342,12 +350,14 @@ implement_error_functions!(
     (
         LogicKind::RequiredMustPrecedeOptional,
         2015,
-        "required parameters must precede tagged parameters"
+        format!("invalid parameter `{}`: required parameters must precede tagged parameters", identifier),
+        identifier
     ),
     (
         LogicKind::StreamedMembersMustBeLast,
         2016,
-        "only the last parameter in an operation can use the stream modifier"
+        format!("invalid parameter `{}`: only the last parameter in an operation can use the stream modifier", identifier),
+        identifier
     ),
     (
         LogicKind::ReturnTuplesMustContainAtLeastTwoElements,

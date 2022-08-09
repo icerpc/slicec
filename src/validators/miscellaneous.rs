@@ -18,7 +18,10 @@ fn stream_parameter_is_last(members: &[&Parameter], error_reporter: &mut ErrorRe
     if let Some((_, nonstreamed_members)) = members.split_last() {
         for member in nonstreamed_members {
             if member.is_streamed {
-                error_reporter.report(LogicKind::StreamedMembersMustBeLast, Some(member.span()));
+                error_reporter.report(
+                    LogicKind::StreamedMembersMustBeLast(member.identifier().to_owned()),
+                    Some(member.span()),
+                );
             }
         }
     }
