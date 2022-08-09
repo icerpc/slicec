@@ -184,6 +184,28 @@ mod tags {
         assert_errors_new!(error_reporter, expected);
     }
 
+    #[test_case(0)]
+    #[test_case(i32::MAX / 2)]
+    #[test_case(i32::MAX)]
+    fn valid_tag_value(value: i32) {
+        // Arrange
+        let slice = format!(
+            "
+            module Test;
+            interface I {{
+                testOp(a: tag({value}) int32?);
+            }}
+            ",
+            value = value
+        );
+
+        // Act
+        let error_reporter = parse_for_errors(slice);
+
+        // Assert
+        assert_errors!(error_reporter);
+    }
+
     #[test_case(77757348128678234_i64 ; "Random large value")]
     #[test_case((i32::MAX as i64) + 1; "Slightly over")]
     fn cannot_have_tag_with_value_larger_than_max(value: i64) {

@@ -374,7 +374,7 @@ implement_error_functions!(
     (
         LogicKind::TagOutOfBounds,
         2090,
-        "tag values must be greater than or equal to 0 and less than 2147483647"
+        "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
         LogicKind::MustBeUnique,
