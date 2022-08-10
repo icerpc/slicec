@@ -86,19 +86,16 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
     let supported_on = ["interface", "operation"];
     let kind = element.kind();
     if !supported_on.contains(&kind) {
-        match element.get_raw_attribute("compress", false) {
-            Some(attribute) => {
-                error_reporter.report(LogicKind::CompressAttributeCannotBeApplied, Some(attribute.span()))
-            }
-            None => (),
+        if let Some(attribute) = element.get_raw_attribute("compress", false) {
+            error_reporter.report(LogicKind::CompressAttributeCannotBeApplied, Some(attribute.span()))
         }
     }
 
     // Validate the arguments for the `compress` attribute.
     if supported_on.contains(&kind) {
         let valid_arguments = ["Args", "Return"];
-        match element.get_raw_attribute("compress", false) {
-            Some(attribute) => attribute.arguments.iter().for_each(|arg| {
+        if let Some(attribute) = element.get_raw_attribute("compress", false) {
+            attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
                     error_reporter.report(
                         LogicKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
@@ -112,8 +109,7 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
                         Some(attribute.span()),
                     );
                 }
-            }),
-            None => (),
+            })
         }
     }
 }

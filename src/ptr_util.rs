@@ -20,7 +20,7 @@ impl<T: Sized + 'static> OwnedPtr<T> {
 impl<T: ?Sized> OwnedPtr<T> {
     #[allow(clippy::should_implement_trait)]
     pub fn borrow(&self) -> &T {
-        &*self.data
+        &self.data
     }
 
     /// # Safety
@@ -37,7 +37,7 @@ impl<T: ?Sized> OwnedPtr<T> {
     /// behavior. So ONLY call this function if you are CERTAIN that NO other references exist.
     #[allow(clippy::should_implement_trait)]
     pub unsafe fn borrow_mut(&mut self) -> &mut T {
-        &mut *self.data
+        &mut self.data
     }
 
     pub fn downgrade(&self) -> WeakPtr<T> {
