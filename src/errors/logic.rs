@@ -27,6 +27,13 @@ pub enum LogicKind {
     ArgumentNotSupported(String, String),
 
     // ----------------  Tag Errors ---------------- //
+    /// A duplicate tag value was found
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotHaveDuplicateTag(String),
+
     /// Cannot tag a class
     ///
     /// # Fields
@@ -41,13 +48,6 @@ pub enum LogicKind {
     /// * `member_identifier` - The identifier of the tagged member
     CannotTagContainingClass(String),
 
-    /// A duplicate tag value was found
-    ///
-    /// # Fields
-    ///
-    /// * `member_identifier` - The identifier of the tagged member
-    CannotHaveDuplicateTag(String),
-
     /// A tag value was not in the expected range, 0 .. i32::MAX
     TagValueOutOfBounds,
 
@@ -59,20 +59,6 @@ pub enum LogicKind {
     TaggedMemberMustBeOptional(String),
 
     // ----------------  Enum Errors ---------------- //
-    /// Enums cannot have optional underlying types
-    ///
-    /// # Fields
-    ///
-    /// * `enum_identifier` - The identifier of the enum
-    CannotUseOptionalUnderlyingType(String),
-
-    /// Enums must be contain at least one enumerator
-    ///
-    /// # Fields
-    ///
-    /// * `enum_identifier` - The identifier of the enum
-    MustContainEnumerators(String),
-
     /// Enumerators must be unique
     ///
     /// # Fields
@@ -80,13 +66,12 @@ pub enum LogicKind {
     /// * `enumerator_identifier` - The identifier of the enumerator
     CannotHaveDuplicateEnumerators(String),
 
-    /// Enum underlying types must be integral types
+    /// Enums cannot have optional underlying types
     ///
     /// # Fields
     ///
     /// * `enum_identifier` - The identifier of the enum
-    /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
-    UnderlyingTypeMustBeIntegral(String, String),
+    CannotUseOptionalUnderlyingType(String),
 
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum
     ///
@@ -98,9 +83,31 @@ pub enum LogicKind {
     /// * `max` - The maximum value of the underlying type of the enum
     EnumeratorValueOutOfBounds(String, i64, i64, i64),
 
+    /// Enums must be contain at least one enumerator
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    MustContainEnumerators(String),
+
+    /// Enum underlying types must be integral types
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
+    UnderlyingTypeMustBeIntegral(String, String),
+
     // ---------------- Dictionary Errors ---------------- //
     /// Dictionaries cannot use optional types as keys
     KeyMustBeNonOptional,
+
+    /// An unsupported type was used as a dictionary key type
+    ///
+    /// # Fields
+    ///
+    /// * `identifier` - The identifier of the type that was used as a dictionary key type
+    KeyTypeNotSupported(String),
 
     /// Struct contains a member that cannot be used as a dictionary key type
     ///
@@ -111,13 +118,6 @@ pub enum LogicKind {
 
     /// Structs must be compact to be used as a dictionary key type
     StructKeyMustBeCompact,
-
-    /// An unsupported type was used as a dictionary key type
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the type that was used as a dictionary key type
-    KeyTypeNotSupported(String),
 
     // ----------------  Struct Errors ---------------- //
     /// Compact structs cannot be empty
@@ -135,6 +135,13 @@ pub enum LogicKind {
     ExceptionNotSupported(Encoding),
 
     // ----------------  Operation Errors ---------------- //
+    /// A streamed parameter was not the last parameter in the operation
+    ///
+    /// # Fields
+    ///
+    /// * `parameter_identifier` - The identifier of the parameter that caused the error
+    StreamedMembersMustBeLast(String),
+
     /// The required parameters of an operation did not precede the optional parameters.
     ///
     /// # Fields
@@ -144,13 +151,6 @@ pub enum LogicKind {
 
     /// Return tuples for an operation must contain at least two element
     ReturnTuplesMustContainAtLeastTwoElements,
-
-    /// A streamed parameter was not the last parameter in the operation
-    ///
-    /// # Fields
-    ///
-    /// * `parameter_identifier` - The identifier of the parameter that caused the error
-    StreamedMembersMustBeLast(String),
 
     // ----------------  Encoding Errors ---------------- //
     /// The provided kind with identifier is not supported in the specified encoding
@@ -185,6 +185,13 @@ pub enum LogicKind {
     UnsupportedType(String, Encoding),
 
     // ----------------  General Errors ---------------- //
+    /// Used to indicate when a method must contain arguments
+    ///
+    /// # Fields
+    ///
+    /// * `method_name` - The name of the method
+    CannotBeEmpty(&'static str),
+
     /// Kind can only inherit from a single base
     ///
     /// # Fields
@@ -235,21 +242,14 @@ pub enum LogicKind {
     /// * `actual type` - The name of the found type
     TypeMismatch(String, String),
 
-    /// Used to indicate when a method must contain arguments
-    ///
-    /// # Fields
-    ///
-    /// * `method_name` - The name of the method
-    CannotBeEmpty(&'static str),
-
     // ----------------  SliceC-C# Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
     // TODO: Clean up these errors
-    UnexpectedAttribute(String),                  // (attribute)
-    MissingRequiredArgument(String),              // (arg)
-    TooManyArguments(String),                     // (expected)
-    MissingRequiredAttribute(String),             // (attribute)
     AttributeOnlyValidForTopLevelModules(String), // (attribute)
+    MissingRequiredArgument(String),              // (arg)
+    MissingRequiredAttribute(String),             // (attribute)
+    TooManyArguments(String),                     // (expected)
+    UnexpectedAttribute(String),                  // (attribute)
 }
 
 implement_from_for_error_sub_kind!(LogicKind, ErrorKind::Logic);
