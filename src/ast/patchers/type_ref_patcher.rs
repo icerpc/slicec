@@ -4,9 +4,9 @@ use crate::ast::{Ast, Node};
 use crate::downgrade_as;
 use crate::errors::*;
 use crate::grammar::*;
-use crate::parse_result::{ParsedData, ParserResult};
-use crate::ptr_util::{OwnedPtr, WeakPtr};
-use crate::string_util::prefix_with_article;
+use crate::utils::parse_result::{ParsedData, ParserResult};
+use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
+use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
 use std::convert::TryInto;
 

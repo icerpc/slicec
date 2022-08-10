@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
+use crate::utils::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Dictionary {

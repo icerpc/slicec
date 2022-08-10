@@ -7,8 +7,8 @@ mod patchers;
 
 use self::node::Node;
 use crate::grammar::{Element, NamedSymbol, Primitive};
-use crate::parse_result::{ParsedData, ParserResult};
-use crate::ptr_util::{OwnedPtr, WeakPtr};
+use crate::utils::parse_result::{ParsedData, ParserResult};
+use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 

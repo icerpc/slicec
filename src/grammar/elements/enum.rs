@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::WeakPtr;
-use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
+use crate::utils::ptr_util::WeakPtr;
+use crate::utils::slice_file::Span;
+use crate::utils::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Enum {

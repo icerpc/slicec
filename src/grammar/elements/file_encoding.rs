@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::slice_file::Span;
+use crate::utils::slice_file::Span;
 
 #[derive(Clone, Debug)]
 pub struct FileEncoding {

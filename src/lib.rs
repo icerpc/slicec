@@ -1,22 +1,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod ast;
-pub mod code_gen_util;
-pub mod command_line;
 pub mod errors;
 pub mod grammar;
-pub mod parse_result;
 pub mod parser;
-pub mod ptr_util;
-pub mod slice_file;
-pub mod string_util;
-pub mod supported_encodings;
+pub mod utils;
 pub mod validators;
-pub mod visitor;
 
-use crate::command_line::SliceOptions;
-use crate::parse_result::ParserResult;
 use crate::validators::validate_parsed_data;
+use utils::command_line::SliceOptions;
+use utils::parse_result::ParserResult;
 
 pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
     parser::parse_files(options).and_then(validate_parsed_data)
