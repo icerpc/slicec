@@ -63,7 +63,6 @@ fn supports_multiple_inheritance() {
 }
 
 #[test]
-#[ignore = "reason: TODO Need to update AST Error emission"]
 fn must_inherit_from_interface() {
     // Arrange
     let slice = "

@@ -236,7 +236,6 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn relative_scope_is_module_before_interface() {
         // Arrange
         let slice = "
@@ -261,9 +260,8 @@ mod scope_resolution {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
-            "type mismatch: expected a `Type` but found a module (which doesn't implement `Type`)",
-        ]);
+        let expected: ErrorKind = LogicKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
+        assert_errors_new!(error_reporter, [&expected]);
     }
 
     #[test]

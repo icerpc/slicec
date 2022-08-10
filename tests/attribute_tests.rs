@@ -392,7 +392,7 @@ mod attributes {
                 module Test;
 
                 interface I {
-                    [foo::bar(abcdefgh)]
+                    [foo::bar(abcd efgh)]
                     op(s: string) -> string;
                 }
             ";
@@ -401,9 +401,7 @@ mod attributes {
             let error_reporter = parse_for_errors(slice);
 
             // Assert
-            assert_errors!(error_reporter, [
-                "", // Should be error here
-            ]);
+            assert_errors!(error_reporter);
         }
     }
 }
