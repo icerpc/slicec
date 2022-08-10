@@ -26,37 +26,58 @@ pub enum LogicKind {
     /// * `method_name` - The name of the method
     ArgumentNotSupported(String, String),
 
-    // ----------------  Tag Errors ---------------- //
-    /// A duplicate tag value was found
+    // ---------------- Dictionary Errors ---------------- //
+    /// Dictionaries cannot use optional types as keys
+    KeyMustBeNonOptional,
+
+    /// An unsupported type was used as a dictionary key type
     ///
     /// # Fields
     ///
-    /// * `member_identifier` - The identifier of the tagged member
-    CannotHaveDuplicateTag(String),
+    /// * `identifier` - The identifier of the type that was used as a dictionary key type
+    KeyTypeNotSupported(String),
 
-    /// Cannot tag a class
+    /// Struct contains a member that cannot be used as a dictionary key type
     ///
     /// # Fields
     ///
-    /// * `member_identifier` - The identifier of the tagged member
-    CannotTagClass(String),
+    /// * `struct_identifier` - The identifier of the struct
+    StructKeyContainsDisallowedType(String),
 
-    /// Cannot tag a member that contains a class
+    /// Structs must be compact to be used as a dictionary key type
+    StructKeyMustBeCompact,
+
+    // ----------------  Encoding Errors ---------------- //
+    /// The provided kind with identifier is not supported in the specified encoding
     ///
     /// # Fields
     ///
-    /// * `member_identifier` - The identifier of the tagged member
-    CannotTagContainingClass(String),
+    /// * `kind` - The kind that was is not supported
+    /// * `identifier` - The identifier of the kind that is not supported
+    /// * `encoding` - The encoding that was specified
+    NotSupportedWithEncoding(String, String, Encoding),
 
-    /// A tag value was not in the expected range, 0 .. i32::MAX
-    TagValueOutOfBounds,
-
-    /// A tagged data member was not set to optional
+    /// Optional are not supported in the specified encoding
     ///
     /// # Fields
     ///
-    /// * `member_identifier` - The identifier of the tagged member
-    TaggedMemberMustBeOptional(String),
+    /// * `encoding` - The encoding that was specified
+    OptionalsNotSupported(Encoding),
+
+    /// Streamed parameters are not supported with the specified encoding
+    ///
+    /// # Fields
+    ///
+    /// * `encoding` - The encoding that was specified
+    StreamedParametersNotSupported(Encoding),
+
+    /// An unsupported type was used in the specified encoding
+    ///
+    /// # Fields
+    ///
+    /// * `type` - The name of the type that was used in the specified encoding
+    /// * `encoding` - The encoding that was specified
+    UnsupportedType(String, Encoding),
 
     // ----------------  Enum Errors ---------------- //
     /// Enumerators must be unique
@@ -98,34 +119,6 @@ pub enum LogicKind {
     /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
     UnderlyingTypeMustBeIntegral(String, String),
 
-    // ---------------- Dictionary Errors ---------------- //
-    /// Dictionaries cannot use optional types as keys
-    KeyMustBeNonOptional,
-
-    /// An unsupported type was used as a dictionary key type
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the type that was used as a dictionary key type
-    KeyTypeNotSupported(String),
-
-    /// Struct contains a member that cannot be used as a dictionary key type
-    ///
-    /// # Fields
-    ///
-    /// * `struct_identifier` - The identifier of the struct
-    StructKeyContainsDisallowedType(String),
-
-    /// Structs must be compact to be used as a dictionary key type
-    StructKeyMustBeCompact,
-
-    // ----------------  Struct Errors ---------------- //
-    /// Compact structs cannot be empty
-    CompactStructCannotBeEmpty,
-
-    /// Compact structs cannot contain tagged data members
-    CompactStructCannotContainTaggedMembers,
-
     // ----------------  Exception Errors ---------------- //
     /// Exceptions cannot be used as a data type with the specified encoding
     ///
@@ -152,37 +145,44 @@ pub enum LogicKind {
     /// Return tuples for an operation must contain at least two element
     ReturnTuplesMustContainAtLeastTwoElements,
 
-    // ----------------  Encoding Errors ---------------- //
-    /// The provided kind with identifier is not supported in the specified encoding
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that was is not supported
-    /// * `identifier` - The identifier of the kind that is not supported
-    /// * `encoding` - The encoding that was specified
-    NotSupportedWithEncoding(String, String, Encoding),
+    // ----------------  Struct Errors ---------------- //
+    /// Compact structs cannot be empty
+    CompactStructCannotBeEmpty,
 
-    /// Optional are not supported in the specified encoding
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified
-    OptionalsNotSupported(Encoding),
+    /// Compact structs cannot contain tagged data members
+    CompactStructCannotContainTaggedMembers,
 
-    /// Streamed parameters are not supported with the specified encoding
+    // ----------------  Tag Errors ---------------- //
+    /// A duplicate tag value was found
     ///
     /// # Fields
     ///
-    /// * `encoding` - The encoding that was specified
-    StreamedParametersNotSupported(Encoding),
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotHaveDuplicateTag(String),
 
-    /// An unsupported type was used in the specified encoding
+    /// Cannot tag a class
     ///
     /// # Fields
     ///
-    /// * `type` - The name of the type that was used in the specified encoding
-    /// * `encoding` - The encoding that was specified
-    UnsupportedType(String, Encoding),
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagClass(String),
+
+    /// Cannot tag a member that contains a class
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagContainingClass(String),
+
+    /// A tag value was not in the expected range, 0 .. i32::MAX
+    TagValueOutOfBounds,
+
+    /// A tagged data member was not set to optional
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    TaggedMemberMustBeOptional(String),
 
     // ----------------  General Errors ---------------- //
     /// Used to indicate when a method must contain arguments
