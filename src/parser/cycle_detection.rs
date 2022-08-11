@@ -29,11 +29,9 @@ impl<'a> CycleDetector<'a> {
         // Check if the type is self-referential by whether we've already seen it's type-id in
         // the dependency chain we're currently checking.
         if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {
-            let message = format!(
-                "self-referential type {type_id} has infinite size.\n{cycle_string}",
-                type_id = &type_id,
-                cycle_string = &self.dependency_stack[i..].join(" -> "),
-            );
+            let type_id = &type_id;
+            let cycle_string = &self.dependency_stack[i..].join(" -> ");
+            let message = format!("self-referential type {type_id} has infinite size.\n{cycle_string}");
             self.error_reporter
                 .report(ErrorKind::Syntax(message), Some(type_def.span()));
 

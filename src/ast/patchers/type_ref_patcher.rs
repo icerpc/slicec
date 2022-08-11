@@ -258,11 +258,9 @@ impl TypeRefPatcher<'_> {
                     LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
                 self.error_reporter.report(error, Some(current_type_alias.span()));
                 for window in type_alias_chain[i..].windows(2) {
-                    let message = format!(
-                        "type alias '{}' uses type alias '{}' here:",
-                        window[0].identifier(),
-                        window[1].identifier(),
-                    );
+                    let identifier = window[0].identifier();
+                    let identifier_original = window[1].identifier();
+                    let message = format!("type alias '{identifier}' uses type alias '{identifier_original}' here:");
                     self.error_reporter
                         .report(ErrorKind::new_note(message), Some(window[0].underlying.span()));
                 }

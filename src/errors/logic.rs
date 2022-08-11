@@ -263,19 +263,19 @@ implement_error_functions!(
     (
         LogicKind::DeprecatedAttributeCannotBeApplied,
         2001,
-        format!("the deprecated attribute cannot be applied to {}", kind),
+        format!("the deprecated attribute cannot be applied to {kind}"),
         kind
     ),
     (
         LogicKind::CannotBeEmpty,
         2002,
-        format!("{} arguments cannot be empty", method),
+        format!("{method} arguments cannot be empty"),
         method
     ),
     (
         LogicKind::ArgumentNotSupported,
         2003,
-        format!("argument '{}' is not supported for `{}`", arg, method),
+        format!("argument '{arg}' is not supported for `{method}`"),
         arg,
         method
     ),
@@ -292,16 +292,13 @@ implement_error_functions!(
     (
         LogicKind::KeyTypeNotSupported,
         2006,
-        format!("'{}' cannot be used as a dictionary key type", identifier),
+        format!("'{identifier}' cannot be used as a dictionary key type"),
         identifier
     ),
     (
         LogicKind::StructKeyContainsDisallowedType,
         2007,
-        format!(
-            "struct '{}' contains members that cannot be used as a dictionary key type",
-            identifier
-        ),
+        format!("struct '{identifier}' contains members that cannot be used as a dictionary key type"),
         identifier
     ),
     (
@@ -319,20 +316,20 @@ implement_error_functions!(
     (
         LogicKind::UnderlyingTypeMustBeIntegral,
         2010,
-        format!("invalid enum `{}`: underlying type '{}' is not supported for enums", identifier, underlying),
+        format!("invalid enum `{identifier}`: underlying type '{underlying}' is not supported for enums"),
         identifier,
         underlying
     ),
     (
         LogicKind::Redefinition,
         2011,
-        format!("redefinition of `{}`", identifier),
+        format!("redefinition of `{identifier}`"),
         identifier
     ),
     (
         LogicKind::Shadows,
         2012,
-        format!("`{}` shadows another symbol", identifier),
+        format!("`{identifier}` shadows another symbol"),
         identifier
     ),
     (
@@ -396,17 +393,14 @@ implement_error_functions!(
     (
         LogicKind::TypeMismatch,
         2023,
-        format!(
-            "type mismatch: expected a `{}` but found a {} (which doesn't implement `{}`)",
-            expected, found, expected
-        ),
+        format!("type mismatch: expected a `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
         expected,
         found
     ),
     (
         LogicKind::ConcreteTypeMismatch,
         2024,
-        format!("type mismatch: expected `{}` but found a `{}`", expected, found),
+        format!("type mismatch: expected `{expected}` but found a `{found}`"),
         expected,
         found
     ),
@@ -425,16 +419,9 @@ implement_error_functions!(
         LogicKind::EnumeratorValueOutOfBounds,
         2012,
         format!(
-            "invalid enumerator `{}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
-            identifier,
-            value = value,
-            min = min,
-            max = max
+            "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
         ),
-        identifier,
-        value,
-        min,
-        max
+        identifier, value, min, max
     ),
     (
         LogicKind::TagValueOutOfBounds,
@@ -450,76 +437,62 @@ implement_error_functions!(
     (
         LogicKind::NotSupportedWithEncoding,
         2026,
-        format!(
-            "{} `{}` is not supported by the {} encoding",
-            kind, identifier, encoding,
-        ),
-        kind,
-        identifier,
-        encoding
+        format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
+        kind, identifier, encoding
     ),
     (
         LogicKind::UnsupportedType,
         2026,
-        format!(
-            "the type `{}` is not supported by the {} encoding",
-            type_string, encoding,
-        ),
+        format!("the type `{type_string}` is not supported by the {encoding} encoding"),
         type_string,
         encoding
     ),
     (
         LogicKind::ExceptionNotSupported,
         2026,
-        format!(
-            "exceptions cannot be used as a data type with the {} encoding",
-            encoding
-        ),
+        format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
         LogicKind::OptionalsNotSupported,
         2026,
-        format!(
-            "optional types are not supported by the {} encoding (except for classes, proxies, and with tags)",
-            encoding
-        ),
+        format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
         LogicKind::StreamedParametersNotSupported,
         2026,
-        format!("streamed parameters are not supported by the {} encoding", encoding),
+        format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
         LogicKind::UnexpectedAttribute,
         2200,
-        format!("unexpected attribute `{}`", attribute),
+        format!("unexpected attribute `{attribute}`"),
         attribute
     ),
     (
         LogicKind::MissingRequiredArgument,
         2201,
-        format!("missing required argument `{}`", argument),
+        format!("missing required argument `{argument}`"),
         argument
     ),
     (
         LogicKind::TooManyArguments,
         2202,
-        format!("too many arguments, expected `{}`", expected),
+        format!("too many arguments, expected `{expected}`"),
         expected
     ),
     (
         LogicKind::MissingRequiredAttribute,
         2203,
-        format!("missing required attribute `{}`", attribute),
+        format!("missing required attribute `{attribute}`"),
         attribute
     ),
     (
         LogicKind::AttributeOnlyValidForTopLevelModules,
         2204,
-        format!("The `{}` attribute is only valid for top-level modules", attribute),
+        format!("The `{attribute}` attribute is only valid for top-level modules"),
         attribute
     )
 );

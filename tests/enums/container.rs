@@ -77,8 +77,7 @@ fn validate_backing_type_out_of_bounds() {
             enum E: int16 {{
                 A = {out_of_bounds_value},
             }}
-        ",
-        out_of_bounds_value = out_of_bounds_value,
+        "
     );
 
     // Act
@@ -93,7 +92,8 @@ fn validate_backing_type_out_of_bounds() {
 #[test]
 fn validate_backing_type_bounds() {
     // Arranges
-    let bounds = (i16::MIN, i16::MAX);
+    let min = i16::MIN;
+    let max = i16::MAX;
     let slice = format!(
         "
             module Test;
@@ -101,9 +101,7 @@ fn validate_backing_type_bounds() {
                 A = {min},
                 B = {max},
             }}
-        ",
-        min = bounds.0,
-        max = bounds.1,
+        "
     );
 
     // Act
@@ -121,11 +119,10 @@ fn invalid_underlying_type(underlying_type: &str) {
     let slice = format!(
         "
             module Test;
-            enum E: {} {{
+            enum E: {underlying_type} {{
                 A
             }}
-        ",
-        underlying_type,
+        "
     );
 
     // Act
@@ -148,8 +145,7 @@ fn enumerator_invalid_identifiers(identifier: &str) {
             enum E {{
                 {identifier},
             }}
-        ",
-        identifier = identifier,
+        "
     );
 
     // Act
@@ -200,15 +196,15 @@ fn enumerators_must_be_unique() {
 #[test]
 fn automatically_assigned_values_will_not_overflow() {
     // Arrange
+    let max = i64::MAX;
     let slice = format!(
         "
             module Test;
             enum E {{
-                A = {max_value},
+                A = {max},
                 B,
             }}
-        ",
-        max_value = i64::MAX,
+        "
     );
 
     // Act
@@ -231,8 +227,7 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
                 A,
                 B,
             }}
-        ",
-        enum_definition = enum_definition,
+        "
     );
 
     // Act
@@ -306,6 +301,7 @@ mod slice1 {
     #[test]
     fn enumerators_cannot_contain_out_of_bounds_values() {
         // Arrange
+        let value = i32::MAX as i64 + 1;
         let slice = format!(
             "
                 encoding = 1;
@@ -313,8 +309,7 @@ mod slice1 {
                 enum E {{
                     A = {value},
                 }}
-            ",
-            value = i32::MAX as i64 + 1
+            "
         );
 
         // Act

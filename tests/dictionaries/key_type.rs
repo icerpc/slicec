@@ -40,9 +40,8 @@ fn allowed_primitive_types(key_type: &str) {
     let slice = format!(
         "
             module Test;
-            typealias Dict = dictionary<{}, int8>;
-        ",
-        key_type,
+            typealias Dict = dictionary<{key_type}, int8>;
+        "
     );
 
     // Act
@@ -60,9 +59,8 @@ fn disallowed_primitive_types(key_type: &str) {
     let slice = format!(
         "
             module Test;
-            typealias Dict = dictionary<{}, int8>;
-        ",
-        key_type,
+            typealias Dict = dictionary<{key_type}, int8>;
+        "
     );
 
     // Act
@@ -80,9 +78,8 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let slice = format!(
         "
             module Test;
-            typealias Dict = dictionary<{}, int8>;
-        ",
-        key_type,
+            typealias Dict = dictionary<{key_type}, int8>;
+        "
     );
 
     // Act
@@ -100,10 +97,9 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     let slice = format!(
         "
             module Test;
-            {}
-            typealias Dict = dictionary<{}, int8>;
-        ",
-        key_type_def, key_type,
+            {key_type_def}
+            typealias Dict = dictionary<{key_type}, int8>;
+        "
     );
 
     // Act
@@ -119,16 +115,14 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
 #[test_case("MyTrait", "trait MyTrait;", "trait" ; "traits")]
 fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str) {
     // Arrange
+    let file_encoding = if key_kind == "class" { "1" } else { "2" };
     let slice = format!(
         "
             encoding = {file_encoding};
             module Test;
-            {key_type_definition}
+            {key_type_def}
             typealias Dict = dictionary<{key_type}, int8>;
-        ",
-        file_encoding = if key_kind == "class" { "1" } else { "2" },
-        key_type_definition = key_type_def,
-        key_type = key_type,
+        "
     );
 
     // Act

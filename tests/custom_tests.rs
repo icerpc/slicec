@@ -14,11 +14,10 @@ mod custom {
         // Arrange
         let slice = format!(
             "
-                encoding = {};
+                encoding = {encoding};
                 module Test;
                 custom ACustomType;
-            ",
-            encoding,
+            "
         );
 
         // Act

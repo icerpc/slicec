@@ -30,10 +30,7 @@ implement_error_functions!(
     (
         WarningKind::ExtraParameterInDocComment,
         1000,
-        format!(
-            "doc comment has a param tag for '{}', but there is no parameter by that name",
-            param_name
-        ),
+        format!("doc comment has a param tag for '{param_name}', but there is no parameter by that name"),
         param_name
     ),
     (
@@ -44,11 +41,8 @@ implement_error_functions!(
     (
         WarningKind::ExtraThrowInDocComment,
         1002,
-        format!(
-            "doc comment indicates that {} `{}` throws, however, only operations can throw",
-            kind, op_identifier,
-        ),
+        format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
         kind,
-        op_identifier
+        identifier
     )
 );

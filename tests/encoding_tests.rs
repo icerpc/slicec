@@ -17,8 +17,7 @@ mod encodings {
         let slice = format!(
             "
                 encoding = {value};
-            ",
-            value = value,
+            "
         );
 
         // Act
