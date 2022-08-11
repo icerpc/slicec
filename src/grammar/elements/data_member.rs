@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
+use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
-use crate::utils::slice_file::Span;
 
 #[derive(Debug)]
 pub struct DataMember {

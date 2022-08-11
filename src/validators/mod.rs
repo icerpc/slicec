@@ -10,9 +10,9 @@ mod tag;
 
 use crate::errors::ErrorReporter;
 use crate::grammar::*;
-use crate::utils::parse_result::{ParsedData, ParserResult};
+use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::WeakPtr;
-use crate::utils::visitor::Visitor;
+use crate::visitor::Visitor;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.

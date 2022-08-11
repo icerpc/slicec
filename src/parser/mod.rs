@@ -9,9 +9,9 @@ mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;
+use crate::command_line::SliceOptions;
 use crate::errors::ErrorReporter;
-use crate::utils::command_line::SliceOptions;
-use crate::utils::parse_result::{ParsedData, ParserResult};
+use crate::parse_result::{ParsedData, ParserResult};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};

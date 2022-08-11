@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::*;
-use crate::utils::slice_file::SliceFile;
+use crate::slice_file::SliceFile;
 
 /// The `Visitor` trait is used to recursively visit through a tree of slice elements.
 ///

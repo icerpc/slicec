@@ -60,7 +60,7 @@ impl SupportedEncodings {
 /// Allows slice syntax to be used with [SupportedEncodings].
 /// Example:
 /// ```
-/// # use slice::utils::supported_encodings::SupportedEncodings;
+/// # use slice::supported_encodings::SupportedEncodings;
 /// # use slice::grammar::Encoding;
 /// let encodings = vec![Encoding::Slice1];
 /// let supported_encodings = SupportedEncodings::new(encodings);

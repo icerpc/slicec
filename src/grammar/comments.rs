@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::utils::slice_file::Span;
+use crate::slice_file::Span;
 
 // TODO improve this to track the span of individual doc comment fields, so we can check for
 // comment validity: EX: making sure 'params' match the operation's actual parameters, etc.

@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::errors::*;
-use crate::utils::slice_file::SliceFile;
+use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 
 pub struct ParsedData {

@@ -2,8 +2,8 @@
 
 use crate::errors::{ErrorKind, ErrorReporter};
 use crate::grammar::*;
-use crate::utils::slice_file::SliceFile;
-use crate::utils::visitor::Visitor;
+use crate::slice_file::SliceFile;
+use crate::visitor::Visitor;
 use std::collections::HashMap;
 
 pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, error_reporter: &mut ErrorReporter) {

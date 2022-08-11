@@ -3,9 +3,9 @@
 use super::super::Node;
 use crate::errors::*;
 use crate::grammar::*;
-use crate::utils::parse_result::{ParsedData, ParserResult};
-use crate::utils::slice_file::SliceFile;
-use crate::utils::supported_encodings::SupportedEncodings;
+use crate::parse_result::{ParsedData, ParserResult};
+use crate::slice_file::SliceFile;
+use crate::supported_encodings::SupportedEncodings;
 use std::collections::HashMap;
 
 pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {

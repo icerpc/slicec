@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::errors::{Error, ErrorKind};
-use crate::utils::slice_file::Span;
+use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct ErrorReporter {
