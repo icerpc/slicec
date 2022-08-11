@@ -194,8 +194,7 @@ mod tags {
             interface I {{
                 testOp(a: tag({value}) int32?);
             }}
-            ",
-            value = value
+            "
         );
 
         // Act
@@ -215,8 +214,7 @@ mod tags {
                 interface I {{
                     testOp(a: tag({value}) int32?);
                 }}
-            ",
-            value = value
+            "
         );
 
         // Act
@@ -230,15 +228,12 @@ mod tags {
     #[test]
     fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
-        let slice = format!(
-            "
-                module Test;
-                interface I {{
-                    testOp(a: tag({value}) int32?);
-                }}
-            ",
-            value = -1
-        );
+        let slice = "
+            module Test;
+            interface I {{
+                testOp(a: tag(-1) int32?);
+            }}
+        ";
 
         // Act
         let error_reporter = parse_for_errors(slice);

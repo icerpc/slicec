@@ -21,11 +21,10 @@ mod attributes {
                     module Test;
 
                     interface I {{
-                        [format({})]
+                        [format({format})]
                         op(s: string) -> string;
                     }}
-                ",
-                format,
+                "
             );
 
             // Act
@@ -59,16 +58,16 @@ mod attributes {
         #[test_case(None; "No parenthesis or arguments")]
         fn format_with_no_argument_fails(arg: Option<&str>) {
             // Arrange
+            let args = arg.unwrap_or("");
             let slice = format!(
                 "
                     module Test;
 
                     interface I {{
-                        [format{}]
+                        [format{args}]
                         op(s: string) -> string;
                     }}
-                ",
-                arg.unwrap_or(""),
+                "
             );
 
             // Act
@@ -346,8 +345,7 @@ mod attributes {
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
-                ",
-                input = input,
+                "
             );
 
             // Act
@@ -372,8 +370,7 @@ mod attributes {
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
-                ",
-                input = input,
+                "
             );
 
             // Act

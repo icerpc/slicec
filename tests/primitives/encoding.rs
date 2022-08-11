@@ -139,8 +139,7 @@ mod slice2 {
             compact struct S
             {{
                 v: {value},
-            }}",
-            value = value,
+            }}"
         );
 
         // Act
@@ -175,8 +174,7 @@ mod slice2 {
                 struct MyStruct {{
                     myVar: {value},
                 }}
-            ",
-            value = value,
+            "
         );
 
         // Act
