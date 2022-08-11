@@ -24,12 +24,11 @@ mod typealias {
         // Arrange
         let slice = format!(
             "
-                encoding = {};
+                encoding = {encoding};
                 module Test;
-                {}
-                typealias Alias = {};
-            ",
-            encoding, definition, identifier,
+                {definition}
+                typealias Alias = {identifier};
+            "
         );
 
         // Act

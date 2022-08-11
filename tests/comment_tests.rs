@@ -26,10 +26,9 @@ mod comments {
             "
                 module tests;
 
-                {}
+                {doc_comment}
                 interface MyInterface {{}}
             ",
-            doc_comment
         );
 
         // Act
@@ -257,10 +256,9 @@ mod comments {
             "
             module tests;
 
-            {}
+            {comment}
             interface MyInterface {{}}
-            ",
-            comment,
+            "
         );
 
         // Act
@@ -283,10 +281,9 @@ mod comments {
             "
                 module tests;
 
-                {}
+                {comment}
                 interface MyInterface {{}}
-            ",
-            comment,
+            "
         );
 
         // Act

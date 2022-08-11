@@ -36,11 +36,12 @@ impl ParsedData {
             };
 
             // Insert the prefix at the start of the message.
-            let mut message = format!("{}: {}", prefix, &error);
+            let mut message = format!("{prefix}: {error}");
 
             if let Some(span) = error.span {
+                let file = &span.file;
                 // Specify the span where the error starts on its own line after the message.
-                message = format!("{}\n@ '{}' ({},{})", message, &span.file, span.start.0, span.start.1);
+                message = format!("{message}\n@ '{file}' ({},{})", span.start.0, span.start.1);
 
                 // If the span isn't empty, extract a snippet of the text contained within the span.
                 if span.start != span.end {

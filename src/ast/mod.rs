@@ -151,7 +151,7 @@ impl Ast {
         self.lookup_table
             .get(identifier)
             .map(|i| &self.elements[*i])
-            .ok_or_else(|| format!("no element with identifier `{}` exists", identifier))
+            .ok_or_else(|| format!("no element with identifier `{identifier}` exists"))
     }
 
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
@@ -213,12 +213,8 @@ impl Ast {
         }
 
         // If the identifier wasn't defined in any of the scopes, check for it at global scope.
-        self.find_node(identifier).map_err(|_| {
-            format!(
-                "no element with identifier `{}` exists in the scope `{}`",
-                identifier, scope
-            )
-        })
+        self.find_node(identifier)
+            .map_err(|_| format!("no element with identifier `{identifier}` exists in the scope `{scope}`"))
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.

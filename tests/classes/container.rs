@@ -70,9 +70,8 @@ fn cycles_are_allowed(cycle_string: &str) {
         "
             encoding = 1;
             module Test;
-            {}
-        ",
-        cycle_string,
+            {cycle_string}
+        "
     );
 
     let error_reporter = parse_for_errors(slice);

@@ -183,7 +183,7 @@ impl<'a> SliceParser<'a> {
             "2" => Ok(Encoding::Slice2),
             _ => Err(PestError::new_from_span(
                 PestErrorVariant::CustomError {
-                    message: format!("Unknown slice encoding version: {}", input.as_str()),
+                    message: format!("Unknown slice encoding version: {input}"),
                 },
                 input.as_span(),
             )),
@@ -690,12 +690,14 @@ impl<'a> SliceParser<'a> {
 
                 // The user did not specify an enum value, so we increment the previous value.
                 enum_value = match input.user_data().borrow().current_enum_value {
-                    Some(value) if value == i64::MAX => Err(PestError::new_from_span(
-                        PestErrorVariant::CustomError {
-                            message: format!("Enumerator value out of range: {}", input.as_str()),
-                        },
+                    Some(value) if value == i64::MAX => {
+                        let input_str = input.as_str();
+                        Err(PestError::new_from_span(
+                            PestErrorVariant::CustomError {
+                                message: format!("Enumerator value out of range: {input_str}")
+                            },
                         input.as_span(),
-                    )),
+                    ))},
                     Some(value) => Ok(value + 1),
                     None => Ok(0),
                 }?;
@@ -934,7 +936,7 @@ impl<'a> SliceParser<'a> {
             Ok(int) => Ok(int),
             Err(err) => Err(PestError::new_from_span(
                 PestErrorVariant::CustomError {
-                    message: format!("Failed to parse integer: {}", err),
+                    message: format!("Failed to parse integer: {err}"),
                 },
                 input.as_span(),
             )),

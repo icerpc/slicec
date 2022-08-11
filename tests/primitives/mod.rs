@@ -25,14 +25,13 @@ use test_case::test_case;
 #[test_case("AnyClass", Primitive::AnyClass, Some("encoding = 1;"); "AnyClass")]
 fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str>) {
     // Arrange
+    let encoding = encoding.unwrap_or("");
     let slice = format!(
         "
             {encoding}
             module Test;
             typealias P = {slice_component};
-        ",
-        encoding = encoding.unwrap_or(""),
-        slice_component = slice_component,
+        "
     );
 
     // Act
