@@ -230,9 +230,9 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            interface I {{
+            interface I {
                 testOp(a: tag(-1) int32?);
-            }}
+            }
         ";
 
         // Act
