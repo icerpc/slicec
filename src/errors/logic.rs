@@ -14,7 +14,7 @@ pub enum LogicKind {
     ///
     /// # Fields
     ///
-    /// * `type` - The type which the deprecated attribute was applied to
+    /// * `kind` - The kind which the deprecated attribute was applied to
     DeprecatedAttributeCannotBeApplied(String),
 
     // ----------------  Argument Errors ---------------- //
@@ -75,7 +75,7 @@ pub enum LogicKind {
     ///
     /// # Fields
     ///
-    /// * `type` - The name of the type that was used in the specified encoding
+    /// * `kind` - The name of the kind that was used in the specified encoding
     /// * `encoding` - The encoding that was specified
     UnsupportedType(String, Encoding),
 
@@ -116,7 +116,7 @@ pub enum LogicKind {
     /// # Fields
     ///
     /// * `enum_identifier` - The identifier of the enum
-    /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
+    /// * `kind` - The name of the non-integral type that was used as the underlying type of the enum
     UnderlyingTypeMustBeIntegral(String, String),
 
     // ----------------  Exception Errors ---------------- //
@@ -202,8 +202,8 @@ pub enum LogicKind {
     ///
     /// # Fields
     ///
-    /// * `expected type` - The name of the expected type
-    /// * `actual type` - The name of the found type
+    /// * `expected kind` - The name of the expected kind
+    /// * `actual kind` - The name of the found kind
     ConcreteTypeMismatch(String, String),
 
     /// The provided kind should be positive
@@ -238,8 +238,8 @@ pub enum LogicKind {
     ///
     /// # Fields
     ///
-    /// * `expected type` - The name of the expected type
-    /// * `actual type` - The name of the found type
+    /// * `expected kind` - The name of the expected kind
+    /// * `actual kind` - The name of the found kind
     TypeMismatch(String, String),
 
     // ----------------  SliceC-C# Errors ---------------- //
@@ -390,7 +390,7 @@ implement_error_functions!(
     (
         LogicKind::CanOnlyInheritFromSingleBase,
         2022,
-        format!("`{}` can only inherit from a single base {}", kind, kind),
+        format!("`{}` types can only inherit form a single base  {}", kind, kind),
         kind
     ),
     (
