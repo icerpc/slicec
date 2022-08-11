@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::WeakPtr;
 use crate::slice_file::Span;
+use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
@@ -109,13 +109,9 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         if recurse {
             panic!("Cannot recursively get attributes on a typeref");
         }
-
-        for attribute in &self.attributes {
-            if attribute.prefixed_directive == directive {
-                return Some(attribute);
-            }
-        }
-        None
+        self.attributes
+            .iter()
+            .find(|&attribute| attribute.prefixed_directive == directive)
     }
 }
 

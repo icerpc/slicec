@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::ptr_util::WeakPtr;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
+use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
 pub struct CustomType {

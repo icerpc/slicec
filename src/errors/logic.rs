@@ -397,7 +397,7 @@ implement_error_functions!(
         LogicKind::TypeMismatch,
         2023,
         format!(
-            "type mismatch: expected a `{}` but found {} (which doesn't implement `{}`)",
+            "type mismatch: expected a `{}` but found a {} (which doesn't implement `{}`)",
             expected, found, expected
         ),
         expected,
@@ -406,7 +406,7 @@ implement_error_functions!(
     (
         LogicKind::ConcreteTypeMismatch,
         2024,
-        format!("type mismatch: expected `{}` but found `{}`", expected, found),
+        format!("type mismatch: expected `{}` but found a `{}`", expected, found),
         expected,
         found
     ),

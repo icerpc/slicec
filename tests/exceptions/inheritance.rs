@@ -24,7 +24,6 @@ fn supports_single_inheritance() {
 }
 
 #[test]
-#[ignore = "reason: TODO Need to update AST Error emission"]
 fn does_not_support_multiple_inheritance() {
     // Arrange
     let slice = "
@@ -44,7 +43,6 @@ fn does_not_support_multiple_inheritance() {
 }
 
 #[test]
-#[ignore = "reason: TODO Need to update AST Error emission"]
 fn must_inherit_from_exception() {
     // Arrange
     let slice = "

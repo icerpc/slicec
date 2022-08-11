@@ -1,5 +1,7 @@
 # IceRPC
 
+[![.github/workflows/rust.yml](https://github.com/zeroc-ice/icerpc/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/zeroc-ice/icerpc/actions?query=branch:main)
+
 - [Build Requirements](#build-requirements)
 - [Usage](#usage)
 - [Testing](#testing)

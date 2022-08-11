@@ -52,7 +52,6 @@ mod tags {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn non_tagged_optional_types_fail() {
         // Arrange
         let slice = "
