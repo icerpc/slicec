@@ -11,7 +11,7 @@ mod tag;
 use crate::errors::ErrorReporter;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
-use crate::ptr_util::WeakPtr;
+use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is

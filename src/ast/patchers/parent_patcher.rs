@@ -6,7 +6,7 @@ use super::super::node::Node;
 use super::super::Ast;
 use crate::downgrade_as;
 use crate::grammar::*;
-use crate::ptr_util::WeakPtr;
+use crate::utils::ptr_util::WeakPtr;
 use std::collections::HashMap;
 
 pub unsafe fn patch_ast(ast: &mut Ast) {

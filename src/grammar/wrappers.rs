@@ -2,7 +2,7 @@
 
 use super::elements::*;
 use super::traits::*;
-use crate::ptr_util::WeakPtr;
+use crate::utils::ptr_util::WeakPtr;
 
 macro_rules! generate_definition_wrapper {
     ($($variant:ident),*) => {

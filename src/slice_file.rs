@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
-use crate::ptr_util::WeakPtr;
+use crate::utils::ptr_util::WeakPtr;
 
 type Location = (usize, usize);
 

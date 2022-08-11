@@ -3,8 +3,8 @@
 //! TODO write a doc comment for the module.
 
 use crate::grammar::*;
-use crate::ptr_util::{OwnedPtr, WeakPtr};
-use crate::string_util::prefix_with_article;
+use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
+use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
 use std::convert::TryFrom;
 use std::fmt;
