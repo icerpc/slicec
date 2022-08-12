@@ -100,10 +100,10 @@ mod comments {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "void operation must not contain doc comment return tag"
         ]);
     }
@@ -122,10 +122,10 @@ mod comments {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "doc comment has a param tag for 'testParam2', but there is no parameter by that name",
         ]);
     }
@@ -145,10 +145,10 @@ mod comments {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter);
+        assert_errors!(diagnostic_reporter);
     }
 
     #[test]
@@ -216,10 +216,10 @@ mod comments {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "doc comment indicates that struct `S` throws, however, only operations can throw",
         ]);
     }

@@ -1,20 +1,20 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
-use crate::errors::*;
+use crate::diagnostics::*;
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 
 pub struct ParsedData {
     pub ast: Ast,
-    pub error_reporter: ErrorReporter,
+    pub diagnostic_reporter: DiagnosticReporter,
     pub files: HashMap<String, SliceFile>,
 }
 
 impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         if self.has_errors() {
-            Self::emit_errors(self.error_reporter, &self.files);
+            Self::emit_errors(self.diagnostic_reporter, &self.files);
             1
         } else {
             0
@@ -22,17 +22,17 @@ impl ParsedData {
     }
 
     pub fn has_errors(&self) -> bool {
-        self.error_reporter.has_errors()
+        self.diagnostic_reporter.has_diagnostics()
     }
 
-    fn emit_errors(error_reporter: ErrorReporter, files: &HashMap<String, SliceFile>) {
-        let counts = error_reporter.get_totals();
+    fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+        let counts = diagnostic_reporter.get_totals();
 
-        for error in error_reporter.into_errors() {
+        for error in diagnostic_reporter.into_diagnostics() {
             let prefix = match error.error_kind {
-                ErrorKind::Syntax(_) | ErrorKind::Logic(_) | ErrorKind::IO(_) => "error",
-                ErrorKind::Warning(_) => "warning",
-                ErrorKind::Note(_) => "note",
+                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => "error",
+                DiagnosticKind::Warning(_) => "warning",
+                DiagnosticKind::Note(_) => "note",
             };
 
             // Insert the prefix at the start of the message.

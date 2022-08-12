@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::{Ast, Node};
+use crate::diagnostics::*;
 use crate::downgrade_as;
-use crate::errors::*;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
@@ -13,7 +13,7 @@ use std::convert::TryInto;
 pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
-        error_reporter: &mut parsed_data.error_reporter,
+        diagnostic_reporter: &mut parsed_data.diagnostic_reporter,
     };
 
     // TODO why explain we split this logic so that we can for sure have an immutable AST.
@@ -25,7 +25,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 
 struct TypeRefPatcher<'a> {
     type_ref_patches: Vec<PatchKind>,
-    error_reporter: &'a mut ErrorReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl TypeRefPatcher<'_> {
@@ -209,8 +209,8 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.error_reporter
-                    .report(ErrorKind::Syntax(message), Some(type_ref.span()));
+                self.diagnostic_reporter
+                    .report(DiagnosticKind::SyntaxError(message), Some(type_ref.span()));
                 None
             }
         }
@@ -256,13 +256,13 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
                 let error =
                     LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
-                self.error_reporter.report(error, Some(current_type_alias.span()));
+                self.diagnostic_reporter.report(error, Some(current_type_alias.span()));
                 for window in type_alias_chain[i..].windows(2) {
                     let identifier = window[0].identifier();
                     let identifier_original = window[1].identifier();
                     let message = format!("type alias '{identifier}' uses type alias '{identifier_original}' here:");
-                    self.error_reporter
-                        .report(ErrorKind::new_note(message), Some(window[0].underlying.span()));
+                    self.diagnostic_reporter
+                        .report(DiagnosticKind::new_note(message), Some(window[0].underlying.span()));
                 }
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());

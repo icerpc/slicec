@@ -1,15 +1,15 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::{ErrorKind, ErrorReporter};
+use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, error_reporter: &mut ErrorReporter) {
+pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic_reporter: &mut DiagnosticReporter) {
     let mut cycle_detector = CycleDetector {
         dependency_stack: Vec::new(),
-        error_reporter,
+        diagnostic_reporter,
     };
 
     // First, visit everything immutably to check for cycles and compute the supported encodings.
@@ -21,7 +21,7 @@ pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, error_repo
 struct CycleDetector<'a> {
     // Stack of all the types we've seen in the dependency chain we're currently checking.
     dependency_stack: Vec<String>,
-    error_reporter: &'a mut ErrorReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl<'a> CycleDetector<'a> {
@@ -32,8 +32,8 @@ impl<'a> CycleDetector<'a> {
             let type_id = &type_id;
             let cycle_string = &self.dependency_stack[i..].join(" -> ");
             let message = format!("self-referential type {type_id} has infinite size.\n{cycle_string}");
-            self.error_reporter
-                .report(ErrorKind::Syntax(message), Some(type_def.span()));
+            self.diagnostic_reporter
+                .report(DiagnosticKind::SyntaxError(message), Some(type_def.span()));
 
             true
         } else {

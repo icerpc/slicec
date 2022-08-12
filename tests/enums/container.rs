@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -61,10 +61,10 @@ fn enumerator_values_can_be_out_of_order() {
         ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter);
+    assert_errors!(diagnostic_reporter);
 }
 
 #[test]
@@ -81,12 +81,12 @@ fn validate_backing_type_out_of_bounds() {
     );
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind =
+    let expected: DiagnosticKind =
         LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
-    assert_errors_new!(error_reporter, [&expected]);
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -105,10 +105,10 @@ fn validate_backing_type_bounds() {
     );
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter);
+    assert_errors!(diagnostic_reporter);
 }
 
 #[test_case("string"; "string")]
@@ -126,12 +126,12 @@ fn invalid_underlying_type(underlying_type: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind =
+    let expected: DiagnosticKind =
         LogicKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()).into();
-    assert_errors_new!(error_reporter, [&expected]);
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test_case("10"; "numeric identifier")]
@@ -149,10 +149,10 @@ fn enumerator_invalid_identifiers(identifier: &str) {
     );
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [""]);
+    assert_errors!(diagnostic_reporter, [""]);
 }
 
 #[test]
@@ -162,13 +162,13 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: ErrorKind = LogicKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
+    let expected: DiagnosticKind = LogicKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors_new!(error_reporter, [&expected]);
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -183,14 +183,14 @@ fn enumerators_must_be_unique() {
     ";
     let expected = [
         LogicKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
-        ErrorKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
+        DiagnosticKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors_new!(error_reporter, expected);
+    assert_errors_new!(diagnostic_reporter, expected);
 }
 
 #[test]
@@ -208,10 +208,10 @@ fn automatically_assigned_values_will_not_overflow() {
     );
 
     // Act
-    let error_reporter = parse_for_errors(&slice);
+    let diagnostic_reporter = parse_for_errors(&slice);
 
     // Assert
-    assert_errors!(error_reporter, [
+    assert_errors!(diagnostic_reporter, [
         " --> 5:17\n  |\n5 |                 B,\n  |                 ^\n  |\n  = Enumerator value out of range: B"
     ]);
 }
@@ -244,11 +244,11 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: ErrorKind = LogicKind::MustContainEnumerators("E".to_owned()).into();
+    let expected: DiagnosticKind = LogicKind::MustContainEnumerators("E".to_owned()).into();
 
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
-    assert_errors_new!(error_reporter, [&expected]);
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -271,7 +271,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicKind};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -287,15 +287,15 @@ mod slice1 {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected_errors: [ErrorKind; 3] = [
+        let expected_errors: [DiagnosticKind; 3] = [
             LogicKind::MustBePositive("enumerator values".to_owned()).into(),
             LogicKind::MustBePositive("enumerator values".to_owned()).into(),
             LogicKind::MustBePositive("enumerator values".to_owned()).into(),
         ];
-        assert_errors_new!(error_reporter, expected_errors);
+        assert_errors_new!(diagnostic_reporter, expected_errors);
     }
 
     #[test]
@@ -313,12 +313,12 @@ mod slice1 {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind =
+        let expected: DiagnosticKind =
             LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
-        assert_errors_new!(error_reporter, [&expected]);
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }
 
@@ -341,10 +341,10 @@ mod slice2 {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter);
+        assert_errors!(diagnostic_reporter);
     }
 
     #[test]

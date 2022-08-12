@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -16,7 +16,7 @@ pub fn tag_validators() -> ValidationChain {
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
+fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -28,12 +28,12 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            error_reporter.report(
+            diagnostic_reporter.report(
                 LogicKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
                 Some(window[1].span()),
             );
-            error_reporter.report(
-                ErrorKind::new_note(format!(
+            diagnostic_reporter.report(
+                DiagnosticKind::new_note(format!(
                     "The data member `{}` has previous used the tag value `{}`",
                     &window[0].identifier(),
                     window[0].tag().unwrap()
@@ -45,7 +45,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
 }
 
 /// Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter) {
+fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
@@ -53,7 +53,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
         Some(_) => true,
         None if seen => {
             let error = LogicKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
-            error_reporter.report(error, Some(parameter.data_type.span()));
+            diagnostic_reporter.report(error, Some(parameter.data_type.span()));
             true
         }
         None => false,
@@ -61,16 +61,16 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut ErrorReporter) {
+fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && !struct_def.members.is_empty() {
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
                 let error = LogicKind::CompactStructCannotContainTaggedMembers;
-                error_reporter.report(error, Some(member.span()));
-                error_reporter.report(
-                    ErrorKind::new_note(format!("struct '{}' is declared compact here", struct_def.identifier())),
+                diagnostic_reporter.report(error, Some(member.span()));
+                diagnostic_reporter.report(
+                    DiagnosticKind::new_note(format!("struct '{}' is declared compact here", struct_def.identifier())),
                     Some(struct_def.span()),
                 );
             }
@@ -79,7 +79,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
+fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -89,7 +89,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            error_reporter.report(
+            diagnostic_reporter.report(
                 LogicKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
                 Some(member.span()),
             );
@@ -98,7 +98,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
 }
 
 /// Validate that classes cannot be tagged.
-fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
+fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -107,7 +107,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            error_reporter.report(
+            diagnostic_reporter.report(
                 LogicKind::CannotTagClass(member.identifier().to_owned()),
                 Some(member.span()),
             );
@@ -116,7 +116,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 }
 
 /// Validate that tagged container types cannot contain class members.
-fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
+fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -136,7 +136,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            error_reporter.report(
+            diagnostic_reporter.report(
                 LogicKind::CannotTagContainingClass(member.identifier().to_owned()),
                 Some(member.span()),
             );

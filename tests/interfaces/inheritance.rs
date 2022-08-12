@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::*;
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicKind};
 use slice::grammar::*;
 
 #[test]
@@ -73,10 +73,10 @@ fn must_inherit_from_interface() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
+    assert_errors!(diagnostic_reporter, [
         "type mismatch: expected an interface but found a class",
     ]);
 }
@@ -97,14 +97,14 @@ fn operation_shadowing_is_disallowed() {
     ";
     let expected = [
         LogicKind::Shadows("op".to_owned()).into(),
-        ErrorKind::new_note("`op` was previously defined here".to_owned()),
+        DiagnosticKind::new_note("`op` was previously defined here".to_owned()),
     ];
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_errors(slice);
 
     // Assert
-    assert_errors_new!(error_reporter, expected);
+    assert_errors_new!(diagnostic_reporter, expected);
 }
 
 #[test]

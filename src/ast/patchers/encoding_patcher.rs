@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::Node;
-use crate::errors::*;
+use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::slice_file::SliceFile;
@@ -13,7 +13,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
         slice_files: &mut parsed_data.files,
-        error_reporter: &mut parsed_data.error_reporter,
+        diagnostic_reporter: &mut parsed_data.diagnostic_reporter,
     };
 
     // Iterate through each node in the AST and patch any `supported_encodings` fields.
@@ -61,7 +61,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 struct EncodingPatcher<'a> {
     supported_encodings_cache: HashMap<String, SupportedEncodings>,
     slice_files: &'a HashMap<String, SliceFile>,
-    error_reporter: &'a mut ErrorReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl EncodingPatcher<'_> {
@@ -96,7 +96,7 @@ impl EncodingPatcher<'_> {
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            self.error_reporter.report(error, Some(entity_def.span()));
+            self.diagnostic_reporter.report(error, Some(entity_def.span()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -106,7 +106,7 @@ impl EncodingPatcher<'_> {
         }
         // Report any additional information as a note after reporting any errors above.
         if let Some(note) = additional_info {
-            self.error_reporter.report(ErrorKind::new_note(note), None);
+            self.diagnostic_reporter.report(DiagnosticKind::new_note(note), None);
         }
 
         // Cache and return this entity's supported encodings.
@@ -183,7 +183,7 @@ impl EncodingPatcher<'_> {
                 errors.push(error);
             }
             for error in errors {
-                self.error_reporter.report(error, Some(type_ref.span()));
+                self.diagnostic_reporter.report(error, Some(type_ref.span()));
             }
             self.emit_file_encoding_mismatch_error(type_ref);
 
@@ -200,17 +200,17 @@ impl EncodingPatcher<'_> {
 
         // Emit a note explaining why the file has the slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
-            self.error_reporter.report(
-                ErrorKind::new_note(format!("file encoding was set to {} here:", &file_encoding.version)),
+            self.diagnostic_reporter.report(
+                DiagnosticKind::new_note(format!("file encoding was set to {} here:", &file_encoding.version)),
                 None,
             );
         } else {
-            self.error_reporter.report(
-                ErrorKind::new_note(format!("file is using the {} encoding by default", Encoding::default())),
+            self.diagnostic_reporter.report(
+                DiagnosticKind::new_note(format!("file is using the {} encoding by default", Encoding::default())),
                 None,
             );
-            self.error_reporter.report(
-                ErrorKind::new_note(
+            self.diagnostic_reporter.report(
+                DiagnosticKind::new_note(
                     "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
                         .to_owned(),
                 ),
@@ -352,7 +352,7 @@ impl ComputeSupportedEncodings for Interface {
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
                     let error = LogicKind::StreamedParametersNotSupported(Encoding::Slice1);
-                    patcher.error_reporter.report(error, Some(member.span()));
+                    patcher.diagnostic_reporter.report(error, Some(member.span()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }

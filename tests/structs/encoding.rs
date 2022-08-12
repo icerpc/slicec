@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_errors;
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
@@ -19,15 +19,15 @@ mod slice1 {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
         let expected = [
             LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
-            ErrorKind::new_note("file encoding was set to Slice1 here:"),
-            ErrorKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
+            DiagnosticKind::new_note("file encoding was set to Slice1 here:"),
+            DiagnosticKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 }
 
@@ -35,7 +35,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_errors;
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
@@ -52,17 +52,17 @@ mod slice2 {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: [ErrorKind; 3] = [
+        let expected: [DiagnosticKind; 3] = [
             LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
-            ErrorKind::new_note("file is using the Slice2 encoding by default"),
-            ErrorKind::new_note(
+            DiagnosticKind::new_note("file is using the Slice2 encoding by default"),
+            DiagnosticKind::new_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             ),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 
     /// Verifies using the slice parser with Slice2 will not emit errors when parsing
@@ -82,9 +82,9 @@ mod slice2 {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter);
+        assert_errors!(diagnostic_reporter);
     }
 }

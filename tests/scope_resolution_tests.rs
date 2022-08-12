@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::*;
 
     #[test]
@@ -18,10 +18,10 @@ mod scope_resolution {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "file level modules cannot contain sub-modules",
             "file level module 'T' declared here",
         ]);
@@ -225,14 +225,14 @@ mod scope_resolution {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
         let expected = [
             LogicKind::Redefinition("B".to_string()).into(),
-            ErrorKind::new_note("`B` was previously defined here"),
+            DiagnosticKind::new_note("`B` was previously defined here"),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 
     #[test]
@@ -257,11 +257,11 @@ mod scope_resolution {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -279,10 +279,10 @@ mod scope_resolution {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "no element with identifier `Nested::C` exists in the scope `A`",
         ]);
     }

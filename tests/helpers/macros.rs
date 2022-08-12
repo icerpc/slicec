@@ -6,8 +6,8 @@
 /// error reporter errors.
 #[macro_export]
 macro_rules! assert_errors {
-    ($error_reporter:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert!(
             errors.is_empty(),
             "Expected no errors, got {}.\n{:?}",
@@ -16,8 +16,8 @@ macro_rules! assert_errors {
         );
     };
 
-    ($error_reporter:expr, $expected_errors:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr, $expected_errors:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert_eq!(
             errors.len(),
             $expected_errors.len(),
@@ -34,8 +34,8 @@ macro_rules! assert_errors {
 
 #[macro_export]
 macro_rules! assert_errors_new {
-    ($error_reporter:expr, $expected_errors:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr, $expected_errors:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert_eq!(
             errors.len(),
             $expected_errors.len(),

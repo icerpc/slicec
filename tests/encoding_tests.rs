@@ -21,10 +21,10 @@ mod encodings {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter);
+        assert_errors!(diagnostic_reporter);
     }
 
     #[test]
@@ -36,10 +36,10 @@ mod encodings {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_errors(slice);
 
         // Assert
-        assert_errors!(error_reporter, ["Unknown slice encoding version: 3"]);
+        assert_errors!(diagnostic_reporter, ["Unknown slice encoding version: 3"]);
     }
 
     #[test]

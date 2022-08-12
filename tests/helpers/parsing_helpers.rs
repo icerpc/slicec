@@ -1,22 +1,22 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Ast;
-use slice::errors::ErrorReporter;
+use slice::diagnostics::DiagnosticReporter;
 use slice::parse_from_string;
 
 /// This function is used to parse a Slice file and return the AST.
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     match parse_from_string(&slice.into()) {
         Ok(data) => data.ast,
-        Err(e) => panic!("{:?}", e.error_reporter),
+        Err(e) => panic!("{:?}", e.diagnostic_reporter),
     }
 }
 
 /// This function is used to parse a Slice file and return the ErrorReporter.
-pub fn parse_for_errors(slice: impl Into<String>) -> ErrorReporter {
+pub fn parse_for_errors(slice: impl Into<String>) -> DiagnosticReporter {
     match parse_from_string(&slice.into()) {
-        Ok(data) => data.error_reporter,
-        Err(data) => data.error_reporter,
+        Ok(data) => data.diagnostic_reporter,
+        Err(data) => data.diagnostic_reporter,
     }
 }
 

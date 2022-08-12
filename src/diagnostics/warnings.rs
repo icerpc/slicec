@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use crate::diagnostics::*;
 use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
 #[derive(Debug)]
@@ -24,7 +24,7 @@ pub enum WarningKind {
     ExtraThrowInDocComment(String, String),
 }
 
-implement_from_for_error_sub_kind!(WarningKind, ErrorKind::Warning);
+implement_from_for_error_sub_kind!(WarningKind, DiagnosticKind::Warning);
 implement_error_functions!(
     WarningKind,
     (
