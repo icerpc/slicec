@@ -4,7 +4,7 @@ pub mod helpers;
 
 mod scope_resolution {
 
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::*;
@@ -18,7 +18,7 @@ mod scope_resolution {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [
@@ -225,7 +225,7 @@ mod scope_resolution {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -257,7 +257,7 @@ mod scope_resolution {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
@@ -279,7 +279,7 @@ mod scope_resolution {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [

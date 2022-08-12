@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{DiagnosticKind, LogicKind};
 use slice::grammar::*;
@@ -61,7 +61,7 @@ fn enumerator_values_can_be_out_of_order() {
         ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter);
@@ -81,7 +81,7 @@ fn validate_backing_type_out_of_bounds() {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind =
@@ -105,7 +105,7 @@ fn validate_backing_type_bounds() {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter);
@@ -126,7 +126,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind =
@@ -149,7 +149,7 @@ fn enumerator_invalid_identifiers(identifier: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter, [""]);
@@ -165,7 +165,7 @@ fn optional_underlying_types_fail() {
     let expected: DiagnosticKind = LogicKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors_new!(diagnostic_reporter, [&expected]);
@@ -187,7 +187,7 @@ fn enumerators_must_be_unique() {
     ];
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors_new!(diagnostic_reporter, expected);
@@ -208,7 +208,7 @@ fn automatically_assigned_values_will_not_overflow() {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(&slice);
+    let diagnostic_reporter = parse_for_diagnostics(&slice);
 
     // Assert
     assert_errors!(diagnostic_reporter, [
@@ -246,7 +246,7 @@ fn checked_enums_can_not_be_empty() {
     ";
     let expected: DiagnosticKind = LogicKind::MustContainEnumerators("E".to_owned()).into();
 
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
@@ -287,7 +287,7 @@ mod slice1 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected_errors: [DiagnosticKind; 3] = [
@@ -313,7 +313,7 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind =
@@ -341,7 +341,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);

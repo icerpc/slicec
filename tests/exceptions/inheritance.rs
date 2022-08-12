@@ -35,7 +35,7 @@ fn does_not_support_multiple_inheritance() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()).into();
@@ -53,7 +53,7 @@ fn must_inherit_from_exception() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter, [
@@ -78,7 +78,7 @@ fn data_member_shadowing_is_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [

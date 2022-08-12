@@ -5,7 +5,7 @@ pub mod helpers;
 mod comments {
 
     use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -100,7 +100,7 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [
@@ -122,7 +122,7 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [
@@ -145,7 +145,7 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);
@@ -216,7 +216,7 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [

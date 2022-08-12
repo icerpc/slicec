@@ -98,7 +98,7 @@ fn cannot_redefine_operations() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: [DiagnosticKind; 2] = [

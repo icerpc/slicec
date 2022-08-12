@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::Encoding;
@@ -34,7 +34,7 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -70,7 +70,7 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);
@@ -79,7 +79,7 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::Encoding;
@@ -99,7 +99,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -143,7 +143,7 @@ mod slice2 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);
@@ -178,7 +178,7 @@ mod slice2 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);

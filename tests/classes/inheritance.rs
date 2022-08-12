@@ -42,7 +42,7 @@ fn does_not_support_multiple_inheritance() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::CanOnlyInheritFromSingleBase("class".to_owned()).into();
@@ -66,7 +66,7 @@ fn data_member_shadowing_is_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [

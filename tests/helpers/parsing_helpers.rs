@@ -12,8 +12,8 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     }
 }
 
-/// This function is used to parse a Slice file and return the ErrorReporter.
-pub fn parse_for_errors(slice: impl Into<String>) -> DiagnosticReporter {
+/// This function is used to parse a Slice file and return the DiagnosticReporter.
+pub fn parse_for_diagnostics(slice: impl Into<String>) -> DiagnosticReporter {
     match parse_from_string(&slice.into()) {
         Ok(data) => data.diagnostic_reporter,
         Err(data) => data.diagnostic_reporter,

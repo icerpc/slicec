@@ -4,7 +4,7 @@ pub mod helpers;
 
 mod tags {
 
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::*;
@@ -25,7 +25,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::TaggedMemberMustBeOptional("b".to_owned()).into();
@@ -44,7 +44,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
@@ -63,7 +63,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, [
@@ -84,7 +84,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: [DiagnosticKind; 2] = [
@@ -109,7 +109,7 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_errors(slice);
+        let errors = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::CannotTagClass("c".to_owned()).into();
@@ -134,7 +134,7 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_errors(slice);
+        let errors = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::CannotTagContainingClass("s".to_owned()).into();
@@ -173,7 +173,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -198,7 +198,7 @@ mod tags {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);
@@ -218,7 +218,7 @@ mod tags {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::TagValueOutOfBounds.into();
@@ -236,7 +236,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::TagValueOutOfBounds.into();

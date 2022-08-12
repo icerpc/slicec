@@ -6,7 +6,7 @@ mod slice1 {
     use slice::grammar::Encoding;
 
     use crate::assert_errors_new;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -20,7 +20,7 @@ mod slice1 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected_errors = [
@@ -35,7 +35,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]
@@ -58,7 +58,7 @@ mod slice2 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);

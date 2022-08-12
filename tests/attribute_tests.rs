@@ -7,7 +7,7 @@ mod attributes {
     mod slice_api {
 
         use crate::assert_errors_new;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::diagnostics::{DiagnosticKind, LogicKind};
         use slice::grammar::*;
         use test_case::test_case;
@@ -71,7 +71,7 @@ mod attributes {
             );
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected: DiagnosticKind = LogicKind::CannotBeEmpty("format attribute").into();
@@ -90,7 +90,7 @@ mod attributes {
                 }
             ";
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [
@@ -132,7 +132,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected: DiagnosticKind =
@@ -153,7 +153,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected: DiagnosticKind =
@@ -221,7 +221,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [
@@ -244,7 +244,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected: DiagnosticKind = LogicKind::CompressAttributeCannotBeApplied.into();
@@ -277,7 +277,7 @@ mod attributes {
     mod generalized_api {
 
         use crate::assert_errors;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::grammar::*;
         use slice::parse_from_string;
         use test_case::test_case;
@@ -397,7 +397,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             assert_errors!(diagnostic_reporter);

@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{DiagnosticKind, LogicKind};
 use slice::grammar::*;
@@ -74,7 +74,7 @@ fn cycles_are_allowed(cycle_string: &str) {
         "
     );
 
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     assert_errors!(diagnostic_reporter);
 }
@@ -111,7 +111,7 @@ fn cannot_redefine_data_members() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [

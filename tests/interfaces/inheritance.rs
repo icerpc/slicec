@@ -73,7 +73,7 @@ fn must_inherit_from_interface() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter, [
@@ -101,7 +101,7 @@ fn operation_shadowing_is_disallowed() {
     ];
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors_new!(diagnostic_reporter, expected);

@@ -5,7 +5,7 @@ pub mod helpers;
 mod encodings {
 
     use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::parse_from_string;
     use test_case::test_case;
 
@@ -21,7 +21,7 @@ mod encodings {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter);
@@ -36,7 +36,7 @@ mod encodings {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         assert_errors!(diagnostic_reporter, ["Unknown slice encoding version: 3"]);

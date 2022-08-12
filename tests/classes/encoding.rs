@@ -3,7 +3,7 @@
 mod slice2 {
 
     use crate::assert_errors_new;
-    use crate::helpers::parsing_helpers::parse_for_errors;
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::diagnostics::{DiagnosticKind, LogicKind};
     use slice::grammar::Encoding;
 
@@ -16,7 +16,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [

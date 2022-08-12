@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_errors;
+use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
 #[test]
 // TODO, should we? This is just a syntax error in my opinion. There isn't even a type to tag here.
@@ -17,7 +17,7 @@ fn cannot_contain_tags() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Act & Assert
     assert_errors!(diagnostic_reporter);

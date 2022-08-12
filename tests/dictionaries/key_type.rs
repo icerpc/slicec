@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::{parse_for_errors, pluralize_kind};
+use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
 use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{DiagnosticKind, LogicKind};
 use test_case::test_case;
@@ -14,7 +14,7 @@ fn optionals_are_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::KeyMustBeNonOptional.into();
@@ -45,7 +45,7 @@ fn allowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter);
@@ -64,7 +64,7 @@ fn disallowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::KeyTypeNotSupported(key_type.to_owned()).into();
@@ -83,7 +83,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::KeyTypeNotSupported(key_kind.to_owned()).into();
@@ -103,7 +103,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter);
@@ -126,7 +126,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     );
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: [DiagnosticKind; 2] = [
@@ -146,7 +146,7 @@ fn non_compact_structs_are_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: [DiagnosticKind; 2] = [
@@ -177,7 +177,7 @@ fn compact_struct_with_allowed_members_is_allowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     assert_errors!(diagnostic_reporter);
@@ -206,7 +206,7 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: [DiagnosticKind; 9] = [

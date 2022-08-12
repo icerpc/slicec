@@ -15,7 +15,7 @@ mod traits {
             use slice::grammar::Encoding;
 
             use crate::assert_errors_new;
-            use crate::helpers::parsing_helpers::parse_for_errors;
+            use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
             #[test]
             fn are_not_supported() {
@@ -27,7 +27,7 @@ mod traits {
                 ";
 
                 // Act
-                let diagnostic_reporter = parse_for_errors(slice);
+                let diagnostic_reporter = parse_for_diagnostics(slice);
 
                 // Assert
                 let expected = [

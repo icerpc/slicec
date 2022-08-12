@@ -190,7 +190,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected: DiagnosticKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
@@ -239,7 +239,7 @@ mod streams {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected: DiagnosticKind = LogicKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
@@ -261,7 +261,7 @@ mod streams {
         let expected: DiagnosticKind = LogicKind::StreamedMembersMustBeLast("s".to_owned()).into();
 
         // Assert
-        let diagnostic_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }
