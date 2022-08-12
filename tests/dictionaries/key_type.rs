@@ -17,7 +17,7 @@ fn optionals_are_disallowed() {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::CannotUseOptionalAsKey.into();
+    let expected: ErrorKind = LogicKind::KeyMustBeNonOptional.into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -67,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_type.to_owned()).into();
+    let expected: ErrorKind = LogicKind::KeyTypeNotSupported(key_type.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -86,7 +86,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let error_reporter = parse_for_errors(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::TypeCannotBeUsedAsAKey(key_kind.to_owned()).into();
+    let expected: ErrorKind = LogicKind::KeyTypeNotSupported(key_kind.to_owned()).into();
     assert_errors_new!(error_reporter, [&expected]);
 }
 
@@ -130,7 +130,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 
     // Assert
     let expected: [ErrorKind; 2] = [
-        LogicKind::TypeCannotBeUsedAsAKey(pluralize_kind(key_kind)).into(),
+        LogicKind::KeyTypeNotSupported(pluralize_kind(key_kind)).into(),
         ErrorKind::new_note(format!("{} '{}' is defined here:", key_kind, key_type)),
     ];
     assert_errors_new!(error_reporter, expected);
@@ -150,7 +150,7 @@ fn non_compact_structs_are_disallowed() {
 
     // Assert
     let expected: [ErrorKind; 2] = [
-        LogicKind::StructsMustBeCompactToBeAKey.into(),
+        LogicKind::StructKeyMustBeCompact.into(),
         ErrorKind::new_note("struct 'MyStruct' is defined here:".to_owned()),
     ];
     assert_errors_new!(error_reporter, expected);
@@ -210,14 +210,14 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
     // Assert
     let expected: [ErrorKind; 9] = [
-        LogicKind::TypeCannotBeUsedAsAKey("sequences".to_owned()).into(),
-        LogicKind::TypeCannotBeUsedAsAKey("seq".to_owned()).into(),
-        LogicKind::TypeCannotBeUsedAsAKey("float32".to_owned()).into(),
-        LogicKind::TypeCannotBeUsedAsAKey("f32".to_owned()).into(),
-        LogicKind::StructContainsDisallowedType("Inner".to_owned()).into(),
+        LogicKind::KeyTypeNotSupported("sequences".to_owned()).into(),
+        LogicKind::KeyTypeNotSupported("seq".to_owned()).into(),
+        LogicKind::KeyTypeNotSupported("float32".to_owned()).into(),
+        LogicKind::KeyTypeNotSupported("f32".to_owned()).into(),
+        LogicKind::StructKeyContainsDisallowedType("Inner".to_owned()).into(),
         ErrorKind::new_note("struct 'Inner' is defined here:"),
-        LogicKind::TypeCannotBeUsedAsAKey("i".to_owned()).into(),
-        LogicKind::StructContainsDisallowedType("Outer".to_owned()).into(),
+        LogicKind::KeyTypeNotSupported("i".to_owned()).into(),
+        LogicKind::StructKeyContainsDisallowedType("Outer".to_owned()).into(),
         ErrorKind::new_note("struct 'Outer' is defined here:".to_owned()),
     ];
     assert_errors_new!(error_reporter, expected);

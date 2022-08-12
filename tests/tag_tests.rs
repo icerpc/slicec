@@ -28,7 +28,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::MustBeOptional.into();
+        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("b".to_owned()).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -47,7 +47,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::MustBeOptional.into();
+        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -88,8 +88,8 @@ mod tags {
 
         // Assert
         let expected: [ErrorKind; 2] = [
-            LogicKind::RequiredParametersMustBeFirst.into(),
-            LogicKind::RequiredParametersMustBeFirst.into(),
+            LogicKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
+            LogicKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
         ];
         assert_errors_new!(error_reporter, expected);
     }
@@ -112,7 +112,7 @@ mod tags {
         let errors = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotBeClass.into();
+        let expected: ErrorKind = LogicKind::CannotTagClass("c".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -137,7 +137,7 @@ mod tags {
         let errors = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotContainClasses.into();
+        let expected: ErrorKind = LogicKind::CannotTagContainingClass("s".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -177,7 +177,7 @@ mod tags {
 
         // Assert
         let expected = [
-            LogicKind::DuplicateTag.into(),
+            LogicKind::CannotHaveDuplicateTag("b".to_owned()).into(),
             ErrorKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
         assert_errors_new!(error_reporter, expected);
@@ -221,7 +221,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
+        let expected: ErrorKind = LogicKind::TagValueOutOfBounds.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 
@@ -239,7 +239,7 @@ mod tags {
         let error_reporter = parse_for_errors(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TagOutOfBounds.into();
+        let expected: ErrorKind = LogicKind::TagValueOutOfBounds.into();
         assert_errors_new!(error_reporter, [&expected]);
     }
 

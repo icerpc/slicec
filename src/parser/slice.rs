@@ -265,7 +265,7 @@ impl<'a> SliceParser<'a> {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
-                        LogicKind::ClassesCanOnlyInheritFromSingleBase,
+                        LogicKind::CanOnlyInheritFromSingleBase("class".to_string()),
                         Some(&span),
                     );
                 }
@@ -307,7 +307,7 @@ impl<'a> SliceParser<'a> {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().error_reporter.report(
-                        LogicKind::CanOnlyInheritFromSingleBase,
+                        LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()),
                         Some(&span),
                     )
                 }
@@ -650,7 +650,7 @@ impl<'a> SliceParser<'a> {
                 // Checking that tags must fit in an i32 and be non-negative.
                 if !RangeInclusive::new(0, i32::MAX as i64).contains(&integer) {
                     let span = get_span_for(&input);
-                    input.user_data().borrow_mut().error_reporter.report(LogicKind::TagOutOfBounds, Some(&span));
+                    input.user_data().borrow_mut().error_reporter.report(LogicKind::TagValueOutOfBounds, Some(&span));
                 }
                 integer as u32
             }

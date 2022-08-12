@@ -28,7 +28,10 @@ fn tags_are_unique(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            error_reporter.report(LogicKind::DuplicateTag, Some(window[1].span()));
+            error_reporter.report(
+                LogicKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
+                Some(window[1].span()),
+            );
             error_reporter.report(
                 ErrorKind::new_note(format!(
                     "The data member `{}` has previous used the tag value `{}`",
@@ -49,7 +52,7 @@ fn parameter_order(parameters: &[&Parameter], error_reporter: &mut ErrorReporter
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let error = LogicKind::RequiredParametersMustBeFirst;
+            let error = LogicKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
             error_reporter.report(error, Some(parameter.data_type.span()));
             true
         }
@@ -64,7 +67,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, error_reporter: &mut
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let error = LogicKind::NotSupportedInCompactStructs;
+                let error = LogicKind::CompactStructCannotContainTaggedMembers;
                 error_reporter.report(error, Some(member.span()));
                 error_reporter.report(
                     ErrorKind::new_note(format!("struct '{}' is declared compact here", struct_def.identifier())),
@@ -86,7 +89,10 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, error_reporter: &mut Erro
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            error_reporter.report(LogicKind::MustBeOptional, Some(member.span()));
+            error_reporter.report(
+                LogicKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }
@@ -101,7 +107,10 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, error_reporter: &mut ErrorRepor
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            error_reporter.report(LogicKind::CannotBeClass, Some(member.span()));
+            error_reporter.report(
+                LogicKind::CannotTagClass(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }
@@ -127,7 +136,10 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, error_rep
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            error_reporter.report(LogicKind::CannotContainClasses, Some(member.span()));
+            error_reporter.report(
+                LogicKind::CannotTagContainingClass(member.identifier().to_owned()),
+                Some(member.span()),
+            );
         }
     }
 }

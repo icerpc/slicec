@@ -6,87 +6,18 @@ use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
 #[derive(Debug)]
 pub enum LogicKind {
-    /// Cannot tag a class
-    CannotBeClass,
-
-    /// Used to indicate when a method must contain arguments
-    ///
-    /// # Fields
-    ///
-    /// * `method_name` - The name of the method
-    CannotBeEmpty(&'static str),
-
-    /// Cannot tag a member that contains a class
-    CannotContainClasses,
-
-    /// Enums cannot have optional underlying types
-    CannotHaveOptionalUnderlyingType,
-
-    /// Dictionaries cannot use optional types as keys
-    CannotUseOptionalAsKey,
-
-    /// Exceptions can only inherit from a single base exception
-    CanOnlyInheritFromSingleBase,
-
-    /// Compact structs cannot be empty
-    CompactStructIsEmpty,
-
+    // ----------------  Attribute Errors ---------------- //
     /// Used to indicate when the compress attribute cannot be applied
     CompressAttributeCannotBeApplied,
-
-    /// Used to indicate when two concrete types should match, but do not
-    ///
-    /// # Fields
-    ///
-    /// * `expected type` - The name of the expected type
-    /// * `actual type` - The name of the found type
-    ConcreteTypeMismatch(String, String),
-
-    /// Classes can only inherit from a single base class
-    ClassesCanOnlyInheritFromSingleBase,
 
     /// Used to indicate when the deprecated attribute cannot be applied
     ///
     /// # Fields
     ///
-    /// * `type` - The type which the deprecated attribute was applied to
+    /// * `kind` - The kind which the deprecated attribute was applied to
     DeprecatedAttributeCannotBeApplied(String),
 
-    /// A duplicate tag value was found
-    DuplicateTag,
-
-    /// Exceptions cannot be used as a data type with the specified encoding
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified
-    ExceptionNotSupported(Encoding),
-
-    /// An enumerator was found that was out of bounds of the underlying type of the parent enum
-    ///
-    /// # Fields
-    ///
-    /// * `value` - The value of the out of bounds enumerator
-    /// * `min` - The minimum value of the underlying type of the enum
-    /// * `max` - The maximum value of the underlying type of the enum
-    MustBeBounded(i64, i64, i64),
-
-    /// A tagged data member was not set to optional
-    MustBeOptional,
-
-    /// The provided kind should be positive
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that was not positive
-    MustBePositive(String),
-
-    /// Enumerators must be unique
-    MustBeUnique,
-
-    /// Enums must be contain at least one enumerator
-    MustContainAtLeastOneValue,
-
+    // ----------------  Argument Errors ---------------- //
     /// The provided argument is not supported for the given method
     ///
     /// # Fields
@@ -95,9 +26,28 @@ pub enum LogicKind {
     /// * `method_name` - The name of the method
     ArgumentNotSupported(String, String),
 
-    /// Compact structs cannot contain tagged data members
-    NotSupportedInCompactStructs,
+    // ---------------- Dictionary Errors ---------------- //
+    /// Dictionaries cannot use optional types as keys
+    KeyMustBeNonOptional,
 
+    /// An unsupported type was used as a dictionary key type
+    ///
+    /// # Fields
+    ///
+    /// * `identifier` - The identifier of the type that was used as a dictionary key type
+    KeyTypeNotSupported(String),
+
+    /// Struct contains a member that cannot be used as a dictionary key type
+    ///
+    /// # Fields
+    ///
+    /// * `struct_identifier` - The identifier of the struct
+    StructKeyContainsDisallowedType(String),
+
+    /// Structs must be compact to be used as a dictionary key type
+    StructKeyMustBeCompact,
+
+    // ----------------  Encoding Errors ---------------- //
     /// The provided kind with identifier is not supported in the specified encoding
     ///
     /// # Fields
@@ -114,18 +64,161 @@ pub enum LogicKind {
     /// * `encoding` - The encoding that was specified
     OptionalsNotSupported(Encoding),
 
+    /// Streamed parameters are not supported with the specified encoding
+    ///
+    /// # Fields
+    ///
+    /// * `encoding` - The encoding that was specified
+    StreamedParametersNotSupported(Encoding),
+
+    /// An unsupported type was used in the specified encoding
+    ///
+    /// # Fields
+    ///
+    /// * `kind` - The name of the kind that was used in the specified encoding
+    /// * `encoding` - The encoding that was specified
+    UnsupportedType(String, Encoding),
+
+    // ----------------  Enum Errors ---------------- //
+    /// Enumerators must be unique
+    ///
+    /// # Fields
+    ///
+    /// * `enumerator_identifier` - The identifier of the enumerator
+    CannotHaveDuplicateEnumerators(String),
+
+    /// Enums cannot have optional underlying types
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    CannotUseOptionalUnderlyingType(String),
+
+    /// An enumerator was found that was out of bounds of the underlying type of the parent enum
+    ///
+    /// # Fields
+    ///
+    /// * `enumerator_identifier` - The identifier of the enumerator
+    /// * `value` - The value of the out of bounds enumerator
+    /// * `min` - The minimum value of the underlying type of the enum
+    /// * `max` - The maximum value of the underlying type of the enum
+    EnumeratorValueOutOfBounds(String, i64, i64, i64),
+
+    /// Enums must be contain at least one enumerator
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    MustContainEnumerators(String),
+
+    /// Enum underlying types must be integral types
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum
+    /// * `kind` - The name of the non-integral type that was used as the underlying type of the enum
+    UnderlyingTypeMustBeIntegral(String, String),
+
+    // ----------------  Exception Errors ---------------- //
+    /// Exceptions cannot be used as a data type with the specified encoding
+    ///
+    /// # Fields
+    ///
+    /// * `encoding` - The encoding that was specified
+    ExceptionNotSupported(Encoding),
+
+    // ----------------  Operation Errors ---------------- //
+    /// A streamed parameter was not the last parameter in the operation
+    ///
+    /// # Fields
+    ///
+    /// * `parameter_identifier` - The identifier of the parameter that caused the error
+    StreamedMembersMustBeLast(String),
+
+    /// The required parameters of an operation did not precede the optional parameters.
+    ///
+    /// # Fields
+    ///
+    /// * `parameter_identifier` - The identifier of the parameter that caused the error
+    RequiredMustPrecedeOptional(String),
+
+    /// Return tuples for an operation must contain at least two element
+    ReturnTuplesMustContainAtLeastTwoElements,
+
+    // ----------------  Struct Errors ---------------- //
+    /// Compact structs cannot be empty
+    CompactStructCannotBeEmpty,
+
+    /// Compact structs cannot contain tagged data members
+    CompactStructCannotContainTaggedMembers,
+
+    // ----------------  Tag Errors ---------------- //
+    /// A duplicate tag value was found
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotHaveDuplicateTag(String),
+
+    /// Cannot tag a class
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagClass(String),
+
+    /// Cannot tag a member that contains a class
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    CannotTagContainingClass(String),
+
+    /// A tag value was not in the expected range, 0 .. i32::MAX
+    TagValueOutOfBounds,
+
+    /// A tagged data member was not set to optional
+    ///
+    /// # Fields
+    ///
+    /// * `member_identifier` - The identifier of the tagged member
+    TaggedMemberMustBeOptional(String),
+
+    // ----------------  General Errors ---------------- //
+    /// Used to indicate when a method must contain arguments
+    ///
+    /// # Fields
+    ///
+    /// * `method_name` - The name of the method
+    CannotBeEmpty(&'static str),
+
+    /// Kind can only inherit from a single base
+    ///
+    /// # Fields
+    ///
+    /// * `kind` - The kind that can only inherit from a single base
+    CanOnlyInheritFromSingleBase(String),
+    /// Used to indicate when two concrete types should match, but do not
+    ///
+    /// # Fields
+    ///
+    /// * `expected kind` - The name of the expected kind
+    /// * `actual kind` - The name of the found kind
+    ConcreteTypeMismatch(String, String),
+
+    /// The provided kind should be positive
+    ///
+    /// # Fields
+    ///
+    /// * `kind` - The kind that was not positive
+    MustBePositive(String),
+
     /// An identifier was redefined
     ///
     /// # Fields
     ///
     /// * `identifier` - The identifier that was redefined
     Redefinition(String),
-
-    /// The required parameters of an operation did not precede the optional parameters.
-    RequiredParametersMustBeFirst, // TODO: Perhaps this should be a warning?
-
-    /// Return tuples for an operation must contain at least two element
-    ReturnTuplesMustContainAtLeastTwoElements, // TODO: Perhaps this should be a warning?
 
     /// A self-referential type alias has no concrete type
     ///
@@ -141,66 +234,22 @@ pub enum LogicKind {
     /// * `identifier` - The identifier that is shadowing previously defined identifier
     Shadows(String),
 
-    /// Streamed parameters are not supported with the specified encoding
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified
-    StreamedParametersNotSupported(Encoding),
-
-    /// A streamed parameter was not the last parameter in the operation
-    StreamsMustBeLast,
-
-    /// Struct contains a member that cannot be used as a dictionary key type
-    ///
-    /// # Fields
-    ///
-    /// * `struct_identifier` - The identifier of the struct
-    StructContainsDisallowedType(String),
-
-    /// Structs must be compact to be used as a dictionary key type
-    StructsMustBeCompactToBeAKey,
-
-    /// A tag value was not in the expected range, 0 .. i32::MAX
-    TagOutOfBounds,
-
-    /// An unsupported type was used as a dictionary key type
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the type that was used as a dictionary key type
-    TypeCannotBeUsedAsAKey(String),
-
     /// Used to indicate when two types should match, but do not
     ///
     /// # Fields
     ///
-    /// * `expected type` - The name of the expected type
-    /// * `actual type` - The name of the found type
+    /// * `expected kind` - The name of the expected kind
+    /// * `actual kind` - The name of the found kind
     TypeMismatch(String, String),
 
-    /// Enum underlying types must be integral types
-    ///
-    /// # Fields
-    ///
-    /// * `type` - The name of the non-integral type that was used as the underlying type of the enum
-    UnderlyingTypeMustBeIntegral(String),
-
-    /// An unsupported type was used in the specified encoding
-    ///
-    /// # Fields
-    ///
-    /// * `type` - The name of the type that was used in the specified encoding
-    /// * `encoding` - The encoding that was specified
-    UnsupportedType(String, Encoding),
-
+    // ----------------  SliceC-C# Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
     // TODO: Clean up these errors
-    UnexpectedAttribute(String),                  // (attribute)
-    MissingRequiredArgument(String),              // (arg)
-    TooManyArguments(String),                     // (expected)
-    MissingRequiredAttribute(String),             // (attribute)
     AttributeOnlyValidForTopLevelModules(String), // (attribute)
+    MissingRequiredArgument(String),              // (arg)
+    MissingRequiredAttribute(String),             // (attribute)
+    TooManyArguments(String),                     // (expected)
+    UnexpectedAttribute(String),                  // (attribute)
 }
 
 implement_from_for_error_sub_kind!(LogicKind, ErrorKind::Logic);
@@ -231,41 +280,44 @@ implement_error_functions!(
         method
     ),
     (
-        LogicKind::CannotUseOptionalAsKey,
+        LogicKind::KeyMustBeNonOptional,
         2004,
         "optional types cannot be used as a dictionary key type"
     ),
     (
-        LogicKind::StructsMustBeCompactToBeAKey,
+        LogicKind::StructKeyMustBeCompact,
         2005,
         "structs must be compact to be used as a dictionary key type"
     ),
     (
-        LogicKind::TypeCannotBeUsedAsAKey,
+        LogicKind::KeyTypeNotSupported,
         2006,
         format!("'{identifier}' cannot be used as a dictionary key type"),
         identifier
     ),
     (
-        LogicKind::StructContainsDisallowedType,
+        LogicKind::StructKeyContainsDisallowedType,
         2007,
         format!("struct '{identifier}' contains members that cannot be used as a dictionary key type"),
         identifier
     ),
     (
-        LogicKind::CannotHaveOptionalUnderlyingType,
+        LogicKind::CannotUseOptionalUnderlyingType,
         2008,
-        "enums cannot have optional underlying types"
+        format!("invalid enum `{}`: enums cannot have optional underlying types", identifier),
+        identifier
     ),
     (
-        LogicKind::MustContainAtLeastOneValue,
+        LogicKind::MustContainEnumerators,
         2009,
-        "enums must contain at least one enumerator"
+        format!("invalid enum `{}`: enums must contain at least one enumerator", identifier),
+        identifier
     ),
     (
         LogicKind::UnderlyingTypeMustBeIntegral,
         2010,
-        format!("underlying type '{underlying}' is not supported for enums"),
+        format!("invalid enum `{identifier}`: underlying type '{underlying}' is not supported for enums"),
+        identifier,
         underlying
     ),
     (
@@ -280,7 +332,12 @@ implement_error_functions!(
         format!("`{identifier}` shadows another symbol"),
         identifier
     ),
-    (LogicKind::DuplicateTag, 2000, "tags must be unique"),
+    (
+        LogicKind::CannotHaveDuplicateTag,
+        2000,
+        format!("invalid tag on member `{}`: tags must be unique", identifier),
+        identifier
+    ),
     (
         LogicKind::MustBePositive,
         2013,
@@ -288,14 +345,16 @@ implement_error_functions!(
         kind
     ),
     (
-        LogicKind::RequiredParametersMustBeFirst,
+        LogicKind::RequiredMustPrecedeOptional,
         2015,
-        "required parameters must precede tagged parameters"
+        format!("invalid parameter `{}`: required parameters must precede tagged parameters", identifier),
+        identifier
     ),
     (
-        LogicKind::StreamsMustBeLast,
+        LogicKind::StreamedMembersMustBeLast,
         2016,
-        "only the last parameter in an operation can use the stream modifier"
+        format!("invalid parameter `{}`: only the last parameter in an operation can use the stream modifier", identifier),
+        identifier
     ),
     (
         LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
@@ -303,29 +362,33 @@ implement_error_functions!(
         "return tuples must have at least 2 elements"
     ),
     (
-        LogicKind::NotSupportedInCompactStructs,
+        LogicKind::CompactStructCannotContainTaggedMembers,
         2018,
         "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
-        LogicKind::MustBeOptional,
+        LogicKind::TaggedMemberMustBeOptional,
         2019,
-        "tagged members must be optional"
+        format!("invalid tag on member `{}`: tagged members must be optional", identifier),
+        identifier
     ),
     (
-        LogicKind::CannotBeClass,
+        LogicKind::CannotTagClass,
         2020,
-        "tagged members cannot be classes"
+        format!("invalid tag on member `{}`: tagged members cannot be classes", identifier),
+        identifier
     ),
     (
-        LogicKind::CannotContainClasses,
+        LogicKind::CannotTagContainingClass,
         2021,
-        "tagged members cannot contain classes"
+        format!("invalid tag on member `{}`: tagged members cannot contain classes", identifier),
+        identifier
     ),
     (
         LogicKind::CanOnlyInheritFromSingleBase,
         2022,
-        "exceptions can only inherit from a single base exception"
+        format!("`{}` types can only inherit form a single base  {}", kind, kind),
+        kind
     ),
     (
         LogicKind::TypeMismatch,
@@ -342,7 +405,7 @@ implement_error_functions!(
         found
     ),
     (
-        LogicKind::CompactStructIsEmpty,
+        LogicKind::CompactStructCannotBeEmpty,
         2025,
         "compact structs must be non-empty"
     ),
@@ -353,30 +416,29 @@ implement_error_functions!(
         identifier
     ),
     (
-        LogicKind::MustBeBounded,
+        LogicKind::EnumeratorValueOutOfBounds,
         2012,
-        format!("enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive"),
-        value,
-        min,
-        max
+        format!(
+            "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
+        ),
+        identifier, value, min, max
     ),
     (
-        LogicKind::TagOutOfBounds,
+        LogicKind::TagValueOutOfBounds,
         2090,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        LogicKind::MustBeUnique,
+        LogicKind::CannotHaveDuplicateEnumerators,
         2012,
-        "enumerators must be unique"
+        format!("invalid enumerator `{}`: enumerators must be unique", identifier),
+        identifier
     ),
     (
         LogicKind::NotSupportedWithEncoding,
         2026,
         format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
-        kind,
-        identifier,
-        encoding
+        kind, identifier, encoding
     ),
     (
         LogicKind::UnsupportedType,
@@ -402,11 +464,6 @@ implement_error_functions!(
         2026,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
-    ),
-    (
-        LogicKind::ClassesCanOnlyInheritFromSingleBase,
-        2027,
-        "classes can only inherit from a single base class"
     ),
     (
         LogicKind::UnexpectedAttribute,
