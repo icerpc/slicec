@@ -30,7 +30,7 @@ mod compact_structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 
     #[test]
     fn cannot_contain_tags() {
@@ -49,7 +49,7 @@ mod compact_structs {
 
         // Assert
         let expected = [
-            LogicKind::CompactStructCannotContainTaggedMembers.into(),
+            LogicErrorKind::CompactStructCannotContainTaggedMembers.into(),
             DiagnosticKind::new_note("struct 'S' is declared compact here"),
         ];
         assert_errors_new!(diagnostic_reporter, expected);

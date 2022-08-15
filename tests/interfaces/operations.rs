@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{DiagnosticKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -193,14 +193,14 @@ fn return_tuple_must_contain_two_or_more_elements() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
+    let expected: DiagnosticKind = LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements.into();
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 mod streams {
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::*;
 
     #[test]
@@ -242,7 +242,7 @@ mod streams {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
+        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
@@ -258,7 +258,7 @@ mod streams {
         ";
 
         // Act
-        let expected: DiagnosticKind = LogicKind::StreamedMembersMustBeLast("s".to_owned()).into();
+        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s".to_owned()).into();
 
         // Assert
         let diagnostic_reporter = parse_for_diagnostics(slice);

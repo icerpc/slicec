@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
-use slice::diagnostics::{DiagnosticKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -115,7 +115,7 @@ fn cannot_redefine_data_members() {
 
     // Assert
     let expected = [
-        LogicKind::Redefinition("a".to_string()).into(),
+        LogicErrorKind::Redefinition("a".to_string()).into(),
         DiagnosticKind::new_note("`a` was previously defined here".to_owned()),
     ];
     assert_errors_new!(diagnostic_reporter, &expected);

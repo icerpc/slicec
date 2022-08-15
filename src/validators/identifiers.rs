@@ -16,7 +16,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let diagnostic = LogicKind::Redefinition(window[1].value.clone());
+            let diagnostic = LogicErrorKind::Redefinition(window[1].value.clone());
             diagnostic_reporter.report(diagnostic, Some(window[1].span()));
             diagnostic_reporter.report(
                 DiagnosticKind::new_note(format!("`{}` was previously defined here", window[0].value)),
@@ -36,7 +36,7 @@ pub fn check_for_shadowing(
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                let diagnostic = LogicKind::Shadows(identifier.value.clone());
+                let diagnostic = LogicErrorKind::Shadows(identifier.value.clone());
                 diagnostic_reporter.report(diagnostic, Some(identifier.span()));
                 diagnostic_reporter.report(
                     DiagnosticKind::new_note(format!("`{}` was previously defined here", inherited_identifier.value)),

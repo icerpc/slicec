@@ -19,7 +19,7 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
         for member in nonstreamed_members {
             if member.is_streamed {
                 diagnostic_reporter.report(
-                    LogicKind::StreamedMembersMustBeLast(member.identifier().to_owned()),
+                    LogicErrorKind::StreamedMembersMustBeLast(member.identifier().to_owned()),
                     Some(member.span()),
                 );
             }
@@ -30,6 +30,6 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
 fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticsReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && struct_def.members().is_empty() {
-        diagnostic_reporter.report(LogicKind::CompactStructCannotBeEmpty, Some(struct_def.span()));
+        diagnostic_reporter.report(LogicErrorKind::CompactStructCannotBeEmpty, Some(struct_def.span()));
     }
 }

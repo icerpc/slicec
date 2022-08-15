@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::Encoding;
 
     use crate::assert_errors_new;
@@ -24,7 +24,7 @@ mod slice1 {
 
         // Assert
         let expected_errors = [
-            LogicKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1).into(),
+            LogicErrorKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1).into(),
             DiagnosticKind::new_note("file encoding was set to Slice1 here:".to_owned()),
             DiagnosticKind::new_note("enums with underlying types are not supported by the Slice1 encoding".to_owned()),
         ];

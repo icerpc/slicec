@@ -8,7 +8,7 @@ mod logic;
 mod warnings;
 
 pub use self::diagnostic_reporter::DiagnosticsReporter;
-pub use self::logic::LogicKind;
+pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 
 /// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
@@ -35,7 +35,7 @@ pub enum DiagnosticKind {
     SyntaxError(String),
 
     /// An error related to the logic of the slice source code such as using the same tag twice.
-    LogicError(LogicKind),
+    LogicError(LogicErrorKind),
 
     /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
     /// indicates that an operation should return a value, but the operation does not.

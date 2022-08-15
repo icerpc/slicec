@@ -254,8 +254,9 @@ impl TypeRefPatcher<'_> {
                 .position(|&other| std::ptr::eq(other, current_type_alias));
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
-                let diagnostic =
-                    LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
+                let diagnostic = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
+                    current_type_alias.module_scoped_identifier(),
+                );
                 self.diagnostic_reporter
                     .report(diagnostic, Some(current_type_alias.span()));
                 for window in type_alias_chain[i..].windows(2) {

@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
@@ -23,7 +23,7 @@ mod slice1 {
 
         // Assert
         let expected = [
-            LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
+            LogicErrorKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1).into(),
             DiagnosticKind::new_note("file encoding was set to Slice1 here:"),
             DiagnosticKind::new_note("structs must be `compact` to be supported by the Slice1 encoding"),
         ];
@@ -35,7 +35,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
@@ -56,7 +56,7 @@ mod slice2 {
 
         // Assert
         let expected: [DiagnosticKind; 3] = [
-            LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
+            LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             DiagnosticKind::new_note("file is using the Slice2 encoding by default"),
             DiagnosticKind::new_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",

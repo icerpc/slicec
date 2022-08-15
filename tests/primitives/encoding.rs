@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -38,7 +38,7 @@ mod slice1 {
 
         // Assert
         let expected = [
-            LogicKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
+            LogicErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
             DiagnosticKind::new_note("file encoding was set to Slice1 here:"),
         ];
         assert_errors_new!(diagnostic_reporter, expected);
@@ -81,7 +81,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -103,7 +103,7 @@ mod slice2 {
 
         // Assert
         let expected = [
-            LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
+            LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
             DiagnosticKind::new_note("file is using the Slice2 encoding by default"),
             DiagnosticKind::new_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",

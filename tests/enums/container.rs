@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
-use slice::diagnostics::{DiagnosticKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -85,7 +85,8 @@ fn validate_backing_type_out_of_bounds() {
 
     // Assert
     let expected: DiagnosticKind =
-        LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64).into();
+        LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64)
+            .into();
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
@@ -130,7 +131,7 @@ fn invalid_underlying_type(underlying_type: &str) {
 
     // Assert
     let expected: DiagnosticKind =
-        LogicKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()).into();
+        LogicErrorKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()).into();
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
@@ -162,7 +163,7 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: DiagnosticKind = LogicKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
+    let expected: DiagnosticKind = LogicErrorKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);
@@ -182,7 +183,7 @@ fn enumerators_must_be_unique() {
         }
     ";
     let expected = [
-        LogicKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
+        LogicErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
         DiagnosticKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
     ];
 
@@ -244,7 +245,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: DiagnosticKind = LogicKind::MustContainEnumerators("E".to_owned()).into();
+    let expected: DiagnosticKind = LogicErrorKind::MustContainEnumerators("E".to_owned()).into();
 
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
@@ -271,7 +272,7 @@ mod slice1 {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{DiagnosticKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -291,9 +292,9 @@ mod slice1 {
 
         // Assert
         let expected_errors: [DiagnosticKind; 3] = [
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
+            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
         ];
         assert_errors_new!(diagnostic_reporter, expected_errors);
     }
@@ -317,7 +318,8 @@ mod slice1 {
 
         // Assert
         let expected: DiagnosticKind =
-            LogicKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64).into();
+            LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64)
+                .into();
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }

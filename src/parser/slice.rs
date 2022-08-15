@@ -267,7 +267,7 @@ impl<'a> SliceParser<'a> {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicKind::CanOnlyInheritFromSingleBase("class".to_string()),
+                        LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
                         Some(&span),
                     );
                 }
@@ -309,7 +309,7 @@ impl<'a> SliceParser<'a> {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()),
+                        LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
                         Some(&span),
                     )
                 }
@@ -515,7 +515,7 @@ impl<'a> SliceParser<'a> {
                 if return_elements.len() < 2 {
                     let span = get_span_for(&input);
                     input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
+                        LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
                         Some(&span),
                     );
                 }
@@ -652,7 +652,7 @@ impl<'a> SliceParser<'a> {
                 // Checking that tags must fit in an i32 and be non-negative.
                 if !RangeInclusive::new(0, i32::MAX as i64).contains(&integer) {
                     let span = get_span_for(&input);
-                    input.user_data().borrow_mut().diagnostic_reporter.report(LogicKind::TagValueOutOfBounds, Some(&span));
+                    input.user_data().borrow_mut().diagnostic_reporter.report(LogicErrorKind::TagValueOutOfBounds, Some(&span));
                 }
                 integer as u32
             }

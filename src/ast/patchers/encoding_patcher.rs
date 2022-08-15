@@ -91,7 +91,7 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let diagnostic = LogicKind::NotSupportedWithEncoding(
+            let diagnostic = LogicErrorKind::NotSupportedWithEncoding(
                 entity_def.kind().to_owned(),
                 entity_def.identifier().to_owned(),
                 file_encoding,
@@ -132,7 +132,7 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    diagnostics.push(LogicKind::ExceptionNotSupported(Encoding::Slice1));
+                    diagnostics.push(LogicErrorKind::ExceptionNotSupported(Encoding::Slice1));
                 }
                 encodings
             }
@@ -169,7 +169,7 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                diagnostics.push(LogicKind::OptionalsNotSupported(Encoding::Slice1));
+                diagnostics.push(LogicErrorKind::OptionalsNotSupported(Encoding::Slice1));
             }
         }
 
@@ -179,7 +179,7 @@ impl EncodingPatcher<'_> {
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if diagnostics.is_empty() {
-                let diagnostic = LogicKind::UnsupportedType(type_ref.type_string.clone(), *file_encoding);
+                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string.clone(), *file_encoding);
                 diagnostics.push(diagnostic);
             }
             for diagnostic in diagnostics {
@@ -351,7 +351,7 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let diagnostic = LogicKind::StreamedParametersNotSupported(Encoding::Slice1);
+                    let diagnostic = LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1);
                     patcher.diagnostic_reporter.report(diagnostic, Some(member.span()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
