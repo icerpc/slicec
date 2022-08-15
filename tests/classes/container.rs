@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -74,9 +74,9 @@ fn cycles_are_allowed(cycle_string: &str) {
         "
     );
 
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
-    assert_errors!(error_reporter);
+    assert_errors!(diagnostic_reporter);
 }
 
 /// Verifies that classes can be empty
@@ -111,12 +111,12 @@ fn cannot_redefine_data_members() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [
-        LogicKind::Redefinition("a".to_string()).into(),
-        ErrorKind::new_note("`a` was previously defined here".to_owned()),
+        LogicErrorKind::Redefinition("a".to_string()).into(),
+        DiagnosticKind::new_note("`a` was previously defined here".to_owned()),
     ];
-    assert_errors_new!(error_reporter, &expected);
+    assert_errors_new!(diagnostic_reporter, &expected);
 }

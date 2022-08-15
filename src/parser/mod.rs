@@ -10,7 +10,7 @@ mod slice;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::errors::ErrorReporter;
+use crate::diagnostics::DiagnosticReporter;
 use crate::parse_result::{ParsedData, ParserResult};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -25,10 +25,10 @@ use std::{fs, io};
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let mut ast = Ast::create();
-    let mut error_reporter = ErrorReporter::new(options.warn_as_error);
+    let mut diagnostic_reporter = DiagnosticReporter::new(options.warn_as_error);
 
     let mut parser = slice::SliceParser {
-        error_reporter: &mut error_reporter,
+        diagnostic_reporter: &mut diagnostic_reporter,
     };
 
     let source_files = find_slice_files(&options.sources);
@@ -56,7 +56,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
-        error_reporter,
+        diagnostic_reporter,
     };
 
     patch_ast(parsed_data)
@@ -64,9 +64,9 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::create();
-    let mut error_reporter = ErrorReporter::new(true);
+    let mut diagnostic_reporter = DiagnosticReporter::new(true);
     let mut parser = slice::SliceParser {
-        error_reporter: &mut error_reporter,
+        diagnostic_reporter: &mut diagnostic_reporter,
     };
 
     let mut slice_files = HashMap::new();
@@ -78,7 +78,7 @@ pub fn parse_string(input: &str) -> ParserResult {
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
-        error_reporter,
+        diagnostic_reporter,
     };
 
     patch_ast(parsed_data)
@@ -86,9 +86,9 @@ pub fn parse_string(input: &str) -> ParserResult {
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut ast = Ast::create();
-    let mut error_reporter = ErrorReporter::new(true);
+    let mut diagnostic_reporter = DiagnosticReporter::new(true);
     let mut parser = slice::SliceParser {
-        error_reporter: &mut error_reporter,
+        diagnostic_reporter: &mut diagnostic_reporter,
     };
 
     let mut slice_files = HashMap::new();
@@ -102,7 +102,7 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
-        error_reporter,
+        diagnostic_reporter,
     };
 
     patch_ast(parsed_data)
@@ -118,7 +118,7 @@ fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 
     // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
     if !parsed_data.has_errors() {
-        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.error_reporter);
+        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.diagnostic_reporter);
     }
 
     parsed_data.into()

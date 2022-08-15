@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::*;
+use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 use std::str::FromStr;
@@ -34,11 +34,14 @@ fn message_value_separator(valid_strings: &[&str]) -> String {
 }
 
 /// Attribute validators
-fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorReporter) {
+fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => error_reporter.report(LogicKind::CannotBeEmpty("format attribute"), Some(attribute.span())),
+            0 => diagnostic_reporter.report(
+                LogicErrorKind::CannotBeEmpty("format attribute"),
+                Some(attribute.span()),
+            ),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute
@@ -49,12 +52,12 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
                         format.is_err()
                     })
                     .for_each(|arg| {
-                        error_reporter.report(
-                            LogicKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
+                        diagnostic_reporter.report(
+                            LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.span()),
                         );
-                        error_reporter.report(
-                            ErrorKind::new_note(format!(
+                        diagnostic_reporter.report(
+                            DiagnosticKind::new_note(format!(
                                 "The valid arguments for the format attribute are {}",
                                 message_value_separator(&["Compact", "Sliced"])
                             )),
@@ -67,11 +70,11 @@ fn validate_format_attribute(operation: &Operation, error_reporter: &mut ErrorRe
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to members.
-fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorReporter) {
+fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            error_reporter.report(
-                LogicKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
+            diagnostic_reporter.report(
+                LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
             );
         }
@@ -80,14 +83,14 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>, error_reporter: &mut ErrorRep
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporter) {
+fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut DiagnosticReporter) {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let supported_on = ["interface", "operation"];
     let kind = element.kind();
     if !supported_on.contains(&kind) {
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
-            error_reporter.report(LogicKind::CompressAttributeCannotBeApplied, Some(attribute.span()))
+            diagnostic_reporter.report(LogicErrorKind::CompressAttributeCannotBeApplied, Some(attribute.span()))
         }
     }
 
@@ -97,12 +100,12 @@ fn is_compressible(element: &dyn Attributable, error_reporter: &mut ErrorReporte
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
             attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    error_reporter.report(
-                        LogicKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
+                    diagnostic_reporter.report(
+                        LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.span()),
                     );
-                    error_reporter.report(
-                        ErrorKind::new_note(format!(
+                    diagnostic_reporter.report(
+                        DiagnosticKind::new_note(format!(
                             "The valid argument(s) for the compress attribute are {}",
                             message_value_separator(&valid_arguments).as_str(),
                         )),

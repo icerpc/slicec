@@ -3,38 +3,39 @@
 use crate::slice_file::Span;
 use std::fmt;
 
-mod error_reporter;
+mod diagnostic_reporter;
 mod logic;
 mod warnings;
 
-pub use self::error_reporter::ErrorReporter;
-pub use self::logic::LogicKind;
+pub use self::diagnostic_reporter::DiagnosticReporter;
+pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 
-/// An Error contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
+/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
 ///
-/// Each error has a kind, specifying the type of error encountered, such as Syntax, Logic, or IO. Additionally, an
-/// Error can have an optional Span which specifies the location in the source code where the error occurred.
+/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or
+/// IO. Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
+/// diagnostic occurred.
 #[derive(Debug)]
-pub struct Error {
-    pub error_kind: ErrorKind,
+pub struct Diagnostic {
+    pub diagnostic_kind: DiagnosticKind,
     pub span: Option<Span>,
 }
 
-impl fmt::Display for Error {
+impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error_kind)
+        write!(f, "{}", self.diagnostic_kind)
     }
 }
 
 #[derive(Debug)]
-pub enum ErrorKind {
+pub enum DiagnosticKind {
     /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
     /// Slice2 encoded slice file.
-    Syntax(String),
+    SyntaxError(String),
 
     /// An error related to the logic of the slice source code such as using the same tag twice.
-    Logic(LogicKind),
+    LogicError(LogicErrorKind),
 
     /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
     /// indicates that an operation should return a value, but the operation does not.
@@ -45,17 +46,17 @@ pub enum ErrorKind {
     Note(String),
 
     /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
-    IO(String),
+    IOError(String),
 }
 
-impl fmt::Display for ErrorKind {
+impl fmt::Display for DiagnosticKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ErrorKind::Syntax(error) => write!(f, "{}", error),
-            ErrorKind::Logic(rule_kind) => write!(f, "{}", rule_kind.message()),
-            ErrorKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
-            ErrorKind::Note(note) => write!(f, "{}", note),
-            ErrorKind::IO(error) => write!(f, "{}", error),
+            DiagnosticKind::SyntaxError(error) => write!(f, "{}", error),
+            DiagnosticKind::LogicError(rule_kind) => write!(f, "{}", rule_kind.message()),
+            DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
+            DiagnosticKind::Note(note) => write!(f, "{}", note),
+            DiagnosticKind::IOError(error) => write!(f, "{}", error),
         }
     }
 }
@@ -64,20 +65,20 @@ impl fmt::Display for ErrorKind {
 ///
 /// # Examples
 /// ```
-/// # use slice::errors::ErrorKind;
-/// let note = ErrorKind::new_note("This is the content of a note.");
+/// # use slice::diagnostics::DiagnosticKind;
+/// let note = DiagnosticKind::new_note("This is the content of a note.");
 /// ```
-impl ErrorKind {
-    pub fn new_note(message: impl Into<String>) -> ErrorKind {
-        ErrorKind::Note(message.into())
+impl DiagnosticKind {
+    pub fn new_note(message: impl Into<String>) -> DiagnosticKind {
+        DiagnosticKind::Note(message.into())
     }
 }
 
 #[macro_export]
 macro_rules! implement_from_for_error_sub_kind {
     ($type:ty, $enumerator:path) => {
-        impl From<$type> for ErrorKind {
-            fn from(original: $type) -> ErrorKind {
+        impl From<$type> for DiagnosticKind {
+            fn from(original: $type) -> DiagnosticKind {
                 $enumerator(original)
             }
         }

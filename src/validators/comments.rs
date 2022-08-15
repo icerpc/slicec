@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::errors::{ErrorReporter, WarningKind};
+use crate::diagnostics::{DiagnosticReporter, WarningKind};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -12,18 +12,18 @@ pub fn comments_validators() -> ValidationChain {
     ]
 }
 
-fn non_empty_return_comment(operation: &Operation, error_reporter: &mut ErrorReporter) {
+fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         // Return doc comment exists but operation has no return members.
         // `DocComment.return_members` contains a list of descriptions of the return members.
         // example: @return A description of the return value.`
         if comment.returns.is_some() && operation.return_members().is_empty() {
-            error_reporter.report(WarningKind::ExtraReturnValueInDocComment, Some(&comment.span));
+            diagnostic_reporter.report(WarningKind::ExtraReturnValueInDocComment, Some(&comment.span));
         }
     }
 }
 
-fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorReporter) {
+fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         comment.params.iter().for_each(|param| {
             if !operation
@@ -32,7 +32,7 @@ fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorRe
                 .map(|p| p.identifier.value.clone())
                 .any(|identifier| identifier == param.0)
             {
-                error_reporter.report(
+                diagnostic_reporter.report(
                     WarningKind::ExtraParameterInDocComment(param.0.clone()),
                     Some(&comment.span),
                 );
@@ -41,13 +41,13 @@ fn missing_parameter_comment(operation: &Operation, error_reporter: &mut ErrorRe
     }
 }
 
-fn only_operations_can_throw(commentable: &dyn Entity, error_reporter: &mut ErrorReporter) {
+fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
     let supported_on = ["operation"];
     if let Some(comment) = commentable.comment() {
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
             let warning =
                 WarningKind::ExtraThrowInDocComment(commentable.kind().to_owned(), commentable.identifier().to_owned());
-            error_reporter.report(warning, Some(&comment.span));
+            diagnostic_reporter.report(warning, Some(&comment.span));
         };
     }
 }

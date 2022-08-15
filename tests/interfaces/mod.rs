@@ -6,7 +6,7 @@ mod operations;
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 use slice::parse_from_string;
 
@@ -98,12 +98,12 @@ fn cannot_redefine_operations() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [ErrorKind; 2] = [
-        LogicKind::Redefinition("op".to_owned()).into(),
-        ErrorKind::new_note("`op` was previously defined here".to_owned()),
+    let expected: [DiagnosticKind; 2] = [
+        LogicErrorKind::Redefinition("op".to_owned()).into(),
+        DiagnosticKind::new_note("`op` was previously defined here".to_owned()),
     ];
-    assert_errors_new!(error_reporter, expected);
+    assert_errors_new!(diagnostic_reporter, expected);
 }

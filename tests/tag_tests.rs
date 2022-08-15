@@ -4,9 +4,9 @@ pub mod helpers;
 
 mod tags {
 
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::*;
     use slice::parse_from_string;
     use test_case::test_case;
@@ -25,11 +25,11 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("b".to_owned()).into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::TaggedMemberMustBeOptional("b".to_owned()).into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -44,11 +44,11 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -63,10 +63,10 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(error_reporter, [
+        assert_errors!(diagnostic_reporter, [
             "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)",
             "file encoding was set to Slice1 here:",
         ]);
@@ -84,14 +84,14 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: [ErrorKind; 2] = [
-            LogicKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
-            LogicKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
+        let expected: [DiagnosticKind; 2] = [
+            LogicErrorKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
+            LogicErrorKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 
     #[test]
@@ -109,10 +109,10 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_errors(slice);
+        let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotTagClass("c".to_owned()).into();
+        let expected: DiagnosticKind = LogicErrorKind::CannotTagClass("c".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -134,10 +134,10 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_errors(slice);
+        let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CannotTagContainingClass("s".to_owned()).into();
+        let expected: DiagnosticKind = LogicErrorKind::CannotTagContainingClass("s".to_owned()).into();
         assert_errors_new!(errors, [&expected]);
     }
 
@@ -173,14 +173,14 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
-            LogicKind::CannotHaveDuplicateTag("b".to_owned()).into(),
-            ErrorKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
+            LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()).into(),
+            DiagnosticKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 
     #[test_case(0)]
@@ -198,10 +198,10 @@ mod tags {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(error_reporter);
+        assert_errors!(diagnostic_reporter);
     }
 
     #[test_case(77757348128678234_i64 ; "Random large value")]
@@ -218,11 +218,11 @@ mod tags {
         );
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TagValueOutOfBounds.into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::TagValueOutOfBounds.into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -236,11 +236,11 @@ mod tags {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::TagValueOutOfBounds.into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::TagValueOutOfBounds.into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test] // TODO: We should not be panicking here. We should be returning an error.

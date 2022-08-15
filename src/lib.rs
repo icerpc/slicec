@@ -2,7 +2,7 @@
 
 pub mod ast;
 pub mod command_line;
-pub mod errors;
+pub mod diagnostics;
 pub mod grammar;
 pub mod parse_result;
 pub mod parser;

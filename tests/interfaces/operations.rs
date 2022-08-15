@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -190,17 +190,17 @@ fn return_tuple_must_contain_two_or_more_elements() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::ReturnTuplesMustContainAtLeastTwoElements.into();
-    assert_errors_new!(error_reporter, [&expected]);
+    let expected: DiagnosticKind = LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements.into();
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 mod streams {
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::*;
 
     #[test]
@@ -239,11 +239,11 @@ mod streams {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -258,10 +258,10 @@ mod streams {
         ";
 
         // Act
-        let expected: ErrorKind = LogicKind::StreamedMembersMustBeLast("s".to_owned()).into();
+        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s".to_owned()).into();
 
         // Assert
-        let error_reporter = parse_for_errors(slice);
-        assert_errors_new!(error_reporter, [&expected]);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }

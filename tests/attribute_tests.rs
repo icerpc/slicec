@@ -7,8 +7,8 @@ mod attributes {
     mod slice_api {
 
         use crate::assert_errors_new;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
-        use slice::errors::{ErrorKind, LogicKind};
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+        use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -71,11 +71,11 @@ mod attributes {
             );
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: ErrorKind = LogicKind::CannotBeEmpty("format attribute").into();
-            assert_errors_new!(error_reporter, [&expected]);
+            let expected: DiagnosticKind = LogicErrorKind::CannotBeEmpty("format attribute").into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -90,14 +90,14 @@ mod attributes {
                 }
             ";
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [
-                LogicKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
-                ErrorKind::new_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
+                DiagnosticKind::new_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
             ];
-            assert_errors_new!(error_reporter, expected);
+            assert_errors_new!(diagnostic_reporter, expected);
         }
 
         #[test]
@@ -132,11 +132,12 @@ mod attributes {
             ";
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: ErrorKind = LogicKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
-            assert_errors_new!(error_reporter, [&expected]);
+            let expected: DiagnosticKind =
+                LogicErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -152,11 +153,12 @@ mod attributes {
             ";
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: ErrorKind = LogicKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
-            assert_errors_new!(error_reporter, [&expected]);
+            let expected: DiagnosticKind =
+                LogicErrorKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -219,14 +221,14 @@ mod attributes {
             ";
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [
-                LogicKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
-                ErrorKind::new_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
+                DiagnosticKind::new_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
             ];
-            assert_errors_new!(error_reporter, expected);
+            assert_errors_new!(diagnostic_reporter, expected);
         }
 
         #[test]
@@ -242,11 +244,11 @@ mod attributes {
             ";
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: ErrorKind = LogicKind::CompressAttributeCannotBeApplied.into();
-            assert_errors_new!(error_reporter, [&expected]);
+            let expected: DiagnosticKind = LogicErrorKind::CompressAttributeCannotBeApplied.into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -275,7 +277,7 @@ mod attributes {
     mod generalized_api {
 
         use crate::assert_errors;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_errors};
+        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::grammar::*;
         use slice::parse_from_string;
         use test_case::test_case;
@@ -395,10 +397,10 @@ mod attributes {
             ";
 
             // Act
-            let error_reporter = parse_for_errors(slice);
+            let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            assert_errors!(error_reporter);
+            assert_errors!(diagnostic_reporter);
         }
     }
 }

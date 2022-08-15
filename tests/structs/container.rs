@@ -4,7 +4,7 @@ mod structs {
 
     use crate::assert_errors_new;
     use crate::helpers::parsing_helpers::*;
-    use slice::errors::{ErrorKind, LogicKind};
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     use slice::grammar::*;
 
     /// Verifies that structs can contain data members.
@@ -75,22 +75,22 @@ mod structs {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
-            LogicKind::Redefinition("a".to_owned()).into(),
-            ErrorKind::new_note("`a` was previously defined here".to_owned()),
+            LogicErrorKind::Redefinition("a".to_owned()).into(),
+            DiagnosticKind::new_note("`a` was previously defined here".to_owned()),
         ];
-        assert_errors_new!(error_reporter, expected);
+        assert_errors_new!(diagnostic_reporter, expected);
     }
 }
 
 mod compact_structs {
 
     use crate::assert_errors_new;
-    use crate::helpers::parsing_helpers::parse_for_errors;
-    use slice::errors::{ErrorKind, LogicKind};
+    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     /// Verifies that compact structs must contain at least one data member.
     #[test]
     fn must_not_be_empty() {
@@ -101,10 +101,10 @@ mod compact_structs {
         ";
 
         // Act
-        let error_reporter = parse_for_errors(slice);
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: ErrorKind = LogicKind::CompactStructCannotBeEmpty.into();
-        assert_errors_new!(error_reporter, [&expected]);
+        let expected: DiagnosticKind = LogicErrorKind::CompactStructCannotBeEmpty.into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }

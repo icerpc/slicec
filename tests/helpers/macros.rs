@@ -1,13 +1,13 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-/// Asserts that an error reporter contains the expected errors (or is empty).
+/// Asserts that an diagnostic reporter contains the expected errors (or is empty).
 ///
 /// If the number of reporter errors doesn't match, this macro will print the values of
-/// error reporter errors.
+/// diagnostic reporter errors.
 #[macro_export]
 macro_rules! assert_errors {
-    ($error_reporter:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert!(
             errors.is_empty(),
             "Expected no errors, got {}.\n{:?}",
@@ -16,8 +16,8 @@ macro_rules! assert_errors {
         );
     };
 
-    ($error_reporter:expr, $expected_errors:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr, $expected_errors:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert_eq!(
             errors.len(),
             $expected_errors.len(),
@@ -34,8 +34,8 @@ macro_rules! assert_errors {
 
 #[macro_export]
 macro_rules! assert_errors_new {
-    ($error_reporter:expr, $expected_errors:expr) => {
-        let errors = $error_reporter.into_errors();
+    ($diagnostic_reporter:expr, $expected_errors:expr) => {
+        let errors = $diagnostic_reporter.into_diagnostics();
         assert_eq!(
             errors.len(),
             $expected_errors.len(),

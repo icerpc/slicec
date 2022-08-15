@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::*;
 use crate::{assert_errors, assert_errors_new};
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -35,11 +35,11 @@ fn does_not_support_multiple_inheritance() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: ErrorKind = LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()).into();
-    assert_errors_new!(error_reporter, [&expected]);
+    let expected: DiagnosticKind = LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()).into();
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -53,10 +53,10 @@ fn must_inherit_from_exception() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(error_reporter, [
+    assert_errors!(diagnostic_reporter, [
         "type mismatch: expected an exception but found a class",
     ]);
 }
@@ -78,14 +78,14 @@ fn data_member_shadowing_is_disallowed() {
     ";
 
     // Act
-    let error_reporter = parse_for_errors(slice);
+    let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [
-        LogicKind::Shadows("i".to_owned()).into(),
-        ErrorKind::new_note("`i` was previously defined here".to_owned()),
+        LogicErrorKind::Shadows("i".to_owned()).into(),
+        DiagnosticKind::new_note("`i` was previously defined here".to_owned()),
     ];
-    assert_errors_new!(error_reporter, expected);
+    assert_errors_new!(diagnostic_reporter, expected);
 }
 
 #[test]

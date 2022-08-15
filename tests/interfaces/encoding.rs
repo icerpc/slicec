@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::assert_errors_new;
-use slice::errors::{ErrorKind, LogicKind};
+use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
@@ -26,8 +26,8 @@ fn operation_members_are_compatible_with_encoding() {
 
     // Assert
     let expected = [
-        LogicKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
-        ErrorKind::new_note("file encoding was set to Slice2 here:".to_owned()),
+        LogicErrorKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
+        DiagnosticKind::new_note("file encoding was set to Slice2 here:".to_owned()),
     ];
-    assert_errors_new!(result.error_reporter, expected);
+    assert_errors_new!(result.diagnostic_reporter, expected);
 }
