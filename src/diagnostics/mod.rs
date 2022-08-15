@@ -18,13 +18,13 @@ pub use self::warnings::WarningKind;
 /// diagnostic occurred.
 #[derive(Debug)]
 pub struct Diagnostic {
-    pub error_kind: DiagnosticKind,
+    pub diagnostic_kind: DiagnosticKind,
     pub span: Option<Span>,
 }
 
 impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.error_kind)
+        write!(f, "{}", self.diagnostic_kind)
     }
 }
 

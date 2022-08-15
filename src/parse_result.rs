@@ -29,7 +29,7 @@ impl ParsedData {
         let counts = diagnostic_reporter.get_totals();
 
         for error in diagnostic_reporter.into_diagnostics() {
-            let prefix = match error.error_kind {
+            let prefix = match error.diagnostic_kind {
                 DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => "error",
                 DiagnosticKind::Warning(_) => "warning",
                 DiagnosticKind::Note(_) => "note",

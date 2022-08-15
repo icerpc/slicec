@@ -50,7 +50,7 @@ impl DiagnosticsReporter {
             }
         };
         self.diagnostics.push(Diagnostic {
-            error_kind,
+            diagnostic_kind: error_kind,
             span: span.cloned(),
         });
     }
