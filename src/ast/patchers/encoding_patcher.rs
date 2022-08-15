@@ -91,12 +91,12 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let diagnostic = LogicErrorKind::NotSupportedWithEncoding(
+            let error = LogicErrorKind::NotSupportedWithEncoding(
                 entity_def.kind().to_owned(),
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            self.diagnostic_reporter.report(diagnostic, Some(entity_def.span()));
+            self.diagnostic_reporter.report(error, Some(entity_def.span()));
             self.emit_file_encoding_mismatch_error(entity_def);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -351,8 +351,8 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let diagnostic = LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1);
-                    patcher.diagnostic_reporter.report(diagnostic, Some(member.span()));
+                    let error = LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1);
+                    patcher.diagnostic_reporter.report(error, Some(member.span()));
                     patcher.emit_file_encoding_mismatch_error(member);
                 }
             }

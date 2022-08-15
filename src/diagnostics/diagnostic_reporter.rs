@@ -26,7 +26,7 @@ impl DiagnosticReporter {
     }
 
     /// Checks if any errors have been reported during compilation.
-    pub fn has_diagnostics(&self) -> bool {
+    pub fn has_errors(&self) -> bool {
         (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
@@ -40,9 +40,9 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report(&mut self, error_kind: impl Into<DiagnosticKind>, span: Option<&Span>) {
-        let error_kind: DiagnosticKind = error_kind.into();
-        match error_kind {
+    pub fn report(&mut self, diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) {
+        let diagnostic_kind: DiagnosticKind = diagnostic_kind.into();
+        match diagnostic_kind {
             DiagnosticKind::Note(_) => {}
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
@@ -50,7 +50,7 @@ impl DiagnosticReporter {
             }
         };
         self.diagnostics.push(Diagnostic {
-            diagnostic_kind: error_kind,
+            diagnostic_kind,
             span: span.cloned(),
         });
     }

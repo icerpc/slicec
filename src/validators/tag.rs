@@ -52,8 +52,8 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let diagnostic = LogicErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
-            diagnostic_reporter.report(diagnostic, Some(parameter.data_type.span()));
+            let error = LogicErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
+            diagnostic_reporter.report(error, Some(parameter.data_type.span()));
             true
         }
         None => false,
@@ -67,8 +67,8 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let diagnostic = LogicErrorKind::CompactStructCannotContainTaggedMembers;
-                diagnostic_reporter.report(diagnostic, Some(member.span()));
+                let error = LogicErrorKind::CompactStructCannotContainTaggedMembers;
+                diagnostic_reporter.report(error, Some(member.span()));
                 diagnostic_reporter.report(
                     DiagnosticKind::new_note(format!("struct '{}' is declared compact here", struct_def.identifier())),
                     Some(struct_def.span()),

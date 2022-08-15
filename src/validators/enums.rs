@@ -24,8 +24,8 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let diagnostic = LogicErrorKind::MustBePositive("enumerator values".to_owned());
-                diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
+                let error = LogicErrorKind::MustBePositive("enumerator values".to_owned());
+                diagnostic_reporter.report(error, Some(enumerator.span()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -33,13 +33,13 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let diagnostic = LogicErrorKind::EnumeratorValueOutOfBounds(
+                let error = LogicErrorKind::EnumeratorValueOutOfBounds(
                     enumerator.identifier().to_owned(),
                     enumerator.value,
                     0,
                     i32::MAX as i64,
                 );
-                diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
+                diagnostic_reporter.report(error, Some(enumerator.span()));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -51,13 +51,13 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let diagnostic = LogicErrorKind::EnumeratorValueOutOfBounds(
+                    let error = LogicErrorKind::EnumeratorValueOutOfBounds(
                         enumerator.identifier().to_owned(),
                         enumerator.value,
                         min,
                         max,
                     );
-                    diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
+                    diagnostic_reporter.report(error, Some(enumerator.span()));
                 });
         }
         match &enum_def.underlying {
@@ -82,11 +82,11 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let diagnostic = LogicErrorKind::UnderlyingTypeMustBeIntegral(
+                let error = LogicErrorKind::UnderlyingTypeMustBeIntegral(
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
                 );
-                diagnostic_reporter.report(diagnostic, Some(enum_def.span()));
+                diagnostic_reporter.report(error, Some(enum_def.span()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.

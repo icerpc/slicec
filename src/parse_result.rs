@@ -22,7 +22,7 @@ impl ParsedData {
     }
 
     pub fn has_errors(&self) -> bool {
-        self.diagnostic_reporter.has_diagnostics()
+        self.diagnostic_reporter.has_errors()
     }
 
     fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {

@@ -38,15 +38,15 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    let diagnostic = LogicErrorKind::KeyTypeNotSupported(member.identifier().to_owned());
-                    diagnostic_reporter.report(diagnostic, Some(member.span()));
+                    let error = LogicErrorKind::KeyTypeNotSupported(member.identifier().to_owned());
+                    diagnostic_reporter.report(error, Some(member.span()));
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                let diagnostic = LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned());
-                diagnostic_reporter.report(diagnostic, Some(type_ref.span()));
+                let error = LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned());
+                diagnostic_reporter.report(error, Some(type_ref.span()));
                 diagnostic_reporter.report(
                     DiagnosticKind::new_note(format!("struct '{}' is defined here:", struct_def.identifier())),
                     Some(struct_def.span()),
