@@ -25,7 +25,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 
 struct TypeRefPatcher<'a> {
     type_ref_patches: Vec<PatchKind>,
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostic_reporter: &'a mut DiagnosticsReporter,
 }
 
 impl TypeRefPatcher<'_> {
@@ -254,9 +254,10 @@ impl TypeRefPatcher<'_> {
                 .position(|&other| std::ptr::eq(other, current_type_alias));
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
-                let error =
+                let diagnostic =
                     LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
-                self.diagnostic_reporter.report(error, Some(current_type_alias.span()));
+                self.diagnostic_reporter
+                    .report(diagnostic, Some(current_type_alias.span()));
                 for window in type_alias_chain[i..].windows(2) {
                     let identifier = window[0].identifier();
                     let identifier_original = window[1].identifier();

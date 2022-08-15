@@ -11,13 +11,13 @@ pub fn identifier_validators() -> ValidationChain {
     ]
 }
 
-pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticsReporter) {
     // Sort first so that we can use windows to search for duplicates.
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let error = LogicKind::Redefinition(window[1].value.clone());
-            diagnostic_reporter.report(error, Some(window[1].span()));
+            let diagnostic = LogicKind::Redefinition(window[1].value.clone());
+            diagnostic_reporter.report(diagnostic, Some(window[1].span()));
             diagnostic_reporter.report(
                 DiagnosticKind::new_note(format!("`{}` was previously defined here", window[0].value)),
                 Some(window[0].span()),
@@ -29,15 +29,15 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
 pub fn check_for_shadowing(
     identifiers: Vec<&Identifier>,
     inherited_symbols: Vec<&Identifier>,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostic_reporter: &mut DiagnosticsReporter,
 ) {
     identifiers.iter().for_each(|identifier| {
         inherited_symbols
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                let error = LogicKind::Shadows(identifier.value.clone());
-                diagnostic_reporter.report(error, Some(identifier.span()));
+                let diagnostic = LogicKind::Shadows(identifier.value.clone());
+                diagnostic_reporter.report(diagnostic, Some(identifier.span()));
                 diagnostic_reporter.report(
                     DiagnosticKind::new_note(format!("`{}` was previously defined here", inherited_identifier.value)),
                     Some(inherited_identifier.span()),

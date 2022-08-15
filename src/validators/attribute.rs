@@ -34,7 +34,7 @@ fn message_value_separator(valid_strings: &[&str]) -> String {
 }
 
 /// Attribute validators
-fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
+fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut DiagnosticsReporter) {
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
@@ -67,7 +67,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 }
 
 /// Validates that the `deprecated` attribute cannot be applied to members.
-fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticsReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
             diagnostic_reporter.report(
@@ -80,7 +80,7 @@ fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut Dia
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut DiagnosticReporter) {
+fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut DiagnosticsReporter) {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let supported_on = ["interface", "operation"];

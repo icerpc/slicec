@@ -50,13 +50,13 @@ struct ParserData<'a> {
     current_enum_value: Option<i64>,
     is_in_return_tuple: bool,
     current_scope: Scope,
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostic_reporter: &'a mut DiagnosticsReporter,
 }
 
 #[derive(PestParser)]
 #[grammar = "parser/slice.pest"]
 pub(super) struct SliceParser<'a> {
-    pub diagnostic_reporter: &'a mut DiagnosticReporter,
+    pub diagnostic_reporter: &'a mut DiagnosticsReporter,
 }
 
 impl<'a> SliceParser<'a> {

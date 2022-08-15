@@ -8,7 +8,7 @@ mod identifiers;
 mod miscellaneous;
 mod tag;
 
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::DiagnosticsReporter;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::WeakPtr;
@@ -27,16 +27,16 @@ pub use self::tag::*;
 pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
-    Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
-    Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
-    Enums(fn(&Enum, &mut DiagnosticReporter)),
-    Entities(fn(&dyn Entity, &mut DiagnosticReporter)),
-    Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
-    Identifiers(fn(Vec<&Identifier>, &mut DiagnosticReporter)),
-    InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticReporter)),
-    Operations(fn(&Operation, &mut DiagnosticReporter)),
-    Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
-    Struct(fn(&Struct, &mut DiagnosticReporter)),
+    Attributes(fn(&dyn Attributable, &mut DiagnosticsReporter)),
+    Dictionaries(fn(&[&Dictionary], &mut DiagnosticsReporter)),
+    Enums(fn(&Enum, &mut DiagnosticsReporter)),
+    Entities(fn(&dyn Entity, &mut DiagnosticsReporter)),
+    Members(fn(Vec<&dyn Member>, &mut DiagnosticsReporter)),
+    Identifiers(fn(Vec<&Identifier>, &mut DiagnosticsReporter)),
+    InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticsReporter)),
+    Operations(fn(&Operation, &mut DiagnosticsReporter)),
+    Parameters(fn(&[&Parameter], &mut DiagnosticsReporter)),
+    Struct(fn(&Struct, &mut DiagnosticsReporter)),
 }
 
 pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
@@ -50,12 +50,12 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
 }
 
 struct ValidatorVisitor<'a> {
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostic_reporter: &'a mut DiagnosticsReporter,
     validation_functions: Vec<Validator>,
 }
 
 impl<'a> ValidatorVisitor<'a> {
-    pub fn new(diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
+    pub fn new(diagnostic_reporter: &'a mut DiagnosticsReporter) -> Self {
         let validation_functions = vec![
             attribute_validators(),
             comments_validators(),
@@ -74,7 +74,7 @@ impl<'a> ValidatorVisitor<'a> {
         }
     }
 
-    fn validate(&mut self, func: impl Fn(&Validator, &mut DiagnosticReporter)) {
+    fn validate(&mut self, func: impl Fn(&Validator, &mut DiagnosticsReporter)) {
         for validator_function in &self.validation_functions {
             func(validator_function, self.diagnostic_reporter);
         }

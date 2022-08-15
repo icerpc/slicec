@@ -8,13 +8,13 @@ pub fn dictionary_validators() -> ValidationChain {
     vec![Validator::Dictionaries(has_allowed_key_type)]
 }
 
-pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticsReporter) {
     for dictionary in dictionaries {
         check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
+fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticsReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
         diagnostic_reporter.report(LogicKind::KeyMustBeNonOptional, Some(type_ref.span()));
@@ -38,15 +38,15 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    let error = LogicKind::KeyTypeNotSupported(member.identifier().to_owned());
-                    diagnostic_reporter.report(error, Some(member.span()));
+                    let diagnostic = LogicKind::KeyTypeNotSupported(member.identifier().to_owned());
+                    diagnostic_reporter.report(diagnostic, Some(member.span()));
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                let error = LogicKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned());
-                diagnostic_reporter.report(error, Some(type_ref.span()));
+                let diagnostic = LogicKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned());
+                diagnostic_reporter.report(diagnostic, Some(type_ref.span()));
                 diagnostic_reporter.report(
                     DiagnosticKind::new_note(format!("struct '{}' is defined here:", struct_def.identifier())),
                     Some(struct_def.span()),

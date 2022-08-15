@@ -15,7 +15,7 @@ pub fn enum_validators() -> ValidationChain {
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
-fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         // Enum was defined in a Slice1 file.
         // Slice1 does not allow negative numbers.
@@ -24,8 +24,8 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let error = LogicKind::MustBePositive("enumerator values".to_owned());
-                diagnostic_reporter.report(error, Some(enumerator.span()));
+                let diagnostic = LogicKind::MustBePositive("enumerator values".to_owned());
+                diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -33,31 +33,31 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let error = LogicKind::EnumeratorValueOutOfBounds(
+                let diagnostic = LogicKind::EnumeratorValueOutOfBounds(
                     enumerator.identifier().to_owned(),
                     enumerator.value,
                     0,
                     i32::MAX as i64,
                 );
-                diagnostic_reporter.report(error, Some(enumerator.span()));
+                diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
             });
     } else {
         // Enum was defined in a Slice2 file.
         // Non-integrals are handled by `allowed_underlying_types`
-        fn check_bounds(enum_def: &Enum, underlying_type: &Primitive, diagnostic_reporter: &mut DiagnosticReporter) {
+        fn check_bounds(enum_def: &Enum, underlying_type: &Primitive, diagnostic_reporter: &mut DiagnosticsReporter) {
             let (min, max) = underlying_type.numeric_bounds().unwrap();
             enum_def
                 .enumerators()
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let error = LogicKind::EnumeratorValueOutOfBounds(
+                    let diagnostic = LogicKind::EnumeratorValueOutOfBounds(
                         enumerator.identifier().to_owned(),
                         enumerator.value,
                         min,
                         max,
                     );
-                    diagnostic_reporter.report(error, Some(enumerator.span()));
+                    diagnostic_reporter.report(diagnostic, Some(enumerator.span()));
                 });
         }
         match &enum_def.underlying {
@@ -75,18 +75,18 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
 }
 
 /// Validate that the backing type specified for a Slice2 enums is an integral type.
-fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         return;
     }
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let error = LogicKind::UnderlyingTypeMustBeIntegral(
+                let diagnostic = LogicKind::UnderlyingTypeMustBeIntegral(
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
                 );
-                diagnostic_reporter.report(error, Some(enum_def.span()));
+                diagnostic_reporter.report(diagnostic, Some(enum_def.span()));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -94,7 +94,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
 }
 
 /// Validate that the enumerators for an enum are unique.
-fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
     // The enumerators must be sorted by value first as we are using windowing to check the
     // n + 1 enumerator against the n enumerator. If the enumerators are sorted by value then
     // the windowing will reveal any duplicate enumerators.
@@ -120,7 +120,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
 }
 
 /// Validate the the underlying type of an enum is not optional.
-fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
             diagnostic_reporter.report(
@@ -132,7 +132,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 }
 
 /// Validate that a checked enum must not be empty.
-fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
         diagnostic_reporter.report(
             LogicKind::MustContainEnumerators(enum_def.identifier().to_owned()),

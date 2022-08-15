@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 pub struct ParsedData {
     pub ast: Ast,
-    pub diagnostic_reporter: DiagnosticReporter,
+    pub diagnostic_reporter: DiagnosticsReporter,
     pub files: HashMap<String, SliceFile>,
 }
 
@@ -25,7 +25,7 @@ impl ParsedData {
         self.diagnostic_reporter.has_diagnostics()
     }
 
-    fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+    fn emit_errors(diagnostic_reporter: DiagnosticsReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
 
         for error in diagnostic_reporter.into_diagnostics() {
