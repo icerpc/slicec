@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::{DiagnosticsReporter, WarningKind};
+use crate::diagnostics::{DiagnosticReporter, WarningKind};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -12,7 +12,7 @@ pub fn comments_validators() -> ValidationChain {
     ]
 }
 
-fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         // Return doc comment exists but operation has no return members.
         // `DocComment.return_members` contains a list of descriptions of the return members.
@@ -23,7 +23,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
     }
 }
 
-fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         comment.params.iter().for_each(|param| {
             if !operation
@@ -41,7 +41,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
     }
 }
 
-fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
     let supported_on = ["operation"];
     if let Some(comment) = commentable.comment() {
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {

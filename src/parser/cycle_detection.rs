@@ -1,12 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::{DiagnosticKind, DiagnosticsReporter};
+use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic_reporter: &mut DiagnosticsReporter) {
+pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic_reporter: &mut DiagnosticReporter) {
     let mut cycle_detector = CycleDetector {
         dependency_stack: Vec::new(),
         diagnostic_reporter,
@@ -21,7 +21,7 @@ pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic
 struct CycleDetector<'a> {
     // Stack of all the types we've seen in the dependency chain we're currently checking.
     dependency_stack: Vec<String>,
-    diagnostic_reporter: &'a mut DiagnosticsReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl<'a> CycleDetector<'a> {

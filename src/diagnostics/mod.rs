@@ -7,7 +7,7 @@ mod diagnostic_reporter;
 mod logic;
 mod warnings;
 
-pub use self::diagnostic_reporter::DiagnosticsReporter;
+pub use self::diagnostic_reporter::DiagnosticReporter;
 pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 

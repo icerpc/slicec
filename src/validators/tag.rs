@@ -16,7 +16,7 @@ pub fn tag_validators() -> ValidationChain {
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -45,7 +45,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
 }
 
 /// Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticsReporter) {
+fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
@@ -61,7 +61,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && !struct_def.members.is_empty() {
         // Compact structs cannot have tagged data members.
@@ -79,7 +79,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -98,7 +98,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
 }
 
 /// Validate that classes cannot be tagged.
-fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -116,7 +116,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagn
 }
 
 /// Validate that tagged container types cannot contain class members.
-fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())

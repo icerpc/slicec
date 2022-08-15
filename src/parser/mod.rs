@@ -10,7 +10,7 @@ mod slice;
 
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
-use crate::diagnostics::DiagnosticsReporter;
+use crate::diagnostics::DiagnosticReporter;
 use crate::parse_result::{ParsedData, ParserResult};
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -25,7 +25,7 @@ use std::{fs, io};
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticsReporter::new(options.warn_as_error);
+    let mut diagnostic_reporter = DiagnosticReporter::new(options.warn_as_error);
 
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
@@ -64,7 +64,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticsReporter::new(true);
+    let mut diagnostic_reporter = DiagnosticReporter::new(true);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };
@@ -86,7 +86,7 @@ pub fn parse_string(input: &str) -> ParserResult {
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticsReporter::new(true);
+    let mut diagnostic_reporter = DiagnosticReporter::new(true);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };

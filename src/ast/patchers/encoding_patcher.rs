@@ -61,7 +61,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 struct EncodingPatcher<'a> {
     supported_encodings_cache: HashMap<String, SupportedEncodings>,
     slice_files: &'a HashMap<String, SliceFile>,
-    diagnostic_reporter: &'a mut DiagnosticsReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl EncodingPatcher<'_> {

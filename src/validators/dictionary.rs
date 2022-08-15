@@ -8,13 +8,13 @@ pub fn dictionary_validators() -> ValidationChain {
     vec![Validator::Dictionaries(has_allowed_key_type)]
 }
 
-pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticsReporter) {
+pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
     for dictionary in dictionaries {
         check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticsReporter) -> bool {
+fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
         diagnostic_reporter.report(LogicErrorKind::KeyMustBeNonOptional, Some(type_ref.span()));

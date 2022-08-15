@@ -11,7 +11,7 @@ pub fn identifier_validators() -> ValidationChain {
     ]
 }
 
-pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticsReporter) {
+pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
     // Sort first so that we can use windows to search for duplicates.
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
@@ -29,7 +29,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
 pub fn check_for_shadowing(
     identifiers: Vec<&Identifier>,
     inherited_symbols: Vec<&Identifier>,
-    diagnostic_reporter: &mut DiagnosticsReporter,
+    diagnostic_reporter: &mut DiagnosticReporter,
 ) {
     identifiers.iter().for_each(|identifier| {
         inherited_symbols

@@ -15,7 +15,7 @@ pub fn enum_validators() -> ValidationChain {
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
-fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         // Enum was defined in a Slice1 file.
         // Slice1 does not allow negative numbers.
@@ -44,7 +44,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsRep
     } else {
         // Enum was defined in a Slice2 file.
         // Non-integrals are handled by `allowed_underlying_types`
-        fn check_bounds(enum_def: &Enum, underlying_type: &Primitive, diagnostic_reporter: &mut DiagnosticsReporter) {
+        fn check_bounds(enum_def: &Enum, underlying_type: &Primitive, diagnostic_reporter: &mut DiagnosticReporter) {
             let (min, max) = underlying_type.numeric_bounds().unwrap();
             enum_def
                 .enumerators()
@@ -75,7 +75,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsRep
 }
 
 /// Validate that the backing type specified for a Slice2 enums is an integral type.
-fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         return;
     }
@@ -94,7 +94,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
 }
 
 /// Validate that the enumerators for an enum are unique.
-fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     // The enumerators must be sorted by value first as we are using windowing to check the
     // n + 1 enumerator against the n enumerator. If the enumerators are sorted by value then
     // the windowing will reveal any duplicate enumerators.
@@ -120,7 +120,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagnostics
 }
 
 /// Validate the the underlying type of an enum is not optional.
-fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
             diagnostic_reporter.report(
@@ -132,7 +132,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 }
 
 /// Validate that a checked enum must not be empty.
-fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticsReporter) {
+fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
         diagnostic_reporter.report(
             LogicErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()),

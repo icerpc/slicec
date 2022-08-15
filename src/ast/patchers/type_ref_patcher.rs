@@ -25,7 +25,7 @@ pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
 
 struct TypeRefPatcher<'a> {
     type_ref_patches: Vec<PatchKind>,
-    diagnostic_reporter: &'a mut DiagnosticsReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl TypeRefPatcher<'_> {

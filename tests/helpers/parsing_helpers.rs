@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Ast;
-use slice::diagnostics::DiagnosticsReporter;
+use slice::diagnostics::DiagnosticReporter;
 use slice::parse_from_string;
 
 /// This function is used to parse a Slice file and return the AST.
@@ -13,7 +13,7 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 }
 
 /// This function is used to parse a Slice file and return the DiagnosticReporter.
-pub fn parse_for_diagnostics(slice: impl Into<String>) -> DiagnosticsReporter {
+pub fn parse_for_diagnostics(slice: impl Into<String>) -> DiagnosticReporter {
     match parse_from_string(&slice.into()) {
         Ok(data) => data.diagnostic_reporter,
         Err(data) => data.diagnostic_reporter,

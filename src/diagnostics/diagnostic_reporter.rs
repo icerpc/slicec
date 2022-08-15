@@ -4,7 +4,7 @@ use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::slice_file::Span;
 
 #[derive(Debug)]
-pub struct DiagnosticsReporter {
+pub struct DiagnosticReporter {
     /// Vector where all the diagnostics are stored, in the order they're reported.
     diagnostics: Vec<Diagnostic>,
     /// The total number of errors reported.
@@ -15,9 +15,9 @@ pub struct DiagnosticsReporter {
     treat_warnings_as_errors: bool,
 }
 
-impl DiagnosticsReporter {
+impl DiagnosticReporter {
     pub fn new(treat_warnings_as_errors: bool) -> Self {
-        DiagnosticsReporter {
+        DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
@@ -30,12 +30,12 @@ impl DiagnosticsReporter {
         (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
-    /// Returns the total number of errors and warnings reported through the diagnostics reporter.
+    /// Returns the total number of errors and warnings reported through the diagnostic reporter.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)
     }
 
-    /// Consumes the diagnostics reporter, returning all the errors that have been reported with it.
+    /// Consumes the diagnostic reporter, returning all the errors that have been reported with it.
     pub fn into_diagnostics(self) -> Vec<Diagnostic> {
         self.diagnostics
     }
