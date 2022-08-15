@@ -35,7 +35,7 @@ impl DiagnosticReporter {
         (self.error_count, self.warning_count)
     }
 
-    /// Consumes the diagnostic reporter, returning all the errors that have been reported with it.
+    /// Consumes the diagnostic reporter, returning all the diagnostics that have been reported with it.
     pub fn into_diagnostics(self) -> Vec<Diagnostic> {
         self.diagnostics
     }
