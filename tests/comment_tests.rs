@@ -11,12 +11,12 @@ mod comments {
 
     #[test_case("/** This is a block doc comment. */", "This is a block doc comment."; "block doc comment")]
     #[test_case("/// This is a doc comment.", "This is a doc comment."; "doc comment")]
+    #[test_case("/// This is a\n/// multiline doc comment.", "This is a\nmultiline doc comment."; "multiline doc comment")]
     #[test_case(
         "/**\n
         * This is a multi-line block doc comment.\n
         */",
         "This is a multi-line block doc comment."
-
         => ignore["reason"];
         "multi-line block doc comment"
     )] // TODO: Multi-line block doc comments parsing needs to be fixed to properly support multi-line block doc comments.
