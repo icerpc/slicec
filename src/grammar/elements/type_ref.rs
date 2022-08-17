@@ -87,19 +87,6 @@ impl<T: Type + ?Sized> TypeRef<T> {
     }
 }
 
-impl<T: Element + ?Sized> Clone for TypeRef<T> {
-    fn clone(&self) -> Self {
-        TypeRef {
-            type_string: self.type_string.clone(),
-            definition: self.definition.clone(),
-            is_optional: self.is_optional,
-            scope: self.scope.clone(),
-            attributes: self.attributes.clone(),
-            span: self.span.clone(),
-        }
-    }
-}
-
 impl<T: Element + ?Sized> Attributable for TypeRef<T> {
     fn attributes(&self) -> &Vec<Attribute> {
         &self.attributes
