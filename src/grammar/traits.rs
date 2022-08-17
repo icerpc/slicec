@@ -3,7 +3,7 @@
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
-use super::wrappers::{AsEntities, AsTypes};
+use super::wrappers::AsTypes;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -67,7 +67,7 @@ pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + Attributable + Commentable + AsEntities {}
+pub trait Entity: NamedSymbol + Attributable + Commentable {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;
