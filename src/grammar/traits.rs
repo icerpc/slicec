@@ -65,6 +65,7 @@ pub trait Attributable: Symbol {
 
 pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
+    fn comment_mut(&mut self) -> Option<&mut DocComment>;
 }
 
 pub trait Entity: NamedSymbol + Attributable + Commentable {}
@@ -175,6 +176,10 @@ macro_rules! implement_Commentable_for {
         impl Commentable for $type {
             fn comment(&self) -> Option<&DocComment> {
                 self.comment.as_ref()
+            }
+
+            fn comment_mut(&mut self) -> Option<&mut DocComment> {
+                self.comment.as_mut()
             }
         }
     };
