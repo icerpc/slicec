@@ -2,7 +2,8 @@
 
 use crate::ast::Ast;
 use crate::diagnostics::*;
-use crate::slice_file::SliceFile;
+use crate::slice_file::{SliceFile, Span};
+use console::style;
 use std::collections::HashMap;
 
 pub struct ParsedData {
@@ -27,39 +28,99 @@ impl ParsedData {
 
     fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
-
-        for error in diagnostic_reporter.into_diagnostics() {
-            let prefix = match error.diagnostic_kind {
-                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => "error",
-                DiagnosticKind::Warning(_) => "warning",
-                DiagnosticKind::Note(_) => "note",
-            };
-
-            // Insert the prefix at the start of the message.
-            let mut message = format!("{prefix}: {error}");
-
-            if let Some(span) = error.span {
-                let file = &span.file;
-                // Specify the span where the error starts on its own line after the message.
-                message = format!("{message}\n@ '{file}' ({},{})", span.start.0, span.start.1);
-
-                // If the span isn't empty, extract a snippet of the text contained within the span.
-                if span.start != span.end {
-                    message += ":\n";
-                    let file = files.get(&span.file).expect("Slice file not in file map!");
-                    message += &file.get_snippet(span.start, span.end);
-                } else {
-                    message += "\n";
+        for diagnostic in diagnostic_reporter.into_diagnostics() {
+            // Styling the prefix
+            let prefix = match diagnostic.diagnostic_kind {
+                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
+                    style("error").red()
                 }
+                DiagnosticKind::Warning(_) => style("warning").yellow(),
+                DiagnosticKind::Note(_) => style("note").blue(),
             }
-            // Print the message to stderr.
-            eprintln!("{}", message);
+            .bold();
+
+            // Notes should be handled separately than the other diagnostics.
+            match diagnostic.diagnostic_kind {
+                DiagnosticKind::Note(note) => eprintln!("{}: {}", prefix, style(note).bold()),
+                _ => eprintln!("\n{}: {}", prefix, style(&diagnostic).bold()),
+            }
+
+            if let Some(span) = diagnostic.span {
+                // Display the file name and line row and column where the error began.
+                let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
+                let path = std::path::Path::new(&file_location);
+                let formatted_path = format!(" {} {}", style("-->").blue().bold(), path.display());
+
+                eprintln!("{}", formatted_path);
+                Self::show_error_location(files.get(&span.file).expect("Slice file not in file map!"), &span);
+            }
         }
 
-        println!(
-            "Compilation failed with {} error(s) and {} warning(s).\n",
-            counts.0, counts.1
+        // Output the total number of errors and warnings.
+        println!();
+        match counts.1 {
+            0 => (),
+            _ => println!(
+                "{}: Compilation generated {} warning(s)",
+                style("Warnings").yellow().bold(),
+                counts.1
+            ),
+        }
+        match counts.0 {
+            0 => println!("{}: Successfully compiled slice", style("Finished").green().bold()),
+            _ => println!(
+                "{}: Compilation failed with {} error(s)",
+                style("Failed").red().bold(),
+                counts.0
+            ),
+        }
+    }
+
+    fn show_error_location(file: &SliceFile, span: &Span) {
+        // Retrieve the two lines before and after the error location if possible.
+        let end_of_line = file.raw_text.lines().nth(span.end.0 - 1).unwrap().len();
+
+        let mut start_snippet = file.get_snippet((span.start.0, 1), span.start);
+        let mut error_snippet = file.get_snippet(span.start, span.end);
+        let mut end_snippet = file.get_snippet(span.end, (span.end.0, end_of_line + 1));
+        start_snippet.pop(); // Pop the newline.
+        error_snippet.pop(); // Pop the newline.
+        end_snippet.pop(); // Pop the newline.
+
+        let formatted_error_lines = format!("{}{}{}", start_snippet, style(error_snippet), end_snippet);
+        let formatted_error_lines = formatted_error_lines.split('\n').collect::<Vec<&str>>();
+        let underline = "^".repeat(
+            *formatted_error_lines
+                .iter()
+                .map(|s| s.len())
+                .collect::<Vec<usize>>()
+                .iter()
+                .max()
+                .unwrap(),
         );
+        let mut line_number = span.start.0;
+
+        // Output
+        eprintln!("{}", style("    |").blue().bold());
+        for line in &formatted_error_lines {
+            eprintln!(
+                "{: <4}{} {}",
+                style(line_number).blue().bold(),
+                style("|").blue().bold(),
+                line
+            );
+            line_number += 1;
+        }
+
+        // Create the formatted error code section block.
+        let blank_space = " ".repeat(start_snippet.len());
+        eprintln!(
+            "{}{}{}",
+            style("    | ").blue().bold(),
+            blank_space,
+            style(underline).yellow().bold()
+        );
+        eprintln!("{}", style("    |").blue().bold());
     }
 }
 

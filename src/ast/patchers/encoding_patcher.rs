@@ -202,7 +202,7 @@ impl EncodingPatcher<'_> {
         if let Some(file_encoding) = &slice_file.encoding {
             self.diagnostic_reporter.report(
                 DiagnosticKind::new_note(format!("file encoding was set to {} here:", &file_encoding.version)),
-                None,
+                Some(file_encoding.span()),
             );
         } else {
             self.diagnostic_reporter.report(
