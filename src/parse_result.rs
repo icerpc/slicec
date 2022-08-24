@@ -59,21 +59,19 @@ impl ParsedData {
 
         // Output the total number of errors and warnings.
         println!();
-        match counts.1 {
-            0 => (),
-            _ => println!(
+        if counts.1 != 0 {
+            println!(
                 "{}: Compilation generated {} warning(s)",
                 style("Warnings").yellow().bold(),
                 counts.1
-            ),
+            )
         }
-        match counts.0 {
-            0 => println!("{}: Successfully compiled slice", style("Finished").green().bold()),
-            _ => println!(
+        if counts.0 != 0 {
+            println!(
                 "{}: Compilation failed with {} error(s)",
                 style("Failed").red().bold(),
                 counts.0
-            ),
+            )
         }
     }
 
