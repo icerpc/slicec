@@ -176,7 +176,7 @@ impl TypeRefPatcher<'_> {
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result: Result<Patch<T>, String> = ast
-            .find_node_with_scope(&type_string, type_ref.module_scope())
+            .find_node_with_scope(type_string, type_ref.module_scope())
             .and_then(|node| {
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
@@ -221,7 +221,7 @@ impl TypeRefPatcher<'_> {
             };
 
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
-            let node = ast.find_node_with_scope(&type_string, underlying_type.module_scope())?;
+            let node = ast.find_node_with_scope(type_string, underlying_type.module_scope())?;
             // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
