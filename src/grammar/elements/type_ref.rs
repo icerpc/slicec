@@ -6,51 +6,41 @@ use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
 pub struct TypeRef<T: Element + ?Sized = dyn Type> {
-    pub type_string: String,
-    pub definition: WeakPtr<T>,
+    pub definition: TypeRefDefinition<T>,
     pub is_optional: bool,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,
     pub span: Span,
 }
 
-impl<T: Element + ?Sized + 'static> TypeRef<T> {
-    pub(crate) fn new(
-        type_string: String,
-        is_optional: bool,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        span: Span,
-    ) -> Self {
-        let definition = WeakPtr::create_uninitialized();
-        TypeRef {
-            type_string,
-            definition,
-            is_optional,
-            scope,
-            attributes,
-            span,
-        }
-    }
-}
-
 impl<T: Element + ?Sized> TypeRef<T> {
     pub fn definition(&self) -> &T {
-        self.definition.borrow()
+        match &self.definition {
+            TypeRefDefinition::Patched(ptr) => ptr.borrow(),
+            _ => panic!("dereferenced unpatched type reference"),
+        }
+    }
+
+    pub(crate) fn patch(&mut self, ptr: WeakPtr<T>, additional_attributes: Vec<Attribute>) {
+        // Assert that the typeref hasn't already been patched.
+        debug_assert!(matches!(&self.definition, TypeRefDefinition::Unpatched(_)));
+
+        self.definition = TypeRefDefinition::Patched(ptr);
+        self.attributes.extend(additional_attributes);
     }
 
     pub(crate) fn downcast<U: Element + 'static>(&self) -> Result<TypeRef<U>, ()> {
-        let definition = if self.definition.is_initialized() {
-            match self.definition.clone().downcast::<U>() {
-                Ok(ptr) => ptr,
-                Err(_) => return Err(()),
+        let definition = match &self.definition {
+            TypeRefDefinition::Patched(ptr) => {
+                match ptr.clone().downcast::<U>() {
+                    Ok(new_ptr) => TypeRefDefinition::Patched(new_ptr),
+                    Err(_) => return Err(()),
+                }
             }
-        } else {
-            WeakPtr::create_uninitialized()
+            TypeRefDefinition::Unpatched(s) => TypeRefDefinition::Unpatched(s.clone()),
         };
 
         Ok(TypeRef {
-            type_string: self.type_string.clone(),
             definition,
             is_optional: self.is_optional,
             scope: self.scope.clone(),
@@ -63,6 +53,15 @@ impl<T: Element + ?Sized> TypeRef<T> {
 impl<T: Type + ?Sized> TypeRef<T> {
     pub fn is_bit_sequence_encodable(&self) -> bool {
         self.is_optional && self.min_wire_size() == 0
+    }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn type_string(&self) -> String {
+        let mut s = self.definition().type_string();
+        if self.is_optional {
+            s += "?";
+        }
+        s
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
@@ -113,3 +112,9 @@ impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {
 implement_Element_for!(TypeRef<T>, "type reference", Element + ?Sized);
 implement_Symbol_for!(TypeRef<T>, Element + ?Sized);
 implement_Scoped_Symbol_for!(TypeRef<T>, Element + ?Sized);
+
+#[derive(Debug)]
+pub enum TypeRefDefinition<T: Element + ?Sized> {
+    Patched(WeakPtr<T>),
+    Unpatched(String),
+}

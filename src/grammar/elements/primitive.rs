@@ -98,6 +98,10 @@ impl Primitive {
 }
 
 impl Type for Primitive {
+    fn type_string(&self) -> String {
+        self.kind().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         matches!(
             self,

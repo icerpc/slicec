@@ -38,15 +38,11 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
     let ast = parse_for_ast(slice);
 
     // Assert
-    let primitive_ptr = ast
-        .find_element::<TypeAlias>("Test::P")
-        .unwrap()
-        .underlying
-        .definition
-        .clone()
-        .downcast::<Primitive>()
-        .unwrap();
-    let primitive = primitive_ptr.borrow();
-
-    assert_eq!(std::mem::discriminant(primitive), std::mem::discriminant(&expected));
+    let underlying = &ast.find_element::<TypeAlias>("Test::P").unwrap().underlying;
+    if let TypeRefDefinition::Patched(ptr) = &underlying.definition {
+        let primitive = ptr.clone().downcast::<Primitive>().unwrap();
+        assert_eq!(std::mem::discriminant(primitive.borrow()), std::mem::discriminant(&expected));
+    } else {
+        panic!("type alias was unpatched");
+    }
 }
