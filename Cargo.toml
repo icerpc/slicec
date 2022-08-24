@@ -10,7 +10,7 @@ license = "Apache-2.0"
 edition = "2018"
 
 [dependencies]
-console = "0.15.1"
+colored = "2.0.0"
 convert_case = "0.5.0"
 pest = "=2.3.0"
 pest_derive = "=2.3.0"
