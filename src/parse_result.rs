@@ -30,7 +30,7 @@ impl ParsedData {
         let counts = diagnostic_reporter.get_totals();
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
-            // to the previously emitted diagnostic
+            // to the previously emitted diagnostic.
             let prefix = match diagnostic.diagnostic_kind {
                 DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
                     style("\nerror").red()
@@ -47,7 +47,7 @@ impl ParsedData {
                         "    {} {}: {}",
                         style("=").blue().bold(),
                         style("note").white().bold(),
-                        style(note)
+                        style(note),
                     )
                 }
                 _ => eprintln!("{}: {}", prefix, style(&diagnostic).bold()),

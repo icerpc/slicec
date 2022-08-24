@@ -91,15 +91,15 @@ impl SliceFile {
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
     pub(crate) fn get_snippet(&self, start: (usize, usize), end: (usize, usize)) -> String {
         // The snippet of code on the same line as the error, but directly before it.
-        let start_snippet = self.raw_text[self.raw_pos((start.0, 1))..self.raw_pos(start)].to_owned();
+        let start_snippet = &self.raw_text[self.raw_pos((start.0, 1))..self.raw_pos(start)];
 
         // The snippet of code containing the error.
-        let error_snippet = self.raw_text[self.raw_pos(start)..self.raw_pos(end)].to_owned();
+        let error_snippet = &self.raw_text[self.raw_pos(start)..self.raw_pos(end)];
 
         let end_of_error_line = self.raw_text.lines().nth(end.0 - 1).unwrap().len();
 
         // The snippet of code on the same line as the error, but directly after it.
-        let end_snippet = self.raw_text[self.raw_pos(end)..self.raw_pos((end.0, end_of_error_line + 1))].to_owned();
+        let end_snippet = &self.raw_text[self.raw_pos(end)..self.raw_pos((end.0, end_of_error_line + 1))];
 
         // Create an underline that is the length of the error snippet. For error snippets that span multiple
         // lines, the underline is the length of the longest line.
@@ -107,14 +107,14 @@ impl SliceFile {
         let mut line_number = start.0;
 
         // Create a formatted snippet.
-        let mut snippet = style("    |\n".to_string()).blue().bold().to_string();
-        for line in format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet).lines() {
+        let mut snippet = style("    |\n").blue().bold().to_string();
+        for line in format!("{}{}{}", start_snippet, style(error_snippet), end_snippet).lines() {
             writeln!(
                 snippet,
                 "{: <4}{} {}",
                 style(line_number).blue().bold(),
                 style("|").blue().bold(),
-                line
+                line,
             )
             .unwrap();
             line_number += 1;
@@ -124,7 +124,7 @@ impl SliceFile {
             "{}{}{}",
             style("    | ").blue().bold(),
             " ".repeat(start_snippet.len()),
-            style(underline).yellow().bold()
+            style(underline).yellow().bold(),
         )
         .unwrap();
         write!(snippet, "{}", style("    |").blue().bold()).unwrap();
