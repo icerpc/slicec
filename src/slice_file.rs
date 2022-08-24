@@ -2,6 +2,8 @@
 
 use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
+use console::style;
+use std::fmt::Write;
 
 type Location = (usize, usize);
 
@@ -88,8 +90,42 @@ impl SliceFile {
 
     /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
     pub(crate) fn get_snippet(&self, start: (usize, usize), end: (usize, usize)) -> String {
-        // TODO we should return nice snippets that snap whole lines and have underlining, etc...
-        self.raw_text[self.raw_pos(start)..self.raw_pos(end)].to_owned() + "\n"
+        let start_snippet = self.raw_text[self.raw_pos((start.0, 1))..self.raw_pos(start)].to_owned();
+        let error_snippet = self.raw_text[self.raw_pos(start)..self.raw_pos(end)].to_owned();
+
+        let end_of_error_line = self.raw_text.lines().nth(end.0 - 1).unwrap().len();
+        let end_snippet = self.raw_text[self.raw_pos(end)..self.raw_pos((end.0, end_of_error_line + 1))].to_owned();
+
+        let underline = "-".repeat(error_snippet.lines().map(|line| line.len()).max().unwrap());
+        let mut line_number = start.0;
+
+        // Output
+        let mut snippet = style("    |\n".to_string()).blue().bold().to_string();
+        for line in format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet).lines() {
+            writeln!(
+                snippet,
+                "{: <4}{} {}",
+                style(line_number).blue().bold(),
+                style("|").blue().bold(),
+                line
+            )
+            .unwrap();
+            line_number += 1;
+        }
+
+        // Create the formatted error code section block.
+        let blank_space = " ".repeat(start_snippet.len());
+        writeln!(
+            snippet,
+            "{}{}{}",
+            style("    | ").blue().bold(),
+            blank_space,
+            style(underline).yellow().bold()
+        )
+        .unwrap();
+        write!(snippet, "{}", style("    |").blue().bold()).unwrap();
+
+        snippet
     }
 
     /// Converts the provided line and column numbers into an index in the file's raw text.

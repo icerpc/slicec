@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::diagnostics::*;
-use crate::slice_file::{SliceFile, Span};
+use crate::slice_file::SliceFile;
 use console::style;
 use std::collections::HashMap;
 
@@ -29,22 +29,31 @@ impl ParsedData {
     fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
         for diagnostic in diagnostic_reporter.into_diagnostics() {
-            // Styling the prefix
+            // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
+            // to the previously emitted diagnostic
             let prefix = match diagnostic.diagnostic_kind {
                 DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                    style("error").red()
+                    style("\nerror").red()
                 }
-                DiagnosticKind::Warning(_) => style("warning").yellow(),
-                DiagnosticKind::Note(_) => style("note").blue(),
+                DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
+                DiagnosticKind::Note(_) => style("note").white(),
             }
             .bold();
 
-            // Notes should be handled separately than the other diagnostics.
+            // Create the message using the prefix
             match diagnostic.diagnostic_kind {
-                DiagnosticKind::Note(note) => eprintln!("{}: {}", prefix, style(note).bold()),
-                _ => eprintln!("\n{}: {}", prefix, style(&diagnostic).bold()),
-            }
+                DiagnosticKind::Note(note) => {
+                    eprintln!(
+                        "    {} {}: {}",
+                        style("=").blue().bold(),
+                        style("note").white().bold(),
+                        style(note)
+                    )
+                }
+                _ => eprintln!("{}: {}", prefix, style(&diagnostic).bold()),
+            };
 
+            // If the diagnostic contains a location, show a snippet containing the offending code
             if let Some(span) = diagnostic.span {
                 // Display the file name and line row and column where the error began.
                 let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
@@ -52,7 +61,8 @@ impl ParsedData {
                 eprintln!(" {} {}", style("-->").blue().bold(), path.display());
 
                 // Display the line of code where the error occurred.
-                Self::show_error_location(files.get(&span.file).expect("Slice file not in file map!"), &span);
+                let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
+                eprintln!("{}", snippet);
             }
         }
 
@@ -72,54 +82,6 @@ impl ParsedData {
                 counts.0,
             )
         }
-    }
-
-    fn show_error_location(file: &SliceFile, span: &Span) {
-        // This is a safe unwrap because we know that if a diagnostic is reported with a span, then there must be
-        // line of code in the file map corresponding to the error.
-        let end_of_error_line = file.raw_text.lines().nth(span.end.0 - 1).unwrap().len();
-
-        let mut start_snippet = file.get_snippet((span.start.0, 1), span.start);
-        let mut error_snippet = file.get_snippet(span.start, span.end);
-        let mut end_snippet = file.get_snippet(span.end, (span.end.0, end_of_error_line + 1));
-
-        // Pop the newlines added by `get_snippet`
-        start_snippet.pop();
-        error_snippet.pop();
-        end_snippet.pop();
-
-        let formatted_error_lines = format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet).lines();
-        let underline = "-".repeat(
-            error_snippet
-                .lines()
-                .map(|line| line.len())
-                .max()
-                .unwrap(),
-        );
-
-        let mut line_number = span.start.0;
-
-        // Output
-        eprintln!("{}", style("    |").blue().bold());
-        for line in formatted_error_lines {
-            eprintln!(
-                "{: <4}{} {}",
-                style(line_number).blue().bold(),
-                style("|").blue().bold(),
-                line
-            );
-            line_number += 1;
-        }
-
-        // Create the formatted error code section block.
-        let blank_space = " ".repeat(start_snippet.len());
-        eprintln!(
-            "{}{}{}",
-            style("    | ").blue().bold(),
-            blank_space,
-            style(underline).yellow().bold()
-        );
-        eprintln!("{}", style("    |").blue().bold());
     }
 }
 
