@@ -36,7 +36,7 @@ mod typealias {
 
         // Assert
         let type_alias = ast.find_element::<TypeAlias>("Test::Alias").unwrap();
-        assert!(type_alias.underlying.definition.is_initialized());
+        type_alias.underlying.definition(); // Panics if the type-alias hasn't been initialized correctly.
     }
 
     #[test]
