@@ -42,13 +42,8 @@ impl ParsedData {
 
             // Create the message using the prefix
             match diagnostic.diagnostic_kind {
-                DiagnosticKind::Note(note) => {
-                    eprintln!(
-                        "    {} {}: {}",
-                        style("=").blue().bold(),
-                        style("note").white().bold(),
-                        style(note),
-                    )
+                DiagnosticKind::Note(_) => {
+                    eprintln!("    {} {}: {}", style("=").blue().bold(), prefix, style(&diagnostic))
                 }
                 _ => eprintln!("{}: {}", prefix, style(&diagnostic).bold()),
             };
