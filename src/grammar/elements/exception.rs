@@ -74,6 +74,10 @@ impl Exception {
 }
 
 impl Type for Exception {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         // An exception is fixed size if and only if all its members are fixed size.
         self.all_members().iter().all(|member| member.data_type.is_fixed_size())

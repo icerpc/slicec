@@ -53,6 +53,10 @@ impl Struct {
 }
 
 impl Type for Struct {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         // A struct is fixed size if and only if all its members are fixed size.
         self.members().iter().all(|member| member.data_type.is_fixed_size())

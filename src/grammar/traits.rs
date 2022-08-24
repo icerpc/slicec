@@ -87,6 +87,7 @@ pub trait Member: Entity {
 }
 
 pub trait Type: Element + AsTypes {
+    fn type_string(&self) -> String;
     fn is_fixed_size(&self) -> bool;
     fn min_wire_size(&self) -> u32;
     fn uses_classes(&self) -> bool;

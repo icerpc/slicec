@@ -49,6 +49,10 @@ impl AsTypes for TypeAlias {
 }
 
 impl Type for TypeAlias {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     // TODO most of these should panic. Since type-aliases are transparent and removed during
     // type-patching, most of these should never actually be called.
     fn is_fixed_size(&self) -> bool {

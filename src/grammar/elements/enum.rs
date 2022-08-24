@@ -72,6 +72,10 @@ impl Enum {
 }
 
 impl Type for Enum {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         match &self.underlying {
             Some(underlying) => underlying.is_fixed_size(),

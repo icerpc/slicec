@@ -10,6 +10,10 @@ pub struct Dictionary {
 }
 
 impl Type for Dictionary {
+    fn type_string(&self) -> String {
+        format!("dictionary<{}, {}>", self.key_type.type_string(), self.value_type.type_string())
+    }
+
     fn is_fixed_size(&self) -> bool {
         false
     }
