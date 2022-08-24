@@ -49,8 +49,7 @@ impl ParsedData {
                 // Display the file name and line row and column where the error began.
                 let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
                 let path = std::path::Path::new(&file_location);
-                let formatted_path = format!(" {} {}", style("-->").blue().bold(), path.display());
-                eprintln!("{}", formatted_path);
+                eprintln!(" {} {}", style("-->").blue().bold(), path.display());
 
                 // Display the line of code where the error occurred.
                 Self::show_error_location(files.get(&span.file).expect("Slice file not in file map!"), &span);
@@ -63,14 +62,14 @@ impl ParsedData {
             println!(
                 "{}: Compilation generated {} warning(s)",
                 style("Warnings").yellow().bold(),
-                counts.1
+                counts.1,
             )
         }
         if counts.0 != 0 {
             println!(
                 "{}: Compilation failed with {} error(s)",
                 style("Failed").red().bold(),
-                counts.0
+                counts.0,
             )
         }
     }
@@ -89,12 +88,10 @@ impl ParsedData {
         error_snippet.pop();
         end_snippet.pop();
 
-        let formatted_error_lines = format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet);
-        let formatted_error_lines = formatted_error_lines.split('\n').collect::<Vec<&str>>();
+        let formatted_error_lines = format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet).lines();
         let underline = "-".repeat(
             error_snippet
-                .split('\n')
-                .into_iter()
+                .lines()
                 .map(|line| line.len())
                 .max()
                 .unwrap(),
@@ -104,7 +101,7 @@ impl ParsedData {
 
         // Output
         eprintln!("{}", style("    |").blue().bold());
-        for line in &formatted_error_lines {
+        for line in formatted_error_lines {
             eprintln!(
                 "{: <4}{} {}",
                 style(line_number).blue().bold(),
