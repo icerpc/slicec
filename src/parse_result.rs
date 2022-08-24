@@ -50,8 +50,9 @@ impl ParsedData {
                 let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
                 let path = std::path::Path::new(&file_location);
                 let formatted_path = format!(" {} {}", style("-->").blue().bold(), path.display());
-
                 eprintln!("{}", formatted_path);
+
+                // Display the line of code where the error occurred.
                 Self::show_error_location(files.get(&span.file).expect("Slice file not in file map!"), &span);
             }
         }
@@ -77,19 +78,22 @@ impl ParsedData {
     }
 
     fn show_error_location(file: &SliceFile, span: &Span) {
-        // Retrieve the two lines before and after the error location if possible.
-        let end_of_line = file.raw_text.lines().nth(span.end.0 - 1).unwrap().len();
+        // This is a safe unwrap because we know that if a diagnostic is reported with a span, then there must be
+        // line of code in the file map corresponding to the error.
+        let end_of_error_line = file.raw_text.lines().nth(span.end.0 - 1).unwrap().len();
 
         let mut start_snippet = file.get_snippet((span.start.0, 1), span.start);
         let mut error_snippet = file.get_snippet(span.start, span.end);
-        let mut end_snippet = file.get_snippet(span.end, (span.end.0, end_of_line + 1));
-        start_snippet.pop(); // Pop the newline.
-        error_snippet.pop(); // Pop the newline.
-        end_snippet.pop(); // Pop the newline.
+        let mut end_snippet = file.get_snippet(span.end, (span.end.0, end_of_error_line + 1));
+
+        // Pop the newlines added by `get_snippet`
+        start_snippet.pop();
+        error_snippet.pop();
+        end_snippet.pop();
 
         let formatted_error_lines = format!("{}{}{}", start_snippet, style(error_snippet), end_snippet);
         let formatted_error_lines = formatted_error_lines.split('\n').collect::<Vec<&str>>();
-        let underline = "^".repeat(
+        let underline = "-".repeat(
             *formatted_error_lines
                 .iter()
                 .map(|s| s.len())
