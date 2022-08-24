@@ -3,7 +3,7 @@
 use crate::ast::Ast;
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
-use colored::*;
+use console::style;
 use std::collections::HashMap;
 
 pub struct ParsedData {
@@ -32,24 +32,24 @@ impl ParsedData {
             // Styling the prefix
             let prefix = match diagnostic.diagnostic_kind {
                 DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                    "error".red()
+                    style("error").red()
                 }
-                DiagnosticKind::Warning(_) => "warning".yellow(),
-                DiagnosticKind::Note(_) => "note".blue(),
+                DiagnosticKind::Warning(_) => style("warning").yellow(),
+                DiagnosticKind::Note(_) => style("note").blue(),
             }
             .bold();
 
             // Notes should be handled separately than the other diagnostics.
             match diagnostic.diagnostic_kind {
-                DiagnosticKind::Note(note) => eprintln!("{}: {}", prefix, note.bold()),
-                _ => eprintln!("\n{}: {}", prefix, &diagnostic.to_string().bold()),
+                DiagnosticKind::Note(note) => eprintln!("{}: {}", prefix, style(note).bold()),
+                _ => eprintln!("\n{}: {}", prefix, style(&diagnostic).bold()),
             }
 
             if let Some(span) = diagnostic.span {
                 // Display the file name and line row and column where the error began.
                 let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
                 let path = std::path::Path::new(&file_location);
-                let formatted_path = format!(" {} {}", "-->".blue().bold(), path.display());
+                let formatted_path = format!(" {} {}", style("-->").blue().bold(), path.display());
                 eprintln!("{}", formatted_path);
 
                 // Display the line of code where the error occurred.
@@ -63,15 +63,15 @@ impl ParsedData {
             0 => (),
             _ => println!(
                 "{}: Compilation generated {} warning(s)",
-                "Warnings".yellow().bold(),
+                style("Warnings").yellow().bold(),
                 counts.1
             ),
         }
         match counts.0 {
-            0 => println!("{}: Successfully compiled slice", "Finished".green().bold()),
+            0 => println!("{}: Successfully compiled slice", style("Finished").green().bold()),
             _ => println!(
                 "{}: Compilation failed with {} error(s)",
-                "Failed".red().bold(),
+                style("Failed").red().bold(),
                 counts.0
             ),
         }
@@ -91,7 +91,7 @@ impl ParsedData {
         error_snippet.pop();
         end_snippet.pop();
 
-        let formatted_error_lines = format!("{}{}{}", start_snippet, error_snippet, end_snippet);
+        let formatted_error_lines = format!("{}{}{}", start_snippet, style(error_snippet), end_snippet);
         let formatted_error_lines = formatted_error_lines.split('\n').collect::<Vec<&str>>();
         let underline = "-".repeat(
             *formatted_error_lines
@@ -105,12 +105,12 @@ impl ParsedData {
         let mut line_number = span.start.0;
 
         // Output
-        eprintln!("{}", "    |".blue().bold());
+        eprintln!("{}", style("    |").blue().bold());
         for line in &formatted_error_lines {
             eprintln!(
                 "{: <4}{} {}",
-                line_number.to_string().blue().bold(),
-                "|".blue().bold(),
+                style(line_number).blue().bold(),
+                style("|").blue().bold(),
                 line
             );
             line_number += 1;
@@ -118,8 +118,13 @@ impl ParsedData {
 
         // Create the formatted error code section block.
         let blank_space = " ".repeat(start_snippet.len());
-        eprintln!("{}{}{}", "    | ".blue().bold(), blank_space, underline.yellow().bold());
-        eprintln!("{}", "    |".blue().bold());
+        eprintln!(
+            "{}{}{}",
+            style("    | ").blue().bold(),
+            blank_space,
+            style(underline).yellow().bold()
+        );
+        eprintln!("{}", style("    |").blue().bold());
     }
 }
 
