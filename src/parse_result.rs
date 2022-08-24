@@ -91,17 +91,17 @@ impl ParsedData {
         error_snippet.pop();
         end_snippet.pop();
 
-        let formatted_error_lines = format!("{}{}{}", start_snippet, style(error_snippet), end_snippet);
+        let formatted_error_lines = format!("{}{}{}", start_snippet, style(&error_snippet), end_snippet);
         let formatted_error_lines = formatted_error_lines.split('\n').collect::<Vec<&str>>();
         let underline = "-".repeat(
-            *formatted_error_lines
-                .iter()
-                .map(|s| s.len())
-                .collect::<Vec<usize>>()
-                .iter()
+            error_snippet
+                .split('\n')
+                .into_iter()
+                .map(|line| line.len())
                 .max()
                 .unwrap(),
         );
+
         let mut line_number = span.start.0;
 
         // Output
