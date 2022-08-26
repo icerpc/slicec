@@ -22,6 +22,20 @@ pub enum WarningKind {
     /// * `kind` - The kind of that entity that was indicated to throw.
     /// * `identifier` - The identifier of that entity that was indicated to throw.
     ExtraThrowInDocComment(String, String),
+
+    /// The user-supplied doc comment link referenced an entity that does not exist.
+    ///
+    /// # Fields
+    ///
+    /// * `identifier` - The identifier of the entity that was referenced.
+    InvalidDocCommentLinkIdentifier(String),
+
+    /// The user-supplied doc comment tag is invalid.
+    ///
+    /// # Fields
+    ///
+    /// * `tag` - The doc comment tag
+    InvalidDocCommentTag(String),
 }
 
 implement_from_for_error_sub_kind!(WarningKind, DiagnosticKind::Warning);
@@ -44,5 +58,17 @@ implement_error_functions!(
         format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
         kind,
         identifier
+    ),
+    (
+        WarningKind::InvalidDocCommentLinkIdentifier,
+        1002,
+        format!("doc comment references an identifier `{identifier}` that does not exist"),
+        identifier
+    ),
+    (
+        WarningKind::InvalidDocCommentTag,
+        1003,
+        format!("doc comment tag `{tag}` is invalid"),
+        tag
     )
 );
