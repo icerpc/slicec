@@ -51,7 +51,12 @@ impl ParsedData {
             }
             // If the diagnostic contain a notes, display them.
             diagnostic.notes.into_iter().for_each(|note| {
-                eprintln!(" {} {}", style("--").blue().bold(), style(&note).bold());
+                eprintln!(
+                    "    {} {}: {}",
+                    style("=").blue().bold(),
+                    style("note").bold(),
+                    style(&note).bold(),
+                );
                 if let Some(span) = note.span {
                     Self::show_snippet(span, files)
                 }
