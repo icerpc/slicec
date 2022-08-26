@@ -66,10 +66,13 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
-            "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)",
-            "file encoding was set to Slice1 here:",
-        ]);
+        let expected = Diagnostic {
+            diagnostic_kind: LogicErrorKind::OptionalsNotSupported(Encoding::Slice1).into(),
+            span: None,
+            notes: vec![Note::new("file encoding was set to Slice1 here:", None)],
+        };
+
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
