@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ast::Ast;
 use crate::diagnostics::{DiagnosticReporter, WarningKind};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
@@ -9,6 +10,7 @@ pub fn comments_validators() -> ValidationChain {
         Validator::Entities(only_operations_can_throw),
         Validator::Operations(non_empty_return_comment),
         Validator::Operations(missing_parameter_comment),
+        Validator::DocComments(linked_identifiers_exist),
     ]
 }
 
@@ -49,5 +51,31 @@ fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut
                 WarningKind::ExtraThrowInDocComment(commentable.kind().to_owned(), commentable.identifier().to_owned());
             diagnostic_reporter.report(warning, Some(&comment.span));
         };
+    }
+}
+
+fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
+    if let Some(comment) = commentable.comment() {
+        for (tag_type, value) in find_inline_tags(&comment.overview) {
+            match tag_type {
+                "@link" => {
+                    println!("{value}");
+                    if ast
+                        .find_element_with_scope::<dyn Entity>(value, commentable.module_scope())
+                        .is_err()
+                    {
+                        diagnostic_reporter.report(
+                            WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
+                            Some(&comment.span),
+                        );
+                    }
+                }
+                other if other.starts_with('@') => {
+                    diagnostic_reporter
+                        .report(WarningKind::InvalidDocCommentTag(other.to_owned()), Some(&comment.span));
+                }
+                _ => {}
+            }
+        }
     }
 }

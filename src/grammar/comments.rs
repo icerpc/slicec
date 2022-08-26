@@ -32,3 +32,32 @@ impl DocComment {
             .collect();
     }
 }
+
+pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
+    let mut tags = Vec::new();
+
+    let mut section = comment;
+
+    while let Some(pos) = section.find('{') {
+        // Search for the closing bracket. If we don't find one just exist the loop.
+        match section[pos..].find('}') {
+            Some(end) => {
+                let tag = &section[pos + 1..pos + end];
+                let tag_parts = tag
+                    .split(char::is_whitespace)
+                    .filter(|s| !s.trim().is_empty())
+                    .collect::<Vec<&str>>();
+
+                // Only match tags with two parts. We'll verify the tag type and value later.
+                if tag_parts.len() == 2 {
+                    tags.push((tag_parts[0], tag_parts[1]));
+                }
+
+                // The next section is the part of the comment after the closing bracket.
+                section = &section[pos + end + 1..];
+            }
+            None => break,
+        }
+    }
+    tags
+}

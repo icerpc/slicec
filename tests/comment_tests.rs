@@ -295,4 +295,62 @@ mod comments {
 
         assert!(interface_doc.is_none());
     }
+
+    #[test]
+    fn doc_comment_linked_identifiers() {
+        let slice = "
+            module tests;
+
+            /// This comment is for {@link TestStruct}
+            struct TestStruct
+            {
+            }
+            ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let struct_def = ast.find_element::<Struct>("tests::TestStruct").unwrap();
+        let doc = struct_def.comment().unwrap();
+        let tags = find_inline_tags(&doc.overview);
+
+        assert_eq!(tags.len(), 1);
+        assert_eq!(tags[0].0, "@link");
+        assert_eq!(tags[0].1, "TestStruct");
+    }
+
+    #[test]
+    fn missing_doc_comment_linked_identifiers() {
+        let slice = "
+            module tests;
+
+            /// A test struct. Similar to {@link OtherStruct}.
+            struct TestStruct {}
+            ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostic_reporter, [
+            "doc comment references an identifier `OtherStruct` that does not exist",
+        ]);
+    }
+
+    #[test]
+    fn invalid_doc_comment_tag() {
+        let slice = "
+            module tests;
+
+            /// A test struct. Similar to {@linked OtherStruct}{}.
+            struct TestStruct {}
+            ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostic_reporter, ["doc comment tag `@linked` is invalid",]);
+    }
 }
