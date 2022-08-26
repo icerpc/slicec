@@ -765,39 +765,38 @@ impl<'a> SliceParser<'a> {
 
     fn typeref(input: PestNode) -> PestResult<TypeRef> {
         let span = get_span_for(&input);
-        let mut nodes = input.children();
+        let scope = get_scope(&input);
 
+        let mut nodes = input.children();
         // The first node is always a `local_attribute`. This is guaranteed by the grammar rules.
         let attributes = SliceParser::local_attributes(nodes.next().unwrap()).unwrap();
-        // The second node is the type.
+        // The second node is the type that is being referenced.
         let type_node = nodes.next().unwrap();
-
-        // Get the typename as a string, with any whitespace removed from it.
-        let type_name = type_node.as_str().chars().filter(|c| !c.is_whitespace()).collect();
-
+        // Finally, determine if the type is optional by checking if it ends with a '?' character.
         let is_optional = input.as_str().ends_with('?');
-        let scope = get_scope(&input);
-        let mut type_ref: TypeRef<dyn Type> = TypeRef::new(type_name, is_optional, scope, attributes, span);
 
-        // Resolve and/or construct non user defined types.
-        match type_node.as_rule() {
+        // If the type is a built-in, we patch it immediately, since we already have all the information we need.
+        // Otherwise we store the type's string representation so we can patch it later by looking it up in the AST.
+        let definition = match type_node.as_rule() {
             Rule::primitive => {
                 let primitive = Self::primitive(type_node).unwrap();
-                type_ref.definition = upcast_weak_as!(primitive, dyn Type);
+                TypeRefDefinition::Patched(upcast_weak_as!(primitive, dyn Type))
             }
             Rule::sequence => {
                 let sequence = Self::sequence(type_node).unwrap();
-                type_ref.definition = upcast_weak_as!(sequence, dyn Type);
+                TypeRefDefinition::Patched(upcast_weak_as!(sequence, dyn Type))
             }
             Rule::dictionary => {
                 let dictionary = Self::dictionary(type_node).unwrap();
-                type_ref.definition = upcast_weak_as!(dictionary, dyn Type);
+                TypeRefDefinition::Patched(upcast_weak_as!(dictionary, dyn Type))
             }
-            // Nothing to do, we wait until after we've generated a lookup table to patch user
-            // defined types.
-            _ => {}
-        }
-        Ok(type_ref)
+            _ => {
+                let mut type_string = type_node.as_str().to_owned();
+                type_string.retain(|c| !c.is_whitespace()); // Remove any whitespace from the type.
+                TypeRefDefinition::Unpatched(type_string)
+            }
+        };
+        Ok(TypeRef { definition, is_optional, scope, attributes, span })
     }
 
     fn sequence(input: PestNode) -> PestResult<WeakPtr<Sequence>> {

@@ -101,6 +101,10 @@ impl Interface {
 }
 
 impl Type for Interface {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         false
     }

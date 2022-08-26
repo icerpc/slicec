@@ -77,6 +77,10 @@ impl Class {
 }
 
 impl Type for Class {
+    fn type_string(&self) -> String {
+        self.identifier().to_owned()
+    }
+
     fn is_fixed_size(&self) -> bool {
         false // A class can always be encoded as either a full instance, or just an index.
     }

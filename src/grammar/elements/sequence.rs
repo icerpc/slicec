@@ -32,6 +32,10 @@ impl Sequence {
 }
 
 impl Type for Sequence {
+    fn type_string(&self) -> String {
+        format!("sequence<{}>", self.element_type.type_string())
+    }
+
     fn is_fixed_size(&self) -> bool {
         false
     }

@@ -183,8 +183,9 @@ impl EncodingPatcher<'_> {
             supported_encodings
         } else {
             // If no specific reasons were given for the error, generate a generic one.
+
             if diagnostic_kinds.is_empty() {
-                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string.clone(), *file_encoding);
+                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string().clone(), *file_encoding);
                 diagnostic_kinds.push(diagnostic);
             }
             let diagnostics = diagnostic_kinds

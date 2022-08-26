@@ -100,16 +100,12 @@ impl TypeRefPatcher<'_> {
                 PatchKind::BaseClass((base_class_ptr, attributes)) => {
                     let class_ptr: &mut OwnedPtr<Class> = (&mut elements[i]).try_into().unwrap();
                     let base_class_ref = class_ptr.borrow_mut().base.as_mut().unwrap();
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    base_class_ref.definition = base_class_ptr;
-                    base_class_ref.attributes.extend(attributes);
+                    base_class_ref.patch(base_class_ptr, attributes);
                 }
                 PatchKind::BaseException((base_exception_ptr, attributes)) => {
                     let exception_ptr: &mut OwnedPtr<Exception> = (&mut elements[i]).try_into().unwrap();
                     let base_exception_ref = exception_ptr.borrow_mut().base.as_mut().unwrap();
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    base_exception_ref.definition = base_exception_ptr;
-                    base_exception_ref.attributes.extend(attributes);
+                    base_exception_ref.patch(base_exception_ptr, attributes);
                 }
                 PatchKind::BaseInterfaces(base_interface_patches) => {
                     let interface_ptr: &mut OwnedPtr<Interface> = (&mut elements[i]).try_into().unwrap();
@@ -120,59 +116,41 @@ impl TypeRefPatcher<'_> {
                     for (j, patch) in base_interface_patches.into_iter().enumerate() {
                         let (base_interface_ptr, attributes) = patch;
                         let base_interface_ref = &mut interface_ptr.borrow_mut().bases[j];
-                        // Patch in the definition and any attributes picked up from type-aliases.
-                        base_interface_ref.attributes.extend(attributes);
-                        base_interface_ref.definition = base_interface_ptr;
+                        base_interface_ref.patch(base_interface_ptr, attributes);
                     }
                 }
                 PatchKind::DataMemberType((data_member_type_ptr, attributes)) => {
                     let data_member_ptr: &mut OwnedPtr<DataMember> = (&mut elements[i]).try_into().unwrap();
                     let data_member_type_ref = &mut data_member_ptr.borrow_mut().data_type;
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    data_member_type_ref.definition = data_member_type_ptr;
-                    data_member_type_ref.attributes.extend(attributes);
+                    data_member_type_ref.patch(data_member_type_ptr, attributes);
                 }
                 PatchKind::ParameterType((parameter_type_ptr, attributes)) => {
                     let parameter_ptr: &mut OwnedPtr<Parameter> = (&mut elements[i]).try_into().unwrap();
                     let parameter_type_ref = &mut parameter_ptr.borrow_mut().data_type;
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    parameter_type_ref.definition = parameter_type_ptr;
-                    parameter_type_ref.attributes.extend(attributes);
+                    parameter_type_ref.patch(parameter_type_ptr, attributes);
                 }
                 PatchKind::EnumUnderlyingType((enum_underlying_type_ptr, attributes)) => {
                     let enum_ptr: &mut OwnedPtr<Enum> = (&mut elements[i]).try_into().unwrap();
                     let enum_underlying_type_ref = enum_ptr.borrow_mut().underlying.as_mut().unwrap();
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    enum_underlying_type_ref.definition = enum_underlying_type_ptr;
-                    enum_underlying_type_ref.attributes.extend(attributes);
+                    enum_underlying_type_ref.patch(enum_underlying_type_ptr, attributes);
                 }
                 PatchKind::TypeAliasUnderlyingType((type_alias_underlying_type_ptr, attributes)) => {
                     let type_alias_ptr: &mut OwnedPtr<TypeAlias> = (&mut elements[i]).try_into().unwrap();
                     let type_alias_underlying_type_ref = &mut type_alias_ptr.borrow_mut().underlying;
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    type_alias_underlying_type_ref.definition = type_alias_underlying_type_ptr;
-                    type_alias_underlying_type_ref.attributes.extend(attributes);
+                    type_alias_underlying_type_ref.patch(type_alias_underlying_type_ptr, attributes);
                 }
                 PatchKind::SequenceType((element_type_ptr, attributes)) => {
                     let sequence_ptr: &mut OwnedPtr<Sequence> = (&mut elements[i]).try_into().unwrap();
                     let element_type_ref = &mut sequence_ptr.borrow_mut().element_type;
-                    // Patch in the definition and any attributes picked up from type-aliases.
-                    element_type_ref.definition = element_type_ptr;
-                    element_type_ref.attributes.extend(attributes);
+                    element_type_ref.patch(element_type_ptr, attributes);
                 }
                 PatchKind::DictionaryTypes(key_patch, value_patch) => {
                     let dictionary_ptr: &mut OwnedPtr<Dictionary> = (&mut elements[i]).try_into().unwrap();
                     if let Some((key_type_ptr, key_attributes)) = key_patch {
-                        dictionary_ptr.borrow_mut().key_type.definition = key_type_ptr;
-                        dictionary_ptr.borrow_mut().key_type.attributes.extend(key_attributes);
+                        dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, key_attributes);
                     }
                     if let Some((value_type_ptr, value_attributes)) = value_patch {
-                        dictionary_ptr.borrow_mut().value_type.definition = value_type_ptr;
-                        dictionary_ptr
-                            .borrow_mut()
-                            .value_type
-                            .attributes
-                            .extend(value_attributes);
+                        dictionary_ptr.borrow_mut().value_type.patch(value_type_ptr, value_attributes);
                     }
                 }
                 PatchKind::None => {}
@@ -186,17 +164,19 @@ impl TypeRefPatcher<'_> {
         &'a Node: TryIntoPatch<T>,
         WeakPtr<dyn Type>: TryIntoPatch<T>,
     {
-        // If the definition has already been patched return `None` immediately.
-        if type_ref.definition.is_initialized() {
-            return None;
-        }
+        // If the definition is already patched, we skip the function and return `None` immediately.
+        // Otherwise we retrieve the type string and try to resolve it in the ast.
+        let type_string = match &type_ref.definition {
+            TypeRefDefinition::Patched(_) => return None,
+            TypeRefDefinition::Unpatched(s) => s,
+        };
 
         // There are 3 steps to type resolution.
         // First, lookup the type as a node in the AST.
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result: Result<Patch<T>, String> = ast
-            .find_node_with_scope(&type_ref.type_string, type_ref.module_scope())
+            .find_node_with_scope(type_string, type_ref.module_scope())
             .and_then(|node| {
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
@@ -236,12 +216,14 @@ impl TypeRefPatcher<'_> {
             let underlying_type = &current_type_alias.underlying;
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.
-            if underlying_type.definition.is_initialized() {
-                return underlying_type.definition.clone().try_into_patch(attributes);
-            }
+            // Otherwise we retrieve the alias' type string and try to resolve it in the ast.
+            let type_string = match &underlying_type.definition {
+                TypeRefDefinition::Patched(ptr) => return ptr.clone().try_into_patch(attributes),
+                TypeRefDefinition::Unpatched(s) => s,
+            };
 
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
-            let node = ast.find_node_with_scope(&underlying_type.type_string, underlying_type.module_scope())?;
+            let node = ast.find_node_with_scope(type_string, underlying_type.module_scope())?;
             // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
