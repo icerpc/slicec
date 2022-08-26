@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
     use slice::grammar::*;
 
     #[test]
@@ -228,11 +228,12 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            LogicErrorKind::Redefinition("B".to_string()).into(),
-            DiagnosticKind::new_note("`B` was previously defined here"),
-        ];
-        assert_errors_new!(diagnostic_reporter, expected);
+        let expected = Diagnostic {
+            diagnostic_kind: LogicErrorKind::Redefinition("B".to_string()).into(),
+            span: None,
+            notes: vec![Note::new("`B` was previously defined here", None)],
+        };
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]

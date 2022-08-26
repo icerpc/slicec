@@ -40,8 +40,7 @@ impl DiagnosticReporter {
     }
 
     pub fn report(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-        match diagnostic.diagnostic_kind {
+        match &diagnostic.diagnostic_kind {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
                 self.error_count += 1
@@ -50,7 +49,7 @@ impl DiagnosticReporter {
         self.diagnostics.push(diagnostic);
     }
 
-    pub fn report_with_notes(&mut self, diagnostic: Diagnostic, notes: Vec<Note>) {
+    pub fn report_with_notes(&mut self, mut diagnostic: Diagnostic, mut notes: Vec<Note>) {
         diagnostic.notes.append(&mut notes);
         self.report(diagnostic);
     }

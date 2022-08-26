@@ -96,7 +96,7 @@ impl EncodingPatcher<'_> {
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            let notes = match additional_info {
+            let mut notes = match additional_info {
                 Some(message) => vec![Note {
                     message: message.to_owned(),
                     span: None,
@@ -105,7 +105,7 @@ impl EncodingPatcher<'_> {
             };
             notes.append(&mut self.get_file_encoding_mismatch_notes(entity_def));
 
-            let diagnostic = Diagnostic::new(diagnostic_kind, Some(&entity_def.span()));
+            let diagnostic = Diagnostic::new(diagnostic_kind, Some(entity_def.span()));
             self.diagnostic_reporter.report_with_notes(diagnostic, notes);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -185,15 +185,16 @@ impl EncodingPatcher<'_> {
             // If no specific reasons were given for the error, generate a generic one.
 
             if diagnostic_kinds.is_empty() {
-                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string().clone(), *file_encoding);
+                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string(), *file_encoding);
                 diagnostic_kinds.push(diagnostic);
             }
-            let diagnostics = diagnostic_kinds
+
+            diagnostic_kinds
                 .into_iter()
                 .map(|kind| Diagnostic::new(kind, Some(&type_ref.span)))
                 .for_each(|diagnostic| {
-                    self.diagnostic_reporter
-                        .report_with_notes(diagnostic, self.get_file_encoding_mismatch_notes(type_ref))
+                    let notes = self.get_file_encoding_mismatch_notes(type_ref);
+                    self.diagnostic_reporter.report_with_notes(diagnostic, notes)
                 });
             // Return a dummy value that supports all encodings, instead of the real result.
             // Otherwise everything that uses this type will also not be supported by the file's
@@ -209,21 +210,19 @@ impl EncodingPatcher<'_> {
         // Emit a note explaining why the file has the Slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
             vec![Note {
-                message: format!("file encoding was set to {} here:", &file_encoding.version).to_owned(),
+                message: format!("file encoding was set to {} here:", &file_encoding.version),
                 span: Some(file_encoding.span().clone()),
             }]
         } else {
             vec![
-                Note {
-                    message: format!("file is using the {} encoding by default", Encoding::default()).to_owned(),
-                    span: None,
-                },
-                Note {
-                    message:
-                        "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
-                            .to_owned(),
-                    span: None,
-                },
+                Note::new(
+                    format!("file is using the {} encoding by default", Encoding::default()),
+                    None,
+                ),
+                Note::new(
+                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+                    None,
+                ),
             ]
         }
     }
@@ -362,11 +361,10 @@ impl ComputeSupportedEncodings for Interface {
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
                     let diagnostic = Diagnostic::new(
                         LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1),
-                        Some(&member.span()),
+                        Some(member.span()),
                     );
-                    patcher
-                        .diagnostic_reporter
-                        .report_with_notes(diagnostic, patcher.get_file_encoding_mismatch_notes(member));
+                    let notes = patcher.get_file_encoding_mismatch_notes(member);
+                    patcher.diagnostic_reporter.report_with_notes(diagnostic, notes);
                 }
             }
         }

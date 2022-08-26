@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors_new;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+        use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -93,11 +93,16 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = [
-                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()).into(),
-                DiagnosticKind::new_note("The valid arguments for the format attribute are `Compact` and `Sliced`"),
-            ];
-            assert_errors_new!(diagnostic_reporter, expected);
+            let expected = Diagnostic {
+                diagnostic_kind: LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned())
+                    .into(),
+                span: None,
+                notes: vec![Note::new(
+                    "The valid arguments for the format attribute are `Compact` and `Sliced`",
+                    None,
+                )],
+            };
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -224,11 +229,19 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = [
-                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()).into(),
-                DiagnosticKind::new_note("The valid argument(s) for the compress attribute are `Args` and `Return`"),
-            ];
-            assert_errors_new!(diagnostic_reporter, expected);
+            let expected = Diagnostic {
+                diagnostic_kind: LogicErrorKind::ArgumentNotSupported(
+                    "Foo".to_owned(),
+                    "compress attribute".to_owned(),
+                )
+                .into(),
+                span: None,
+                notes: vec![Note::new(
+                    "The valid argument(s) for the compress attribute are `Args` and `Return`",
+                    None,
+                )],
+            };
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]

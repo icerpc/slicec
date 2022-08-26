@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use crate::{assert_errors, assert_errors_new};
-use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -84,9 +84,10 @@ fn validate_backing_type_out_of_bounds() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind =
-        LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64)
-            .into();
+    let expected = Diagnostic::new(
+        LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64),
+        None,
+    );
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
@@ -130,8 +131,10 @@ fn invalid_underlying_type(underlying_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind =
-        LogicErrorKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()).into();
+    let expected = Diagnostic::new(
+        LogicErrorKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()),
+        None,
+    );
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
@@ -163,12 +166,12 @@ fn optional_underlying_types_fail() {
         module Test;
         enum E: int32? { A = 1 }
     ";
-    let expected: DiagnosticKind = LogicErrorKind::CannotUseOptionalUnderlyingType("E".to_owned()).into();
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
+    let expected = Diagnostic::new(LogicErrorKind::CannotUseOptionalUnderlyingType("E".to_owned()), None);
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
@@ -182,16 +185,18 @@ fn enumerators_must_be_unique() {
             B = 1,
         }
     ";
-    let expected = [
-        LogicErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
-        DiagnosticKind::new_note("The enumerator `A` has previous used the value `1`".to_owned()),
-    ];
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors_new!(diagnostic_reporter, expected);
+    let expected = Diagnostic {
+        diagnostic_kind: LogicErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
+        span: None,
+        notes: vec![Note::new("The enumerator `A` has previous used the value `1`", None)],
+    };
+
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -245,7 +250,7 @@ fn checked_enums_can_not_be_empty() {
         module Test;
         enum E {}
     ";
-    let expected: DiagnosticKind = LogicErrorKind::MustContainEnumerators("E".to_owned()).into();
+    let expected = Diagnostic::new(LogicErrorKind::MustContainEnumerators("E".to_owned()), None);
 
     let diagnostic_reporter = parse_for_diagnostics(slice);
 

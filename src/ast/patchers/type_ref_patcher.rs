@@ -150,7 +150,10 @@ impl TypeRefPatcher<'_> {
                         dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, key_attributes);
                     }
                     if let Some((value_type_ptr, value_attributes)) = value_patch {
-                        dictionary_ptr.borrow_mut().value_type.patch(value_type_ptr, value_attributes);
+                        dictionary_ptr
+                            .borrow_mut()
+                            .value_type
+                            .patch(value_type_ptr, value_attributes);
                     }
                 }
                 PatchKind::None => {}
@@ -191,7 +194,7 @@ impl TypeRefPatcher<'_> {
             Err(message) => {
                 self.diagnostic_reporter.report(Diagnostic::new(
                     DiagnosticKind::SyntaxError(message),
-                    Some(&type_ref.span()),
+                    Some(type_ref.span()),
                 ));
                 None
             }
@@ -253,7 +256,7 @@ impl TypeRefPatcher<'_> {
                 let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
                     current_type_alias.module_scoped_identifier(),
                 );
-                let diagnostic = Diagnostic::new(diagnostic_kind, Some(&current_type_alias.span()));
+                let diagnostic = Diagnostic::new(diagnostic_kind, Some(current_type_alias.span()));
                 self.diagnostic_reporter.report_with_notes(diagnostic, notes);
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());

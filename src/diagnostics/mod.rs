@@ -33,6 +33,12 @@ impl Diagnostic {
     }
 }
 
+impl fmt::Display for Diagnostic {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.diagnostic_kind)
+    }
+}
+
 /// Additional information about another kind of error that was encountered. For example, indicating where the
 /// encoding of a Slice1 encoded slice file was defined.
 #[derive(Debug)]
@@ -50,9 +56,9 @@ impl Note {
     }
 }
 
-impl fmt::Display for Diagnostic {
+impl fmt::Display for Note {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.diagnostic_kind)
+        write!(f, "{}", self.message)
     }
 }
 

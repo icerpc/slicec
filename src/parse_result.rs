@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::diagnostics::*;
-use crate::slice_file::SliceFile;
+use crate::slice_file::{SliceFile, Span};
 use console::style;
 use std::collections::HashMap;
 
@@ -36,29 +36,26 @@ impl ParsedData {
                     style("\nerror").red()
                 }
                 DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
-                DiagnosticKind::Note(_) => style("note").white(),
             }
             .bold();
 
             // Create the message using the prefix
-            match diagnostic.diagnostic_kind {
-                DiagnosticKind::Note(_) => {
-                    eprintln!("    {} {}: {}", style("=").blue().bold(), prefix, style(&diagnostic))
-                }
-                _ => eprintln!("{}: {}", prefix, style(&diagnostic).bold()),
-            };
+
+            // eprintln!("    {} {}: {}", style("=").blue().bold(), prefix, style(&diagnostic))
+
+            eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
             // If the diagnostic contains a location, show a snippet containing the offending code
             if let Some(span) = diagnostic.span {
-                // Display the file name and line row and column where the error began.
-                let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
-                let path = std::path::Path::new(&file_location);
-                eprintln!(" {} {}", style("-->").blue().bold(), path.display());
-
-                // Display the line of code where the error occurred.
-                let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
-                eprintln!("{}", snippet);
+                Self::show_snippet(span, files)
             }
+            // If the diagnostic contain a notes, display them.
+            diagnostic.notes.into_iter().for_each(|note| {
+                eprintln!(" {} {}", style("--").blue().bold(), style(&note).bold());
+                if let Some(span) = note.span {
+                    Self::show_snippet(span, files)
+                }
+            });
         }
 
         // Output the total number of errors and warnings.
@@ -77,6 +74,17 @@ impl ParsedData {
                 counts.0,
             )
         }
+    }
+
+    fn show_snippet(span: Span, files: &HashMap<String, SliceFile>) {
+        // Display the file name and line row and column where the error began.
+        let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
+        let path = std::path::Path::new(&file_location);
+        eprintln!(" {} {}", style("-->").blue().bold(), path.display());
+
+        // Display the line of code where the error occurred.
+        let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
+        eprintln!("{}", snippet);
     }
 }
 

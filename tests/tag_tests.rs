@@ -6,7 +6,7 @@ mod tags {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
     use slice::grammar::*;
     use slice::parse_from_string;
     use test_case::test_case;
@@ -176,11 +176,15 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()).into(),
-            DiagnosticKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
-        ];
-        assert_errors_new!(diagnostic_reporter, expected);
+        let expected = Diagnostic {
+            diagnostic_kind: LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()).into(),
+            span: None,
+            notes: vec![Note::new(
+                "The data member `a` has previous used the tag value `1`",
+                None,
+            )],
+        };
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test_case(0)]

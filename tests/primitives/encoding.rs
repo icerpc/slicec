@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -37,11 +37,12 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            LogicErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
-            DiagnosticKind::new_note("file encoding was set to Slice1 here:"),
-        ];
-        assert_errors_new!(diagnostic_reporter, expected);
+        let expected = Diagnostic {
+            diagnostic_kind: LogicErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1).into(),
+            span: None,
+            notes: vec![Note::new("file encoding was set to Slice1 here:", None)],
+        };
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -81,7 +82,7 @@ mod slice2 {
 
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -102,14 +103,19 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
-            DiagnosticKind::new_note("file is using the Slice2 encoding by default"),
-            DiagnosticKind::new_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-            ),
-        ];
-        assert_errors_new!(diagnostic_reporter, expected);
+        let expected = Diagnostic {
+            diagnostic_kind: LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2).into(),
+            span: None,
+            notes: vec![
+                Note::new("file is using the Slice2 encoding by default", None),
+                Note::new(
+                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+                    None,
+                ),
+                Note::new("classes are only supported by the Slice1 encoding", None),
+            ],
+        };
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,

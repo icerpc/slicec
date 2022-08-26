@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
 use slice::grammar::*;
 
 #[test]
@@ -69,10 +69,11 @@ fn data_member_shadowing_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = [
-        LogicErrorKind::Shadows("i".to_owned()).into(),
-        DiagnosticKind::new_note("`i` was previously defined here".to_owned()),
-    ];
+    let expected = [Diagnostic {
+        diagnostic_kind: LogicErrorKind::Shadows("i".to_owned()).into(),
+        span: None,
+        notes: vec![Note::new("`i` was previously defined here", None)],
+    }];
     assert_errors_new!(diagnostic_reporter, expected);
 }
 

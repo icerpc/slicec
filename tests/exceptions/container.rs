@@ -2,7 +2,7 @@
 
 use crate::assert_errors_new;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
 
 /// Verifies that exceptions can contain data members.
@@ -77,9 +77,10 @@ fn cannot_redefine_data_members() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = [
-        LogicErrorKind::Redefinition("a".to_owned()).into(),
-        DiagnosticKind::new_note("`a` was previously defined here".to_owned()),
-    ];
-    assert_errors_new!(diagnostic_reporter, expected);
+    let expected = Diagnostic {
+        diagnostic_kind: LogicErrorKind::Redefinition("a".to_owned()).into(),
+        span: None,
+        notes: vec![Note::new("`a` was previously defined here", None)],
+    };
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
