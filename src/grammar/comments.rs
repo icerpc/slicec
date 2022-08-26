@@ -33,15 +33,18 @@ impl DocComment {
     }
 }
 
+/// Search for inline tags which have the format `{@tag value}`
 pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
     let mut tags = Vec::new();
 
+    // The section comment that we're trying to match
     let mut section = comment;
 
     while let Some(pos) = section.find('{') {
-        // Search for the closing bracket. If we don't find one just exist the loop.
+        // Search for the closing bracket. If we don't find one just exit the loop.
         match section[pos..].find('}') {
             Some(end) => {
+                // The tag is everything between the opening (pos) and closing (pos+end+1) brackets.
                 let tag = &section[pos + 1..pos + end];
                 let tag_parts = tag
                     .split(char::is_whitespace)
@@ -53,7 +56,7 @@ pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
                     tags.push((tag_parts[0], tag_parts[1]));
                 }
 
-                // The next section is the part of the comment after the closing bracket.
+                // The next section is the part of the comment after the matched closing bracket.
                 section = &section[pos + end + 1..];
             }
             None => break,
