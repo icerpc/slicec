@@ -28,18 +28,19 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            diagnostic_reporter.report(
+            let diagnostic = Diagnostic::new(
                 LogicErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
                 Some(window[1].span()),
             );
-            diagnostic_reporter.report(
-                DiagnosticKind::new_note(format!(
+            let notes = vec![Note::new(
+                format!(
                     "The data member `{}` has previous used the tag value `{}`",
                     &window[0].identifier(),
                     window[0].tag().unwrap()
-                )),
+                ),
                 Some(window[0].span()),
-            );
+            )];
+            diagnostic_reporter.report_with_notes(diagnostic, notes);
         };
     });
 }
@@ -53,7 +54,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
         Some(_) => true,
         None if seen => {
             let error = LogicErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
-            diagnostic_reporter.report(error, Some(parameter.data_type.span()));
+            diagnostic_reporter.report(Diagnostic::new(error, Some(parameter.data_type.span())));
             true
         }
         None => false,
@@ -67,12 +68,15 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let error = LogicErrorKind::CompactStructCannotContainTaggedMembers;
-                diagnostic_reporter.report(error, Some(member.span()));
-                diagnostic_reporter.report(
-                    DiagnosticKind::new_note(format!("struct '{}' is declared compact here", struct_def.identifier())),
-                    Some(struct_def.span()),
+                let diagnostic = Diagnostic::new(
+                    LogicErrorKind::CompactStructCannotContainTaggedMembers,
+                    Some(member.span()),
                 );
+                let notes = vec![Note::new(
+                    format!("struct '{}' is declared compact here", struct_def.identifier()),
+                    Some(struct_def.span()),
+                )];
+                diagnostic_reporter.report_with_notes(diagnostic, notes)
             }
         }
     }
@@ -89,10 +93,10 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            diagnostic_reporter.report(
+            diagnostic_reporter.report(Diagnostic::new(
                 LogicErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
                 Some(member.span()),
-            );
+            ));
         }
     }
 }
@@ -107,10 +111,10 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagn
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            diagnostic_reporter.report(
+            diagnostic_reporter.report(Diagnostic::new(
                 LogicErrorKind::CannotTagClass(member.identifier().to_owned()),
                 Some(member.span()),
-            );
+            ));
         }
     }
 }
@@ -136,10 +140,10 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnosti
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            diagnostic_reporter.report(
+            diagnostic_reporter.report(Diagnostic::new(
                 LogicErrorKind::CannotTagContainingClass(member.identifier().to_owned()),
                 Some(member.span()),
-            );
+            ));
         }
     }
 }

@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::{Diagnostic, DiagnosticKind};
-use crate::slice_file::Span;
+use crate::diagnostics::{Diagnostic, DiagnosticKind, Note};
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -40,18 +39,19 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report(&mut self, diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) {
-        let diagnostic_kind: DiagnosticKind = diagnostic_kind.into();
-        match diagnostic_kind {
-            DiagnosticKind::Note(_) => {}
+    pub fn report(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
+        match diagnostic.diagnostic_kind {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
                 self.error_count += 1
             }
         };
-        self.diagnostics.push(Diagnostic {
-            diagnostic_kind,
-            span: span.cloned(),
-        });
+        self.diagnostics.push(diagnostic);
+    }
+
+    pub fn report_with_notes(&mut self, diagnostic: Diagnostic, notes: Vec<Note>) {
+        diagnostic.notes.append(&mut notes);
+        self.report(diagnostic);
     }
 }

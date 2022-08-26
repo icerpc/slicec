@@ -209,8 +209,10 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.diagnostic_reporter
-                    .report(DiagnosticKind::SyntaxError(message), Some(type_ref.span()));
+                self.diagnostic_reporter.report(Diagnostic::new(
+                    DiagnosticKind::SyntaxError(message),
+                    Some(&type_ref.span()),
+                ));
                 None
             }
         }
@@ -254,17 +256,23 @@ impl TypeRefPatcher<'_> {
                 .position(|&other| std::ptr::eq(other, current_type_alias));
             if let Some(i) = lookup_result {
                 type_alias_chain.push(current_type_alias);
-                let error = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
+                let notes = type_alias_chain[i..]
+                    .windows(2)
+                    .into_iter()
+                    .map(|window| {
+                        let identifier = window[0].identifier();
+                        let identifier_original = window[1].identifier();
+                        Note {
+                            message: format!("type alias '{identifier}' uses type alias '{identifier_original}' here:"),
+                            span: Some(window[0].span().clone()),
+                        }
+                    })
+                    .collect::<Vec<Note>>();
+                let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
                     current_type_alias.module_scoped_identifier(),
                 );
-                self.diagnostic_reporter.report(error, Some(current_type_alias.span()));
-                for window in type_alias_chain[i..].windows(2) {
-                    let identifier = window[0].identifier();
-                    let identifier_original = window[1].identifier();
-                    let message = format!("type alias '{identifier}' uses type alias '{identifier_original}' here:");
-                    self.diagnostic_reporter
-                        .report(DiagnosticKind::new_note(message), Some(window[0].underlying.span()));
-                }
+                let diagnostic = Diagnostic::new(diagnostic_kind, Some(&current_type_alias.span()));
+                self.diagnostic_reporter.report_with_notes(diagnostic, notes);
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());
             }

@@ -20,6 +20,34 @@ pub use self::warnings::WarningKind;
 pub struct Diagnostic {
     pub diagnostic_kind: DiagnosticKind,
     pub span: Option<Span>,
+    pub notes: Vec<Note>,
+}
+
+impl Diagnostic {
+    pub fn new(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) -> Self {
+        Diagnostic {
+            diagnostic_kind: diagnostic_kind.into(),
+            span: span.cloned(),
+            notes: Vec::new(),
+        }
+    }
+}
+
+/// Additional information about another kind of error that was encountered. For example, indicating where the
+/// encoding of a Slice1 encoded slice file was defined.
+#[derive(Debug)]
+pub struct Note {
+    pub message: String,
+    pub span: Option<Span>,
+}
+
+impl Note {
+    pub fn new(message: impl Into<String>, span: Option<&Span>) -> Self {
+        Note {
+            message: message.into(),
+            span: span.cloned(),
+        }
+    }
 }
 
 impl fmt::Display for Diagnostic {
@@ -41,10 +69,6 @@ pub enum DiagnosticKind {
     /// indicates that an operation should return a value, but the operation does not.
     Warning(WarningKind),
 
-    /// Additional information about another kind of error that was encountered. For example, indicating where the
-    /// encoding of a Slice1 encoded slice file was defined.
-    Note(String),
-
     /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
     IOError(String),
 }
@@ -55,22 +79,8 @@ impl fmt::Display for DiagnosticKind {
             DiagnosticKind::SyntaxError(error) => write!(f, "{}", error),
             DiagnosticKind::LogicError(rule_kind) => write!(f, "{}", rule_kind.message()),
             DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
-            DiagnosticKind::Note(note) => write!(f, "{}", note),
             DiagnosticKind::IOError(error) => write!(f, "{}", error),
         }
-    }
-}
-
-/// Creates a new note from a string.
-///
-/// # Examples
-/// ```
-/// # use slice::diagnostics::DiagnosticKind;
-/// let note = DiagnosticKind::new_note("This is the content of a note.");
-/// ```
-impl DiagnosticKind {
-    pub fn new_note(message: impl Into<String>) -> DiagnosticKind {
-        DiagnosticKind::Note(message.into())
     }
 }
 

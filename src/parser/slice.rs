@@ -2,7 +2,7 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticKind, DiagnosticReporter, LogicErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{SliceFile, Span};
 use crate::upcast_weak_as;
@@ -65,7 +65,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report(DiagnosticKind::SyntaxError(message), None);
+                    .report(Diagnostic::new(DiagnosticKind::SyntaxError(message), None));
                 None
             }
         }
@@ -106,7 +106,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report(DiagnosticKind::SyntaxError(message), None);
+                    .report(Diagnostic::new(DiagnosticKind::SyntaxError(message), None));
                 None
             }
         }
@@ -267,8 +267,10 @@ impl<'a> SliceParser<'a> {
                 // Classes can only inherit from a single base class.
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
-                        Some(&span),
+                        Diagnostic::new(
+                            LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
+                            Some(&span),
+                        )
                     );
                 }
 
@@ -308,10 +310,16 @@ impl<'a> SliceParser<'a> {
             [_, identifier(identifier), _, inheritance_list(bases)] => {
                 // Exceptions can only inherit from a single base exception.
                 if bases.len() > 1 {
-                    input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
-                        Some(&span),
-                    )
+                    input
+                        .user_data()
+                        .borrow_mut()
+                        .diagnostic_reporter
+                        .report(
+                            Diagnostic::new(
+                                LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
+                                Some(&span)
+                            )
+                        );
                 }
 
                 push_scope(&input, &identifier.value, false);
@@ -514,10 +522,11 @@ impl<'a> SliceParser<'a> {
                 // TODO: should we move this into the validators, instead of a parse-time check?
                 if return_elements.len() < 2 {
                     let span = get_span_for(&input);
-                    input.user_data().borrow_mut().diagnostic_reporter.report(
-                        LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
-                        Some(&span),
-                    );
+                    input
+                    .user_data()
+                    .borrow_mut()
+                    .diagnostic_reporter
+                    .report(Diagnostic::new(LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements, Some(&span)));
                 }
                 return_elements
             },
@@ -651,8 +660,12 @@ impl<'a> SliceParser<'a> {
             [_, integer(integer)] => {
                 // Checking that tags must fit in an i32 and be non-negative.
                 if !RangeInclusive::new(0, i32::MAX as i64).contains(&integer) {
-                    let span = get_span_for(&input);
-                    input.user_data().borrow_mut().diagnostic_reporter.report(LogicErrorKind::TagValueOutOfBounds, Some(&span));
+                    let span = &get_span_for(&input);
+                    input
+                    .user_data()
+                    .borrow_mut()
+                    .diagnostic_reporter
+                    .report(Diagnostic::new(LogicErrorKind::TagValueOutOfBounds, Some(span)));
                 }
                 integer as u32
             }
@@ -1172,15 +1185,15 @@ impl<'a> SliceParser<'a> {
                     if !allow_sub_modules {
                         if let Definition::Module(module_def) = &definition {
                             let diagnostic_reporter = &mut input.user_data().borrow_mut().diagnostic_reporter;
-
-                            diagnostic_reporter.report(
+                            let diagnostic = Diagnostic::new(
                                 DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().span),
                             );
+                            let note = Note {message:format!("file level module '{}' declared here", &identifier.value), span: Some(span.clone())};
 
-                            diagnostic_reporter.report(
-                                DiagnosticKind::new_note(format!("file level module '{}' declared here", &identifier.value)),
-                                Some(&span),
+                            diagnostic_reporter.report_with_notes(
+                                diagnostic,
+                                vec![note],
                             );
                         }
                     }
