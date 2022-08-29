@@ -4,8 +4,9 @@ pub mod helpers;
 
 mod comments {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use crate::{assert_errors, assert_errors_new};
+    use slice::diagnostics::{DiagnosticKind, WarningKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -294,5 +295,63 @@ mod comments {
         let interface_doc = interface_def.comment();
 
         assert!(interface_doc.is_none());
+    }
+
+    #[test]
+    fn doc_comment_linked_identifiers() {
+        let slice = "
+            module tests;
+
+            /// This comment is for {@link TestStruct}
+            struct TestStruct
+            {
+            }
+            ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let struct_def = ast.find_element::<Struct>("tests::TestStruct").unwrap();
+        let doc = struct_def.comment().unwrap();
+        let tags = find_inline_tags(&doc.overview);
+
+        assert_eq!(tags.len(), 1);
+        assert_eq!(tags[0].0, "@link");
+        assert_eq!(tags[0].1, "TestStruct");
+    }
+
+    #[test]
+    fn missing_doc_comment_linked_identifiers() {
+        let slice = "
+            module tests;
+
+            /// A test struct. Similar to {@link OtherStruct}.
+            struct TestStruct {}
+            ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected: DiagnosticKind = WarningKind::InvalidDocCommentLinkIdentifier("OtherStruct".to_owned()).into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
+    }
+
+    #[test]
+    fn invalid_doc_comment_tag() {
+        let slice = "
+            module tests;
+
+            /// A test struct. Similar to {@linked OtherStruct}{}.
+            struct TestStruct {}
+            ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected: DiagnosticKind = WarningKind::InvalidDocCommentTag("@linked".to_owned()).into();
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }
