@@ -3,7 +3,7 @@
 use super::super::*;
 use crate::slice_file::Span;
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Identifier {
     pub value: String,
     pub raw_value: String,
