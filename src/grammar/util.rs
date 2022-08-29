@@ -3,7 +3,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Default, Hash, PartialEq, Eq)]
+#[derive(Clone, Debug, Default)]
 pub struct Scope {
     pub raw_module_scope: String,
     pub module_scope: Vec<String>,
