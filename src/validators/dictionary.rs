@@ -29,13 +29,14 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                diagnostic_reporter.report_with_notes(
-                    Diagnostic::new(LogicErrorKind::StructKeyMustBeCompact, Some(type_ref.span())),
-                    vec![Note::new(
-                        format!("struct '{}' is defined here:", struct_def.identifier()),
-                        Some(struct_def.span()),
-                    )],
-                );
+                let diagnostic =
+                    Diagnostic::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
+                        Note::new(
+                            format!("struct '{}' is defined here:", struct_def.identifier()),
+                            Some(struct_def.span()),
+                        ),
+                    ]);
+                diagnostic_reporter.report(diagnostic);
                 return false;
             }
 
@@ -52,14 +53,15 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             }
 
             if contains_invalid_key_types {
-                let diagnostic = Diagnostic::new(
+                let diagnostic = Diagnostic::new_with_notes(
                     LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
                     Some(type_ref.span()),
+                    vec![Note::new(
+                        format!("struct '{}' is defined here:", struct_def.identifier()),
+                        Some(struct_def.span()),
+                    )],
                 );
-                diagnostic_reporter.report_with_notes(diagnostic, vec![Note::new(
-                    format!("struct '{}' is defined here:", struct_def.identifier()),
-                    Some(struct_def.span()),
-                )]);
+                diagnostic_reporter.report(diagnostic);
                 return false;
             }
             return true;
@@ -86,14 +88,14 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let diagnostic = Diagnostic::new(
+        let mut diagnostic = Diagnostic::new(
             LogicErrorKind::KeyTypeNotSupported(pluralized_kind),
             Some(type_ref.span()),
         );
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {
-            diagnostic_reporter.report_with_notes(diagnostic, vec![Note::new(
+            diagnostic.attach_notes(vec![Note::new(
                 format!(
                     "{} '{}' is defined here:",
                     named_symbol_def.kind(),
@@ -101,9 +103,8 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                 ),
                 Some(named_symbol_def.span()),
             )]);
-        } else {
-            diagnostic_reporter.report(diagnostic);
         }
+        diagnostic_reporter.report(diagnostic);
     }
     is_valid
 }

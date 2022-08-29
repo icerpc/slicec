@@ -30,19 +30,14 @@ mod traits {
                 let diagnostic_reporter = parse_for_diagnostics(slice);
 
                 // Assert
-                let expected = Diagnostic {
-                    diagnostic_kind: LogicErrorKind::NotSupportedWithEncoding(
-                        "trait".to_owned(),
-                        "ATrait".to_owned(),
-                        Encoding::Slice1,
-                    )
-                    .into(),
-                    span: None,
-                    notes: vec![
+                let expected = Diagnostic::new_with_notes(
+                    LogicErrorKind::NotSupportedWithEncoding("trait".to_owned(), "ATrait".to_owned(), Encoding::Slice1),
+                    None,
+                    vec![
                         Note::new("file encoding was set to Slice1 here:", None),
                         Note::new("traits are not supported by the Slice1 encoding", None),
                     ],
-                };
+                );
                 assert_errors_new!(diagnostic_reporter, [&expected]);
             }
         }

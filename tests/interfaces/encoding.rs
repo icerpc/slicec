@@ -25,10 +25,10 @@ fn operation_members_are_compatible_with_encoding() {
     let result = parse_from_strings(&[slice1, slice2]).err().unwrap();
 
     // Assert
-    let expected = Diagnostic {
-        diagnostic_kind: LogicErrorKind::UnsupportedType("C".to_owned(), Encoding::Slice2).into(),
-        span: None,
-        notes: vec![Note::new("file encoding was set to Slice2 here:", None)],
-    };
+    let expected = Diagnostic::new_with_notes(
+        LogicErrorKind::UnsupportedType("C".to_owned(), Encoding::Slice2),
+        None,
+        vec![Note::new("file encoding was set to Slice2 here:", None)],
+    );
     assert_errors_new!(result.diagnostic_reporter, [&expected]);
 }

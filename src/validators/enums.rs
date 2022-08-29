@@ -103,19 +103,19 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let diagnostic = Diagnostic::new(
+            let diagnostic = Diagnostic::new_with_notes(
                 LogicErrorKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
                 Some(window[1].span()),
+                vec![Note::new(
+                    format!(
+                        "The enumerator `{}` has previous used the value `{}`",
+                        window[0].identifier(),
+                        window[0].value,
+                    ),
+                    Some(window[0].span()),
+                )],
             );
-            let notes = vec![Note::new(
-                format!(
-                    "The enumerator `{}` has previous used the value `{}`",
-                    window[0].identifier(),
-                    window[0].value
-                ),
-                Some(window[0].span()),
-            )];
-            diagnostic_reporter.report_with_notes(diagnostic, notes);
+            diagnostic_reporter.report(diagnostic);
         }
     });
 }

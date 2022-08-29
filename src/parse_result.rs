@@ -40,9 +40,6 @@ impl ParsedData {
             .bold();
 
             // Create the message using the prefix
-
-            // eprintln!("    {} {}: {}", style("=").blue().bold(), prefix, style(&diagnostic))
-
             eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
             // If the diagnostic contains a location, show a snippet containing the offending code
@@ -52,7 +49,7 @@ impl ParsedData {
             // If the diagnostic contain a notes, display them.
             diagnostic.notes.into_iter().for_each(|note| {
                 eprintln!(
-                    "    {} {}: {}",
+                    "    {} {}: {:}",
                     style("=").blue().bold(),
                     style("note").bold(),
                     style(&note).bold(),

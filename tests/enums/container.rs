@@ -190,12 +190,11 @@ fn enumerators_must_be_unique() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic {
-        diagnostic_kind: LogicErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()).into(),
-        span: None,
-        notes: vec![Note::new("The enumerator `A` has previous used the value `1`", None)],
-    };
-
+    let expected = Diagnostic::new_with_notes(
+        LogicErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()),
+        None,
+        vec![Note::new("The enumerator `A` has previous used the value `1`", None)],
+    );
     assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 

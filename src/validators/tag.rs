@@ -28,19 +28,19 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            let diagnostic = Diagnostic::new(
+            let diagnostic = Diagnostic::new_with_notes(
                 LogicErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
                 Some(window[1].span()),
+                vec![Note::new(
+                    format!(
+                        "The data member `{}` has previous used the tag value `{}`",
+                        &window[0].identifier(),
+                        window[0].tag().unwrap()
+                    ),
+                    Some(window[0].span()),
+                )],
             );
-            let notes = vec![Note::new(
-                format!(
-                    "The data member `{}` has previous used the tag value `{}`",
-                    &window[0].identifier(),
-                    window[0].tag().unwrap()
-                ),
-                Some(window[0].span()),
-            )];
-            diagnostic_reporter.report_with_notes(diagnostic, notes);
+            diagnostic_reporter.report(diagnostic);
         };
     });
 }
@@ -68,15 +68,15 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let diagnostic = Diagnostic::new(
+                let diagnostic = Diagnostic::new_with_notes(
                     LogicErrorKind::CompactStructCannotContainTaggedMembers,
                     Some(member.span()),
+                    vec![Note::new(
+                        format!("struct '{}' is declared compact here", struct_def.identifier()),
+                        Some(struct_def.span()),
+                    )],
                 );
-                let notes = vec![Note::new(
-                    format!("struct '{}' is declared compact here", struct_def.identifier()),
-                    Some(struct_def.span()),
-                )];
-                diagnostic_reporter.report_with_notes(diagnostic, notes)
+                diagnostic_reporter.report(diagnostic);
             }
         }
     }

@@ -31,34 +31,23 @@ impl Diagnostic {
             notes: Vec::new(),
         }
     }
+
+    pub fn new_with_notes(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
+        Diagnostic {
+            diagnostic_kind: diagnostic_kind.into(),
+            span: span.cloned(),
+            notes,
+        }
+    }
+
+    pub fn attach_notes(&mut self, notes: Vec<Note>) {
+        self.notes.extend(notes);
+    }
 }
 
 impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.diagnostic_kind)
-    }
-}
-
-/// Additional information about another kind of error that was encountered. For example, indicating where the
-/// encoding of a Slice1 encoded slice file was defined.
-#[derive(Debug)]
-pub struct Note {
-    pub message: String,
-    pub span: Option<Span>,
-}
-
-impl Note {
-    pub fn new(message: impl Into<String>, span: Option<&Span>) -> Self {
-        Note {
-            message: message.into(),
-            span: span.cloned(),
-        }
-    }
-}
-
-impl fmt::Display for Note {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
     }
 }
 
@@ -87,6 +76,29 @@ impl fmt::Display for DiagnosticKind {
             DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
             DiagnosticKind::IOError(error) => write!(f, "{}", error),
         }
+    }
+}
+
+/// Additional information about a diagnostic. For example, indicating where the encoding of a Slice1 encoded Slice file
+/// was defined.
+#[derive(Debug, Clone)]
+pub struct Note {
+    pub message: String,
+    pub span: Option<Span>,
+}
+
+impl Note {
+    pub fn new(message: impl Into<String>, span: Option<&Span>) -> Self {
+        Note {
+            message: message.into(),
+            span: span.cloned(),
+        }
+    }
+}
+
+impl fmt::Display for Note {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
     }
 }
 

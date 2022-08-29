@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::{Diagnostic, DiagnosticKind, Note};
+use crate::diagnostics::{Diagnostic, DiagnosticKind};
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -47,10 +47,5 @@ impl DiagnosticReporter {
             }
         };
         self.diagnostics.push(diagnostic);
-    }
-
-    pub fn report_with_notes(&mut self, mut diagnostic: Diagnostic, mut notes: Vec<Note>) {
-        diagnostic.notes.append(&mut notes);
-        self.report(diagnostic);
     }
 }

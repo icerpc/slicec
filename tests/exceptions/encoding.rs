@@ -27,11 +27,9 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::ExceptionNotSupported(Encoding::Slice1).into(),
-            span: None,
-            notes: vec![Note::new("file encoding was set to Slice1 here:", None)],
-        };
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::ExceptionNotSupported(Encoding::Slice1), None, vec![
+            Note::new("file encoding was set to Slice1 here:", None),
+        ]);
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }
@@ -58,15 +56,10 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::NotSupportedWithEncoding(
-                "exception".to_owned(),
-                "B".to_owned(),
-                Encoding::Slice2,
-            )
-            .into(),
-            span: None,
-            notes: vec![
+        let expected = Diagnostic::new_with_notes(
+            LogicErrorKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2),
+            None,
+            vec![
                 Note::new("file is using the Slice2 encoding by default", None),
                 Note::new(
                     "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
@@ -74,7 +67,7 @@ mod slice2 {
                 ),
                 Note::new("exception inheritance is only supported by the Slice1 encoding", None),
             ],
-        };
+        );
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 

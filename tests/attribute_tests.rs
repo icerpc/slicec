@@ -93,15 +93,14 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic {
-                diagnostic_kind: LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned())
-                    .into(),
-                span: None,
-                notes: vec![Note::new(
+            let expected = Diagnostic::new_with_notes(
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()),
+                None,
+                vec![Note::new(
                     "The valid arguments for the format attribute are `Compact` and `Sliced`",
                     None,
                 )],
-            };
+            );
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
@@ -229,18 +228,14 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic {
-                diagnostic_kind: LogicErrorKind::ArgumentNotSupported(
-                    "Foo".to_owned(),
-                    "compress attribute".to_owned(),
-                )
-                .into(),
-                span: None,
-                notes: vec![Note::new(
+            let expected = Diagnostic::new_with_notes(
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()),
+                None,
+                vec![Note::new(
                     "The valid argument(s) for the compress attribute are `Args` and `Return`",
                     None,
                 )],
-            };
+            );
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 

@@ -243,21 +243,20 @@ impl TypeRefPatcher<'_> {
                 type_alias_chain.push(current_type_alias);
                 let notes = type_alias_chain[i..]
                     .windows(2)
-                    .into_iter()
                     .map(|window| {
                         let identifier = window[0].identifier();
                         let identifier_original = window[1].identifier();
                         Note {
                             message: format!("type alias '{identifier}' uses type alias '{identifier_original}' here:"),
-                            span: Some(window[0].span().clone()),
+                            span: Some(window[0].underlying.span().clone()),
                         }
                     })
                     .collect::<Vec<Note>>();
                 let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
                     current_type_alias.module_scoped_identifier(),
                 );
-                let diagnostic = Diagnostic::new(diagnostic_kind, Some(current_type_alias.span()));
-                self.diagnostic_reporter.report_with_notes(diagnostic, notes);
+                let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
+                self.diagnostic_reporter.report(diagnostic);
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());
             }

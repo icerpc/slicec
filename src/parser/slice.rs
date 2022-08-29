@@ -796,7 +796,13 @@ impl<'a> SliceParser<'a> {
                 TypeRefDefinition::Unpatched(type_string)
             }
         };
-        Ok(TypeRef { definition, is_optional, scope, attributes, span })
+        Ok(TypeRef {
+            definition,
+            is_optional,
+            scope,
+            attributes,
+            span,
+        })
     }
 
     fn sequence(input: PestNode) -> PestResult<WeakPtr<Sequence>> {
@@ -1184,16 +1190,17 @@ impl<'a> SliceParser<'a> {
                     if !allow_sub_modules {
                         if let Definition::Module(module_def) = &definition {
                             let diagnostic_reporter = &mut input.user_data().borrow_mut().diagnostic_reporter;
-                            let diagnostic = Diagnostic::new(
+                            let diagnostic = Diagnostic::new_with_notes(
                                 DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().span),
+                                vec![
+                                    Note {
+                                        message: format!("file level module '{}' declared here", &identifier.value),
+                                        span: Some(span.clone())
+                                    }
+                                ]
                             );
-                            let note = Note {message:format!("file level module '{}' declared here", &identifier.value), span: Some(span.clone())};
-
-                            diagnostic_reporter.report_with_notes(
-                                diagnostic,
-                                vec![note],
-                            );
+                            diagnostic_reporter.report(diagnostic);
                         }
                     }
                     last_module.add_definition(definition);

@@ -16,15 +16,15 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let diagnostic = Diagnostic::new(
+            let diagnostic = Diagnostic::new_with_notes(
                 LogicErrorKind::Redefinition(window[1].value.clone()),
                 Some(window[1].span()),
+                vec![Note::new(
+                    format!("`{}` was previously defined here", window[0].value),
+                    Some(window[0].span()),
+                )],
             );
-            let notes = vec![Note::new(
-                format!("`{}` was previously defined here", window[0].value),
-                Some(window[0].span()),
-            )];
-            diagnostic_reporter.report_with_notes(diagnostic, notes);
+            diagnostic_reporter.report(diagnostic);
         }
     });
 }
@@ -39,15 +39,15 @@ pub fn check_for_shadowing(
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                let diagnostic = Diagnostic::new(
+                let diagnostic = Diagnostic::new_with_notes(
                     LogicErrorKind::Shadows(identifier.value.clone()),
                     Some(identifier.span()),
+                    vec![Note::new(
+                        format!("`{}` was previously defined here", inherited_identifier.value),
+                        Some(inherited_identifier.span()),
+                    )],
                 );
-                let notes = vec![Note::new(
-                    format!("`{}` was previously defined here", inherited_identifier.value),
-                    Some(inherited_identifier.span()),
-                )];
-                diagnostic_reporter.report_with_notes(diagnostic, notes);
+                diagnostic_reporter.report(diagnostic);
             });
     });
 }

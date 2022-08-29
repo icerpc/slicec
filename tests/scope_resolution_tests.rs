@@ -21,11 +21,11 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
-            span: None,
-            notes: vec![Note::new("file level module 'T' declared here", None)],
-        };
+        let expected = Diagnostic::new_with_notes(
+            DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
+            None,
+            vec![Note::new("file level module 'T' declared here", None)],
+        );
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
@@ -230,11 +230,11 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::Redefinition("B".to_string()).into(),
-            span: None,
-            notes: vec![Note::new("`B` was previously defined here", None)],
-        };
+        let expected =
+            Diagnostic::new_with_notes(LogicErrorKind::Redefinition("B".to_string()), None, vec![Note::new(
+                "`B` was previously defined here",
+                None,
+            )]);
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 

@@ -66,11 +66,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::OptionalsNotSupported(Encoding::Slice1).into(),
-            span: None,
-            notes: vec![Note::new("file encoding was set to Slice1 here:", None)],
-        };
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::OptionalsNotSupported(Encoding::Slice1), None, vec![
+            Note::new("file encoding was set to Slice1 here:", None),
+        ]);
 
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
@@ -179,14 +177,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()).into(),
-            span: None,
-            notes: vec![Note::new(
-                "The data member `a` has previous used the tag value `1`",
-                None,
-            )],
-        };
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()), None, vec![
+            Note::new("The data member `a` has previous used the tag value `1`", None),
+        ]);
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 

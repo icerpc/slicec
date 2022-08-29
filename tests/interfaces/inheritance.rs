@@ -95,11 +95,10 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected = Diagnostic {
-        diagnostic_kind: LogicErrorKind::Shadows("op".to_owned()).into(),
-        span: None,
-        notes: vec![Note::new("`op` was previously defined here", None)],
-    };
+    let expected = Diagnostic::new_with_notes(LogicErrorKind::Shadows("op".to_owned()), None, vec![Note::new(
+        "`op` was previously defined here",
+        None,
+    )]);
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);

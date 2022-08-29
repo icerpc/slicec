@@ -23,22 +23,17 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::NotSupportedWithEncoding(
-                "enum".to_owned(),
-                "E".to_owned(),
-                Encoding::Slice1,
-            )
-            .into(),
-            span: None,
-            notes: vec![
+        let expected = Diagnostic::new_with_notes(
+            LogicErrorKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1),
+            None,
+            vec![
                 Note::new("file encoding was set to Slice1 here:", None),
                 Note::new(
                     "enums with underlying types are not supported by the Slice1 encoding",
                     None,
                 ),
             ],
-        };
+        );
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }

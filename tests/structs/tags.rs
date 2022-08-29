@@ -48,11 +48,9 @@ mod compact_structs {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic {
-            diagnostic_kind: LogicErrorKind::CompactStructCannotContainTaggedMembers.into(),
-            span: None,
-            notes: vec![Note::new("struct 'S' is declared compact here", None)],
-        };
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::CompactStructCannotContainTaggedMembers, None, vec![
+            Note::new("struct 'S' is declared compact here", None),
+        ]);
         assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 }

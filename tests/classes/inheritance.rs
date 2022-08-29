@@ -69,11 +69,11 @@ fn data_member_shadowing_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = [Diagnostic {
-        diagnostic_kind: LogicErrorKind::Shadows("i".to_owned()).into(),
-        span: None,
-        notes: vec![Note::new("`i` was previously defined here", None)],
-    }];
+    let expected = [Diagnostic::new_with_notes(
+        LogicErrorKind::Shadows("i".to_owned()),
+        None,
+        vec![Note::new("`i` was previously defined here", None)],
+    )];
     assert_errors_new!(diagnostic_reporter, expected);
 }
 
