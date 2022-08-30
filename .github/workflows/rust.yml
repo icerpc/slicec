@@ -21,12 +21,22 @@ jobs:
       with:
         toolchain: stable
         components: clippy
+        profile: minimal
     - uses: actions-rs/clippy@master
       with:
         args: --all-features --all-targets
+    - name: Set up cargo cache
+      uses: actions/cach0e@v3
+      with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
     - name: Build
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Generate Documentation
-      run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items
