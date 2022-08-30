@@ -26,7 +26,7 @@ jobs:
       with:
         args: --all-features --all-targets
     - name: Set up cargo cache
-      uses: actions/cach0e@v3
+      uses: actions/cache@v3
       with:
           path: |
             ~/.cargo/bin/
