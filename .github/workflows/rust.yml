@@ -22,9 +22,6 @@ jobs:
         toolchain: stable
         components: clippy
         profile: minimal
-    - uses: actions-rs/clippy@master
-      with:
-        args: --all-features --all-targets
     - name: Set up cargo cache
       uses: actions/cache@v3
       with:
@@ -36,6 +33,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
+    - uses: actions-rs/clippy@master
+      with:
+        args: --all-features --all-targets
     - name: Build
       run: cargo build --verbose
     - name: Run tests
