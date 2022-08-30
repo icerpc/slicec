@@ -40,7 +40,7 @@ impl CodeBlock {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.content.trim_matches(char::is_whitespace).is_empty()
+        self.content.trim().is_empty()
     }
 
     pub fn into_string(self) -> String {
