@@ -5,7 +5,29 @@ use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use std::fmt::Write;
 
-type Location = (usize, usize);
+/// Stores the row and column numbers of a location in a Slice file.
+/// These values are indexed starting at 1 instead of 0 for human readability.
+/// Ex: (1,1) is the start of a file: the first column in the first row.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct Location {
+    pub row: usize,
+    pub col: usize,
+}
+
+impl From<(usize, usize)> for Location {
+    /// Creates a [Location] from a pair of indices, where the first element represents the line number,
+    /// and the second element represents the column number.
+    fn from(x: (usize, usize)) -> Self {
+        Location { row: x.0, col: x.1 }
+    }
+}
+
+impl Default for Location {
+    /// Returns a [Location] representing the start of a file: (1,1).
+    fn default() -> Self {
+        Location { row: 1, col: 1 }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Span {
@@ -88,23 +110,23 @@ impl SliceFile {
             .map_or(Encoding::default(), |encoding| encoding.version)
     }
 
-    /// Retrieves a formatted snippet from the slice file. This method expects `start < end`.
-    pub(crate) fn get_snippet(&self, start: (usize, usize), end: (usize, usize)) -> String {
+    /// Retrieves a formatted snippet from the slice file.
+    pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
+        debug_assert!(start < end); // Assert that the start of the snippet comes before the end.
+
         // The snippet of code on the same line as the error, but directly before it.
-        let start_snippet = &self.raw_text[self.raw_pos((start.0, 1))..self.raw_pos(start)];
+        let start_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.raw_pos(start)];
 
         // The snippet of code containing the error.
         let error_snippet = &self.raw_text[self.raw_pos(start)..self.raw_pos(end)];
 
-        let end_of_error_line = self.raw_text.lines().nth(end.0 - 1).unwrap().len();
-
         // The snippet of code on the same line as the error, but directly after it.
-        let end_snippet = &self.raw_text[self.raw_pos(end)..self.raw_pos((end.0, end_of_error_line + 1))];
+        let end_snippet = &self.raw_text[self.raw_pos(end)..self.line_positions[end.row]];
 
         // Create an underline that is the length of the error snippet. For error snippets that span multiple
         // lines, the underline is the length of the longest line.
         let underline = "-".repeat(error_snippet.lines().map(|line| line.len()).max().unwrap());
-        let mut line_number = start.0;
+        let mut line_number = start.row;
 
         // Create a formatted snippet.
         let mut snippet = style("    |\n").blue().bold().to_string();
@@ -133,8 +155,9 @@ impl SliceFile {
         snippet
     }
 
-    /// Converts the provided line and column numbers into an index in the file's raw text.
-    fn raw_pos(&self, (line, col): (usize, usize)) -> usize {
-        self.line_positions[line - 1] + (col - 1)
+    /// Converts the provided [Location] into an index in the file's raw text.
+    fn raw_pos(&self, location: Location) -> usize {
+        // `row` and `col` are decremented because they are indexed starting at 1 instead of 0.
+        self.line_positions[location.row - 1] + (location.col - 1)
     }
 }
