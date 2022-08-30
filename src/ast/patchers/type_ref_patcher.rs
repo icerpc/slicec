@@ -150,7 +150,10 @@ impl TypeRefPatcher<'_> {
                         dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, key_attributes);
                     }
                     if let Some((value_type_ptr, value_attributes)) = value_patch {
-                        dictionary_ptr.borrow_mut().value_type.patch(value_type_ptr, value_attributes);
+                        dictionary_ptr
+                            .borrow_mut()
+                            .value_type
+                            .patch(value_type_ptr, value_attributes);
                     }
                 }
                 PatchKind::None => {}
