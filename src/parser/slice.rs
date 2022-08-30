@@ -783,7 +783,13 @@ impl<'a> SliceParser<'a> {
                 TypeRefDefinition::Unpatched(type_string)
             }
         };
-        Ok(TypeRef { definition, is_optional, scope, attributes, span })
+        Ok(TypeRef {
+            definition,
+            is_optional,
+            scope,
+            attributes,
+            span,
+        })
     }
 
     fn sequence(input: PestNode) -> PestResult<WeakPtr<Sequence>> {
