@@ -10,7 +10,7 @@ pub struct CodeBlock {
 impl CodeBlock {
     pub fn write<T: fmt::Display + ?Sized>(&mut self, s: &T) {
         let string = s.to_string();
-        if !string.trim_matches(char::is_whitespace).is_empty() {
+        if !string.trim().is_empty() {
             self.content.push_str(&string);
         }
     }
