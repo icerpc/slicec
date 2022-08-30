@@ -7,7 +7,7 @@ use std::fmt::Write;
 
 type Location = (usize, usize);
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Span {
     pub start: Location,
     pub end: Location,
