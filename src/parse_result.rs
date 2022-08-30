@@ -51,7 +51,7 @@ impl ParsedData {
             // If the diagnostic contains a location, show a snippet containing the offending code
             if let Some(span) = diagnostic.span {
                 // Display the file name and line row and column where the error began.
-                let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
+                let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
                 let path = std::path::Path::new(&file_location);
                 eprintln!(" {} {}", style("-->").blue().bold(), path.display());
 
