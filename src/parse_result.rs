@@ -36,7 +36,7 @@ impl ParsedData {
 
     fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
         let json = serde_json::to_string(&diagnostic_reporter).unwrap();
-        print!("{}", json);
+        println!("{}", json);
     }
 
     fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
