@@ -190,7 +190,7 @@ pub enum LogicErrorKind {
     /// # Fields
     ///
     /// * `method_name` - The name of the method.
-    CannotBeEmpty(&'static str),
+    CannotBeEmpty(String),
 
     /// Kind can only inherit from a single base.
     ///

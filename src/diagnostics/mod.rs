@@ -1,6 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::slice_file::Span;
+use serde::ser::SerializeStruct;
+use serde::Serialize;
 use std::fmt;
 
 mod diagnostic_reporter;
@@ -11,12 +13,14 @@ pub use self::diagnostic_reporter::DiagnosticReporter;
 pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 
-/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
+/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
+/// code.
 ///
 /// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or
-/// IO. Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
-/// diagnostic occurred.
-#[derive(Debug)]
+/// IO. Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where
+/// the diagnostic occurred.
+
+#[derive(Serialize, Debug)]
 pub struct Diagnostic {
     pub diagnostic_kind: DiagnosticKind,
     pub span: Option<Span>,
@@ -79,9 +83,28 @@ impl fmt::Display for DiagnosticKind {
     }
 }
 
+impl Serialize for DiagnosticKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("DiagnosticKind", 2)?;
+        state.serialize_field("message", &self.to_string())?;
+        if matches!(
+            self,
+            DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_)
+        ) {
+            state.serialize_field("kind", "Error")?;
+        } else {
+            state.serialize_field("kind", "Warning")?
+        }
+        state.end()
+    }
+}
+
 /// Additional information about a diagnostic. For example, indicating where the encoding of a Slice1 encoded Slice file
 /// was defined.
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Note {
     pub message: String,
     pub span: Option<Span>,

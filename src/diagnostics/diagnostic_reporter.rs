@@ -3,8 +3,9 @@
 use crate::command_line::OutputFormat;
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::SliceOptions;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 pub struct DiagnosticReporter {
     /// Vector where all the diagnostics are stored, in the order they're reported.
     diagnostics: Vec<Diagnostic>,
@@ -15,7 +16,7 @@ pub struct DiagnosticReporter {
     /// If true, compilation will fail on warnings in addition to errors.
     warn_as_error: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
-    output_format: OutputFormat,
+    pub output_format: OutputFormat,
 }
 
 impl DiagnosticReporter {

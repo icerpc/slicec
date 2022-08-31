@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use serde::Serialize;
 use structopt::clap::arg_enum;
 use structopt::StructOpt;
 
@@ -35,12 +36,12 @@ pub struct SliceOptions {
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[structopt(long, possible_values = &OutputFormat::variants(), case_insensitive = true, default_value = "console")]
+    #[structopt(long, possible_values = &["console", "json"], case_insensitive = true, default_value = "console")]
     pub output_format: OutputFormat,
 }
 
 arg_enum! {
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Serialize, Debug, Clone, Copy)]
     pub enum OutputFormat {
         Console,
         Json,

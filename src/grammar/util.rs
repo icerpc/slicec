@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use serde::Serialize;
 use std::fmt;
 use std::str::FromStr;
 
@@ -52,7 +53,7 @@ impl Scope {
 /// This enum specifies all the encodings supported by IceRPC.
 ///
 /// These encodings identity the format used to convert Slice types to and from byte streams.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Encoding {
     /// Version 1 of the Slice encoding, supported by IceRPC, and compatible with Ice 3.5 or
     /// greater.
