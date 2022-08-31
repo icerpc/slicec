@@ -80,7 +80,7 @@ impl ParsedData {
 
     fn show_snippet(span: Span, files: &HashMap<String, SliceFile>) {
         // Display the file name and line row and column where the error began.
-        let file_location = format!("{}:{}:{}", &span.file, span.start.0, span.start.1);
+        let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
         let path = std::path::Path::new(&file_location);
         eprintln!(" {} {}", style("-->").blue().bold(), path.display());
 
