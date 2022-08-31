@@ -38,10 +38,10 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => diagnostic_reporter.report(
+            0 => diagnostic_reporter.report(Diagnostic::new(
                 LogicErrorKind::CannotBeEmpty("format attribute"),
                 Some(attribute.span()),
-            ),
+            )),
             _ => {
                 // Validate format attributes are allowed ones.
                 attribute
@@ -52,31 +52,32 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
                         format.is_err()
                     })
                     .for_each(|arg| {
-                        diagnostic_reporter.report(
+                        let diagnostic = Diagnostic::new_with_notes(
                             LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.span()),
+                            vec![Note::new(
+                                format!(
+                                    "The valid arguments for the format attribute are {}",
+                                    message_value_separator(&["Compact", "Sliced"])
+                                ),
+                                Some(attribute.span()),
+                            )],
                         );
-                        diagnostic_reporter.report(
-                            DiagnosticKind::new_note(format!(
-                                "The valid arguments for the format attribute are {}",
-                                message_value_separator(&["Compact", "Sliced"])
-                            )),
-                            Some(attribute.span()),
-                        );
+                        diagnostic_reporter.report(diagnostic);
                     });
             }
         }
     }
 }
-
 /// Validates that the `deprecated` attribute cannot be applied to members.
 fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     members.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
-            diagnostic_reporter.report(
+            let diagnostic = Diagnostic::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
             );
+            diagnostic_reporter.report(diagnostic);
         }
     });
 }
@@ -90,7 +91,10 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
     let kind = element.kind();
     if !supported_on.contains(&kind) {
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
-            diagnostic_reporter.report(LogicErrorKind::CompressAttributeCannotBeApplied, Some(attribute.span()))
+            diagnostic_reporter.report(Diagnostic::new(
+                LogicErrorKind::CompressAttributeCannotBeApplied,
+                Some(attribute.span()),
+            ));
         }
     }
 
@@ -100,17 +104,18 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
             attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    diagnostic_reporter.report(
+                    let diagnostic = Diagnostic::new_with_notes(
                         LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.span()),
+                        vec![Note::new(
+                            format!(
+                                "The valid argument(s) for the compress attribute are {}",
+                                message_value_separator(&valid_arguments).as_str(),
+                            ),
+                            Some(attribute.span()),
+                        )],
                     );
-                    diagnostic_reporter.report(
-                        DiagnosticKind::new_note(format!(
-                            "The valid argument(s) for the compress attribute are {}",
-                            message_value_separator(&valid_arguments).as_str(),
-                        )),
-                        Some(attribute.span()),
-                    );
+                    diagnostic_reporter.report(diagnostic);
                 }
             })
         }

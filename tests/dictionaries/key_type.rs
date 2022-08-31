@@ -2,7 +2,7 @@
 
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
 use crate::{assert_errors, assert_errors_new};
-use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
 use test_case::test_case;
 
 #[test]
@@ -129,11 +129,12 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [DiagnosticKind; 2] = [
-        LogicErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)).into(),
-        DiagnosticKind::new_note(format!("{} '{}' is defined here:", key_kind, key_type)),
-    ];
-    assert_errors_new!(diagnostic_reporter, expected);
+    let expected = Diagnostic::new_with_notes(
+        LogicErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)),
+        None,
+        vec![Note::new(format!("{} '{}' is defined here:", key_kind, key_type), None)],
+    );
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -149,11 +150,11 @@ fn non_compact_structs_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [DiagnosticKind; 2] = [
-        LogicErrorKind::StructKeyMustBeCompact.into(),
-        DiagnosticKind::new_note("struct 'MyStruct' is defined here:".to_owned()),
-    ];
-    assert_errors_new!(diagnostic_reporter, expected);
+    let expected = Diagnostic::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, None, vec![Note::new(
+        "Struct 'MyStruct' is defined here:",
+        None,
+    )]);
+    assert_errors_new!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -209,16 +210,22 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [DiagnosticKind; 9] = [
-        LogicErrorKind::KeyTypeNotSupported("sequences".to_owned()).into(),
-        LogicErrorKind::KeyTypeNotSupported("seq".to_owned()).into(),
-        LogicErrorKind::KeyTypeNotSupported("float32".to_owned()).into(),
-        LogicErrorKind::KeyTypeNotSupported("f32".to_owned()).into(),
-        LogicErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()).into(),
-        DiagnosticKind::new_note("struct 'Inner' is defined here:"),
-        LogicErrorKind::KeyTypeNotSupported("i".to_owned()).into(),
-        LogicErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()).into(),
-        DiagnosticKind::new_note("struct 'Outer' is defined here:".to_owned()),
+    let expected: [Diagnostic; 7] = [
+        Diagnostic::new(LogicErrorKind::KeyTypeNotSupported("sequences".to_owned()), None),
+        Diagnostic::new(LogicErrorKind::KeyTypeNotSupported("seq".to_owned()), None),
+        Diagnostic::new(LogicErrorKind::KeyTypeNotSupported("float32".to_owned()), None),
+        Diagnostic::new(LogicErrorKind::KeyTypeNotSupported("f32".to_owned()), None),
+        Diagnostic::new_with_notes(
+            LogicErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()),
+            None,
+            vec![Note::new("struct 'Inner' is defined here:", None)],
+        ),
+        Diagnostic::new(LogicErrorKind::KeyTypeNotSupported("i".to_owned()), None),
+        Diagnostic::new_with_notes(
+            LogicErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()),
+            None,
+            vec![Note::new("struct 'Outer' is defined here:", None)],
+        ),
     ];
     assert_errors_new!(diagnostic_reporter, expected);
 }

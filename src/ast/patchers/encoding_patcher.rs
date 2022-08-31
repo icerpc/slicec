@@ -91,22 +91,27 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let error = LogicErrorKind::NotSupportedWithEncoding(
+            let diagnostic_kind = LogicErrorKind::NotSupportedWithEncoding(
                 entity_def.kind().to_owned(),
                 entity_def.identifier().to_owned(),
                 file_encoding,
             );
-            self.diagnostic_reporter.report(error, Some(entity_def.span()));
-            self.emit_file_encoding_mismatch_error(entity_def);
+            let mut notes = match additional_info {
+                Some(message) => vec![Note {
+                    message: message.to_owned(),
+                    span: None,
+                }],
+                None => Vec::new(),
+            };
+            notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
+
+            let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
+            self.diagnostic_reporter.report(diagnostic);
 
             // Replace the supported encodings with a dummy that supports all encodings.
             // Otherwise everything that uses this type will also not be supported by the file's
             // encoding, causing a cascade of unhelpful error messages.
             supported_encodings = SupportedEncodings::dummy();
-        }
-        // Report any additional information as a note after reporting any errors above.
-        if let Some(note) = additional_info {
-            self.diagnostic_reporter.report(DiagnosticKind::new_note(note), None);
         }
 
         // Cache and return this entity's supported encodings.
@@ -179,13 +184,18 @@ impl EncodingPatcher<'_> {
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if diagnostics.is_empty() {
-                let diagnostic = LogicErrorKind::UnsupportedType(type_ref.type_string(), *file_encoding);
-                diagnostics.push(diagnostic);
+                let error = LogicErrorKind::UnsupportedType(type_ref.type_string(), *file_encoding);
+                diagnostics.push(error);
             }
-            for diagnostic in diagnostics {
-                self.diagnostic_reporter.report(diagnostic, Some(type_ref.span()));
-            }
-            self.emit_file_encoding_mismatch_error(type_ref);
+
+            diagnostics.into_iter().for_each(|error| {
+                let diagnostic = Diagnostic::new_with_notes(
+                    error,
+                    Some(type_ref.span()),
+                    self.get_file_encoding_mismatch_notes(type_ref),
+                );
+                self.diagnostic_reporter.report(diagnostic);
+            });
 
             // Return a dummy value that supports all encodings, instead of the real result.
             // Otherwise everything that uses this type will also not be supported by the file's
@@ -194,28 +204,27 @@ impl EncodingPatcher<'_> {
         }
     }
 
-    fn emit_file_encoding_mismatch_error(&mut self, symbol: &impl Symbol) {
+    fn get_file_encoding_mismatch_notes(&self, symbol: &impl Symbol) -> Vec<Note> {
         let file_name = &symbol.span().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
-        // Emit a note explaining why the file has the slice encoding it does.
+        // Emit a note explaining why the file has the Slice encoding it does.
         if let Some(file_encoding) = &slice_file.encoding {
-            self.diagnostic_reporter.report(
-                DiagnosticKind::new_note(format!("file encoding was set to {} here:", &file_encoding.version)),
-                Some(file_encoding.span()),
-            );
+            vec![Note {
+                message: format!("file encoding was set to {} here:", &file_encoding.version),
+                span: Some(file_encoding.span().clone()),
+            }]
         } else {
-            self.diagnostic_reporter.report(
-                DiagnosticKind::new_note(format!("file is using the {} encoding by default", Encoding::default())),
-                None,
-            );
-            self.diagnostic_reporter.report(
-                DiagnosticKind::new_note(
-                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'"
-                        .to_owned(),
+            vec![
+                Note::new(
+                    format!("file is using the {} encoding by default", Encoding::default()),
+                    None,
                 ),
-                None,
-            );
+                Note::new(
+                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+                    None,
+                ),
+            ]
         }
     }
 }
@@ -351,9 +360,12 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let error = LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1);
-                    patcher.diagnostic_reporter.report(error, Some(member.span()));
-                    patcher.emit_file_encoding_mismatch_error(member);
+                    let diagnostic = Diagnostic::new_with_notes(
+                        LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1),
+                        Some(member.span()),
+                        patcher.get_file_encoding_mismatch_notes(member),
+                    );
+                    patcher.diagnostic_reporter.report(diagnostic);
                 }
             }
         }

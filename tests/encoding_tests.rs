@@ -52,9 +52,9 @@ mod encodings {
         ";
 
         // Act
-        let diagnostic = parse_from_string(slice).err().is_some();
+        let error = parse_from_string(slice).err().is_some();
 
         // Assert
-        assert!(diagnostic);
+        assert!(error);
     }
 }

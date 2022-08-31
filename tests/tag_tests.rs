@@ -6,7 +6,7 @@ mod tags {
 
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use crate::{assert_errors, assert_errors_new};
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
     use slice::grammar::*;
     use slice::parse_from_string;
     use test_case::test_case;
@@ -66,10 +66,11 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
-            "optional types are not supported by the Slice1 encoding (except for classes, proxies, and with tags)",
-            "file encoding was set to Slice1 here:",
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::OptionalsNotSupported(Encoding::Slice1), None, vec![
+            Note::new("file encoding was set to Slice1 here:", None),
         ]);
+
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -176,11 +177,10 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()).into(),
-            DiagnosticKind::new_note("The data member `a` has previous used the tag value `1`".to_owned()),
-        ];
-        assert_errors_new!(diagnostic_reporter, expected);
+        let expected = Diagnostic::new_with_notes(LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()), None, vec![
+            Note::new("The data member `a` has previous used the tag value `1`", None),
+        ]);
+        assert_errors_new!(diagnostic_reporter, [&expected]);
     }
 
     #[test_case(0)]
