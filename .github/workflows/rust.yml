@@ -40,7 +40,7 @@ jobs:
         args: --all-features --all-targets
     - name: Build
       run: cargo build --verbose
-    - name: Test
+    - name: Run Tests
       run: cargo test --verbose
     - name: Generate Documentation
       run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items
