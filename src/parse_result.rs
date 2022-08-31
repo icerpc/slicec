@@ -39,14 +39,14 @@ impl ParsedData {
             }
             .bold();
 
-            // Create the message using the prefix
+            // Emit the message with the prefix.
             eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
-            // If the diagnostic contains a location, show a snippet containing the offending code
+            // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span {
                 Self::show_snippet(span, files)
             }
-            // If the diagnostic contain a notes, display them.
+            // If the diagnostic contains notes, display them.
             diagnostic.notes.into_iter().for_each(|note| {
                 eprintln!(
                     "    {} {}: {:}",

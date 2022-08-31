@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Symbol};
 use crate::slice_file::Span;
 
 // TODO improve this to track the span of individual doc comment fields, so we can check for
@@ -64,3 +65,6 @@ pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
     }
     tags
 }
+
+implement_Element_for!(DocComment, "doc comment");
+implement_Symbol_for!(DocComment);
