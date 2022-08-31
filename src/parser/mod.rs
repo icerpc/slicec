@@ -8,6 +8,8 @@ mod cycle_detection;
 mod preprocessor;
 mod slice;
 
+use structopt::StructOpt;
+
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::diagnostics::DiagnosticReporter;
@@ -25,7 +27,7 @@ use std::{fs, io};
 
 pub fn parse_files(options: &SliceOptions) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticReporter::new(options.warn_as_error);
+    let mut diagnostic_reporter = DiagnosticReporter::new(options);
 
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
@@ -64,7 +66,9 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticReporter::new(true);
+    let mut default_options = SliceOptions::from_args();
+    default_options.warn_as_error = true;
+    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };
@@ -86,7 +90,9 @@ pub fn parse_string(input: &str) -> ParserResult {
 
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut ast = Ast::create();
-    let mut diagnostic_reporter = DiagnosticReporter::new(true);
+    let mut default_options = SliceOptions::from_args();
+    default_options.warn_as_error = true;
+    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };

@@ -1,7 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::command_line::OutputFormat;
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::slice_file::Span;
+use crate::SliceOptions;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -12,22 +14,25 @@ pub struct DiagnosticReporter {
     /// The total number of warnings reported.
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
-    treat_warnings_as_errors: bool,
+    warn_as_error: bool,
+    /// Can specify json to serialize errors as JSON or console to output errors to console.
+    output_format: OutputFormat,
 }
 
 impl DiagnosticReporter {
-    pub fn new(treat_warnings_as_errors: bool) -> Self {
+    pub fn new(slice_options: &SliceOptions) -> Self {
         DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
-            treat_warnings_as_errors,
+            warn_as_error: slice_options.warn_as_error,
+            output_format: slice_options.output_format,
         }
     }
 
     /// Checks if any errors have been reported during compilation.
     pub fn has_errors(&self) -> bool {
-        (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
+        (self.error_count != 0) || (self.warn_as_error && (self.warning_count != 0))
     }
 
     /// Returns the total number of errors and warnings reported through the diagnostic reporter.
