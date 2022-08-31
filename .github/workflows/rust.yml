@@ -22,7 +22,7 @@ jobs:
         toolchain: stable
         components: clippy
         profile: minimal
-    - name: Set up cargo cache
+    - name: Setup cargo cache
       uses: actions/cache@v3
       with:
           path: |
@@ -38,5 +38,7 @@ jobs:
         args: --all-features --all-targets
     - name: Build
       run: cargo build --verbose
-    - name: Run tests
+    - name: Test
       run: cargo test --verbose
+    - name: Generate Documentation
+      run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items
