@@ -57,14 +57,14 @@ impl Interface {
     pub fn all_inherited_operations(&self) -> Vec<&Operation> {
         let mut operations = self
             .all_base_interfaces()
-            .iter()
+            .into_iter()
             .flat_map(|base_interface| base_interface.operations())
-            .collect::<Vec<&Operation>>();
+            .collect::<Vec<_>>();
 
-        // Filter duplicates created by diamond inheritance.
-        // Dedup only works on sorted collections, so we have to sort the operations first.
-        operations.sort_by_key(|operation| &operation.identifier);
-        operations.dedup_by_key(|operation| &operation.identifier);
+        // Filter duplicates created by diamond inheritance in-place.
+        let mut seen_identifiers = std::collections::HashSet::new();
+        operations.retain(|op| seen_identifiers.insert(op.parser_scoped_identifier()));
+
         operations
     }
 
@@ -72,10 +72,10 @@ impl Interface {
         let mut operations = self.operations();
         operations.extend(self.all_inherited_operations());
 
-        // Filter duplicates created by diamond inheritance.
-        // Dedup only works on sorted collections, so we have to sort the operations first.
-        operations.sort_by_key(|operation| &operation.identifier);
-        operations.dedup_by_key(|operation| &operation.identifier);
+        // Filter duplicates created by diamond inheritance in-place.
+        let mut seen_identifiers = std::collections::HashSet::new();
+        operations.retain(|op| seen_identifiers.insert(op.parser_scoped_identifier()));
+
         operations
     }
 
@@ -89,13 +89,13 @@ impl Interface {
             self.bases
                 .iter()
                 .flat_map(|type_ref| type_ref.all_base_interfaces())
-                .collect::<Vec<&Interface>>(),
+                .collect::<Vec<_>>(),
         );
 
-        // Filter duplicates created by diamond inheritance.
-        // Dedup only works on sorted collections, so we have to sort the bases first.
-        bases.sort_by_key(|base| base.module_scoped_identifier());
-        bases.dedup_by_key(|base| base.module_scoped_identifier());
+        // Filter duplicates created by diamond inheritance in-place.
+        let mut seen_identifiers = std::collections::HashSet::new();
+        bases.retain(|base| seen_identifiers.insert(base.parser_scoped_identifier()));
+
         bases
     }
 }

@@ -22,8 +22,8 @@ type PestNode<'a, 'b, 'ast> = pest_consume::Node<'a, Rule, &'b RefCell<ParserDat
 fn get_span_for(input: &PestNode) -> Span {
     let span = input.as_span();
     Span {
-        start: span.start_pos().line_col(),
-        end: span.end_pos().line_col(),
+        start: span.start_pos().line_col().into(),
+        end: span.end_pos().line_col().into(),
         file: input.user_data().borrow().current_file.clone(),
     }
 }

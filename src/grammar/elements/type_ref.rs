@@ -31,12 +31,10 @@ impl<T: Element + ?Sized> TypeRef<T> {
 
     pub(crate) fn downcast<U: Element + 'static>(&self) -> Result<TypeRef<U>, ()> {
         let definition = match &self.definition {
-            TypeRefDefinition::Patched(ptr) => {
-                match ptr.clone().downcast::<U>() {
-                    Ok(new_ptr) => TypeRefDefinition::Patched(new_ptr),
-                    Err(_) => return Err(()),
-                }
-            }
+            TypeRefDefinition::Patched(ptr) => match ptr.clone().downcast::<U>() {
+                Ok(new_ptr) => TypeRefDefinition::Patched(new_ptr),
+                Err(_) => return Err(()),
+            },
             TypeRefDefinition::Unpatched(s) => TypeRefDefinition::Unpatched(s.clone()),
         };
 

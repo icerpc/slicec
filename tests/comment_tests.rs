@@ -269,8 +269,8 @@ mod comments {
         let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment().unwrap();
 
-        assert_eq!(interface_doc.span.start, expected_start);
-        assert_eq!(interface_doc.span.end, expected_end);
+        assert_eq!(interface_doc.span.start, expected_start.into());
+        assert_eq!(interface_doc.span.end, expected_end.into());
     }
 
     #[test_case("/* This is a block comment. */"; "block comment")]
