@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "clippy",
     "Commentable",
     "dedup",
     "downcasted",
@@ -9,6 +10,7 @@
     "nonstreamed",
     "prec",
     "rsplit",
+    "RUSTDOCFLAGS",
     "rustup",
     "slicec",
     "struct",
@@ -26,12 +28,8 @@
     "varint",
     "varuint"
   ],
-  "rust-analyzer.rustfmt.extraArgs": [
-    "+nightly"
-  ],
+  "rust-analyzer.rustfmt.extraArgs": ["+nightly"],
   "[rust]": {
-    "editor.rulers": [
-        120
-    ]
+    "editor.rulers": [120]
   }
 }

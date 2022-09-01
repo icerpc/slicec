@@ -36,14 +36,20 @@ pub struct SliceOptions {
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[structopt(long, possible_values = &["console", "json"], case_insensitive = true, default_value = "console")]
-    pub output_format: OutputFormat,
+    #[structopt(long, possible_values = &["human", "json"], case_insensitive = true, default_value = "human")]
+    pub diagnostic_format: DiagnosticFormat,
 }
 
 arg_enum! {
-    #[derive(Serialize, Debug, Clone, Copy)]
-    pub enum OutputFormat {
-        Console,
+
+    /// This enum is used to specify the format for emitted diagnostics.
+    ///
+    /// # Variants
+    /// * Human - Any emitted diagnostics will be printed to the console with an easily readable format.
+    /// * Json - Any emitted diagnostics will be serialized as JSON objects and printed to the console.
+    #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+    pub enum DiagnosticFormat {
+        Human,
         Json,
     }
 }

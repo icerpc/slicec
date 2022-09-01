@@ -8,15 +8,15 @@ mod cycle_detection;
 mod preprocessor;
 mod slice;
 
-use structopt::StructOpt;
-
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::diagnostics::DiagnosticReporter;
 use crate::parse_result::{ParsedData, ParserResult};
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};
+use structopt::StructOpt;
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including

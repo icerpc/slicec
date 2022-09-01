@@ -1,11 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::command_line::OutputFormat;
+use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
-use crate::SliceOptions;
-use serde::Serialize;
 
-#[derive(Serialize, Debug)]
+#[derive(Debug)]
 pub struct DiagnosticReporter {
     /// Vector where all the diagnostics are stored, in the order they're reported.
     diagnostics: Vec<Diagnostic>,
@@ -14,9 +12,9 @@ pub struct DiagnosticReporter {
     /// The total number of warnings reported.
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
-    warn_as_error: bool,
+    treat_warnings_as_errors: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
-    pub output_format: OutputFormat,
+    pub output_format: DiagnosticFormat,
 }
 
 impl DiagnosticReporter {
@@ -25,14 +23,14 @@ impl DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
-            warn_as_error: slice_options.warn_as_error,
-            output_format: slice_options.output_format,
+            treat_warnings_as_errors: slice_options.warn_as_error,
+            output_format: slice_options.diagnostic_format,
         }
     }
 
     /// Checks if any errors have been reported during compilation.
     pub fn has_errors(&self) -> bool {
-        (self.error_count != 0) || (self.warn_as_error && (self.warning_count != 0))
+        (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
     /// Returns the total number of errors and warnings reported through the diagnostic reporter.

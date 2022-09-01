@@ -2,7 +2,7 @@
 
 use crate::slice_file::Span;
 use serde::ser::SerializeStruct;
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use std::fmt;
 
 mod diagnostic_reporter;
@@ -16,11 +16,10 @@ pub use self::warnings::WarningKind;
 /// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
 /// code.
 ///
-/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or
-/// IO. Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where
-/// the diagnostic occurred.
-
-#[derive(Serialize, Debug)]
+/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or IO.
+/// Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
+/// diagnostic occurred.
+#[derive(Debug)]
 pub struct Diagnostic {
     pub diagnostic_kind: DiagnosticKind,
     pub span: Option<Span>,
@@ -52,6 +51,17 @@ impl Diagnostic {
 impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.diagnostic_kind)
+    }
+}
+
+impl Serialize for Diagnostic {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("Diagnostic", 4)?;
+        state.serialize_field("message", &self.diagnostic_kind.to_string())?;
+        state.serialize_field("severity", &self.diagnostic_kind)?;
+        state.serialize_field("span", &self.span)?;
+        state.serialize_field("notes", &self.notes)?;
+        state.end()
     }
 }
 
@@ -88,17 +98,11 @@ impl Serialize for DiagnosticKind {
     where
         S: serde::Serializer,
     {
-        let mut state = serializer.serialize_struct("DiagnosticKind", 2)?;
-        state.serialize_field("message", &self.to_string())?;
-        if matches!(
-            self,
-            DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_)
-        ) {
-            state.serialize_field("kind", "Error")?;
-        } else {
-            state.serialize_field("kind", "Warning")?
-        }
-        state.end()
+        let kind = match self {
+            DiagnosticKind::Warning(_) => "warning",
+            DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => "error",
+        };
+        serializer.serialize_str(kind)
     }
 }
 
