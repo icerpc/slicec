@@ -1,6 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::slice_file::Span;
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 use std::fmt;
 
 mod diagnostic_reporter;
@@ -11,10 +13,11 @@ pub use self::diagnostic_reporter::DiagnosticReporter;
 pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 
-/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice code.
+/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
+/// code.
 ///
-/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or
-/// IO. Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
+/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or IO.
+/// Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
 /// diagnostic occurred.
 #[derive(Debug)]
 pub struct Diagnostic {
@@ -51,6 +54,17 @@ impl fmt::Display for Diagnostic {
     }
 }
 
+impl Serialize for Diagnostic {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("Diagnostic", 4)?;
+        state.serialize_field("message", &self.diagnostic_kind.to_string())?;
+        state.serialize_field("severity", &self.diagnostic_kind)?;
+        state.serialize_field("span", &self.span)?;
+        state.serialize_field("notes", &self.notes)?;
+        state.end()
+    }
+}
+
 #[derive(Debug)]
 pub enum DiagnosticKind {
     /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
@@ -79,9 +93,22 @@ impl fmt::Display for DiagnosticKind {
     }
 }
 
+impl Serialize for DiagnosticKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let kind = match self {
+            DiagnosticKind::Warning(_) => "warning",
+            DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => "error",
+        };
+        serializer.serialize_str(kind)
+    }
+}
+
 /// Additional information about a diagnostic. For example, indicating where the encoding of a Slice1 encoded Slice file
 /// was defined.
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Note {
     pub message: String,
     pub span: Option<Span>,

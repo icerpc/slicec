@@ -39,7 +39,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
         match attribute.arguments.len() {
             // The format attribute must have arguments
             0 => diagnostic_reporter.report(Diagnostic::new(
-                LogicErrorKind::CannotBeEmpty("format attribute"),
+                LogicErrorKind::CannotBeEmpty("format attribute".to_owned()),
                 Some(attribute.span()),
             )),
             _ => {

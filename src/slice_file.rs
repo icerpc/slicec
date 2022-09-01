@@ -3,12 +3,13 @@
 use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
+use serde::Serialize;
 use std::fmt::Write;
 
 /// Stores the row and column numbers of a location in a Slice file.
 /// These values are indexed starting at 1 instead of 0 for human readability.
 /// Ex: (1,1) is the start of a file: the first column in the first row.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Serialize, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Location {
     pub row: usize,
     pub col: usize,
@@ -29,7 +30,7 @@ impl Default for Location {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
 pub struct Span {
     pub start: Location,
     pub end: Location,

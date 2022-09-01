@@ -74,7 +74,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = LogicErrorKind::CannotBeEmpty("format attribute").into();
+            let expected: DiagnosticKind = LogicErrorKind::CannotBeEmpty("format attribute".to_owned()).into();
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 

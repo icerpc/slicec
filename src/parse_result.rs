@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
+use crate::command_line::DiagnosticFormat;
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
 use console::style;
@@ -27,6 +28,23 @@ impl ParsedData {
     }
 
     fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+        match diagnostic_reporter.output_format {
+            DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
+            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
+        }
+    }
+
+    fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
+        diagnostic_reporter
+            .into_diagnostics()
+            .into_iter()
+            .for_each(|diagnostic| {
+                let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
+                println!("{json}");
+            });
+    }
+
+    fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"

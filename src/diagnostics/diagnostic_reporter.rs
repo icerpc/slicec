@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
 
 #[derive(Debug)]
@@ -12,15 +13,18 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
+    /// Can specify json to serialize errors as JSON or console to output errors to console.
+    pub output_format: DiagnosticFormat,
 }
 
 impl DiagnosticReporter {
-    pub fn new(treat_warnings_as_errors: bool) -> Self {
+    pub fn new(slice_options: &SliceOptions) -> Self {
         DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
-            treat_warnings_as_errors,
+            treat_warnings_as_errors: slice_options.warn_as_error,
+            output_format: slice_options.diagnostic_format,
         }
     }
 
