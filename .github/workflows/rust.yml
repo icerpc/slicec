@@ -40,8 +40,8 @@ jobs:
         args: --all-features --no-deps
     - name: 📚 Generate Documentation
       uses: actions-rs/cargo@v1
-      env:
-        RUSTDOCFLAGS: -Dwarnings
       with:
-        command: rustdoc
-        args: --document-private-items
+        command: doc
+        args: --all --no-deps --document-private-items
+      env:
+        RUSTDOCFLAGS: '-D warnings'
