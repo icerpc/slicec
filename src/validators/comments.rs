@@ -22,7 +22,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
         if comment.returns.is_some() && operation.return_members().is_empty() {
             diagnostic_reporter.report(Diagnostic::new(
                 WarningKind::ExtraReturnValueInDocComment,
-                Some(&comment.span),
+                Some(comment.span()),
             ));
         }
     }
@@ -39,7 +39,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
             {
                 diagnostic_reporter.report(Diagnostic::new(
                     WarningKind::ExtraParameterInDocComment(param.0.clone()),
-                    Some(&comment.span),
+                    Some(comment.span()),
                 ));
             }
         });
@@ -52,7 +52,7 @@ fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
             let warning =
                 WarningKind::ExtraThrowInDocComment(commentable.kind().to_owned(), commentable.identifier().to_owned());
-            diagnostic_reporter.report(Diagnostic::new(warning, Some(&comment.span)));
+            diagnostic_reporter.report(Diagnostic::new(warning, Some(comment.span())));
         };
     }
 }
@@ -69,14 +69,14 @@ fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_repo
                     {
                         diagnostic_reporter.report(Diagnostic::new(
                             WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
-                            Some(&comment.span),
+                            Some(comment.span()),
                         ));
                     }
                 }
                 other if other.starts_with('@') => {
                     diagnostic_reporter.report(Diagnostic::new(
                         WarningKind::InvalidDocCommentTag(other.to_owned()),
-                        Some(&comment.span),
+                        Some(comment.span()),
                     ));
                 }
                 _ => {}
