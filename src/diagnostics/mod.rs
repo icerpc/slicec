@@ -96,7 +96,7 @@ impl fmt::Display for DiagnosticKind {
 impl Serialize for DiagnosticKind {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer,
+        S: Serializer,
     {
         let kind = match self {
             DiagnosticKind::Warning(_) => "warning",
