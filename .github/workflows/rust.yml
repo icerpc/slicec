@@ -39,8 +39,9 @@ jobs:
       with:
         args: --all-features
     - name: 📚 Generate Documentation
-      run: export RUSTDOCFLAGS="-Dwarnings"
       uses: actions-rs/cargo@v1
+      env:
+        RUSTDOCFLAGS: -Dwarnings
       with:
         command: doc
         args: --document-private-items
