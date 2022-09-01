@@ -35,9 +35,8 @@ jobs:
       with:
         command: test
     - name: 🔎 Lint
-      uses: actions-rs/clippy-check@v1
+      uses: actions-rs/clippy@master
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
         args: --all-features
     - name: 📚 Generate Documentation
       run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items
