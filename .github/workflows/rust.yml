@@ -1,4 +1,4 @@
-name: Rust
+name: Continuous Integration
 
 on:
   push:
@@ -10,23 +10,37 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-
+  build_and_test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
+    - uses: actions/checkout@v3
+    - name: 📦 Cache
+      uses: actions/cache@v3
       with:
-        toolchain: stable
-        components: clippy
-    - uses: actions-rs/clippy@master
+        path: |
+          ~/.cargo
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo
+    - name: 🔨 Build
+      uses: actions-rs/cargo@v1
       with:
-        args: --all-features --all-targets
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-    - name: Generate Documentation
-      run: RUSTDOCFLAGS="-Dwarnings" cargo doc --document-private-items
+        command: build
+    - name: 🧪 Test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+    - name: 🔎 Lint
+      uses: actions-rs/clippy@master
+      with:
+        args: --all-features --no-deps
+    - name: 📚 Generate Documentation
+      uses: actions-rs/cargo@v1
+      with:
+        command: doc
+        args: --all --no-deps --document-private-items
+      env:
+        RUSTDOCFLAGS: '-D warnings'
