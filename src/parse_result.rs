@@ -15,8 +15,11 @@ pub struct ParsedData {
 
 impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
-        if self.has_errors() {
-            Self::emit_errors(self.diagnostic_reporter, &self.files);
+        // Emit any diagnostics that were reported.
+        let has_errors = self.has_errors();
+        Self::emit_errors(self.diagnostic_reporter, &self.files);
+
+        if has_errors {
             1
         } else {
             0
