@@ -17,7 +17,7 @@ impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
-        Self::emit_errors(self.diagnostic_reporter, &self.files);
+        Self::emit_diagnostics(self.diagnostic_reporter, &self.files);
 
         if has_errors {
             1
@@ -30,7 +30,7 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    fn emit_errors(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+    fn emit_diagnostics(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         match diagnostic_reporter.output_format {
             DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
             DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
