@@ -145,27 +145,6 @@ mod attributes {
         }
 
         #[test]
-        fn cannot_deprecate_data_members() {
-            // Arrange
-            let slice = "
-                module Test;
-
-                struct S {
-                    [deprecated]
-                    s: string,
-                }
-            ";
-
-            // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected: DiagnosticKind =
-                LogicErrorKind::DeprecatedAttributeCannotBeApplied("data member(s)".to_owned()).into();
-            assert_errors_new!(diagnostic_reporter, [&expected]);
-        }
-
-        #[test]
         fn deprecated_can_contain_message() {
             // Arrange
             let slice = "

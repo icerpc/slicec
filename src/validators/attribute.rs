@@ -9,7 +9,7 @@ pub fn attribute_validators() -> ValidationChain {
     vec![
         Validator::Attributes(is_compressible),
         Validator::Operations(validate_format_attribute),
-        Validator::Members(cannot_be_deprecated),
+        Validator::Parameters(cannot_be_deprecated),
     ]
 }
 
@@ -69,9 +69,9 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
         }
     }
 }
-/// Validates that the `deprecated` attribute cannot be applied to members.
-fn cannot_be_deprecated(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    members.iter().for_each(|m| {
+/// Validates that the `deprecated` attribute cannot be applied to parameters.
+fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
+    parameters.iter().for_each(|m| {
         if m.has_attribute("deprecated", false) {
             let diagnostic = Diagnostic::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
