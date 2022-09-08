@@ -3,6 +3,7 @@
 use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
+
 use std::str::FromStr;
 
 pub fn attribute_validators() -> ValidationChain {
@@ -10,6 +11,9 @@ pub fn attribute_validators() -> ValidationChain {
         Validator::Attributes(is_compressible),
         Validator::Operations(validate_format_attribute),
         Validator::Parameters(cannot_be_deprecated),
+        Validator::DataMember(cannot_use_deprecated_type),
+        Validator::Interface(cannot_inherit_deprecated_type),
+        Validator::TypeAlias(cannot_type_alias_deprecated_type),
     ]
 }
 
@@ -80,6 +84,44 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
             diagnostic_reporter.report(diagnostic);
         }
     });
+}
+
+// Validates that a `DataMember` cannot have a deprecated datatype
+fn cannot_use_deprecated_type(data_member: &[&DataMember], diagnostic_reporter: &mut DiagnosticReporter) {
+    for member in data_member.iter() {
+        if underlying_is_deprecated(member.data_type().concrete_type()) {
+            diagnostic_reporter.report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(member.span())));
+        }
+    }
+}
+
+fn underlying_is_deprecated(concrete_type: Types) -> bool {
+    match concrete_type {
+        Types::Class(class_def) => class_def.has_attribute("deprecated", false),
+        Types::Struct(struct_def) => struct_def.has_attribute("deprecated", false),
+        Types::Enum(enum_def) => enum_def.has_attribute("deprecated", false),
+        Types::Exception(exception_def) => exception_def.has_attribute("deprecated", false),
+        Types::Interface(interface_def) => interface_def.has_attribute("deprecated", false),
+        _ => false,
+    }
+}
+
+// Validates that an interface cannot have a deprecated underlying type
+fn cannot_inherit_deprecated_type(interface: &Interface, diagnostic_reporter: &mut DiagnosticReporter) {
+    for i in interface.base_interfaces() {
+        if i.has_attribute("deprecated", false) {
+            diagnostic_reporter.report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(i.span())));
+        }
+    }
+}
+
+fn cannot_type_alias_deprecated_type(type_alias: &TypeAlias, diagnostic_reporter: &mut DiagnosticReporter) {
+    if underlying_is_deprecated(type_alias.underlying.concrete_type()) {
+        diagnostic_reporter.report(Diagnostic::new(
+            WarningKind::UseOfDeprecatedEntity,
+            Some(type_alias.span()),
+        ));
+    }
 }
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and

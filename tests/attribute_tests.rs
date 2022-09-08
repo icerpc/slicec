@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors_new;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
+        use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -167,6 +167,68 @@ mod attributes {
                 operation.get_deprecated_attribute(false).unwrap()[0],
                 "Deprecation message here",
             );
+        }
+
+        #[test]
+        fn cannot_use_deprecated_type() {
+            // Arrange
+            let slice = "
+                    module Test;
+
+                    [deprecated]
+                    struct A {}
+
+                    struct B {
+                        a: A,
+                    }
+                ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
+        }
+
+        #[test]
+        fn cannot_inherit_type() {
+            // Arrange
+            let slice = "
+                    module Test;
+
+                    [deprecated]
+                    interface A {}
+
+                    interface B: A {}
+                ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
+        }
+
+        #[test]
+        fn cannot_type_alias_deprecated_type() {
+            // Arrange
+            let slice = "
+                    module Test;
+
+                    [deprecated]
+                    interface Foo {}
+
+                    typealias Alias = Foo;
+                ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
         #[test]

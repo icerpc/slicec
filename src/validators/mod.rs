@@ -29,6 +29,7 @@ pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
     Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
+    DataMember(fn(&[&DataMember], &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
@@ -36,6 +37,8 @@ pub enum Validator {
     Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
     Identifiers(fn(Vec<&Identifier>, &mut DiagnosticReporter)),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticReporter)),
+    Interface(fn(&Interface, &mut DiagnosticReporter)),
+    TypeAlias(fn(&TypeAlias, &mut DiagnosticReporter)),
     Operations(fn(&Operation, &mut DiagnosticReporter)),
     Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
     Struct(fn(&Struct, &mut DiagnosticReporter)),
@@ -193,6 +196,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 interface.all_inherited_operations().get_identifiers(),
                 diagnostic_reporter,
             ),
+            Validator::Interface(function) => function(interface, diagnostic_reporter),
             _ => {}
         });
     }
@@ -246,6 +250,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
+            Validator::DataMember(function) => function(&struct_def.members(), diagnostic_reporter),
             Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
@@ -265,6 +270,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             }
             Validator::DocComments(function) => function(type_alias, ast, diagnostic_reporter),
             Validator::Entities(function) => function(type_alias, diagnostic_reporter),
+            Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
             _ => {}
         });
     }
