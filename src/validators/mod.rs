@@ -9,7 +9,7 @@ mod miscellaneous;
 mod tag;
 
 use crate::ast::Ast;
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, WarningKind};
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::WeakPtr;
@@ -29,7 +29,6 @@ pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
     Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
-    DataMember(fn(&[&DataMember], &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
@@ -52,6 +51,17 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
     }
 
     data.into()
+}
+
+fn underlying_is_deprecated(concrete_type: Types) -> bool {
+    match concrete_type {
+        Types::Class(class_def) => class_def.has_attribute("deprecated", false),
+        Types::Struct(struct_def) => struct_def.has_attribute("deprecated", false),
+        Types::Enum(enum_def) => enum_def.has_attribute("deprecated", false),
+        Types::Exception(exception_def) => exception_def.has_attribute("deprecated", false),
+        Types::Interface(interface_def) => interface_def.has_attribute("deprecated", false),
+        _ => false,
+    }
 }
 
 struct ValidatorVisitor<'a> {
@@ -156,6 +166,13 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Members(function) => function(class.members().as_member_vec(), diagnostic_reporter),
             _ => {}
         });
+        // Validates that a class cannot inherit from a deprecated base class
+        if let Some(i) = class.base_class() {
+            if i.has_attribute("deprecated", false) {
+                self.diagnostic_reporter
+                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(i.span())));
+            }
+        }
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {
@@ -183,6 +200,14 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Members(function) => function(exception.members().as_member_vec(), diagnostic_reporter),
             _ => {}
         });
+
+        // Validates that an exception cannot inherit from a deprecated base exception
+        if let Some(e) = exception.base_exception() {
+            if e.has_attribute("deprecated", false) {
+                self.diagnostic_reporter
+                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(e.span())));
+            }
+        }
     }
 
     fn visit_interface_start(&mut self, interface: &Interface) {
@@ -199,6 +224,13 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Interface(function) => function(interface, diagnostic_reporter),
             _ => {}
         });
+        // Validates that an interface cannot inherit from a deprecated base interface
+        for i in interface.base_interfaces() {
+            if i.has_attribute("deprecated", false) {
+                self.diagnostic_reporter
+                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(i.span())));
+            }
+        }
     }
 
     fn visit_module_start(&mut self, module_def: &Module) {
@@ -250,7 +282,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
-            Validator::DataMember(function) => function(&struct_def.members(), diagnostic_reporter),
             Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
@@ -273,5 +304,13 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
             _ => {}
         });
+
+        // Cannot create a type alias for a deprecated entity
+        if underlying_is_deprecated(type_alias.underlying.concrete_type()) {
+            self.diagnostic_reporter.report(Diagnostic::new(
+                WarningKind::UseOfDeprecatedEntity,
+                Some(type_alias.span()),
+            ));
+        }
     }
 }
