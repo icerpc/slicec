@@ -27,24 +27,6 @@ macro_rules! assert_errors {
             errors,
         );
         for (i, error) in errors.iter().enumerate() {
-            assert_eq!(error.to_string(), $expected_errors[i]);
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! assert_errors_new {
-    ($diagnostic_reporter:expr, $expected_errors:expr) => {
-        let errors = $diagnostic_reporter.into_diagnostics();
-        assert_eq!(
-            errors.len(),
-            $expected_errors.len(),
-            "Expected {} errors, got {}.\n{:?}",
-            $expected_errors.len(),
-            errors.len(),
-            errors,
-        );
-        for (i, error) in errors.iter().enumerate() {
             assert_eq!(&error.to_string(), &$expected_errors[i].to_string());
         }
     };

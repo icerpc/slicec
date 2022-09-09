@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors_new;
+use crate::assert_errors;
 use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
@@ -30,5 +30,5 @@ fn operation_members_are_compatible_with_encoding() {
         None,
         vec![Note::new("file encoding was set to Slice2 here:", None)],
     );
-    assert_errors_new!(result.diagnostic_reporter, [&expected]);
+    assert_errors!(result.diagnostic_reporter, [&expected]);
 }

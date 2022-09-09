@@ -2,7 +2,7 @@
 
 mod structs {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::*;
@@ -83,13 +83,13 @@ mod structs {
             None,
         )]);
 
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
 
 mod compact_structs {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
     /// Verifies that compact structs must contain at least one data member.
@@ -106,6 +106,6 @@ mod compact_structs {
 
         // Assert
         let expected: DiagnosticKind = LogicErrorKind::CompactStructCannotBeEmpty.into();
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

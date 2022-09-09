@@ -6,7 +6,7 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::assert_errors_new;
+        use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
         use slice::grammar::*;
@@ -75,7 +75,7 @@ mod attributes {
 
             // Assert
             let expected: DiagnosticKind = LogicErrorKind::CannotBeEmpty("format attribute".to_owned()).into();
-            assert_errors_new!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -101,7 +101,7 @@ mod attributes {
                     None,
                 )],
             );
-            assert_errors_new!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -141,7 +141,7 @@ mod attributes {
             // Assert
             let expected: DiagnosticKind =
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()).into();
-            assert_errors_new!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -215,7 +215,7 @@ mod attributes {
                     None,
                 )],
             );
-            assert_errors_new!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
 
         #[test]
@@ -235,7 +235,7 @@ mod attributes {
 
             // Assert
             let expected: DiagnosticKind = LogicErrorKind::CompressAttributeCannotBeApplied.into();
-            assert_errors_new!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
 
         #[test]

@@ -5,7 +5,7 @@ mod slice1 {
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
@@ -34,7 +34,7 @@ mod slice1 {
                 ),
             ],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
 

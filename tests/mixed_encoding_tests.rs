@@ -95,5 +95,5 @@ fn invalid_mixed_encoding_fails() {
         ),
     ];
 
-    assert_errors_new!(diagnostic_reporter, expected);
+    assert_errors!(diagnostic_reporter, expected);
 }

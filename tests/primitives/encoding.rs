@@ -2,8 +2,8 @@
 
 mod slice1 {
 
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
@@ -42,7 +42,7 @@ mod slice1 {
             None,
             vec![Note::new("file encoding was set to Slice1 here:", None)],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -80,8 +80,8 @@ mod slice1 {
 
 mod slice2 {
 
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
@@ -115,7 +115,7 @@ mod slice2 {
                 Note::new("classes are only supported by the Slice1 encoding", None),
             ],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,
