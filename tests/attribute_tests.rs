@@ -173,14 +173,15 @@ mod attributes {
         fn cannot_use_deprecated_type() {
             // Arrange
             let slice = "
-                    module Test;
+            module Test;
 
-                    [deprecated]
-                    struct A {}
+            [deprecated]
+            typealias Time = varuint62;
 
-                    struct B {
-                        a: A,
-                    }
+            struct Clock
+            {
+                time: Time,     // This wouldn't emit a deprecation warning.
+            }
                 ";
 
             // Act

@@ -74,7 +74,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.has_attribute("deprecated", false) {
+        if m.get_deprecated_attribute(true).is_some() {
             let diagnostic = Diagnostic::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
@@ -86,21 +86,15 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
 
 // Validates that a `DataMember` cannot have a deprecated datatype
 fn cannot_use_deprecated_type(data_member: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    for member in data_member.iter() {
-        if underlying_is_deprecated(member.data_type().concrete_type()) {
-            diagnostic_reporter.report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(member.span())));
+    for member in data_member {
+        let info = super::deprecation_info(member.data_type().concrete_type());
+        if info.0 {
+            diagnostic_reporter.report(Diagnostic::new_with_notes(
+                WarningKind::UseOfDeprecatedEntity,
+                Some(member.span()),
+                vec![Note::new("the deprecated type was defined here", info.1)],
+            ));
         }
-    }
-}
-
-fn underlying_is_deprecated(concrete_type: Types) -> bool {
-    match concrete_type {
-        Types::Class(class_def) => class_def.has_attribute("deprecated", false),
-        Types::Struct(struct_def) => struct_def.has_attribute("deprecated", false),
-        Types::Enum(enum_def) => enum_def.has_attribute("deprecated", false),
-        Types::Exception(exception_def) => exception_def.has_attribute("deprecated", false),
-        Types::Interface(interface_def) => interface_def.has_attribute("deprecated", false),
-        _ => false,
     }
 }
 

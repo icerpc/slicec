@@ -76,6 +76,6 @@ implement_error_functions!(
     (
         WarningKind::UseOfDeprecatedEntity,
         1004,
-        "you are referencing a deprecated slice entity."
+        "use of a deprecated slice entity."
     )
 );
