@@ -389,5 +389,39 @@ mod attributes {
             // Assert
             assert_errors!(diagnostic_reporter);
         }
+
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                [ignore_warnings]
+                op(s: string) -> string;
+            }
+            "; "simple"
+        )]
+        #[test_case(
+            "
+            [ignore_warnings]
+            module A {
+                struct A1 {
+                    b: B::B1,
+                }
+            }
+            module B {
+                [deprecated]
+                struct B1 {}
+            }
+            "; "complex"
+        )]
+        fn ignore_warnings_attribute(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            assert_errors!(diagnostic_reporter);
+        }
     }
 }

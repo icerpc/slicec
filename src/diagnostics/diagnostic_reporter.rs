@@ -2,6 +2,7 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
+use crate::grammar::Entity;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -51,5 +52,12 @@ impl DiagnosticReporter {
             }
         };
         self.diagnostics.push(diagnostic);
+    }
+
+    pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
+        if attributable.has_attribute("ignore_warnings", true) {
+            return;
+        }
+        self.report(diagnostic);
     }
 }
