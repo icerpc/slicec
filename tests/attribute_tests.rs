@@ -173,22 +173,21 @@ mod attributes {
         fn cannot_use_deprecated_type() {
             // Arrange
             let slice = "
-            module Test;
+                    module Test;
 
-            [deprecated]
-            typealias Time = varuint62;
+                    [deprecated]
+                    struct A {}
 
-            struct Clock
-            {
-                time: Time,     // This wouldn't emit a deprecation warning.
-            }
+                    struct B {
+                        a: A,
+                    }
                 ";
 
             // Act
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
@@ -208,7 +207,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 
@@ -228,7 +227,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity.into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
             assert_errors_new!(diagnostic_reporter, [&expected]);
         }
 

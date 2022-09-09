@@ -54,26 +54,24 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
     data.into()
 }
 
-fn deprecation_info(concrete_type: Types) -> (bool, Option<&Span>) {
+fn deprecation_info(concrete_type: Types) -> Option<(&Vec<String>, &Span)> {
     match concrete_type {
-        Types::Class(class_def) => (
-            class_def.get_deprecated_attribute(true).is_some(),
-            Some(class_def.span()),
-        ),
-        Types::Struct(struct_def) => (
-            struct_def.get_deprecated_attribute(true).is_some(),
-            Some(struct_def.span()),
-        ),
-        Types::Enum(enum_def) => (enum_def.get_deprecated_attribute(true).is_some(), Some(enum_def.span())),
-        Types::Exception(exception_def) => (
-            exception_def.get_deprecated_attribute(true).is_some(),
-            Some(exception_def.span()),
-        ),
-        Types::Interface(interface_def) => (
-            interface_def.get_deprecated_attribute(true).is_some(),
-            Some(interface_def.span()),
-        ),
-        _ => (false, None),
+        Types::Class(class_def) => class_def
+            .get_deprecated_attribute(true)
+            .map(|attr| (attr, class_def.span())),
+        Types::Struct(struct_def) => struct_def
+            .get_deprecated_attribute(true)
+            .map(|attr| (attr, struct_def.span())),
+        Types::Enum(enum_def) => enum_def
+            .get_deprecated_attribute(true)
+            .map(|attr| (attr, enum_def.span())),
+        Types::Exception(exception_def) => exception_def
+            .get_deprecated_attribute(true)
+            .map(|attr| (attr, exception_def.span())),
+        Types::Interface(interface_def) => interface_def
+            .get_deprecated_attribute(true)
+            .map(|attr| (attr, interface_def.span())),
+        _ => None,
     }
 }
 
@@ -182,9 +180,17 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         // Validates that a class cannot inherit from a deprecated base class
         if let Some(i) = class.base_class() {
-            if i.get_deprecated_attribute(true).is_some() {
-                self.diagnostic_reporter
-                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(i.span())));
+            if let Some(info) = deprecation_info(i.concrete_type()) {
+                let deprecation_reason: String = if info.0.is_empty() {
+                    "".to_string()
+                } else {
+                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
+                };
+                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
+                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
+                    Some(class.span()),
+                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
+                ));
             }
         }
     }
@@ -217,9 +223,17 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         // Validates that an exception cannot inherit from a deprecated base exception
         if let Some(e) = exception.base_exception() {
-            if e.get_deprecated_attribute(true).is_some() {
-                self.diagnostic_reporter
-                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(e.span())));
+            if let Some(info) = deprecation_info(e.concrete_type()) {
+                let deprecation_reason: String = if info.0.is_empty() {
+                    "".to_string()
+                } else {
+                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
+                };
+                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
+                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
+                    Some(exception.span()),
+                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
+                ));
             }
         }
     }
@@ -240,12 +254,22 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
 
         // Validates that an interface cannot inherit from a deprecated base interface
-        for i in interface.base_interfaces() {
-            if i.get_deprecated_attribute(true).is_some() {
-                self.diagnostic_reporter
-                    .report(Diagnostic::new(WarningKind::UseOfDeprecatedEntity, Some(i.span())));
-            }
-        }
+        interface
+            .base_interfaces()
+            .iter()
+            .filter_map(|base| deprecation_info(base.concrete_type()))
+            .for_each(|info| {
+                let deprecation_reason: String = if info.0.is_empty() {
+                    "".to_string()
+                } else {
+                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
+                };
+                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
+                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
+                    Some(interface.span()),
+                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
+                ))
+            });
     }
 
     fn visit_module_start(&mut self, module_def: &Module) {
@@ -321,12 +345,16 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
 
         // Cannot create a type alias for a deprecated entity
-        let info = deprecation_info(type_alias.underlying.concrete_type());
-        if info.0 {
+        if let Some(info) = deprecation_info(type_alias.underlying.concrete_type()) {
+            let deprecation_reason: String = if info.0.is_empty() {
+                "".to_string()
+            } else {
+                "Entity deprecation reason: ".to_owned() + info.0[0].trim()
+            };
             self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                WarningKind::UseOfDeprecatedEntity,
+                WarningKind::UseOfDeprecatedEntity(deprecation_reason),
                 Some(type_alias.span()),
-                vec![Note::new("the deprecated type was defined here", info.1)],
+                vec![Note::new("the deprecated type was defined here", Some(info.1))],
             ));
         }
     }

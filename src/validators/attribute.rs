@@ -74,7 +74,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.get_deprecated_attribute(true).is_some() {
+        if m.get_deprecated_attribute(false).is_some() {
             let diagnostic = Diagnostic::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
@@ -87,12 +87,16 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
 // Validates that a `DataMember` cannot have a deprecated datatype
 fn cannot_use_deprecated_type(data_member: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     for member in data_member {
-        let info = super::deprecation_info(member.data_type().concrete_type());
-        if info.0 {
+        if let Some(info) = super::deprecation_info(member.data_type().concrete_type()) {
+            let deprecation_reason: String = if info.0.is_empty() {
+                "".to_string()
+            } else {
+                "Entity deprecation reason: ".to_owned() + info.0[0].trim()
+            };
             diagnostic_reporter.report(Diagnostic::new_with_notes(
-                WarningKind::UseOfDeprecatedEntity,
+                WarningKind::UseOfDeprecatedEntity(deprecation_reason),
                 Some(member.span()),
-                vec![Note::new("the deprecated type was defined here", info.1)],
+                vec![Note::new("the deprecated type was defined here", Some(info.1))],
             ));
         }
     }
