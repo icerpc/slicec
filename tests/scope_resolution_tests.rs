@@ -263,7 +263,10 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
+        let expected = Diagnostic::new(
+            LogicErrorKind::TypeMismatch("Type".to_string(), "module".to_string()),
+            None,
+        );
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

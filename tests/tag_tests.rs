@@ -28,7 +28,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TaggedMemberMustBeOptional("b".to_owned()).into();
+        let expected = Diagnostic::new(LogicErrorKind::TaggedMemberMustBeOptional("b".to_owned()), None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -47,7 +47,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TaggedMemberMustBeOptional("myParam".to_string()).into();
+        let expected = Diagnostic::new(LogicErrorKind::TaggedMemberMustBeOptional("myParam".to_string()), None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -113,7 +113,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::CannotTagClass("c".to_owned()).into();
+        let expected = Diagnostic::new(LogicErrorKind::CannotTagClass("c".to_owned()), None);
         assert_errors!(errors, [&expected]);
     }
 
@@ -138,7 +138,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::CannotTagContainingClass("s".to_owned()).into();
+        let expected = Diagnostic::new(LogicErrorKind::CannotTagContainingClass("s".to_owned()), None);
         assert_errors!(errors, [&expected]);
     }
 
@@ -221,7 +221,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TagValueOutOfBounds.into();
+        let expected = Diagnostic::new(LogicErrorKind::TagValueOutOfBounds, None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -239,7 +239,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TagValueOutOfBounds.into();
+        let expected = Diagnostic::new(LogicErrorKind::TagValueOutOfBounds, None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
-use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
+use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use test_case::test_case;
 
 #[test]
@@ -17,7 +17,7 @@ fn optionals_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyMustBeNonOptional.into();
+    let expected = Diagnostic::new(LogicErrorKind::KeyMustBeNonOptional, None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -67,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyTypeNotSupported(key_type.to_owned()).into();
+    let expected = Diagnostic::new(LogicErrorKind::KeyTypeNotSupported(key_type.to_owned()), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -86,7 +86,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyTypeNotSupported(key_kind.to_owned()).into();
+    let expected = Diagnostic::new(LogicErrorKind::KeyTypeNotSupported(key_kind.to_owned()), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 

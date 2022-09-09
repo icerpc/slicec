@@ -6,7 +6,7 @@ mod comments {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{DiagnosticKind, WarningKind};
+    use slice::diagnostics::{Diagnostic, WarningKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -334,7 +334,10 @@ mod comments {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = WarningKind::InvalidDocCommentLinkIdentifier("OtherStruct".to_owned()).into();
+        let expected = Diagnostic::new(
+            WarningKind::InvalidDocCommentLinkIdentifier("OtherStruct".to_owned()),
+            None,
+        );
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -351,7 +354,7 @@ mod comments {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = WarningKind::InvalidDocCommentTag("@linked".to_owned()).into();
+        let expected = Diagnostic::new(WarningKind::InvalidDocCommentTag("@linked".to_owned()), None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
