@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
 
@@ -104,7 +104,7 @@ fn operation_shadowing_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]

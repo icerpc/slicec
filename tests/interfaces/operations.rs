@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors_new;
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+use slice::diagnostics::{Diagnostic, LogicErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -193,14 +193,14 @@ fn return_tuple_must_contain_two_or_more_elements() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements.into();
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    let expected = Diagnostic::new(LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements, None);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 mod streams {
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
+    use slice::diagnostics::{Diagnostic, LogicErrorKind};
     use slice::grammar::*;
 
     #[test]
@@ -242,8 +242,8 @@ mod streams {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s2".to_owned()).into(); // TODO: This is checking the wrong error
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        let expected = Diagnostic::new(LogicErrorKind::StreamedMembersMustBeLast("s2".to_owned()), None); // TODO: This is checking the wrong error
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -258,10 +258,10 @@ mod streams {
         ";
 
         // Act
-        let expected: DiagnosticKind = LogicErrorKind::StreamedMembersMustBeLast("s".to_owned()).into();
+        let expected = Diagnostic::new(LogicErrorKind::StreamedMembersMustBeLast("s".to_owned()), None);
 
         // Assert
         let diagnostic_reporter = parse_for_diagnostics(slice);
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

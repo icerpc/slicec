@@ -4,8 +4,8 @@ pub mod helpers;
 
 mod scope_resolution {
 
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
     use slice::grammar::*;
 
@@ -26,7 +26,7 @@ mod scope_resolution {
             None,
             vec![Note::new("file level module 'T' declared here", None)],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -235,7 +235,7 @@ mod scope_resolution {
                 "`B` was previously defined here",
                 None,
             )]);
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     #[test]
@@ -263,8 +263,11 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: DiagnosticKind = LogicErrorKind::TypeMismatch("Type".to_string(), "module".to_string()).into();
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        let expected = Diagnostic::new(
+            LogicErrorKind::TypeMismatch("Type".to_string(), "module".to_string()),
+            None,
+        );
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     #[test]

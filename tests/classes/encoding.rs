@@ -2,7 +2,7 @@
 
 mod slice2 {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
@@ -31,6 +31,6 @@ mod slice2 {
                 Note::new("classes are only supported by the Slice1 encoding", None),
             ],
         )];
-        assert_errors_new!(diagnostic_reporter, expected);
+        assert_errors!(diagnostic_reporter, expected);
     }
 }

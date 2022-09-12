@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
-use crate::{assert_errors, assert_errors_new};
-use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
+use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use test_case::test_case;
 
 #[test]
@@ -17,8 +17,8 @@ fn optionals_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyMustBeNonOptional.into();
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    let expected = Diagnostic::new(LogicErrorKind::KeyMustBeNonOptional, None);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test_case("bool"; "bool")]
@@ -67,8 +67,8 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyTypeNotSupported(key_type.to_owned()).into();
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    let expected = Diagnostic::new(LogicErrorKind::KeyTypeNotSupported(key_type.to_owned()), None);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test_case("sequence<int8>", "sequences" ; "sequences")]
@@ -86,8 +86,8 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: DiagnosticKind = LogicErrorKind::KeyTypeNotSupported(key_kind.to_owned()).into();
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    let expected = Diagnostic::new(LogicErrorKind::KeyTypeNotSupported(key_kind.to_owned()), None);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
@@ -134,7 +134,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
         None,
         vec![Note::new(format!("{} '{}' is defined here:", key_kind, key_type), None)],
     );
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn non_compact_structs_are_disallowed() {
         "Struct 'MyStruct' is defined here:",
         None,
     )]);
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -227,5 +227,5 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
             vec![Note::new("struct 'Outer' is defined here:", None)],
         ),
     ];
-    assert_errors_new!(diagnostic_reporter, expected);
+    assert_errors!(diagnostic_reporter, expected);
 }

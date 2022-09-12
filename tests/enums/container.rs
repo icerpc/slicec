@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
 use test_case::test_case;
@@ -88,7 +88,7 @@ fn validate_backing_type_out_of_bounds() {
         LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64),
         None,
     );
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn invalid_underlying_type(underlying_type: &str) {
         LogicErrorKind::UnderlyingTypeMustBeIntegral("E".to_owned(), underlying_type.to_owned()),
         None,
     );
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test_case("10"; "numeric identifier")]
@@ -172,7 +172,7 @@ fn optional_underlying_types_fail() {
 
     // Assert
     let expected = Diagnostic::new(LogicErrorKind::CannotUseOptionalUnderlyingType("E".to_owned()), None);
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -195,7 +195,7 @@ fn enumerators_must_be_unique() {
         None,
         vec![Note::new("The enumerator `A` has previous used the value `1`", None)],
     );
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -253,7 +253,7 @@ fn checked_enums_can_not_be_empty() {
 
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
@@ -274,7 +274,7 @@ fn unchecked_enums_can_be_empty() {
 
 mod slice1 {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{DiagnosticKind, LogicErrorKind};
 
@@ -300,7 +300,7 @@ mod slice1 {
             LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
             LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
         ];
-        assert_errors_new!(diagnostic_reporter, expected_errors);
+        assert_errors!(diagnostic_reporter, expected_errors);
     }
 
     #[test]
@@ -324,7 +324,7 @@ mod slice1 {
         let expected: DiagnosticKind =
             LogicErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64)
                 .into();
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
 
