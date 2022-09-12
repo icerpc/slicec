@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::assert_errors_new;
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
@@ -81,5 +81,5 @@ fn cannot_redefine_data_members() {
         "`a` was previously defined here",
         None,
     )]);
-    assert_errors_new!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostic_reporter, [&expected]);
 }

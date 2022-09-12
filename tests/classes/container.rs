@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-use crate::{assert_errors, assert_errors_new};
 use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 use slice::grammar::*;
 use test_case::test_case;
@@ -119,5 +119,5 @@ fn cannot_redefine_data_members() {
         None,
         vec![Note::new("`a` was previously defined here", None)],
     )];
-    assert_errors_new!(diagnostic_reporter, &expected);
+    assert_errors!(diagnostic_reporter, &expected);
 }
