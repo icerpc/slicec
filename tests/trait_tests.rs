@@ -14,7 +14,7 @@ mod traits {
             use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
             use slice::grammar::Encoding;
 
-            use crate::assert_errors_new;
+            use crate::assert_errors;
             use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
             #[test]
@@ -38,7 +38,7 @@ mod traits {
                         Note::new("traits are not supported by the Slice1 encoding", None),
                     ],
                 );
-                assert_errors_new!(diagnostic_reporter, [&expected]);
+                assert_errors!(diagnostic_reporter, [&expected]);
             }
         }
     }

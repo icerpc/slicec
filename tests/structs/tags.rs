@@ -28,7 +28,7 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
 
@@ -51,6 +51,6 @@ mod compact_structs {
         let expected = Diagnostic::new_with_notes(LogicErrorKind::CompactStructCannotContainTaggedMembers, None, vec![
             Note::new("struct 'S' is declared compact here", None),
         ]);
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

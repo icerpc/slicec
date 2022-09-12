@@ -5,7 +5,7 @@ mod slice1 {
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
@@ -30,14 +30,14 @@ mod slice1 {
         let expected = Diagnostic::new_with_notes(LogicErrorKind::ExceptionNotSupported(Encoding::Slice1), None, vec![
             Note::new("file encoding was set to Slice1 here:", None),
         ]);
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
 
 mod slice2 {
 
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
@@ -68,7 +68,7 @@ mod slice2 {
                 Note::new("exception inheritance is only supported by the Slice1 encoding", None),
             ],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing

@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use crate::assert_errors_new;
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
@@ -30,14 +30,14 @@ mod slice1 {
                 Note::new("structs must be `compact` to be supported by the Slice1 encoding", None),
             ],
         );
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
 
 mod slice2 {
 
+    use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use crate::{assert_errors, assert_errors_new};
     use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
@@ -70,7 +70,7 @@ mod slice2 {
             ],
         );
 
-        assert_errors_new!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     /// Verifies using the slice parser with Slice2 will not emit errors when parsing
