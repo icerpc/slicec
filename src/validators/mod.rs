@@ -37,8 +37,6 @@ pub enum Validator {
     Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
     Identifiers(fn(Vec<&Identifier>, &mut DiagnosticReporter)),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticReporter)),
-    Interface(fn(&Interface, &mut DiagnosticReporter)),
-    TypeAlias(fn(&TypeAlias, &mut DiagnosticReporter)),
     Operations(fn(&Operation, &mut DiagnosticReporter)),
     Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
     Struct(fn(&Struct, &mut DiagnosticReporter)),
@@ -196,7 +194,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 interface.all_inherited_operations().get_identifiers(),
                 diagnostic_reporter,
             ),
-            Validator::Interface(function) => function(interface, diagnostic_reporter),
             _ => {}
         });
     }
@@ -270,7 +267,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             }
             Validator::DocComments(function) => function(type_alias, ast, diagnostic_reporter),
             Validator::Entities(function) => function(type_alias, diagnostic_reporter),
-            Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
             _ => {}
         });
     }
