@@ -189,7 +189,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()).into();
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -209,7 +209,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()).into();
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -229,7 +229,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("".to_owned()).into();
+            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("Foo".to_owned(), "".to_owned()).into();
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 

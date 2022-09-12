@@ -9,10 +9,9 @@ mod miscellaneous;
 mod tag;
 
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Note, WarningKind};
+use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
-use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 
@@ -30,6 +29,7 @@ pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
     Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
+    DataMember(fn(&[&DataMember], &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
@@ -52,27 +52,6 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
     }
 
     data.into()
-}
-
-fn deprecation_info(concrete_type: Types) -> Option<(&Vec<String>, &Span)> {
-    match concrete_type {
-        Types::Class(class_def) => class_def
-            .get_deprecated_attribute(true)
-            .map(|attr| (attr, class_def.span())),
-        Types::Struct(struct_def) => struct_def
-            .get_deprecated_attribute(true)
-            .map(|attr| (attr, struct_def.span())),
-        Types::Enum(enum_def) => enum_def
-            .get_deprecated_attribute(true)
-            .map(|attr| (attr, enum_def.span())),
-        Types::Exception(exception_def) => exception_def
-            .get_deprecated_attribute(true)
-            .map(|attr| (attr, exception_def.span())),
-        Types::Interface(interface_def) => interface_def
-            .get_deprecated_attribute(true)
-            .map(|attr| (attr, interface_def.span())),
-        _ => None,
-    }
 }
 
 struct ValidatorVisitor<'a> {
@@ -177,22 +156,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Members(function) => function(class.members().as_member_vec(), diagnostic_reporter),
             _ => {}
         });
-
-        // Validates that a class cannot inherit from a deprecated base class
-        if let Some(i) = class.base_class() {
-            if let Some(info) = deprecation_info(i.concrete_type()) {
-                let deprecation_reason: String = if info.0.is_empty() {
-                    "".to_string()
-                } else {
-                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
-                };
-                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
-                    Some(class.span()),
-                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
-                ));
-            }
-        }
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {
@@ -220,22 +183,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Members(function) => function(exception.members().as_member_vec(), diagnostic_reporter),
             _ => {}
         });
-
-        // Validates that an exception cannot inherit from a deprecated base exception
-        if let Some(e) = exception.base_exception() {
-            if let Some(info) = deprecation_info(e.concrete_type()) {
-                let deprecation_reason: String = if info.0.is_empty() {
-                    "".to_string()
-                } else {
-                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
-                };
-                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
-                    Some(exception.span()),
-                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
-                ));
-            }
-        }
     }
 
     fn visit_interface_start(&mut self, interface: &Interface) {
@@ -252,24 +199,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Interface(function) => function(interface, diagnostic_reporter),
             _ => {}
         });
-
-        // Validates that an interface cannot inherit from a deprecated base interface
-        interface
-            .base_interfaces()
-            .iter()
-            .filter_map(|base| deprecation_info(base.concrete_type()))
-            .for_each(|info| {
-                let deprecation_reason: String = if info.0.is_empty() {
-                    "".to_string()
-                } else {
-                    "Entity deprecation reason: ".to_owned() + info.0[0].trim()
-                };
-                self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(deprecation_reason),
-                    Some(interface.span()),
-                    vec![Note::new("the deprecated type was defined here", Some(info.1))],
-                ))
-            });
     }
 
     fn visit_module_start(&mut self, module_def: &Module) {
@@ -321,6 +250,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
+            Validator::DataMember(function) => function(&struct_def.members(), diagnostic_reporter),
             Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
@@ -343,19 +273,5 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
             _ => {}
         });
-
-        // Cannot create a type alias for a deprecated entity
-        if let Some(info) = deprecation_info(type_alias.underlying.concrete_type()) {
-            let deprecation_reason: String = if info.0.is_empty() {
-                "".to_string()
-            } else {
-                "Entity deprecation reason: ".to_owned() + info.0[0].trim()
-            };
-            self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                WarningKind::UseOfDeprecatedEntity(deprecation_reason),
-                Some(type_alias.span()),
-                vec![Note::new("the deprecated type was defined here", Some(info.1))],
-            ));
-        }
     }
 }

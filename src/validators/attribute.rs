@@ -11,7 +11,6 @@ pub fn attribute_validators() -> ValidationChain {
         Validator::Attributes(is_compressible),
         Validator::Operations(validate_format_attribute),
         Validator::Parameters(cannot_be_deprecated),
-        Validator::Members(cannot_use_deprecated_type),
     ]
 }
 
@@ -82,24 +81,6 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
             diagnostic_reporter.report(diagnostic);
         }
     });
-}
-
-// Validates that a `DataMember` cannot have a deprecated datatype
-fn cannot_use_deprecated_type(data_member: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    for member in data_member {
-        if let Some(info) = super::deprecation_info(member.data_type().concrete_type()) {
-            let deprecation_reason: String = if info.0.is_empty() {
-                "".to_string()
-            } else {
-                "Entity deprecation reason: ".to_owned() + info.0[0].trim()
-            };
-            diagnostic_reporter.report(Diagnostic::new_with_notes(
-                WarningKind::UseOfDeprecatedEntity(deprecation_reason),
-                Some(member.span()),
-                vec![Note::new("the deprecated type was defined here", Some(info.1))],
-            ));
-        }
-    }
 }
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and

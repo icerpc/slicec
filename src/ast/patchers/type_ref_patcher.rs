@@ -212,13 +212,11 @@ impl TypeRefPatcher<'_> {
             if let Some(args) = entity.get_deprecated_attribute(true) {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                let mut message = format!("{} is deprecated", entity.identifier());
-                if let Some(reason) = args.first() {
-                    message = message + ": " + reason;
-                }
-
                 self.diagnostic_reporter.report(Diagnostic::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(message),
+                    WarningKind::UseOfDeprecatedEntity(
+                        entity.identifier().to_owned(),
+                        args.first().unwrap_or(&String::new()).to_owned(),
+                    ),
                     Some(type_ref.span()),
                     vec![Note::new(
                         format!("{} was deprecated here:", entity.identifier()),
