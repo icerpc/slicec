@@ -56,10 +56,6 @@ pub trait Attributable: Symbol {
             .map(|attribute| &attribute.arguments)
     }
 
-    fn get_deprecated_attribute(&self, check_parent: bool) -> Option<&Vec<String>> {
-        self.get_attribute("deprecated", check_parent)
-    }
-
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
 }
 
@@ -67,7 +63,11 @@ pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + Attributable + Commentable {}
+pub trait Entity: NamedSymbol + Attributable + Commentable {
+    fn get_deprecated_attribute(&self, check_parent: bool) -> Option<&Vec<String>> {
+        self.get_attribute("deprecated", check_parent)
+    }
+}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;
