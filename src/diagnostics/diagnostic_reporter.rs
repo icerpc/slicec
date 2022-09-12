@@ -19,7 +19,7 @@ pub struct DiagnosticReporter {
     treat_warnings_as_errors: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    /// The relative paths of all .slice files that have the file level `ignore_warnings` attribute.
+    /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
     pub ignore_warning_file_paths: Vec<String>,
 }
 
