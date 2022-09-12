@@ -19,28 +19,42 @@ impl ParsedData {
         let has_errors = self.has_errors();
         Self::emit_diagnostics(self.diagnostic_reporter, &self.files);
 
-        if has_errors {
-            1
-        } else {
-            0
-        }
+        i32::from(has_errors)
     }
 
     pub fn has_errors(&self) -> bool {
         self.diagnostic_reporter.has_errors()
     }
 
+    fn file_level_ignore_warnings_file(files: &HashMap<String, SliceFile>) -> Vec<&str> {
+        files
+            .iter()
+            .filter(|(_, file)| {
+                file.attributes
+                    .iter()
+                    .any(|a| a.prefixed_directive == "ignore_warnings ")
+            })
+            .map(|(_, file)| file.filename.as_str())
+            .collect::<Vec<&str>>()
+    }
+
     fn emit_diagnostics(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         match diagnostic_reporter.output_format {
             DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
-            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
+            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter, files),
         }
     }
 
-    fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
+    fn output_to_json(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+        let ignore_warnings_files = Self::file_level_ignore_warnings_file(files);
         diagnostic_reporter
             .into_diagnostics()
             .into_iter()
+            .filter(|d| {
+                d.span
+                    .as_ref()
+                    .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
+            })
             .for_each(|diagnostic| {
                 let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
                 println!("{json}");
@@ -49,37 +63,46 @@ impl ParsedData {
 
     fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
-        for diagnostic in diagnostic_reporter.into_diagnostics() {
-            // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
-            // to the previously emitted diagnostic.
-            let prefix = match diagnostic.diagnostic_kind {
-                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                    style("\nerror").red()
+        let ignore_warnings_files = Self::file_level_ignore_warnings_file(files);
+        diagnostic_reporter
+            .into_diagnostics()
+            .into_iter()
+            .filter(|d| {
+                d.span
+                    .as_ref()
+                    .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
+            })
+            .for_each(|diagnostic| {
+                // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
+                // to the previously emitted diagnostic.
+                let prefix = match diagnostic.diagnostic_kind {
+                    DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
+                        style("\nerror").red()
+                    }
+                    DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
                 }
-                DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
-            }
-            .bold();
+                .bold();
 
-            // Emit the message with the prefix.
-            eprintln!("{}: {}", prefix, style(&diagnostic).bold());
+                // Emit the message with the prefix.
+                eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
-            // If the diagnostic contains a span, show a snippet containing the offending code.
-            if let Some(span) = diagnostic.span {
-                Self::show_snippet(span, files)
-            }
-            // If the diagnostic contains notes, display them.
-            diagnostic.notes.into_iter().for_each(|note| {
-                eprintln!(
-                    "    {} {}: {:}",
-                    style("=").blue().bold(),
-                    style("note").bold(),
-                    style(&note).bold(),
-                );
-                if let Some(span) = note.span {
+                // If the diagnostic contains a span, show a snippet containing the offending code.
+                if let Some(span) = diagnostic.span {
                     Self::show_snippet(span, files)
                 }
+                // If the diagnostic contains notes, display them.
+                diagnostic.notes.into_iter().for_each(|note| {
+                    eprintln!(
+                        "    {} {}: {:}",
+                        style("=").blue().bold(),
+                        style("note").bold(),
+                        style(&note).bold(),
+                    );
+                    if let Some(span) = note.span {
+                        Self::show_snippet(span, files)
+                    }
+                });
             });
-        }
 
         // Output the total number of errors and warnings.
         println!();
