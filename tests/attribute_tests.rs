@@ -6,8 +6,8 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::assert_errors_new;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+        use crate::{assert_errors, assert_errors_new};
         use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
         use slice::grammar::*;
         use test_case::test_case;
@@ -259,6 +259,53 @@ mod attributes {
             assert!(!operation.compress_arguments());
             assert!(!operation.compress_return());
         }
+
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                [ignore_warnings]
+                op(s: string) -> string;
+            }
+            "; "simple"
+        )]
+        #[test_case(
+            "
+            [ignore_warnings]
+            module A {
+                struct A1 {
+                    b: B::B1,
+                }
+            }
+            module B {
+                [deprecated]
+                struct B1 {}
+            }
+            "; "complex"
+        )]
+        #[test_case(
+            "
+            [[ignore_warnings]]
+            module A {
+                struct A1 {
+                    b: B::B1,
+                }
+            }
+            module B {
+                struct B1 {}
+            }
+            "; "file level"
+        )]
+        fn ignore_warnings_attribute(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            assert_errors!(diagnostic_reporter);
+        }
     }
 
     mod generalized_api {
@@ -383,40 +430,6 @@ mod attributes {
                 }
             ";
 
-            // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
-
-            // Assert
-            assert_errors!(diagnostic_reporter);
-        }
-
-        #[test_case(
-            "
-            module Test;
-
-            interface I {
-                // The below doc comment will generate a warning
-                /// A test operation. Similar to {@linked OtherOp}{}.
-                [ignore_warnings]
-                op(s: string) -> string;
-            }
-            "; "simple"
-        )]
-        #[test_case(
-            "
-            [ignore_warnings]
-            module A {
-                struct A1 {
-                    b: B::B1,
-                }
-            }
-            module B {
-                [deprecated]
-                struct B1 {}
-            }
-            "; "complex"
-        )]
-        fn ignore_warnings_attribute(slice: &str) {
             // Act
             let diagnostic_reporter = parse_for_diagnostics(slice);
 

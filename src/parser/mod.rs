@@ -12,6 +12,7 @@ use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::diagnostics::DiagnosticReporter;
 use crate::parse_result::{ParsedData, ParserResult};
+use crate::slice_file::SliceFile;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -55,6 +56,8 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
         }
     }
 
+    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
+    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -79,6 +82,8 @@ pub fn parse_string(input: &str) -> ParserResult {
         slice_files.insert(slice_file.filename.clone(), slice_file);
     }
 
+    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
+    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -105,6 +110,8 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
         }
     }
 
+    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
+    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -147,6 +154,15 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
     string_paths.sort();
     string_paths.dedup();
     string_paths
+}
+
+// Returns the relative paths of all .slice files that have the file level `ignore_warnings` attribute
+fn ignore_warnings_slice_file_paths(files: &HashMap<String, SliceFile>) -> Vec<String> {
+    files
+        .iter()
+        .filter(|(_, file)| file.attributes.iter().any(|a| a.directive == "ignore_warnings"))
+        .map(|(_, file)| file.relative_path.to_owned())
+        .collect::<Vec<String>>()
 }
 
 fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {

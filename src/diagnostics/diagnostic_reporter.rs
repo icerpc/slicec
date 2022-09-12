@@ -1,8 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use std::collections::HashMap;
+
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::grammar::Entity;
+use crate::slice_file::SliceFile;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -15,7 +18,9 @@ pub struct DiagnosticReporter {
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
-    pub output_format: DiagnosticFormat,
+    pub diagnostic_format: DiagnosticFormat,
+    /// The relative paths of all .slice files that have the file level `ignore_warnings` attribute.
+    pub ignore_warning_file_paths: Vec<String>,
 }
 
 impl DiagnosticReporter {
@@ -25,8 +30,24 @@ impl DiagnosticReporter {
             error_count: 0,
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
-            output_format: slice_options.diagnostic_format,
+            diagnostic_format: slice_options.diagnostic_format,
+            ignore_warning_file_paths: Vec::new(),
         }
+    }
+
+    /// Removes globally ignored warnings from the diagnostics vector.
+
+    pub fn remove_file_level_ignored_warnings(&mut self, files: &HashMap<String, SliceFile>) {
+        let ignore_warnings_files = files
+            .iter()
+            .filter(|(_, file)| file.attributes.iter().any(|a| a.directive == "ignore_warnings"))
+            .map(|(_, file)| file.relative_path.as_str())
+            .collect::<Vec<&str>>();
+        self.diagnostics.retain(|d| {
+            d.span
+                .as_ref()
+                .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
+        });
     }
 
     /// Checks if any errors have been reported during compilation.
@@ -55,7 +76,12 @@ impl DiagnosticReporter {
     }
 
     pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
-        if attributable.has_attribute("ignore_warnings", true) {
+        if attributable.has_attribute("ignore_warnings", true)
+            || diagnostic
+                .span
+                .as_ref()
+                .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
+        {
             return;
         }
         self.report(diagnostic);

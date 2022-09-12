@@ -26,35 +26,17 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    fn file_level_ignore_warnings_file(files: &HashMap<String, SliceFile>) -> Vec<&str> {
-        files
-            .iter()
-            .filter(|(_, file)| {
-                file.attributes
-                    .iter()
-                    .any(|a| a.prefixed_directive == "ignore_warnings ")
-            })
-            .map(|(_, file)| file.filename.as_str())
-            .collect::<Vec<&str>>()
-    }
-
     fn emit_diagnostics(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
-        match diagnostic_reporter.output_format {
+        match diagnostic_reporter.diagnostic_format {
             DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
-            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter, files),
+            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
         }
     }
 
-    fn output_to_json(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
-        let ignore_warnings_files = Self::file_level_ignore_warnings_file(files);
+    fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
         diagnostic_reporter
             .into_diagnostics()
             .into_iter()
-            .filter(|d| {
-                d.span
-                    .as_ref()
-                    .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
-            })
             .for_each(|diagnostic| {
                 let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
                 println!("{json}");
@@ -63,15 +45,9 @@ impl ParsedData {
 
     fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
-        let ignore_warnings_files = Self::file_level_ignore_warnings_file(files);
         diagnostic_reporter
             .into_diagnostics()
             .into_iter()
-            .filter(|d| {
-                d.span
-                    .as_ref()
-                    .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
-            })
             .for_each(|diagnostic| {
                 // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
                 // to the previously emitted diagnostic.
