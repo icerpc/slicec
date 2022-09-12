@@ -1,11 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use std::collections::HashMap;
-
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::grammar::Entity;
-use crate::slice_file::SliceFile;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -33,21 +30,6 @@ impl DiagnosticReporter {
             diagnostic_format: slice_options.diagnostic_format,
             ignore_warning_file_paths: Vec::new(),
         }
-    }
-
-    /// Removes globally ignored warnings from the diagnostics vector.
-
-    pub fn remove_file_level_ignored_warnings(&mut self, files: &HashMap<String, SliceFile>) {
-        let ignore_warnings_files = files
-            .iter()
-            .filter(|(_, file)| file.attributes.iter().any(|a| a.directive == "ignore_warnings"))
-            .map(|(_, file)| file.relative_path.as_str())
-            .collect::<Vec<&str>>();
-        self.diagnostics.retain(|d| {
-            d.span
-                .as_ref()
-                .map_or(true, |s| !ignore_warnings_files.iter().any(|f| *f == s.file))
-        });
     }
 
     /// Checks if any errors have been reported during compilation.

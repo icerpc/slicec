@@ -34,51 +34,45 @@ impl ParsedData {
     }
 
     fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
-        diagnostic_reporter
-            .into_diagnostics()
-            .into_iter()
-            .for_each(|diagnostic| {
-                let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-                println!("{json}");
-            });
+        for diagnostic in diagnostic_reporter.into_diagnostics() {
+            let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
+            println!("{json}");
+        }
     }
 
     fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
         let counts = diagnostic_reporter.get_totals();
-        diagnostic_reporter
-            .into_diagnostics()
-            .into_iter()
-            .for_each(|diagnostic| {
-                // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
-                // to the previously emitted diagnostic.
-                let prefix = match diagnostic.diagnostic_kind {
-                    DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                        style("\nerror").red()
-                    }
-                    DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
+        for diagnostic in diagnostic_reporter.into_diagnostics() {
+            // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
+            // to the previously emitted diagnostic.
+            let prefix = match diagnostic.diagnostic_kind {
+                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
+                    style("\nerror").red()
                 }
-                .bold();
+                DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
+            }
+            .bold();
 
-                // Emit the message with the prefix.
-                eprintln!("{}: {}", prefix, style(&diagnostic).bold());
+            // Emit the message with the prefix.
+            eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
-                // If the diagnostic contains a span, show a snippet containing the offending code.
-                if let Some(span) = diagnostic.span {
+            // If the diagnostic contains a span, show a snippet containing the offending code.
+            if let Some(span) = diagnostic.span {
+                Self::show_snippet(span, files)
+            }
+            // If the diagnostic contains notes, display them.
+            diagnostic.notes.into_iter().for_each(|note| {
+                eprintln!(
+                    "    {} {}: {:}",
+                    style("=").blue().bold(),
+                    style("note").bold(),
+                    style(&note).bold(),
+                );
+                if let Some(span) = note.span {
                     Self::show_snippet(span, files)
                 }
-                // If the diagnostic contains notes, display them.
-                diagnostic.notes.into_iter().for_each(|note| {
-                    eprintln!(
-                        "    {} {}: {:}",
-                        style("=").blue().bold(),
-                        style("note").bold(),
-                        style(&note).bold(),
-                    );
-                    if let Some(span) = note.span {
-                        Self::show_snippet(span, files)
-                    }
-                });
             });
+        }
 
         // Output the total number of errors and warnings.
         println!();
