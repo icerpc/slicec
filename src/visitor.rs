@@ -147,11 +147,6 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit a parameter, use `[Parameter::visit_with]`.
     fn visit_parameter(&mut self, parameter: &Parameter) {}
 
-    /// This function is called by the visitor when it visits a [return member](Parameter),
-    ///
-    /// This shouldn't be called by users. To visit a return member, use `[Parameter::visit_with]`.
-    fn visit_return_member(&mut self, parameter: &Parameter) {}
-
     /// This function is called by the visitor when it visits a [Enumerator],
     ///
     /// This shouldn't be called by users. To visit an enumerator, use `[Enumerator::visit_with]`.
@@ -273,12 +268,8 @@ impl Operation {
     /// the contents of the operation, and finally calls `visitor.visit_operation_end`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_operation_start(self);
-        for parameter in &self.parameters {
-            parameter.borrow().visit_with(visitor, true);
-        }
-        for return_member in &self.return_type {
-            return_member.borrow().visit_with(visitor, false);
-        }
+        self.parameters.iter().for_each(|p| p.borrow().visit_with(visitor));
+        self.return_type.iter().for_each(|m| m.borrow().visit_with(visitor));
         visitor.visit_operation_end(self);
     }
 }
@@ -322,15 +313,9 @@ impl DataMember {
 impl Parameter {
     /// Visits the [Parameter] with the provided `visitor`.
     ///
-    /// This function delegates to `visitor.visit_parameter` for parameters,
-    /// and `visitor.visit_return_member` for return members. It handles both
-    /// cases because both semantic types are implemented by the [Parameter] struct.
-    pub fn visit_with(&self, visitor: &mut impl Visitor, is_parameter: bool) {
-        if is_parameter {
-            visitor.visit_parameter(self);
-        } else {
-            visitor.visit_return_member(self);
-        }
+    /// This function delegates to `visitor.visit_parameter`
+    pub fn visit_with(&self, visitor: &mut impl Visitor) {
+        visitor.visit_parameter(self);
     }
 }
 
