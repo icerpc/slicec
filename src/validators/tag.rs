@@ -40,7 +40,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
                     Some(window[0].span()),
                 )],
             );
-            diagnostic_reporter.report(diagnostic);
+            diagnostic_reporter.report_error(diagnostic);
         };
     });
 }
@@ -54,7 +54,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
         Some(_) => true,
         None if seen => {
             let error = LogicErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
-            diagnostic_reporter.report(Diagnostic::new(error, Some(parameter.data_type.span())));
+            diagnostic_reporter.report_error(Diagnostic::new(error, Some(parameter.data_type.span())));
             true
         }
         None => false,
@@ -76,7 +76,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
                         Some(struct_def.span()),
                     )],
                 );
-                diagnostic_reporter.report(diagnostic);
+                diagnostic_reporter.report_error(diagnostic);
             }
         }
     }
@@ -93,7 +93,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            diagnostic_reporter.report(Diagnostic::new(
+            diagnostic_reporter.report_error(Diagnostic::new(
                 LogicErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
                 Some(member.span()),
             ));
@@ -111,7 +111,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagn
 
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
-            diagnostic_reporter.report(Diagnostic::new(
+            diagnostic_reporter.report_error(Diagnostic::new(
                 LogicErrorKind::CannotTagClass(member.identifier().to_owned()),
                 Some(member.span()),
             ));
@@ -140,7 +140,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnosti
             }
             _ => member.data_type().definition().uses_classes(),
         } {
-            diagnostic_reporter.report(Diagnostic::new(
+            diagnostic_reporter.report_error(Diagnostic::new(
                 LogicErrorKind::CannotTagContainingClass(member.identifier().to_owned()),
                 Some(member.span()),
             ));

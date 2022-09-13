@@ -17,7 +17,7 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &
 fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        diagnostic_reporter.report(Diagnostic::new(
+        diagnostic_reporter.report_error(Diagnostic::new(
             LogicErrorKind::KeyMustBeNonOptional,
             Some(type_ref.span()),
         ));
@@ -36,7 +36,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                             Some(struct_def.span()),
                         ),
                     ]);
-                diagnostic_reporter.report(diagnostic);
+                diagnostic_reporter.report_error(diagnostic);
                 return false;
             }
 
@@ -44,7 +44,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    diagnostic_reporter.report(Diagnostic::new(
+                    diagnostic_reporter.report_error(Diagnostic::new(
                         LogicErrorKind::KeyTypeNotSupported(member.identifier().to_owned()),
                         Some(member.span()),
                     ));
@@ -61,7 +61,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                         Some(struct_def.span()),
                     )],
                 );
-                diagnostic_reporter.report(diagnostic);
+                diagnostic_reporter.report_error(diagnostic);
                 return false;
             }
             return true;
@@ -104,7 +104,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                 Some(named_symbol_def.span()),
             )]);
         }
-        diagnostic_reporter.report(diagnostic);
+        diagnostic_reporter.report_error(diagnostic);
     }
     is_valid
 }

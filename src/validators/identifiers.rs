@@ -24,7 +24,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
                     Some(window[0].span()),
                 )],
             );
-            diagnostic_reporter.report(diagnostic);
+            diagnostic_reporter.report_error(diagnostic);
         }
     });
 }
@@ -47,7 +47,7 @@ pub fn check_for_shadowing(
                         Some(inherited_identifier.span()),
                     )],
                 );
-                diagnostic_reporter.report(diagnostic);
+                diagnostic_reporter.report_error(diagnostic);
             });
     });
 }

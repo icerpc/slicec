@@ -47,7 +47,7 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report(&mut self, diagnostic: Diagnostic) {
+    pub fn report_error(&mut self, diagnostic: Diagnostic) {
         match &diagnostic.diagnostic_kind {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
@@ -66,6 +66,6 @@ impl DiagnosticReporter {
         {
             return;
         }
-        self.report(diagnostic);
+        self.report_error(diagnostic);
     }
 }
