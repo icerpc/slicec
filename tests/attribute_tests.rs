@@ -383,7 +383,8 @@ mod attributes {
                 [deprecated]
                 struct B1 {}
             }
-            "; "complex"
+            "
+            => ignore["Fix ignore_warnings attribute"]; "complex"
         )]
         #[test_case(
             "
