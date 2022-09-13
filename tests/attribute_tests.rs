@@ -172,6 +172,60 @@ mod attributes {
         }
 
         #[test]
+        fn deprecated_type_alias() {
+            // Arrange
+            let slice = "
+                module Test;
+
+                struct Foo {}
+
+                [deprecated]
+                typealias Bar = Foo;
+
+                interface I {
+                    op(s: Bar) -> string;
+                }
+            ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(
+                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
+                None,
+            );
+            assert_errors!(diagnostic_reporter, [&expected]);
+        }
+
+        #[test]
+        fn deprecated_inheritance() {
+            // Arrange
+            let slice = "
+            [deprecated]
+            module Foo {
+                struct Bar {}
+            }
+
+            module Test {
+                struct Baz {
+                    b: Foo::Bar,
+                }
+            }
+            ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(
+                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
+                None,
+            );
+            assert_errors!(diagnostic_reporter, [&expected]);
+        }
+
+        #[test]
         fn cannot_use_deprecated_type() {
             // Arrange
             let slice = "
