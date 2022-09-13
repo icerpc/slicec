@@ -37,7 +37,7 @@ pub enum WarningKind {
     /// * `tag` - The doc comment tag
     InvalidDocCommentTag(String),
 
-    /// The user attempted to use a slice entity that they have deprecated
+    /// The user used a slice entity that is deprecated.
     ///
     /// # Fields
     ///
