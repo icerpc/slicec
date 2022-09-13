@@ -194,7 +194,7 @@ mod attributes {
         }
 
         #[test]
-        fn cannot_inherit_type() {
+        fn cannot_inherit_from_deprecated_entity() {
             // Arrange
             let slice = "
                     module Test;
