@@ -112,7 +112,7 @@ implement_Symbol_for!(TypeRef<T>, Element + ?Sized);
 implement_Scoped_Symbol_for!(TypeRef<T>, Element + ?Sized);
 
 #[derive(Debug)]
-pub enum TypeRefDefinition<T: Element + ?Sized> {
+pub enum TypeRefDefinition<T: Element + ?Sized =  dyn Type> {
     Patched(WeakPtr<T>),
     Unpatched(String),
 }
