@@ -177,7 +177,7 @@ mod attributes {
             let slice = "
                     module Test;
 
-                    [deprecated]
+                    [deprecated(\"Message here\")]
                     struct A {}
 
                     struct B {
@@ -189,7 +189,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()).into();
+            let expected: DiagnosticKind =
+                WarningKind::UseOfDeprecatedEntity("A".to_owned(), "Message here".to_owned()).into();
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 

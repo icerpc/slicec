@@ -42,7 +42,8 @@ pub enum WarningKind {
     /// # Fields
     ///
     /// * `identifier` - The identifier of the deprecated entity.
-    /// * `deprecation_reason` - The reason why the slice entity was deprecated. If non supplied will be empty string.
+    /// * `deprecation_reason` - The reason why the slice entity was deprecated. If not supplied it will an empty
+    ///   string.
     UseOfDeprecatedEntity(String, String),
 }
 
@@ -82,7 +83,7 @@ implement_error_functions!(
     (
         WarningKind::UseOfDeprecatedEntity,
         1004,
-        format!("{identifier} is deprecated...
+        format!("`{identifier}` is deprecated: {deprecation_reason}"),
         identifier,
         deprecation_reason
     )
