@@ -82,7 +82,7 @@ implement_error_functions!(
     (
         WarningKind::UseOfDeprecatedEntity,
         1004,
-        format!("use of a deprecated slice entity,`{identifier}`. {deprecation_reason} "),
+        format!("{identifier} is deprecated...
         identifier,
         deprecation_reason
     )
