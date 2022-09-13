@@ -70,6 +70,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
         }
     }
 }
+
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
