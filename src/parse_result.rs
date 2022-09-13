@@ -19,11 +19,7 @@ impl ParsedData {
         let has_errors = self.has_errors();
         Self::emit_diagnostics(self.diagnostic_reporter, &self.files);
 
-        if has_errors {
-            1
-        } else {
-            0
-        }
+        i32::from(has_errors)
     }
 
     pub fn has_errors(&self) -> bool {
@@ -31,20 +27,17 @@ impl ParsedData {
     }
 
     fn emit_diagnostics(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
-        match diagnostic_reporter.output_format {
+        match diagnostic_reporter.diagnostic_format {
             DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
             DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
         }
     }
 
     fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
-        diagnostic_reporter
-            .into_diagnostics()
-            .into_iter()
-            .for_each(|diagnostic| {
-                let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-                println!("{json}");
-            });
+        for diagnostic in diagnostic_reporter.into_diagnostics() {
+            let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
+            println!("{json}");
+        }
     }
 
     fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {

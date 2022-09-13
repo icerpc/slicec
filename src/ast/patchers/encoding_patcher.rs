@@ -106,7 +106,7 @@ impl EncodingPatcher<'_> {
             notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
 
             let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
-            self.diagnostic_reporter.report(diagnostic);
+            self.diagnostic_reporter.report_error(diagnostic);
 
             // Replace the supported encodings with a dummy that supports all encodings.
             // Otherwise everything that uses this type will also not be supported by the file's
@@ -194,7 +194,7 @@ impl EncodingPatcher<'_> {
                     Some(type_ref.span()),
                     self.get_file_encoding_mismatch_notes(type_ref),
                 );
-                self.diagnostic_reporter.report(diagnostic);
+                self.diagnostic_reporter.report_error(diagnostic);
             });
 
             // Return a dummy value that supports all encodings, instead of the real result.
@@ -365,7 +365,7 @@ impl ComputeSupportedEncodings for Interface {
                         Some(member.span()),
                         patcher.get_file_encoding_mismatch_notes(member),
                     );
-                    patcher.diagnostic_reporter.report(diagnostic);
+                    patcher.diagnostic_reporter.report_error(diagnostic);
                 }
             }
         }
