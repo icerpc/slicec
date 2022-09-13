@@ -2,6 +2,7 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind};
+use crate::grammar::Entity;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -14,7 +15,9 @@ pub struct DiagnosticReporter {
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
-    pub output_format: DiagnosticFormat,
+    pub diagnostic_format: DiagnosticFormat,
+    /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
+    pub ignore_warning_file_paths: Vec<String>,
 }
 
 impl DiagnosticReporter {
@@ -24,7 +27,8 @@ impl DiagnosticReporter {
             error_count: 0,
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
-            output_format: slice_options.diagnostic_format,
+            diagnostic_format: slice_options.diagnostic_format,
+            ignore_warning_file_paths: Vec::new(),
         }
     }
 
@@ -43,7 +47,7 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report(&mut self, diagnostic: Diagnostic) {
+    pub fn report_error(&mut self, diagnostic: Diagnostic) {
         match &diagnostic.diagnostic_kind {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
@@ -51,5 +55,16 @@ impl DiagnosticReporter {
             }
         };
         self.diagnostics.push(diagnostic);
+    }
+
+    pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
+        if !attributable.has_attribute("ignore_warnings", true)
+            && !diagnostic
+                .span
+                .as_ref()
+                .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
+        {
+            self.report_error(diagnostic);
+        }
     }
 }

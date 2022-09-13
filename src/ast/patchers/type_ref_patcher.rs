@@ -192,7 +192,7 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.diagnostic_reporter.report(Diagnostic::new(
+                self.diagnostic_reporter.report_error(Diagnostic::new(
                     DiagnosticKind::SyntaxError(message),
                     Some(type_ref.span()),
                 ));
@@ -256,7 +256,7 @@ impl TypeRefPatcher<'_> {
                     current_type_alias.module_scoped_identifier(),
                 );
                 let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
-                self.diagnostic_reporter.report(diagnostic);
+                self.diagnostic_reporter.report_error(diagnostic);
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());
             }
