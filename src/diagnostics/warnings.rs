@@ -37,7 +37,7 @@ pub enum WarningKind {
     /// * `tag` - The doc comment tag
     InvalidDocCommentTag(String),
 
-    /// The user attempted to use a slice entity that they have deprecated
+    /// The user used a slice entity that is deprecated.
     ///
     /// # Fields
     ///
@@ -82,7 +82,7 @@ implement_error_functions!(
     (
         WarningKind::UseOfDeprecatedEntity,
         1004,
-        format!("use of a deprecated slice entity,`{identifier}`. {deprecation_reason} "),
+        format!("{identifier} is deprecated...
         identifier,
         deprecation_reason
     )
