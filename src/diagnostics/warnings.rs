@@ -83,7 +83,7 @@ implement_error_functions!(
     (
         WarningKind::UseOfDeprecatedEntity,
         1004,
-        format!("`{identifier}` is deprecated: {deprecation_reason}"),
+        format!("`{identifier}` is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     )

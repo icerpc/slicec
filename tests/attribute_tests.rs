@@ -244,7 +244,7 @@ mod attributes {
 
             // Assert
             let expected: DiagnosticKind =
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), "Message here".to_owned()).into();
+                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()).into();
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
