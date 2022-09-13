@@ -214,26 +214,6 @@ mod attributes {
         }
 
         #[test]
-        fn cannot_type_alias_deprecated_type() {
-            // Arrange
-            let slice = "
-                    module Test;
-
-                    [deprecated]
-                    interface Foo {}
-
-                    typealias Alias = Foo;
-                ";
-
-            // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("Foo".to_owned(), "".to_owned()).into();
-            assert_errors!(diagnostic_reporter, [&expected]);
-        }
-
-        #[test]
         fn compress() {
             // Arrange
             let slice = "

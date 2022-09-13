@@ -29,7 +29,6 @@ pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
     Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
-    DataMember(fn(&[&DataMember], &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
@@ -247,7 +246,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_struct_start(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
-            Validator::DataMember(function) => function(&struct_def.members(), diagnostic_reporter),
             Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
