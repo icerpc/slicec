@@ -58,14 +58,13 @@ impl DiagnosticReporter {
     }
 
     pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
-        if attributable.has_attribute("ignore_warnings", true)
-            || diagnostic
+        if !attributable.has_attribute("ignore_warnings", true)
+            && !diagnostic
                 .span
                 .as_ref()
                 .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
         {
-            return;
+            self.report_error(diagnostic);
         }
-        self.report_error(diagnostic);
     }
 }
