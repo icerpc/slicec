@@ -210,17 +210,20 @@ impl TypeRefPatcher<'_> {
             if let Some(argument) = entity.get_deprecated_attribute(true) {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                self.diagnostic_reporter.report_error(Error::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(
-                        entity.identifier().to_owned(),
-                        argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
+                self.diagnostic_reporter.report_warning(
+                    Warning::new_with_notes(
+                        WarningKind::UseOfDeprecatedEntity(
+                            entity.identifier().to_owned(),
+                            argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
+                        ),
+                        Some(type_ref.span()),
+                        vec![Note::new(
+                            format!("{} was deprecated here:", entity.identifier()),
+                            Some(entity.span()),
+                        )],
                     ),
-                    Some(type_ref.span()),
-                    vec![Note::new(
-                        format!("{} was deprecated here:", entity.identifier()),
-                        Some(entity.span()),
-                    )],
-                ));
+                    entity,
+                );
             }
         }
     }
