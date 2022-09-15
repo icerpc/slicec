@@ -24,7 +24,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
-                let error = LogicErrorKind::MustBePositive("enumerator values".to_owned());
+                let error = LogicKind::MustBePositive("enumerator values".to_owned());
                 diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
             });
         // Enums in Slice1 always have an underlying type of int32.
@@ -33,7 +33,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .iter()
             .filter(|enumerator| enumerator.value > i32::MAX as i64)
             .for_each(|enumerator| {
-                let error = LogicErrorKind::EnumeratorValueOutOfBounds(
+                let error = LogicKind::EnumeratorValueOutOfBounds(
                     enumerator.identifier().to_owned(),
                     enumerator.value,
                     0,
@@ -51,7 +51,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                 .iter()
                 .filter(|enumerator| enumerator.value < min || enumerator.value > max)
                 .for_each(|enumerator| {
-                    let error = LogicErrorKind::EnumeratorValueOutOfBounds(
+                    let error = LogicKind::EnumeratorValueOutOfBounds(
                         enumerator.identifier().to_owned(),
                         enumerator.value,
                         min,
@@ -82,7 +82,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let error = LogicErrorKind::UnderlyingTypeMustBeIntegral(
+                let error = LogicKind::UnderlyingTypeMustBeIntegral(
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
                 );
@@ -104,7 +104,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
             let diagnostic = Error::new_with_notes(
-                LogicErrorKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
+                LogicKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
                 Some(window[1].span()),
                 vec![Note::new(
                     format!(
@@ -125,7 +125,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
             diagnostic_reporter.report_error(Error::new(
-                LogicErrorKind::CannotUseOptionalUnderlyingType(enum_def.identifier().to_owned()),
+                LogicKind::CannotUseOptionalUnderlyingType(enum_def.identifier().to_owned()),
                 Some(enum_def.span()),
             ));
         }
@@ -136,7 +136,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
         diagnostic_reporter.report_error(Error::new(
-            LogicErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()),
+            LogicKind::MustContainEnumerators(enum_def.identifier().to_owned()),
             Some(enum_def.span()),
         ));
     }

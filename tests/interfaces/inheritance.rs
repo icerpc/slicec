@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{Error, LogicErrorKind, Note};
+use slice::diagnostics::{Error, LogicKind, Note};
 use slice::grammar::*;
 
 #[test]
@@ -95,7 +95,7 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected = Error::new_with_notes(LogicErrorKind::Shadows("op".to_owned()), None, vec![Note::new(
+    let expected = Error::new_with_notes(LogicKind::Shadows("op".to_owned()), None, vec![Note::new(
         "`op` was previously defined here",
         None,
     )]);

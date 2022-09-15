@@ -10,7 +10,7 @@ mod logic;
 mod warnings;
 
 pub use self::diagnostic_reporter::DiagnosticReporter;
-pub use self::logic::LogicErrorKind;
+pub use self::logic::LogicKind;
 pub use self::warnings::WarningKind;
 
 /// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
@@ -212,21 +212,21 @@ impl Serialize for DiagnosticKind {
 pub enum ErrorKind {
     /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
     /// Slice2 encoded slice file.
-    SyntaxError(String),
+    Syntax(String),
 
     /// An error related to the logic of the slice source code such as using the same tag twice.
-    LogicError(LogicErrorKind),
+    Logic(LogicKind),
 
     /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
-    IOError(String),
+    IO(String),
 }
 
 impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self {
-            ErrorKind::SyntaxError(message) => write!(f, "{}", message),
-            ErrorKind::LogicError(logic_error_kind) => write!(f, "{}", logic_error_kind.message()),
-            ErrorKind::IOError(message) => write!(f, "{}", message),
+            ErrorKind::Syntax(message) => write!(f, "{}", message),
+            ErrorKind::Logic(logic_error_kind) => write!(f, "{}", logic_error_kind.message()),
+            ErrorKind::IO(message) => write!(f, "{}", message),
         }
     }
 }

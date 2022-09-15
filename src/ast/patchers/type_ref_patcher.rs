@@ -197,7 +197,7 @@ impl TypeRefPatcher<'_> {
             Ok(definition) => Some(definition),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(ErrorKind::SyntaxError(message), Some(type_ref.span())));
+                    .report_error(Error::new(ErrorKind::Syntax(message), Some(type_ref.span())));
                 None
             }
         }
@@ -279,9 +279,8 @@ impl TypeRefPatcher<'_> {
                         }
                     })
                     .collect::<Vec<Note>>();
-                let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
-                    current_type_alias.module_scoped_identifier(),
-                );
+                let diagnostic_kind =
+                    LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
                 let diagnostic = Error::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
                 self.diagnostic_reporter.report_error(diagnostic);
 

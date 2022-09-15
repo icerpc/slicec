@@ -33,7 +33,7 @@ impl<'a> CycleDetector<'a> {
             let cycle_string = &self.dependency_stack[i..].join(" -> ");
             let message = format!("self-referential type {type_id} has infinite size.\n{cycle_string}");
             self.diagnostic_reporter
-                .report_error(Error::new(ErrorKind::SyntaxError(message), Some(type_def.span())));
+                .report_error(Error::new(ErrorKind::Syntax(message), Some(type_def.span())));
             true
         } else {
             false

@@ -5,7 +5,7 @@ use crate::grammar::Encoding;
 use crate::{implement_error_functions, implement_from_for_error_kind_sub_kind};
 
 #[derive(Debug)]
-pub enum LogicErrorKind {
+pub enum LogicKind {
     // ----------------  Attribute Errors ---------------- //
     /// Used to indicate when the compress attribute cannot be applied.
     CompressAttributeCannotBeApplied,
@@ -252,171 +252,171 @@ pub enum LogicErrorKind {
     UnexpectedAttribute(String),                  // (attribute)
 }
 
-implement_from_for_error_kind_sub_kind!(LogicErrorKind, super::ErrorKind::LogicError);
+implement_from_for_error_kind_sub_kind!(LogicKind, super::ErrorKind::Logic);
 implement_error_functions!(
-    LogicErrorKind,
+    LogicKind,
     (
-        LogicErrorKind::CompressAttributeCannotBeApplied,
+        LogicKind::CompressAttributeCannotBeApplied,
         2000,
         "the compress attribute can only be applied to interfaces and operations"
     ),
     (
-        LogicErrorKind::DeprecatedAttributeCannotBeApplied,
+        LogicKind::DeprecatedAttributeCannotBeApplied,
         2001,
         format!("the deprecated attribute cannot be applied to {kind}"),
         kind
     ),
     (
-        LogicErrorKind::CannotBeEmpty,
+        LogicKind::CannotBeEmpty,
         2002,
         format!("{method} arguments cannot be empty"),
         method
     ),
     (
-        LogicErrorKind::ArgumentNotSupported,
+        LogicKind::ArgumentNotSupported,
         2003,
         format!("argument '{arg}' is not supported for `{method}`"),
         arg,
         method
     ),
     (
-        LogicErrorKind::KeyMustBeNonOptional,
+        LogicKind::KeyMustBeNonOptional,
         2004,
         "optional types cannot be used as a dictionary key type"
     ),
     (
-        LogicErrorKind::StructKeyMustBeCompact,
+        LogicKind::StructKeyMustBeCompact,
         2005,
         "structs must be compact to be used as a dictionary key type"
     ),
     (
-        LogicErrorKind::KeyTypeNotSupported,
+        LogicKind::KeyTypeNotSupported,
         2006,
         format!("'{identifier}' cannot be used as a dictionary key type"),
         identifier
     ),
     (
-        LogicErrorKind::StructKeyContainsDisallowedType,
+        LogicKind::StructKeyContainsDisallowedType,
         2007,
         format!("struct '{identifier}' contains members that cannot be used as a dictionary key type"),
         identifier
     ),
     (
-        LogicErrorKind::CannotUseOptionalUnderlyingType,
+        LogicKind::CannotUseOptionalUnderlyingType,
         2008,
         format!("invalid enum `{}`: enums cannot have optional underlying types", identifier),
         identifier
     ),
     (
-        LogicErrorKind::MustContainEnumerators,
+        LogicKind::MustContainEnumerators,
         2009,
         format!("invalid enum `{}`: enums must contain at least one enumerator", identifier),
         identifier
     ),
     (
-        LogicErrorKind::UnderlyingTypeMustBeIntegral,
+        LogicKind::UnderlyingTypeMustBeIntegral,
         2010,
         format!("invalid enum `{identifier}`: underlying type '{underlying}' is not supported for enums"),
         identifier,
         underlying
     ),
     (
-        LogicErrorKind::Redefinition,
+        LogicKind::Redefinition,
         2011,
         format!("redefinition of `{identifier}`"),
         identifier
     ),
     (
-        LogicErrorKind::Shadows,
+        LogicKind::Shadows,
         2012,
         format!("`{identifier}` shadows another symbol"),
         identifier
     ),
     (
-        LogicErrorKind::CannotHaveDuplicateTag,
+        LogicKind::CannotHaveDuplicateTag,
         2000,
         format!("invalid tag on member `{}`: tags must be unique", identifier),
         identifier
     ),
     (
-        LogicErrorKind::MustBePositive,
+        LogicKind::MustBePositive,
         2013,
         format!("{kind} must be positive"),
         kind
     ),
     (
-        LogicErrorKind::RequiredMustPrecedeOptional,
+        LogicKind::RequiredMustPrecedeOptional,
         2015,
         format!("invalid parameter `{}`: required parameters must precede tagged parameters", identifier),
         identifier
     ),
     (
-        LogicErrorKind::StreamedMembersMustBeLast,
+        LogicKind::StreamedMembersMustBeLast,
         2016,
         format!("invalid parameter `{}`: only the last parameter in an operation can use the stream modifier", identifier),
         identifier
     ),
     (
-        LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
+        LogicKind::ReturnTuplesMustContainAtLeastTwoElements,
         2017,
         "return tuples must have at least 2 elements"
     ),
     (
-        LogicErrorKind::CompactStructCannotContainTaggedMembers,
+        LogicKind::CompactStructCannotContainTaggedMembers,
         2018,
         "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
-        LogicErrorKind::TaggedMemberMustBeOptional,
+        LogicKind::TaggedMemberMustBeOptional,
         2019,
         format!("invalid tag on member `{}`: tagged members must be optional", identifier),
         identifier
     ),
     (
-        LogicErrorKind::CannotTagClass,
+        LogicKind::CannotTagClass,
         2020,
         format!("invalid tag on member `{}`: tagged members cannot be classes", identifier),
         identifier
     ),
     (
-        LogicErrorKind::CannotTagContainingClass,
+        LogicKind::CannotTagContainingClass,
         2021,
         format!("invalid tag on member `{}`: tagged members cannot contain classes", identifier),
         identifier
     ),
     (
-        LogicErrorKind::CanOnlyInheritFromSingleBase,
+        LogicKind::CanOnlyInheritFromSingleBase,
         2022,
         format!("`{}` types can only inherit form a single base  {}", kind, kind),
         kind
     ),
     (
-        LogicErrorKind::TypeMismatch,
+        LogicKind::TypeMismatch,
         2023,
         format!("type mismatch: expected a `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
         expected,
         found
     ),
     (
-        LogicErrorKind::ConcreteTypeMismatch,
+        LogicKind::ConcreteTypeMismatch,
         2024,
         format!("type mismatch: expected `{expected}` but found a `{found}`"),
         expected,
         found
     ),
     (
-        LogicErrorKind::CompactStructCannotBeEmpty,
+        LogicKind::CompactStructCannotBeEmpty,
         2025,
         "compact structs must be non-empty"
     ),
     (
-        LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType,
+        LogicKind::SelfReferentialTypeAliasNeedsConcreteType,
         2026,
         format!("self-referential type alias '{}' has no concrete type", identifier),
         identifier
     ),
     (
-        LogicErrorKind::EnumeratorValueOutOfBounds,
+        LogicKind::EnumeratorValueOutOfBounds,
         2012,
         format!(
             "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
@@ -424,73 +424,73 @@ implement_error_functions!(
         identifier, value, min, max
     ),
     (
-        LogicErrorKind::TagValueOutOfBounds,
+        LogicKind::TagValueOutOfBounds,
         2090,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        LogicErrorKind::CannotHaveDuplicateEnumerators,
+        LogicKind::CannotHaveDuplicateEnumerators,
         2012,
         format!("invalid enumerator `{}`: enumerators must be unique", identifier),
         identifier
     ),
     (
-        LogicErrorKind::NotSupportedWithEncoding,
+        LogicKind::NotSupportedWithEncoding,
         2026,
         format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
         kind, identifier, encoding
     ),
     (
-        LogicErrorKind::UnsupportedType,
+        LogicKind::UnsupportedType,
         2026,
         format!("the type `{type_string}` is not supported by the {encoding} encoding"),
         type_string,
         encoding
     ),
     (
-        LogicErrorKind::ExceptionNotSupported,
+        LogicKind::ExceptionNotSupported,
         2026,
         format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
-        LogicErrorKind::OptionalsNotSupported,
+        LogicKind::OptionalsNotSupported,
         2026,
         format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
-        LogicErrorKind::StreamedParametersNotSupported,
+        LogicKind::StreamedParametersNotSupported,
         2026,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
-        LogicErrorKind::UnexpectedAttribute,
+        LogicKind::UnexpectedAttribute,
         2200,
         format!("unexpected attribute `{attribute}`"),
         attribute
     ),
     (
-        LogicErrorKind::MissingRequiredArgument,
+        LogicKind::MissingRequiredArgument,
         2201,
         format!("missing required argument `{argument}`"),
         argument
     ),
     (
-        LogicErrorKind::TooManyArguments,
+        LogicKind::TooManyArguments,
         2202,
         format!("too many arguments, expected `{expected}`"),
         expected
     ),
     (
-        LogicErrorKind::MissingRequiredAttribute,
+        LogicKind::MissingRequiredAttribute,
         2203,
         format!("missing required attribute `{attribute}`"),
         attribute
     ),
     (
-        LogicErrorKind::AttributeOnlyValidForTopLevelModules,
+        LogicKind::AttributeOnlyValidForTopLevelModules,
         2204,
         format!("The `{attribute}` attribute is only valid for top-level modules"),
         attribute

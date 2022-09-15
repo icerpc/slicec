@@ -11,7 +11,7 @@ mod traits {
 
         mod slice1 {
 
-            use slice::diagnostics::{Error, LogicErrorKind, Note};
+            use slice::diagnostics::{Error, LogicKind, Note};
             use slice::grammar::Encoding;
 
             use crate::assert_errors;
@@ -31,7 +31,7 @@ mod traits {
 
                 // Assert
                 let expected = Error::new_with_notes(
-                    LogicErrorKind::NotSupportedWithEncoding("trait".to_owned(), "ATrait".to_owned(), Encoding::Slice1),
+                    LogicKind::NotSupportedWithEncoding("trait".to_owned(), "ATrait".to_owned(), Encoding::Slice1),
                     None,
                     vec![
                         Note::new("file encoding was set to Slice1 here:", None),

@@ -40,7 +40,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
         match attribute.arguments.len() {
             // The format attribute must have arguments
             0 => diagnostic_reporter.report_error(Error::new(
-                LogicErrorKind::CannotBeEmpty("format attribute".to_owned()),
+                LogicKind::CannotBeEmpty("format attribute".to_owned()),
                 Some(attribute.span()),
             )),
             _ => {
@@ -54,7 +54,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
                     })
                     .for_each(|arg| {
                         let diagnostic = Error::new_with_notes(
-                            LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
+                            LogicKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.span()),
                             vec![Note::new(
                                 format!(
@@ -76,7 +76,7 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
     parameters.iter().for_each(|m| {
         if m.get_deprecated_attribute(false).is_some() {
             let diagnostic = Error::new(
-                LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
+                LogicKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
             );
             diagnostic_reporter.report_error(diagnostic);
@@ -94,7 +94,7 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
     if !supported_on.contains(&kind) {
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
             diagnostic_reporter.report_error(Error::new(
-                LogicErrorKind::CompressAttributeCannotBeApplied,
+                LogicKind::CompressAttributeCannotBeApplied,
                 Some(attribute.span()),
             ));
         }
@@ -107,7 +107,7 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
             attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
                     let diagnostic = Error::new_with_notes(
-                        LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
+                        LogicKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.span()),
                         vec![Note::new(
                             format!(
