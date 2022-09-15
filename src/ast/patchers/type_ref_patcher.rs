@@ -197,7 +197,7 @@ impl TypeRefPatcher<'_> {
             Ok(definition) => Some(definition),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(DiagnosticKind::SyntaxError(message), Some(type_ref.span())));
+                    .report_error(Error::new(ErrorKind::SyntaxError(message), Some(type_ref.span())));
                 None
             }
         }

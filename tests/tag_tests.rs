@@ -6,7 +6,7 @@ mod tags {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{DiagnosticKind, Error, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::*;
     use slice::parse_from_string;
     use test_case::test_case;
@@ -88,9 +88,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: [DiagnosticKind; 2] = [
-            LogicErrorKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
-            LogicErrorKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
+        let expected: [Error; 2] = [
+            Error::new(LogicErrorKind::RequiredMustPrecedeOptional("p3".to_owned()), None),
+            Error::new(LogicErrorKind::RequiredMustPrecedeOptional("p4".to_owned()), None),
         ];
         assert_errors!(diagnostic_reporter, expected);
     }

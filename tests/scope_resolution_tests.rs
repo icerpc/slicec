@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{DiagnosticKind, Error, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind, LogicErrorKind, Note};
     use slice::grammar::*;
 
     #[test]
@@ -22,7 +22,7 @@ mod scope_resolution {
 
         // Assert
         let expected = Error::new_with_notes(
-            DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
+            ErrorKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
             None,
             vec![Note::new("file level module 'T' declared here", None)],
         );

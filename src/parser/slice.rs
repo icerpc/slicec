@@ -2,7 +2,7 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::diagnostics::{DiagnosticKind, DiagnosticReporter, Error, LogicErrorKind, Note};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, LogicErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{SliceFile, Span};
 use crate::upcast_weak_as;
@@ -64,7 +64,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(DiagnosticKind::SyntaxError(message), None));
+                    .report_error(Error::new(ErrorKind::SyntaxError(message), None));
                 None
             }
         }
@@ -105,7 +105,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(DiagnosticKind::SyntaxError(message), None));
+                    .report_error(Error::new(ErrorKind::SyntaxError(message), None));
                 None
             }
         }
@@ -1190,7 +1190,7 @@ impl<'a> SliceParser<'a> {
                         if let Definition::Module(module_def) = &definition {
                             let diagnostic_reporter = &mut input.user_data().borrow_mut().diagnostic_reporter;
                             let diagnostic = Error::new_with_notes(
-                                DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
+                                ErrorKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().span),
                                 vec![
                                     Note {

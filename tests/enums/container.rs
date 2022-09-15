@@ -276,7 +276,7 @@ mod slice1 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{DiagnosticKind, Error, LogicErrorKind};
+    use slice::diagnostics::{Error, LogicErrorKind};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -295,10 +295,10 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected_errors: [DiagnosticKind; 3] = [
-            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
-            LogicErrorKind::MustBePositive("enumerator values".to_owned()).into(),
+        let expected_errors: [Error; 3] = [
+            Error::new(LogicErrorKind::MustBePositive("enumerator values".to_owned()), None),
+            Error::new(LogicErrorKind::MustBePositive("enumerator values".to_owned()), None),
+            Error::new(LogicErrorKind::MustBePositive("enumerator values".to_owned()), None),
         ];
         assert_errors!(diagnostic_reporter, expected_errors);
     }

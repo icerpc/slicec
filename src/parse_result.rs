@@ -46,9 +46,7 @@ impl ParsedData {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
             let prefix = match diagnostic.diagnostic_kind() {
-                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                    style("\nerror").red()
-                }
+                DiagnosticKind::Error(_) => style("\nerror").red(),
                 DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
             }
             .bold();

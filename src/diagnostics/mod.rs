@@ -105,19 +105,19 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) -> Self {
-        // TODO Add debug assert if pass in warning kind
+    pub fn new(error_kind: impl Into<ErrorKind>, span: Option<&Span>) -> Self {
+        let error_kind: ErrorKind = error_kind.into();
         Error {
-            kind: diagnostic_kind.into(),
+            kind: error_kind.into(),
             span: span.cloned(),
             notes: Vec::new(),
         }
     }
 
-    pub fn new_with_notes(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
-        // TODO Add debug assert if pass in warning kind
+    pub fn new_with_notes(error_kind: impl Into<ErrorKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
+        let error_kind: ErrorKind = error_kind.into();
         Error {
-            kind: diagnostic_kind.into(),
+            kind: error_kind.into(),
             span: span.cloned(),
             notes,
         }
@@ -148,47 +148,6 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Debug)]
-pub enum DiagnosticKind {
-    /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
-    /// Slice2 encoded slice file.
-    SyntaxError(String),
-
-    /// An error related to the logic of the slice source code such as using the same tag twice.
-    LogicError(LogicErrorKind),
-
-    /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
-    /// indicates that an operation should return a value, but the operation does not.
-    Warning(WarningKind),
-
-    /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
-    IOError(String),
-}
-
-impl fmt::Display for DiagnosticKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            DiagnosticKind::SyntaxError(error) => write!(f, "{}", error),
-            DiagnosticKind::LogicError(rule_kind) => write!(f, "{}", rule_kind.message()),
-            DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
-            DiagnosticKind::IOError(error) => write!(f, "{}", error),
-        }
-    }
-}
-
-impl Serialize for DiagnosticKind {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let kind = match self {
-            DiagnosticKind::Warning(_) => "warning",
-            DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => "error",
-        };
-        serializer.serialize_str(kind)
-    }
-}
-
 /// Additional information about a diagnostic. For example, indicating where the encoding of a Slice1 encoded Slice file
 /// was defined.
 #[derive(Serialize, Debug, Clone)]
@@ -212,8 +171,79 @@ impl fmt::Display for Note {
     }
 }
 
+#[derive(Debug)]
+pub enum DiagnosticKind {
+    Error(ErrorKind),
+
+    /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
+    /// indicates that an operation should return a value, but the operation does not.
+    Warning(WarningKind),
+}
+
+impl fmt::Display for DiagnosticKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
+            DiagnosticKind::Error(error_kind) => write!(f, "{}", error_kind),
+        }
+    }
+}
+
+impl From<ErrorKind> for DiagnosticKind {
+    fn from(error_kind: ErrorKind) -> Self {
+        DiagnosticKind::Error(error_kind)
+    }
+}
+
+impl Serialize for DiagnosticKind {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let kind = match self {
+            DiagnosticKind::Warning(_) => "warning",
+            DiagnosticKind::Error(_) => "error",
+        };
+        serializer.serialize_str(kind)
+    }
+}
+
+#[derive(Debug)]
+pub enum ErrorKind {
+    /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
+    /// Slice2 encoded slice file.
+    SyntaxError(String),
+
+    /// An error related to the logic of the slice source code such as using the same tag twice.
+    LogicError(LogicErrorKind),
+
+    /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
+    IOError(String),
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self {
+            ErrorKind::SyntaxError(message) => write!(f, "{}", message),
+            ErrorKind::LogicError(logic_error_kind) => write!(f, "{}", logic_error_kind.message()),
+            ErrorKind::IOError(message) => write!(f, "{}", message),
+        }
+    }
+}
+
 #[macro_export]
-macro_rules! implement_from_for_error_sub_kind {
+macro_rules! implement_from_for_error_kind_sub_kind {
+    ($type:ty, $enumerator:path) => {
+        impl From<$type> for ErrorKind {
+            fn from(original: $type) -> ErrorKind {
+                $enumerator(original)
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! implement_from_for_warning_sub_kind {
     ($type:ty, $enumerator:path) => {
         impl From<$type> for DiagnosticKind {
             fn from(original: $type) -> DiagnosticKind {
