@@ -3,7 +3,7 @@
 use crate::diagnostics::*;
 use crate::{implement_error_functions, implement_from_for_error_sub_kind};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum WarningKind {
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ///

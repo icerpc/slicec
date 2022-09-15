@@ -105,7 +105,7 @@ impl EncodingPatcher<'_> {
             };
             notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
 
-            let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
+            let diagnostic = Error::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
             self.diagnostic_reporter.report_error(diagnostic);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -189,7 +189,7 @@ impl EncodingPatcher<'_> {
             }
 
             diagnostics.into_iter().for_each(|error| {
-                let diagnostic = Diagnostic::new_with_notes(
+                let diagnostic = Error::new_with_notes(
                     error,
                     Some(type_ref.span()),
                     self.get_file_encoding_mismatch_notes(type_ref),
@@ -360,7 +360,7 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let diagnostic = Diagnostic::new_with_notes(
+                    let diagnostic = Error::new_with_notes(
                         LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1),
                         Some(member.span()),
                         patcher.get_file_encoding_mismatch_notes(member),

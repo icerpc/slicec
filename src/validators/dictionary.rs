@@ -17,10 +17,7 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &
 fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        diagnostic_reporter.report_error(Diagnostic::new(
-            LogicErrorKind::KeyMustBeNonOptional,
-            Some(type_ref.span()),
-        ));
+        diagnostic_reporter.report_error(Error::new(LogicErrorKind::KeyMustBeNonOptional, Some(type_ref.span())));
         return false;
     }
 
@@ -30,7 +27,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
                 let diagnostic =
-                    Diagnostic::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
+                    Error::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
                         Note::new(
                             format!("struct '{}' is defined here:", struct_def.identifier()),
                             Some(struct_def.span()),
@@ -44,7 +41,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    diagnostic_reporter.report_error(Diagnostic::new(
+                    diagnostic_reporter.report_error(Error::new(
                         LogicErrorKind::KeyTypeNotSupported(member.identifier().to_owned()),
                         Some(member.span()),
                     ));
@@ -53,7 +50,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             }
 
             if contains_invalid_key_types {
-                let diagnostic = Diagnostic::new_with_notes(
+                let diagnostic = Error::new_with_notes(
                     LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
                     Some(type_ref.span()),
                     vec![Note::new(
@@ -88,7 +85,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let mut diagnostic = Diagnostic::new(
+        let mut diagnostic = Error::new(
             LogicErrorKind::KeyTypeNotSupported(pluralized_kind),
             Some(type_ref.span()),
         );

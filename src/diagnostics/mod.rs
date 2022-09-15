@@ -19,25 +19,54 @@ pub use self::warnings::WarningKind;
 /// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or IO.
 /// Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
 /// diagnostic occurred.
-#[derive(Debug)]
-pub struct Diagnostic {
-    pub diagnostic_kind: DiagnosticKind,
-    pub span: Option<Span>,
-    pub notes: Vec<Note>,
+pub trait Diagnostic {
+    fn diagnostic_kind(&self) -> &DiagnosticKind;
+    fn span(&self) -> &Option<Span>;
+    fn notes(&self) -> &Vec<Note>;
 }
 
-impl Diagnostic {
-    pub fn new(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) -> Self {
-        Diagnostic {
-            diagnostic_kind: diagnostic_kind.into(),
+impl fmt::Display for dyn Diagnostic {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.diagnostic_kind())
+    }
+}
+
+impl fmt::Debug for dyn Diagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", &self)
+    }
+}
+
+impl Serialize for dyn Diagnostic {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("Diagnostic", 4)?;
+        state.serialize_field("message", &self.diagnostic_kind().to_string())?;
+        state.serialize_field("severity", &self.diagnostic_kind())?;
+        state.serialize_field("span", &self.span())?;
+        state.serialize_field("notes", &self.notes())?;
+        state.end()
+    }
+}
+
+#[derive(Debug)]
+pub struct Warning {
+    kind: DiagnosticKind,
+    span: Option<Span>,
+    notes: Vec<Note>,
+}
+
+impl Warning {
+    pub fn new(warning_kind: WarningKind, span: Option<&Span>) -> Self {
+        Warning {
+            kind: warning_kind.into(),
             span: span.cloned(),
             notes: Vec::new(),
         }
     }
 
-    pub fn new_with_notes(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
-        Diagnostic {
-            diagnostic_kind: diagnostic_kind.into(),
+    pub fn new_with_notes(warning_kind: WarningKind, span: Option<&Span>, notes: Vec<Note>) -> Self {
+        Warning {
+            kind: warning_kind.into(),
             span: span.cloned(),
             notes,
         }
@@ -48,20 +77,74 @@ impl Diagnostic {
     }
 }
 
-impl fmt::Display for Diagnostic {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.diagnostic_kind)
+impl Diagnostic for Warning {
+    fn diagnostic_kind(&self) -> &DiagnosticKind {
+        &self.kind
+    }
+
+    fn span(&self) -> &Option<Span> {
+        &self.span
+    }
+
+    fn notes(&self) -> &Vec<Note> {
+        &self.notes
     }
 }
 
-impl Serialize for Diagnostic {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("Diagnostic", 4)?;
-        state.serialize_field("message", &self.diagnostic_kind.to_string())?;
-        state.serialize_field("severity", &self.diagnostic_kind)?;
-        state.serialize_field("span", &self.span)?;
-        state.serialize_field("notes", &self.notes)?;
-        state.end()
+impl fmt::Display for Warning {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self.kind)
+    }
+}
+
+#[derive(Debug)]
+pub struct Error {
+    kind: DiagnosticKind,
+    span: Option<Span>,
+    notes: Vec<Note>,
+}
+
+impl Error {
+    pub fn new(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>) -> Self {
+        // TODO Add debug assert if pass in warning kind
+        Error {
+            kind: diagnostic_kind.into(),
+            span: span.cloned(),
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn new_with_notes(diagnostic_kind: impl Into<DiagnosticKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
+        // TODO Add debug assert if pass in warning kind
+        Error {
+            kind: diagnostic_kind.into(),
+            span: span.cloned(),
+            notes,
+        }
+    }
+
+    pub fn attach_notes(&mut self, notes: Vec<Note>) {
+        self.notes.extend(notes);
+    }
+}
+
+impl Diagnostic for Error {
+    fn diagnostic_kind(&self) -> &DiagnosticKind {
+        &self.kind
+    }
+
+    fn span(&self) -> &Option<Span> {
+        &self.span
+    }
+
+    fn notes(&self) -> &Vec<Note> {
+        &self.notes
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", &self.kind)
     }
 }
 

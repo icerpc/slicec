@@ -7,7 +7,7 @@ use crate::grammar::Entity;
 #[derive(Debug)]
 pub struct DiagnosticReporter {
     /// Vector where all the diagnostics are stored, in the order they're reported.
-    diagnostics: Vec<Diagnostic>,
+    diagnostics: Vec<Box<dyn Diagnostic>>,
     /// The total number of errors reported.
     error_count: usize,
     /// The total number of warnings reported.
@@ -43,24 +43,24 @@ impl DiagnosticReporter {
     }
 
     /// Consumes the diagnostic reporter, returning all the diagnostics that have been reported with it.
-    pub fn into_diagnostics(self) -> Vec<Diagnostic> {
+    pub fn into_diagnostics(self) -> Vec<Box<dyn Diagnostic>> {
         self.diagnostics
     }
 
-    pub fn report_error(&mut self, diagnostic: Diagnostic) {
-        match &diagnostic.diagnostic_kind {
+    pub fn report_error(&mut self, diagnostic: impl Diagnostic + 'static) {
+        match &diagnostic.diagnostic_kind() {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
             DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
                 self.error_count += 1
             }
         };
-        self.diagnostics.push(diagnostic);
+        self.diagnostics.push(Box::new(diagnostic));
     }
 
-    pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
+    pub fn report_warning(&mut self, diagnostic: impl Diagnostic + 'static, attributable: &dyn Entity) {
         if !attributable.has_attribute("ignore_warnings", true)
             && !diagnostic
-                .span
+                .span()
                 .as_ref()
                 .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
         {
