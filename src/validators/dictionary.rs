@@ -50,7 +50,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             }
 
             if contains_invalid_key_types {
-                let diagnostic = Error::new_with_notes(
+                let error = Error::new_with_notes(
                     LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
                     Some(type_ref.span()),
                     vec![Note::new(
@@ -58,7 +58,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                         Some(struct_def.span()),
                     )],
                 );
-                diagnostic_reporter.report_error(diagnostic);
+                diagnostic_reporter.report_error(error);
                 return false;
             }
             return true;

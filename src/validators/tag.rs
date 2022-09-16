@@ -28,7 +28,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            let diagnostic = Error::new_with_notes(
+            let error = Error::new_with_notes(
                 LogicErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
                 Some(window[1].span()),
                 vec![Note::new(
@@ -40,7 +40,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
                     Some(window[0].span()),
                 )],
             );
-            diagnostic_reporter.report_error(diagnostic);
+            diagnostic_reporter.report_error(error);
         };
     });
 }
@@ -68,7 +68,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let diagnostic = Error::new_with_notes(
+                let error = Error::new_with_notes(
                     LogicErrorKind::CompactStructCannotContainTaggedMembers,
                     Some(member.span()),
                     vec![Note::new(
@@ -76,7 +76,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
                         Some(struct_def.span()),
                     )],
                 );
-                diagnostic_reporter.report_error(diagnostic);
+                diagnostic_reporter.report_error(error);
             }
         }
     }

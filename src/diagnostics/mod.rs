@@ -40,7 +40,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn notes(&self) -> &Vec<Note> {
+    pub fn notes(&self) -> &[Note] {
         match self {
             Diagnostic::Error(kind) => &kind.notes,
             Diagnostic::Warning(kind) => &kind.notes,
@@ -57,15 +57,14 @@ impl fmt::Display for Diagnostic {
 impl Serialize for Diagnostic {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("Diagnostic", 4)?;
-        let message = &self.message();
         let severity = match &self {
             Diagnostic::Error(_) => "error",
             Diagnostic::Warning(_) => "warning",
         };
-        state.serialize_field("message", message)?;
+        state.serialize_field("message", &self.message())?;
         state.serialize_field("severity", severity)?;
-        state.serialize_field("span", &self.span())?;
-        state.serialize_field("notes", &self.notes())?;
+        state.serialize_field("span", self.span())?;
+        state.serialize_field("notes", self.notes())?;
         state.end()
     }
 }
@@ -101,7 +100,7 @@ impl Warning {
 
 impl fmt::Display for Warning {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self.kind.message())
+        write!(f, "{}", self.kind.message())
     }
 }
 
@@ -138,7 +137,7 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self.kind)
+        write!(f, "{}", self.kind)
     }
 }
 

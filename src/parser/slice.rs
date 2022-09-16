@@ -1189,7 +1189,7 @@ impl<'a> SliceParser<'a> {
                     if !allow_sub_modules {
                         if let Definition::Module(module_def) = &definition {
                             let diagnostic_reporter = &mut input.user_data().borrow_mut().diagnostic_reporter;
-                            let diagnostic = Error::new_with_notes(
+                            let error = Error::new_with_notes(
                                 ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
                                 Some(&module_def.borrow().span),
                                 vec![
@@ -1199,7 +1199,7 @@ impl<'a> SliceParser<'a> {
                                     }
                                 ]
                             );
-                            diagnostic_reporter.report_error(diagnostic);
+                            diagnostic_reporter.report_error(error);
                         }
                     }
                     last_module.add_definition(definition);

@@ -103,7 +103,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let diagnostic = Error::new_with_notes(
+            let error = Error::new_with_notes(
                 LogicErrorKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
                 Some(window[1].span()),
                 vec![Note::new(
@@ -115,7 +115,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
                     Some(window[0].span()),
                 )],
             );
-            diagnostic_reporter.report_error(diagnostic);
+            diagnostic_reporter.report_error(error);
         }
     });
 }

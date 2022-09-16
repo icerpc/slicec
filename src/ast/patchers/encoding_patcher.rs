@@ -105,8 +105,8 @@ impl EncodingPatcher<'_> {
             };
             notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
 
-            let diagnostic = Error::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
-            self.diagnostic_reporter.report_error(diagnostic);
+            let error = Error::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
+            self.diagnostic_reporter.report_error(error);
 
             // Replace the supported encodings with a dummy that supports all encodings.
             // Otherwise everything that uses this type will also not be supported by the file's
@@ -189,12 +189,12 @@ impl EncodingPatcher<'_> {
             }
 
             diagnostics.into_iter().for_each(|error| {
-                let diagnostic = Error::new_with_notes(
+                let error = Error::new_with_notes(
                     error,
                     Some(type_ref.span()),
                     self.get_file_encoding_mismatch_notes(type_ref),
                 );
-                self.diagnostic_reporter.report_error(diagnostic);
+                self.diagnostic_reporter.report_error(error);
             });
 
             // Return a dummy value that supports all encodings, instead of the real result.
@@ -360,12 +360,12 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let diagnostic = Error::new_with_notes(
+                    let error = Error::new_with_notes(
                         LogicErrorKind::StreamedParametersNotSupported(Encoding::Slice1),
                         Some(member.span()),
                         patcher.get_file_encoding_mismatch_notes(member),
                     );
-                    patcher.diagnostic_reporter.report_error(diagnostic);
+                    patcher.diagnostic_reporter.report_error(error);
                 }
             }
         }
