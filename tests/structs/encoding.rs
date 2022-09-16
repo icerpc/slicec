@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, LogicKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
@@ -23,7 +23,7 @@ mod slice1 {
 
         // Assert
         let expected = Error::new_with_notes(
-            LogicKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1),
+            LogicErrorKind::NotSupportedWithEncoding("struct".to_owned(), "A".to_owned(), Encoding::Slice1),
             None,
             vec![
                 Note::new("file encoding was set to Slice1 here:", None),
@@ -38,7 +38,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, LogicKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
@@ -59,7 +59,7 @@ mod slice2 {
 
         // Assert
         let expected = Error::new_with_notes(
-            LogicKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2),
+            LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2),
             None,
             vec![
                 Note::new("file is using the Slice2 encoding by default", None),

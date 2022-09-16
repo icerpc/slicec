@@ -29,7 +29,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
             let diagnostic = Error::new_with_notes(
-                LogicKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
+                LogicErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
                 Some(window[1].span()),
                 vec![Note::new(
                     format!(
@@ -53,7 +53,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let error = LogicKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
+            let error = LogicErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
             diagnostic_reporter.report_error(Error::new(error, Some(parameter.data_type.span())));
             true
         }
@@ -69,7 +69,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         for member in struct_def.members() {
             if member.tag.is_some() {
                 let diagnostic = Error::new_with_notes(
-                    LogicKind::CompactStructCannotContainTaggedMembers,
+                    LogicErrorKind::CompactStructCannotContainTaggedMembers,
                     Some(member.span()),
                     vec![Note::new(
                         format!("struct '{}' is declared compact here", struct_def.identifier()),
@@ -94,7 +94,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     for member in tagged_members {
         if !member.data_type().is_optional {
             diagnostic_reporter.report_error(Error::new(
-                LogicKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
+                LogicErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
                 Some(member.span()),
             ));
         }
@@ -112,7 +112,7 @@ fn cannot_tag_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagn
     for member in tagged_members {
         if member.data_type().definition().is_class_type() {
             diagnostic_reporter.report_error(Error::new(
-                LogicKind::CannotTagClass(member.identifier().to_owned()),
+                LogicErrorKind::CannotTagClass(member.identifier().to_owned()),
                 Some(member.span()),
             ));
         }
@@ -141,7 +141,7 @@ fn tagged_containers_cannot_contain_classes(members: Vec<&dyn Member>, diagnosti
             _ => member.data_type().definition().uses_classes(),
         } {
             diagnostic_reporter.report_error(Error::new(
-                LogicKind::CannotTagContainingClass(member.identifier().to_owned()),
+                LogicErrorKind::CannotTagContainingClass(member.identifier().to_owned()),
                 Some(member.span()),
             ));
         }

@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{Error, LogicKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     use crate::assert_errors;
@@ -24,7 +24,7 @@ mod slice1 {
 
         // Assert
         let expected = Error::new_with_notes(
-            LogicKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1),
+            LogicErrorKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1),
             None,
             vec![
                 Note::new("file encoding was set to Slice1 here:", None),

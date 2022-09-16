@@ -10,7 +10,7 @@ mod logic;
 mod warnings;
 
 pub use self::diagnostic_reporter::DiagnosticReporter;
-pub use self::logic::LogicKind;
+pub use self::logic::LogicErrorKind;
 pub use self::warnings::WarningKind;
 
 /// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
@@ -172,7 +172,7 @@ pub enum ErrorKind {
     Syntax(String),
 
     /// An error related to the logic of the slice source code such as using the same tag twice.
-    Logic(LogicKind),
+    Logic(LogicErrorKind),
 
     /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
     IO(String),
@@ -188,15 +188,10 @@ impl fmt::Display for ErrorKind {
     }
 }
 
-#[macro_export]
-macro_rules! implement_from_for_error_kind_sub_kind {
-    ($type:ty, $enumerator:path) => {
-        impl From<$type> for ErrorKind {
-            fn from(original: $type) -> ErrorKind {
-                $enumerator(original)
-            }
-        }
-    };
+impl From<LogicErrorKind> for ErrorKind {
+    fn from(original: LogicErrorKind) -> Self {
+        Self::Logic(original)
+    }
 }
 
 #[macro_export]

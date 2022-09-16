@@ -17,7 +17,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
             let diagnostic = Error::new_with_notes(
-                LogicKind::Redefinition(window[1].value.clone()),
+                LogicErrorKind::Redefinition(window[1].value.clone()),
                 Some(window[1].span()),
                 vec![Note::new(
                     format!("`{}` was previously defined here", window[0].value),
@@ -40,7 +40,7 @@ pub fn check_for_shadowing(
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
                 let diagnostic = Error::new_with_notes(
-                    LogicKind::Shadows(identifier.value.clone()),
+                    LogicErrorKind::Shadows(identifier.value.clone()),
                     Some(identifier.span()),
                     vec![Note::new(
                         format!("`{}` was previously defined here", inherited_identifier.value),

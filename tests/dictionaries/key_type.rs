@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
-use slice::diagnostics::{Error, LogicKind, Note};
+use slice::diagnostics::{Error, LogicErrorKind, Note};
 use test_case::test_case;
 
 #[test]
@@ -17,7 +17,7 @@ fn optionals_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(LogicKind::KeyMustBeNonOptional, None);
+    let expected = Error::new(LogicErrorKind::KeyMustBeNonOptional, None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -67,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(LogicKind::KeyTypeNotSupported(key_type.to_owned()), None);
+    let expected = Error::new(LogicErrorKind::KeyTypeNotSupported(key_type.to_owned()), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -86,7 +86,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(LogicKind::KeyTypeNotSupported(key_kind.to_owned()), None);
+    let expected = Error::new(LogicErrorKind::KeyTypeNotSupported(key_kind.to_owned()), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -129,9 +129,11 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(LogicKind::KeyTypeNotSupported(pluralize_kind(key_kind)), None, vec![
-        Note::new(format!("{} '{}' is defined here:", key_kind, key_type), None),
-    ]);
+    let expected = Error::new_with_notes(
+        LogicErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)),
+        None,
+        vec![Note::new(format!("{} '{}' is defined here:", key_kind, key_type), None)],
+    );
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -148,7 +150,7 @@ fn non_compact_structs_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(LogicKind::StructKeyMustBeCompact, None, vec![Note::new(
+    let expected = Error::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, None, vec![Note::new(
         "Struct 'MyStruct' is defined here:",
         None,
     )]);
@@ -209,18 +211,18 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
     // Assert
     let expected: [Error; 7] = [
-        Error::new(LogicKind::KeyTypeNotSupported("sequences".to_owned()), None),
-        Error::new(LogicKind::KeyTypeNotSupported("seq".to_owned()), None),
-        Error::new(LogicKind::KeyTypeNotSupported("float32".to_owned()), None),
-        Error::new(LogicKind::KeyTypeNotSupported("f32".to_owned()), None),
+        Error::new(LogicErrorKind::KeyTypeNotSupported("sequences".to_owned()), None),
+        Error::new(LogicErrorKind::KeyTypeNotSupported("seq".to_owned()), None),
+        Error::new(LogicErrorKind::KeyTypeNotSupported("float32".to_owned()), None),
+        Error::new(LogicErrorKind::KeyTypeNotSupported("f32".to_owned()), None),
         Error::new_with_notes(
-            LogicKind::StructKeyContainsDisallowedType("Inner".to_owned()),
+            LogicErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()),
             None,
             vec![Note::new("struct 'Inner' is defined here:", None)],
         ),
-        Error::new(LogicKind::KeyTypeNotSupported("i".to_owned()), None),
+        Error::new(LogicErrorKind::KeyTypeNotSupported("i".to_owned()), None),
         Error::new_with_notes(
-            LogicKind::StructKeyContainsDisallowedType("Outer".to_owned()),
+            LogicErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()),
             None,
             vec![Note::new("struct 'Outer' is defined here:", None)],
         ),

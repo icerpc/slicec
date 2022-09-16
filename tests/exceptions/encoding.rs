@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{Error, LogicKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     use crate::assert_errors;
@@ -27,7 +27,7 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(LogicKind::ExceptionNotSupported(Encoding::Slice1), None, vec![
+        let expected = Error::new_with_notes(LogicErrorKind::ExceptionNotSupported(Encoding::Slice1), None, vec![
             Note::new("file encoding was set to Slice1 here:", None),
         ]);
         assert_errors!(diagnostic_reporter, [&expected]);
@@ -38,7 +38,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, LogicKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
@@ -57,7 +57,7 @@ mod slice2 {
 
         // Assert
         let expected = Error::new_with_notes(
-            LogicKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2),
+            LogicErrorKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2),
             None,
             vec![
                 Note::new("file is using the Slice2 encoding by default", None),

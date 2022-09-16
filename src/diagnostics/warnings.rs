@@ -2,7 +2,7 @@
 
 use crate::implement_error_functions;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum WarningKind {
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ///

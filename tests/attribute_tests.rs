@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Error, LogicKind, Note, Warning, WarningKind};
+        use slice::diagnostics::{Error, LogicErrorKind, Note, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -74,7 +74,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(LogicKind::CannotBeEmpty("format attribute".to_owned()), None);
+            let expected = Error::new(LogicErrorKind::CannotBeEmpty("format attribute".to_owned()), None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -94,7 +94,7 @@ mod attributes {
 
             // Assert
             let expected = Error::new_with_notes(
-                LogicKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()),
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()),
                 None,
                 vec![Note::new(
                     "The valid arguments for the format attribute are `Compact` and `Sliced`",
@@ -140,7 +140,7 @@ mod attributes {
 
             // Assert
             let expected = Error::new(
-                LogicKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()),
+                LogicErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()),
                 None,
             );
             assert_errors!(diagnostic_reporter, [&expected]);
@@ -307,7 +307,7 @@ mod attributes {
 
             // Assert
             let expected = Error::new_with_notes(
-                LogicKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()),
+                LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()),
                 None,
                 vec![Note::new(
                     "The valid argument(s) for the compress attribute are `Args` and `Return`",
@@ -333,7 +333,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(LogicKind::CompressAttributeCannotBeApplied, None);
+            let expected = Error::new(LogicErrorKind::CompressAttributeCannotBeApplied, None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 

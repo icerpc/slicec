@@ -279,8 +279,9 @@ impl TypeRefPatcher<'_> {
                         }
                     })
                     .collect::<Vec<Note>>();
-                let diagnostic_kind =
-                    LogicKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
+                let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
+                    current_type_alias.module_scoped_identifier(),
+                );
                 let diagnostic = Error::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
                 self.diagnostic_reporter.report_error(diagnostic);
 

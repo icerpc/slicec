@@ -2,7 +2,7 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, LogicKind, Note};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, LogicErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{SliceFile, Span};
 use crate::upcast_weak_as;
@@ -267,7 +267,7 @@ impl<'a> SliceParser<'a> {
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().diagnostic_reporter.report_error(
                         Error::new(
-                            LogicKind::CanOnlyInheritFromSingleBase("class".to_string()),
+                            LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
                             Some(&span),
                         )
                     );
@@ -315,7 +315,7 @@ impl<'a> SliceParser<'a> {
                         .diagnostic_reporter
                         .report_error(
                             Error::new(
-                                LogicKind::CanOnlyInheritFromSingleBase("exception".to_string()),
+                                LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
                                 Some(&span)
                             )
                         );
@@ -525,7 +525,7 @@ impl<'a> SliceParser<'a> {
                     .user_data()
                     .borrow_mut()
                     .diagnostic_reporter
-                    .report_error(Error::new(LogicKind::ReturnTuplesMustContainAtLeastTwoElements, Some(&span)));
+                    .report_error(Error::new(LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements, Some(&span)));
                 }
                 return_elements
             },
@@ -664,7 +664,7 @@ impl<'a> SliceParser<'a> {
                     .user_data()
                     .borrow_mut()
                     .diagnostic_reporter
-                    .report_error(Error::new(LogicKind::TagValueOutOfBounds, Some(span)));
+                    .report_error(Error::new(LogicErrorKind::TagValueOutOfBounds, Some(span)));
                 }
                 integer as u32
             }
