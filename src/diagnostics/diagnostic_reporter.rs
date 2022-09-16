@@ -52,9 +52,9 @@ impl DiagnosticReporter {
         self.diagnostics.push(Diagnostic::Error(error));
     }
 
-    pub fn report_warning(&mut self, warning: Warning, attributable: &dyn Attributable) {
+    pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
-        if !attributable.has_attribute("ignore_warnings", true)
+        if !entity.has_attribute("ignore_warnings", true)
             && !warning
                 .span
                 .as_ref()
