@@ -63,11 +63,7 @@ pub trait Commentable: Symbol {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + Attributable + Commentable {
-    fn get_deprecated_attribute(&self, check_parent: bool) -> Option<Option<&String>> {
-        self.get_attribute("deprecated", check_parent).map(|args| args.first())
-    }
-}
+pub trait Entity: NamedSymbol + Attributable + Commentable {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;
