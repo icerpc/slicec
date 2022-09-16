@@ -19,29 +19,51 @@ pub use self::warnings::WarningKind;
 /// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or IO.
 /// Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
 /// diagnostic occurred.
-pub trait Diagnostic {
-    fn diagnostic_kind(&self) -> &DiagnosticKind;
-    fn span(&self) -> &Option<Span>;
-    fn notes(&self) -> &Vec<Note>;
+#[derive(Debug)]
+pub enum Diagnostic {
+    Error(Error),
+    Warning(Warning),
 }
 
-impl fmt::Display for dyn Diagnostic {
+impl Diagnostic {
+    pub fn message(&self) -> String {
+        match self {
+            Diagnostic::Error(error) => error.to_string(),
+            Diagnostic::Warning(warning) => warning.to_string(),
+        }
+    }
+
+    pub fn span(&self) -> &Option<Span> {
+        match self {
+            Diagnostic::Error(kind) => &kind.span,
+            Diagnostic::Warning(kind) => &kind.span,
+        }
+    }
+
+    pub fn notes(&self) -> &Vec<Note> {
+        match self {
+            Diagnostic::Error(kind) => &kind.notes,
+            Diagnostic::Warning(kind) => &kind.notes,
+        }
+    }
+}
+
+impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.diagnostic_kind())
+        write!(f, "{}", self.message())
     }
 }
 
-impl fmt::Debug for dyn Diagnostic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", &self)
-    }
-}
-
-impl Serialize for dyn Diagnostic {
+impl Serialize for Diagnostic {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("Diagnostic", 4)?;
-        state.serialize_field("message", &self.diagnostic_kind().to_string())?;
-        state.serialize_field("severity", &self.diagnostic_kind())?;
+        let message = &self.message();
+        let severity = match &self {
+            Diagnostic::Error(_) => "error",
+            Diagnostic::Warning(_) => "warning",
+        };
+        state.serialize_field("message", message)?;
+        state.serialize_field("severity", severity)?;
         state.serialize_field("span", &self.span())?;
         state.serialize_field("notes", &self.notes())?;
         state.end()
@@ -50,7 +72,7 @@ impl Serialize for dyn Diagnostic {
 
 #[derive(Debug)]
 pub struct Warning {
-    kind: DiagnosticKind,
+    kind: WarningKind,
     span: Option<Span>,
     notes: Vec<Note>,
 }
@@ -58,7 +80,7 @@ pub struct Warning {
 impl Warning {
     pub fn new(warning_kind: WarningKind, span: Option<&Span>) -> Self {
         Warning {
-            kind: warning_kind.into(),
+            kind: warning_kind,
             span: span.cloned(),
             notes: Vec::new(),
         }
@@ -66,7 +88,7 @@ impl Warning {
 
     pub fn new_with_notes(warning_kind: WarningKind, span: Option<&Span>, notes: Vec<Note>) -> Self {
         Warning {
-            kind: warning_kind.into(),
+            kind: warning_kind,
             span: span.cloned(),
             notes,
         }
@@ -77,29 +99,15 @@ impl Warning {
     }
 }
 
-impl Diagnostic for Warning {
-    fn diagnostic_kind(&self) -> &DiagnosticKind {
-        &self.kind
-    }
-
-    fn span(&self) -> &Option<Span> {
-        &self.span
-    }
-
-    fn notes(&self) -> &Vec<Note> {
-        &self.notes
-    }
-}
-
 impl fmt::Display for Warning {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self.kind)
+        write!(f, "{}", &self.kind.message())
     }
 }
 
 #[derive(Debug)]
 pub struct Error {
-    kind: DiagnosticKind,
+    kind: ErrorKind,
     span: Option<Span>,
     notes: Vec<Note>,
 }
@@ -108,7 +116,7 @@ impl Error {
     pub fn new(error_kind: impl Into<ErrorKind>, span: Option<&Span>) -> Self {
         let error_kind: ErrorKind = error_kind.into();
         Error {
-            kind: error_kind.into(),
+            kind: error_kind,
             span: span.cloned(),
             notes: Vec::new(),
         }
@@ -117,7 +125,7 @@ impl Error {
     pub fn new_with_notes(error_kind: impl Into<ErrorKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
         let error_kind: ErrorKind = error_kind.into();
         Error {
-            kind: error_kind.into(),
+            kind: error_kind,
             span: span.cloned(),
             notes,
         }
@@ -125,20 +133,6 @@ impl Error {
 
     pub fn attach_notes(&mut self, notes: Vec<Note>) {
         self.notes.extend(notes);
-    }
-}
-
-impl Diagnostic for Error {
-    fn diagnostic_kind(&self) -> &DiagnosticKind {
-        &self.kind
-    }
-
-    fn span(&self) -> &Option<Span> {
-        &self.span
-    }
-
-    fn notes(&self) -> &Vec<Note> {
-        &self.notes
     }
 }
 
@@ -172,43 +166,6 @@ impl fmt::Display for Note {
 }
 
 #[derive(Debug)]
-pub enum DiagnosticKind {
-    Error(ErrorKind),
-
-    /// A suggestion or warning to aid in preventing a problem. For example warning if a documentation comment
-    /// indicates that an operation should return a value, but the operation does not.
-    Warning(WarningKind),
-}
-
-impl fmt::Display for DiagnosticKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            DiagnosticKind::Warning(warning_kind) => write!(f, "{}", warning_kind.message()),
-            DiagnosticKind::Error(error_kind) => write!(f, "{}", error_kind),
-        }
-    }
-}
-
-impl From<ErrorKind> for DiagnosticKind {
-    fn from(error_kind: ErrorKind) -> Self {
-        DiagnosticKind::Error(error_kind)
-    }
-}
-
-impl Serialize for DiagnosticKind {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let kind = match self {
-            DiagnosticKind::Warning(_) => "warning",
-            DiagnosticKind::Error(_) => "error",
-        };
-        serializer.serialize_str(kind)
-    }
-}
-
-#[derive(Debug)]
 pub enum ErrorKind {
     /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
     /// Slice2 encoded slice file.
@@ -236,17 +193,6 @@ macro_rules! implement_from_for_error_kind_sub_kind {
     ($type:ty, $enumerator:path) => {
         impl From<$type> for ErrorKind {
             fn from(original: $type) -> ErrorKind {
-                $enumerator(original)
-            }
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! implement_from_for_warning_sub_kind {
-    ($type:ty, $enumerator:path) => {
-        impl From<$type> for DiagnosticKind {
-            fn from(original: $type) -> DiagnosticKind {
                 $enumerator(original)
             }
         }

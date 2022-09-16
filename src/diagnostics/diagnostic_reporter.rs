@@ -7,7 +7,7 @@ use crate::grammar::Entity;
 #[derive(Debug)]
 pub struct DiagnosticReporter {
     /// Vector where all the diagnostics are stored, in the order they're reported.
-    diagnostics: Vec<Box<dyn Diagnostic>>,
+    diagnostics: Vec<Diagnostic>,
     /// The total number of errors reported.
     error_count: usize,
     /// The total number of warnings reported.
@@ -43,24 +43,24 @@ impl DiagnosticReporter {
     }
 
     /// Consumes the diagnostic reporter, returning all the diagnostics that have been reported with it.
-    pub fn into_diagnostics(self) -> Vec<Box<dyn Diagnostic>> {
+    pub fn into_diagnostics(self) -> Vec<Diagnostic> {
         self.diagnostics
     }
 
     pub fn report_error(&mut self, error: Error) {
         self.error_count += 1;
-        self.diagnostics.push(Box::new(error));
+        self.diagnostics.push(Diagnostic::Error(error));
     }
 
     pub fn report_warning(&mut self, warning: Warning, attributable: &dyn Entity) {
         self.warning_count += 1;
         if !attributable.has_attribute("ignore_warnings", true)
             && !warning
-                .span()
+                .span
                 .as_ref()
                 .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
         {
-            self.diagnostics.push(Box::new(warning));
+            self.diagnostics.push(Diagnostic::Warning(warning));
         }
     }
 }

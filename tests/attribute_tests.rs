@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{DiagnosticKind, Error, LogicKind, Note, Warning, WarningKind};
+        use slice::diagnostics::{Error, LogicKind, Note, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -241,8 +241,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind =
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()).into();
+            let expected = Warning::new(
+                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()),
+                None,
+            );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -262,7 +264,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()).into();
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()), None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
