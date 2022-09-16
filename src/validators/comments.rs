@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, WarningKind};
+use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -21,7 +21,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
         // example: @return A description of the return value.
         if comment.returns.is_some() && operation.return_members().is_empty() {
             diagnostic_reporter.report_warning(
-                Diagnostic::new(WarningKind::ExtraReturnValueInDocComment, Some(comment.span())),
+                Warning::new(WarningKind::ExtraReturnValueInDocComment, Some(comment.span())),
                 operation,
             );
         }
@@ -38,7 +38,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                 .any(|identifier| identifier == param.0)
             {
                 diagnostic_reporter.report_warning(
-                    Diagnostic::new(
+                    Warning::new(
                         WarningKind::ExtraParameterInDocComment(param.0.clone()),
                         Some(comment.span()),
                     ),
@@ -55,7 +55,7 @@ fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
             let warning =
                 WarningKind::ExtraThrowInDocComment(commentable.kind().to_owned(), commentable.identifier().to_owned());
-            diagnostic_reporter.report_warning(Diagnostic::new(warning, Some(comment.span())), commentable);
+            diagnostic_reporter.report_warning(Warning::new(warning, Some(comment.span())), commentable);
         };
     }
 }
@@ -71,7 +71,7 @@ fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_repo
                         .is_err()
                     {
                         diagnostic_reporter.report_warning(
-                            Diagnostic::new(
+                            Warning::new(
                                 WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
                                 Some(comment.span()),
                             ),
@@ -81,7 +81,7 @@ fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_repo
                 }
                 other if other.starts_with('@') => {
                     diagnostic_reporter.report_warning(
-                        Diagnostic::new(
+                        Warning::new(
                             WarningKind::InvalidDocCommentTag(other.to_owned()),
                             Some(comment.span()),
                         ),

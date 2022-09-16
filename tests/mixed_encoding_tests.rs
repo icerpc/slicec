@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
-use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+use slice::diagnostics::{Error, LogicErrorKind, Note};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
@@ -83,12 +83,12 @@ fn invalid_mixed_encoding_fails() {
     // TODO: we should provide a better error message to the user here
     let diagnostic_reporter = parser_result.err().unwrap().diagnostic_reporter;
     let expected = [
-        Diagnostic::new_with_notes(
+        Error::new_with_notes(
             LogicErrorKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1),
             None,
             vec![Note::new("file encoding was set to Slice1 here:", None)],
         ),
-        Diagnostic::new_with_notes(
+        Error::new_with_notes(
             LogicErrorKind::UnsupportedType("ACompactStruct".to_owned(), Encoding::Slice1),
             None,
             vec![Note::new("file encoding was set to Slice1 here:", None)],

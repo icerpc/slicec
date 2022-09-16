@@ -6,7 +6,7 @@ mod tags {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::*;
     use slice::parse_from_string;
     use test_case::test_case;
@@ -28,7 +28,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::TaggedMemberMustBeOptional("b".to_owned()), None);
+        let expected = Error::new(LogicErrorKind::TaggedMemberMustBeOptional("b".to_owned()), None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -47,7 +47,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::TaggedMemberMustBeOptional("myParam".to_string()), None);
+        let expected = Error::new(LogicErrorKind::TaggedMemberMustBeOptional("myParam".to_string()), None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -66,7 +66,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(LogicErrorKind::OptionalsNotSupported(Encoding::Slice1), None, vec![
+        let expected = Error::new_with_notes(LogicErrorKind::OptionalsNotSupported(Encoding::Slice1), None, vec![
             Note::new("file encoding was set to Slice1 here:", None),
         ]);
 
@@ -88,9 +88,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: [DiagnosticKind; 2] = [
-            LogicErrorKind::RequiredMustPrecedeOptional("p3".to_owned()).into(),
-            LogicErrorKind::RequiredMustPrecedeOptional("p4".to_owned()).into(),
+        let expected: [Error; 2] = [
+            Error::new(LogicErrorKind::RequiredMustPrecedeOptional("p3".to_owned()), None),
+            Error::new(LogicErrorKind::RequiredMustPrecedeOptional("p4".to_owned()), None),
         ];
         assert_errors!(diagnostic_reporter, expected);
     }
@@ -113,7 +113,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::CannotTagClass("c".to_owned()), None);
+        let expected = Error::new(LogicErrorKind::CannotTagClass("c".to_owned()), None);
         assert_errors!(errors, [&expected]);
     }
 
@@ -138,7 +138,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::CannotTagContainingClass("s".to_owned()), None);
+        let expected = Error::new(LogicErrorKind::CannotTagContainingClass("s".to_owned()), None);
         assert_errors!(errors, [&expected]);
     }
 
@@ -177,7 +177,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()), None, vec![
+        let expected = Error::new_with_notes(LogicErrorKind::CannotHaveDuplicateTag("b".to_owned()), None, vec![
             Note::new("The data member `a` has previous used the tag value `1`", None),
         ]);
         assert_errors!(diagnostic_reporter, [&expected]);
@@ -221,7 +221,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::TagValueOutOfBounds, None);
+        let expected = Error::new(LogicErrorKind::TagValueOutOfBounds, None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -239,7 +239,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(LogicErrorKind::TagValueOutOfBounds, None);
+        let expected = Error::new(LogicErrorKind::TagValueOutOfBounds, None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

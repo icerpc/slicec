@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::assert_errors;
-use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+use slice::diagnostics::{Error, LogicErrorKind, Note};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
 
@@ -25,7 +25,7 @@ fn operation_members_are_compatible_with_encoding() {
     let result = parse_from_strings(&[slice1, slice2]).err().unwrap();
 
     // Assert
-    let expected = Diagnostic::new_with_notes(
+    let expected = Error::new_with_notes(
         LogicErrorKind::UnsupportedType("C".to_owned(), Encoding::Slice2),
         None,
         vec![Note::new("file encoding was set to Slice2 here:", None)],

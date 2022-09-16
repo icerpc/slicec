@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::DiagnosticKind;
 use crate::grammar::Encoding;
-use crate::{implement_error_functions, implement_from_for_error_sub_kind};
+use crate::implement_error_functions;
 
 #[derive(Debug)]
 pub enum LogicErrorKind {
@@ -252,7 +251,6 @@ pub enum LogicErrorKind {
     UnexpectedAttribute(String),                  // (attribute)
 }
 
-implement_from_for_error_sub_kind!(LogicErrorKind, DiagnosticKind::LogicError);
 implement_error_functions!(
     LogicErrorKind,
     (

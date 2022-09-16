@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind, LogicErrorKind, Note};
     use slice::grammar::*;
 
     #[test]
@@ -21,8 +21,8 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(
-            DiagnosticKind::SyntaxError("file level modules cannot contain sub-modules".to_owned()),
+        let expected = Error::new_with_notes(
+            ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
             None,
             vec![Note::new("file level module 'T' declared here", None)],
         );
@@ -230,11 +230,10 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected =
-            Diagnostic::new_with_notes(LogicErrorKind::Redefinition("B".to_string()), None, vec![Note::new(
-                "`B` was previously defined here",
-                None,
-            )]);
+        let expected = Error::new_with_notes(LogicErrorKind::Redefinition("B".to_string()), None, vec![Note::new(
+            "`B` was previously defined here",
+            None,
+        )]);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -263,7 +262,7 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(
+        let expected = Error::new(
             LogicErrorKind::TypeMismatch("Type".to_string(), "module".to_string()),
             None,
         );

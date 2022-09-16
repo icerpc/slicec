@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::{Diagnostic, DiagnosticKind};
+use crate::diagnostics::{Diagnostic, Error, Warning};
 use crate::grammar::Entity;
 
 #[derive(Debug)]
@@ -47,24 +47,20 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report_error(&mut self, diagnostic: Diagnostic) {
-        match &diagnostic.diagnostic_kind {
-            DiagnosticKind::Warning(_) => self.warning_count += 1,
-            DiagnosticKind::LogicError(_) | DiagnosticKind::SyntaxError(_) | DiagnosticKind::IOError(_) => {
-                self.error_count += 1
-            }
-        };
-        self.diagnostics.push(diagnostic);
+    pub fn report_error(&mut self, error: Error) {
+        self.error_count += 1;
+        self.diagnostics.push(Diagnostic::Error(error));
     }
 
-    pub fn report_warning(&mut self, diagnostic: Diagnostic, attributable: &dyn Entity) {
-        if !attributable.has_attribute("ignore_warnings", true)
-            && !diagnostic
+    pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
+        self.warning_count += 1;
+        if !entity.has_attribute("ignore_warnings", true)
+            && !warning
                 .span
                 .as_ref()
                 .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
         {
-            self.report_error(diagnostic);
+            self.diagnostics.push(Diagnostic::Warning(warning));
         }
     }
 }

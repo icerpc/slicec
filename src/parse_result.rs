@@ -45,11 +45,9 @@ impl ParsedData {
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
-            let prefix = match diagnostic.diagnostic_kind {
-                DiagnosticKind::SyntaxError(_) | DiagnosticKind::LogicError(_) | DiagnosticKind::IOError(_) => {
-                    style("\nerror").red()
-                }
-                DiagnosticKind::Warning(_) => style("\nwarning").yellow(),
+            let prefix = match diagnostic {
+                Diagnostic::Error(_) => style("\nerror").red(),
+                Diagnostic::Warning(_) => style("\nwarning").yellow(),
             }
             .bold();
 
@@ -57,18 +55,18 @@ impl ParsedData {
             eprintln!("{}: {}", prefix, style(&diagnostic).bold());
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
-            if let Some(span) = diagnostic.span {
+            if let Some(span) = diagnostic.span() {
                 Self::show_snippet(span, files)
             }
             // If the diagnostic contains notes, display them.
-            diagnostic.notes.into_iter().for_each(|note| {
+            diagnostic.notes().iter().for_each(|note| {
                 eprintln!(
                     "    {} {}: {:}",
                     style("=").blue().bold(),
                     style("note").bold(),
                     style(&note).bold(),
                 );
-                if let Some(span) = note.span {
+                if let Some(span) = &note.span {
                     Self::show_snippet(span, files)
                 }
             });
@@ -92,7 +90,7 @@ impl ParsedData {
         }
     }
 
-    fn show_snippet(span: Span, files: &HashMap<String, SliceFile>) {
+    fn show_snippet(span: &Span, files: &HashMap<String, SliceFile>) {
         // Display the file name and line row and column where the error began.
         let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
         let path = std::path::Path::new(&file_location);

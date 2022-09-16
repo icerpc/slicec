@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -37,7 +37,7 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(
+        let expected = Error::new_with_notes(
             LogicErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1),
             None,
             vec![Note::new("file encoding was set to Slice1 here:", None)],
@@ -82,7 +82,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -103,7 +103,7 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(
+        let expected = Error::new_with_notes(
             LogicErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2),
             None,
             vec![
