@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::diagnostics::*;
-use crate::grammar::{attribute_constants, *};
+use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
 use std::str::FromStr;

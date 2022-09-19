@@ -3,7 +3,7 @@
 use crate::ast::{Ast, Node};
 use crate::diagnostics::*;
 use crate::downgrade_as;
-use crate::grammar::{attribute_constants, *};
+use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::utils::string_util::prefix_with_article;

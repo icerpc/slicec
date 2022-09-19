@@ -9,7 +9,7 @@ mod attributes {
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::diagnostics::{Error, LogicErrorKind, Note, Warning, WarningKind};
-        use slice::grammar::{attribute_constants, *};
+        use slice::grammar::*;
         use test_case::test_case;
 
         #[test_case("Compact", ClassFormat::Compact ; "Compact")]
