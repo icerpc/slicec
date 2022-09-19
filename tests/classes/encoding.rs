@@ -4,7 +4,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind, Note};
     use slice::grammar::Encoding;
 
     #[test]
@@ -20,7 +20,7 @@ mod slice2 {
 
         // Assert
         let expected = [Error::new_with_notes(
-            LogicErrorKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2),
+            ErrorKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2),
             None,
             vec![
                 Note::new("file is using the Slice2 encoding by default", None),

@@ -6,11 +6,11 @@ use serde::{Serialize, Serializer};
 use std::fmt;
 
 mod diagnostic_reporter;
-mod logic;
+mod errors;
 mod warnings;
 
 pub use self::diagnostic_reporter::DiagnosticReporter;
-pub use self::logic::LogicErrorKind;
+pub use self::errors::ErrorKind;
 pub use self::warnings::WarningKind;
 
 /// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
@@ -35,15 +35,22 @@ impl Diagnostic {
 
     pub fn span(&self) -> &Option<Span> {
         match self {
-            Diagnostic::Error(kind) => &kind.span,
-            Diagnostic::Warning(kind) => &kind.span,
+            Diagnostic::Error(error) => &error.span,
+            Diagnostic::Warning(warning) => &warning.span,
         }
     }
 
     pub fn notes(&self) -> &[Note] {
         match self {
-            Diagnostic::Error(kind) => &kind.notes,
-            Diagnostic::Warning(kind) => &kind.notes,
+            Diagnostic::Error(error) => &error.notes,
+            Diagnostic::Warning(warning) => &warning.notes,
+        }
+    }
+
+    pub fn error_code(&self) -> Option<&str> {
+        match self {
+            Diagnostic::Error(error) => error.error_code(),
+            Diagnostic::Warning(warning) => warning.error_code(),
         }
     }
 }
@@ -96,6 +103,10 @@ impl Warning {
     pub fn attach_notes(&mut self, notes: Vec<Note>) {
         self.notes.extend(notes);
     }
+
+    pub fn error_code(&self) -> Option<&str> {
+        Some(self.kind.error_code())
+    }
 }
 
 impl fmt::Display for Warning {
@@ -106,38 +117,59 @@ impl fmt::Display for Warning {
 
 #[derive(Debug)]
 pub struct Error {
-    kind: ErrorKind,
+    kind: Option<ErrorKind>,
     span: Option<Span>,
     notes: Vec<Note>,
+    message: String,
 }
 
 impl Error {
     pub fn new(error_kind: impl Into<ErrorKind>, span: Option<&Span>) -> Self {
         let error_kind: ErrorKind = error_kind.into();
+        let message = error_kind.message();
         Error {
-            kind: error_kind,
+            kind: Some(error_kind),
             span: span.cloned(),
             notes: Vec::new(),
+            message,
         }
     }
 
     pub fn new_with_notes(error_kind: impl Into<ErrorKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
         let error_kind: ErrorKind = error_kind.into();
+        let message = error_kind.message();
         Error {
-            kind: error_kind,
+            kind: Some(error_kind),
             span: span.cloned(),
             notes,
+            message,
+        }
+    }
+
+    pub fn new_from_string(message: impl Into<String>, span: Option<&Span>, notes: Vec<Note>) -> Self {
+        Error {
+            kind: None,
+            span: span.cloned(),
+            notes,
+            message: message.into(),
         }
     }
 
     pub fn attach_notes(&mut self, notes: Vec<Note>) {
         self.notes.extend(notes);
     }
+
+    pub fn error_code(&self) -> Option<&str> {
+        match self.kind {
+            Some(ref kind) => Some(kind.error_code()),
+            None => None,
+        }
+    }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.kind)
+        write!(f, "{}", self.message)
     }
 }
 
@@ -164,43 +196,14 @@ impl fmt::Display for Note {
     }
 }
 
-#[derive(Debug)]
-pub enum ErrorKind {
-    /// An error related to the syntax of the slice source code such as missing semicolons or defining classes in a
-    /// Slice2 encoded slice file.
-    Syntax(String),
-
-    /// An error related to the logic of the slice source code such as using the same tag twice.
-    Logic(LogicErrorKind),
-
-    /// An error related to the IO of the slice source code such as opening a file that doesn't exist.
-    IO(String),
-}
-
-impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self {
-            ErrorKind::Syntax(message) => write!(f, "{}", message),
-            ErrorKind::Logic(logic_error_kind) => write!(f, "{}", logic_error_kind.message()),
-            ErrorKind::IO(message) => write!(f, "{}", message),
-        }
-    }
-}
-
-impl From<LogicErrorKind> for ErrorKind {
-    fn from(original: LogicErrorKind) -> Self {
-        Self::Logic(original)
-    }
-}
-
 #[macro_export]
 macro_rules! implement_error_functions {
-    ($enumerator:ty, $(($kind:path, $code:expr, $message:expr $(, $variant:pat)* )),*) => {
+    ($enumerator:ty, $(($kind:path, $code:ident, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
-            pub fn error_code(&self) -> u32 {
+            pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => $code,
+                        implement_error_functions!(@error $kind, $($variant),*) => stringify!($code),
                     )*
                 }
             }

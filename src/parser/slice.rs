@@ -2,7 +2,7 @@
 
 use super::comments::CommentParser;
 use crate::ast::Ast;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, LogicErrorKind, Note};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{SliceFile, Span};
 use crate::upcast_weak_as;
@@ -64,7 +64,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(ErrorKind::Syntax(message), None));
+                    .report_error(Error::new_from_string(message, None, vec![]));
                 None
             }
         }
@@ -105,7 +105,7 @@ impl<'a> SliceParser<'a> {
             Ok(slice_file) => Some(slice_file),
             Err(message) => {
                 self.diagnostic_reporter
-                    .report_error(Error::new(ErrorKind::Syntax(message), None));
+                    .report_error(Error::new_from_string(message, None, vec![]));
                 None
             }
         }
@@ -267,7 +267,7 @@ impl<'a> SliceParser<'a> {
                 if bases.len() > 1 {
                     input.user_data().borrow_mut().diagnostic_reporter.report_error(
                         Error::new(
-                            LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
+                            ErrorKind::CanOnlyInheritFromSingleBase("class".to_string()),
                             Some(&span),
                         )
                     );
@@ -315,7 +315,7 @@ impl<'a> SliceParser<'a> {
                         .diagnostic_reporter
                         .report_error(
                             Error::new(
-                                LogicErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
+                                ErrorKind::CanOnlyInheritFromSingleBase("exception".to_string()),
                                 Some(&span)
                             )
                         );
@@ -525,7 +525,7 @@ impl<'a> SliceParser<'a> {
                     .user_data()
                     .borrow_mut()
                     .diagnostic_reporter
-                    .report_error(Error::new(LogicErrorKind::ReturnTuplesMustContainAtLeastTwoElements, Some(&span)));
+                    .report_error(Error::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements, Some(&span)));
                 }
                 return_elements
             },
@@ -664,7 +664,7 @@ impl<'a> SliceParser<'a> {
                     .user_data()
                     .borrow_mut()
                     .diagnostic_reporter
-                    .report_error(Error::new(LogicErrorKind::TagValueOutOfBounds, Some(span)));
+                    .report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(span)));
                 }
                 integer as u32
             }
@@ -1189,16 +1189,15 @@ impl<'a> SliceParser<'a> {
                     if !allow_sub_modules {
                         if let Definition::Module(module_def) = &definition {
                             let diagnostic_reporter = &mut input.user_data().borrow_mut().diagnostic_reporter;
-                            let error = Error::new_with_notes(
-                                ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
-                                Some(&module_def.borrow().span),
-                                vec![
-                                    Note {
-                                        message: format!("file level module '{}' declared here", &identifier.value),
-                                        span: Some(span.clone())
-                                    }
-                                ]
-                            );
+                            let error = Error::new_from_string("file level modules cannot contain sub-modules".to_owned(),
+                                    Some(module_def.borrow().span()),
+                                    vec![
+                                        Note {
+                                            message: format!("file level module '{}' declared here", &identifier.value),
+                                            span: Some(span.clone())
+                                        }
+                                    ],
+                                    );
                             diagnostic_reporter.report_error(error);
                         }
                     }
