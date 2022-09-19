@@ -195,12 +195,12 @@ impl From<LogicErrorKind> for ErrorKind {
 
 #[macro_export]
 macro_rules! implement_error_functions {
-    ($enumerator:ty, $(($kind:path, $code:expr, $message:expr $(, $variant:pat)* )),*) => {
+    ($enumerator:ty, $(($kind:path, $code:ident, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
-            pub fn error_code(&self) -> u32 {
+            pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => $code,
+                        implement_error_functions!(@error $kind, $($variant),*) => stringify!($code),
                     )*
                 }
             }

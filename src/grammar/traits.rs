@@ -4,7 +4,7 @@ use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::AsTypes;
-use crate::grammar::attribute_constants;
+use crate::grammar::attributes;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -66,7 +66,7 @@ pub trait Commentable: Symbol {
 
 pub trait Entity: NamedSymbol + Attributable + Commentable {
     fn get_deprecation(&self, check_parent: bool) -> Option<Option<&String>> {
-        self.get_attribute(attribute_constants::DEPRECATED, check_parent)
+        self.get_attribute(attributes::DEPRECATED, check_parent)
             .map(|args| args.first())
     }
 }

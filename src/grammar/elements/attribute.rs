@@ -2,6 +2,7 @@
 
 use super::super::*;
 use crate::slice_file::Span;
+
 #[derive(Clone, Debug)]
 pub struct Attribute {
     pub prefix: Option<String>,

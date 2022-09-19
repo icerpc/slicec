@@ -122,10 +122,7 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert!(operation
-                .get_attribute(attribute_constants::DEPRECATED, false)
-                .map(|args| args.first())
-                .is_some());
+            assert!(operation.get_deprecation(false).is_some());
         }
 
         #[test]
@@ -168,11 +165,7 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(
-                operation
-                    .get_attribute(attribute_constants::DEPRECATED, false)
-                    .map(|args| args.first())
-                    .unwrap()
-                    .unwrap(),
+                operation.get_deprecation(false).unwrap().unwrap(),
                 "Deprecation message here",
             );
         }
