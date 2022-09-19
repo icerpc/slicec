@@ -122,7 +122,7 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(operation
-                .get_attribute(DEPRECATED, false)
+                .get_attribute(slice::utils::attribute::DEPRECATED, false)
                 .map(|args| args.first())
                 .is_some());
         }
@@ -168,11 +168,11 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(
                 operation
-                    .get_attribute(DEPRECATED, false)
+                    .get_attribute(slice::utils::attribute::DEPRECATED, false)
                     .map(|args| args.first())
                     .unwrap()
                     .unwrap(),
-                "Deprecation message here"
+                "Deprecation message here",
             );
         }
 

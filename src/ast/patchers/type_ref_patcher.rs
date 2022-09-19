@@ -3,7 +3,6 @@
 use crate::ast::{Ast, Node};
 use crate::diagnostics::*;
 use crate::downgrade_as;
-use crate::grammar::attribute::DEPRECATED;
 use crate::grammar::*;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
@@ -208,7 +207,10 @@ impl TypeRefPatcher<'_> {
         // Check if the type is an entity, and if so, check if it has the `deprecated` attribute.
         // Only entities can be deprecated, so this check is sufficient.
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            if let Some(argument) = entity.get_attribute(DEPRECATED, true).map(|args| args.first()) {
+            if let Some(argument) = entity
+                .get_attribute(crate::utils::attribute::DEPRECATED, true)
+                .map(|args| args.first())
+            {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
                 self.diagnostic_reporter.report_warning(

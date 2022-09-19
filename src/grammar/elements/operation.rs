@@ -140,7 +140,7 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        if let Some(attribute) = self.get_attribute("compress", false) {
+        if let Some(attribute) = self.get_attribute(crate::utils::attribute::COMPRESS, false) {
             attribute.contains(&"Args".to_owned())
         } else {
             false
@@ -148,7 +148,7 @@ impl Operation {
     }
 
     pub fn compress_return(&self) -> bool {
-        if let Some(attribute) = self.get_attribute("compress", false) {
+        if let Some(attribute) = self.get_attribute(crate::utils::attribute::COMPRESS, false) {
             attribute.contains(&"Return".to_owned())
         } else {
             false
@@ -156,7 +156,7 @@ impl Operation {
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        if let Some(format) = self.get_attribute("format", true) {
+        if let Some(format) = self.get_attribute(crate::utils::attribute::FORMAT, true) {
             match format[0].as_str() {
                 "Compact" => ClassFormat::Compact,
                 "Sliced" => ClassFormat::Sliced,

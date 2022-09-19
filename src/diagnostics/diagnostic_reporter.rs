@@ -2,8 +2,8 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::attribute::IGNORE_WARNINGS;
 use crate::grammar::Entity;
+use crate::utils::attribute::IGNORE_WARNINGS;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {

@@ -11,9 +11,9 @@ mod slice;
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::diagnostics::DiagnosticReporter;
-use crate::grammar::attribute::IGNORE_WARNINGS;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::slice_file::SliceFile;
+use crate::utils::attribute::IGNORE_WARNINGS;
 
 use std::collections::HashMap;
 use std::path::PathBuf;

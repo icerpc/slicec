@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::diagnostics::*;
-use crate::grammar::attribute::DEPRECATED;
+use crate::grammar::attribute::DEPRECATED_ATTRIBUTE;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -75,7 +75,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.has_attribute(DEPRECATED, false) {
+        if m.has_attribute(DEPRECATED_ATTRIBUTE, false) {
             let error = Error::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
