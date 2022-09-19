@@ -40,7 +40,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
     if let Some(attribute) = operation.get_raw_attribute("format", false) {
         match attribute.arguments.len() {
             // The format attribute must have arguments
-            0 => diagnostic_reporter.report_error(Diagnostic::new(
+            0 => diagnostic_reporter.report_error(Error::new(
                 LogicErrorKind::CannotBeEmpty("format attribute".to_owned()),
                 Some(attribute.span()),
             )),
@@ -54,7 +54,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
                         format.is_err()
                     })
                     .for_each(|arg| {
-                        let diagnostic = Diagnostic::new_with_notes(
+                        let error = Error::new_with_notes(
                             LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "format attribute".to_owned()),
                             Some(attribute.span()),
                             vec![Note::new(
@@ -65,7 +65,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
                                 Some(attribute.span()),
                             )],
                         );
-                        diagnostic_reporter.report_error(diagnostic);
+                        diagnostic_reporter.report_error(error);
                     });
             }
         }
@@ -75,12 +75,12 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.get_attribute(DEPRECATED, false).map(|args| args.first()).is_some() {
-            let diagnostic = Diagnostic::new(
+        if m.has_attribute(DEPRECATED, false) {
+            let error = Error::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
             );
-            diagnostic_reporter.report_error(diagnostic);
+            diagnostic_reporter.report_error(error);
         }
     });
 }
@@ -94,7 +94,7 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
     let kind = element.kind();
     if !supported_on.contains(&kind) {
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
-            diagnostic_reporter.report_error(Diagnostic::new(
+            diagnostic_reporter.report_error(Error::new(
                 LogicErrorKind::CompressAttributeCannotBeApplied,
                 Some(attribute.span()),
             ));
@@ -107,7 +107,7 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
         if let Some(attribute) = element.get_raw_attribute("compress", false) {
             attribute.arguments.iter().for_each(|arg| {
                 if !valid_arguments.contains(&arg.as_str()) {
-                    let diagnostic = Diagnostic::new_with_notes(
+                    let error = Error::new_with_notes(
                         LogicErrorKind::ArgumentNotSupported(arg.to_owned(), "compress attribute".to_owned()),
                         Some(attribute.span()),
                         vec![Note::new(
@@ -118,7 +118,7 @@ fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut Diagnos
                             Some(attribute.span()),
                         )],
                     );
-                    diagnostic_reporter.report_error(diagnostic);
+                    diagnostic_reporter.report_error(error);
                 }
             })
         }

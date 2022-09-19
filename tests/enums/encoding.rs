@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+    use slice::diagnostics::{Error, LogicErrorKind, Note};
     use slice::grammar::Encoding;
 
     use crate::assert_errors;
@@ -23,7 +23,7 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new_with_notes(
+        let expected = Error::new_with_notes(
             LogicErrorKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1),
             None,
             vec![

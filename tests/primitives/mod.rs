@@ -41,7 +41,10 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
     let underlying = &ast.find_element::<TypeAlias>("Test::P").unwrap().underlying;
     if let TypeRefDefinition::Patched(ptr) = &underlying.definition {
         let primitive = ptr.clone().downcast::<Primitive>().unwrap();
-        assert_eq!(std::mem::discriminant(primitive.borrow()), std::mem::discriminant(&expected));
+        assert_eq!(
+            std::mem::discriminant(primitive.borrow()),
+            std::mem::discriminant(&expected)
+        );
     } else {
         panic!("type alias was unpatched");
     }

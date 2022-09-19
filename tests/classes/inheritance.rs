@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{Diagnostic, LogicErrorKind, Note};
+use slice::diagnostics::{Error, LogicErrorKind, Note};
 use slice::grammar::*;
 
 #[test]
@@ -45,7 +45,7 @@ fn does_not_support_multiple_inheritance() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()), None);
+    let expected = Error::new(LogicErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -69,7 +69,7 @@ fn data_member_shadowing_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = [Diagnostic::new_with_notes(
+    let expected = [Error::new_with_notes(
         LogicErrorKind::Shadows("i".to_owned()),
         None,
         vec![Note::new("`i` was previously defined here", None)],

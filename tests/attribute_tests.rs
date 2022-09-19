@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Diagnostic, DiagnosticKind, LogicErrorKind, Note, WarningKind};
+        use slice::diagnostics::{Error, LogicErrorKind, Note, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -74,7 +74,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(LogicErrorKind::CannotBeEmpty("format attribute".to_owned()), None);
+            let expected = Error::new(LogicErrorKind::CannotBeEmpty("format attribute".to_owned()), None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -93,7 +93,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new_with_notes(
+            let expected = Error::new_with_notes(
                 LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "format attribute".to_owned()),
                 None,
                 vec![Note::new(
@@ -142,7 +142,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(
+            let expected = Error::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()),
                 None,
             );
@@ -196,7 +196,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(
+            let expected = Warning::new(
                 WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
                 None,
             );
@@ -223,7 +223,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(
+            let expected = Warning::new(
                 WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
                 None,
             );
@@ -248,8 +248,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind =
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()).into();
+            let expected = Warning::new(
+                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()),
+                None,
+            );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -269,7 +271,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected: DiagnosticKind = WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()).into();
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()), None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -311,7 +313,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new_with_notes(
+            let expected = Error::new_with_notes(
                 LogicErrorKind::ArgumentNotSupported("Foo".to_owned(), "compress attribute".to_owned()),
                 None,
                 vec![Note::new(
@@ -338,7 +340,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(LogicErrorKind::CompressAttributeCannotBeApplied, None);
+            let expected = Error::new(LogicErrorKind::CompressAttributeCannotBeApplied, None);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 

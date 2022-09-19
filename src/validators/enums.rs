@@ -25,7 +25,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             .filter(|enumerator| enumerator.value < 0)
             .for_each(|enumerator| {
                 let error = LogicErrorKind::MustBePositive("enumerator values".to_owned());
-                diagnostic_reporter.report_error(Diagnostic::new(error, Some(enumerator.span())));
+                diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
             });
         // Enums in Slice1 always have an underlying type of int32.
         enum_def
@@ -39,7 +39,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                     0,
                     i32::MAX as i64,
                 );
-                diagnostic_reporter.report_error(Diagnostic::new(error, Some(enumerator.span())));
+                diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
             });
     } else {
         // Enum was defined in a Slice2 file.
@@ -57,7 +57,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                         min,
                         max,
                     );
-                    diagnostic_reporter.report_error(Diagnostic::new(error, Some(enumerator.span())));
+                    diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
                 });
         }
         match &enum_def.underlying {
@@ -86,7 +86,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
                 );
-                diagnostic_reporter.report_error(Diagnostic::new(error, Some(enum_def.span())));
+                diagnostic_reporter.report_error(Error::new(error, Some(enum_def.span())));
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -103,7 +103,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
     sorted_enumerators.sort_by_key(|m| m.value);
     sorted_enumerators.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let diagnostic = Diagnostic::new_with_notes(
+            let error = Error::new_with_notes(
                 LogicErrorKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
                 Some(window[1].span()),
                 vec![Note::new(
@@ -115,7 +115,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
                     Some(window[0].span()),
                 )],
             );
-            diagnostic_reporter.report_error(diagnostic);
+            diagnostic_reporter.report_error(error);
         }
     });
 }
@@ -124,7 +124,7 @@ fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticR
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            diagnostic_reporter.report_error(Diagnostic::new(
+            diagnostic_reporter.report_error(Error::new(
                 LogicErrorKind::CannotUseOptionalUnderlyingType(enum_def.identifier().to_owned()),
                 Some(enum_def.span()),
             ));
@@ -135,7 +135,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        diagnostic_reporter.report_error(Diagnostic::new(
+        diagnostic_reporter.report_error(Error::new(
             LogicErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()),
             Some(enum_def.span()),
         ));

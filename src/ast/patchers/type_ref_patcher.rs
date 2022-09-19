@@ -197,10 +197,8 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.diagnostic_reporter.report_error(Diagnostic::new(
-                    DiagnosticKind::SyntaxError(message),
-                    Some(type_ref.span()),
-                ));
+                self.diagnostic_reporter
+                    .report_error(Error::new(ErrorKind::Syntax(message), Some(type_ref.span())));
                 None
             }
         }
@@ -213,17 +211,20 @@ impl TypeRefPatcher<'_> {
             if let Some(argument) = entity.get_attribute(DEPRECATED, true).map(|args| args.first()) {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                self.diagnostic_reporter.report_error(Diagnostic::new_with_notes(
-                    WarningKind::UseOfDeprecatedEntity(
-                        entity.identifier().to_owned(),
-                        argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
+                self.diagnostic_reporter.report_warning(
+                    Warning::new_with_notes(
+                        WarningKind::UseOfDeprecatedEntity(
+                            entity.identifier().to_owned(),
+                            argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
+                        ),
+                        Some(type_ref.span()),
+                        vec![Note::new(
+                            format!("{} was deprecated here:", entity.identifier()),
+                            Some(entity.span()),
+                        )],
                     ),
-                    Some(type_ref.span()),
-                    vec![Note::new(
-                        format!("{} was deprecated here:", entity.identifier()),
-                        Some(entity.span()),
-                    )],
-                ));
+                    entity,
+                );
             }
         }
     }
@@ -282,8 +283,8 @@ impl TypeRefPatcher<'_> {
                 let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
                     current_type_alias.module_scoped_identifier(),
                 );
-                let diagnostic = Diagnostic::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
-                self.diagnostic_reporter.report_error(diagnostic);
+                let error = Error::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
+                self.diagnostic_reporter.report_error(error);
 
                 return Err("Failed to resolve type due to a cycle in its definition".to_owned());
             }
