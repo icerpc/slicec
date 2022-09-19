@@ -50,37 +50,37 @@ implement_error_functions!(
     WarningKind,
     (
         WarningKind::ExtraParameterInDocComment,
-        W001,
+        1000,
         format!("doc comment has a param tag for '{param_name}', but there is no parameter by that name"),
         param_name
     ),
     (
         WarningKind::ExtraReturnValueInDocComment,
-        W002,
+        1001,
         "void operation must not contain doc comment return tag"
     ),
     (
         WarningKind::ExtraThrowInDocComment,
-        W003,
+        1002,
         format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
         WarningKind::InvalidDocCommentLinkIdentifier,
-        W004,
+        1002,
         format!("doc comment references an identifier `{identifier}` that does not exist"),
         identifier
     ),
     (
         WarningKind::InvalidDocCommentTag,
-        W005,
+        1003,
         format!("doc comment tag `{tag}` is invalid"),
         tag
     ),
     (
         WarningKind::UseOfDeprecatedEntity,
-        W006,
+        1004,
         format!("`{identifier}` is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
