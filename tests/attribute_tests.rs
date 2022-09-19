@@ -89,6 +89,7 @@ mod attributes {
                     op(s: string) -> string;
                 }
             ";
+
             // Act
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
@@ -121,7 +122,7 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert!(operation.get_deprecated_attribute(false).is_some());
+            assert!(operation.get_deprecation(false).is_some());
         }
 
         #[test]
@@ -164,8 +165,8 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(
-                operation.get_deprecated_attribute(false).unwrap().unwrap(),
-                "Deprecation message here"
+                operation.get_deprecation(false).unwrap().unwrap(),
+                "Deprecation message here",
             );
         }
 

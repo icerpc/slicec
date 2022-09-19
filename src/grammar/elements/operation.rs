@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
+use crate::grammar::attributes;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
 
@@ -140,7 +141,7 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        if let Some(attribute) = self.get_attribute("compress", false) {
+        if let Some(attribute) = self.get_attribute(attributes::COMPRESS, false) {
             attribute.contains(&"Args".to_owned())
         } else {
             false
@@ -148,7 +149,7 @@ impl Operation {
     }
 
     pub fn compress_return(&self) -> bool {
-        if let Some(attribute) = self.get_attribute("compress", false) {
+        if let Some(attribute) = self.get_attribute(attributes::COMPRESS, false) {
             attribute.contains(&"Return".to_owned())
         } else {
             false
@@ -156,7 +157,7 @@ impl Operation {
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        if let Some(format) = self.get_attribute("format", true) {
+        if let Some(format) = self.get_attribute(attributes::FORMAT, true) {
             match format[0].as_str() {
                 "Compact" => ClassFormat::Compact,
                 "Sliced" => ClassFormat::Sliced,
@@ -169,7 +170,7 @@ impl Operation {
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.has_attribute("oneway", false)
+        self.has_attribute(attributes::ONEWAY, false)
     }
 }
 

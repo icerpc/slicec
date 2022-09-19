@@ -74,7 +74,7 @@ fn validate_format_attribute(operation: &Operation, diagnostic_reporter: &mut Di
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.get_deprecated_attribute(false).is_some() {
+        if m.has_attribute(attributes::DEPRECATED, false) {
             let error = Error::new(
                 LogicErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
