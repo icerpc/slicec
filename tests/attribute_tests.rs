@@ -10,6 +10,7 @@ mod attributes {
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::diagnostics::{Error, LogicErrorKind, Note, Warning, WarningKind};
         use slice::grammar::*;
+        use slice::utils::attribute;
         use test_case::test_case;
 
         #[test_case("Compact", ClassFormat::Compact ; "Compact")]
@@ -122,7 +123,7 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert!(operation
-                .get_attribute(slice::utils::attribute::DEPRECATED, false)
+                .get_attribute(attribute::DEPRECATED, false)
                 .map(|args| args.first())
                 .is_some());
         }
@@ -168,7 +169,7 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(
                 operation
-                    .get_attribute(slice::utils::attribute::DEPRECATED, false)
+                    .get_attribute(attribute::DEPRECATED, false)
                     .map(|args| args.first())
                     .unwrap()
                     .unwrap(),
