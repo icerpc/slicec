@@ -2,9 +2,6 @@
 
 use std::convert::Into;
 
-pub const IGNORE_WARNINGS_ATTRIBUTE: &str = "ignore_warnings";
-pub const DEPRECATED_ATTRIBUTE: &str = "deprecated";
-
 /// Prefixes the provided string with either 'a' or 'an' depending on whether it starts with a vowel.
 pub fn prefix_with_article(string: impl Into<String>) -> String {
     let mut string = string.into();

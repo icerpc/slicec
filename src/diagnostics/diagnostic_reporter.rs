@@ -2,8 +2,7 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::Entity;
-use crate::utils::attribute::IGNORE_WARNINGS;
+use crate::grammar::{attribute_constants, Entity};
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -55,7 +54,7 @@ impl DiagnosticReporter {
 
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
-        if !entity.has_attribute(IGNORE_WARNINGS, true)
+        if !entity.has_attribute(attribute_constants::IGNORE_WARNINGS, true)
             && !warning
                 .span
                 .as_ref()

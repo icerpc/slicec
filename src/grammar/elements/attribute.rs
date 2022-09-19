@@ -2,10 +2,6 @@
 
 use super::super::*;
 use crate::slice_file::Span;
-
-pub const IGNORE_WARNINGS_ATTRIBUTE: &str = "ignore_warnings";
-pub const DEPRECATED_ATTRIBUTE: &str = "deprecated";
-
 #[derive(Clone, Debug)]
 pub struct Attribute {
     pub prefix: Option<String>,

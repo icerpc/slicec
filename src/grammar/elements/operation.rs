@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
+use crate::grammar::attribute_constants;
 use crate::slice_file::Span;
-use crate::utils::attribute;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -141,7 +141,7 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        if let Some(attribute) = self.get_attribute(attribute::COMPRESS, false) {
+        if let Some(attribute) = self.get_attribute(attribute_constants::COMPRESS, false) {
             attribute.contains(&"Args".to_owned())
         } else {
             false
@@ -149,7 +149,7 @@ impl Operation {
     }
 
     pub fn compress_return(&self) -> bool {
-        if let Some(attribute) = self.get_attribute(attribute::COMPRESS, false) {
+        if let Some(attribute) = self.get_attribute(attribute_constants::COMPRESS, false) {
             attribute.contains(&"Return".to_owned())
         } else {
             false
@@ -157,7 +157,7 @@ impl Operation {
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        if let Some(format) = self.get_attribute(attribute::FORMAT, true) {
+        if let Some(format) = self.get_attribute(attribute_constants::FORMAT, true) {
             match format[0].as_str() {
                 "Compact" => ClassFormat::Compact,
                 "Sliced" => ClassFormat::Sliced,

@@ -11,9 +11,9 @@ mod slice;
 use crate::ast::Ast;
 use crate::command_line::SliceOptions;
 use crate::diagnostics::DiagnosticReporter;
+use crate::grammar::attribute_constants;
 use crate::parse_result::{ParsedData, ParserResult};
 use crate::slice_file::SliceFile;
-use crate::utils::attribute::IGNORE_WARNINGS;
 
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -161,7 +161,11 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
 fn ignore_warnings_slice_file_paths(files: &HashMap<String, SliceFile>) -> Vec<String> {
     files
         .iter()
-        .filter(|(_, file)| file.attributes.iter().any(|a| a.directive == IGNORE_WARNINGS))
+        .filter(|(_, file)| {
+            file.attributes
+                .iter()
+                .any(|a| a.directive == attribute_constants::IGNORE_WARNINGS)
+        })
         .map(|(_, file)| file.relative_path.to_owned())
         .collect::<Vec<String>>()
 }
