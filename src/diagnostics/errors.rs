@@ -263,14 +263,14 @@ pub enum ErrorKind {
 implement_error_functions!(
     ErrorKind,
     (
-        ErrorKind::Syntax,
-        format!("{message}"),
-        message
-    ),
-    (
         ErrorKind::IO,
         format!("{io_error}"),
         io_error
+    ),
+    (
+        ErrorKind::Syntax,
+        format!("{message}"),
+        message
     ),
     (
         "E001",
