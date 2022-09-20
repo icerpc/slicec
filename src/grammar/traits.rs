@@ -45,7 +45,7 @@ pub trait NamedSymbol: ScopedSymbol {
     }
 }
 
-pub trait Attributable: Symbol {
+pub trait Attributable {
     fn attributes(&self) -> &Vec<Attribute>;
 
     fn has_attribute(&self, directive: &str, recurse: bool) -> bool {
@@ -60,7 +60,7 @@ pub trait Attributable: Symbol {
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
 }
 
-pub trait Commentable: Symbol {
+pub trait Commentable {
     fn comment(&self) -> Option<&DocComment>;
 }
 

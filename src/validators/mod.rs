@@ -28,7 +28,7 @@ pub use self::tag::*;
 pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
-    Attributes(fn(&dyn Attributable, &mut DiagnosticReporter)),
+    Attributes(fn(&dyn Entity, &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
