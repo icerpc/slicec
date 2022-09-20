@@ -196,7 +196,7 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                let error = Error::new_from_string(message, Some(type_ref.span()), vec![]);
+                let error = Error::new(ErrorKind::Syntax(message), Some(type_ref.span()));
                 self.diagnostic_reporter.report_error(error);
                 None
             }

@@ -33,10 +33,10 @@ impl Diagnostic {
         }
     }
 
-    pub fn span(&self) -> &Option<Span> {
+    pub fn span(&self) -> Option<&Span> {
         match self {
-            Diagnostic::Error(error) => &error.span,
-            Diagnostic::Warning(warning) => &warning.span,
+            Diagnostic::Error(error) => error.span.as_ref(),
+            Diagnostic::Warning(warning) => warning.span.as_ref(),
         }
     }
 
@@ -70,7 +70,7 @@ impl Serialize for Diagnostic {
         };
         state.serialize_field("message", &self.message())?;
         state.serialize_field("severity", severity)?;
-        state.serialize_field("span", self.span())?;
+        state.serialize_field("span", &self.span())?;
         state.serialize_field("notes", self.notes())?;
         state.end()
     }
@@ -105,7 +105,7 @@ impl Warning {
     }
 
     pub fn error_code(&self) -> Option<&str> {
-        Some(self.kind.error_code())
+        self.kind.error_code()
     }
 }
 
@@ -117,41 +117,25 @@ impl fmt::Display for Warning {
 
 #[derive(Debug)]
 pub struct Error {
-    kind: Option<ErrorKind>,
+    kind: ErrorKind,
     span: Option<Span>,
     notes: Vec<Note>,
-    message: String,
 }
 
 impl Error {
     pub fn new(error_kind: impl Into<ErrorKind>, span: Option<&Span>) -> Self {
-        let error_kind: ErrorKind = error_kind.into();
-        let message = error_kind.message();
         Error {
-            kind: Some(error_kind),
+            kind: error_kind.into(),
             span: span.cloned(),
             notes: Vec::new(),
-            message,
         }
     }
 
     pub fn new_with_notes(error_kind: impl Into<ErrorKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
-        let error_kind: ErrorKind = error_kind.into();
-        let message = error_kind.message();
         Error {
-            kind: Some(error_kind),
+            kind: error_kind.into(),
             span: span.cloned(),
             notes,
-            message,
-        }
-    }
-
-    pub fn new_from_string(message: impl Into<String>, span: Option<&Span>, notes: Vec<Note>) -> Self {
-        Error {
-            kind: None,
-            span: span.cloned(),
-            notes,
-            message: message.into(),
         }
     }
 
@@ -160,16 +144,13 @@ impl Error {
     }
 
     pub fn error_code(&self) -> Option<&str> {
-        match self.kind {
-            Some(ref kind) => Some(kind.error_code()),
-            None => None,
-        }
+        self.kind.error_code()
     }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
+        write!(f, "{}", self.kind.message())
     }
 }
 
@@ -198,12 +179,12 @@ impl fmt::Display for Note {
 
 #[macro_export]
 macro_rules! implement_error_functions {
-    ($enumerator:ty, $(($kind:path, $code:ident, $message:expr $(, $variant:pat)* )),*) => {
+    ($enumerator:ty, $(($($code:literal,)? $kind:path, $message:expr $(, $variant:pat)* )),*) => {
         impl $enumerator {
-            pub fn error_code(&self) -> &str {
+            pub fn error_code(&self) -> Option<&str> {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => stringify!($code),
+                        implement_error_functions!(@error $kind, $($variant),*) => implement_error_functions!(@code $($code)*),
                     )*
                 }
             }
@@ -216,6 +197,14 @@ macro_rules! implement_error_functions {
                 }
             }
         }
+    };
+
+    (@code $code:literal) => {
+        Some($code)
+    };
+
+    (@code ) => {
+        None
     };
 
     (@error $kind:path,) => {

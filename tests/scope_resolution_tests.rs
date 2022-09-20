@@ -21,9 +21,11 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_from_string("file level modules cannot contain sub-modules".to_owned(), None, vec![
-            Note::new("file level module 'T' declared here", None),
-        ]);
+        let expected = Error::new_with_notes(
+            ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
+            None,
+            vec![Note::new("file level module 'T' declared here", None)],
+        );
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

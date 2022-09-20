@@ -49,38 +49,38 @@ pub enum WarningKind {
 implement_error_functions!(
     WarningKind,
     (
+        "W001",
         WarningKind::ExtraParameterInDocComment,
-        W001,
         format!("doc comment has a param tag for '{param_name}', but there is no parameter by that name"),
         param_name
     ),
     (
+        "W002",
         WarningKind::ExtraReturnValueInDocComment,
-        W002,
         "void operation must not contain doc comment return tag"
     ),
     (
+        "W003",
         WarningKind::ExtraThrowInDocComment,
-        W003,
         format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
+        "W004",
         WarningKind::InvalidDocCommentLinkIdentifier,
-        W004,
         format!("doc comment references an identifier `{identifier}` that does not exist"),
         identifier
     ),
     (
+        "W005",
         WarningKind::InvalidDocCommentTag,
-        W005,
         format!("doc comment tag `{tag}` is invalid"),
         tag
     ),
     (
+        "W006",
         WarningKind::UseOfDeprecatedEntity,
-        W006,
         format!("`{identifier}` is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
