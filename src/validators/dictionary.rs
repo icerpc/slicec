@@ -17,7 +17,7 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &
 fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        diagnostic_reporter.report_error(Error::new(LogicErrorKind::KeyMustBeNonOptional, Some(type_ref.span())));
+        diagnostic_reporter.report_error(Error::new(ErrorKind::KeyMustBeNonOptional, Some(type_ref.span())));
         return false;
     }
 
@@ -26,13 +26,12 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                let diagnostic =
-                    Error::new_with_notes(LogicErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
-                        Note::new(
-                            format!("struct '{}' is defined here:", struct_def.identifier()),
-                            Some(struct_def.span()),
-                        ),
-                    ]);
+                let diagnostic = Error::new_with_notes(ErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
+                    Note::new(
+                        format!("struct '{}' is defined here:", struct_def.identifier()),
+                        Some(struct_def.span()),
+                    ),
+                ]);
                 diagnostic_reporter.report_error(diagnostic);
                 return false;
             }
@@ -42,7 +41,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
                     diagnostic_reporter.report_error(Error::new(
-                        LogicErrorKind::KeyTypeNotSupported(member.identifier().to_owned()),
+                        ErrorKind::KeyTypeNotSupported(member.identifier().to_owned()),
                         Some(member.span()),
                     ));
                     contains_invalid_key_types = true;
@@ -51,7 +50,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
 
             if contains_invalid_key_types {
                 let error = Error::new_with_notes(
-                    LogicErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
+                    ErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
                     Some(type_ref.span()),
                     vec![Note::new(
                         format!("struct '{}' is defined here:", struct_def.identifier()),
@@ -85,10 +84,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let mut diagnostic = Error::new(
-            LogicErrorKind::KeyTypeNotSupported(pluralized_kind),
-            Some(type_ref.span()),
-        );
+        let mut diagnostic = Error::new(ErrorKind::KeyTypeNotSupported(pluralized_kind), Some(type_ref.span()));
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {

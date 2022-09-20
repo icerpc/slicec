@@ -196,8 +196,8 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(message) => {
-                self.diagnostic_reporter
-                    .report_error(Error::new(ErrorKind::Syntax(message), Some(type_ref.span())));
+                let error = Error::new(ErrorKind::Syntax(message), Some(type_ref.span()));
+                self.diagnostic_reporter.report_error(error);
                 None
             }
         }
@@ -279,9 +279,8 @@ impl TypeRefPatcher<'_> {
                         }
                     })
                     .collect::<Vec<Note>>();
-                let diagnostic_kind = LogicErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
-                    current_type_alias.module_scoped_identifier(),
-                );
+                let diagnostic_kind =
+                    ErrorKind::SelfReferentialTypeAliasNeedsConcreteType(current_type_alias.module_scoped_identifier());
                 let error = Error::new_with_notes(diagnostic_kind, Some(current_type_alias.span()), notes);
                 self.diagnostic_reporter.report_error(error);
 
