@@ -5,6 +5,11 @@ use crate::implement_error_functions;
 
 #[derive(Debug)]
 pub enum ErrorKind {
+    // ----------------  Generic Errors ---------------- //
+    IO(std::io::Error),
+
+    Syntax(String),
+
     // ----------------  Attribute Errors ---------------- //
     /// Used to indicate when the compress attribute cannot be applied.
     CompressAttributeCannotBeApplied,
@@ -253,11 +258,6 @@ pub enum ErrorKind {
     TooManyArguments(String), // (expected)
 
     UnexpectedAttribute(String), // (attribute)
-
-    // ----------------  Generic Errors ---------------- //
-    Syntax(String),
-
-    IO(std::io::Error),
 }
 
 implement_error_functions!(

@@ -184,7 +184,7 @@ macro_rules! implement_error_functions {
             pub fn error_code(&self) -> Option<&str> {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => implement_error_functions!(@code $($code)*),
+                        implement_error_functions!(@error $kind, $($variant),*) => implement_error_functions!(@code $($code)?),
                     )*
                 }
             }
