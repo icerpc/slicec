@@ -257,11 +257,21 @@ pub enum ErrorKind {
     // ----------------  Generic Errors ---------------- //
     Syntax(String),
 
-    IO(String),
+    IO(std::io::Error),
 }
 
 implement_error_functions!(
     ErrorKind,
+    (
+        ErrorKind::Syntax,
+        format!("{message}"),
+        message
+    ),
+    (
+        ErrorKind::IO,
+        format!("{io_error}"),
+        io_error
+    ),
     (
         "E001",
         ErrorKind::CompressAttributeCannotBeApplied,
@@ -448,68 +458,58 @@ implement_error_functions!(
         kind, identifier, encoding
     ),
     (
-        "E031",
+        "E032",
         ErrorKind::UnsupportedType,
         format!("the type `{type_string}` is not supported by the {encoding} encoding"),
         type_string,
         encoding
     ),
     (
-        "E032",
+        "E033",
         ErrorKind::ExceptionNotSupported,
         format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
-        "E033",
+        "E034",
         ErrorKind::OptionalsNotSupported,
         format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
-        "E034",
+        "E035",
         ErrorKind::StreamedParametersNotSupported,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
-        "E035",
+        "E036",
         ErrorKind::UnexpectedAttribute,
         format!("unexpected attribute `{attribute}`"),
         attribute
     ),
     (
-        "E036",
+        "E037",
         ErrorKind::MissingRequiredArgument,
         format!("missing required argument `{argument}`"),
         argument
     ),
     (
-        "E037",
+        "E038",
         ErrorKind::TooManyArguments,
         format!("too many arguments, expected `{expected}`"),
         expected
     ),
     (
-        "E038",
+        "E039",
         ErrorKind::MissingRequiredAttribute,
         format!("missing required attribute `{attribute}`"),
         attribute
     ),
     (
-        "E039",
+        "E040",
         ErrorKind::AttributeOnlyValidForTopLevelModules,
         format!("The `{attribute}` attribute is only valid for top-level modules"),
         attribute
-    ),
-    (
-        ErrorKind::Syntax,
-        format!("{message}"),
-        message
-    ),
-    (
-        ErrorKind::IO,
-        format!("{message}"),
-        message
     )
 );

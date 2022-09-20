@@ -203,7 +203,7 @@ macro_rules! implement_error_functions {
         Some($code)
     };
 
-    (@code ) => {
+    (@code) => {
         None
     };
 
