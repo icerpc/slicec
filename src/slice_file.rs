@@ -170,7 +170,7 @@ impl Attributable for SliceFile {
 
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
         if recurse {
-            panic!("Cannot recursively get attributes on a slice file");
+            panic!("Cannot recursively get attributes on a Slice file");
         }
         self.attributes
             .iter()
