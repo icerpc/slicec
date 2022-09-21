@@ -72,7 +72,7 @@ impl Serialize for Diagnostic {
         state.serialize_field("severity", severity)?;
         state.serialize_field("span", &self.span())?;
         state.serialize_field("notes", self.notes())?;
-        state.serialize_field("error-code", &self.error_code())?;
+        state.serialize_field("error_code", &self.error_code())?;
         state.end()
     }
 }
