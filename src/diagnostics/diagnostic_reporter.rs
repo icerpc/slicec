@@ -2,7 +2,8 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::{attributes, Entity};
+use crate::grammar::Entity;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -17,7 +18,7 @@ pub struct DiagnosticReporter {
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
     /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
-    pub ignore_warning_file_paths: Vec<String>,
+    pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
 }
 
 impl DiagnosticReporter {
@@ -28,7 +29,7 @@ impl DiagnosticReporter {
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
-            ignore_warning_file_paths: Vec::new(),
+            file_level_ignored_warnings: HashMap::new(),
         }
     }
 
@@ -54,12 +55,36 @@ impl DiagnosticReporter {
 
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
-        if !entity.has_attribute(attributes::IGNORE_WARNINGS, true)
-            && !warning
-                .span
-                .as_ref()
-                .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
-        {
+
+        // Returns true if the entity has specified that it should ignore the reported warning.
+        let entity_is_ignoring_warning = entity
+            .get_ignored_warnings(true)
+            .map(|args| {
+                if args.is_empty() {
+                    // The ignore_warnings attribute has no arguments which indicates that all warnings should be
+                    // ignored.
+                    true
+                } else if let Some(error_code) = warning.error_code() {
+                    // The ignore_warnings attribute has arguments which indicates that only specific warnings should be
+                    // ignored.
+                    args.iter().any(|arg| arg == error_code)
+                } else {
+                    // The warning does not have an error code so it cannot be ignored.
+                    false
+                }
+            })
+            .unwrap_or(false);
+
+        // Returns true if the file has specified that it should ignore the reported warning.
+        let file_is_ignoring_warning = warning.span.as_ref().map_or(false, |s| {
+            self.file_level_ignored_warnings.iter().any(|map| {
+                !(map.0 != &s.file
+                    || !map.1.is_empty() && !(warning.error_code().map_or(false, |e| map.1.contains(&e.to_owned()))))
+            })
+        });
+
+        println!("file ignoring warnings {file_is_ignoring_warning}; entity ignoring {entity_is_ignoring_warning}");
+        if !entity_is_ignoring_warning && !file_is_ignoring_warning {
             self.diagnostics.push(Diagnostic::Warning(warning));
         }
     }

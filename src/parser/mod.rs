@@ -58,7 +58,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     }
 
     // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
-    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
+    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -84,7 +84,7 @@ pub fn parse_string(input: &str) -> ParserResult {
     }
 
     // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
-    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
+    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -112,7 +112,7 @@ pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     }
 
     // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
-    diagnostic_reporter.ignore_warning_file_paths = ignore_warnings_slice_file_paths(&slice_files);
+    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
     let parsed_data = ParsedData {
         ast,
         files: slice_files,
@@ -158,16 +158,17 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
 }
 
 // Returns the relative paths of all .slice files that have the file level `ignore_warnings` attribute
-fn ignore_warnings_slice_file_paths(files: &HashMap<String, SliceFile>) -> Vec<String> {
+fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
     files
         .iter()
-        .filter(|(_, file)| {
+        .filter_map(|(path, file)| {
             file.attributes
                 .iter()
-                .any(|a| a.directive == attributes::IGNORE_WARNINGS)
+                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
+                .map(|attr| attr.arguments.clone())
+                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
         })
-        .map(|(_, file)| file.relative_path.to_owned())
-        .collect::<Vec<String>>()
+        .collect()
 }
 
 fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {

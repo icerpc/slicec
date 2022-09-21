@@ -407,6 +407,53 @@ mod attributes {
             // Assert
             assert_errors!(diagnostic_reporter);
         }
+
+        // #[test_case(
+        //     "
+        //     module Test;
+
+        //     interface I {
+        //         // The below doc comment will generate a warning
+        //         /// A test operation. Similar to {@linked OtherOp}{}.
+        //         [ignore_warnings(W002)]
+        //         op(s: string) -> string;
+        //     }
+        //     "; "local will not ignore"
+        // )]
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                /// @param b A test parameter.
+                [ignore_warnings(W005, W001)]
+                op(s: string) -> string;
+            }
+            "; "on entity"
+        )]
+        #[test_case(
+            "
+            [[ignore_warnings(W005, W001)]]
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                /// @param b A test parameter.
+                [ignore_warnings(W005, W001)]
+                op(s: string) -> string;
+            }
+            "; "file level"
+        )]
+        fn ignore_warnings_attribute_args(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            assert_errors!(diagnostic_reporter);
+        }
     }
 
     mod generalized_api {

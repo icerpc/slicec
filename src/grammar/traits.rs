@@ -69,6 +69,10 @@ pub trait Entity: NamedSymbol + Attributable + Commentable {
         self.get_attribute(attributes::DEPRECATED, check_parent)
             .map(|args| args.first())
     }
+
+    fn get_ignored_warnings(&self, check_parent: bool) -> Option<&Vec<String>> {
+        self.get_attribute(attributes::IGNORE_WARNINGS, check_parent)
+    }
 }
 
 pub trait Container<T>: Entity {
