@@ -47,10 +47,10 @@ impl ParsedData {
             // to the previously emitted diagnostic.
             let error_code = diagnostic
                 .error_code()
-                .map_or_else(String::new, |code| format!("[{code}] "));
+                .map_or_else(String::new, |code| format!(" [{code}]"));
             let prefix = match diagnostic {
-                Diagnostic::Error(_) => style(error_code + "error").red().bold(),
-                Diagnostic::Warning(_) => style(error_code + "warning").yellow().bold(),
+                Diagnostic::Error(_) => style("error".to_owned() + &error_code).red().bold(),
+                Diagnostic::Warning(_) => style("warning".to_owned() + &error_code).yellow().bold(),
             };
 
             // Emit the message with the prefix.
@@ -72,10 +72,10 @@ impl ParsedData {
                     Self::show_snippet(span, files)
                 }
             });
+            println!();
         }
 
         // Output the total number of errors and warnings.
-        println!();
         if counts.1 != 0 {
             println!(
                 "{}: Compilation generated {} warning(s)",
