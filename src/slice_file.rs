@@ -79,6 +79,8 @@ impl SliceFile {
                 last_char_was_carriage_return = character == '\r';
             }
         }
+        // Treat EOF as an end-of-line character.
+        line_positions.push(raw_text.chars().count());
 
         // Extract the name of the slice file without its extension.
         let filename = std::path::Path::new(&relative_path)
