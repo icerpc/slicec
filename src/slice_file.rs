@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{Attribute, Encoding, FileEncoding, Module};
+use crate::grammar::{Attribute, Attributable, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -160,5 +160,20 @@ impl SliceFile {
     fn raw_pos(&self, location: Location) -> usize {
         // `row` and `col` are decremented because they are indexed starting at 1 instead of 0.
         self.line_positions[location.row - 1] + (location.col - 1)
+    }
+}
+
+impl Attributable for SliceFile {
+    fn attributes(&self) -> &Vec<Attribute> {
+        &self.attributes
+    }
+
+    fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
+        if recurse {
+            panic!("Cannot recursively get attributes on a Slice file");
+        }
+        self.attributes
+            .iter()
+            .find(|&attribute| attribute.prefixed_directive == directive)
     }
 }

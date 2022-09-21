@@ -86,7 +86,7 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn is_compressible(element: &dyn Attributable, diagnostic_reporter: &mut DiagnosticReporter) {
+fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let supported_on = ["interface", "operation"];
