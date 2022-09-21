@@ -47,14 +47,8 @@ impl ParsedData {
             // to the previously emitted diagnostic.
             let error_code = diagnostic.error_code().map_or_else(|| String::new(), |code| format!("[{code}]"));
             let prefix = match diagnostic {
-                Diagnostic::Error(_) => {
-                    format!("{} {}", style("error").red().bold(), style(error_code).red().bold())
-                }
-                Diagnostic::Warning(_) => format!(
-                    "{} {}",
-                    style("warning").yellow().bold(),
-                    style(error_code).yellow().bold()
-                ),
+                Diagnostic::Error(_) => style(error_code + "error").red().bold(),
+                Diagnostic::Warning(_) =>style(error_code + "warning").yellow().bold(),
             };
 
             // Emit the message with the prefix.
