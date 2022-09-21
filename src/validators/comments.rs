@@ -49,25 +49,24 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
     }
 }
 
-fn only_operations_can_throw(commentable: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
+fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
     let supported_on = ["operation"];
-    if let Some(comment) = commentable.comment() {
-        if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
-            let warning =
-                WarningKind::ExtraThrowInDocComment(commentable.kind().to_owned(), commentable.identifier().to_owned());
-            diagnostic_reporter.report_warning(Warning::new(warning, Some(comment.span())), commentable);
+    if let Some(comment) = entity.comment() {
+        if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
+            let warning = WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
+            diagnostic_reporter.report_warning(Warning::new(warning, Some(comment.span())), entity);
         };
     }
 }
 
-fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
-    if let Some(comment) = commentable.comment() {
+fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
+    if let Some(comment) = entity.comment() {
         for (tag_type, value) in find_inline_tags(&comment.overview) {
             match tag_type {
                 "@link" => {
                     println!("{value}");
                     if ast
-                        .find_element_with_scope::<dyn Entity>(value, commentable.module_scope())
+                        .find_element_with_scope::<dyn Entity>(value, entity.module_scope())
                         .is_err()
                     {
                         diagnostic_reporter.report_warning(
@@ -75,7 +74,7 @@ fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_repo
                                 WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
                                 Some(comment.span()),
                             ),
-                            commentable,
+                            entity,
                         );
                     }
                 }
@@ -85,7 +84,7 @@ fn linked_identifiers_exist(commentable: &dyn Entity, ast: &Ast, diagnostic_repo
                             WarningKind::InvalidDocCommentTag(other.to_owned()),
                             Some(comment.span()),
                         ),
-                        commentable,
+                        entity,
                     );
                 }
                 _ => {}

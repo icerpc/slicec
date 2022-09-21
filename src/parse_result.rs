@@ -45,11 +45,13 @@ impl ParsedData {
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
+            let error_code = diagnostic
+                .error_code()
+                .map_or_else(String::new, |code| format!("[{code}] "));
             let prefix = match diagnostic {
-                Diagnostic::Error(_) => style("\nerror").red(),
-                Diagnostic::Warning(_) => style("\nwarning").yellow(),
-            }
-            .bold();
+                Diagnostic::Error(_) => style(error_code + "error").red().bold(),
+                Diagnostic::Warning(_) => style(error_code + "warning").yellow().bold(),
+            };
 
             // Emit the message with the prefix.
             eprintln!("{}: {}", prefix, style(&diagnostic).bold());
