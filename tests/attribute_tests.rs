@@ -408,18 +408,6 @@ mod attributes {
             assert_errors!(diagnostic_reporter);
         }
 
-        // #[test_case(
-        //     "
-        //     module Test;
-
-        //     interface I {
-        //         // The below doc comment will generate a warning
-        //         /// A test operation. Similar to {@linked OtherOp}{}.
-        //         [ignore_warnings(W002)]
-        //         op(s: string) -> string;
-        //     }
-        //     "; "local will not ignore"
-        // )]
         #[test_case(
             "
             module Test;
@@ -431,7 +419,7 @@ mod attributes {
                 [ignore_warnings(W005, W001)]
                 op(s: string) -> string;
             }
-            "; "on entity"
+            "; "entity"
         )]
         #[test_case(
             "
@@ -442,7 +430,6 @@ mod attributes {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b A test parameter.
-                [ignore_warnings(W005, W001)]
                 op(s: string) -> string;
             }
             "; "file level"
@@ -453,6 +440,43 @@ mod attributes {
 
             // Assert
             assert_errors!(diagnostic_reporter);
+        }
+
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                /// @param x a parameter that should be used in ops
+                /// @returns a result
+                [ignore_warnings(W002, W003)]
+                op(s: string);
+            }
+            "; "entity"
+        )]
+        #[test_case(
+            "
+            [[ignore_warnings(W002, W003)]]
+            module Test;
+
+            interface I {
+                /// @param x a parameter that should be used in ops
+                /// @returns a result
+                [ignore_warnings(W002, W003)]
+                op(s: string);
+            }
+            "; "file level"
+        )]
+        // Test that if args are passed to ignore_warnings, that only those warnings are ignored
+        fn ignore_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Warning::new(WarningKind::ExtraParameterInDocComment("x".to_owned()), None);
+
+            debug_assert_eq!(expected.error_code().unwrap(), "W001");
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
     }
 
