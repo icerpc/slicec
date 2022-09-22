@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Error, ErrorKind, Note, Warning, WarningKind};
+        use slice::diagnostics::{Error, ErrorKind, Note, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -190,10 +190,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                &crate::helpers::test_span(),
-            );
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -217,10 +215,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                &crate::helpers::test_span(),
-            );
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -242,10 +238,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()),
-                &crate::helpers::test_span(),
-            );
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity(
+                "A".to_owned(),
+                ": Message here".to_owned(),
+            ));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -265,10 +261,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()),
-                &crate::helpers::test_span(),
-            );
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -476,10 +470,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::ExtraParameterInDocComment("x".to_owned()),
-                &crate::helpers::test_span(),
-            );
+            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment("x".to_owned()));
 
             debug_assert_eq!(expected.error_code(), "W001");
             assert_errors!(diagnostic_reporter, [&expected]);
