@@ -18,7 +18,7 @@ impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
-        Self::emit_diagnostics(self.diagnostic_reporter, &self.files, &mut stderr());
+        self.emit_diagnostics(&mut stderr());
 
         i32::from(has_errors)
     }
@@ -27,40 +27,41 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    fn emit_diagnostics<W>(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>, writer: &mut W)
+    pub fn emit_diagnostics<W>(self, writer: &mut W)
     where
         W: Write,
     {
-        match diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files, writer)
+        match self.diagnostic_reporter.diagnostic_format {
+            DiagnosticFormat::Human => self
+                .output_to_console(writer)
                 .expect("Failed to write diagnostic output to writer"),
-            DiagnosticFormat::Json => {
-                Self::output_to_json(diagnostic_reporter, writer).expect("Failed to write diagnostic output to writer")
-            }
+            DiagnosticFormat::Json => self
+                .output_to_json(writer)
+                .expect("Failed to write diagnostic output to writer"),
         };
     }
 
-    fn output_to_json<W>(diagnostic_reporter: DiagnosticReporter, writer: &mut W) -> Result<(), std::io::Error>
+    fn output_to_json<W>(self, writer: &mut W) -> Result<(), std::io::Error>
     where
         W: Write,
     {
-        for diagnostic in diagnostic_reporter.into_diagnostics() {
+        for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
             writeln!(writer, "{}", json)?;
         }
         Ok(())
     }
 
-    fn output_to_console<W>(
-        diagnostic_reporter: DiagnosticReporter,
-        files: &HashMap<String, SliceFile>,
-        writer: &mut W,
-    ) -> Result<(), std::io::Error>
+    fn output_to_console<W>(self, writer: &mut W) -> Result<(), std::io::Error>
     where
         W: Write,
     {
-        let counts = diagnostic_reporter.get_totals();
-        for diagnostic in diagnostic_reporter.into_diagnostics() {
+        let counts = self.diagnostic_reporter.get_totals();
+
+        // Take ownership of the files from `self`
+        let files = self.files;
+
+        for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
             let error_code = diagnostic
@@ -77,8 +78,9 @@ impl ParsedData {
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
-                Self::show_snippet(&mut message, span, files)
+                Self::show_snippet(&mut message, span, &files);
             }
+
             // If the diagnostic contains notes, display them.
             diagnostic.notes().iter().for_each(|note| {
                 message.push(format!(
@@ -88,9 +90,10 @@ impl ParsedData {
                     style(&note).bold(),
                 ));
                 if let Some(span) = &note.span {
-                    Self::show_snippet(&mut message, span, files)
+                    Self::show_snippet(&mut message, span, &files)
                 }
             });
+
             write!(writer, "{}", message.join("\n"))?;
             writeln!(writer)?;
         }
