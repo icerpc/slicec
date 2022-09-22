@@ -157,7 +157,8 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
     string_paths
 }
 
-// Returns the relative paths of all .slice files that have the file level `ignore_warnings` attribute
+// Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
+// `ignore_warnings` attribute and the values are the arguments of the attribute.
 fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
     files
         .iter()
