@@ -3,6 +3,7 @@
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
 use crate::grammar::Entity;
+
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -56,17 +57,6 @@ impl DiagnosticReporter {
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
 
-        // Returns true if the entity (or its parent) has the`ignore_warnings` attribute with no arguments (ignoring all
-        // warnings), or if it has an argument matching the error code of the warning.
-        if match entity.get_ignored_warnings(true) {
-            None => false,
-            Some(args) if args.is_empty() => true,
-            Some(args) => args.contains(&warning.error_code().to_owned()),
-        } {
-            // Do not push the warning to the diagnostics vector
-            return;
-        };
-
         // Returns true if the Slice file has the file level `ignore_warnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
         if match self.file_level_ignored_warnings.get(&warning.span.file) {
@@ -77,6 +67,17 @@ impl DiagnosticReporter {
             // Do not push the warning to the diagnostics vector
             return;
         }
+
+        // Returns true if the entity (or its parent) has the`ignore_warnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if match entity.get_ignored_warnings(true) {
+            None => false,
+            Some(args) if args.is_empty() => true,
+            Some(args) => args.contains(&warning.error_code().to_owned()),
+        } {
+            // Do not push the warning to the diagnostics vector
+            return;
+        };
 
         self.diagnostics.push(Diagnostic::Warning(warning));
     }
