@@ -6,6 +6,7 @@ use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
 use console::style;
 use std::collections::HashMap;
+use std::io::{stderr, Write};
 
 pub struct ParsedData {
     pub ast: Ast,
@@ -17,7 +18,7 @@ impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
-        Self::emit_diagnostics(self.diagnostic_reporter, &self.files);
+        Self::emit_diagnostics(self.diagnostic_reporter, &self.files, &mut stderr());
 
         i32::from(has_errors)
     }
@@ -26,21 +27,38 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    fn emit_diagnostics(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+    fn emit_diagnostics<W>(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>, writer: &mut W)
+    where
+        W: Write,
+    {
         match diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files),
-            DiagnosticFormat::Json => Self::output_to_json(diagnostic_reporter),
-        }
+            DiagnosticFormat::Human => Self::output_to_console(diagnostic_reporter, files, writer)
+                .expect("Failed to write diagnostic output to writer"),
+            DiagnosticFormat::Json => {
+                Self::output_to_json(diagnostic_reporter, writer).expect("Failed to write diagnostic output to writer")
+            }
+        };
     }
 
-    fn output_to_json(diagnostic_reporter: DiagnosticReporter) {
+    fn output_to_json<W>(diagnostic_reporter: DiagnosticReporter, writer: &mut W) -> Result<(), std::io::Error>
+    where
+        W: Write,
+    {
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-            println!("{json}");
+            writeln!(writer, "{}", json)?;
         }
+        Ok(())
     }
 
-    fn output_to_console(diagnostic_reporter: DiagnosticReporter, files: &HashMap<String, SliceFile>) {
+    fn output_to_console<W>(
+        diagnostic_reporter: DiagnosticReporter,
+        files: &HashMap<String, SliceFile>,
+        writer: &mut W,
+    ) -> Result<(), std::io::Error>
+    where
+        W: Write,
+    {
         let counts = diagnostic_reporter.get_totals();
         for diagnostic in diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
@@ -52,55 +70,61 @@ impl ParsedData {
                 Diagnostic::Error(_) => style("error".to_owned() + &error_code).red().bold(),
                 Diagnostic::Warning(_) => style("warning".to_owned() + &error_code).yellow().bold(),
             };
+            let mut message = vec![];
 
             // Emit the message with the prefix.
-            eprintln!("{}: {}", prefix, style(&diagnostic).bold());
+            message.push(format!("{}: {}", prefix, style(&diagnostic).bold()));
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
-                Self::show_snippet(span, files)
+                Self::show_snippet(&mut message, span, files)
             }
             // If the diagnostic contains notes, display them.
             diagnostic.notes().iter().for_each(|note| {
-                eprintln!(
+                message.push(format!(
                     "    {} {}: {:}",
                     style("=").blue().bold(),
                     style("note").bold(),
                     style(&note).bold(),
-                );
+                ));
                 if let Some(span) = &note.span {
-                    Self::show_snippet(span, files)
+                    Self::show_snippet(&mut message, span, files)
                 }
             });
-            println!();
+            write!(writer, "{}", message.join("\n"))?;
+            writeln!(writer)?;
         }
 
         // Output the total number of errors and warnings.
+        writeln!(writer)?;
         if counts.1 != 0 {
-            println!(
+            writeln!(
+                writer,
                 "{}: Compilation generated {} warning(s)",
                 style("Warnings").yellow().bold(),
                 counts.1,
-            )
+            )?;
         }
         if counts.0 != 0 {
-            println!(
+            writeln!(
+                writer,
                 "{}: Compilation failed with {} error(s)",
                 style("Failed").red().bold(),
                 counts.0,
-            )
+            )?;
         }
+        Ok(())
     }
 
-    fn show_snippet(span: &Span, files: &HashMap<String, SliceFile>) {
+    fn show_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
         // Display the file name and line row and column where the error began.
         let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
         let path = std::path::Path::new(&file_location);
-        eprintln!(" {} {}", style("-->").blue().bold(), path.display());
+        message.push(format!(" {} {}", style("-->").blue().bold(), path.display()));
 
         // Display the line of code where the error occurred.
         let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
-        eprintln!("{}", snippet);
+        message.push(snippet);
     }
 }
 

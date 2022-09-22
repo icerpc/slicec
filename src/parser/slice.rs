@@ -149,6 +149,7 @@ impl<'a> SliceParser<'a> {
 // Make Clippy happy until Pest goes away.
 type MainReturnType = PestResult<(Vec<Attribute>, Vec<WeakPtr<Module>>, Option<FileEncoding>)>;
 
+#[allow(dead_code)]
 #[pest_consume::parser]
 impl<'a> SliceParser<'a> {
     fn main(input: PestNode) -> MainReturnType {
