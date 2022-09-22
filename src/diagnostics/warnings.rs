@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::implement_warning_functions;
+use crate::implement_error_functions;
 
 #[derive(Debug)]
 pub enum WarningKind {
@@ -46,7 +46,7 @@ pub enum WarningKind {
     UseOfDeprecatedEntity(String, String),
 }
 
-implement_warning_functions!(
+implement_error_functions!(
     WarningKind,
     (
         "W001",

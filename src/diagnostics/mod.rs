@@ -180,8 +180,28 @@ impl fmt::Display for Note {
 
 #[macro_export]
 macro_rules! implement_error_functions {
-    ($enumerator:ty, $(($($code:literal,)? $kind:path, $message:expr $(, $variant:pat)* )),*) => {
-        impl $enumerator {
+    (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+        impl WarningKind {
+            pub fn error_code(&self) -> &str {
+                match self {
+                    $(
+                        implement_error_functions!(@error $kind, $($variant),*) => $code,
+                    )*
+                }
+            }
+
+            pub fn message(&self) -> String {
+                match self {
+                    $(
+                        implement_error_functions!(@description $kind, $($variant),*) => $message.into(),
+                    )*
+                }
+            }
+        }
+    };
+
+    (ErrorKind, $(($($code:literal,)? $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+        impl ErrorKind {
             pub fn error_code(&self) -> Option<&str> {
                 match self {
                     $(
@@ -206,45 +226,6 @@ macro_rules! implement_error_functions {
 
     (@code) => {
         None
-    };
-
-    (@error $kind:path,) => {
-        $kind
-    };
-
-    (@error $kind:path, $($variant:pat),+) => {
-        $kind(..)
-    };
-
-    (@description $kind:path,) => {
-        $kind
-    };
-
-    (@description $kind:path, $($variant:pat),+) => {
-        $kind($($variant),*)
-    };
-}
-
-#[macro_export]
-macro_rules! implement_warning_functions {
-    ($enumerator:ty, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
-        impl $enumerator {
-            pub fn error_code(&self) -> &str {
-                match self {
-                    $(
-                        implement_warning_functions!(@error $kind, $($variant),*) => $code,
-                    )*
-                }
-            }
-
-            pub fn message(&self) -> String {
-                match self {
-                    $(
-                        implement_warning_functions!(@description $kind, $($variant),*) => $message.into(),
-                    )*
-                }
-            }
-        }
     };
 
     (@error $kind:path,) => {
