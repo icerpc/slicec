@@ -61,7 +61,6 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
         for (tag_type, value) in find_inline_tags(&comment.overview) {
             match tag_type {
                 "@link" => {
-                    println!("{value}");
                     if ast
                         .find_element_with_scope::<dyn Entity>(value, entity.module_scope())
                         .is_err()

@@ -56,15 +56,11 @@ impl DiagnosticReporter {
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
 
-        println!("{}", entity.identifier());
         // Returns true if the entity (or its parent) has the`ignore_warnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
         if match entity.get_ignored_warnings(true) {
             None => false,
-            // The ignore_warnings attribute has no arguments which indicates that all warnings should be
-            // ignored.
             Some(args) if args.is_empty() => true,
-            // Check if the warning should be ignored
             Some(args) => args.contains(&warning.error_code().to_owned()),
         } {
             // Do not push the warning to the diagnostics vector
