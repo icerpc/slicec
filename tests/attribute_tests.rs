@@ -192,7 +192,7 @@ mod attributes {
             // Assert
             let expected = Warning::new(
                 WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                None,
+                &crate::helpers::test_span(),
             );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
@@ -219,7 +219,7 @@ mod attributes {
             // Assert
             let expected = Warning::new(
                 WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                None,
+                &crate::helpers::test_span(),
             );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
@@ -244,7 +244,7 @@ mod attributes {
             // Assert
             let expected = Warning::new(
                 WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()),
-                None,
+                &crate::helpers::test_span(),
             );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
@@ -265,7 +265,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()), None);
+            let expected = Warning::new(
+                WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()),
+                &crate::helpers::test_span(),
+            );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -385,7 +388,7 @@ mod attributes {
                 struct B1 {}
             }
             "
-            => ignore["Fix ignore_warnings attribute"]; "complex"
+            => ignore["Fix deprecate attribute"]; "complex"
         )]
         #[test_case(
             "
@@ -473,9 +476,12 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::ExtraParameterInDocComment("x".to_owned()), None);
+            let expected = Warning::new(
+                WarningKind::ExtraParameterInDocComment("x".to_owned()),
+                &crate::helpers::test_span(),
+            );
 
-            debug_assert_eq!(expected.error_code().unwrap(), "W001");
+            debug_assert_eq!(expected.error_code(), "W001");
             assert_errors!(diagnostic_reporter, [&expected]);
         }
     }

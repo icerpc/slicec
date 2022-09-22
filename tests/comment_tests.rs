@@ -336,7 +336,7 @@ mod comments {
         // Assert
         let expected = Warning::new(
             WarningKind::InvalidDocCommentLinkIdentifier("OtherStruct".to_owned()),
-            None,
+            &crate::helpers::test_span(),
         );
         assert_errors!(diagnostic_reporter, [&expected]);
     }
@@ -354,7 +354,10 @@ mod comments {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::InvalidDocCommentTag("@linked".to_owned()), None);
+        let expected = Warning::new(
+            WarningKind::InvalidDocCommentTag("@linked".to_owned()),
+            &crate::helpers::test_span(),
+        );
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

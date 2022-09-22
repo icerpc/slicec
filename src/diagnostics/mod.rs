@@ -36,7 +36,7 @@ impl Diagnostic {
     pub fn span(&self) -> Option<&Span> {
         match self {
             Diagnostic::Error(error) => error.span.as_ref(),
-            Diagnostic::Warning(warning) => warning.span.as_ref(),
+            Diagnostic::Warning(warning) => Some(&warning.span),
         }
     }
 
@@ -50,7 +50,7 @@ impl Diagnostic {
     pub fn error_code(&self) -> Option<&str> {
         match self {
             Diagnostic::Error(error) => error.error_code(),
-            Diagnostic::Warning(warning) => warning.error_code(),
+            Diagnostic::Warning(warning) => Some(warning.error_code()),
         }
     }
 }
@@ -80,23 +80,23 @@ impl Serialize for Diagnostic {
 #[derive(Debug)]
 pub struct Warning {
     kind: WarningKind,
-    span: Option<Span>,
+    span: Span,
     notes: Vec<Note>,
 }
 
 impl Warning {
-    pub fn new(warning_kind: WarningKind, span: Option<&Span>) -> Self {
+    pub fn new(warning_kind: WarningKind, span: &Span) -> Self {
         Warning {
             kind: warning_kind,
-            span: span.cloned(),
+            span: span.clone(),
             notes: Vec::new(),
         }
     }
 
-    pub fn new_with_notes(warning_kind: WarningKind, span: Option<&Span>, notes: Vec<Note>) -> Self {
+    pub fn new_with_notes(warning_kind: WarningKind, span: &Span, notes: Vec<Note>) -> Self {
         Warning {
             kind: warning_kind,
-            span: span.cloned(),
+            span: span.clone(),
             notes,
         }
     }
@@ -105,7 +105,7 @@ impl Warning {
         self.notes.extend(notes);
     }
 
-    pub fn error_code(&self) -> Option<&str> {
+    pub fn error_code(&self) -> &str {
         self.kind.error_code()
     }
 }
@@ -206,6 +206,45 @@ macro_rules! implement_error_functions {
 
     (@code) => {
         None
+    };
+
+    (@error $kind:path,) => {
+        $kind
+    };
+
+    (@error $kind:path, $($variant:pat),+) => {
+        $kind(..)
+    };
+
+    (@description $kind:path,) => {
+        $kind
+    };
+
+    (@description $kind:path, $($variant:pat),+) => {
+        $kind($($variant),*)
+    };
+}
+
+#[macro_export]
+macro_rules! implement_warning_functions {
+    ($enumerator:ty, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+        impl $enumerator {
+            pub fn error_code(&self) -> &str {
+                match self {
+                    $(
+                        implement_warning_functions!(@error $kind, $($variant),*) => $code,
+                    )*
+                }
+            }
+
+            pub fn message(&self) -> String {
+                match self {
+                    $(
+                        implement_warning_functions!(@description $kind, $($variant),*) => $message.into(),
+                    )*
+                }
+            }
+        }
     };
 
     (@error $kind:path,) => {
