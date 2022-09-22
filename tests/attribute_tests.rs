@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Error, ErrorKind, Note, Warning, WarningKind};
+        use slice::diagnostics::{Error, ErrorKind, Note, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -190,10 +190,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                None,
-            );
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -217,10 +215,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()),
-                None,
-            );
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -242,10 +238,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(
-                WarningKind::UseOfDeprecatedEntity("A".to_owned(), ": Message here".to_owned()),
-                None,
-            );
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity(
+                "A".to_owned(),
+                ": Message here".to_owned(),
+            ));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -265,7 +261,8 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()), None);
+            let expected =
+                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -385,7 +382,7 @@ mod attributes {
                 struct B1 {}
             }
             "
-            => ignore["Fix ignore_warnings attribute"]; "complex"
+            => ignore["Fix deprecate attribute"]; "complex"
         )]
         #[test_case(
             "
@@ -406,6 +403,77 @@ mod attributes {
 
             // Assert
             assert_errors!(diagnostic_reporter);
+        }
+
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                /// @param b A test parameter.
+                [ignore_warnings(W005, W001)]
+                op(s: string) -> string;
+            }
+            "; "entity"
+        )]
+        #[test_case(
+            "
+            [[ignore_warnings(W005, W001)]]
+            module Test;
+
+            interface I {
+                // The below doc comment will generate a warning
+                /// A test operation. Similar to {@linked OtherOp}{}.
+                /// @param b A test parameter.
+                op(s: string) -> string;
+            }
+            "; "file level"
+        )]
+        fn ignore_warnings_attribute_args(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            assert_errors!(diagnostic_reporter);
+        }
+
+        #[test_case(
+            "
+            module Test;
+
+            interface I {
+                /// @param x a parameter that should be used in ops
+                /// @returns a result
+                [ignore_warnings(W002, W003)]
+                op(s: string);
+            }
+            "; "entity"
+        )]
+        #[test_case(
+            "
+            [[ignore_warnings(W002, W003)]]
+            module Test;
+
+            interface I {
+                /// @param x a parameter that should be used in ops
+                /// @returns a result
+                [ignore_warnings(W002, W003)]
+                op(s: string);
+            }
+            "; "file level"
+        )]
+        // Test that if args are passed to ignore_warnings, that only those warnings are ignored
+        fn ignore_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment("x".to_owned()));
+
+            debug_assert_eq!(expected.error_code(), "W001");
+            assert_errors!(diagnostic_reporter, [&expected]);
         }
     }
 

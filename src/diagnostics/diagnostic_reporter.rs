@@ -2,7 +2,9 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::{attributes, Entity};
+use crate::grammar::Entity;
+
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -17,7 +19,7 @@ pub struct DiagnosticReporter {
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
     /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
-    pub ignore_warning_file_paths: Vec<String>,
+    pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
 }
 
 impl DiagnosticReporter {
@@ -28,7 +30,7 @@ impl DiagnosticReporter {
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
-            ignore_warning_file_paths: Vec::new(),
+            file_level_ignored_warnings: HashMap::new(),
         }
     }
 
@@ -54,13 +56,29 @@ impl DiagnosticReporter {
 
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
-        if !entity.has_attribute(attributes::IGNORE_WARNINGS, true)
-            && !warning
-                .span
-                .as_ref()
-                .map_or(false, |s| self.ignore_warning_file_paths.iter().any(|f| *f == s.file))
-        {
-            self.diagnostics.push(Diagnostic::Warning(warning));
+
+        // Returns true if the Slice file has the file level `ignore_warnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if match self.file_level_ignored_warnings.get(&warning.span.file) {
+            None => false,
+            Some(args) if args.is_empty() => true,
+            Some(args) => args.contains(&warning.error_code().to_owned()),
+        } {
+            // Do not push the warning to the diagnostics vector
+            return;
         }
+
+        // Returns true if the entity (or its parent) has the`ignore_warnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if match entity.get_ignored_warnings(true) {
+            None => false,
+            Some(args) if args.is_empty() => true,
+            Some(args) => args.contains(&warning.error_code().to_owned()),
+        } {
+            // Do not push the warning to the diagnostics vector
+            return;
+        };
+
+        self.diagnostics.push(Diagnostic::Warning(warning));
     }
 }

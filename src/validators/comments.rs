@@ -21,7 +21,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
         // example: @return A description of the return value.
         if comment.returns.is_some() && operation.return_members().is_empty() {
             diagnostic_reporter.report_warning(
-                Warning::new(WarningKind::ExtraReturnValueInDocComment, Some(comment.span())),
+                Warning::new(WarningKind::ExtraReturnValueInDocComment, comment.span()),
                 operation,
             );
         }
@@ -38,10 +38,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                 .any(|identifier| identifier == param.0)
             {
                 diagnostic_reporter.report_warning(
-                    Warning::new(
-                        WarningKind::ExtraParameterInDocComment(param.0.clone()),
-                        Some(comment.span()),
-                    ),
+                    Warning::new(WarningKind::ExtraParameterInDocComment(param.0.clone()), comment.span()),
                     operation,
                 );
             }
@@ -53,9 +50,8 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
     let supported_on = ["operation"];
     if let Some(comment) = entity.comment() {
         if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
-            let warning =
-                WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
-            diagnostic_reporter.report_warning(Warning::new(warning, Some(comment.span())), entity);
+            let warning = WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
+            diagnostic_reporter.report_warning(Warning::new(warning, comment.span()), entity);
         };
     }
 }
@@ -65,7 +61,6 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
         for (tag_type, value) in find_inline_tags(&comment.overview) {
             match tag_type {
                 "@link" => {
-                    println!("{value}");
                     if ast
                         .find_element_with_scope::<dyn Entity>(value, entity.module_scope())
                         .is_err()
@@ -73,7 +68,7 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
                         diagnostic_reporter.report_warning(
                             Warning::new(
                                 WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
-                                Some(comment.span()),
+                                comment.span(),
                             ),
                             entity,
                         );
@@ -81,10 +76,7 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
                 }
                 other if other.starts_with('@') => {
                     diagnostic_reporter.report_warning(
-                        Warning::new(
-                            WarningKind::InvalidDocCommentTag(other.to_owned()),
-                            Some(comment.span()),
-                        ),
+                        Warning::new(WarningKind::InvalidDocCommentTag(other.to_owned()), comment.span()),
                         entity,
                     );
                 }
