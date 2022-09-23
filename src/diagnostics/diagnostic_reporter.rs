@@ -20,7 +20,7 @@ pub struct DiagnosticReporter {
     pub diagnostic_format: DiagnosticFormat,
     /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
     pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
-    // If true, diagnostic output will be styled.
+    // If true, diagnostic output will not be styled.
     pub disable_color: bool,
 }
 
