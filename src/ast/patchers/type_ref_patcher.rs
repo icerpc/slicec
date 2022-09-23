@@ -216,7 +216,7 @@ impl TypeRefPatcher<'_> {
                             entity.identifier().to_owned(),
                             argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
                         ),
-                        Some(type_ref.span()),
+                        type_ref.span(),
                         vec![Note::new(
                             format!("{} was deprecated here:", entity.identifier()),
                             Some(entity.span()),
