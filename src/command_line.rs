@@ -38,6 +38,10 @@ pub struct SliceOptions {
     /// Output format for emitted errors,
     #[structopt(long, possible_values = &["human", "json"], case_insensitive = true, default_value = "human")]
     pub diagnostic_format: DiagnosticFormat,
+
+    /// Disables ANSI escape code for diagnostic output.
+    #[structopt(long)]
+    pub disable_color: bool,
 }
 
 arg_enum! {

@@ -22,7 +22,11 @@ pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
 }
 
 pub fn parse_from_string(input: &str) -> ParserResult {
-    parser::parse_string(input).and_then(validate_parsed_data)
+    parser::parse_string(input, None).and_then(validate_parsed_data)
+}
+
+pub fn parse_from_string_with_options(input: &str, options: SliceOptions) -> ParserResult {
+    parser::parse_string(input, Some(options)).and_then(validate_parsed_data)
 }
 
 pub fn parse_from_strings(inputs: &[&str]) -> ParserResult {

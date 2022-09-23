@@ -4,7 +4,7 @@ use crate::ast::Ast;
 use crate::command_line::DiagnosticFormat;
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
-use console::style;
+use console::{strip_ansi_codes, style};
 use std::collections::HashMap;
 use std::io::{stderr, Write};
 
@@ -61,6 +61,8 @@ impl ParsedData {
         // Take ownership of the files from `self`
         let files = self.files;
 
+        let disable_color = self.diagnostic_reporter.disable_color;
+
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
@@ -94,28 +96,38 @@ impl ParsedData {
                 }
             });
 
-            write!(writer, "{}", message.join("\n"))?;
+            let mut output_message = message.join("\n");
+            if disable_color {
+                output_message = strip_ansi_codes(&output_message).to_string();
+            }
+
+            write!(writer, "{}", output_message)?;
             writeln!(writer)?;
         }
 
         // Output the total number of errors and warnings.
         writeln!(writer)?;
+        let mut counter_messages = vec![];
         if counts.1 != 0 {
-            writeln!(
-                writer,
+            counter_messages.push(format!(
                 "{}: Compilation generated {} warning(s)",
                 style("Warnings").yellow().bold(),
                 counts.1,
-            )?;
+            ));
         }
         if counts.0 != 0 {
-            writeln!(
-                writer,
+            counter_messages.push(format!(
                 "{}: Compilation failed with {} error(s)",
                 style("Failed").red().bold(),
                 counts.0,
-            )?;
+            ));
         }
+        let mut output_message = counter_messages.join("\n");
+        if disable_color {
+            output_message = strip_ansi_codes(&output_message).to_string();
+        }
+        write!(writer, "{}", output_message)?;
+
         Ok(())
     }
 
