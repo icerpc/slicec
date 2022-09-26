@@ -101,8 +101,7 @@ impl ParsedData {
                 output_message = strip_ansi_codes(&output_message).to_string();
             }
 
-            write!(writer, "{}", output_message)?;
-            writeln!(writer)?;
+            writeln!(writer, "{}", output_message)?;
         }
 
         // Output the total number of errors and warnings.
