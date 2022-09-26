@@ -18,7 +18,6 @@ use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};
-use structopt::StructOpt;
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including
@@ -68,10 +67,18 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     patch_ast(parsed_data)
 }
 
+// TODO: Move to tests directory.
 pub fn parse_string(input: &str) -> ParserResult {
     let mut ast = Ast::create();
-    let mut default_options = SliceOptions::from_args();
-    default_options.warn_as_error = true;
+    let default_options = SliceOptions {
+        sources: vec!["test".to_owned()],
+        references: vec![],
+        debug: false,
+        warn_as_error: true,
+        validate: false,
+        output_dir: None,
+        diagnostic_format: crate::command_line::DiagnosticFormat::Human,
+    };
     let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
@@ -94,10 +101,18 @@ pub fn parse_string(input: &str) -> ParserResult {
     patch_ast(parsed_data)
 }
 
+// TODO: Move to tests directory.
 pub fn parse_strings(inputs: &[&str]) -> ParserResult {
     let mut ast = Ast::create();
-    let mut default_options = SliceOptions::from_args();
-    default_options.warn_as_error = true;
+    let default_options = SliceOptions {
+        sources: vec!["test".to_owned()],
+        references: vec![],
+        debug: false,
+        warn_as_error: true,
+        validate: false,
+        output_dir: None,
+        diagnostic_format: crate::command_line::DiagnosticFormat::Human,
+    };
     let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
