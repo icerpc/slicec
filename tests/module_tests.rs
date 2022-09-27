@@ -6,7 +6,7 @@ mod module {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
-    use slice::parse_from_string;
+    use slice::parse_from_strings;
 
     #[test]
     fn can_be_reopened() {
@@ -70,7 +70,7 @@ mod module {
         ";
 
         // Act
-        let err = parse_from_string(slice).err();
+        let err = parse_from_strings(&[slice], None).err();
 
         // Assert
         // TODO: better error message once we replace the parser

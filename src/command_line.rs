@@ -20,10 +20,6 @@ pub struct SliceOptions {
     #[structopt(short = "R", long, number_of_values = 1, multiple = true)]
     pub references: Vec<String>,
 
-    /// Prints additional debugging information to the console.
-    #[structopt(short, long)]
-    pub debug: bool,
-
     /// Instructs the compiler to treat warnings as errors.
     #[structopt(short, long)]
     pub warn_as_error: bool,
@@ -39,6 +35,10 @@ pub struct SliceOptions {
     /// Output format for emitted errors,
     #[structopt(case_insensitive = true, default_value = "human", long, possible_values = &["human", "json"])]
     pub diagnostic_format: DiagnosticFormat,
+
+    /// Disables ANSI escape code for diagnostic output.
+    #[structopt(long)]
+    pub disable_color: bool,
 }
 
 arg_enum! {

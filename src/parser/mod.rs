@@ -9,7 +9,7 @@ mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;
-use crate::command_line::SliceOptions;
+use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::attributes;
 use crate::parse_result::{ParsedData, ParserResult};
@@ -67,53 +67,19 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     patch_ast(parsed_data)
 }
 
-// TODO: Move to tests directory.
-pub fn parse_string(input: &str) -> ParserResult {
+pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserResult {
     let mut ast = Ast::create();
-    let default_options = SliceOptions {
-        sources: vec!["test".to_owned()],
+    let mut slice_options = options.unwrap_or(SliceOptions {
+        sources: vec![],
         references: vec![],
-        debug: false,
         warn_as_error: true,
+        disable_color: false,
+        diagnostic_format: DiagnosticFormat::Human,
         validate: false,
         output_dir: None,
-        diagnostic_format: crate::command_line::DiagnosticFormat::Human,
-    };
-    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
-    let mut parser = slice::SliceParser {
-        diagnostic_reporter: &mut diagnostic_reporter,
-    };
-
-    let mut slice_files = HashMap::new();
-
-    if let Some(slice_file) = parser.try_parse_string("string", input, &mut ast) {
-        slice_files.insert(slice_file.filename.clone(), slice_file);
-    }
-
-    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
-    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
-    let parsed_data = ParsedData {
-        ast,
-        files: slice_files,
-        diagnostic_reporter,
-    };
-
-    patch_ast(parsed_data)
-}
-
-// TODO: Move to tests directory.
-pub fn parse_strings(inputs: &[&str]) -> ParserResult {
-    let mut ast = Ast::create();
-    let default_options = SliceOptions {
-        sources: vec!["test".to_owned()],
-        references: vec![],
-        debug: false,
-        warn_as_error: true,
-        validate: false,
-        output_dir: None,
-        diagnostic_format: crate::command_line::DiagnosticFormat::Human,
-    };
-    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
+    });
+    slice_options.warn_as_error = true;
+    let mut diagnostic_reporter = DiagnosticReporter::new(&slice_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };

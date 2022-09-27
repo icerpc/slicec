@@ -6,7 +6,7 @@ mod encodings {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::parse_from_string;
+    use slice::parse_from_strings;
     use test_case::test_case;
 
     /// Verifies that the supported encodings compile
@@ -52,7 +52,7 @@ mod encodings {
         ";
 
         // Act
-        let error = parse_from_string(slice).err().is_some();
+        let error = parse_from_strings(&[slice], None).err().is_some();
 
         // Assert
         assert!(error);

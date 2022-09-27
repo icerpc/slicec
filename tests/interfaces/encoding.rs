@@ -22,7 +22,7 @@ fn operation_members_are_compatible_with_encoding() {
     ";
 
     // Act
-    let result = parse_from_strings(&[slice1, slice2]).err().unwrap();
+    let result = parse_from_strings(&[slice1, slice2], None).err().unwrap();
 
     // Assert
     let expected = Error::new_with_notes(
