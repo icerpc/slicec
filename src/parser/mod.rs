@@ -68,11 +68,11 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     patch_ast(parsed_data)
 }
 
-pub fn parse_string(input: &str) -> ParserResult {
+pub fn parse_string(input: &str, options: Option<SliceOptions>) -> ParserResult {
     let mut ast = Ast::create();
-    let mut default_options = SliceOptions::from_args();
-    default_options.warn_as_error = true;
-    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
+    let mut options = options.unwrap_or_else(SliceOptions::from_args);
+    options.warn_as_error = true;
+    let mut diagnostic_reporter = DiagnosticReporter::new(&options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };
@@ -94,11 +94,11 @@ pub fn parse_string(input: &str) -> ParserResult {
     patch_ast(parsed_data)
 }
 
-pub fn parse_strings(inputs: &[&str]) -> ParserResult {
+pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserResult {
     let mut ast = Ast::create();
-    let mut default_options = SliceOptions::from_args();
-    default_options.warn_as_error = true;
-    let mut diagnostic_reporter = DiagnosticReporter::new(&default_options);
+    let mut slice_options = options.unwrap_or_else(SliceOptions::from_args);
+    slice_options.warn_as_error = true;
+    let mut diagnostic_reporter = DiagnosticReporter::new(&slice_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,
     };

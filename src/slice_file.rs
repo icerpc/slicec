@@ -37,6 +37,7 @@ pub struct Span {
     pub file: String,
 }
 
+#[derive(Debug)]
 pub struct SliceFile {
     pub filename: String,
     pub relative_path: String,

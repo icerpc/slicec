@@ -8,7 +8,7 @@ mod tags {
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use slice::diagnostics::{Error, ErrorKind, Note};
     use slice::grammar::*;
-    use slice::parse_from_string;
+    use slice::parse_from_strings;
     use test_case::test_case;
 
     #[test]
@@ -254,7 +254,7 @@ mod tags {
         ";
 
         // Act
-        let err = parse_from_string(slice).err();
+        let err = parse_from_strings(&[slice], None).err();
 
         // Assert
         assert!(err.is_some());

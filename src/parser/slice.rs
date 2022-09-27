@@ -149,6 +149,9 @@ impl<'a> SliceParser<'a> {
 // Make Clippy happy until Pest goes away.
 type MainReturnType = PestResult<(Vec<Attribute>, Vec<WeakPtr<Module>>, Option<FileEncoding>)>;
 
+// The Pest keyword methods give dead code warnings because of the order which Pest generates code.
+// TODO: Remove `#[allow(dead_code)]` once Pest is replaced with LALRPOP.
+#[allow(dead_code)]
 #[pest_consume::parser]
 impl<'a> SliceParser<'a> {
     fn main(input: PestNode) -> MainReturnType {

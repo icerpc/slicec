@@ -482,7 +482,7 @@ mod attributes {
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
         use slice::grammar::*;
-        use slice::parse_from_string;
+        use slice::parse_from_strings;
         use test_case::test_case;
 
         #[test]
@@ -579,7 +579,7 @@ mod attributes {
             );
 
             // Act
-            let errors = parse_from_string(&slice).err();
+            let errors = parse_from_strings(&[&slice], None).err();
 
             // Assert
             assert!(errors.is_some());
