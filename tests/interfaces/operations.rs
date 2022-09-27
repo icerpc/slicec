@@ -227,7 +227,6 @@ mod streams {
     }
 
     #[test]
-    #[ignore]
     fn operation_can_have_at_most_one_streamed_parameter() {
         // Arrange
         let slice = "
@@ -242,8 +241,11 @@ mod streams {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::StreamedMembersMustBeLast("s2".to_owned()), None); // TODO: This is checking the wrong error
-        assert_errors!(diagnostic_reporter, [&expected]);
+        let expected = [
+            Error::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned()), None),
+            Error::new(ErrorKind::MultipleStreamedMembers, None),
+        ];
+        assert_errors!(diagnostic_reporter, expected);
     }
 
     #[test]
