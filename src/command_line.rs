@@ -10,18 +10,15 @@ use structopt::StructOpt;
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `StructOpt` macro.
 #[derive(Debug, StructOpt)]
-#[structopt(rename_all = "kebab-case", about = "_")] // Each compiler sets its own `about` message.
+#[structopt(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
+    #[structopt(required = true)]
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
     #[structopt(short = "R", long, number_of_values = 1, multiple = true)]
     pub references: Vec<String>,
-
-    /// Prints additional debugging information to the console.
-    #[structopt(short, long)]
-    pub debug: bool,
 
     /// Instructs the compiler to treat warnings as errors.
     #[structopt(short, long)]
@@ -36,7 +33,7 @@ pub struct SliceOptions {
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[structopt(long, possible_values = &["human", "json"], case_insensitive = true, default_value = "human")]
+    #[structopt(case_insensitive = true, default_value = "human", long, possible_values = &["human", "json"])]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disables ANSI escape code for diagnostic output.

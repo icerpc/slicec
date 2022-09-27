@@ -9,7 +9,7 @@ mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;
-use crate::command_line::SliceOptions;
+use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::attributes;
 use crate::parse_result::{ParsedData, ParserResult};
@@ -18,7 +18,6 @@ use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};
-use structopt::StructOpt;
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including
@@ -68,35 +67,17 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     patch_ast(parsed_data)
 }
 
-pub fn parse_string(input: &str, options: Option<SliceOptions>) -> ParserResult {
-    let mut ast = Ast::create();
-    let mut options = options.unwrap_or_else(SliceOptions::from_args);
-    options.warn_as_error = true;
-    let mut diagnostic_reporter = DiagnosticReporter::new(&options);
-    let mut parser = slice::SliceParser {
-        diagnostic_reporter: &mut diagnostic_reporter,
-    };
-
-    let mut slice_files = HashMap::new();
-
-    if let Some(slice_file) = parser.try_parse_string("string", input, &mut ast) {
-        slice_files.insert(slice_file.filename.clone(), slice_file);
-    }
-
-    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
-    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
-    let parsed_data = ParsedData {
-        ast,
-        files: slice_files,
-        diagnostic_reporter,
-    };
-
-    patch_ast(parsed_data)
-}
-
 pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserResult {
     let mut ast = Ast::create();
-    let mut slice_options = options.unwrap_or_else(SliceOptions::from_args);
+    let mut slice_options = options.unwrap_or(SliceOptions {
+        sources: vec![],
+        references: vec![],
+        warn_as_error: true,
+        disable_color: false,
+        diagnostic_format: DiagnosticFormat::Human,
+        validate: false,
+        output_dir: None,
+    });
     slice_options.warn_as_error = true;
     let mut diagnostic_reporter = DiagnosticReporter::new(&slice_options);
     let mut parser = slice::SliceParser {

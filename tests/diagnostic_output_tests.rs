@@ -4,7 +4,18 @@ mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::parse_from_strings;
-    use structopt::StructOpt;
+
+    fn default_options() -> SliceOptions {
+        SliceOptions {
+            sources: vec![],
+            references: vec![],
+            warn_as_error: true,
+            disable_color: false,
+            diagnostic_format: DiagnosticFormat::Human,
+            validate: false,
+            output_dir: None,
+        }
+    }
 
     #[test]
     fn output_to_json() {
@@ -20,7 +31,7 @@ mod output {
         "#;
 
         // Set the output format to JSON.
-        let mut default_options = SliceOptions::from_args();
+        let mut default_options = default_options();
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
@@ -55,7 +66,7 @@ mod output {
         "#;
 
         // Disable ANSI codes.
-        let mut default_options = SliceOptions::from_args();
+        let mut default_options = default_options();
         default_options.disable_color = true;
 
         // Parse the Slice file.
