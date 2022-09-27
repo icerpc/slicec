@@ -3,7 +3,7 @@
 mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
-    use slice::parse_from_string_with_options;
+    use slice::parse_from_strings;
     use structopt::StructOpt;
 
     #[test]
@@ -24,7 +24,7 @@ mod output {
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let parsed_data = match parse_from_string_with_options(slice, default_options) {
+        let parsed_data = match parse_from_strings(&[slice], Some(default_options)) {
             Err(data) => data,
             _ => panic!("Expected error"),
         };
@@ -36,9 +36,9 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":13},"end":{"row":6,"col":13},"file":"string"},"notes":[],"error_code":"W001"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":13},"end":{"row":6,"col":13},"file":"string-0"},"notes":[],"error_code":"W001"}"#,
             "\n",
-            r#"{"message":"invalid enum `E`: enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string"},"notes":[],"error_code":"E010"}"#,
+            r#"{"message":"invalid enum `E`: enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -62,7 +62,7 @@ mod output {
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let parsed_data = match parse_from_string_with_options(slice, default_options) {
+        let parsed_data = match parse_from_strings(&[slice], Some(default_options)) {
             Err(data) => data,
             _ => panic!("Expected error"),
         };
@@ -75,14 +75,14 @@ mod output {
         // Assert
         let expected = "\
 warning [W001]: doc comment has a param tag for 'x', but there is no parameter by that name
- --> string:5:13
+ --> string-0:5:13
     |
 5   |             /// @param x this is an x
 6   |             op();
     |             -------------------------
     |
 error [E010]: invalid enum `E`: enums must contain at least one enumerator
- --> string:9:9
+ --> string-0:9:9
     |
 9   |         enum E {}
     |         ------

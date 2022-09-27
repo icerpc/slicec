@@ -21,14 +21,6 @@ pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
     parser::parse_files(options).and_then(validate_parsed_data)
 }
 
-pub fn parse_from_string(input: &str) -> ParserResult {
-    parser::parse_string(input, None).and_then(validate_parsed_data)
-}
-
-pub fn parse_from_string_with_options(input: &str, options: SliceOptions) -> ParserResult {
-    parser::parse_string(input, Some(options)).and_then(validate_parsed_data)
-}
-
-pub fn parse_from_strings(inputs: &[&str]) -> ParserResult {
-    parser::parse_strings(inputs).and_then(validate_parsed_data)
+pub fn parse_from_strings(inputs: &[&str], option: Option<SliceOptions>) -> ParserResult {
+    parser::parse_strings(inputs, option).and_then(validate_parsed_data)
 }
