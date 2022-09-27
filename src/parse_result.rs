@@ -8,6 +8,7 @@ use console::{strip_ansi_codes, style};
 use std::collections::HashMap;
 use std::io::{stderr, Write};
 
+#[derive(Debug)]
 pub struct ParsedData {
     pub ast: Ast,
     pub diagnostic_reporter: DiagnosticReporter,

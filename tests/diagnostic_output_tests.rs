@@ -24,10 +24,7 @@ mod output {
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let parsed_data = match parse_from_strings(&[slice], Some(default_options)) {
-            Err(data) => data,
-            _ => panic!("Expected error"),
-        };
+        let parsed_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -62,10 +59,7 @@ mod output {
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let parsed_data = match parse_from_strings(&[slice], Some(default_options)) {
-            Err(data) => data,
-            _ => panic!("Expected error"),
-        };
+        let parsed_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
 
         let mut output: Vec<u8> = Vec::new();
 
