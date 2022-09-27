@@ -27,35 +27,23 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    pub fn emit_diagnostics<W>(self, writer: &mut W)
-    where
-        W: Write,
-    {
+    pub fn emit_diagnostics(self, writer: &mut impl Write) {
         match self.diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => self
-                .output_to_console(writer)
-                .expect("Failed to write diagnostic output to writer"),
-            DiagnosticFormat::Json => self
-                .output_to_json(writer)
-                .expect("Failed to write diagnostic output to writer"),
-        };
+            DiagnosticFormat::Human => self.output_to_console(writer),
+            DiagnosticFormat::Json => self.output_to_json(writer),
+        }
+        .expect("Failed to write diagnostic output to writer");
     }
 
-    fn output_to_json<W>(self, writer: &mut W) -> Result<(), std::io::Error>
-    where
-        W: Write,
-    {
+    fn output_to_json(self, writer: &mut impl Write) -> std::io::Result<()> {
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-            writeln!(writer, "{}", json)?;
+            writeln!(writer, "{json}")?;
         }
         Ok(())
     }
 
-    fn output_to_console<W>(self, writer: &mut W) -> Result<(), std::io::Error>
-    where
-        W: Write,
-    {
+    fn output_to_console(self, writer: &mut impl Write) -> std::io::Result<()> {
         let counts = self.diagnostic_reporter.get_totals();
 
         // Take ownership of the files from `self`
@@ -80,7 +68,7 @@ impl ParsedData {
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
-                Self::show_snippet(&mut message, span, &files);
+                Self::append_snippet(&mut message, span, &files);
             }
 
             // If the diagnostic contains notes, display them.
@@ -92,7 +80,7 @@ impl ParsedData {
                     style(&note).bold(),
                 ));
                 if let Some(span) = &note.span {
-                    Self::show_snippet(&mut message, span, &files)
+                    Self::append_snippet(&mut message, span, &files)
                 }
             });
 
@@ -125,12 +113,10 @@ impl ParsedData {
         if disable_color {
             output_message = strip_ansi_codes(&output_message).to_string();
         }
-        write!(writer, "{}", output_message)?;
-
-        Ok(())
+        write!(writer, "{}", output_message)
     }
 
-    fn show_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
+    fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
         // Display the file name and line row and column where the error began.
         let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
         let path = std::path::Path::new(&file_location);

@@ -29,7 +29,7 @@ mod output {
             _ => panic!("Expected error"),
         };
 
-        let mut output = Vec::new();
+        let mut output: Vec<u8> = Vec::new();
 
         // Act
         parsed_data.emit_diagnostics(&mut output);
@@ -37,12 +37,11 @@ mod output {
         // Assert
         let expected = concat!(
             r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":13},"end":{"row":6,"col":13},"file":"string"},"notes":[],"error_code":"W001"}"#,
+            "\n",
             r#"{"message":"invalid enum `E`: enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string"},"notes":[],"error_code":"E010"}"#,
+            "\n",
         );
-        assert_eq!(
-            expected.replace('\n', ""),
-            String::from_utf8(output).unwrap().replace('\n', "")
-        );
+        assert_eq!(expected, String::from_utf8(output).unwrap());
     }
 
     #[test]
@@ -68,36 +67,30 @@ mod output {
             _ => panic!("Expected error"),
         };
 
-        let mut output = Vec::new();
+        let mut output: Vec<u8> = Vec::new();
 
         // Act
         parsed_data.emit_diagnostics(&mut output);
 
         // Assert
-        let expected = concat!(
-            r#"warning [W001]: doc comment has a param tag for 'x', but there is no parameter by that name"#,
-            r#" --> string:5:13"#,
-            r#"    |"#,
-            r#"5   |       /// @param x this is an x"#,
-            r#"6   |       op();"#,
-            r#"    |       -------------------------"#,
-            r#"    |"#,
-            r#"error [E010]: invalid enum `E`: enums must contain at least one enumerator"#,
-            r#" --> string:9:9"#,
-            r#"    |"#,
-            r#"9   | enum E {}"#,
-            r#"    | ------"#,
-            r#"    |"#,
-            r#"Warnings: Compilation generated 1 warning(s)"#,
-            r#"Failed: Compilation failed with 1 error(s)"#,
-        );
+        let expected = "\
+warning [W001]: doc comment has a param tag for 'x', but there is no parameter by that name
+ --> string:5:13
+    |
+5   |             /// @param x this is an x
+6   |             op();
+    |             -------------------------
+    |
+error [E010]: invalid enum `E`: enums must contain at least one enumerator
+ --> string:9:9
+    |
+9   |         enum E {}
+    |         ------
+    |
 
-        assert_eq!(
-            expected.replace('\n', "").replace(char::is_whitespace, ""),
-            String::from_utf8(output)
-                .unwrap()
-                .replace('\n', "")
-                .replace(char::is_whitespace, "")
-        );
+Warnings: Compilation generated 1 warning(s)
+Failed: Compilation failed with 1 error(s)";
+
+        assert_eq!(expected, String::from_utf8(output).unwrap());
     }
 }

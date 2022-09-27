@@ -40,7 +40,7 @@ impl Diagnostic {
         }
     }
 
-    pub fn notes(&self) -> &Vec<Note> {
+    pub fn notes(&self) -> &[Note] {
         match self {
             Diagnostic::Error(error) => &error.notes,
             Diagnostic::Warning(warning) => &warning.notes,
@@ -71,7 +71,7 @@ impl Serialize for Diagnostic {
         state.serialize_field("message", &self.message())?;
         state.serialize_field("severity", severity)?;
         state.serialize_field("span", &self.span())?;
-        state.serialize_field("notes", &self.notes())?;
+        state.serialize_field("notes", self.notes())?;
         state.serialize_field("error_code", &self.error_code())?;
         state.end()
     }
