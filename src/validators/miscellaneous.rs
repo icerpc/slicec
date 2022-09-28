@@ -24,18 +24,17 @@ fn at_most_one_stream_parameter(members: &[&Parameter], diagnostic_reporter: &mu
 }
 
 fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
-    // If members is empty, `split_last` returns None, and this check is skipped,
-    // otherwise it returns all the members, except for the last one. None of these members
-    // can be streamed, since only the last member can be.
-    if let Some((_, remaining)) = members.split_last() {
-        // Check that only the last parameter is streamed.
-        remaining.iter().filter(|member| member.is_streamed).for_each(|member| {
+    members
+        .split_last() // Returns None if members is empty.
+        .map_or(vec![], |(_, remaining)| remaining.to_vec())
+        .into_iter()
+        .filter(|m| m.is_streamed)
+        .for_each(|m| {
             diagnostic_reporter.report_error(Error::new(
-                ErrorKind::StreamedMembersMustBeLast(member.identifier().to_owned()),
-                Some(member.span()),
+                ErrorKind::StreamedMembersMustBeLast(m.identifier().to_owned()),
+                Some(m.span()),
             ));
         });
-    }
 }
 
 fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
