@@ -46,7 +46,7 @@ const SLICE_FILE_EXTENSION: &str = "slice";
 fn is_valid_source(s: &str) -> Result<String, String> {
     match Path::new(s).extension() {
         Some(extension) if extension == SLICE_FILE_EXTENSION => Ok(s.to_owned()),
-        _ => Err("slice files must end with a .slice extension".to_owned()),
+        _ => Err("Slice files must end with a .slice extension".to_owned()),
     }
 }
 
