@@ -13,7 +13,7 @@ use std::path::Path;
 #[clap(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
-    #[clap(required = true, value_parser = is_valid_slice_file)]
+    #[clap(required = true, value_parser = is_valid_source)]
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
@@ -43,20 +43,17 @@ pub struct SliceOptions {
 
 const SLICE_FILE_EXTENSION: &str = "slice";
 
-fn is_valid_slice_file(s: &str) -> Result<String, String> {
+fn is_valid_source(s: &str) -> Result<String, String> {
     match Path::new(s).extension() {
         Some(extension) if extension == SLICE_FILE_EXTENSION => Ok(s.to_owned()),
-        _ => Err(format!(
-            "Unable to parse '{}'. Slice files must end with a `.slice` extension",
-            s
-        )),
+        _ => Err("slice files must end with a .slice extension".to_owned()),
     }
 }
 
 fn is_valid_reference(s: &str) -> Result<String, String> {
     if Path::new(s).is_file() {
-        // The user supplied a file, need to check if it is a .slice file.
-        is_valid_slice_file(s)
+        // The user supplied a file, need to check if it ends with '.slice'.
+        is_valid_source(s)
     } else {
         // The user supplied a directory, no checks needed.
         Ok(s.to_owned())
