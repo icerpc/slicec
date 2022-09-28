@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::parser::find_slice_files;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 use std::path::Path;
@@ -22,53 +21,45 @@ pub struct SliceOptions {
     pub references: Vec<String>,
 
     /// Instructs the compiler to treat warnings as errors.
-    #[clap(short, long, value_parser)]
+    #[clap(short, long, action)]
     pub warn_as_error: bool,
 
     /// Validates input files without generating code for them.
-    #[clap(long, value_parser)]
+    #[clap(long, action)]
     pub validate: bool,
 
     /// Output directory for generated code, defaults to the current working directory.
-    #[clap(long, value_parser)]
+    #[clap(long)]
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[clap(arg_enum, case_insensitive = true, default_value_t = DiagnosticFormat::Human, long, value_parser)]
+    #[clap(arg_enum, case_insensitive = true, default_value_t = DiagnosticFormat::Human, long)]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disables ANSI escape code for diagnostic output.
-    #[clap(long, value_parser)]
+    #[clap(long, action)]
     pub disable_color: bool,
 }
 
 const SLICE_FILE_EXTENSION: &str = "slice";
 
 fn is_valid_slice_file(s: &str) -> Result<String, String> {
-    if let Some(extension) = Path::new(s).extension() {
-        if extension == SLICE_FILE_EXTENSION {
-            return Ok(s.to_owned());
-        }
+    match Path::new(s).extension() {
+        Some(extension) if extension == SLICE_FILE_EXTENSION => Ok(s.to_owned()),
+        _ => Err(format!(
+            "Unable to parse '{}'. Slice files must end with a `.slice` extension",
+            s
+        )),
     }
-    Err("slice files must end with a `.slice` extension".to_owned())
 }
 
 fn is_valid_reference(s: &str) -> Result<String, String> {
-    let path = Path::new(s);
-    if path.is_dir() {
-        // The user supplied a directory, need to check if it contains at least one .slice file.
-        if find_slice_files(&[s.to_owned()])
-            .iter()
-            .filter_map(|f| is_valid_slice_file(f).ok())
-            .next()
-            .is_some()
-        {
-            return Ok(s.to_owned());
-        }
-        Err(format!("`{}` must contain at least one .slice file", s))
-    } else {
+    if Path::new(s).is_file() {
         // The user supplied a file, need to check if it is a .slice file.
         is_valid_slice_file(s)
+    } else {
+        // The user supplied a directory, no checks needed.
+        Ok(s.to_owned())
     }
 }
 

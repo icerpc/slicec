@@ -119,7 +119,7 @@ fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
     parsed_data.into()
 }
 
-pub fn find_slice_files(paths: &[String]) -> Vec<String> {
+fn find_slice_files(paths: &[String]) -> Vec<String> {
     let mut slice_paths = Vec::new();
     for path in paths {
         match find_slice_files_in_path(PathBuf::from(path)) {
