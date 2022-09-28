@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::parser::find_slice_files;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 use std::path::Path;
@@ -13,12 +14,12 @@ use std::path::Path;
 #[clap(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
-    #[clap(required = true, value_parser = file_is_slice)]
+    #[clap(required = true, value_parser = is_valid_slice_file)]
     // TODO: Add validation that the file is a .slice file
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser = file_is_slice)]
+    #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser = is_valid_reference)]
     // TODO: Add validation that the file is a .slice file
     pub references: Vec<String>,
 
@@ -43,15 +44,34 @@ pub struct SliceOptions {
     pub disable_color: bool,
 }
 
-const SLICE_FILE_EXTENSION: &str = ".slice";
+const SLICE_FILE_EXTENSION: &str = "slice";
 
-fn file_is_slice(filename: &str) -> Result<String, String> {
-    if let Some(extension) = Path::new(filename).extension().and_then(|f| f.to_str()).to_owned() {
+fn is_valid_slice_file(s: &str) -> Result<String, String> {
+    if let Some(extension) = Path::new(s).extension() {
         if extension == SLICE_FILE_EXTENSION {
-            return Ok(filename.to_owned());
+            return Ok(s.to_owned());
         }
     }
-    Err(format!("{} is not a .slice file", filename))
+    Err(format!("{} is not a .slice file", s))
+}
+
+fn is_valid_reference(s: &str) -> Result<String, String> {
+    let path = Path::new(s);
+    if path.is_dir() {
+        // The user supplied a directory, need to check if it contains at least one .slice file.
+        if find_slice_files(&[s.to_owned()])
+            .iter()
+            .filter_map(|f| is_valid_slice_file(f).ok())
+            .next()
+            .is_some()
+        {
+            return Ok(s.to_owned());
+        }
+        Err(format!("{} does not contain any .slice files", s))
+    } else {
+        // The user supplied a file, need to check if it is a .slice file.
+        is_valid_slice_file(s)
+    }
 }
 
 /// This enum is used to specify the format for emitted diagnostics.
