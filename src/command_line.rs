@@ -10,17 +10,15 @@ use std::path::Path;
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Parser, Debug)]
+#[derive(Debug, Parser)]
 #[clap(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
     #[clap(required = true, value_parser = is_valid_slice_file)]
-    // TODO: Add validation that the file is a .slice file
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
     #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser = is_valid_reference)]
-    // TODO: Add validation that the file is a .slice file
     pub references: Vec<String>,
 
     /// Instructs the compiler to treat warnings as errors.
@@ -52,7 +50,7 @@ fn is_valid_slice_file(s: &str) -> Result<String, String> {
             return Ok(s.to_owned());
         }
     }
-    Err(format!("{} is not a .slice file", s))
+    Err("slice files must end with a `.slice` extension".to_owned())
 }
 
 fn is_valid_reference(s: &str) -> Result<String, String> {
@@ -67,7 +65,7 @@ fn is_valid_reference(s: &str) -> Result<String, String> {
         {
             return Ok(s.to_owned());
         }
-        Err(format!("{} does not contain any .slice files", s))
+        Err(format!("`{}` must contain at least one .slice file", s))
     } else {
         // The user supplied a file, need to check if it is a .slice file.
         is_valid_slice_file(s)
