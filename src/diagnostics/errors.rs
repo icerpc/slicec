@@ -149,6 +149,9 @@ pub enum ErrorKind {
     /// Return tuples for an operation must contain at least two element.
     ReturnTuplesMustContainAtLeastTwoElements,
 
+    /// Multiple streamed parameters were used as parameters for an operation.
+    MultipleStreamedMembers,
+
     // ----------------  Struct Errors ---------------- //
     /// Compact structs cannot be empty.
     CompactStructCannotBeEmpty,
@@ -511,5 +514,10 @@ implement_error_functions!(
         ErrorKind::AttributeOnlyValidForTopLevelModules,
         format!("The `{attribute}` attribute is only valid for top-level modules"),
         attribute
+    ),
+    (
+        "E041",
+        ErrorKind::MultipleStreamedMembers,
+        "cannot have multiple streamed members"
     )
 );
