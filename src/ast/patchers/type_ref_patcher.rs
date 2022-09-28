@@ -182,7 +182,7 @@ impl TypeRefPatcher<'_> {
             .find_node_with_scope(type_string, type_ref.module_scope())
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
-                // which are resolved and erased after type-ref patching is completed.
+                // which are resolved and erased after TypeRef patching is completed.
                 self.check_for_deprecated_type(type_ref, node, ast);
 
                 if let Node::TypeAlias(type_alias) = node {
@@ -209,7 +209,7 @@ impl TypeRefPatcher<'_> {
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
             if let Some(argument) = entity.get_deprecation(true) {
                 // All of these type_refs must be inside of a container entity. TypeRefs do not have a reference
-                // to their parent entity, so we use the type_ref's parser scope to look up the parent entity.
+                // to their parent entity, so we use the TypeRef's parser scope to look up the parent entity.
                 let container = ast.find_element::<dyn Entity>(type_ref.parser_scope()).unwrap();
 
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
