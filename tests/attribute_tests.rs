@@ -381,8 +381,21 @@ mod attributes {
                 [deprecated]
                 struct B1 {}
             }
+            "; "complex"
+        )]
+        #[test_case(
             "
-            => ignore["Fix deprecate attribute"]; "complex"
+            [ignore_warnings]
+            module A {
+                struct A1 {
+                    b: sequence<B::B1>,
+                }
+            }
+            module B {
+                [deprecated]
+                struct B1 {}
+            }
+            "; "complex with anonymous type"
         )]
         #[test_case(
             "
