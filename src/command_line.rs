@@ -2,6 +2,7 @@
 
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
+use std::path::Path;
 
 // Note: clap uses the doc-comments of fields to populate the '--help' output of slice-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
@@ -12,11 +13,12 @@ use serde::Serialize;
 #[clap(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
-    #[clap(required = true, value_parser)] // TODO: Add validation that the file is a .slice file
+    #[clap(required = true, value_parser = file_is_slice)]
+    // TODO: Add validation that the file is a .slice file
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser)]
+    #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser = file_is_slice)]
     // TODO: Add validation that the file is a .slice file
     pub references: Vec<String>,
 
@@ -39,6 +41,17 @@ pub struct SliceOptions {
     /// Disables ANSI escape code for diagnostic output.
     #[clap(long, value_parser)]
     pub disable_color: bool,
+}
+
+const SLICE_FILE_EXTENSION: &str = ".slice";
+
+fn file_is_slice(filename: &str) -> Result<String, String> {
+    if let Some(extension) = Path::new(filename).extension().and_then(|f| f.to_str()).to_owned() {
+        if extension == SLICE_FILE_EXTENSION {
+            return Ok(filename.to_owned());
+        }
+    }
+    Err(format!("{} is not a .slice file", filename))
 }
 
 /// This enum is used to specify the format for emitted diagnostics.
