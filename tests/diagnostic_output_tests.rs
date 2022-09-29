@@ -40,7 +40,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        parsed_data.emit_diagnostics(Some(&mut output));
+        parsed_data.emit_diagnostics(&mut output);
 
         // Assert
         let expected = concat!(
@@ -75,7 +75,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        parsed_data.emit_diagnostics(Some(&mut output));
+        parsed_data.emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\

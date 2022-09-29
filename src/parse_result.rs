@@ -4,9 +4,9 @@ use crate::ast::Ast;
 use crate::command_line::DiagnosticFormat;
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
-use console::{set_colors_enabled, set_colors_enabled_stderr, style};
+use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
 use std::collections::HashMap;
-use std::io::{stderr, Write};
+use std::io::Write;
 
 #[derive(Debug)]
 pub struct ParsedData {
@@ -19,7 +19,9 @@ impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
-        self.emit_diagnostics(None);
+
+        // Pass in none as a default
+        self.emit_diagnostics(&mut Term::stderr());
 
         i32::from(has_errors)
     }
@@ -28,39 +30,37 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    pub fn emit_diagnostics(self, writer: Option<&mut dyn Write>) {
+    pub fn emit_diagnostics(self, writer: &mut impl Write) {
         // Disable colors if the user requested no colors.
         if self.diagnostic_reporter.disable_color {
             set_colors_enabled(false);
             set_colors_enabled_stderr(false);
         };
 
-        let mut stderr = stderr();
         match self.diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => self.output_to_console(writer.unwrap_or(&mut stderr)),
-            DiagnosticFormat::Json => self.output_to_json(writer.unwrap_or(&mut stderr)),
+            DiagnosticFormat::Human => self.output_to_console(writer),
+            DiagnosticFormat::Json => self.output_to_json(writer),
         }
         .expect("Failed to write diagnostic output to writer");
     }
 
-    fn output_to_json(self, writer: &mut dyn Write) -> std::io::Result<()> {
-        // The for loop consumes the diagnostics, so we need to take ownership of counts.
+    fn output_to_json(self, writer: &mut impl Write) -> std::io::Result<()> {
+        // The for loop consumes the diagnostics, so we compute the count now.
         let counts = self.diagnostic_reporter.get_totals();
 
         // Write each diagnostic as a single line of JSON.
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-            writeln!(writer, "{json}")?;
+            writeln!(writer, "{}", json)?;
         }
-        Self::output_status(counts);
-        Ok(())
+        Self::output_counts(counts)
     }
 
-    fn output_to_console(self, writer: &mut dyn Write) -> std::io::Result<()> {
+    fn output_to_console(self, writer: &mut impl Write) -> std::io::Result<()> {
         // Take ownership of the files from `self`
         let files = self.files;
 
-        // The for loop consumes the diagnostics, so we need to take ownership of counts.
+        // The for loop consumes the diagnostics, so we compute the count now.
         let counts = self.diagnostic_reporter.get_totals();
 
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
@@ -97,14 +97,13 @@ impl ParsedData {
             });
 
             let output_message = message.join("\n");
-            writeln!(writer, "{output_message}")?;
+            writeln!(writer, "{}", output_message)?;
         }
-        Self::output_status(counts);
-        Ok(())
+        Self::output_counts(counts)
     }
 
     // Output the total number of errors and warnings.
-    fn output_status(counts: (usize, usize)) {
+    fn output_counts(counts: (usize, usize)) -> std::io::Result<()> {
         let mut counter_messages = vec![];
         if counts.1 != 0 {
             counter_messages.push(format!(
@@ -121,9 +120,7 @@ impl ParsedData {
             ));
         }
         let output_message = counter_messages.join("\n");
-
-        println!();
-        println!("{output_message}");
+        writeln!(Term::stdout(), "\n{}", output_message)
     }
 
     fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
