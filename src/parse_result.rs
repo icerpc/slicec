@@ -19,7 +19,7 @@ impl ParsedData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
-        self.emit_diagnostics(&mut stderr());
+        self.emit_diagnostics(None);
 
         i32::from(has_errors)
     }
@@ -28,29 +28,37 @@ impl ParsedData {
         self.diagnostic_reporter.has_errors()
     }
 
-    pub fn emit_diagnostics(self, writer: &mut impl Write) {
+    pub fn emit_diagnostics(self, writer: Option<&mut dyn Write>) {
+        let mut stderr = stderr();
         match self.diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => self.output_to_console(writer),
-            DiagnosticFormat::Json => self.output_to_json(writer),
+            DiagnosticFormat::Human => self.output_to_console(writer.unwrap_or(&mut stderr)),
+            DiagnosticFormat::Json => self.output_to_json(writer.unwrap_or(&mut stderr)),
         }
         .expect("Failed to write diagnostic output to writer");
     }
 
-    fn output_to_json(self, writer: &mut impl Write) -> std::io::Result<()> {
+    fn output_to_json(self, writer: &mut dyn Write) -> std::io::Result<()> {
+        // The for loop consumes the diagnostics, so we need to take ownership of disable color and counts.
+        let disable_color = self.diagnostic_reporter.disable_color;
+        let counts = self.diagnostic_reporter.get_totals();
+
+        // Write each diagnostic as a single line of JSON.
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
             writeln!(writer, "{json}")?;
         }
+
+        Self::output_status(counts, disable_color);
         Ok(())
     }
 
-    fn output_to_console(self, writer: &mut impl Write) -> std::io::Result<()> {
-        let counts = self.diagnostic_reporter.get_totals();
-
+    fn output_to_console(self, writer: &mut dyn Write) -> std::io::Result<()> {
         // Take ownership of the files from `self`
         let files = self.files;
 
+        // The for loop consumes the diagnostics, so we need to take ownership of disable color and counts.
         let disable_color = self.diagnostic_reporter.disable_color;
+        let counts = self.diagnostic_reporter.get_totals();
 
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
@@ -92,9 +100,12 @@ impl ParsedData {
 
             writeln!(writer, "{}", output_message)?;
         }
+        Self::output_status(counts, disable_color);
+        Ok(())
+    }
 
-        // Output the total number of errors and warnings.
-        writeln!(writer)?;
+    // Output the total number of errors and warnings.
+    fn output_status(counts: (usize, usize), disable_color: bool) {
         let mut counter_messages = vec![];
         if counts.1 != 0 {
             counter_messages.push(format!(
@@ -114,7 +125,9 @@ impl ParsedData {
         if disable_color {
             output_message = strip_ansi_codes(&output_message).to_string();
         }
-        write!(writer, "{}", output_message)
+
+        println!();
+        println!("{output_message}");
     }
 
     fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
