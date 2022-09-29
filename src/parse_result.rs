@@ -4,7 +4,7 @@ use crate::ast::Ast;
 use crate::command_line::DiagnosticFormat;
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
-use console::{strip_ansi_codes, style};
+use console::{set_colors_enabled, set_colors_enabled_stderr, style};
 use std::collections::HashMap;
 use std::io::{stderr, Write};
 
@@ -29,6 +29,12 @@ impl ParsedData {
     }
 
     pub fn emit_diagnostics(self, writer: Option<&mut dyn Write>) {
+        // Disable colors if the user requested no colors.
+        if self.diagnostic_reporter.disable_color {
+            set_colors_enabled(false);
+            set_colors_enabled_stderr(false);
+        };
+
         let mut stderr = stderr();
         match self.diagnostic_reporter.diagnostic_format {
             DiagnosticFormat::Human => self.output_to_console(writer.unwrap_or(&mut stderr)),
@@ -38,8 +44,7 @@ impl ParsedData {
     }
 
     fn output_to_json(self, writer: &mut dyn Write) -> std::io::Result<()> {
-        // The for loop consumes the diagnostics, so we need to take ownership of disable color and counts.
-        let disable_color = self.diagnostic_reporter.disable_color;
+        // The for loop consumes the diagnostics, so we need to take ownership of counts.
         let counts = self.diagnostic_reporter.get_totals();
 
         // Write each diagnostic as a single line of JSON.
@@ -47,8 +52,7 @@ impl ParsedData {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
             writeln!(writer, "{json}")?;
         }
-
-        Self::output_status(counts, disable_color);
+        Self::output_status(counts);
         Ok(())
     }
 
@@ -56,8 +60,7 @@ impl ParsedData {
         // Take ownership of the files from `self`
         let files = self.files;
 
-        // The for loop consumes the diagnostics, so we need to take ownership of disable color and counts.
-        let disable_color = self.diagnostic_reporter.disable_color;
+        // The for loop consumes the diagnostics, so we need to take ownership of counts.
         let counts = self.diagnostic_reporter.get_totals();
 
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
@@ -93,19 +96,15 @@ impl ParsedData {
                 }
             });
 
-            let mut output_message = message.join("\n");
-            if disable_color {
-                output_message = strip_ansi_codes(&output_message).to_string();
-            }
-
-            writeln!(writer, "{}", output_message)?;
+            let output_message = message.join("\n");
+            writeln!(writer, "{output_message}")?;
         }
-        Self::output_status(counts, disable_color);
+        Self::output_status(counts);
         Ok(())
     }
 
     // Output the total number of errors and warnings.
-    fn output_status(counts: (usize, usize), disable_color: bool) {
+    fn output_status(counts: (usize, usize)) {
         let mut counter_messages = vec![];
         if counts.1 != 0 {
             counter_messages.push(format!(
@@ -121,10 +120,7 @@ impl ParsedData {
                 counts.0,
             ));
         }
-        let mut output_message = counter_messages.join("\n");
-        if disable_color {
-            output_message = strip_ansi_codes(&output_message).to_string();
-        }
+        let output_message = counter_messages.join("\n");
 
         println!();
         println!("{output_message}");
