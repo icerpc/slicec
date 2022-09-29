@@ -95,9 +95,7 @@ impl ParsedData {
                     Self::append_snippet(&mut message, span, &files)
                 }
             });
-
-            let output_message = message.join("\n");
-            writeln!(writer, "{}", output_message)?;
+            writeln!(writer, "{}", message.join("\n"))?;
         }
         Self::output_counts(counts)
     }
@@ -119,8 +117,7 @@ impl ParsedData {
                 counts.0,
             ));
         }
-        let output_message = counter_messages.join("\n");
-        writeln!(Term::stdout(), "\n{}", output_message)
+        writeln!(Term::stdout(), "\n{}", counter_messages.join("\n"))
     }
 
     fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
