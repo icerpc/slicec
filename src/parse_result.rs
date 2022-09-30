@@ -51,7 +51,7 @@ impl ParsedData {
         // Write each diagnostic as a single line of JSON.
         for diagnostic in self.diagnostic_reporter.into_diagnostics() {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-            writeln!(writer, "{}", json)?;
+            writeln!(writer, "{json}")?;
         }
         Self::output_counts(counts)
     }
