@@ -92,9 +92,7 @@ error [E010]: invalid enum `E`: enums must contain at least one enumerator
 9   |         enum E {}
     |         ------
     |
-
-Warnings: Compilation generated 1 warning(s)
-Failed: Compilation failed with 1 error(s)";
+";
 
         assert_eq!(expected, String::from_utf8(output).unwrap());
     }
