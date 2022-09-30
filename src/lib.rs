@@ -13,6 +13,10 @@ pub mod utils;
 pub mod validators;
 pub mod visitor;
 
+// Re-export the `clap` and `convert_case` dependencies.
+pub extern crate clap;
+pub extern crate convert_case;
+
 use crate::command_line::SliceOptions;
 use crate::parse_result::ParserResult;
 use crate::validators::validate_parsed_data;
