@@ -69,7 +69,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
 
 pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserResult {
     let mut ast = Ast::create();
-    let mut slice_options = options.unwrap_or(SliceOptions {
+    let slice_options = options.unwrap_or(SliceOptions {
         sources: vec![],
         references: vec![],
         warn_as_error: true,
@@ -78,7 +78,6 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserRe
         validate: false,
         output_dir: None,
     });
-    slice_options.warn_as_error = true;
     let mut diagnostic_reporter = DiagnosticReporter::new(&slice_options);
     let mut parser = slice::SliceParser {
         diagnostic_reporter: &mut diagnostic_reporter,

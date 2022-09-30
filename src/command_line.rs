@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 use std::path::Path;
@@ -17,7 +18,7 @@ pub struct SliceOptions {
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[clap(short = 'R', long, number_of_values = 1, multiple = true, value_parser = is_valid_reference)]
+    #[clap(short = 'R', long, number_of_values = 1, action = Append, value_parser = is_valid_reference)]
     pub references: Vec<String>,
 
     /// Instructs the compiler to treat warnings as errors.
@@ -33,7 +34,7 @@ pub struct SliceOptions {
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[clap(arg_enum, case_insensitive = true, default_value_t = DiagnosticFormat::Human, long)]
+    #[clap(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disables ANSI escape code for diagnostic output.
