@@ -11,34 +11,34 @@ use std::path::Path;
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
 #[derive(Debug, Parser)]
-#[clap(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
+#[command(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
-    #[clap(required = true, value_parser = is_valid_source)]
+    #[arg(required = true, value_parser = is_valid_source)]
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[clap(short = 'R', long, number_of_values = 1, action = Append, value_parser = is_valid_reference)]
+    #[arg(short = 'R', long, num_args = 1, action = Append, value_parser = is_valid_reference)]
     pub references: Vec<String>,
 
     /// Instructs the compiler to treat warnings as errors.
-    #[clap(short, long, action)]
+    #[arg(short, long)]
     pub warn_as_error: bool,
 
     /// Validates input files without generating code for them.
-    #[clap(long, action)]
+    #[arg(long)]
     pub validate: bool,
 
     /// Output directory for generated code, defaults to the current working directory.
-    #[clap(long)]
+    #[arg(long)]
     pub output_dir: Option<String>,
 
     /// Output format for emitted errors,
-    #[clap(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
+    #[arg(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disables ANSI escape code for diagnostic output.
-    #[clap(long, action)]
+    #[arg(long)]
     pub disable_color: bool,
 }
 

@@ -32,10 +32,9 @@ impl ParsedData {
 
     pub fn emit_diagnostics(self, writer: &mut impl Write) {
         // Disable colors if the user requested no colors.
-        if self.diagnostic_reporter.disable_color {
-            set_colors_enabled(false);
-            set_colors_enabled_stderr(false);
-        };
+
+        set_colors_enabled(!self.diagnostic_reporter.disable_color);
+        set_colors_enabled_stderr(!self.diagnostic_reporter.disable_color);
 
         match self.diagnostic_reporter.diagnostic_format {
             DiagnosticFormat::Human => self.output_to_console(writer),
