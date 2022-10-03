@@ -7,7 +7,7 @@ The Slice parser and other core components for Slice compilers.
 """
 keywords = ["slice", "ice", "icerpc"]
 license = "Apache-2.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 # derive feature allows structs to derive Parser automatically
