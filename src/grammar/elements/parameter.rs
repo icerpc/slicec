@@ -18,35 +18,6 @@ pub struct Parameter {
     pub span: Span,
 }
 
-impl Parameter {
-    #[allow(clippy::too_many_arguments)]
-    pub(crate) fn new(
-        identifier: Identifier,
-        data_type: TypeRef,
-        tag: Option<u32>,
-        is_streamed: bool,
-        is_returned: bool,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parent = WeakPtr::create_uninitialized();
-        Parameter {
-            identifier,
-            data_type,
-            tag,
-            is_streamed,
-            is_returned,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-}
-
 impl Element for Parameter {
     fn kind(&self) -> &'static str {
         if self.is_returned {

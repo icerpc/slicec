@@ -20,37 +20,6 @@ pub struct Enum {
 }
 
 impl Enum {
-    #[allow(clippy::too_many_arguments)]
-    pub(crate) fn new(
-        identifier: Identifier,
-        underlying: Option<TypeRef<Primitive>>,
-        is_unchecked: bool,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let enumerators = Vec::new();
-        let parent = WeakPtr::create_uninitialized();
-        let supported_encodings = None; // Patched later by the encoding_patcher.
-        Enum {
-            identifier,
-            enumerators,
-            underlying,
-            is_unchecked,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-            supported_encodings,
-        }
-    }
-
-    pub(crate) fn add_enumerator(&mut self, enumerator: WeakPtr<Enumerator>) {
-        self.enumerators.push(enumerator);
-    }
-
     pub fn enumerators(&self) -> Vec<&Enumerator> {
         self.enumerators
             .iter()

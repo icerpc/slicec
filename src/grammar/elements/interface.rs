@@ -19,34 +19,6 @@ pub struct Interface {
 }
 
 impl Interface {
-    pub(crate) fn new(
-        identifier: Identifier,
-        bases: Vec<TypeRef<Interface>>,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let operations = Vec::new();
-        let parent = WeakPtr::create_uninitialized();
-        let supported_encodings = None; // Patched later by the encoding_patcher.
-        Interface {
-            identifier,
-            operations,
-            bases,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-            supported_encodings,
-        }
-    }
-
-    pub(crate) fn add_operation(&mut self, operation: WeakPtr<Operation>) {
-        self.operations.push(operation);
-    }
-
     pub fn operations(&self) -> Vec<&Operation> {
         self.operations
             .iter()
