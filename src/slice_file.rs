@@ -37,6 +37,12 @@ pub struct Span {
     pub file: String,
 }
 
+impl Span {
+    pub fn new(start: Location, end: Location, file: &str) -> Self {
+        Span { start, end, file: file.to_owned() }
+    }
+}
+
 #[derive(Debug)]
 pub struct SliceFile {
     pub filename: String,
