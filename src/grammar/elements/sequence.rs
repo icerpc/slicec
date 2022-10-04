@@ -55,7 +55,7 @@ impl Type for Sequence {
     fn tag_format(&self) -> Option<TagFormat> {
         if self.element_type.is_fixed_size() {
             if self.element_type.min_wire_size() == 1 {
-                Some(TagFormat::OvSize)
+                Some(TagFormat::OptimizedVSize)
             } else {
                 Some(TagFormat::VSize)
             }
