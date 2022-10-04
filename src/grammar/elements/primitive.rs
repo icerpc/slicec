@@ -166,7 +166,7 @@ impl Type for Primitive {
             Self::VarUInt62 => None,
             Self::Float32 => Some(TagFormat::F4),
             Self::Float64 => Some(TagFormat::F8),
-            Self::String => Some(TagFormat::OVSize),
+            Self::String => Some(TagFormat::OvSize),
             Self::AnyClass => Some(TagFormat::Class),
         }
     }

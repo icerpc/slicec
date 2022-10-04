@@ -146,7 +146,7 @@ pub enum TagFormat {
     Class,
 
     /// Pseudo non-encoded format: like VSize but the size is optimized out.
-    OVSize,
+    OvSize,
 }
 
 impl fmt::Display for TagFormat {
@@ -160,7 +160,7 @@ impl fmt::Display for TagFormat {
             TagFormat::VSize => write!(f, "VSize"),
             TagFormat::FSize => write!(f, "FSize"),
             TagFormat::Class => write!(f, "Class"),
-            TagFormat::OVSize => write!(f, "OVSize"),
+            TagFormat::OvSize => write!(f, "OvSize"),
         }
     }
 }
