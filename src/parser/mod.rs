@@ -5,7 +5,6 @@
 
 mod comments;
 mod cycle_detection;
-mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;

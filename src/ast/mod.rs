@@ -22,7 +22,6 @@ use std::convert::{TryFrom, TryInto};
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub(crate) unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
-    patchers::parent_patcher::patch_ast(&mut parsed_data.ast); // TODO remove this when we switch to LALRpop
     parsed_data = patchers::type_ref_patcher::patch_ast(parsed_data)?;
     parsed_data = patchers::encoding_patcher::patch_ast(parsed_data)?;
 
