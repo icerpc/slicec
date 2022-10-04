@@ -8,18 +8,24 @@ The Slice parser and other core components for Slice compilers.
 keywords = ["slice", "ice", "icerpc"]
 license = "Apache-2.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 # derive feature allows structs to derive Parser automatically
 clap = { version = "4.0.5", features = ["derive"] }
 console = "0.15.1"
 convert_case = "0.5.0"
+lalrpop-util = "0.19.8"
 pest = "=2.3.0"
 pest_consume = "=1.1.3"
 pest_derive = "=2.3.0"
 # derive feature allows structs to derive Serialize automatically
 serde = { version="1.0.144", features = ["derive"] }
 serde_json = "1.0.85"
+
+[build-dependencies]
+# The default features bring along a built-in lexer. Since we supply our own lexer we don't need these features.
+lalrpop = { version = "0.19.8", default-features = false }
 
 [dev-dependencies]
 test-case = "2.0.2"
