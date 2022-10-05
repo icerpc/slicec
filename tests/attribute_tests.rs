@@ -576,7 +576,7 @@ mod attributes {
 
                 interface I
                 {
-                    [foo::bar(1, 2, 3)]
+                    [foo::bar(a, b, c)]
                     op(s: string) -> string;
                 }
             ";
@@ -591,9 +591,9 @@ mod attributes {
             assert_eq!(operation.attributes[0].directive, "bar");
             assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
             assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
-            assert_eq!(operation.attributes[0].arguments[0], "1");
-            assert_eq!(operation.attributes[0].arguments[1], "2");
-            assert_eq!(operation.attributes[0].arguments[2], "3");
+            assert_eq!(operation.attributes[0].arguments[0], "a");
+            assert_eq!(operation.attributes[0].arguments[1], "b");
+            assert_eq!(operation.attributes[0].arguments[2], "c");
         }
 
         #[test_case("a", &["a"]; "single argument")]
