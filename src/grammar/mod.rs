@@ -18,6 +18,6 @@ pub mod attributes {
     pub const COMPRESS: &str = "compress";
     pub const DEPRECATED: &str = "deprecated";
     pub const FORMAT: &str = "format";
-    pub const IGNORE_WARNINGS: &str = "ignore_warnings";
+    pub const IGNORE_WARNINGS: &str = "ignoreWarnings";
     pub const ONEWAY: &str = "oneway";
 }

@@ -364,14 +364,14 @@ mod attributes {
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
-                [ignore_warnings]
+                [ignoreWarnings]
                 op(s: string) -> string;
             }
             "; "simple"
         )]
         #[test_case(
             "
-            [ignore_warnings]
+            [ignoreWarnings]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -385,7 +385,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [ignore_warnings]
+            [ignoreWarnings]
             module A {
                 struct A1 {
                     b: sequence<B::B1>,
@@ -399,7 +399,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [[ignore_warnings]]
+            [[ignoreWarnings]]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -426,14 +426,14 @@ mod attributes {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b A test parameter.
-                [ignore_warnings(W005, W001)]
+                [ignoreWarnings(W005, W001)]
                 op(s: string) -> string;
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignore_warnings(W005, W001)]]
+            [[ignoreWarnings(W005, W001)]]
             module Test;
 
             interface I {
@@ -459,25 +459,25 @@ mod attributes {
             interface I {
                 /// @param x a parameter that should be used in ops
                 /// @returns a result
-                [ignore_warnings(W002, W003)]
+                [ignoreWarnings(W002, W003)]
                 op(s: string);
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignore_warnings(W002, W003)]]
+            [[ignoreWarnings(W002, W003)]]
             module Test;
 
             interface I {
                 /// @param x a parameter that should be used in ops
                 /// @returns a result
-                [ignore_warnings(W002, W003)]
+                [ignoreWarnings(W002, W003)]
                 op(s: string);
             }
             "; "file level"
         )]
-        // Test that if args are passed to ignore_warnings, that only those warnings are ignored
+        // Test that if args are passed to ignoreWarnings, that only those warnings are ignored
         fn ignore_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
             // Act
             let diagnostic_reporter = parse_for_diagnostics(slice);
