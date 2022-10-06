@@ -18,7 +18,7 @@ pub struct DiagnosticReporter {
     treat_warnings_as_errors: bool,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    /// The relative paths of all Slice files that have the file level `ignore_warnings` attribute.
+    /// The relative paths of all Slice files that have the file level `ignoreWarnings` attribute.
     pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
     // If true, diagnostic output will not be styled.
     pub disable_color: bool,
@@ -60,7 +60,7 @@ impl DiagnosticReporter {
     pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
         self.warning_count += 1;
 
-        // Returns true if the Slice file has the file level `ignore_warnings` attribute with no arguments (ignoring all
+        // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
         if match self.file_level_ignored_warnings.get(&warning.span.file) {
             None => false,
@@ -71,7 +71,7 @@ impl DiagnosticReporter {
             return;
         }
 
-        // Returns true if the entity (or its parent) has the`ignore_warnings` attribute with no arguments (ignoring all
+        // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
         if match entity.get_ignored_warnings(true) {
             None => false,

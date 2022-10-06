@@ -56,7 +56,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
         }
     }
 
-    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
+    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
     diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
     let parsed_data = ParsedData {
         ast,
@@ -91,7 +91,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserRe
         }
     }
 
-    // Update the diagnostic reporter with the slice files that contain the file level ignore_warnings attribute.
+    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
     diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&slice_files);
     let parsed_data = ParsedData {
         ast,
@@ -138,7 +138,7 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
 }
 
 // Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
-// `ignore_warnings` attribute and the values are the arguments of the attribute.
+// `ignoreWarnings` attribute and the values are the arguments of the attribute.
 fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
     files
         .iter()
