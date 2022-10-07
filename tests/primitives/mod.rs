@@ -30,6 +30,7 @@ fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str
         "
             {encoding}
             module Test;
+
             typealias P = {slice_component};
         "
     );

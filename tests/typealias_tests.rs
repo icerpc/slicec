@@ -64,7 +64,8 @@ mod typealias {
         let slice = "
             module Test;
             typealias MyDict = dictionary<varint32, sequence<uint8>>;
-            interface I {
+            interface I
+            {
                 op(dict: MyDict);
             }
         ";

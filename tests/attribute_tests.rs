@@ -20,7 +20,8 @@ mod attributes {
                 "
                     module Test;
 
-                    interface I {{
+                    interface I
+                    {{
                         [format({format})]
                         op(s: string) -> string;
                     }}
@@ -41,7 +42,8 @@ mod attributes {
             let slice = "
                     module Test;
 
-                    interface I {
+                    interface I
+                    {
                         op(s: string) -> string;
                     }
             ";
@@ -63,7 +65,8 @@ mod attributes {
                 "
                     module Test;
 
-                    interface I {{
+                    interface I
+                    {{
                         [format{args}]
                         op(s: string) -> string;
                     }}
@@ -84,7 +87,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [format(Foo)]
                     op(s: string) -> string;
                 }
@@ -111,7 +115,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [deprecated]
                     op(s: string) -> string;
                 }
@@ -131,7 +136,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     op([deprecated] s: string) -> string;
                 }
             ";
@@ -153,7 +159,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [deprecated(\"Deprecation message here\")]
                     op(s: string) -> string;
                 }
@@ -176,12 +183,15 @@ mod attributes {
             let slice = "
                 module Test;
 
-                struct Foo {}
+                struct Foo
+                {
+                }
 
                 [deprecated]
                 typealias Bar = Foo;
 
-                interface I {
+                interface I
+                {
                     op(s: Bar) -> string;
                 }
             ";
@@ -200,12 +210,17 @@ mod attributes {
             // Arrange
             let slice = "
             [deprecated]
-            module Foo {
-                struct Bar {}
+            module Foo
+            {
+                struct Bar
+                {
+                }
             }
 
-            module Test {
-                struct Baz {
+            module Test
+            {
+                struct Baz
+                {
                     b: Foo::Bar,
                 }
             }
@@ -227,9 +242,12 @@ mod attributes {
                     module Test;
 
                     [deprecated(\"Message here\")]
-                    struct A {}
+                    struct A
+                    {
+                    }
 
-                    struct B {
+                    struct B
+                    {
                         a: A,
                     }
                 ";
@@ -252,9 +270,13 @@ mod attributes {
                     module Test;
 
                     [deprecated]
-                    interface A {}
+                    interface A
+                    {
+                    }
 
-                    interface B: A {}
+                    interface B: A
+                    {
+                    }
                 ";
 
             // Act
@@ -272,7 +294,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [compress(Args, Return)]
                     op(s: string) -> string;
                 }
@@ -294,7 +317,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [compress(Foo)]
                     op(s: string) -> string;
                 }
@@ -322,7 +346,8 @@ mod attributes {
                 module Test;
 
                 [compress()]
-                struct S {
+                struct S
+                {
                     s: string,
                 }
             ";
@@ -341,7 +366,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [compress()]
                     op(s: string) -> string;
                 }
@@ -361,7 +387,8 @@ mod attributes {
             "
             module Test;
 
-            interface I {
+            interface I
+            {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 [ignoreWarnings]
@@ -372,26 +399,34 @@ mod attributes {
         #[test_case(
             "
             [ignoreWarnings]
-            module A {
-                struct A1 {
+            module A
+            {
+                struct A1
+                {
                     b: B::B1,
                 }
             }
-            module B {
+            module B
+            {
                 [deprecated]
-                struct B1 {}
+                struct B1
+                {
+                }
             }
             "; "complex"
         )]
         #[test_case(
             "
             [ignoreWarnings]
-            module A {
-                struct A1 {
+            module A
+            {
+                struct A1
+                {
                     b: sequence<B::B1>,
                 }
             }
-            module B {
+            module B
+            {
                 [deprecated]
                 struct B1 {}
             }
@@ -400,13 +435,18 @@ mod attributes {
         #[test_case(
             "
             [[ignoreWarnings]]
-            module A {
-                struct A1 {
+            module A
+            {
+                struct A1
+                {
                     b: B::B1,
                 }
             }
-            module B {
-                struct B1 {}
+            module B
+            {
+                struct B1
+                {
+                }
             }
             "; "file level"
         )]
@@ -422,7 +462,8 @@ mod attributes {
             "
             module Test;
 
-            interface I {
+            interface I
+            {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b A test parameter.
@@ -436,7 +477,8 @@ mod attributes {
             [[ignoreWarnings(W005, W001)]]
             module Test;
 
-            interface I {
+            interface I
+            {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b A test parameter.
@@ -456,7 +498,8 @@ mod attributes {
             "
             module Test;
 
-            interface I {
+            interface I
+            {
                 /// @param x a parameter that should be used in ops
                 /// @returns a result
                 [ignoreWarnings(W002, W003)]
@@ -469,7 +512,8 @@ mod attributes {
             [[ignoreWarnings(W002, W003)]]
             module Test;
 
-            interface I {
+            interface I
+            {
                 /// @param x a parameter that should be used in ops
                 /// @returns a result
                 [ignoreWarnings(W002, W003)]
@@ -504,7 +548,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [foo::bar]
                     op(s: string) -> string;
                 }
@@ -529,7 +574,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [foo::bar(1, 2, 3)]
                     op(s: string) -> string;
                 }
@@ -559,7 +605,8 @@ mod attributes {
             let slice = format!(
                 "
                     module Test;
-                    interface I {{
+                    interface I
+                    {{
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
@@ -584,7 +631,8 @@ mod attributes {
             let slice = format!(
                 "
                     module Test;
-                    interface I {{
+                    interface I
+                    {{
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
@@ -606,7 +654,8 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I {
+                interface I
+                {
                     [foo::bar(fizz buzz)]
                     op(s: string) -> string;
                 }

@@ -22,12 +22,15 @@ mod output {
         let slice = r#"
         module  Foo;
 
-        interface I {
+        interface I
+        {
             /// @param x this is an x
             op();
         }
 
-        enum E {}
+        enum E
+        {
+        }
         "#;
 
         // Set the output format to JSON.
@@ -57,12 +60,15 @@ mod output {
         let slice = r#"
         module  Foo;
 
-        interface I {
+        interface I
+        {
             /// @param x this is an x
             op();
         }
 
-        enum E {}
+        enum E
+        {
+        }
         "#;
 
         // Disable ANSI codes.

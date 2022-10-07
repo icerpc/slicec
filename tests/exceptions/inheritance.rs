@@ -11,8 +11,14 @@ fn supports_single_inheritance() {
     let slice = "
         encoding = 1;
         module Test;
-        exception E1 {}
-        exception E2 : E1 {}
+
+        exception E1
+        {
+        }
+
+        exception E2 : E1
+        {
+        }
     ";
 
     // Act
@@ -29,9 +35,18 @@ fn does_not_support_multiple_inheritance() {
     let slice = "
         encoding = 1;
         module Test;
-        exception E1 {}
-        exception E2 {}
-        exception E3 : E1, E2 {}
+
+        exception E1
+        {
+        }
+
+        exception E2
+        {
+        }
+
+        exception E3 : E1, E2
+        {
+        }
     ";
 
     // Act
@@ -48,8 +63,14 @@ fn must_inherit_from_exception() {
     let slice = "
         encoding = 1;
         module Test;
-        class C {}
-        exception E : C {}
+
+        class C
+        {
+        }
+
+        exception E : C
+        {
+        }
     ";
 
     // Act
@@ -67,10 +88,12 @@ fn data_member_shadowing_is_disallowed() {
     let slice = "
         encoding = 1;
         module Test;
+
         exception I
         {
             i: int32
         }
+
         exception J : I
         {
             i: int32
@@ -94,6 +117,7 @@ fn inherits_correct_data_members() {
     let slice = "
         encoding = 1;
         module Test;
+
         exception A
         {
             a: int32

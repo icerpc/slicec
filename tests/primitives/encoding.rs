@@ -25,6 +25,7 @@ mod slice1 {
             "
                 encoding = 1;
                 module Test;
+
                 compact struct S
                 {{
                     v: {value},
@@ -60,13 +61,14 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-                encoding = 1;
-                module Test;
-                compact struct S
-                {{
-                    v: {value},
-                }}
-            ",
+            encoding = 1;
+            module Test;
+
+            compact struct S
+            {{
+                v: {value},
+            }}
+        ",
             value = value,
         );
 
@@ -93,6 +95,7 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
+
             compact struct S
             {
                 v: AnyClass,
@@ -142,6 +145,7 @@ mod slice2 {
         let slice = format!(
             "
             module Test;
+
             compact struct S
             {{
                 v: {value},
@@ -177,7 +181,9 @@ mod slice2 {
         let slice = format!(
             "
                 module Test;
-                struct MyStruct {{
+
+                struct MyStruct
+                {{
                     myVar: {value},
                 }}
             "

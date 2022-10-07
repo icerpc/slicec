@@ -86,7 +86,9 @@ fn can_be_empty() {
     let slice = "
         encoding = 1;
         module Test;
-        class C {}
+        class C
+        {
+        }
     ";
 
     // Act

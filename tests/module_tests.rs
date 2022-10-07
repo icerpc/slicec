@@ -14,12 +14,16 @@ mod module {
         let slice = "
             module Test
             {
-                struct S1 {}
+                struct S1
+                {
+                }
             }
 
             module Test
             {
-                struct S2 {}
+                struct S2
+                {
+                }
             }
         ";
 
@@ -37,7 +41,9 @@ mod module {
         let slice = "
             module A
             {
-                module B {}
+                module B
+                {
+                }
             }
         ";
 
@@ -52,7 +58,9 @@ mod module {
     fn can_use_nested_syntax() {
         // Arrange
         let slice = "
-            module A::B::C::D {}
+            module A::B::C::D
+            {
+            }
         ";
 
         // Act

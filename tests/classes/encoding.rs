@@ -12,7 +12,9 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
-            class C {}
+            class C
+            {
+            }
         ";
 
         // Act

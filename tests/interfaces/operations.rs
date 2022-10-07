@@ -10,6 +10,7 @@ fn can_have_no_parameters() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op();
@@ -29,6 +30,7 @@ fn can_have_no_return_type() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op(a: int32);
@@ -48,6 +50,7 @@ fn can_contain_tags() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op(a: tag(1) int32?);
@@ -68,6 +71,7 @@ fn parameter_and_return_can_have_the_same_tag() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op(a: tag(1) int32?) -> tag(1) string?;
@@ -90,6 +94,7 @@ fn can_have_parameters() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op(a: int32, b: string, c: varuint62);
@@ -126,6 +131,7 @@ fn can_have_return_value() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op() -> string;
@@ -152,6 +158,7 @@ fn can_have_return_tuple() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op() -> (r1: string, r2: bool);
@@ -183,6 +190,7 @@ fn return_tuple_must_contain_two_or_more_elements() {
     // Arrange
     let slice = "
         module Test;
+
         interface I
         {
             op() -> ();
@@ -208,6 +216,7 @@ mod streams {
         // Arrange
         let slice = "
             module Test;
+
             interface I
             {
                 op(a: stream uint32) -> stream uint32;
@@ -231,6 +240,7 @@ mod streams {
         // Arrange
         let slice = "
             module Test;
+
             interface I
             {
                 op(s: stream varuint62, s2: stream string);
@@ -253,6 +263,7 @@ mod streams {
         // Arrange
         let slice = "
             module Test;
+
             interface I
             {
                 op(s: stream varuint62, i: int32);
