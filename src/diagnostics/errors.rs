@@ -261,6 +261,8 @@ pub enum ErrorKind {
     TooManyArguments(String), // (expected)
 
     UnexpectedAttribute(String), // (attribute)
+
+    InvalidAttribute(String, String), // (attribute, kind)
 }
 
 implement_error_functions!(
@@ -519,5 +521,12 @@ implement_error_functions!(
         "E041",
         ErrorKind::MultipleStreamedMembers,
         "cannot have multiple streamed members"
+    ),
+    (
+        "E041",
+        ErrorKind::InvalidAttribute,
+        format!("attribute `{attribute}` cannot be used on `{kind}`"),
+        attribute,
+        kind
     )
 );
