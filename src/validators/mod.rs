@@ -64,7 +64,7 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
             // Get all the identifiers of the direct members of this module.
             let module_content_identifiers = module
                 .contents()
-                .into_iter()
+                .iter()
                 .map(|def| def.borrow().raw_identifier());
             // Add the identifiers to the map, with the module's scoped identifier as the key.
             merged_module_content_identifiers
