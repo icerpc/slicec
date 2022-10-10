@@ -229,7 +229,7 @@ fn automatically_assigned_values_will_not_overflow() {
 
     // Assert
     assert_errors!(diagnostic_reporter, [
-        " --> 5:17\n  |\n5 |                 B,\n  |                 ^\n  |\n  = Enumerator value out of range: B"
+        " --> 6:17\n  |\n6 |                 B,\n  |                 ^\n  |\n  = Enumerator value out of range: B"
     ]);
 }
 
