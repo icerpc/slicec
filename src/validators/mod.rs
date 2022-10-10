@@ -52,7 +52,7 @@ pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
     }
 
     // Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
-    // is inadequate; if 2 modules have the same name, we have to check for redefinitions across both modules.
+    // is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
     //
     // So we compute a map of all the identifiers in modules with the same name (fully scoped), then check that.
     let mut merged_module_content_identifiers: HashMap<String, Vec<&Identifier>> = HashMap::new();
