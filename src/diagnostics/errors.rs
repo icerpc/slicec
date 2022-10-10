@@ -523,7 +523,7 @@ implement_error_functions!(
         "cannot have multiple streamed members"
     ),
     (
-        "E041",
+        "E042",
         ErrorKind::InvalidAttribute,
         format!("attribute `{attribute}` cannot be used on `{kind}`"),
         attribute,
