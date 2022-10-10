@@ -140,7 +140,11 @@ fn non_compact_structs_are_disallowed() {
     // Arrange
     let slice = "
         module Test;
-        struct MyStruct {}
+
+        struct MyStruct
+        {
+        }
+
         typealias Dict = dictionary<MyStruct, int8>;
     ";
 

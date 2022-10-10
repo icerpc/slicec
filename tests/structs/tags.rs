@@ -10,7 +10,9 @@ mod structs {
         // Arrange
         let slice = "
             module Test;
-            struct S {
+
+            struct S
+            {
                 i: int32,
                 s: string,
                 b: tag(10) bool?,
@@ -37,7 +39,9 @@ mod compact_structs {
         // Arrange
         let slice = "
             module Test;
-            compact struct S {
+
+            compact struct S
+            {
                 i: int32,
                 s: string,
                 b: tag(10) bool?,

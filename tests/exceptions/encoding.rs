@@ -16,7 +16,11 @@ mod slice1 {
         let slice = "
             encoding = 1;
             module Test;
-            exception E {}
+
+            exception E
+            {
+            }
+
             compact struct S
             {
                 e: E,
@@ -48,8 +52,14 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
-            exception A {}
-            exception B : A {}
+
+            exception A
+            {
+            }
+
+            exception B : A
+            {
+            }
         ";
 
         // Act
@@ -78,7 +88,11 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
-            exception E {}
+
+            exception E
+            {
+            }
+
             struct S
             {
                 e: E,

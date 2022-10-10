@@ -14,7 +14,9 @@ mod scope_resolution {
         // Arrange
         let slice = "
             module T;
-            module S {}
+            module S
+            {
+            }
         ";
 
         // Act
@@ -254,7 +256,9 @@ mod scope_resolution {
                     }
                 }
 
-                interface C {}
+                interface C
+                {
+                }
             }
         ";
 

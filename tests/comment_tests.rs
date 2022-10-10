@@ -28,7 +28,9 @@ mod comments {
                 module tests;
 
                 {doc_comment}
-                interface MyInterface {{}}
+                interface MyInterface
+                {{
+                }}
             ",
         );
 
@@ -48,7 +50,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @param testParam My test param
                 testOp(testParam: string);
             }
@@ -71,7 +74,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @return bool
                 testOp(testParam: string) -> bool;
             }
@@ -94,7 +98,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @return This operation will return a bool.
                 testOp(testParam: string);
             }
@@ -115,7 +120,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @param testParam1 A string param
                 /// @param testParam2 A bool param
                 testOp(testParam1: string);
@@ -137,7 +143,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @param testParam1 A string param
                 /// @return bool
                 /// @throws MyException Some message about why testOp throws
@@ -159,7 +166,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /**
                  * @throws MyThrownThing Message about my thrown thing. \n More about the thrown thing.
                  * @return bool
@@ -189,7 +197,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @throws MyThrownThing Message about my thrown thing.
                 testOp(testParam: string) -> bool;
             }
@@ -213,7 +222,9 @@ mod comments {
             module tests;
 
             /// @throws MyThrownThing Message about my thrown thing.
-            struct S {}
+            struct S
+            {
+            }
         ";
 
         // Act
@@ -232,7 +243,8 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface {
+            interface TestInterface
+            {
                 /// @see MySee Message about thing.
                 testOp(testParam: string) -> bool;
             }
@@ -258,7 +270,9 @@ mod comments {
             module tests;
 
             {comment}
-            interface MyInterface {{}}
+            interface MyInterface
+            {{
+            }}
             "
         );
 
@@ -283,7 +297,9 @@ mod comments {
                 module tests;
 
                 {comment}
-                interface MyInterface {{}}
+                interface MyInterface
+                {{
+                }}
             "
         );
 
@@ -327,7 +343,9 @@ mod comments {
             module tests;
 
             /// A test struct. Similar to {@link OtherStruct}.
-            struct TestStruct {}
+            struct TestStruct
+            {
+            }
             ";
 
         // Act
@@ -345,7 +363,9 @@ mod comments {
             module tests;
 
             /// A test struct. Similar to {@linked OtherStruct}{}.
-            struct TestStruct {}
+            struct TestStruct
+            {
+            }
             ";
 
         // Act

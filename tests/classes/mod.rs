@@ -14,7 +14,10 @@ fn support_compact_type_id() {
     let slice = "
         encoding = 1;
         module Test;
-        class C(42) {}
+
+        class C(42)
+        {
+        }
     ";
 
     // Act

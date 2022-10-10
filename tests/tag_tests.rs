@@ -17,7 +17,8 @@ mod tags {
         let slice = "
             encoding = 1;
             module Test;
-            class C {
+            class C
+            {
                 i: int32,
                 s: string,
                 b: tag(10) bool,
@@ -38,7 +39,8 @@ mod tags {
         let slice = "
             encoding = 1;
             module Test;
-            interface I {
+            interface I
+            {
                 op(myParam: tag(10) int32);
             }
         ";
@@ -57,7 +59,8 @@ mod tags {
         let slice = "
             encoding = 1;
             module Test;
-            interface I {
+            interface I
+            {
                 myOp(a: int32?);
             }
         ";
@@ -79,7 +82,8 @@ mod tags {
         let slice = "
             encoding = 1;
             module Test;
-            interface I {
+            interface I
+            {
                 op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
             }
         ";
@@ -102,9 +106,12 @@ mod tags {
             encoding = 1;
             module Test;
 
-            class C {}
+            class C
+            {
+            }
 
-            interface I {
+            interface I
+            {
                 op(c: tag(1) C?);
             }
         ";
@@ -124,12 +131,17 @@ mod tags {
             encoding = 1;
             module Test;
 
-            class C {}
-            compact struct S {
+            class C
+            {
+            }
+
+            compact struct S
+            {
                 c: C,
             }
 
-            interface I {
+            interface I
+            {
                 op(s: tag(1) S?);
             }
         ";
@@ -147,7 +159,8 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            struct S {
+            struct S
+            {
                 a: tag(1) int32?,
             }
         ";
@@ -167,7 +180,8 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            struct S {
+            struct S
+            {
                 a: tag(1) int32?,
                 b: tag(1) int32?,
             }
@@ -191,7 +205,8 @@ mod tags {
         let slice = format!(
             "
             module Test;
-            interface I {{
+            interface I
+            {{
                 testOp(a: tag({value}) int32?);
             }}
             "
@@ -211,7 +226,8 @@ mod tags {
         let slice = format!(
             "
                 module Test;
-                interface I {{
+                interface I
+                {{
                     testOp(a: tag({value}) int32?);
                 }}
             "
@@ -230,7 +246,8 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            interface I {
+            interface I
+            {
                 testOp(a: tag(-1) int32?);
             }
         ";
@@ -248,7 +265,8 @@ mod tags {
         // Arrange
         let slice = "
             module Test;
-            interface I {
+            interface I
+            {
                 testOp(a: tag(\"test string\") int32?);
             }
         ";

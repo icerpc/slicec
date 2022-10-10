@@ -11,6 +11,7 @@ fn can_contain_data_members() {
     // Arrange
     let slice = "
         module Test;
+
         exception E
         {
             i: int32,
@@ -49,6 +50,7 @@ fn can_be_empty() {
     // Arrange
     let slice = "
         module Test;
+
         exception E {}
     ";
 
@@ -66,6 +68,7 @@ fn cannot_redefine_data_members() {
     let slice = "
         encoding = 1;
         module Test;
+
         exception E
         {
             a: int32,

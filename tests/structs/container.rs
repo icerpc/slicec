@@ -13,6 +13,7 @@ mod structs {
         // Arrange
         let slice = "
             module Test;
+
             struct S
             {
                 i: int32,
@@ -51,7 +52,10 @@ mod structs {
         // Arrange
         let slice = "
             module Test;
-            struct S {}
+
+            struct S
+            {
+            }
         ";
 
         // Act
@@ -67,6 +71,7 @@ mod structs {
         // Arrange
         let slice = "
             module Test;
+
             struct S
             {
                 a: int32,
@@ -98,7 +103,10 @@ mod compact_structs {
         // Arrange
         let slice = "
             module Test;
-            compact struct S {}
+
+            compact struct S
+            {
+            }
         ";
 
         // Act

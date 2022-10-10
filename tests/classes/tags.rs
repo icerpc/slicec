@@ -9,7 +9,9 @@ fn can_contain_tags() {
     let slice = "
         encoding = 1;
         module Test;
-        class C {
+
+        class C
+        {
             i: int32,
             s: string,
             b: tag(10) bool?,

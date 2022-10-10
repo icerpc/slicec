@@ -15,7 +15,10 @@ mod slice1 {
         let slice = "
             encoding = 1;
             module Test;
-            struct A {}
+
+            struct A
+            {
+            }
         ";
 
         // Act
@@ -48,6 +51,7 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
+
             struct A
             {
                 c: AnyClass,
@@ -80,7 +84,9 @@ mod slice2 {
         // Arrange
         let slice = "
             module Test;
+
             trait T;
+
             struct A
             {
                 i: int32,

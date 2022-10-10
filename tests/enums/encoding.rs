@@ -16,7 +16,10 @@ mod slice1 {
         let slice = "
             encoding = 1;
             module Test;
-            unchecked enum E : int32 {}
+
+            unchecked enum E : int32
+            {
+            }
         ";
 
         // Act
@@ -58,7 +61,10 @@ mod slice2 {
         let slice = &format!(
             "
                 module Test;
-                unchecked enum E : {} {{}}
+
+                unchecked enum E : {}
+                {{
+                }}
             ",
             valid_type,
         );
