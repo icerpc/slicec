@@ -9,6 +9,7 @@ mod identifiers;
 mod miscellaneous;
 mod tag;
 
+use crate::ast::node::Node;
 use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::DiagnosticReporter;
@@ -60,6 +61,29 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
     let mut validator = ValidatorVisitor::new(&data.ast, diagnostic_reporter);
     for slice_file in data.files.values() {
         slice_file.visit_with(&mut validator);
+    }
+
+    // Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
+    // is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
+    //
+    // So we compute a map of all the identifiers in modules with the same name (fully scoped), then check that.
+    let mut merged_module_content_identifiers: HashMap<String, Vec<&Identifier>> = HashMap::new();
+    for node in data.ast.as_slice() {
+        if let Node::Module(module_ptr) = node {
+            // Borrow the module's pointer and store its fully scoped identifier.
+            let module = module_ptr.borrow();
+            let scoped_module_identifier = module.parser_scoped_identifier();
+            // Get all the identifiers of the direct members of this module.
+            let module_content_identifiers = module.contents().iter().map(|def| def.borrow().raw_identifier());
+            // Add the identifiers to the map, with the module's scoped identifier as the key.
+            merged_module_content_identifiers
+                 .entry(scoped_module_identifier)
+                 .or_default() // If an entry doesn't exist for the key, create one now.
+                 .extend(module_content_identifiers); // Add this module's identifiers to the existing vector.
+        }
+    }
+    for identifiers in merged_module_content_identifiers.into_values() {
+        check_for_redefinition(identifiers, &mut data.diagnostic_reporter);
     }
 
     // We always return `Ok` here to ensure the language mapping's validation logic is run,
@@ -234,14 +258,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(module_def, diagnostic_reporter),
             Validator::Module(function) => function(module_def, diagnostic_reporter),
-            Validator::Identifiers(function) => {
-                let identifiers = module_def
-                    .contents()
-                    .iter()
-                    .map(|definition| definition.borrow().raw_identifier())
-                    .collect::<Vec<_>>();
-                function(identifiers, diagnostic_reporter)
-            }
+            // Checking for redefinition errors is done in `validate_parsed_data` to handle reopened modules.
             _ => {}
         });
     }

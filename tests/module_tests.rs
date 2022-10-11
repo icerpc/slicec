@@ -151,4 +151,30 @@ mod module {
         })];
         assert_errors!(errors, expected);
     }
+
+    #[test]
+    fn cross_module_redefinitions_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Foo
+            {
+                struct Bar {}
+            }
+
+            module Foo
+            {
+                struct Bar {}
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::Redefinition {
+            identifier: "Bar".to_owned(),
+        })
+        .add_note("`Bar` was previously defined here", None);
+        assert_errors!(diagnostic_reporter, [&expected]);
+    }
 }
