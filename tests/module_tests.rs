@@ -4,7 +4,9 @@ pub mod helpers;
 
 mod module {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::*;
+    use slice::diagnostics::{Error, ErrorKind, Note};
     use slice::grammar::*;
     use slice::parse_from_strings;
 
@@ -83,5 +85,31 @@ mod module {
         // Assert
         // TODO: better error message once we replace the parser
         assert!(err.is_some());
+    }
+
+    #[test]
+    fn cross_module_redefinitions_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Foo
+            {
+                struct Bar {}
+            }
+
+            module Foo
+            {
+                struct Bar {}
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new_with_notes(ErrorKind::Redefinition("Bar".to_owned()), None, vec![Note::new(
+            "`Bar` was previously defined here",
+            None,
+        )]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
