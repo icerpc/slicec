@@ -115,6 +115,7 @@ impl SliceFile {
     }
 
     /// Retrieves a formatted snippet from the slice file.
+    #[allow(unused_must_use)] // 'writeln' can't fail when writing to a string, so we ignore the result it returns.
     pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
         debug_assert!(start < end); // Assert that the start of the snippet comes before the end.
 
@@ -147,7 +148,7 @@ impl SliceFile {
         // Create a formatted snippet.
         let mut snippet = get_prefix(None) + "\n";
         for line in format!("{}{}{}", start_snippet, error_snippet, end_snippet).lines() {
-            writeln!(snippet, "{} {}", get_prefix(Some(line_number)), line).unwrap();
+            writeln!(snippet, "{} {}", get_prefix(Some(line_number)), line);
             line_number += 1;
         }
         writeln!(
@@ -156,8 +157,7 @@ impl SliceFile {
             get_prefix(None),
             " ".repeat(start_snippet.len()),
             style(underline).yellow().bold(),
-        )
-        .unwrap();
+        );
         snippet += &get_prefix(None);
 
         // Return the formatted snippet.
