@@ -44,6 +44,13 @@ pub enum WarningKind {
     /// * `deprecation_reason` - The reason why the slice entity was deprecated. If not supplied it will an empty
     ///   string.
     UseOfDeprecatedEntity(String, String),
+
+    /// The user applied an attribute on a type that will result in no changes
+    ///
+    /// # Fields
+    /// * `attribute` - The attribute that was applied
+    /// * `kind` - The entity the user applied the attribute to.
+    InconsequentialUseOfAttribute(String, String),
 }
 
 implement_error_functions!(
@@ -84,5 +91,12 @@ implement_error_functions!(
         format!("`{identifier}` is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
+    ),
+    (
+        "W007",
+        WarningKind::InconsequentialUseOfAttribute,
+        format!("`{attribute}` does not have any effect on {kind}"),
+        attribute,
+        kind
     )
 );
