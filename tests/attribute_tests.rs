@@ -536,8 +536,7 @@ mod attributes {
 
     mod generalized_api {
 
-        use crate::assert_errors;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+        use crate::helpers::parsing_helpers::parse_for_ast;
         use slice::grammar::*;
         use slice::parse_from_strings;
         use test_case::test_case;
@@ -624,8 +623,9 @@ mod attributes {
             }
         }
 
-        #[test_case("a, \""; "quoted argument with comma and trailing comma")]
-        #[test_case("a, )"; "quoted argument with comma and trailing parenthesis")]
+        #[test_case("a, \""; "quoted argument with unterminated string literal")]
+        #[test_case("a, )"; "missing argument")]
+        #[test_case("fizz buzz"; "unquoted argument with spaces")]
         fn attribute_with_invalid_parameters(input: &str) {
             // Arrange
             let slice = format!(
@@ -644,28 +644,6 @@ mod attributes {
 
             // Assert
             assert!(errors.is_some());
-        }
-
-        #[test]
-        #[ignore] // TODO: Currently panics with "expected operation" error. Should be fixed
-                  // in parser.
-        fn foo_attribute_with_spaces_fails() {
-            // Arrange
-            let slice = "
-                module Test;
-
-                interface I
-                {
-                    [foo::bar(fizz buzz)]
-                    op(s: string) -> string;
-                }
-            ";
-
-            // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
-
-            // Assert
-            assert_errors!(diagnostic_reporter);
         }
     }
 }

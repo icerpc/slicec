@@ -10,6 +10,7 @@ mod scope_resolution {
     use slice::grammar::*;
 
     #[test]
+    #[ignore] // This validation is no longer done by the parser, and should be done by a validator.
     fn file_level_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "

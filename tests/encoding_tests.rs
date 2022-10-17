@@ -6,6 +6,7 @@ mod encodings {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::parse_from_strings;
     use test_case::test_case;
 
@@ -28,18 +29,18 @@ mod encodings {
     }
 
     #[test]
-    #[ignore = "The current message being emitted is not correct"]
     fn invalid_encodings_fail() {
         // Arrange
         let slice = "
             encoding = 3;
         ";
+        let expected = Error::new(ErrorKind::InvalidEncodingVersion(3), None);
 
         // Act
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, ["Unknown slice encoding version: 3"]);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 
     #[test]

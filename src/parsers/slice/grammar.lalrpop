@@ -1,0 +1,380 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+use crate::ast::node::Node;
+use crate::grammar::*;
+use crate::parsers::slice::tokens::*;
+use crate::parsers::slice::grammar::*;
+use crate::parsers::slice::parser::Parser;
+use crate::slice_file::Span;
+use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
+
+// Specify the signature of the parser's entry function.
+grammar<'input, 'a>(parser: &mut Parser<'a>);
+
+extern {
+    type Location = crate::slice_file::Location;
+    type Error = crate::parsers::slice::tokens::Error;
+
+    // Link the names of terminal tokens with their actual token types. Ex: `identifier => TokenKind::Identifier`
+    // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
+    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `tokens.rs`.
+    enum TokenKind<'input> {
+        identifier => TokenKind::Identifier(<&'input str>),
+
+        string_literal => TokenKind::StringLiteral(<&'input str>),
+        integer_literal => TokenKind::IntegerLiteral(<&'input str>),
+
+        doc_comment => TokenKind::DocComment(<&'input str>),
+
+        // Definition keywords
+        module_keyword => TokenKind::ModuleKeyword,
+        struct_keyword => TokenKind::StructKeyword,
+        exception_keyword => TokenKind::ExceptionKeyword,
+        class_keyword => TokenKind::ClassKeyword,
+        interface_keyword => TokenKind::InterfaceKeyword,
+        enum_keyword => TokenKind::EnumKeyword,
+        trait_keyword => TokenKind::TraitKeyword,
+        custom_keyword => TokenKind::CustomKeyword,
+        type_alias_keyword => TokenKind::TypeAliasKeyword,
+
+        // Collection keywords
+        sequence_keyword => TokenKind::SequenceKeyword,
+        dictionary_keyword => TokenKind::DictionaryKeyword,
+
+        // Primitive type keywords
+        bool_keyword => TokenKind::BoolKeyword,
+        int8_keyword => TokenKind::Int8Keyword,
+        uint8_keyword => TokenKind::UInt8Keyword,
+        int16_keyword => TokenKind::Int16Keyword,
+        uint16_keyword => TokenKind::UInt16Keyword,
+        int32_keyword => TokenKind::Int32Keyword,
+        uint32_keyword => TokenKind::UInt32Keyword,
+        varint32_keyword => TokenKind::VarInt32Keyword,
+        varuint32_keyword => TokenKind::VarUInt32Keyword,
+        int64_keyword => TokenKind::Int64Keyword,
+        uint64_keyword => TokenKind::UInt64Keyword,
+        varint62_keyword => TokenKind::VarInt62Keyword,
+        varuint62_keyword => TokenKind::VarUInt62Keyword,
+        float32_keyword => TokenKind::Float32Keyword,
+        float64_keyword => TokenKind::Float64Keyword,
+        string_keyword => TokenKind::StringKeyword,
+        any_class_keyword => TokenKind::AnyClassKeyword,
+
+        // Other keywords
+        tag_keyword => TokenKind::TagKeyword,
+        stream_keyword => TokenKind::StreamKeyword,
+        compact_keyword => TokenKind::CompactKeyword,
+        idempotent_keyword => TokenKind::IdempotentKeyword,
+        unchecked_keyword => TokenKind::UncheckedKeyword,
+        encoding_keyword => TokenKind::EncodingKeyword,
+
+        // Brackets
+        "(" => TokenKind::LeftParenthesis,
+        ")" => TokenKind::RightParenthesis,
+        "[" => TokenKind::LeftBracket,
+        "]" => TokenKind::RightBracket,
+        "[[" => TokenKind::DoubleLeftBracket,
+        "]]" => TokenKind::DoubleRightBracket,
+        "{" => TokenKind::LeftBrace,
+        "}" => TokenKind::RightBrace,
+        "<" => TokenKind::LeftChevron,
+        ">" => TokenKind::RightChevron,
+
+        // Symbols
+        "." => TokenKind::Dot,
+        "," => TokenKind::Comma,
+        ":" => TokenKind::Colon,
+        "::" => TokenKind::DoubleColon,
+        ";" => TokenKind::Semicolon,
+        "=" => TokenKind::Equals,
+        "?" => TokenKind::QuestionMark,
+        "->" => TokenKind::Arrow,
+        "+" => TokenKind::Plus,
+        "-" => TokenKind::Minus,
+    }
+}
+
+// Grammar Rules
+
+pub SliceFile: (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>) = {
+    <sfp: SliceFilePrelude> <flm: FileLevelModule> => (sfp.0, sfp.1, vec![flm]),
+    <sfp: SliceFilePrelude> <ms: Module*> => (sfp.0, sfp.1, ms),
+}
+
+SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
+    => (None, Vec::new()),
+    <sfp: SliceFilePrelude> <fe: FileEncoding> => set_file_encoding(parser, sfp, fe),
+    <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
+        sfp.1.push(fa);
+        sfp
+    },
+}
+
+FileEncoding: FileEncoding = {
+    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> ";" => {
+        construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+FileLevelModule: OwnedPtr<Module> = {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";" <ds: Definition*> => {
+        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
+    }
+}
+
+Module: OwnedPtr<Module> = {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" <ds: Definition*> "}" => {
+        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
+    }
+}
+
+Definition: Node = {
+    Module => Node::Module(<>),
+    Struct => Node::Struct(<>),
+    Exception => Node::Exception(<>),
+    Class => Node::Class(<>),
+    Interface => Node::Interface(<>),
+    Enum => Node::Enum(<>),
+    Trait => Node::Trait(<>),
+    CustomType => Node::CustomType(<>),
+    TypeAlias => Node::TypeAlias(<>),
+}
+
+Struct: OwnedPtr<Struct> = {
+    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_struct(parser, p, ck.is_some(), i, il, dms, Span::new(l, r, parser.file_name))
+    }
+}
+
+Exception: OwnedPtr<Exception> = {
+    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_exception(parser, p, i, il, dms, Span::new(l, r, parser.file_name))
+    }
+}
+
+Class: OwnedPtr<Class> = {
+    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_class(parser, p, i, ci, il, dms, Span::new(l, r, parser.file_name))
+    }
+}
+
+DataMember: OwnedPtr<DataMember> = {
+    <p: Prelude> <l: @L> <i: Identifier> ":" <las: LocalAttribute*> <t: Tag?> <tr: TypeRef> <r: @R> => {
+        construct_data_member(parser, p, i, las, t, tr, Span::new(l, r, parser.file_name))
+    }
+}
+
+Interface: OwnedPtr<Interface> = {
+    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <os: Operation*> "}" ContainerEnd => {
+        construct_interface(parser, p, i, il, os, Span::new(l, r, parser.file_name))
+    }
+}
+
+Operation: OwnedPtr<Operation> = {
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <r: @R> ";" ContainerEnd => {
+        construct_operation(parser, p, ik.is_some(), i, ps, rt, Span::new(l, r, parser.file_name))
+    }
+}
+
+Parameter: OwnedPtr<Parameter> = {
+    <p: Prelude> <l: @L> <i: Identifier> ":" <pm: ParameterModifiers> <tr: TypeRef> <r: @R> => {
+        construct_parameter(parser, p, i, pm, tr, Span::new(l, r, parser.file_name))
+    }
+}
+
+ReturnType: Vec<OwnedPtr<Parameter>> = {
+    <l: @L> <pm: ParameterModifiers> <tr: TypeRef> <r: @R> => {
+        construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
+    },
+    "(" <List<Parameter>> ")" => <>,
+}
+
+ParameterModifiers: (bool, Option<u32>, Vec<Attribute>) = {
+    => (false, None, Vec::new()),
+    <pm: ParameterModifiers> <l: @L> stream_keyword <r: @R> => set_stream_modifier(parser, pm, (l, r)),
+    <pm: ParameterModifiers> <l: @L> <t: Tag> <r: @R> => set_tag_value(parser, pm, t, (l, r)),
+    <mut pm: ParameterModifiers> <la: LocalAttribute> => { pm.2.push(la); pm },
+}
+
+Enum: OwnedPtr<Enum> = {
+    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <es: List<Enumerator>> "}" ContainerEnd => {
+        construct_enum(parser, p, uk.is_some(), i, il, es, Span::new(l, r, parser.file_name))
+    }
+}
+
+Enumerator: OwnedPtr<Enumerator> = {
+    <p: Prelude> <l: @L> <i: Identifier> <v: ("=" <SignedInteger>)?> <r: @R> => {
+        construct_enumerator(parser, p, i, v, Span::new(l, r, parser.file_name))
+    }
+}
+
+Trait: OwnedPtr<Trait> = {
+    <p: Prelude> <l: @L> trait_keyword <i: Identifier> <r: @R> ";" => {
+        construct_trait(parser, p, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+CustomType: OwnedPtr<CustomType> = {
+    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> ";" => {
+        construct_custom_type(parser, p, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+TypeAlias: OwnedPtr<TypeAlias> = {
+    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <las: LocalAttribute*> <tr: TypeRef> ";" => {
+        construct_type_alias(parser, p, i, las, tr, Span::new(l, r, parser.file_name))
+    }
+}
+
+Sequence: OwnedPtr<Sequence> = {
+    sequence_keyword "<" <elas: LocalAttribute*> <etr: TypeRef> ">" => {
+        construct_sequence(elas, etr)
+    }
+}
+
+Dictionary: OwnedPtr<Dictionary> = {
+    dictionary_keyword "<" <klas: LocalAttribute*> <ktr: TypeRef> "," <vlas: LocalAttribute*> <vtr: TypeRef> ">" => {
+        construct_dictionary(klas, ktr, vlas, vtr)
+    }
+}
+
+Primitive: Primitive = {
+    bool_keyword => Primitive::Bool,
+    int8_keyword => Primitive::Int8,
+    uint8_keyword => Primitive::UInt8,
+    int16_keyword => Primitive::Int16,
+    uint16_keyword => Primitive::UInt16,
+    int32_keyword => Primitive::Int32,
+    uint32_keyword => Primitive::UInt32,
+    varint32_keyword => Primitive::VarInt32,
+    varuint32_keyword => Primitive::VarUInt32,
+    int64_keyword => Primitive::Int64,
+    uint64_keyword => Primitive::UInt64,
+    varint62_keyword => Primitive::VarInt62,
+    varuint62_keyword => Primitive::VarUInt62,
+    float32_keyword => Primitive::Float32,
+    float64_keyword => Primitive::Float64,
+    string_keyword => Primitive::String,
+    any_class_keyword => Primitive::AnyClass,
+}
+
+TypeRef: TypeRef = {
+    <l: @L> <trd: TypeRefDefinition> <o: "?"?> <r: @R> => {
+        construct_type_ref(parser, trd, o.is_some(), Span::new(l, r, parser.file_name))
+    }
+}
+
+TypeRefDefinition: TypeRefDefinition = {
+    Primitive => primitive_to_type_ref_definition(parser, <>),
+    Sequence => anonymous_type_to_type_ref_definition(parser, <>),
+    Dictionary => anonymous_type_to_type_ref_definition(parser, <>),
+    RelativelyScopedIdentifier => construct_unpatched_type_ref_definition(<>),
+    GloballyScopedIdentifier => construct_unpatched_type_ref_definition(<>),
+}
+
+FileAttribute = "[[" <Attribute> "]]";
+
+LocalAttribute = "[" <Attribute> "]";
+
+Attribute: Attribute = {
+    <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <List<AttributeArgument>> ")")?> <r: @R> => {
+        construct_attribute(rsi, aas, Span::new(l, r, parser.file_name))
+    }
+}
+
+AttributeArgument: String = {
+    <sl: string_literal> => sl.to_owned(),
+    <i: identifier> => i.to_owned(),
+}
+
+Identifier: Identifier = {
+    <l: @L> <i: identifier> <r: @R> => {
+        Identifier { value: i.to_owned(), span: Span::new(l, r, parser.file_name) }
+    }
+}
+
+RelativelyScopedIdentifier: Identifier = {
+    <l: @L> <i: identifier> <mut v: ("::" <identifier>)*> <r: @R> => {
+        v.insert(0, i);
+        Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
+    }
+}
+
+GloballyScopedIdentifier: Identifier = {
+    <l: @L> <mut v: ("::" <identifier>)+> <r: @R> => {
+        v.insert(0, ""); // Gives a leading "::" when we `join`.
+        Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
+    }
+}
+
+Integer: i64 = {
+    <l: @L> <i: integer_literal> <r: @R> => {
+        try_parse_integer(parser, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+SignedInteger: i64 = {
+    <i: Integer> => i,
+    "+" <i: Integer> => i,
+    "-" <i: Integer> => -i,
+}
+
+Tag: u32 = {
+    tag_keyword "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
+        parse_tag_value(parser, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+CompactId: u32 = {
+    "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
+        parse_compact_id_value(parser, i, Span::new(l, r, parser.file_name))
+    }
+}
+
+Prelude: (Option<DocComment>, Vec<Attribute>) = {
+    PreludeImpl => (parse_doc_comment(<>.0), <>.1),
+}
+
+PreludeImpl: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
+    => (Vec::new(), Vec::new()),
+    <mut prelude: PreludeImpl> <l: @L> <comment: doc_comment> <r: @R> => {
+        prelude.0.push((comment, Span::new(l, r, parser.file_name)));
+        prelude
+    },
+    <mut prelude: PreludeImpl> <attribute: LocalAttribute> => {
+        prelude.1.push(attribute);
+        prelude
+    }
+}
+
+// Utility Rules
+
+List<T>: Vec<T> = {
+    <v: (<T> ",")*> <e: T?> => {
+        append_element_to_list(v, e)
+    }
+}
+
+InheritanceList: Vec<TypeRef> = {
+    ":" <trs: List<TypeRef>> => trs,
+}
+
+ModuleIdentifier: Identifier = {
+    RelativelyScopedIdentifier => {
+        for scope in <>.value.split("::") {
+            parser.current_scope.push_scope(scope, true);
+        }
+        <>
+    }
+}
+
+ContainerIdentifier: Identifier = {
+    Identifier => {
+        parser.current_scope.push_scope(&<>.value, false);
+        <>
+    },
+}
+
+ContainerEnd: () = {
+    => parser.current_scope.pop_scope(),
+}

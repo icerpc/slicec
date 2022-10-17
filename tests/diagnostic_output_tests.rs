@@ -47,7 +47,7 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":13},"end":{"row":7,"col":13},"file":"string-0"},"notes":[],"error_code":"W001"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":13},"end":{"row":6,"col":38},"file":"string-0"},"notes":[],"error_code":"W001"}"#,
             "\n",
             r#"{"message":"invalid enum `E`: enums must contain at least one enumerator","severity":"error","span":{"start":{"row":10,"col":9},"end":{"row":10,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
@@ -95,8 +95,6 @@ warning [W001]: doc comment has a param tag for 'x', but there is no parameter b
   |
 6 |             /// @param x this is an x
   |             -------------------------
-7 |             op1();
-  | ------------
   |
 error [E020]: invalid tag on member `x`: tagged members must be optional
  --> string-0:9:17

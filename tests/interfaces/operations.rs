@@ -186,6 +186,7 @@ fn can_have_return_tuple() {
 }
 
 #[test]
+#[ignore] // This validation is no longer done by the parser, and should be done by a validator.
 fn return_tuple_must_contain_two_or_more_elements() {
     // Arrange
     let slice = "

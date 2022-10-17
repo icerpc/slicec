@@ -52,6 +52,9 @@ pub enum ErrorKind {
     StructKeyMustBeCompact,
 
     // ----------------  Encoding Errors ---------------- //
+    /// The user specified an encoding multiple times in a single Slice file.
+    MultipleEncodingVersions,
+
     /// The provided kind with identifier is not supported in the specified encoding.
     ///
     /// # Fields
@@ -98,6 +101,13 @@ pub enum ErrorKind {
     /// * `enum_identifier` - The identifier of the enum.
     CannotUseOptionalUnderlyingType(String),
 
+    /// Enums cannot have multiple underlying types.
+    ///
+    /// # Fields
+    ///
+    /// * `enum_identifier` - The identifier of the enum.
+    CannotHaveMultipleUnderlyingTypes(String),
+
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum.
     ///
     /// # Fields
@@ -107,6 +117,13 @@ pub enum ErrorKind {
     /// * `min` - The minimum value of the underlying type of the enum.
     /// * `max` - The maximum value of the underlying type of the enum.
     EnumeratorValueOutOfBounds(String, i64, i64, i64),
+
+    /// An enumerator's implicitly assigned value was larger than `i64::MAX`.
+    ///
+    /// # Fields
+    ///
+    /// * `enumerator_identifier` - The identifier of the enumerator.
+    ImplicitEnumeratorValueOverflows(String),
 
     /// Enums must be contain at least one enumerator.
     ///
@@ -192,6 +209,9 @@ pub enum ErrorKind {
     TaggedMemberMustBeOptional(String),
 
     // ----------------  General Errors ---------------- //
+    /// A compact ID was not in the expected range, 0 .. i32::MAX.
+    CompactIdOutOfBounds,
+
     /// Used to indicate when a method must contain arguments.
     ///
     /// # Fields
@@ -248,6 +268,12 @@ pub enum ErrorKind {
     /// * `expected kind` - The name of the expected kind.
     /// * `actual kind` - The name of the found kind.
     TypeMismatch(String, String),
+
+    /// An integer literal was outside the parsable range of 0..i64::MAX.
+    IntegerLiteralTooLarge,
+
+    /// An invalid Slice encoding was used.
+    InvalidEncodingVersion(i64),
 
     // ----------------  SliceC-C# Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
@@ -409,7 +435,7 @@ implement_error_functions!(
     (
         "E023",
         ErrorKind::CanOnlyInheritFromSingleBase,
-        format!("`{}` types can only inherit form a single base  {}", kind, kind),
+        format!("`{}` types can only inherit from a single base  {}", kind, kind),
         kind
     ),
     (
@@ -528,5 +554,38 @@ implement_error_functions!(
         format!("attribute `{attribute}` cannot be used on `{kind}`"),
         attribute,
         kind
+    ),
+    (
+        "E043",
+        ErrorKind::CompactIdOutOfBounds,
+        "compact IDs must be within the range 0 <= ID <= 2147483647"
+    ),
+    (
+        "E044",
+        ErrorKind::IntegerLiteralTooLarge,
+        "integer literal is outside the parsable range of 0 <= i <= 9223372036854775807"
+    ),
+    (
+        "E045",
+        ErrorKind::InvalidEncodingVersion,
+        format!("'{version}' is not a valid Slice encoding version"),
+        version
+    ),
+    (
+        "E046",
+        ErrorKind::ImplicitEnumeratorValueOverflows,
+        format!("enumerator `{identifier}` has an implicit value larger than `i64::MAX`"),
+        identifier
+    ),
+    (
+        "E047",
+        ErrorKind::CannotHaveMultipleUnderlyingTypes,
+        format!("enum `{identifier}` has multiple underlying types; enums can only have a single underlying type"),
+        identifier
+    ),
+    (
+        "E048",
+        ErrorKind::MultipleEncodingVersions,
+        "only a single encoding can be specified per file".to_owned()
     )
 );

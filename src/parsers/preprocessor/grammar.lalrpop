@@ -1,0 +1,98 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+use crate::parsers::common::SourceBlock;
+use crate::parsers::preprocessor::tokens::*;
+use crate::parsers::preprocessor::grammar::*;
+use crate::parsers::preprocessor::parser::Preprocessor;
+use crate::slice_file::Span;
+
+// Specify the signature of the parser's entry function.
+grammar<'input, 'a>(preprocessor: &mut Preprocessor<'a>);
+
+extern {
+    // Specify the types that the parser should use for location tracking and error emission.
+    type Location = crate::slice_file::Location;
+    type Error = crate::parsers::preprocessor::tokens::Error;
+
+    // Link the names of terminal tokens with their actual token types. Ex: `identifier => TokenKind::Identifier`
+    // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
+    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `token.rs`.
+    enum TokenKind<'input> {
+        identifier => TokenKind::Identifier(<&'input str>),
+        source_block => TokenKind::SourceBlock(<SourceBlock<'input>>),
+
+        // Directive keywords
+        define_keyword => TokenKind::DefineKeyword,
+        undefine_keyword => TokenKind::UndefineKeyword,
+        if_keyword => TokenKind::IfKeyword,
+        elif_keyword => TokenKind::ElifKeyword,
+        else_keyword => TokenKind::ElseKeyword,
+        endif_keyword => TokenKind::EndifKeyword,
+
+        directive_end => TokenKind::DirectiveEnd,
+
+        // Operators
+        "!" => TokenKind::Not,
+        "&&" => TokenKind::And,
+        "||"  => TokenKind::Or,
+
+        // Brackets
+        "(" => TokenKind::LeftParenthesis,
+        ")" => TokenKind::RightParenthesis,
+    }
+}
+
+// Grammar Rules
+
+pub SliceFile: std::iter::Flatten<std::vec::IntoIter<Option<SourceBlock<'input>>>> = {
+    Main* => <>.into_iter().flatten(),
+}
+
+Main: Option<SourceBlock<'input>> = {
+    source_block => Some(<>),
+    DefineDirective => None,
+    UndefineDirective => None,
+    ConditionalStatement => <>,
+}
+
+DefineDirective: () = {
+    define_keyword <identifier> directive_end => {
+        preprocessor.definitions.insert(<>.to_uppercase());
+    }
+}
+
+UndefineDirective: () = {
+    undefine_keyword <identifier> directive_end => {
+        preprocessor.definitions.remove(&<>.to_uppercase());
+    }
+}
+
+IfDirective = if_keyword <Expression> directive_end;
+
+ElifDirective = elif_keyword <Expression> directive_end;
+
+ElseDirective: () = {
+    else_keyword directive_end => (),
+}
+
+EndifDirective: () = {
+    endif_keyword directive_end => (),
+}
+
+ConditionalStatement: Option<SourceBlock<'input>> = {
+    <if_block: (IfDirective source_block)> <elif_blocks: (ElifDirective source_block)*> <else_block: (ElseDirective <source_block>)?> EndifDirective => {
+        evaluate_if_statement(if_block, elif_blocks, else_block)
+    }
+}
+
+Expression: bool = {
+    <term: Term> => term,
+    "!" <term: Term> => !term,
+    <expr: Expression> "&&" <term: Term> => expr && term,
+    <expr: Expression> "||" <term: Term> => expr || term,
+}
+
+Term: bool = {
+    identifier => preprocessor.definitions.contains(&<>.to_uppercase()),
+    "(" <Expression> ")" => <>,
+}
