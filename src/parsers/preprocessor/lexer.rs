@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::slice_file::Location;
-use super::tokens::*;
 use super::super::common::SourceBlock;
+use super::tokens::*;
+use crate::slice_file::Location;
 
 use std::iter::Peekable;
 use std::str::Chars;

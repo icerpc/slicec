@@ -82,16 +82,16 @@ pub enum TokenKind<'input> {
     RightChevron,       // ">"
 
     // Symbols
-    Dot, // "."
-    Comma, // ","
-    Colon, // ":"
-    DoubleColon, // "::"
-    Semicolon, // ";"
-    Equals, // "="
+    Dot,          // "."
+    Comma,        // ","
+    Colon,        // ":"
+    DoubleColon,  // "::"
+    Semicolon,    // ";"
+    Equals,       // "="
     QuestionMark, // "?"
-    Arrow, // "->"
-    Plus, // "+"
-    Minus, // "-"
+    Arrow,        // "->"
+    Plus,         // "+"
+    Minus,        // "-"
 }
 
 /// This enum specifies all the kinds of errors that the Slice [Lexer](super::lexer::Lexer) can return.

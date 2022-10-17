@@ -25,12 +25,12 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
                         None => format!("unknown symbol '{symbol}'"),
                     }
                 ),
-                tokens::ErrorKind::UnterminatedStringLiteral => diagnostics::ErrorKind::Syntax(
-                    "unterminated string literal".to_owned(),
-                ),
-                tokens::ErrorKind::UnterminatedBlockComment => diagnostics::ErrorKind::Syntax(
-                    "unterminated block comment".to_owned(),
-                ),
+                tokens::ErrorKind::UnterminatedStringLiteral => {
+                    diagnostics::ErrorKind::Syntax("unterminated string literal".to_owned())
+                }
+                tokens::ErrorKind::UnterminatedBlockComment => {
+                    diagnostics::ErrorKind::Syntax("unterminated block comment".to_owned())
+                }
             };
             let span = Span::new(start, end, file_name);
             diagnostics::Error::new(error_kind, Some(&span))
@@ -51,10 +51,10 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.
-        ParseError::InvalidToken{ .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),
+        ParseError::InvalidToken { .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),
 
         // Only rules that explicitly match 'EOF' or only match a finite number of tokens can emit this error.
         // None of our rules do, so this is impossible (there's no limit to the length of a slice file's contents).
-        ParseError::ExtraToken{ .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
+        ParseError::ExtraToken { .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
     }
 }

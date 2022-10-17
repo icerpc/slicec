@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::DiagnosticReporter;
-use super::lexer::Lexer;
 use super::super::common::{ParserResult, SourceBlock};
+use super::lexer::Lexer;
+use crate::diagnostics::DiagnosticReporter;
 
 use std::collections::HashSet;
 
@@ -26,8 +26,8 @@ macro_rules! implement_parse_function {
 
 pub struct Preprocessor<'a> {
     pub file_name: &'a str,
-    pub(in super) definitions: &'a mut HashSet<String>,
-    pub(in super) diagnostic_reporter: &'a mut DiagnosticReporter,
+    pub(super) definitions: &'a mut HashSet<String>,
+    pub(super) diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
 impl<'a> Preprocessor<'a> {

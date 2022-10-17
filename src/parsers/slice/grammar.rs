@@ -2,14 +2,14 @@
 
 use crate::{downgrade_as, upcast_weak_as};
 
+use super::construct_error_from;
+use super::parser::Parser;
+use super::tokens::TokenKind;
 use crate::ast::node::Node;
 use crate::diagnostics::{Error, ErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{Location, Span};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
-use super::construct_error_from;
-use super::parser::Parser;
-use super::tokens::TokenKind;
 
 use std::convert::TryInto;
 use std::ops::RangeInclusive;
@@ -35,7 +35,7 @@ macro_rules! set_children_for {
                 $parent_ptr.borrow_mut().$children.push(weak_ptr);
             }
         }
-    }}
+    }};
 }
 
 macro_rules! set_data_members_for {
@@ -50,7 +50,7 @@ macro_rules! set_data_members_for {
                 $parent_ptr.borrow_mut().$children.push(weak_ptr);
             }
         }
-    }}
+    }};
 }
 
 macro_rules! add_definition_to_module {
@@ -69,7 +69,7 @@ macro_rules! add_definition_to_module {
         $child.borrow_mut().parent = $module_ptr.downgrade();
         let weak_ptr = $parser.ast.add_named_element($child);
         $module_ptr.borrow_mut().contents.push(Definition::$node_type(weak_ptr));
-    }}
+    }};
 }
 
 fn emit_missing_inheritance_type_error<T>(parser: &mut Parser, span: &Span) -> Option<T> {
@@ -92,7 +92,10 @@ fn set_file_encoding(
         parser.diagnostic_reporter.report_error(Error::new_with_notes(
             ErrorKind::MultipleEncodingVersions,
             Some(encoding.span()),
-            vec![ Note::new("original file encoding was specified here", Some(old_file_encoding.span())) ],
+            vec![Note::new(
+                "original file encoding was specified here",
+                Some(old_file_encoding.span())),
+            ],
         ));
     }
     parser.file_encoding = encoding.version;
@@ -423,7 +426,10 @@ fn construct_single_return_type(
     span: Span,
 ) -> Vec<OwnedPtr<Parameter>> {
     // Create a dummy identifier for the return type, since it's nameless.
-    let dummy_identifier = Identifier { value: "returnValue".to_owned(), span: span.clone() };
+    let dummy_identifier = Identifier {
+        value: "returnValue".to_owned(),
+        span: span.clone(),
+    };
 
     // Append any additional type attributes to the data type.
     data_type.attributes.extend(type_attributes);

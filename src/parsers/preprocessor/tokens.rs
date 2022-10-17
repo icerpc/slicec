@@ -2,8 +2,8 @@
 
 //! This module defines all the tokens and errors that the preprocessor [Lexer](super::lexer::Lexer) can return.
 
-use crate::slice_file::Location;
 use super::super::common::SourceBlock;
+use crate::slice_file::Location;
 
 pub type Token<'a> = (Location, TokenKind<'a>, Location);
 pub type Error = (Location, ErrorKind, Location);

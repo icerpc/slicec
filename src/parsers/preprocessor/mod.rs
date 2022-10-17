@@ -19,12 +19,12 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
         // A custom error we emitted; See `tokens::ErrorKind`.
         ParseError::User { error: (start, parse_error_kind, end) } => {
             let error_kind = match parse_error_kind {
-                tokens::ErrorKind::MissingDirective => diagnostics::ErrorKind::Syntax(
-                    "missing preprocessor directive".to_owned(),
-                ),
-                tokens::ErrorKind::UnknownDirective { keyword } => diagnostics::ErrorKind::Syntax(
-                    format!("unknown preprocessor directive: '{keyword}'"),
-                ),
+                tokens::ErrorKind::MissingDirective => {
+                    diagnostics::ErrorKind::Syntax("missing preprocessor directive".to_owned())
+                }
+                tokens::ErrorKind::UnknownDirective { keyword } => {
+                    diagnostics::ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
+                }
                 tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax(
                     match suggestion {
                         Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
@@ -51,10 +51,10 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.
-        ParseError::InvalidToken{ .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),
+        ParseError::InvalidToken { .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),
 
         // Only rules that explicitly match 'EOF' or only match a finite number of tokens can emit this error.
         // None of our rules do, so this is impossible (there's no limit to the length of a slice file's contents).
-        ParseError::ExtraToken{ .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
+        ParseError::ExtraToken { .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
     }
 }

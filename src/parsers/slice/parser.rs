@@ -1,11 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::super::common::{ParserResult, SourceBlock};
+use super::lexer::Lexer;
 use crate::ast::Ast;
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
 use crate::utils::ptr_util::OwnedPtr;
-use super::lexer::Lexer;
-use super::super::common::{ParserResult, SourceBlock};
 
 /// Helper macro for generating parsing functions.
 macro_rules! implement_parse_function {
@@ -27,11 +27,11 @@ macro_rules! implement_parse_function {
 
 pub struct Parser<'a> {
     pub file_name: &'a str,
-    pub(in super) ast: &'a mut Ast,
-    pub(in super) diagnostic_reporter: &'a mut DiagnosticReporter,
-    pub(in super) current_scope: Scope,
-    pub(in super) file_encoding: Encoding,
-    pub(in super) last_enumerator_value: Option<i64>,
+    pub(super) ast: &'a mut Ast,
+    pub(super) diagnostic_reporter: &'a mut DiagnosticReporter,
+    pub(super) current_scope: Scope,
+    pub(super) file_encoding: Encoding,
+    pub(super) last_enumerator_value: Option<i64>,
 }
 
 impl<'a> Parser<'a> {

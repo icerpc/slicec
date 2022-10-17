@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::slice_file::Location;
-use super::tokens::*;
 use super::super::common::SourceBlock;
+use super::tokens::*;
+use crate::slice_file::Location;
 
 use std::iter::Peekable;
 use std::str::CharIndices;
@@ -46,7 +46,12 @@ where
         let buffer = current_block.content.char_indices().peekable();
         let start_location = current_block.start;
 
-        Lexer { source_blocks: input.peekable(), current_block, buffer, cursor: start_location }
+        Lexer {
+            source_blocks: input.peekable(),
+            current_block,
+            buffer,
+            cursor: start_location,
+        }
     }
 
     /// Returns the lexer's position in the buffer of the source block it's currently lexing.
@@ -100,7 +105,7 @@ where
         }
 
         let end_position = self.get_position();
-        &self.current_block.content[start_position .. end_position]
+        &self.current_block.content[start_position..end_position]
     }
 
     /// Reads, consumes, and returns a string of numeric characters from the buffer.
@@ -114,7 +119,7 @@ where
         }
 
         let end_position = self.get_position();
-        &self.current_block.content[start_position .. end_position]
+        &self.current_block.content[start_position..end_position]
     }
 
     /// Reads, consumes, and returns a string literal from the buffer.
@@ -137,7 +142,7 @@ where
                         // We've reached the end of the string literal.
                         let end_position = self.get_position();
                         self.advance_buffer(); // Consume the closing quotation mark.
-                        return Ok(&self.current_block.content[start_position .. end_position]);
+                        return Ok(&self.current_block.content[start_position..end_position]);
                     }
                     '\\' => is_next_char_escaped = true,
                     _ => {}
@@ -157,11 +162,11 @@ where
         self.advance_to_end_of_line();
         let end_position = self.get_position();
 
-        &self.current_block.content[start_position .. end_position]
+        &self.current_block.content[start_position..end_position]
     }
 
     /// Reads and consumes a block comment from the buffer, ignoring it.
-    /// This function expects the opening "/*" to already be consumed, so that the lexer's cursor is immediately after it.
+    /// This function expects the lexer's curstor to be immediately after the opening "/*".
     fn consume_block_comment(&mut self) -> Result<(), ErrorKind> {
         let mut last_character_was_an_asterisk = false;
 
