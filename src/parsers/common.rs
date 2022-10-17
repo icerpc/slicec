@@ -19,5 +19,4 @@ pub struct SourceBlock<'input> {
 
 /// A specialized [Result] type used by parsing functions. The `Err` variant is empty because errors are reported with
 /// a [DiagnosticReporter](crate::diagnostics::DiagnosticReporter) instead of being directly returned.
-#[allow(clippy::result_unit_err)]
 pub type ParserResult<T> = Result<T, ()>;

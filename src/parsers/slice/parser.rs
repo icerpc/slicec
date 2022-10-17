@@ -10,6 +10,7 @@ use super::super::common::{ParserResult, SourceBlock};
 /// Helper macro for generating parsing functions.
 macro_rules! implement_parse_function {
     ($function_name:ident, $underlying_parser:ident, $return_type:ty) => {
+        #[allow(clippy::result_unit_err)]
         pub fn $function_name<'input, T: Iterator<Item = SourceBlock<'input>>>(
             &'a mut self,
             input: impl Into<Lexer<'input, T>>,

@@ -8,7 +8,6 @@ use std::fs;
 
 // TODO: This is a duplicate of 'crate::parsers::common::ParserResult'.
 // All this code should be moved into 'parsers/mod.rs' where it can use the real type.
-#[allow(clippy::result_unit_err)]
 type ParserResult<T> = Result<T, ()>;
 
 pub(super) struct SliceParser<'a> {

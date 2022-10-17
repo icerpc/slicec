@@ -104,7 +104,7 @@ impl<'input> Lexer<'input> {
             start: start_location,
             end: self.cursor,
         });
-        return (start_location, source_block, self.cursor)
+        (start_location, source_block, self.cursor)
     }
 
     /// Consumes a single character from the lexer's buffer and returns a token of the specified kind.

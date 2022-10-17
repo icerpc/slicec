@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-#[allow(dead_code, unused_imports)] //LALRPOP generates stuff we don't use.
 pub mod grammar;
 pub mod lexer;
 pub mod parser;
