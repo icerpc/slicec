@@ -63,7 +63,12 @@ mod output {
         interface I
         {
             /// @param x this is an x
-            op();
+            op1();
+
+            op2(x:
+    tag(1)
+                    int32, y: tag(2) bool?,
+            );
         }
 
         enum E
@@ -89,13 +94,24 @@ warning [W001]: doc comment has a param tag for 'x', but there is no parameter b
  --> string-0:6:13
   |
 6 |             /// @param x this is an x
-7 |             op();
   |             -------------------------
+7 |             op1();
+  | ------------
   |
-error [E010]: invalid enum `E`: enums must contain at least one enumerator
- --> string-0:10:9
+error [E020]: invalid tag on member `x`: tagged members must be optional
+ --> string-0:9:17
    |
-10 |         enum E
+9  |             op2(x:
+   |                 --
+10 |     tag(1)
+   | ----------
+11 |                     int32, y: tag(2) bool?,
+   | -------------------------
+   |
+error [E010]: invalid enum `E`: enums must contain at least one enumerator
+ --> string-0:15:9
+   |
+15 |         enum E
    |         ------
    |
 ";

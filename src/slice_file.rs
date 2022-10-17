@@ -4,7 +4,7 @@ use crate::grammar::{Attributable, Attribute, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
-use std::fmt::Write;
+use std::fmt::{Display, Write};
 
 /// Stores the row and column numbers of a location in a Slice file.
 /// These values are indexed starting at 1 instead of 0 for human readability.
@@ -117,57 +117,52 @@ impl SliceFile {
     /// Retrieves a formatted snippet from the slice file.
     #[allow(unused_must_use)] // 'writeln' can't fail when writing to a string, so we ignore the result it returns.
     pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
-        debug_assert!(start < end); // Assert that the start of the snippet comes before the end.
+        debug_assert!(start <= end);
 
-        // The number of characters to pad the line prefix by. Equal to the length of the longest line number + 1.
-        let prefix_padding = end.row.to_string().len() + 1;
+        // The number of columns that should be reserved for displaying line numbers to the left of snippets.
+        // Equal to the number of digits in the longest line number plus one (longest number is always the end).
+        // Ex:     "273 | source code"    `line_number_prefix_length` would be 4 for "273 " (4 chars long).
+        let line_number_prefix_length = end.row.to_string().len() + 1;
 
         // Returns a formatted line prefix of the form: "[line number]<padding>|".
-        let get_prefix = |line_number: Option<usize>| {
-            let s = match line_number {
-                Some(i) => format!("{:<1$}|", i, prefix_padding),
-                None => format!("{:<1$}|", "", prefix_padding),
-            };
-            style(s).blue().bold().to_string()
+        let line_number_prefix = |line_number: Option<usize>| {
+            // If a line number was provided, use it, otherwise use the empty string.
+            let number_string: &dyn Display = line_number.as_ref().map_or(&"", |i| i);
+            // Pad the string with spaces (on the right) so its total length is `line_number_prefix_length`.
+            let padded_number_string = format!("{number_string:<0$}|", line_number_prefix_length);
+            // Style the string and return it.
+            style(padded_number_string).blue().bold().to_string()
         };
 
-        // The snippet of code on the same line as the error, but directly before it.
-        let start_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.raw_pos(start)];
+        // Raw text from the slice file. Contains all the lines that the specified range touches.
+        // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
+        let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row]-1];
+        // Convert the provided locations into string indexes (in the raw text).
+        let start_pos = self.line_positions[start.row - 1] + (start.col - 1);
+        let end_pos = self.line_positions[end.row - 1] + (end.col - 1);
 
-        // The snippet of code containing the error.
-        let error_snippet = &self.raw_text[self.raw_pos(start)..self.raw_pos(end)];
-
-        // The snippet of code on the same line as the error, but directly after it.
-        let end_snippet = &self.raw_text[self.raw_pos(end)..self.line_positions[end.row]];
-
-        // Create an underline that is the length of the error snippet. For error snippets that span multiple
-        // lines, the underline is the length of the longest line.
-        let underline = "-".repeat(error_snippet.lines().map(|line| line.len()).max().unwrap());
+        let mut formatted_snippet = line_number_prefix(None) + "\n";
+        // Iterate through each line of raw text, and add it (and its line number) into the formatted snippet.
+        // Add pointers and underlining on the line below it, as specified by the provided range.
         let mut line_number = start.row;
-
-        // Create a formatted snippet.
-        let mut snippet = get_prefix(None) + "\n";
-        for line in format!("{}{}{}", start_snippet, error_snippet, end_snippet).lines() {
-            writeln!(snippet, "{} {}", get_prefix(Some(line_number)), line);
-            line_number += 1;
+        for line in raw_snippet.lines() {
+            writeln!(formatted_snippet, "{} {}", line_number_prefix(Some(line_number)), line);
+            if start_pos == end_pos {
+                // If the provided range is a single location, point to that location.
+                let point = style("/\\").yellow().bold();
+                let point_offset = start_pos - self.line_positions[line_number - 1];
+                writeln!(formatted_snippet, "{}{:<3$}{}", line_number_prefix(None), "", point, point_offset);
+            } else {
+                // If the provided range is between 2 locations, underline everything between them.
+                let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
+                let underline_end = line.len() - (self.line_positions[line_number] - 1).saturating_sub(end_pos);
+                let underline_length = underline_end - underline_start;
+                let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
+                writeln!(formatted_snippet, "{} {:<3$}{}", line_number_prefix(None), "", underline, underline_start);
+            }
+            line_number += 1; // Move to the next line.
         }
-        writeln!(
-            snippet,
-            "{} {}{}",
-            get_prefix(None),
-            " ".repeat(start_snippet.len()),
-            style(underline).yellow().bold(),
-        );
-        snippet += &get_prefix(None);
-
-        // Return the formatted snippet.
-        snippet
-    }
-
-    /// Converts the provided [Location] into an index in the file's raw text.
-    fn raw_pos(&self, location: Location) -> usize {
-        // `row` and `col` are decremented because they are indexed starting at 1 instead of 0.
-        self.line_positions[location.row - 1] + (location.col - 1)
+        formatted_snippet + &line_number_prefix(None)
     }
 }
 
