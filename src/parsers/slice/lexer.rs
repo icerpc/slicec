@@ -29,7 +29,7 @@ where
     /// This is what the lexer actually operates on, by peeking at and consuming codepoints from this buffer.
     buffer: Peekable<CharIndices<'input>>,
 
-    /// The lexer's current [`Location`](super::super::common::location::Location) in the slice file.
+    /// The lexer's current [`Location`](crate::slice_file::Location) in the slice file.
     /// Used to tag tokens with their starting and ending locations in the source input.
     ///
     /// Since code blocks can be non-adjacent (separated by a preprocessor directive) in a slice file,
