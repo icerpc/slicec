@@ -115,7 +115,7 @@ impl SliceFile {
     }
 
     /// Retrieves a formatted snippet from the slice file.
-    #[allow(unused_must_use)] // `writeln` can't fail when writing to a string, so we ignore the result it returns.
+    #[allow(unused_must_use)] // 'writeln' can't fail when writing to a string, so we ignore the result it returns.
     pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
         debug_assert!(start <= end);
 
