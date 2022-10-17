@@ -115,8 +115,21 @@ impl SliceFile {
     }
 
     /// Retrieves a formatted snippet from the slice file.
+    #[allow(unused_must_use)] // 'writeln' can't fail when writing to a string, so we ignore the result it returns.
     pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
         debug_assert!(start < end); // Assert that the start of the snippet comes before the end.
+
+        // The number of characters to pad the line prefix by. Equal to the length of the longest line number + 1.
+        let prefix_padding = end.row.to_string().len() + 1;
+
+        // Returns a formatted line prefix of the form: "[line number]<padding>|".
+        let get_prefix = |line_number: Option<usize>| {
+            let s = match line_number {
+                Some(i) => format!("{:<1$}|", i, prefix_padding),
+                None => format!("{:<1$}|", "", prefix_padding),
+            };
+            style(s).blue().bold().to_string()
+        };
 
         // The snippet of code on the same line as the error, but directly before it.
         let start_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.raw_pos(start)];
@@ -133,27 +146,19 @@ impl SliceFile {
         let mut line_number = start.row;
 
         // Create a formatted snippet.
-        let mut snippet = style("    |\n").blue().bold().to_string();
-        for line in format!("{}{}{}", start_snippet, style(error_snippet), end_snippet).lines() {
-            writeln!(
-                snippet,
-                "{: <4}{} {}",
-                style(line_number).blue().bold(),
-                style("|").blue().bold(),
-                line,
-            )
-            .unwrap();
+        let mut snippet = get_prefix(None) + "\n";
+        for line in format!("{}{}{}", start_snippet, error_snippet, end_snippet).lines() {
+            writeln!(snippet, "{} {}", get_prefix(Some(line_number)), line);
             line_number += 1;
         }
         writeln!(
             snippet,
-            "{}{}{}",
-            style("    | ").blue().bold(),
+            "{} {}{}",
+            get_prefix(None),
             " ".repeat(start_snippet.len()),
             style(underline).yellow().bold(),
-        )
-        .unwrap();
-        write!(snippet, "{}", style("    |").blue().bold()).unwrap();
+        );
+        snippet += &get_prefix(None);
 
         // Return the formatted snippet.
         snippet

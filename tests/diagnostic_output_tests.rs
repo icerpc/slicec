@@ -87,17 +87,17 @@ mod output {
         let expected = "\
 warning [W001]: doc comment has a param tag for 'x', but there is no parameter by that name
  --> string-0:6:13
-    |
-6   |             /// @param x this is an x
-7   |             op();
-    |             -------------------------
-    |
+  |
+6 |             /// @param x this is an x
+7 |             op();
+  |             -------------------------
+  |
 error [E010]: invalid enum `E`: enums must contain at least one enumerator
  --> string-0:10:9
-    |
-10  |         enum E
-    |         ------
-    |
+   |
+10 |         enum E
+   |         ------
+   |
 ";
 
         assert_eq!(expected, String::from_utf8(output).unwrap());
