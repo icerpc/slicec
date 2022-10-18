@@ -590,9 +590,7 @@ mod attributes {
             assert_eq!(operation.attributes[0].directive, "bar");
             assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
             assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
-            assert_eq!(operation.attributes[0].arguments[0], "a");
-            assert_eq!(operation.attributes[0].arguments[1], "b");
-            assert_eq!(operation.attributes[0].arguments[2], "c");
+            assert_eq!(operation.attributes[0].arguments, vec!["a", "b", "c"]);
         }
 
         #[test_case("a", &["a"]; "single argument")]
