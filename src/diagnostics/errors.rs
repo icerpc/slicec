@@ -574,7 +574,7 @@ implement_error_functions!(
     (
         "E046",
         ErrorKind::ImplicitEnumeratorValueOverflows,
-        format!("enumerator `{identifier}` has an implicit value larger than `i64::MAX`"),
+        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
         identifier
     ),
     (

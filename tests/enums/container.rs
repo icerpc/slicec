@@ -229,7 +229,7 @@ fn automatically_assigned_values_will_not_overflow() {
 
     // Assert
     assert_errors!(diagnostic_reporter, [
-        "enumerator `B` has an implicit value larger than `i64::MAX`",
+        "enumerator `B` has an implicit value larger than `9223372036854775807` which overflows",
     ]);
 }
 
