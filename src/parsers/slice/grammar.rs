@@ -93,7 +93,7 @@ fn set_file_encoding(
             ErrorKind::MultipleEncodingVersions,
             Some(encoding.span()),
             vec![Note::new(
-                "original file encoding was specified here",
+                "file encoding was previously specified here",
                 Some(old_file_encoding.span()),
             )],
         ));
