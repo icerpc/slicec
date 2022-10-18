@@ -16,7 +16,7 @@ pub(super) struct SliceParser<'a> {
 
 impl<'a> SliceParser<'a> {
     pub fn try_parse_file(&mut self, file: &str, is_source: bool, ast: &mut Ast) -> Option<SliceFile> {
-        match fs::read_to_string(&file) {
+        match fs::read_to_string(file) {
             Ok(raw_text) => {
                 // The parser emits errors through `DiagnosticReporter` on it's own, so we don't need to handle them.
                 self.parse_string(file, &raw_text, is_source, ast).ok()
