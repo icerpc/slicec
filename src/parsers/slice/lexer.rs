@@ -9,7 +9,7 @@ use std::str::CharIndices;
 
 type LexerResult<'a> = Result<Token<'a>, Error>;
 
-/// Converts a stream of [source blocks](super::super::common::SourceBlock)s (blocks of source code) into a stream of
+/// Converts a stream of [source blocks](super::super::common::SourceBlock) (blocks of source code) into a stream of
 /// Slice tokens.
 ///
 /// This token stream is in turn consumed by the [Slice parser](super::parser::Parser) which parses the tokens into an
