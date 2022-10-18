@@ -25,7 +25,7 @@ where
     /// The source block that the lexer is currently lexing within.
     current_block: SourceBlock<'input>,
 
-    /// Iterator over the UTF8 codepoints in the current block.
+    /// Iterator over the characters in the current block.
     /// This is what the lexer actually operates on, by peeking at and consuming codepoints from this buffer.
     buffer: Peekable<CharIndices<'input>>,
 

@@ -19,7 +19,7 @@ pub struct Lexer<'input> {
     /// The string that this lexer is lexing over.
     input: &'input str,
 
-    /// Iterator over the UTF8 codepoints in the input string.
+    /// Iterator over the characters in the input string.
     /// This is what the lexer actually operates on, by peeking at and consuming codepoints from this buffer.
     buffer: Peekable<Chars<'input>>,
 
