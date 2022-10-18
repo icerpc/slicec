@@ -268,7 +268,6 @@ where
             '}' => self.return_simple_token(TokenKind::RightBrace, start_location),
             '<' => self.return_simple_token(TokenKind::LeftChevron, start_location),
             '>' => self.return_simple_token(TokenKind::RightChevron, start_location),
-            '.' => self.return_simple_token(TokenKind::Dot, start_location),
             ',' => self.return_simple_token(TokenKind::Comma, start_location),
             ':' => {
                 self.advance_buffer(); // Consume the ':' character.

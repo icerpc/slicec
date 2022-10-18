@@ -82,7 +82,6 @@ pub enum TokenKind<'input> {
     RightChevron,       // ">"
 
     // Symbols
-    Dot,          // "."
     Comma,        // ","
     Colon,        // ":"
     DoubleColon,  // "::"
