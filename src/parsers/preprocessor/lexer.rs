@@ -9,8 +9,7 @@ use std::str::Chars;
 
 type LexerResult<'a> = Result<Token<'a>, Error>;
 
-/// Converts a string into a stream of tokens representing blocks of source code and semantic elements of the Slice
-/// preprocessor sub-language.
+/// Converts a string into a stream of tokens representing blocks of source code and preprocessor tokens.
 ///
 /// This token stream is in turn consumed by the [preprocessor parser](super::parser::Preprocessor) which parses the
 /// tokens and evaluates the preprocessor directives represented by them.
