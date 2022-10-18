@@ -17,7 +17,9 @@ type ParseError<'a> = lalrpop_util::ParseError<Location, tokens::TokenKind<'a>, 
 fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics::Error {
     match parse_error {
         // A custom error we emitted; See `tokens::ErrorKind`.
-        ParseError::User { error: (start, parse_error_kind, end) } => {
+        ParseError::User {
+            error: (start, parse_error_kind, end),
+        } => {
             let error_kind = match parse_error_kind {
                 tokens::ErrorKind::MissingDirective => {
                     diagnostics::ErrorKind::Syntax("missing preprocessor directive".to_owned())
@@ -25,19 +27,22 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
                 tokens::ErrorKind::UnknownDirective { keyword } => {
                     diagnostics::ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
                 }
-                tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax(
-                    match suggestion {
+                tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => {
+                    diagnostics::ErrorKind::Syntax(match suggestion {
                         Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
                         None => format!("unknown symbol '{symbol}'"),
-                    }
-                ),
+                    })
+                }
             };
             let span = Span::new(start, end, file_name);
             diagnostics::Error::new(error_kind, Some(&span))
         }
 
         // The parser encountered a token that didn't fit any grammar rule.
-        ParseError::UnrecognizedToken { token: (start, token_kind, end), expected } => {
+        ParseError::UnrecognizedToken {
+            token: (start, token_kind, end),
+            expected,
+        } => {
             let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
             let span = Span::new(start, end, file_name);
             diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message), Some(&span))

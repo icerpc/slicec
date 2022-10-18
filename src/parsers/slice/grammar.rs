@@ -54,7 +54,7 @@ macro_rules! set_data_members_for {
 }
 
 macro_rules! add_definition_to_module {
-    ($child:expr, Module, $module_ptr:expr, $parser:expr) => {{
+    ($child:expr,Module, $module_ptr:expr, $parser:expr) => {{
         // 1. Set the module as the definition's parent.
         // 2. Move the definition into the AST and keep a pointer to it.
         // 3. Convert the pointer to a Definition and store it in the module.
@@ -94,8 +94,8 @@ fn set_file_encoding(
             Some(encoding.span()),
             vec![Note::new(
                 "original file encoding was specified here",
-                Some(old_file_encoding.span())),
-            ],
+                Some(old_file_encoding.span()),
+            )],
         ));
     }
     parser.file_encoding = encoding.version;
@@ -132,7 +132,10 @@ fn construct_module(
         // Pop the module's scope off the scope stack and construct it (otherwise it would be in its own scope).
         parser.current_scope.pop_scope();
         OwnedPtr::new(Module {
-            identifier: Identifier { value: i.to_owned(), span: span.clone() },
+            identifier: Identifier {
+                value: i.to_owned(),
+                span: span.clone(),
+            },
             contents: Vec::new(),
             parent: None,
             scope: parser.current_scope.clone(),
@@ -194,7 +197,9 @@ fn construct_struct(
         } else {
             "structs do not support inheritance"
         };
-        parser.diagnostic_reporter.report_error(Error::new(ErrorKind::Syntax(message.to_owned()), Some(&span)));
+        parser
+            .diagnostic_reporter
+            .report_error(Error::new(ErrorKind::Syntax(message.to_owned()), Some(&span)));
     }
 
     let mut struct_ptr = OwnedPtr::new(Struct {
@@ -224,17 +229,15 @@ fn construct_exception(
     span: Span,
 ) -> OwnedPtr<Exception> {
     // Exceptions only support single-inheritance.
-    let base = bases.and_then(|base_types| {
-        match base_types.len() {
-            0 => emit_missing_inheritance_type_error(parser, &span),
-            1 => base_types[0].downcast::<Exception>().ok(),
-            _ => {
-                parser.diagnostic_reporter.report_error(Error::new(
-                    ErrorKind::CanOnlyInheritFromSingleBase("exception".to_owned()),
-                    Some(&span),
-                ));
-                None
-            }
+    let base = bases.and_then(|base_types| match base_types.len() {
+        0 => emit_missing_inheritance_type_error(parser, &span),
+        1 => base_types[0].downcast::<Exception>().ok(),
+        _ => {
+            parser.diagnostic_reporter.report_error(Error::new(
+                ErrorKind::CanOnlyInheritFromSingleBase("exception".to_owned()),
+                Some(&span),
+            ));
+            None
         }
     });
 
@@ -266,17 +269,15 @@ fn construct_class(
     span: Span,
 ) -> OwnedPtr<Class> {
     // Classes only support single-inheritance.
-    let base = bases.and_then(|base_types| {
-        match base_types.len() {
-            0 => emit_missing_inheritance_type_error(parser, &span),
-            1 => base_types[0].downcast::<Class>().ok(),
-            _ => {
-                parser.diagnostic_reporter.report_error(Error::new(
-                    ErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()),
-                    Some(&span),
-                ));
-                None
-            }
+    let base = bases.and_then(|base_types| match base_types.len() {
+        0 => emit_missing_inheritance_type_error(parser, &span),
+        1 => base_types[0].downcast::<Class>().ok(),
+        _ => {
+            parser.diagnostic_reporter.report_error(Error::new(
+                ErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()),
+                Some(&span),
+            ));
+            None
         }
     });
 
@@ -410,7 +411,7 @@ fn construct_parameter(
         data_type,
         tag,
         is_streamed,
-        is_returned: false, // Patched by its operation.
+        is_returned: false,                      // Patched by its operation.
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -439,7 +440,7 @@ fn construct_single_return_type(
         data_type,
         tag,
         is_streamed,
-        is_returned: false, // Patched by its operation.
+        is_returned: false,                      // Patched by its operation.
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes: Vec::new(),
@@ -459,7 +460,9 @@ fn set_stream_modifier(
             token: (start, TokenKind::StreamKeyword, end),
             expected: vec!["tag".to_owned(), "LocalAttribute".to_owned(), "TypeRef".to_owned()],
         };
-        parser.diagnostic_reporter.report_error(construct_error_from(parse_error, parser.file_name));
+        parser
+            .diagnostic_reporter
+            .report_error(construct_error_from(parse_error, parser.file_name));
     }
     (true, tag, attributes)
 }
@@ -474,9 +477,15 @@ fn set_tag_value(
     if old_tag.is_some() {
         let parse_error = ParseError::UnrecognizedToken {
             token: (start, TokenKind::TagKeyword, end),
-            expected: vec!["stream_keyword".to_owned(), "LocalAttribute".to_owned(), "TypeRef".to_owned()],
+            expected: vec![
+                "stream_keyword".to_owned(),
+                "LocalAttribute".to_owned(),
+                "TypeRef".to_owned(),
+            ],
         };
-        parser.diagnostic_reporter.report_error(construct_error_from(parse_error, parser.file_name));
+        parser
+            .diagnostic_reporter
+            .report_error(construct_error_from(parse_error, parser.file_name));
     }
     (is_streamed, Some(tag), attributes)
 }
@@ -491,17 +500,15 @@ fn construct_enum(
     span: Span,
 ) -> OwnedPtr<Enum> {
     // Enums can only have a single underlying type.
-    let underlying = bases.and_then(|base_types| {
-        match base_types.len() {
-            0 => emit_missing_inheritance_type_error(parser, &span),
-            1 => base_types[0].downcast::<Primitive>().ok(),
-            _ => {
-                parser.diagnostic_reporter.report_error(Error::new(
-                    ErrorKind::CannotHaveMultipleUnderlyingTypes(identifier.value.clone()),
-                    Some(&span),
-                ));
-                None
-            },
+    let underlying = bases.and_then(|base_types| match base_types.len() {
+        0 => emit_missing_inheritance_type_error(parser, &span),
+        1 => base_types[0].downcast::<Primitive>().ok(),
+        _ => {
+            parser.diagnostic_reporter.report_error(Error::new(
+                ErrorKind::CannotHaveMultipleUnderlyingTypes(identifier.value.clone()),
+                Some(&span),
+            ));
+            None
         }
     });
 
@@ -625,10 +632,7 @@ fn construct_type_alias(
     })
 }
 
-fn construct_sequence(
-    element_attributes: Vec<Attribute>,
-    mut element_type: TypeRef
-) -> OwnedPtr<Sequence> {
+fn construct_sequence(element_attributes: Vec<Attribute>, mut element_type: TypeRef) -> OwnedPtr<Sequence> {
     // Append any additional type attributes to the element type.
     element_type.attributes.extend(element_attributes);
 
@@ -648,12 +652,7 @@ fn construct_dictionary(
     OwnedPtr::new(Dictionary { key_type, value_type })
 }
 
-fn construct_type_ref(
-    parser: &Parser,
-    definition: TypeRefDefinition,
-    is_optional: bool,
-    span: Span,
-) -> TypeRef {
+fn construct_type_ref(parser: &Parser, definition: TypeRefDefinition, is_optional: bool, span: Span) -> TypeRef {
     TypeRef {
         definition,
         is_optional,
@@ -698,7 +697,9 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
     match s.parse::<i64>() {
         Ok(x) => x,
         Err(_) => {
-            parser.diagnostic_reporter.report_error(Error::new(ErrorKind::IntegerLiteralTooLarge, Some(&span)));
+            parser
+                .diagnostic_reporter
+                .report_error(Error::new(ErrorKind::IntegerLiteralTooLarge, Some(&span)));
             0 // Dummy value
         }
     }
@@ -706,14 +707,18 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
 
 fn parse_tag_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
     if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
-        parser.diagnostic_reporter.report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(&span)));
+        parser
+            .diagnostic_reporter
+            .report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(&span)));
     }
     i as u32
 }
 
 fn parse_compact_id_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
     if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
-        parser.diagnostic_reporter.report_error(Error::new(ErrorKind::CompactIdOutOfBounds, Some(&span)));
+        parser
+            .diagnostic_reporter
+            .report_error(Error::new(ErrorKind::CompactIdOutOfBounds, Some(&span)));
     }
     i as u32
 }
@@ -727,7 +732,9 @@ fn parse_doc_comment(raw_comments: Vec<(&str, Span)>) -> Option<DocComment> {
         let dummy_span = raw_comments[0].1.clone(); // Just use the span of the first line for now.
         let strings = raw_comments.into_iter().map(|(s, _)| s);
         let combined = strings.collect::<Vec<_>>().join("\n");
-        Some(crate::parser::comments::CommentParser::parse_doc_comment(&combined, dummy_span))
+        Some(crate::parser::comments::CommentParser::parse_doc_comment(
+            &combined, dummy_span,
+        ))
     }
 }
 

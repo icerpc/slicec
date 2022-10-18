@@ -35,11 +35,13 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(
-        file_name: &'a str,
-        ast: &'a mut Ast,
-        diagnostic_reporter: &'a mut DiagnosticReporter,
-    ) -> Self {
+    implement_parse_function!(
+        parse_slice_file,
+        SliceFileParser,
+        (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>)
+    );
+
+    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
         Parser {
             file_name,
             ast,
@@ -49,6 +51,4 @@ impl<'a> Parser<'a> {
             last_enumerator_value: None,
         }
     }
-
-    implement_parse_function!(parse_slice_file, SliceFileParser, (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>));
 }

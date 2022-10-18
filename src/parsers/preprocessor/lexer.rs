@@ -124,7 +124,7 @@ impl<'input> Lexer<'input> {
             '!' => self.return_simple_token(TokenKind::Not, start_location),
             '&' => {
                 self.advance_buffer(); // Consume the '&' character.
-                // Ensure the next character is also an '&' (since the whole token should be "&&").
+                                       // Ensure the next character is also an '&' (since the whole token should be "&&").
                 if matches!(self.buffer.peek(), Some('&')) {
                     self.return_simple_token(TokenKind::And, start_location)
                 } else {
@@ -137,7 +137,7 @@ impl<'input> Lexer<'input> {
             }
             '|' => {
                 self.advance_buffer(); // Consume the '|' character.
-                // Ensure the next character is also a '|' (since the whole token should be "||").
+                                       // Ensure the next character is also a '|' (since the whole token should be "||").
                 if matches!(self.buffer.peek(), Some('|')) {
                     self.return_simple_token(TokenKind::Or, start_location)
                 } else {
@@ -161,7 +161,9 @@ impl<'input> Lexer<'input> {
                     "endif" => Ok((start_location, TokenKind::EndifKeyword, self.cursor)),
                     "" => Err((start_location, ErrorKind::MissingDirective, self.cursor)),
                     keyword => {
-                        let error = ErrorKind::UnknownDirective { keyword: keyword.to_owned() };
+                        let error = ErrorKind::UnknownDirective {
+                            keyword: keyword.to_owned(),
+                        };
                         Err((start_location, error, self.cursor))
                     }
                 }
@@ -172,7 +174,10 @@ impl<'input> Lexer<'input> {
             }
             ch if !ch.is_whitespace() => {
                 self.advance_buffer(); // Consume the unknown character.
-                let error = ErrorKind::UnknownSymbol { symbol: c.to_string(), suggestion: None };
+                let error = ErrorKind::UnknownSymbol {
+                    symbol: c.to_string(),
+                    suggestion: None,
+                };
                 Err((start_location, error, self.cursor))
             }
             '\n' => {

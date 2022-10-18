@@ -246,7 +246,7 @@ where
             ')' => self.return_simple_token(TokenKind::RightParenthesis, start_location),
             '[' => {
                 self.advance_buffer(); // Consume the '[' character.
-                // Check if the next character is also '['.
+                                       // Check if the next character is also '['.
                 if matches!(self.buffer.peek(), Some((_, '['))) {
                     self.advance_buffer(); // Consume the second '[' character.
                     Some(Ok((start_location, TokenKind::DoubleLeftBracket, self.cursor)))
@@ -256,7 +256,7 @@ where
             }
             ']' => {
                 self.advance_buffer(); // Consume the ']' character.
-                // Check if the next character is also ']'.
+                                       // Check if the next character is also ']'.
                 if matches!(self.buffer.peek(), Some((_, ']'))) {
                     self.advance_buffer(); // Consume the second ']' character.
                     Some(Ok((start_location, TokenKind::DoubleRightBracket, self.cursor)))
@@ -272,7 +272,7 @@ where
             ',' => self.return_simple_token(TokenKind::Comma, start_location),
             ':' => {
                 self.advance_buffer(); // Consume the ':' character.
-                // Check if the next character is also ':'.
+                                       // Check if the next character is also ':'.
                 if matches!(self.buffer.peek(), Some((_, ':'))) {
                     self.advance_buffer(); // Consume the second ':' character.
                     Some(Ok((start_location, TokenKind::DoubleColon, self.cursor)))
@@ -285,7 +285,7 @@ where
             '?' => self.return_simple_token(TokenKind::QuestionMark, start_location),
             '-' => {
                 self.advance_buffer(); // Consume the '-' character.
-                // Check if the next character is '>'.
+                                       // Check if the next character is '>'.
                 if matches!(self.buffer.peek(), Some((_, '>'))) {
                     self.advance_buffer(); // Consume the second '>' character.
                     Some(Ok((start_location, TokenKind::Arrow, self.cursor)))
@@ -308,7 +308,7 @@ where
                     // The token is at least '//', indicating a line comment.
                     Some((_, '/')) => {
                         self.advance_buffer(); // Consume the 2nd '/' character.
-                        // Check there is a 3rd '/' character indicating this a doc comment.
+                                               // Check there is a 3rd '/' character indicating this a doc comment.
                         let is_doc_comment = matches!(self.buffer.peek(), Some((_, '/')));
                         if is_doc_comment {
                             self.advance_buffer(); // Consume the 3rd '/' character.
@@ -341,7 +341,7 @@ where
             }
             '\\' => {
                 self.advance_buffer(); // Consume the '\' character.
-                // Check if the next character could be the start of an identifier.
+                                       // Check if the next character could be the start of an identifier.
                 if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_alphabetic() || *ch == '_') {
                     let identifier = self.read_identifier();
                     Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
@@ -367,7 +367,10 @@ where
                 None
             }
             unknown => {
-                let error = ErrorKind::UnknownSymbol { symbol: unknown.to_string(), suggestion: None };
+                let error = ErrorKind::UnknownSymbol {
+                    symbol: unknown.to_string(),
+                    suggestion: None,
+                };
                 Some(Err((start_location, error, self.cursor)))
             }
         }
@@ -423,12 +426,15 @@ where
 impl<'input> From<&'input str> for Lexer<'input, std::iter::Once<SourceBlock<'input>>> {
     fn from(s: &'input str) -> Self {
         let newlines = s.char_indices().filter(|&(_, c)| c == '\n').collect::<Vec<_>>();
-        let chars_in_last_line = s[newlines.last().unwrap().0 ..].chars().count();
+        let chars_in_last_line = s[newlines.last().unwrap().0..].chars().count();
 
         let source_block = SourceBlock {
             content: s,
             start: Location { row: 1, col: 1 },
-            end: Location { row: newlines.len() + 1, col: chars_in_last_line },
+            end: Location {
+                row: newlines.len() + 1,
+                col: chars_in_last_line,
+            },
         };
         Lexer::new(std::iter::once(source_block))
     }
