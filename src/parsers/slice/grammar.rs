@@ -145,7 +145,7 @@ fn construct_module(
         })
     });
 
-    // It's safe to unwrap because if the parser called this function, at least 1 module must of been constructed.
+    // It's safe to unwrap because if the parser called this function, at least one module must have been constructed.
     // Since we're iterating in reverse order, this will return the inner-most module.
     // If nested module syntax wasn't used, this is just the singular module.
     let mut current_module = modules.next().unwrap();
