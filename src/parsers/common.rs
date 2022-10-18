@@ -4,8 +4,6 @@
 
 use crate::slice_file::Location;
 
-use std::fmt::Debug;
-
 /// Stores a reference to a block of source code in a Slice file.
 #[derive(Clone, Copy, Debug)]
 pub struct SourceBlock<'input> {
