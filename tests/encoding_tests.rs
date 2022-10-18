@@ -34,13 +34,13 @@ mod encodings {
         let slice = "
             encoding = 3;
         ";
-        let expected = Error::new(ErrorKind::InvalidEncodingVersion(3), None);
 
         // Act
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [&expected]);
+        let expected = [Error::new(ErrorKind::InvalidEncodingVersion(3), None)];
+        assert_errors!(diagnostic_reporter, expected);
     }
 
     #[test]
