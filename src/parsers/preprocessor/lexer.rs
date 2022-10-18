@@ -168,7 +168,7 @@ impl<'input> Lexer<'input> {
                     }
                 }
             }
-            ch if ch.is_alphanumeric() || ch == '_' => {
+            ch if ch.is_alphabetic() || ch == '_' => {
                 let identifier = self.read_identifier();
                 Ok((start_location, TokenKind::Identifier(identifier), self.cursor))
             }
