@@ -327,7 +327,7 @@ impl Ast {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```
     /// # use slice::ast::Ast;
     /// let mut ast = Ast::create();
     ///
