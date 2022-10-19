@@ -140,8 +140,8 @@ Definition: Node = {
 }
 
 Struct: OwnedPtr<Struct> = {
-    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
-        construct_struct(parser, p, ck.is_some(), i, il, dms, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
     }
 }
 

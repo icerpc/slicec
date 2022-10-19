@@ -185,22 +185,9 @@ fn construct_struct(
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     is_compact: bool,
     identifier: Identifier,
-    bases: Option<Vec<TypeRef>>,
     members: Vec<OwnedPtr<DataMember>>,
     span: Span,
 ) -> OwnedPtr<Struct> {
-    // Structs don't support inheritance. If any were specified we ignore them and emit an error.
-    if let Some(base_types) = bases {
-        let message = if base_types.is_empty() {
-            "structs do not support inheritance; try removing the ':'"
-        } else {
-            "structs do not support inheritance"
-        };
-        parser
-            .diagnostic_reporter
-            .report_error(Error::new(ErrorKind::Syntax(message.to_owned()), Some(&span)));
-    }
-
     let mut struct_ptr = OwnedPtr::new(Struct {
         identifier,
         members: Vec::new(),
