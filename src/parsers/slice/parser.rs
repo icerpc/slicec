@@ -9,7 +9,7 @@ use crate::utils::ptr_util::OwnedPtr;
 
 /// Helper macro for generating parsing functions.
 macro_rules! implement_parse_function {
-    ($function_name:ident, $underlying_parser:ident, $return_type:ty) => {
+    ($function_name:ident, $underlying_parser:ident, $return_type:ty $(,)?) => {
         #[allow(clippy::result_unit_err)]
         pub fn $function_name<'input, T: Iterator<Item = SourceBlock<'input>>>(
             &'a mut self,
@@ -38,10 +38,14 @@ impl<'a> Parser<'a> {
     implement_parse_function!(
         parse_slice_file,
         SliceFileParser,
-        (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>)
+        (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>),
     );
 
-    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
+    pub fn new(
+        file_name: &'a str,
+        ast: &'a mut Ast,
+        diagnostic_reporter: &'a mut DiagnosticReporter,
+    ) -> Self {
         Parser {
             file_name,
             ast,
