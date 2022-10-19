@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::{downgrade_as, upcast_weak_as};
-
 use super::construct_error_from;
 use super::parser::Parser;
 use super::tokens::TokenKind;
@@ -10,6 +8,7 @@ use crate::diagnostics::{Error, ErrorKind, Note};
 use crate::grammar::*;
 use crate::slice_file::{Location, Span};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
+use crate::{downgrade_as, upcast_weak_as};
 
 use std::convert::TryInto;
 use std::ops::RangeInclusive;
