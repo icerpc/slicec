@@ -102,7 +102,7 @@ pub SliceFile: (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>) = {
 
 SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
     => (None, Vec::new()),
-    <sfp: SliceFilePrelude> <fe: FileEncoding> => set_file_encoding(parser, sfp, fe),
+    <sfp: SliceFilePrelude> <fe: FileEncoding> => handle_file_encoding(parser, sfp, fe),
     <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
         sfp.1.push(fa);
         sfp

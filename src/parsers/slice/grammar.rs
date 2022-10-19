@@ -81,7 +81,7 @@ fn emit_missing_inheritance_type_error<T>(parser: &mut Parser, span: &Span) -> O
 
 // Grammar Rule Functions
 
-fn set_file_encoding(
+fn handle_file_encoding(
     parser: &mut Parser,
     (old_encoding, attributes): (Option<FileEncoding>, Vec<Attribute>),
     encoding: FileEncoding,
