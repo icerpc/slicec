@@ -52,19 +52,17 @@ macro_rules! set_data_members_for {
     }};
 }
 
+// This macro does the following:
+// 1. Set the module as the definition's parent.
+// 2. Move the definition into the AST and keep a pointer to it.
+// 3. Convert the pointer to a Definition and store it in the module.
 macro_rules! add_definition_to_module {
     ($child:expr, Module, $module_ptr:expr, $parser:expr) => {{
-        // 1. Set the module as the definition's parent.
-        // 2. Move the definition into the AST and keep a pointer to it.
-        // 3. Convert the pointer to a Definition and store it in the module.
         $child.borrow_mut().parent = Some($module_ptr.downgrade());
         let weak_ptr = $parser.ast.add_named_element($child);
         $module_ptr.borrow_mut().contents.push(Definition::Module(weak_ptr));
     }};
     ($child:expr, $node_type:ident, $module_ptr:expr, $parser:expr) => {{
-        // 1. Set the module as the definition's parent.
-        // 2. Move the definition into the AST and keep a pointer to it.
-        // 3. Convert the pointer to a Definition and store it in the module.
         $child.borrow_mut().parent = $module_ptr.downgrade();
         let weak_ptr = $parser.ast.add_named_element($child);
         $module_ptr.borrow_mut().contents.push(Definition::$node_type(weak_ptr));
