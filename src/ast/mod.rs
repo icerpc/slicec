@@ -326,13 +326,13 @@ impl Ast {
     ///
     /// # Examples
     ///
-    /// ```ignore
+    /// ```
     /// # use slice::ast::Ast;
     /// let mut ast = Ast::create();
     ///
     /// // Iterate through the contents of the AST.
     /// let contents = ast.as_mut_slice();
-    /// contents.iter_mut().for_each(|x| { /* do something */ } );
+    /// contents.iter_mut().for_each(|x| { /* do something */ });
     /// ```
     pub fn as_mut_slice(&mut self) -> &mut [Node] {
         self.elements.as_mut_slice()

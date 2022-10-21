@@ -12,7 +12,7 @@ env:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
     - uses: actions/checkout@v3
@@ -47,3 +47,21 @@ jobs:
         args: --all --no-deps --document-private-items
       env:
         RUSTDOCFLAGS: '-D warnings'
+
+  format:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: 🔎 Format using rustfmt
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
