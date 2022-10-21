@@ -136,7 +136,7 @@ impl SliceFile {
 
         // Raw text from the slice file. Contains all the lines that the specified range touches.
         // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
-        let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row]-1];
+        let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row] - 1];
         // Convert the provided locations into string indexes (in the raw text).
         let start_pos = self.line_positions[start.row - 1] + (start.col - 1);
         let end_pos = self.line_positions[end.row - 1] + (end.col - 1);
@@ -151,14 +151,28 @@ impl SliceFile {
                 // If the provided range is a single location, point to that location.
                 let point = style("/\\").yellow().bold();
                 let point_offset = start_pos - self.line_positions[line_number - 1];
-                writeln!(formatted_snippet, "{}{:<3$}{}", line_number_prefix(None), "", point, point_offset);
+                writeln!(
+                    formatted_snippet,
+                    "{}{:<3$}{}",
+                    line_number_prefix(None),
+                    "",
+                    point,
+                    point_offset
+                );
             } else {
                 // If the provided range is between 2 locations, underline everything between them.
                 let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
                 let underline_end = line.len() - (self.line_positions[line_number] - 1).saturating_sub(end_pos);
                 let underline_length = underline_end - underline_start;
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
-                writeln!(formatted_snippet, "{} {:<3$}{}", line_number_prefix(None), "", underline, underline_start);
+                writeln!(
+                    formatted_snippet,
+                    "{} {:<3$}{}",
+                    line_number_prefix(None),
+                    "",
+                    underline,
+                    underline_start
+                );
             }
             line_number += 1; // Move to the next line.
         }
