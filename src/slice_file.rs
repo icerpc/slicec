@@ -157,7 +157,7 @@ impl SliceFile {
                     line_number_prefix(None),
                     "",
                     point,
-                    point_offset
+                    point_offset,
                 );
             } else {
                 // If the provided range is between 2 locations, underline everything between them.
@@ -171,7 +171,7 @@ impl SliceFile {
                     line_number_prefix(None),
                     "",
                     underline,
-                    underline_start
+                    underline_start,
                 );
             }
             line_number += 1; // Move to the next line.
