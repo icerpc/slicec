@@ -25,26 +25,17 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
     - name: 🔨 Build
-      uses: actions-rs/cargo@v1
-      with:
-        command: build
+      run: cargo build --all --all-features
     - name: 🧪 Test
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
+      run: cargo test --all --all-features
     - name: 🔎 Lint
-      uses: actions-rs/clippy@master
-      with:
-        args: --all-features --no-deps
+      run: cargo clippy --all-features --no-deps
     - name: 📚 Generate Documentation
-      uses: actions-rs/cargo@v1
-      with:
-        command: doc
-        args: --all --no-deps --document-private-items
+      run: cargo doc --all --no-deps --document-private-items
       env:
         RUSTDOCFLAGS: '-D warnings'
 
@@ -54,14 +45,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - name: 📦 Install nightly toolchain
+        run: |
+          rustup toolchain install nightly
+          rustup component add rustfmt --toolchain nightly
       - name: 🔎 Format using rustfmt
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo +nightly fmt --check
