@@ -57,6 +57,8 @@ pub trait Attributable {
             .map(|attribute| &attribute.arguments)
     }
 
+    fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>>;
+
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
 
     fn get_ignored_warnings(&self, check_parent: bool) -> Option<&Vec<String>> {
@@ -159,6 +161,16 @@ macro_rules! implement_Attributable_for {
         impl Attributable for $type {
             fn attributes(&self) -> &Vec<Attribute> {
                 &self.attributes
+            }
+
+            fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>> {
+                let mut result = vec![self.get_attribute(directive, false)];
+
+                if let Some(parent) = self.parent() {
+                    result.extend(parent.get_attribute_list(directive))
+                }
+
+                result
             }
 
             fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {

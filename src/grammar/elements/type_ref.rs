@@ -89,6 +89,10 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         &self.attributes
     }
 
+    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&Vec<String>>> {
+        panic!("Cannot recursively get attributes on a typeref")
+    }
+
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
         if recurse {
             panic!("Cannot recursively get attributes on a typeref");
