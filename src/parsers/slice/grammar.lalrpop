@@ -88,7 +88,6 @@ extern {
         "=" => TokenKind::Equals,
         "?" => TokenKind::QuestionMark,
         "->" => TokenKind::Arrow,
-        "+" => TokenKind::Plus,
         "-" => TokenKind::Minus,
     }
 }
@@ -314,7 +313,6 @@ Integer: i64 = {
 
 SignedInteger: i64 = {
     <i: Integer> => i,
-    "+" <i: Integer> => i,
     "-" <i: Integer> => -i,
 }
 

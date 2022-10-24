@@ -89,7 +89,6 @@ pub enum TokenKind<'input> {
     Equals,       // "="
     QuestionMark, // "?"
     Arrow,        // "->"
-    Plus,         // "+"
     Minus,        // "-"
 }
 

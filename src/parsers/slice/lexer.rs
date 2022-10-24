@@ -292,7 +292,6 @@ where
                     Some(Ok((start_location, TokenKind::Minus, self.cursor)))
                 }
             }
-            '+' => self.return_simple_token(TokenKind::Plus, start_location),
             '"' => {
                 let result = self.read_string_literal();
                 Some(match result {
