@@ -671,16 +671,16 @@ mod attributes {
         #[test]
         fn get_attribute_list() {
             // Arrange
-            let slice = "
-                [attribute(\"A\")]
+            let slice = r#"
+                [attribute("A")]
                 module A
                 {
-                    [attribute(\"B\")]
+                    [attribute("B")]
                     module B
                     {
                         module C
                         {
-                            [attribute(\"I\")]
+                            [attribute("I")]
                             interface I
                             {
                                 op(s: string) -> string;
@@ -688,7 +688,7 @@ mod attributes {
                         }
                     }
                 }
-            ";
+            "#;
 
             // Act
             let ast = parse_for_ast(slice);
