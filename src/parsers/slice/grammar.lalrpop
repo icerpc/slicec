@@ -157,8 +157,8 @@ Class: OwnedPtr<Class> = {
 }
 
 DataMember: OwnedPtr<DataMember> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <las: LocalAttribute*> <t: Tag?> <tr: TypeRef> <r: @R> => {
-        construct_data_member(parser, p, i, las, t, tr, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <i: Identifier> ":" <t: Tag?> <tr: TypeRef> <r: @R> => {
+        construct_data_member(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -175,23 +175,22 @@ Operation: OwnedPtr<Operation> = {
 }
 
 Parameter: OwnedPtr<Parameter> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <pm: ParameterModifiers> <tr: TypeRef> <r: @R> => {
+    <p: Prelude> <l: @L> <i: Identifier> ":" <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
         construct_parameter(parser, p, i, pm, tr, Span::new(l, r, parser.file_name))
     }
 }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {
-    <l: @L> <pm: ParameterModifiers> <tr: TypeRef> <r: @R> => {
+    <l: @L> <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
         construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
     },
     "(" <List<Parameter>> ")" => <>,
 }
 
-ParameterModifiers: (bool, Option<u32>, Vec<Attribute>) = {
-    => (false, None, Vec::new()),
-    <pm: ParameterModifiers> <l: @L> stream_keyword <r: @R> => set_stream_modifier(parser, pm, (l, r)),
-    <pm: ParameterModifiers> <l: @L> <t: Tag> <r: @R> => set_tag_value(parser, pm, t, (l, r)),
-    <mut pm: ParameterModifiers> <la: LocalAttribute> => { pm.2.push(la); pm },
+ParameterModifier: (bool, Option<u32>) = {
+    => (false, None),
+    stream_keyword => (true, None),
+    Tag => (false, Some(<>)),
 }
 
 Enum: OwnedPtr<Enum> = {
@@ -219,20 +218,20 @@ CustomType: OwnedPtr<CustomType> = {
 }
 
 TypeAlias: OwnedPtr<TypeAlias> = {
-    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <las: LocalAttribute*> <tr: TypeRef> ";" => {
-        construct_type_alias(parser, p, i, las, tr, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> ";" => {
+        construct_type_alias(parser, p, i, tr, Span::new(l, r, parser.file_name))
     }
 }
 
 Sequence: OwnedPtr<Sequence> = {
-    sequence_keyword "<" <elas: LocalAttribute*> <etr: TypeRef> ">" => {
-        construct_sequence(elas, etr)
+    sequence_keyword "<" <element_type: TypeRef> ">" => {
+        OwnedPtr::new(Sequence { element_type })
     }
 }
 
 Dictionary: OwnedPtr<Dictionary> = {
-    dictionary_keyword "<" <klas: LocalAttribute*> <ktr: TypeRef> "," <vlas: LocalAttribute*> <vtr: TypeRef> ">" => {
-        construct_dictionary(klas, ktr, vlas, vtr)
+    dictionary_keyword "<" <key_type: TypeRef> "," <value_type: TypeRef> ">" => {
+        OwnedPtr::new(Dictionary { key_type, value_type })
     }
 }
 
@@ -257,8 +256,8 @@ Primitive: Primitive = {
 }
 
 TypeRef: TypeRef = {
-    <l: @L> <trd: TypeRefDefinition> <o: "?"?> <r: @R> => {
-        construct_type_ref(parser, trd, o.is_some(), Span::new(l, r, parser.file_name))
+    <l: @L> <las: LocalAttribute*> <trd: TypeRefDefinition> <o: "?"?> <r: @R> => {
+        construct_type_ref(parser, las, trd, o.is_some(), Span::new(l, r, parser.file_name))
     }
 }
 
