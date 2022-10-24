@@ -57,7 +57,7 @@ macro_rules! set_data_members_for {
 // 2. Move the definition into the AST and keep a pointer to it.
 // 3. Convert the pointer to a Definition and store it in the module.
 macro_rules! add_definition_to_module {
-    ($child:expr,Module, $module_ptr:expr, $parser:expr) => {{
+    ($child:expr, Module, $module_ptr:expr, $parser:expr) => {{
         $child.borrow_mut().parent = Some($module_ptr.downgrade());
         let weak_ptr = $parser.ast.add_named_element($child);
         $module_ptr.borrow_mut().contents.push(Definition::Module(weak_ptr));
@@ -365,7 +365,7 @@ fn construct_parameter(
         data_type,
         tag,
         is_streamed,
-        is_returned: false,                      // Patched by its operation.
+        is_returned: false, // Patched by its operation.
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -394,7 +394,7 @@ fn construct_single_return_type(
         data_type,
         tag,
         is_streamed,
-        is_returned: false,                      // Patched by its operation.
+        is_returned: false, // Patched by its operation.
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes: Vec::new(),
@@ -575,7 +575,10 @@ fn construct_type_alias(
     })
 }
 
-fn construct_sequence(element_attributes: Vec<Attribute>, mut element_type: TypeRef) -> OwnedPtr<Sequence> {
+fn construct_sequence(
+    element_attributes: Vec<Attribute>,
+    mut element_type: TypeRef,
+) -> OwnedPtr<Sequence> {
     // Append any additional type attributes to the element type.
     element_type.attributes.extend(element_attributes);
 
@@ -595,7 +598,12 @@ fn construct_dictionary(
     OwnedPtr::new(Dictionary { key_type, value_type })
 }
 
-fn construct_type_ref(parser: &Parser, definition: TypeRefDefinition, is_optional: bool, span: Span) -> TypeRef {
+fn construct_type_ref(
+    parser: &Parser,
+    definition: TypeRefDefinition,
+    is_optional: bool,
+    span: Span,
+) -> TypeRef {
     TypeRef {
         definition,
         is_optional,
@@ -675,8 +683,6 @@ fn parse_doc_comment(raw_comments: Vec<(&str, Span)>) -> Option<DocComment> {
         let dummy_span = raw_comments[0].1.clone(); // Just use the span of the first line for now.
         let strings = raw_comments.into_iter().map(|(s, _)| s);
         let combined = strings.collect::<Vec<_>>().join("\n");
-        Some(crate::parser::comments::CommentParser::parse_doc_comment(
-            &combined, dummy_span,
-        ))
+        Some(crate::parser::comments::CommentParser::parse_doc_comment(&combined, dummy_span))
     }
 }

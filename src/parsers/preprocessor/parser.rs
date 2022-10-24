@@ -10,7 +10,10 @@ use std::collections::HashSet;
 macro_rules! implement_parse_function {
     ($function_name:ident, $underlying_parser:ident, $return_type:ty $(,)?) => {
         #[allow(clippy::result_unit_err)]
-        pub fn $function_name<'input>(&'a mut self, input: impl Into<Lexer<'input>>) -> ParserResult<$return_type> {
+        pub fn $function_name<'input>(
+            &'a mut self,
+            input: impl Into<Lexer<'input>>,
+        ) -> ParserResult<$return_type> {
             super::grammar::lalrpop::$underlying_parser::new()
                 .parse(self, input.into())
                 .map_err(|parse_error| {
