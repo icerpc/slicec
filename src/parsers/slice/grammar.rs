@@ -674,8 +674,7 @@ fn parse_compact_id_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
     i as u32
 }
 
-// TODO improve this function once comment parsing is also switched to LALRPOP
-// (https://github.com/zeroc-ice/icerpc/issues/319).
+// TODO improve this function once comment parsing is also switched to LALRPOP.
 fn parse_doc_comment(raw_comments: Vec<(&str, Span)>) -> Option<DocComment> {
     if raw_comments.is_empty() {
         None
