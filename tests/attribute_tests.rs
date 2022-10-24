@@ -667,5 +667,42 @@ mod attributes {
             // Assert
             assert_errors!(diagnostic_reporter);
         }
+
+        #[test]
+        fn get_attribute_list() {
+            // Arrange
+            let slice = "
+                [attribute(\"A\")]
+                module A
+                {
+                    [attribute(\"B\")]
+                    module B
+                    {
+                        module C
+                        {
+                            [attribute(\"I\")]
+                            interface I
+                            {
+                                op(s: string) -> string;
+                            }
+                        }
+                    }
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let operation = ast.find_element::<Operation>("A::B::C::I::op").unwrap();
+            let parent_attributes = operation.get_attribute_list("attribute");
+
+            assert_eq!(parent_attributes.len(), 5);
+            assert_eq!(parent_attributes[0], None);
+            assert_eq!(parent_attributes[1], Some(&vec!["I".to_owned()]));
+            assert_eq!(parent_attributes[2], None);
+            assert_eq!(parent_attributes[3], Some(&vec!["B".to_owned()]));
+            assert_eq!(parent_attributes[4], Some(&vec!["A".to_owned()]));
+        }
     }
 }
