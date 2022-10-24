@@ -123,7 +123,7 @@ impl<'input> Lexer<'input> {
             '!' => self.return_simple_token(TokenKind::Not, start_location),
             '&' => {
                 self.advance_buffer(); // Consume the '&' character.
-                // Ensure the next character is also an '&' (since the whole token should be "&&").
+                                       // Ensure the next character is also an '&' (since the whole token should be "&&").
                 if matches!(self.buffer.peek(), Some('&')) {
                     self.return_simple_token(TokenKind::And, start_location)
                 } else {
@@ -136,6 +136,7 @@ impl<'input> Lexer<'input> {
             }
             '|' => {
                 self.advance_buffer(); // Consume the '|' character.
+
                 // Ensure the next character is also a '|' (since the whole token should be "||").
                 if matches!(self.buffer.peek(), Some('|')) {
                     self.return_simple_token(TokenKind::Or, start_location)

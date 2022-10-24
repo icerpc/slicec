@@ -41,11 +41,7 @@ impl<'a> Parser<'a> {
         (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>),
     );
 
-    pub fn new(
-        file_name: &'a str,
-        ast: &'a mut Ast,
-        diagnostic_reporter: &'a mut DiagnosticReporter,
-    ) -> Self {
+    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
         Parser {
             file_name,
             ast,
