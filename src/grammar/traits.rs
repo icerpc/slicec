@@ -164,12 +164,7 @@ macro_rules! implement_Attributable_for {
             }
 
             fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>> {
-                let mut result = Vec::new();
-
-                match self.get_attribute(directive, false) {
-                    Some(attribute) => result.push(Some(attribute)),
-                    None => result.push(None),
-                }
+                let mut result = vec![self.get_attribute(directive, false)];
 
                 if let Some(parent) = self.parent() {
                     result.extend(parent.get_attribute_list(directive))
