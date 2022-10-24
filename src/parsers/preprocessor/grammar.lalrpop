@@ -57,13 +57,13 @@ Main: Option<SourceBlock<'input>> = {
 
 DefineDirective: () = {
     define_keyword <identifier> directive_end => {
-        preprocessor.definitions.insert(<>.to_uppercase());
+        preprocessor.definitions.insert(<>.to_owned());
     }
 }
 
 UndefineDirective: () = {
     undefine_keyword <identifier> directive_end => {
-        preprocessor.definitions.remove(&<>.to_uppercase());
+        preprocessor.definitions.remove(<>);
     }
 }
 
@@ -93,6 +93,6 @@ Expression: bool = {
 }
 
 Term: bool = {
-    identifier => preprocessor.definitions.contains(&<>.to_uppercase()),
+    identifier => preprocessor.definitions.contains(<>),
     "(" <Expression> ")" => <>,
 }
