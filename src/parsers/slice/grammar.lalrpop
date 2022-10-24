@@ -146,14 +146,14 @@ Struct: OwnedPtr<Struct> = {
 }
 
 Exception: OwnedPtr<Exception> = {
-    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
-        construct_exception(parser, p, i, il, dms, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Class: OwnedPtr<Class> = {
-    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <il: InheritanceList?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
-        construct_class(parser, p, i, ci, il, dms, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+        construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -164,8 +164,8 @@ DataMember: OwnedPtr<DataMember> = {
 }
 
 Interface: OwnedPtr<Interface> = {
-    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <os: Operation*> "}" ContainerEnd => {
-        construct_interface(parser, p, i, il, os, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyList<TypeRef>>)?> "{" <os: Operation*> "}" ContainerEnd => {
+        construct_interface(parser, p, i, trs, os, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -196,8 +196,8 @@ ParameterModifiers: (bool, Option<u32>, Vec<Attribute>) = {
 }
 
 Enum: OwnedPtr<Enum> = {
-    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <il: InheritanceList?> "{" <es: List<Enumerator>> "}" ContainerEnd => {
-        construct_enum(parser, p, uk.is_some(), i, il, es, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: List<Enumerator>> "}" ContainerEnd => {
+        construct_enum(parser, p, uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -349,13 +349,15 @@ PreludeImpl: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
 // Utility Rules
 
 List<T>: Vec<T> = {
-    <v: (<T> ",")*> <e: T?> => {
-        append_element_to_list(v, e)
-    }
+    NonEmptyList<T> => <>,
+    => Vec::new(),
 }
 
-InheritanceList: Vec<TypeRef> = {
-    ":" <trs: List<TypeRef>> => trs,
+NonEmptyList<T>: Vec<T> = {
+    <element: T> <mut vector: ("," <T>)*> ","? => {
+        vector.insert(0, element);
+        vector
+    }
 }
 
 ModuleIdentifier: Identifier = {

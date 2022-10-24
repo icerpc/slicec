@@ -69,14 +69,6 @@ macro_rules! add_definition_to_module {
     }};
 }
 
-fn emit_missing_inheritance_type_error<T>(parser: &mut Parser, span: &Span) -> Option<T> {
-    parser.diagnostic_reporter.report_error(Error::new(
-        ErrorKind::Syntax("Missing type specifier".to_owned()),
-        Some(span),
-    ));
-    None
-}
-
 // Grammar Rule Functions
 
 fn handle_file_encoding(
@@ -208,22 +200,11 @@ fn construct_exception(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    bases: Option<Vec<TypeRef>>,
+    base_type: Option<TypeRef>,
     members: Vec<OwnedPtr<DataMember>>,
     span: Span,
 ) -> OwnedPtr<Exception> {
-    // Exceptions only support single-inheritance.
-    let base = bases.and_then(|base_types| match base_types.len() {
-        0 => emit_missing_inheritance_type_error(parser, &span),
-        1 => base_types[0].downcast::<Exception>().ok(),
-        _ => {
-            parser.diagnostic_reporter.report_error(Error::new(
-                ErrorKind::CanOnlyInheritFromSingleBase("exception".to_owned()),
-                Some(&span),
-            ));
-            None
-        }
-    });
+    let base = base_type.map(|type_ref| type_ref.downcast::<Exception>().unwrap());
 
     let mut exception_ptr = OwnedPtr::new(Exception {
         identifier,
@@ -248,22 +229,11 @@ fn construct_class(
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
     compact_id: Option<u32>,
-    bases: Option<Vec<TypeRef>>,
+    base_type: Option<TypeRef>,
     members: Vec<OwnedPtr<DataMember>>,
     span: Span,
 ) -> OwnedPtr<Class> {
-    // Classes only support single-inheritance.
-    let base = bases.and_then(|base_types| match base_types.len() {
-        0 => emit_missing_inheritance_type_error(parser, &span),
-        1 => base_types[0].downcast::<Class>().ok(),
-        _ => {
-            parser.diagnostic_reporter.report_error(Error::new(
-                ErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()),
-                Some(&span),
-            ));
-            None
-        }
-    });
+    let base = base_type.map(|type_ref| type_ref.downcast::<Class>().unwrap());
 
     let mut class_ptr = OwnedPtr::new(Class {
         identifier,
@@ -479,22 +449,11 @@ fn construct_enum(
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     is_unchecked: bool,
     identifier: Identifier,
-    bases: Option<Vec<TypeRef>>,
+    underlying_type: Option<TypeRef>,
     enumerators: Vec<OwnedPtr<Enumerator>>,
     span: Span,
 ) -> OwnedPtr<Enum> {
-    // Enums can only have a single underlying type.
-    let underlying = bases.and_then(|base_types| match base_types.len() {
-        0 => emit_missing_inheritance_type_error(parser, &span),
-        1 => base_types[0].downcast::<Primitive>().ok(),
-        _ => {
-            parser.diagnostic_reporter.report_error(Error::new(
-                ErrorKind::CannotHaveMultipleUnderlyingTypes(identifier.value.clone()),
-                Some(&span),
-            ));
-            None
-        }
-    });
+    let underlying = underlying_type.map(|type_ref| type_ref.downcast::<Primitive>().unwrap());
 
     let mut enum_ptr = OwnedPtr::new(Enum {
         identifier,
@@ -726,11 +685,4 @@ fn parse_doc_comment(raw_comments: Vec<(&str, Span)>) -> Option<DocComment> {
         let combined = strings.collect::<Vec<_>>().join("\n");
         Some(crate::parser::comments::CommentParser::parse_doc_comment(&combined, dummy_span))
     }
-}
-
-fn append_element_to_list<T>(mut list: Vec<T>, element: Option<T>) -> Vec<T> {
-    if let Some(e) = element {
-        list.push(e);
-    }
-    list
 }

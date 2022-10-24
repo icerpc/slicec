@@ -4,6 +4,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::*;
+use slice::slice_file::Span;
 
 #[test]
 fn supports_single_inheritance() {
@@ -59,7 +60,10 @@ fn does_not_support_multiple_inheritance() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::CanOnlyInheritFromSingleBase("class".to_owned()), None);
+    let expected = Error::new(
+        ErrorKind::Syntax("expected one of \"{\", but found 'Comma'".to_owned()),
+        Some(&Span::new((13,20).into(), (13,21).into(), "string-0")),
+    );
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
