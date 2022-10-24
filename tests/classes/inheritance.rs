@@ -62,7 +62,7 @@ fn does_not_support_multiple_inheritance() {
     // Assert
     let expected = Error::new(
         ErrorKind::Syntax("expected one of \"{\", but found 'Comma'".to_owned()),
-        Some(&Span::new((13,20).into(), (13,21).into(), "string-0")),
+        Some(&Span::new((13, 20).into(), (13, 21).into(), "string-0")),
     );
     assert_errors!(diagnostic_reporter, [&expected]);
 }
