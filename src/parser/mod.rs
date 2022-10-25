@@ -60,7 +60,7 @@ fn try_parse_file(file: &str, is_source: bool, data: &mut ParsedData) -> Option<
         }
         Err(err) => {
             data.diagnostic_reporter
-                .report_error(Error::new(ErrorKind::Syntax(err.to_string()), None));
+                .report_error(Error::new(ErrorKind::IO(err), None));
             None
         }
     }
