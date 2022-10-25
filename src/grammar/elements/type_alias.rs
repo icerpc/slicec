@@ -16,28 +16,6 @@ pub struct TypeAlias {
     pub span: Span,
 }
 
-impl TypeAlias {
-    pub(crate) fn new(
-        identifier: Identifier,
-        underlying: TypeRef,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parent = WeakPtr::create_uninitialized();
-        TypeAlias {
-            identifier,
-            underlying,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-}
-
 impl AsTypes for TypeAlias {
     fn concrete_type(&self) -> Types {
         self.underlying.concrete_type()

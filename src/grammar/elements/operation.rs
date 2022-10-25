@@ -20,37 +20,6 @@ pub struct Operation {
 }
 
 impl Operation {
-    #[allow(clippy::too_many_arguments)]
-    pub(crate) fn new(
-        identifier: Identifier,
-        return_type: Vec<WeakPtr<Parameter>>,
-        is_idempotent: bool,
-        encoding: Encoding,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parameters = Vec::new();
-        let parent = WeakPtr::create_uninitialized();
-        Operation {
-            identifier,
-            return_type,
-            parameters,
-            is_idempotent,
-            encoding,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-
-    pub(crate) fn add_parameter(&mut self, parameter: WeakPtr<Parameter>) {
-        self.parameters.push(parameter);
-    }
-
     pub fn parameters(&self) -> Vec<&Parameter> {
         self.parameters
             .iter()

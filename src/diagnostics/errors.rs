@@ -52,6 +52,9 @@ pub enum ErrorKind {
     StructKeyMustBeCompact,
 
     // ----------------  Encoding Errors ---------------- //
+    /// The user specified an encoding multiple times in a single Slice file.
+    MultipleEncodingVersions,
+
     /// The provided kind with identifier is not supported in the specified encoding.
     ///
     /// # Fields
@@ -107,6 +110,13 @@ pub enum ErrorKind {
     /// * `min` - The minimum value of the underlying type of the enum.
     /// * `max` - The maximum value of the underlying type of the enum.
     EnumeratorValueOutOfBounds(String, i64, i64, i64),
+
+    /// An enumerator's implicitly assigned value was larger than `i64::MAX`.
+    ///
+    /// # Fields
+    ///
+    /// * `enumerator_identifier` - The identifier of the enumerator.
+    ImplicitEnumeratorValueOverflows(String),
 
     /// Enums must be contain at least one enumerator.
     ///
@@ -192,6 +202,9 @@ pub enum ErrorKind {
     TaggedMemberMustBeOptional(String),
 
     // ----------------  General Errors ---------------- //
+    /// A compact ID was not in the expected range, 0 .. i32::MAX.
+    CompactIdOutOfBounds,
+
     /// Used to indicate when a method must contain arguments.
     ///
     /// # Fields
@@ -199,12 +212,6 @@ pub enum ErrorKind {
     /// * `method_name` - The name of the method.
     CannotBeEmpty(String),
 
-    /// Kind can only inherit from a single base.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that can only inherit from a single base.
-    CanOnlyInheritFromSingleBase(String),
     /// Used to indicate when two concrete types should match, but do not.
     ///
     /// # Fields
@@ -248,6 +255,12 @@ pub enum ErrorKind {
     /// * `expected kind` - The name of the expected kind.
     /// * `actual kind` - The name of the found kind.
     TypeMismatch(String, String),
+
+    /// An integer literal was outside the parsable range of 0..i64::MAX.
+    IntegerLiteralTooLarge,
+
+    /// An invalid Slice encoding was used.
+    InvalidEncodingVersion(i64),
 
     // ----------------  SliceC-C# Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
@@ -408,37 +421,31 @@ implement_error_functions!(
     ),
     (
         "E023",
-        ErrorKind::CanOnlyInheritFromSingleBase,
-        format!("`{}` types can only inherit form a single base  {}", kind, kind),
-        kind
-    ),
-    (
-        "E024",
         ErrorKind::TypeMismatch,
         format!("type mismatch: expected a `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
         expected,
         found
     ),
     (
-        "E025",
+        "E024",
         ErrorKind::ConcreteTypeMismatch,
         format!("type mismatch: expected `{expected}` but found a `{found}`"),
         expected,
         found
     ),
     (
-        "E026",
+        "E025",
         ErrorKind::CompactStructCannotBeEmpty,
         "compact structs must be non-empty"
     ),
     (
-        "E027",
+        "E026",
         ErrorKind::SelfReferentialTypeAliasNeedsConcreteType,
         format!("self-referential type alias '{}' has no concrete type", identifier),
         identifier
     ),
     (
-        "E028",
+        "E027",
         ErrorKind::EnumeratorValueOutOfBounds,
         format!(
             "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
@@ -446,87 +453,114 @@ implement_error_functions!(
         identifier, value, min, max
     ),
     (
-        "E029",
+        "E028",
         ErrorKind::TagValueOutOfBounds,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        "E030",
+        "E029",
         ErrorKind::CannotHaveDuplicateEnumerators,
         format!("invalid enumerator `{}`: enumerators must be unique", identifier),
         identifier
     ),
     (
-        "E031",
+        "E030",
         ErrorKind::NotSupportedWithEncoding,
         format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
         kind, identifier, encoding
     ),
     (
-        "E032",
+        "E031",
         ErrorKind::UnsupportedType,
         format!("the type `{type_string}` is not supported by the {encoding} encoding"),
         type_string,
         encoding
     ),
     (
-        "E033",
+        "E032",
         ErrorKind::ExceptionNotSupported,
         format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
-        "E034",
+        "E033",
         ErrorKind::OptionalsNotSupported,
         format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
-        "E035",
+        "E034",
         ErrorKind::StreamedParametersNotSupported,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
-        "E036",
+        "E035",
         ErrorKind::UnexpectedAttribute,
         format!("unexpected attribute `{attribute}`"),
         attribute
     ),
     (
-        "E037",
+        "E036",
         ErrorKind::MissingRequiredArgument,
         format!("missing required argument `{argument}`"),
         argument
     ),
     (
-        "E038",
+        "E037",
         ErrorKind::TooManyArguments,
         format!("too many arguments, expected `{expected}`"),
         expected
     ),
     (
-        "E039",
+        "E038",
         ErrorKind::MissingRequiredAttribute,
         format!("missing required attribute `{attribute}`"),
         attribute
     ),
     (
-        "E040",
+        "E039",
         ErrorKind::AttributeOnlyValidForTopLevelModules,
         format!("The `{attribute}` attribute is only valid for top-level modules"),
         attribute
     ),
     (
-        "E041",
+        "E040",
         ErrorKind::MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E042",
+        "E041",
         ErrorKind::InvalidAttribute,
         format!("attribute `{attribute}` cannot be used on `{kind}`"),
         attribute,
         kind
+    ),
+    (
+        "E042",
+        ErrorKind::CompactIdOutOfBounds,
+        "compact IDs must be within the range 0 <= ID <= 2147483647"
+    ),
+    (
+        "E043",
+        ErrorKind::IntegerLiteralTooLarge,
+        "integer literal is outside the parsable range of 0 <= i <= 9223372036854775807"
+    ),
+    (
+        "E044",
+        ErrorKind::InvalidEncodingVersion,
+        format!("'{version}' is not a valid Slice encoding version"),
+        version
+    ),
+    (
+        "E045",
+        ErrorKind::ImplicitEnumeratorValueOverflows,
+        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
+        identifier
+    ),
+    (
+        "E046",
+        ErrorKind::MultipleEncodingVersions,
+        "only a single encoding can be specified per file".to_owned()
     )
 );

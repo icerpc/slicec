@@ -16,28 +16,6 @@ pub struct CustomType {
     pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
-impl CustomType {
-    pub(crate) fn new(
-        identifier: Identifier,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parent = WeakPtr::create_uninitialized();
-        let supported_encodings = None; // Patched later by the encoding_patcher.
-        CustomType {
-            identifier,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-            supported_encodings,
-        }
-    }
-}
-
 impl Type for CustomType {
     fn type_string(&self) -> String {
         self.identifier().to_owned()

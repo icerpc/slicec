@@ -15,28 +15,6 @@ pub struct Enumerator {
     pub span: Span,
 }
 
-impl Enumerator {
-    pub(crate) fn new(
-        identifier: Identifier,
-        value: i64,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parent = WeakPtr::create_uninitialized();
-        Enumerator {
-            identifier,
-            value,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-}
-
 implement_Element_for!(Enumerator, "enumerator");
 implement_Entity_for!(Enumerator);
 implement_Contained_for!(Enumerator, Enum);

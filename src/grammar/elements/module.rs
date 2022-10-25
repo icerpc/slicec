@@ -16,30 +16,6 @@ pub struct Module {
 }
 
 impl Module {
-    pub(crate) fn new(
-        identifier: Identifier,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let contents = Vec::new();
-        let parent = None;
-        Module {
-            identifier,
-            contents,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-
-    pub(crate) fn add_definition(&mut self, definition: Definition) {
-        self.contents.push(definition);
-    }
-
     pub fn is_top_level(&self) -> bool {
         self.parent.is_none()
     }

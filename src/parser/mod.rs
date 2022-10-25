@@ -3,9 +3,8 @@
 // TODO most of this module was just copy & pasted from the original implementation so that people
 // can start using the newer implementation sooner.
 
-mod comments;
+pub mod comments;
 mod cycle_detection;
-mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;

@@ -16,30 +16,6 @@ pub struct DataMember {
     pub span: Span,
 }
 
-impl DataMember {
-    pub(crate) fn new(
-        identifier: Identifier,
-        data_type: TypeRef,
-        tag: Option<u32>,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let parent = WeakPtr::create_uninitialized();
-        DataMember {
-            identifier,
-            data_type,
-            tag,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-        }
-    }
-}
-
 implement_Element_for!(DataMember, "data member");
 implement_Entity_for!(DataMember);
 implement_Contained_for!(DataMember, dyn Container<WeakPtr<DataMember>> + 'static);

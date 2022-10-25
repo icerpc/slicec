@@ -10,17 +10,8 @@ mod comments {
     use slice::grammar::*;
     use test_case::test_case;
 
-    #[test_case("/** This is a block doc comment. */", "This is a block doc comment."; "block doc comment")]
     #[test_case("/// This is a doc comment.", "This is a doc comment."; "doc comment")]
     #[test_case("/// This is a\n/// multiline doc comment.", "This is a\nmultiline doc comment."; "multiline doc comment")]
-    #[test_case(
-        "/**\n
-        * This is a multi-line block doc comment.\n
-        */",
-        "This is a multi-line block doc comment."
-        => ignore["reason"];
-        "multi-line block doc comment"
-    )] // TODO: Multi-line block doc comments parsing needs to be fixed to properly support multi-line block doc comments.
     fn doc_comments_added_to_comment_overview(doc_comment: &str, expected: &str) {
         // Arrange
         let slice = format!(
@@ -160,38 +151,6 @@ mod comments {
     }
 
     #[test]
-    #[ignore] // TODO: fix star parsing, causing doc comment return message to be parsed incorrectly
-    fn multiline_tag_comment() {
-        // Arrange
-        let slice = "
-            module tests;
-
-            interface TestInterface
-            {
-                /**
-                 * @throws MyThrownThing Message about my thrown thing. \n More about the thrown thing.
-                 * @return bool
-                 */
-                testOp(testParam: string) -> bool;
-            }
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let expected_throws = vec![(
-            "MyThrownThing".to_owned(),
-            "Message about my thrown thing.\nMore about the thrown thing.".to_owned(),
-        )];
-        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
-        let op_doc_comment = operation.comment().unwrap();
-
-        assert_eq!(op_doc_comment.throws, expected_throws);
-        assert_eq!(op_doc_comment.returns, Some("bool\n".to_owned()));
-    }
-
-    #[test]
     fn doc_comments_throws() {
         // Arrange
         let slice = "
@@ -261,8 +220,7 @@ mod comments {
         assert_eq!(op_doc_comment.see_also, expected);
     }
 
-    #[test_case("/// This is a doc comment.", (4, 13), (5, 13); "doc comment")]
-    #[test_case("/**\n* This is a multi line doc comment.\n*/", (4, 13), (6, 3); "multi-line doc comment")]
+    #[test_case("/// This is a doc comment.", (4, 13), (4, 39); "doc comment")]
     fn doc_comments_span(comment: &str, expected_start: (usize, usize), expected_end: (usize, usize)) {
         // Arrange
         let slice = format!(

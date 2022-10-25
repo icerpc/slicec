@@ -20,36 +20,6 @@ pub struct Class {
 }
 
 impl Class {
-    pub(crate) fn new(
-        identifier: Identifier,
-        compact_id: Option<u32>,
-        base: Option<TypeRef<Class>>,
-        scope: Scope,
-        attributes: Vec<Attribute>,
-        comment: Option<DocComment>,
-        span: Span,
-    ) -> Self {
-        let members = Vec::new();
-        let parent = WeakPtr::create_uninitialized();
-        let supported_encodings = None; // Patched later by the encoding_patcher.
-        Class {
-            identifier,
-            compact_id,
-            members,
-            base,
-            parent,
-            scope,
-            attributes,
-            comment,
-            span,
-            supported_encodings,
-        }
-    }
-
-    pub(crate) fn add_member(&mut self, member: WeakPtr<DataMember>) {
-        self.members.push(member);
-    }
-
     pub fn members(&self) -> Vec<&DataMember> {
         self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
     }
