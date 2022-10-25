@@ -262,11 +262,8 @@ pub enum ErrorKind {
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion(i64),
 
-    // ----------------  SliceC-C# Errors ---------------- //
+    // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
-    // TODO: Clean up these errors
-    AttributeOnlyValidForTopLevelModules(String), // (attribute)
-
     MissingRequiredArgument(String), // (arg)
 
     MissingRequiredAttribute(String), // (attribute)
@@ -520,46 +517,40 @@ implement_error_functions!(
     ),
     (
         "E039",
-        ErrorKind::AttributeOnlyValidForTopLevelModules,
-        format!("The `{attribute}` attribute is only valid for top-level modules"),
-        attribute
-    ),
-    (
-        "E040",
         ErrorKind::MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E041",
+        "E040",
         ErrorKind::InvalidAttribute,
         format!("attribute `{attribute}` cannot be used on `{kind}`"),
         attribute,
         kind
     ),
     (
-        "E042",
+        "E041",
         ErrorKind::CompactIdOutOfBounds,
         "compact IDs must be within the range 0 <= ID <= 2147483647"
     ),
     (
-        "E043",
+        "E042",
         ErrorKind::IntegerLiteralTooLarge,
         "integer literal is outside the parsable range of 0 <= i <= 9223372036854775807"
     ),
     (
-        "E044",
+        "E043",
         ErrorKind::InvalidEncodingVersion,
         format!("'{version}' is not a valid Slice encoding version"),
         version
     ),
     (
-        "E045",
+        "E044",
         ErrorKind::ImplicitEnumeratorValueOverflows,
         format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
         identifier
     ),
     (
-        "E046",
+        "E045",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
     )
