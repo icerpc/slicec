@@ -259,6 +259,13 @@ pub enum ErrorKind {
     /// An integer literal was outside the parsable range of 0..i64::MAX.
     IntegerLiteralTooLarge,
 
+    /// An integer literal contained illegal characters for its base.
+    ///
+    /// # Fields
+    ///
+    /// * `base` - The base of the integer literal; Ex: 16 (hex), 10 (dec).
+    InvalidIntegerLiteral(u32),
+
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion(i64),
 
@@ -553,5 +560,11 @@ implement_error_functions!(
         "E045",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
+    ),
+    (
+        "E043",
+        ErrorKind::InvalidIntegerLiteral,
+        format!("integer literal contains illegal characters for base-{base}"),
+        base
     )
 );

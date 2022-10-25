@@ -113,8 +113,8 @@ where
     fn read_integer_literal(&mut self) -> &'input str {
         let start_position = self.get_position();
 
-        // Loop while the next character in the buffer is numeric.
-        while matches!(self.buffer.peek(), Some((_, c)) if c.is_numeric()) {
+        // Loop while the next character in the buffer is alphanumeric (because we support hex literals).
+        while matches!(self.buffer.peek(), Some((_, c)) if c.is_alphanumeric()) {
             self.advance_buffer(); // Consume the numeric character.
         }
 

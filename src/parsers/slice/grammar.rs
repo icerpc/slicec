@@ -9,6 +9,7 @@ use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::{downgrade_as, upcast_weak_as};
 
 use std::convert::TryInto;
+use std::num::IntErrorKind;
 use std::ops::RangeInclusive;
 
 use lalrpop_util::lalrpop_mod;
@@ -566,12 +567,22 @@ fn construct_attribute(raw_directive: Identifier, arguments: Option<Vec<String>>
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
-    match s.parse::<i64>() {
+    // Check the literal for a base prefix. If present, remove it and set the base.
+    // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
+    let (literal, base) = match s {
+        _ if s.starts_with("0b") => (&s[2..], 2),
+        _ if s.starts_with("0x") => (&s[2..], 16),
+        _ => (s, 10),
+    };
+
+    match i64::from_str_radix(literal, base) {
         Ok(x) => x,
-        Err(_) => {
-            parser
-                .diagnostic_reporter
-                .report_error(Error::new(ErrorKind::IntegerLiteralTooLarge, Some(&span)));
+        Err(err) => {
+            let error = match err.kind() {
+                IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral(base),
+                _ => ErrorKind::IntegerLiteralTooLarge,
+            };
+            parser.diagnostic_reporter.report_error(Error::new(error, Some(&span)));
             0 // Dummy value
         }
     }
