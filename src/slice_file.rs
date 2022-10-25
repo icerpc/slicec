@@ -202,6 +202,6 @@ impl Attributable for SliceFile {
         }
         self.attributes
             .iter()
-            .find(|&attribute| attribute.prefixed_directive == directive)
+            .find(|&attribute| attribute.directive == directive)
     }
 }

@@ -561,9 +561,7 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "bar");
-            assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
-            assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
+            assert_eq!(operation.attributes[0].directive, "foo::bar");
             assert_eq!(operation.attributes[0].arguments.len(), 0);
         }
 
@@ -587,9 +585,7 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "bar");
-            assert_eq!(operation.attributes[0].prefixed_directive, "foo::bar");
-            assert_eq!(operation.attributes[0].prefix, Some("foo".to_owned()));
+            assert_eq!(operation.attributes[0].directive, "foo::bar");
             assert_eq!(operation.attributes[0].arguments, vec!["a", "b", "c"]);
         }
 

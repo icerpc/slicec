@@ -99,7 +99,7 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         }
         self.attributes
             .iter()
-            .find(|&attribute| attribute.prefixed_directive == directive)
+            .find(|&attribute| attribute.directive == directive)
     }
 }
 
