@@ -262,10 +262,8 @@ pub enum ErrorKind {
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion(i64),
 
-    // ----------------  SliceC-C# Errors ---------------- //
+    // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
-    // TODO: Clean up these errors
-
     MissingRequiredArgument(String), // (arg)
 
     MissingRequiredAttribute(String), // (attribute)
