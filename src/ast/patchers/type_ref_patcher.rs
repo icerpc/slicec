@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::{Ast, Node};
-use crate::compilation_result::{CompilationData, CompilerResult};
+use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::*;
 use crate::downgrade_as;
 use crate::grammar::*;
@@ -10,7 +10,7 @@ use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
 use std::convert::{TryFrom, TryInto};
 
-pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilerResult {
+pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
         diagnostic_reporter: &mut compilation_data.diagnostic_reporter,

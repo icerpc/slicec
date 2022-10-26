@@ -132,7 +132,7 @@ impl CompilationData {
     }
 }
 
-impl From<CompilationData> for CompilerResult {
+impl From<CompilationData> for CompilationResult {
     fn from(compilation_data: CompilationData) -> Self {
         match compilation_data.has_errors() {
             false => Ok(compilation_data),
@@ -141,4 +141,4 @@ impl From<CompilationData> for CompilerResult {
     }
 }
 
-pub type CompilerResult = Result<CompilationData, CompilationData>;
+pub type CompilationResult = Result<CompilationData, CompilationData>;

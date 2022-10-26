@@ -5,7 +5,7 @@ mod cycle_detection;
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::compilation_result::{CompilationData, CompilerResult};
+use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::attributes;
 use crate::slice_file::SliceFile;
@@ -19,7 +19,7 @@ use std::{fs, io};
 // patching). Accessing ANY data, or calling ANY methods before this point may result in panics or
 // undefined behavior.
 
-pub fn parse_files(options: &SliceOptions) -> CompilerResult {
+pub fn parse_files(options: &SliceOptions) -> CompilationResult {
     let mut data = CompilationData {
         ast: Ast::create(),
         diagnostic_reporter: DiagnosticReporter::new(options),
@@ -66,7 +66,7 @@ fn try_parse_file(file: &str, is_source: bool, data: &mut CompilationData) -> Op
     }
 }
 
-pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> CompilerResult {
+pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> CompilationResult {
     let slice_options = options.unwrap_or(SliceOptions {
         sources: vec![],
         references: vec![],
@@ -125,7 +125,7 @@ fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut Comp
     ))
 }
 
-fn patch_ast(mut compilation_data: CompilationData) -> CompilerResult {
+fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     // TODO integrate this better with CompilationData in the future.
     if !compilation_data.has_errors() {
         unsafe {

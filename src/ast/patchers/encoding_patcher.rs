@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::Node;
-use crate::compilation_result::{CompilationData, CompilerResult};
+use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::supported_encodings::SupportedEncodings;
 use std::collections::HashMap;
 
-pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilerResult {
+pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     // Create a new encoding patcher.
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
