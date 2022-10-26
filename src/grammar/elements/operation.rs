@@ -97,18 +97,6 @@ impl Operation {
             .cloned()
     }
 
-    pub fn sends_classes(&self) -> bool {
-        self.parameters()
-            .iter()
-            .any(|parameter| parameter.data_type.uses_classes())
-    }
-
-    pub fn returns_classes(&self) -> bool {
-        self.return_members()
-            .iter()
-            .any(|parameter| parameter.data_type.uses_classes())
-    }
-
     pub fn compress_arguments(&self) -> bool {
         if let Some(attribute) = self.get_attribute(attributes::COMPRESS, false) {
             attribute.contains(&"Args".to_owned())
