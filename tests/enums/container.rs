@@ -291,6 +291,52 @@ fn unchecked_enums_can_be_empty() {
     assert_eq!(enum_def.enumerators.len(), 0);
 }
 
+#[test]
+fn enumerators_support_different_base_literals() {
+    // Arrange
+    let slice = "
+        module Test;
+
+        enum E
+        {
+            B = 0b1001111,
+            D = 128,
+            H = 0xA4FD,
+            N = -0xbc81,
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::B").unwrap().value, 0b1001111);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::D").unwrap().value, 128);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::H").unwrap().value, 0xA4FD);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::N").unwrap().value, -0xbc81);
+}
+
+#[test]
+fn duplicate_enumerators_are_disallowed_across_different_bases() {
+    // Arrange
+    let slice = "
+        module Test;
+
+        enum E
+        {
+            B = 0b1001111,
+            D = 79,
+        }
+    ";
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Error::new(ErrorKind::CannotHaveDuplicateEnumerators("D".to_owned()), None);
+    assert_errors!(diagnostic_reporter, [&expected]);
+}
+
 mod slice1 {
 
     use crate::assert_errors;
