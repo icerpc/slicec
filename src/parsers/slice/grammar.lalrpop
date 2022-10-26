@@ -95,7 +95,7 @@ extern {
 // Grammar Rules
 
 pub SliceFile: (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>) = {
-    <sfp: SliceFilePrelude> <flm: FileLevelModule> => (sfp.0, sfp.1, vec![flm]),
+    <sfp: SliceFilePrelude> <flm: FileScopedModule> => (sfp.0, sfp.1, vec![flm]),
     <sfp: SliceFilePrelude> <ms: Module*> => (sfp.0, sfp.1, ms),
 }
 
@@ -114,15 +114,15 @@ FileEncoding: FileEncoding = {
     }
 }
 
-FileLevelModule: OwnedPtr<Module> = {
+FileScopedModule: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";" <ds: Definition*> => {
-        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
+        construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
     }
 }
 
 Module: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" <ds: Definition*> "}" => {
-        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
+        construct_module(parser, p, i, ds, false, Span::new(l, r, parser.file_name))
     }
 }
 

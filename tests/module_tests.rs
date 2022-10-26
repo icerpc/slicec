@@ -7,6 +7,20 @@ mod module {
     use crate::helpers::parsing_helpers::parse_for_ast;
     use slice::grammar::*;
     use slice::parse_from_strings;
+    use test_case::test_case;
+
+    #[test_case("{}", false; "normal")]
+    #[test_case(";", true; "file_scoped")]
+    fn can_be_defined(content: &str, expected: bool) {
+        // Arrange
+        let slice = format!("module Test {content}");
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        assert_eq!(ast.find_element::<Module>("Test").unwrap().is_file_scoped, expected);
+    }
 
     #[test]
     fn can_be_reopened() {
