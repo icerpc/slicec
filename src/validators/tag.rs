@@ -105,13 +105,12 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
         .into_iter()
         .filter(|member| member.is_tagged() && member.data_type().uses_classes())
     {
-        let identifier = memeber.identifier().to_owned();
-        let error_kind = if memeber.data_type().is_class_type() {
+        let identifier = member.identifier().to_owned();
+        let error_kind = if member.data_type().is_class_type() {
             ErrorKind::CannotTagClass(identifier)
         } else {
             ErrorKind::CannotTagContainingClass(identifier)
         };
-        diagnostic_reporter.report_error(Error::new(error_kind, Some(memeber.span())));
-    }
+        diagnostic_reporter.report_error(Error::new(error_kind, Some(member.span())));
     }
 }
