@@ -5,9 +5,9 @@ mod cycle_detection;
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
+use crate::compilation_result::{CompilationData, CompilerResult};
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::attributes;
-use crate::parse_result::{ParsedData, ParserResult};
 use crate::slice_file::SliceFile;
 
 use std::collections::{HashMap, HashSet};
@@ -19,8 +19,8 @@ use std::{fs, io};
 // patching). Accessing ANY data, or calling ANY methods before this point may result in panics or
 // undefined behavior.
 
-pub fn parse_files(options: &SliceOptions) -> ParserResult {
-    let mut data = ParsedData {
+pub fn parse_files(options: &SliceOptions) -> CompilerResult {
+    let mut data = CompilationData {
         ast: Ast::create(),
         diagnostic_reporter: DiagnosticReporter::new(options),
         files: HashMap::new(),
@@ -52,7 +52,7 @@ pub fn parse_files(options: &SliceOptions) -> ParserResult {
     patch_ast(data)
 }
 
-fn try_parse_file(file: &str, is_source: bool, data: &mut ParsedData) -> Option<SliceFile> {
+fn try_parse_file(file: &str, is_source: bool, data: &mut CompilationData) -> Option<SliceFile> {
     match fs::read_to_string(file) {
         Ok(raw_text) => {
             // The parser emits errors through `DiagnosticReporter` on it's own, so we don't need to handle them.
@@ -66,7 +66,7 @@ fn try_parse_file(file: &str, is_source: bool, data: &mut ParsedData) -> Option<
     }
 }
 
-pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserResult {
+pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> CompilerResult {
     let slice_options = options.unwrap_or(SliceOptions {
         sources: vec![],
         references: vec![],
@@ -77,7 +77,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserRe
         output_dir: None,
     });
 
-    let mut data = ParsedData {
+    let mut data = CompilationData {
         ast: Ast::create(),
         diagnostic_reporter: DiagnosticReporter::new(&slice_options),
         files: HashMap::new(),
@@ -96,7 +96,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> ParserRe
     patch_ast(data)
 }
 
-fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut ParsedData) -> Result<SliceFile, ()> {
+fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut CompilationData) -> Result<SliceFile, ()> {
     let ast = &mut data.ast;
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
@@ -125,20 +125,20 @@ fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut Pars
     ))
 }
 
-fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
-    // TODO integrate this better with ParsedData in the future.
-    if !parsed_data.has_errors() {
+fn patch_ast(mut compilation_data: CompilationData) -> CompilerResult {
+    // TODO integrate this better with CompilationData in the future.
+    if !compilation_data.has_errors() {
         unsafe {
-            parsed_data = crate::ast::patch_ast(parsed_data)?;
+            compilation_data = crate::ast::patch_ast(compilation_data)?;
         }
     }
 
     // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
-    if !parsed_data.has_errors() {
-        cycle_detection::detect_cycles(&parsed_data.files, &mut parsed_data.diagnostic_reporter);
+    if !compilation_data.has_errors() {
+        cycle_detection::detect_cycles(&compilation_data.files, &mut compilation_data.diagnostic_reporter);
     }
 
-    parsed_data.into()
+    compilation_data.into()
 }
 
 fn find_slice_files(paths: &[String]) -> Vec<String> {

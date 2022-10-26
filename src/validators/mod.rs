@@ -9,9 +9,9 @@ mod miscellaneous;
 mod tag;
 
 use crate::ast::Ast;
+use crate::compilation_result::{CompilationData, CompilerResult};
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
-use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 
@@ -41,7 +41,7 @@ pub enum Validator {
     Struct(fn(&Struct, &mut DiagnosticReporter)),
 }
 
-pub(crate) fn validate_parsed_data(mut data: ParsedData) -> ParserResult {
+pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilerResult {
     let mut validator = ValidatorVisitor::new(&data.ast, &mut data.diagnostic_reporter);
 
     for slice_file in data.files.values() {

@@ -6,8 +6,8 @@ pub mod node;
 mod patchers;
 
 use self::node::Node;
+use crate::compilation_result::{CompilationData, CompilerResult};
 use crate::grammar::{Element, NamedSymbol, Primitive};
-use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
@@ -21,11 +21,11 @@ use std::convert::{TryFrom, TryInto};
 /// 2. Compute and store the Slice encodings that each element can be used with.
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
-pub(crate) unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
-    parsed_data = patchers::type_ref_patcher::patch_ast(parsed_data)?;
-    parsed_data = patchers::encoding_patcher::patch_ast(parsed_data)?;
+pub(crate) unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilerResult {
+    compilation_data = patchers::type_ref_patcher::patch_ast(compilation_data)?;
+    compilation_data = patchers::encoding_patcher::patch_ast(compilation_data)?;
 
-    parsed_data.into()
+    compilation_data.into()
 }
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the slice elements defined and used by
