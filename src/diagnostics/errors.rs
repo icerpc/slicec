@@ -87,12 +87,12 @@ pub enum ErrorKind {
     UnsupportedType(String, Encoding),
 
     // ----------------  Enum Errors ---------------- //
-    /// Enumerators must be unique.
+    /// Enumerator values must be unique.
     ///
     /// # Fields
     ///
-    /// * `enumerator_identifier` - The identifier of the enumerator.
-    CannotHaveDuplicateEnumerators(String),
+    /// * `enumerator_value` - The value of the enumerator that was already used.
+    DuplicateEnumeratorValue(i64),
 
     /// Enums cannot have optional underlying types.
     ///
@@ -463,9 +463,9 @@ implement_error_functions!(
     ),
     (
         "E029",
-        ErrorKind::CannotHaveDuplicateEnumerators,
-        format!("invalid enumerator `{}`: enumerators must be unique", identifier),
-        identifier
+        ErrorKind::DuplicateEnumeratorValue,
+        format!("enumerator values must be unique; The value `{}` is already in use", value),
+        value
     ),
     (
         "E030",

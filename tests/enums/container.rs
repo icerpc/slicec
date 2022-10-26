@@ -203,9 +203,10 @@ fn enumerators_must_be_unique() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(ErrorKind::CannotHaveDuplicateEnumerators("B".to_owned()), None, vec![
-        Note::new("The enumerator `A` has previous used the value `1`", None),
-    ]);
+    let expected = Error::new_with_notes(ErrorKind::DuplicateEnumeratorValue(1), None, vec![Note::new(
+        "The value was previously used by `A` here:",
+        None,
+    )]);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -333,7 +334,7 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::CannotHaveDuplicateEnumerators("D".to_owned()), None);
+    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue(79), None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
