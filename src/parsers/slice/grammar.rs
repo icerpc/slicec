@@ -556,13 +556,12 @@ fn construct_unpatched_type_ref_definition(mut identifier: Identifier) -> TypeRe
     TypeRefDefinition::Unpatched(identifier.value)
 }
 
-fn construct_attribute(raw_directive: Identifier, arguments: Option<Vec<String>>, span: Span) -> Attribute {
-    let arguments = arguments.unwrap_or_default();
-    let (prefix, directive) = match raw_directive.value.split_once("::") {
-        Some((p, d)) => (Some(p.to_owned()), d.to_owned()),
-        None => (None, raw_directive.value.to_owned()),
-    };
-    Attribute::new(prefix, directive, arguments, span)
+fn construct_attribute(directive: Identifier, arguments: Option<Vec<String>>, span: Span) -> Attribute {
+    Attribute {
+        directive: directive.value,
+        arguments: arguments.unwrap_or_default(),
+        span,
+    }
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {

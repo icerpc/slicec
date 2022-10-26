@@ -175,7 +175,7 @@ macro_rules! implement_Attributable_for {
 
             fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
                 for attribute in &self.attributes {
-                    if attribute.prefixed_directive == directive {
+                    if attribute.directive == directive {
                         return Some(attribute);
                     }
                 }
