@@ -3,9 +3,9 @@
 pub mod ast;
 pub mod code_block;
 pub mod command_line;
+pub mod compilation_result;
 pub mod diagnostics;
 pub mod grammar;
-pub mod parse_result;
 pub mod parser;
 pub mod parsers;
 pub mod slice_file;
@@ -19,13 +19,13 @@ pub extern crate clap;
 pub extern crate convert_case;
 
 use crate::command_line::SliceOptions;
-use crate::parse_result::ParserResult;
-use crate::validators::validate_parsed_data;
+use crate::compilation_result::CompilationResult;
+use crate::validators::validate_compilation_data;
 
-pub fn parse_from_options(options: &SliceOptions) -> ParserResult {
-    parser::parse_files(options).and_then(validate_parsed_data)
+pub fn parse_from_options(options: &SliceOptions) -> CompilationResult {
+    parser::parse_files(options).and_then(validate_compilation_data)
 }
 
-pub fn parse_from_strings(inputs: &[&str], option: Option<SliceOptions>) -> ParserResult {
-    parser::parse_strings(inputs, option).and_then(validate_parsed_data)
+pub fn parse_from_strings(inputs: &[&str], option: Option<SliceOptions>) -> CompilationResult {
+    parser::parse_strings(inputs, option).and_then(validate_compilation_data)
 }

@@ -1,26 +1,26 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::{Ast, Node};
+use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::*;
 use crate::downgrade_as;
 use crate::grammar::*;
-use crate::parse_result::{ParsedData, ParserResult};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
 use std::convert::{TryFrom, TryInto};
 
-pub unsafe fn patch_ast(mut parsed_data: ParsedData) -> ParserResult {
+pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
-        diagnostic_reporter: &mut parsed_data.diagnostic_reporter,
+        diagnostic_reporter: &mut compilation_data.diagnostic_reporter,
     };
 
     // TODO why explain we split this logic so that we can for sure have an immutable AST.
-    patcher.compute_patches(&parsed_data.ast);
-    patcher.apply_patches(&mut parsed_data.ast);
+    patcher.compute_patches(&compilation_data.ast);
+    patcher.apply_patches(&mut compilation_data.ast);
 
-    parsed_data.into()
+    compilation_data.into()
 }
 
 struct TypeRefPatcher<'a> {

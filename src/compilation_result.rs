@@ -9,13 +9,13 @@ use std::collections::HashMap;
 use std::io::Write;
 
 #[derive(Debug)]
-pub struct ParsedData {
+pub struct CompilationData {
     pub ast: Ast,
     pub diagnostic_reporter: DiagnosticReporter,
     pub files: HashMap<String, SliceFile>,
 }
 
-impl ParsedData {
+impl CompilationData {
     pub fn into_exit_code(self) -> i32 {
         // Emit any diagnostics that were reported.
         let has_errors = self.has_errors();
@@ -132,13 +132,13 @@ impl ParsedData {
     }
 }
 
-impl From<ParsedData> for ParserResult {
-    fn from(parsed_data: ParsedData) -> Self {
-        match parsed_data.has_errors() {
-            false => Ok(parsed_data),
-            true => Err(parsed_data),
+impl From<CompilationData> for CompilationResult {
+    fn from(compilation_data: CompilationData) -> Self {
+        match compilation_data.has_errors() {
+            false => Ok(compilation_data),
+            true => Err(compilation_data),
         }
     }
 }
 
-pub type ParserResult = Result<ParsedData, ParsedData>;
+pub type CompilationResult = Result<CompilationData, CompilationData>;

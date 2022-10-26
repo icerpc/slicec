@@ -38,12 +38,12 @@ mod output {
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let parsed_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        parsed_data.emit_diagnostics(&mut output);
+        compilation_data.emit_diagnostics(&mut output);
 
         // Assert
         let expected = concat!(
@@ -81,12 +81,12 @@ mod output {
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let parsed_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        parsed_data.emit_diagnostics(&mut output);
+        compilation_data.emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
