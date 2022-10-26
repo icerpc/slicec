@@ -546,25 +546,25 @@ implement_error_functions!(
     ),
     (
         "E043",
+        ErrorKind::InvalidIntegerLiteral,
+        format!("integer literal contains illegal characters for base-{base}"),
+        base
+    ),
+    (
+        "E044",
         ErrorKind::InvalidEncodingVersion,
         format!("'{version}' is not a valid Slice encoding version"),
         version
     ),
     (
-        "E044",
+        "E045",
         ErrorKind::ImplicitEnumeratorValueOverflows,
         format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
         identifier
     ),
     (
-        "E045",
+        "E046",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
-    ),
-    (
-        "E043",
-        ErrorKind::InvalidIntegerLiteral,
-        format!("integer literal contains illegal characters for base-{base}"),
-        base
     )
 );
