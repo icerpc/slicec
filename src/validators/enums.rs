@@ -4,11 +4,13 @@ use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
+use std::collections::HashMap;
+
 pub fn enum_validators() -> ValidationChain {
     vec![
         Validator::Enums(backing_type_bounds),
         Validator::Enums(allowed_underlying_types),
-        Validator::Enums(enumerators_are_unique),
+        Validator::Enums(enumerator_values_are_unique),
         Validator::Enums(underlying_type_cannot_be_optional),
         Validator::Enums(nonempty_if_checked),
     ]
@@ -93,31 +95,26 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     }
 }
 
-/// Validate that the enumerators for an enum are unique.
-fn enumerators_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
-    // The enumerators must be sorted by value first as we are using windowing to check the
-    // n + 1 enumerator against the n enumerator. If the enumerators are sorted by value then
-    // the windowing will reveal any duplicate enumerators.
-    let enumerators = enum_def.enumerators();
-    let mut sorted_enumerators = enumerators.clone();
-    sorted_enumerators.sort_by_key(|m| m.value);
-    sorted_enumerators.windows(2).for_each(|window| {
-        if window[0].value == window[1].value {
-            let error = Error::new_with_notes(
-                ErrorKind::CannotHaveDuplicateEnumerators(window[1].identifier().to_owned()),
-                Some(window[1].span()),
-                vec![Note::new(
-                    format!(
-                        "The enumerator `{}` has previous used the value `{}`",
-                        window[0].identifier(),
-                        window[0].value,
-                    ),
-                    Some(window[0].span()),
-                )],
+/// Validate that enumerator values aren't re-used within an enum.
+fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+    let mut value_to_enumerator_map: HashMap<i64, &Enumerator> = HashMap::new();
+    for enumerator in enum_def.enumerators() {
+        // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
+        // and emit an error. Otherwise add the enumerator and its value to the map.
+        if let Some(other_enumerator) = value_to_enumerator_map.get(&enumerator.value) {
+            let error = ErrorKind::DuplicateEnumeratorValue(enumerator.value);
+            let note = Note::new(
+                format!(
+                    "the value was previously used by `{}` here:",
+                    other_enumerator.identifier(),
+                ),
+                Some(other_enumerator.span()),
             );
-            diagnostic_reporter.report_error(error);
+            diagnostic_reporter.report_error(Error::new_with_notes(error, Some(enumerator.span()), vec![note]));
+        } else {
+            value_to_enumerator_map.insert(enumerator.value, enumerator);
         }
-    });
+    }
 }
 
 /// Validate the the underlying type of an enum is not optional.
