@@ -11,7 +11,7 @@ mod scope_resolution {
 
     #[test]
     #[ignore] // TODO: This validation is no longer done by the parser, and should be done by a validator.
-    fn file_level_modules_can_not_contain_sub_modules() {
+    fn file_scoped_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "
             module T;

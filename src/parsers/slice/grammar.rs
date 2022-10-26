@@ -110,6 +110,7 @@ fn construct_module(
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
     definitions: Vec<Node>,
+    is_file_scoped: bool,
     span: Span,
 ) -> OwnedPtr<Module> {
     // In case nested module syntax was used, we split the identifier on '::' and construct a module for each segment.
@@ -124,6 +125,7 @@ fn construct_module(
                 span: span.clone(),
             },
             contents: Vec::new(),
+            is_file_scoped: false,
             parent: None,
             scope: parser.current_scope.clone(),
             attributes: Vec::new(),
@@ -140,6 +142,7 @@ fn construct_module(
     unsafe {
         // Any attributes, comments, or definitions belong to the innermost module, stored as `current_module`.
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
+        current_module.borrow_mut().is_file_scoped = is_file_scoped;
         current_module.borrow_mut().attributes = attributes;
         current_module.borrow_mut().comment = comment;
         for definition in definitions {
