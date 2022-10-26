@@ -8,7 +8,6 @@ use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
-use std::convert::{TryFrom, TryInto};
 
 pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {

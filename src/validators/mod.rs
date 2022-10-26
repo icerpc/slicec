@@ -59,7 +59,7 @@ struct ValidatorVisitor<'a> {
 
 impl<'a> ValidatorVisitor<'a> {
     pub fn new(ast: &'a Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
-        let validation_functions = vec![
+        let validation_functions = [
             attribute_validators(),
             comments_validators(),
             dictionary_validators(),

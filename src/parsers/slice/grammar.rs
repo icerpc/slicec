@@ -8,7 +8,6 @@ use crate::slice_file::Span;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::{downgrade_as, upcast_weak_as};
 
-use std::convert::TryInto;
 use std::num::IntErrorKind;
 use std::ops::RangeInclusive;
 

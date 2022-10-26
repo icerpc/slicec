@@ -10,7 +10,6 @@ use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::grammar::{Element, NamedSymbol, Primitive};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
 
 /// Since Slice definitions can be split across multiple files, and defined in any order, it is impossible for some
 /// things to be determined during parsing (as it's a sequential process).
