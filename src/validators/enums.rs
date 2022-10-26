@@ -105,7 +105,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
             let error = ErrorKind::DuplicateEnumeratorValue(enumerator.value);
             let note = Note::new(
                 format!(
-                    "The value was previously used by `{}` here:",
+                    "the value was previously used by `{}` here:",
                     other_enumerator.identifier(),
                 ),
                 Some(other_enumerator.span()),
