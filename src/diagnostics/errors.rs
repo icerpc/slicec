@@ -464,7 +464,7 @@ implement_error_functions!(
     (
         "E029",
         ErrorKind::DuplicateEnumeratorValue,
-        format!("enumerator values must be unique; The value `{}` is already in use", value),
+        format!("enumerator values must be unique; the value `{}` is already in use", value),
         value
     ),
     (
