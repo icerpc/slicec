@@ -39,10 +39,10 @@ pub(crate) unsafe fn patch_ast(mut compilation_data: CompilationData) -> Compila
 ///
 /// All AST's contain the [primitive](Primitive) types by default. New Slice elements are inserted into the AST as
 /// they're parsed (but this order shouldn't be relied upon). Since there's only one instance per compilation, even
-/// elements in different Slice files are owned by the same instance of the AST.
+/// elements in different Slice files are owned by the same AST.
 #[derive(Debug)]
 pub struct Ast {
-    /// Stores all the slice elements in this AST as a flattened vector of [`Node`]s.
+    /// Stores all the slice elements in this AST as a flattened vector of [nodes](Node).
     ///
     /// Elements are stored in the order they're parsed, but this shouldn't be relied upon.
     /// Only the order of the primitive types is guaranteed by the AST (see [`create`](Ast::create)).
@@ -321,7 +321,7 @@ impl Ast {
         self.elements.as_slice()
     }
 
-    /// Returns a mutable slice of all the [node](Node) contained in this AST.
+    /// Returns a mutable slice of all the [nodes](Node) contained in this AST.
     ///
     /// # Examples
     ///
@@ -354,7 +354,7 @@ impl Ast {
     where
         OwnedPtr<T>: Into<Node>,
     {
-        // Add an entry for the element to this AST's lookup table.
+        // Add an entry to this AST's lookup table for the element.
         let scoped_identifier = element.borrow().parser_scoped_identifier();
         self.lookup_table.insert(scoped_identifier, self.elements.len());
 
