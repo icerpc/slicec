@@ -47,7 +47,7 @@ macro_rules! generate_node_enum {
         }
 
         impl fmt::Display for Node {
-            /// Writes the identifier of the variant to the given formatter (pascal cased).
+            /// Writes the identifier of this node's variant to the given formatter (pascal cased).
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 let name = match self {
                     $(Node::$variant(_) => stringify!($variant),)*
@@ -56,11 +56,11 @@ macro_rules! generate_node_enum {
             }
         }
 
-        // Generate methods for unwrapping nodes to `&mut OwnedPtr`s.
-        $(generate_try_from_node_impl!($variant, &'a mut Node, &'a mut OwnedPtr<$variant>, std::convert::identity);)*
-
         // Generate methods for unwrapping nodes to `&OwnedPtr`s.
         $(generate_try_from_node_impl!($variant, &'a Node, &'a OwnedPtr<$variant>, std::convert::identity);)*
+
+        // Generate methods for unwrapping nodes to `&mut OwnedPtr`s.
+        $(generate_try_from_node_impl!($variant, &'a mut Node, &'a mut OwnedPtr<$variant>, std::convert::identity);)*
 
         // Generate methods for unwrapping nodes to `WeakPtr`s.
         $(generate_try_from_node_impl!($variant, &'a Node, WeakPtr<$variant>, OwnedPtr::<$variant>::downgrade);)*
