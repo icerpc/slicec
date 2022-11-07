@@ -196,7 +196,6 @@ where
             "class" => TokenKind::ClassKeyword,
             "interface" => TokenKind::InterfaceKeyword,
             "enum" => TokenKind::EnumKeyword,
-            "trait" => TokenKind::TraitKeyword,
             "custom" => TokenKind::CustomKeyword,
             "typealias" => TokenKind::TypeAliasKeyword,
             "sequence" => TokenKind::SequenceKeyword,

@@ -66,7 +66,6 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         Types::Exception(exception_def) => (false, Some(exception_def)),
         Types::Interface(interface_def) => (false, Some(interface_def)),
         Types::Enum(_) => (true, None),
-        Types::Trait(trait_def) => (false, Some(trait_def)),
         Types::CustomType(_) => (true, None),
         Types::Sequence(_) => (false, None),
         Types::Dictionary(_) => (false, None),

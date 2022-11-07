@@ -73,7 +73,7 @@ macro_rules! generate_node_enum {
 // generate the `Node` enum with variants for every type allowed to be in the AST.
 generate_node_enum! {
     Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
-    Enumerator, Trait, CustomType, TypeAlias, Sequence, Dictionary, Primitive
+    Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Type {
@@ -90,7 +90,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
             Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
             Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
-            Node::Trait(trait_ptr) => Ok(trait_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
@@ -123,7 +122,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
             Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
             Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
-            Node::Trait(trait_ptr) => Ok(trait_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
             _ => Err(format!(
@@ -159,7 +157,6 @@ impl_into_node_for!(Operation);
 impl_into_node_for!(Parameter);
 impl_into_node_for!(Enum);
 impl_into_node_for!(Enumerator);
-impl_into_node_for!(Trait);
 impl_into_node_for!(CustomType);
 impl_into_node_for!(TypeAlias);
 impl_into_node_for!(Sequence);

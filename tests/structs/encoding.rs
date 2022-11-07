@@ -85,13 +85,10 @@ mod slice2 {
         let slice = "
             module Test;
 
-            trait T;
-
             struct A
             {
                 i: int32,
                 s: string?,
-                t: T,
             }
         ";
 

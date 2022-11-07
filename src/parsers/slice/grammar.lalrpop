@@ -33,7 +33,6 @@ extern {
         class_keyword => TokenKind::ClassKeyword,
         interface_keyword => TokenKind::InterfaceKeyword,
         enum_keyword => TokenKind::EnumKeyword,
-        trait_keyword => TokenKind::TraitKeyword,
         custom_keyword => TokenKind::CustomKeyword,
         type_alias_keyword => TokenKind::TypeAliasKeyword,
 
@@ -133,7 +132,6 @@ Definition: Node = {
     Class => Node::Class(<>),
     Interface => Node::Interface(<>),
     Enum => Node::Enum(<>),
-    Trait => Node::Trait(<>),
     CustomType => Node::CustomType(<>),
     TypeAlias => Node::TypeAlias(<>),
 }
@@ -202,12 +200,6 @@ Enum: OwnedPtr<Enum> = {
 Enumerator: OwnedPtr<Enumerator> = {
     <p: Prelude> <l: @L> <i: Identifier> <v: ("=" <SignedInteger>)?> <r: @R> => {
         construct_enumerator(parser, p, i, v, Span::new(l, r, parser.file_name))
-    }
-}
-
-Trait: OwnedPtr<Trait> = {
-    <p: Prelude> <l: @L> trait_keyword <i: Identifier> <r: @R> ";" => {
-        construct_trait(parser, p, i, Span::new(l, r, parser.file_name))
     }
 }
 
