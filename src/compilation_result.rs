@@ -22,9 +22,7 @@ impl CompilationData {
         let has_errors = self.has_errors();
 
         // Emit any diagnostics that were reported.
-        if self.has_diagnostics() {
-            self.emit_diagnostics(&mut Term::stderr());
-        }
+        self.emit_diagnostics(&mut Term::stderr());
 
         // If there are any errors, return a non-zero exit code.
         i32::from(has_errors)
@@ -39,6 +37,10 @@ impl CompilationData {
     }
 
     pub fn emit_diagnostics(self, writer: &mut impl Write) {
+        if !self.has_diagnostics() {
+            return;
+        }
+
         // Disable colors if the user requested no colors.
         if self.diagnostic_reporter.disable_color {
             set_colors_enabled(false);
