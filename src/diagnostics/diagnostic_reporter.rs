@@ -42,6 +42,11 @@ impl DiagnosticReporter {
         (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
     }
 
+    /// Checks if any warnings have been reported during compilation.
+    pub fn has_warnings(&self) -> bool {
+        self.warning_count != 0
+    }
+
     /// Returns the total number of errors and warnings reported through the diagnostic reporter.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)

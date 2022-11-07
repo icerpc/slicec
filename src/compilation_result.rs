@@ -17,17 +17,25 @@ pub struct CompilationData {
 
 impl CompilationData {
     pub fn into_exit_code(self) -> i32 {
-        // Emit any diagnostics that were reported.
+        // We need to check if there are any errors before printing diagnostics since emit_diagnostics consumes the
+        // diagnostics reporter.
         let has_errors = self.has_errors();
 
-        // Pass in none as a default
-        self.emit_diagnostics(&mut Term::stderr());
+        // Emit any diagnostics that were reported.
+        if self.has_diagnostics() {
+            self.emit_diagnostics(&mut Term::stderr());
+        }
 
+        // If there are any errors, return a non-zero exit code.
         i32::from(has_errors)
     }
 
     pub fn has_errors(&self) -> bool {
         self.diagnostic_reporter.has_errors()
+    }
+
+    pub fn has_diagnostics(&self) -> bool {
+        self.diagnostic_reporter.has_warnings() || self.has_errors()
     }
 
     pub fn emit_diagnostics(self, writer: &mut impl Write) {
