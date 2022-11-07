@@ -146,7 +146,7 @@ fn can_have_return_value() {
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 1);
-    assert_eq!(returns[0].identifier(), "$returnValue");
+    assert_eq!(returns[0].identifier(), "returnValue");
     assert!(matches!(
         returns[0].data_type.concrete_type(),
         Types::Primitive(Primitive::String),

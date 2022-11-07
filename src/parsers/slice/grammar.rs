@@ -376,7 +376,7 @@ fn construct_single_return_type(
 ) -> Vec<OwnedPtr<Parameter>> {
     // Create a dummy identifier for the return type, since it's nameless.
     let dummy_identifier = Identifier {
-        value: "$returnValue".to_owned(),
+        value: "returnValue".to_owned(),
         span: span.clone(),
     };
 
