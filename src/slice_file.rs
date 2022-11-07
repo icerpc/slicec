@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{Attributable, Attribute, Encoding, FileEncoding, Module};
+use crate::grammar::{Attributable, Attribute, AttributeKind, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -192,7 +192,7 @@ impl Attributable for SliceFile {
         &self.attributes
     }
 
-    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&Vec<String>>> {
+    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&AttributeKind>> {
         panic!("Cannot recursively get attributes on a Slice file");
     }
 
@@ -202,6 +202,6 @@ impl Attributable for SliceFile {
         }
         self.attributes
             .iter()
-            .find(|&attribute| attribute.directive == directive)
+            .find(|&attribute| attribute.directive() == directive)
     }
 }

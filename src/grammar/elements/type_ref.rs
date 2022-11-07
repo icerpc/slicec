@@ -89,7 +89,7 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         &self.attributes
     }
 
-    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&Vec<String>>> {
+    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&AttributeKind>> {
         panic!("Cannot recursively get attributes on a typeref")
     }
 
@@ -99,7 +99,7 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         }
         self.attributes
             .iter()
-            .find(|&attribute| attribute.directive == directive)
+            .find(|&attribute| attribute.directive() == directive)
     }
 }
 
