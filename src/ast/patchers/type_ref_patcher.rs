@@ -336,7 +336,6 @@ impl<'a> TryIntoPatch<dyn Type> for &'a Node {
             Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Type)),
             Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Type)),
             Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Type)),
-            Node::Trait(trait_ptr) => Ok(downgrade_as!(trait_ptr, dyn Type)),
             Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
             Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),

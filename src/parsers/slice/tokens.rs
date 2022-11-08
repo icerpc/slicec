@@ -35,7 +35,6 @@ pub enum TokenKind<'input> {
     ClassKeyword,     // "class"
     InterfaceKeyword, // "interface"
     EnumKeyword,      // "enum"
-    TraitKeyword,     // "trait"
     CustomKeyword,    // "custom"
     TypeAliasKeyword, // "typealias"
 
