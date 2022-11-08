@@ -269,6 +269,9 @@ pub enum ErrorKind {
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion(i64),
 
+    /// A file scoped module contained submodules.
+    FileScopedModuleCannotContainSubModules(String),
+
     // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
     MissingRequiredArgument(String), // (arg)
@@ -566,5 +569,11 @@ implement_error_functions!(
         "E046",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
+    ),
+    (
+        "E047",
+        ErrorKind::FileScopedModuleCannotContainSubModules,
+        format!("file scoped module `{identifier}` cannot contain sub modules"),
+        identifier
     )
 );

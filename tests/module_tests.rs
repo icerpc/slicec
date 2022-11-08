@@ -4,7 +4,9 @@ pub mod helpers;
 
 mod module {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use slice::parse_from_strings;
     use test_case::test_case;
@@ -97,5 +99,32 @@ mod module {
         // Assert
         // TODO: better error message once we replace the parser
         assert!(err.is_some());
+    }
+
+    #[test]
+    fn file_level_modules_can_not_contain_sub_modules() {
+        // Arrange
+        let slice = "
+            module A;
+
+            module B
+            {
+            }
+
+            module C
+            {
+            }
+
+        ";
+
+        // Act
+        let errors = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = vec![
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
+        ];
+        assert_errors!(errors, expected);
     }
 }

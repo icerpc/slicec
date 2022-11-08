@@ -34,6 +34,7 @@ pub enum Validator {
     Enums(fn(&Enum, &mut DiagnosticReporter)),
     Entities(fn(&dyn Entity, &mut DiagnosticReporter)),
     Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
+    Module(fn(&Module, &mut DiagnosticReporter)),
     Identifiers(fn(Vec<&Identifier>, &mut DiagnosticReporter)),
     InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticReporter)),
     Operations(fn(&Operation, &mut DiagnosticReporter)),
@@ -201,6 +202,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(module_def, diagnostic_reporter),
+            Validator::Module(function) => function(module_def, diagnostic_reporter),
             Validator::Identifiers(function) => {
                 let identifiers = module_def
                     .contents()
