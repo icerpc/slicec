@@ -22,7 +22,7 @@ macro_rules! generate_definition_wrapper {
     };
 }
 
-generate_definition_wrapper!(Module, Struct, Class, Exception, Interface, Enum, Trait, CustomType, TypeAlias);
+generate_definition_wrapper!(Module, Struct, Class, Exception, Interface, Enum, CustomType, TypeAlias);
 
 macro_rules! generate_types_wrapper {
     ($($variant:ident),*) => {
@@ -70,4 +70,4 @@ pub trait AsTypes {
     fn concrete_type_mut(&mut self) -> TypesMut;
 }
 
-generate_types_wrapper!(Struct, Class, Exception, Interface, Enum, Trait, CustomType, Sequence, Dictionary, Primitive);
+generate_types_wrapper!(Struct, Class, Exception, Interface, Enum, CustomType, Sequence, Dictionary, Primitive);

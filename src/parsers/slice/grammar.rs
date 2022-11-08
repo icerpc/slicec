@@ -153,7 +153,6 @@ fn construct_module(
                 Node::Class(mut x) => add_definition_to_module!(x, Class, current_module, parser),
                 Node::Interface(mut x) => add_definition_to_module!(x, Interface, current_module, parser),
                 Node::Enum(mut x) => add_definition_to_module!(x, Enum, current_module, parser),
-                Node::Trait(mut x) => add_definition_to_module!(x, Trait, current_module, parser),
                 Node::CustomType(mut x) => add_definition_to_module!(x, CustomType, current_module, parser),
                 Node::TypeAlias(mut x) => add_definition_to_module!(x, TypeAlias, current_module, parser),
                 _ => panic!("impossible definition type encountered: {:?}", definition),
@@ -466,23 +465,6 @@ fn construct_enumerator(
         attributes,
         comment,
         span,
-    })
-}
-
-fn construct_trait(
-    parser: &Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
-    identifier: Identifier,
-    span: Span,
-) -> OwnedPtr<Trait> {
-    OwnedPtr::new(Trait {
-        identifier,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
-        scope: parser.current_scope.clone(),
-        attributes,
-        comment,
-        span,
-        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 

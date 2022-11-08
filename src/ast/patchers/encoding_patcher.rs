@@ -43,10 +43,6 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
                 let encodings = patcher.get_supported_encodings_for(enum_ptr.borrow());
                 enum_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
-            Node::Trait(trait_ptr) => {
-                let encodings = patcher.get_supported_encodings_for(trait_ptr.borrow());
-                trait_ptr.borrow_mut().supported_encodings = Some(encodings);
-            }
             Node::CustomType(custom_type_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(custom_type_ptr.borrow());
                 custom_type_ptr.borrow_mut().supported_encodings = Some(encodings);
@@ -86,7 +82,6 @@ impl EncodingPatcher<'_> {
         // Handle any type-specific encoding restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
-        // Ex: Using a trait in a Slice1 file, we specifically say "traits are not supported by the Slice1 encoding".
         let additional_info = entity_def.compute_supported_encodings(self, &mut supported_encodings, &file_encoding);
 
         // Ensure the entity is supported by its file's Slice encoding.
@@ -150,7 +145,6 @@ impl EncodingPatcher<'_> {
                 self.get_supported_encodings_for(interface_def)
             }
             Types::Enum(enum_def) => self.get_supported_encodings_for(enum_def),
-            Types::Trait(trait_def) => self.get_supported_encodings_for(trait_def),
             Types::CustomType(custom_type) => self.get_supported_encodings_for(custom_type),
             Types::Sequence(sequence) => {
                 // Sequences are supported by any encoding that supports their elements.
@@ -395,23 +389,6 @@ impl ComputeSupportedEncodings for Enum {
             }
         }
         None
-    }
-}
-
-impl ComputeSupportedEncodings for Trait {
-    fn compute_supported_encodings(
-        &self,
-        _: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        file_encoding: &Encoding,
-    ) -> Option<&'static str> {
-        // Traits are not supported by the Slice1 encoding.
-        supported_encodings.disable(Encoding::Slice1);
-        if *file_encoding == Encoding::Slice1 {
-            Some("traits are not supported by the Slice1 encoding")
-        } else {
-            None
-        }
     }
 }
 

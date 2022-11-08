@@ -112,7 +112,6 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
 #[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
 #[test_case("MyException", "exception MyException {}", "exception" ; "exceptions")]
 #[test_case("MyInterface", "interface MyInterface {}", "interface" ; "interfaces")]
-#[test_case("MyTrait", "trait MyTrait;", "trait" ; "traits")]
 fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str) {
     // Arrange
     let file_encoding = if key_kind == "class" { "1" } else { "2" };

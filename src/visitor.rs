@@ -122,11 +122,6 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit an operation, use `[Operation::visit_with]`.
     fn visit_operation_end(&mut self, operation: &Operation) {}
 
-    /// This function is called by the visitor when it visits a [Trait],
-    ///
-    /// This shouldn't be called by users. To visit a trait, use `[Trait::visit_with]`.
-    fn visit_trait(&mut self, trait_def: &Trait) {}
-
     /// This function is called by the visitor when it visits a [CustomType],
     ///
     /// This shouldn't be called by users. To visit a custom type, use `[CustomType::visit_with]`.
@@ -182,7 +177,6 @@ impl Module {
                 Definition::Exception(exception_def) => exception_def.borrow().visit_with(visitor),
                 Definition::Interface(interface_def) => interface_def.borrow().visit_with(visitor),
                 Definition::Enum(enum_def) => enum_def.borrow().visit_with(visitor),
-                Definition::Trait(trait_def) => trait_def.borrow().visit_with(visitor),
                 Definition::CustomType(custom_type) => custom_type.borrow().visit_with(visitor),
                 Definition::TypeAlias(type_alias) => type_alias.borrow().visit_with(visitor),
             }
@@ -271,15 +265,6 @@ impl Operation {
         self.parameters.iter().for_each(|p| p.borrow().visit_with(visitor));
         self.return_type.iter().for_each(|m| m.borrow().visit_with(visitor));
         visitor.visit_operation_end(self);
-    }
-}
-
-impl Trait {
-    /// Visits the [Trait] with the provided `visitor`.
-    ///
-    /// This function delegates to `visitor.visit_trait`.
-    pub fn visit_with(&self, visitor: &mut impl Visitor) {
-        visitor.visit_trait(self);
     }
 }
 

@@ -17,7 +17,6 @@ pub mod parameter;
 pub mod primitive;
 pub mod sequence;
 pub mod r#struct;
-pub mod r#trait;
 pub mod type_alias;
 pub mod type_ref;
 
@@ -39,7 +38,6 @@ pub use self::parameter::*;
 pub use self::primitive::*;
 pub use self::r#enum::*;
 pub use self::r#struct::*;
-pub use self::r#trait::*;
 pub use self::sequence::*;
 pub use self::type_alias::*;
 pub use self::type_ref::*;
