@@ -114,7 +114,6 @@ mod module {
             module C
             {
             }
-
         ";
 
         // Act
