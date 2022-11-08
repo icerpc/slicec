@@ -82,7 +82,6 @@ impl EncodingPatcher<'_> {
         // Handle any type-specific encoding restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
-        // Ex: Using a trait in a Slice1 file, we specifically say "traits are not supported by the Slice1 encoding".
         let additional_info = entity_def.compute_supported_encodings(self, &mut supported_encodings, &file_encoding);
 
         // Ensure the entity is supported by its file's Slice encoding.
