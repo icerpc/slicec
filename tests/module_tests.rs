@@ -127,4 +127,26 @@ mod module {
         ];
         assert_errors!(errors, expected);
     }
+
+    #[test]
+    fn nested_file_level_modules_can_not_contain_sub_modules() {
+        // Arrange
+        let slice = "
+            module A::B::C::D;
+
+            module E
+            {
+            }
+        ";
+
+        // Act
+        let errors = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = vec![Error::new(
+            ErrorKind::FileScopedModuleCannotContainSubModules("D".to_owned()),
+            None,
+        )];
+        assert_errors!(errors, expected);
+    }
 }
