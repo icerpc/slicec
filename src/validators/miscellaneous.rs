@@ -9,7 +9,19 @@ pub fn miscellaneous_validators() -> ValidationChain {
         Validator::Parameters(stream_parameter_is_last),
         Validator::Parameters(at_most_one_stream_parameter),
         Validator::Struct(validate_compact_struct_not_empty),
+        Validator::Module(file_scoped_modules_cannot_contain_sub_modules),
     ]
+}
+
+fn file_scoped_modules_cannot_contain_sub_modules(module_def: &Module, diagnostic_reporter: &mut DiagnosticReporter) {
+    if module_def.is_file_scoped {
+        module_def.submodules().iter().for_each(|submodule| {
+            diagnostic_reporter.report_error(Error::new(
+                ErrorKind::FileScopedModuleCannotContainSubModules(module_def.identifier().to_owned()),
+                Some(submodule.span()),
+            ));
+        });
+    }
 }
 
 fn at_most_one_stream_parameter(members: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
