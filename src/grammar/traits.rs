@@ -62,8 +62,15 @@ pub trait Attributable {
 
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
 
-    fn get_ignored_warnings(&self, check_parent: bool) -> Option<&AttributeKind> {
-        self.get_attribute(attributes::IGNORE_WARNINGS, check_parent)
+    fn get_ignored_warnings(&self, check_parent: bool) -> Option<Vec<String>> {
+        match self.get_attribute(attributes::IGNORE_WARNINGS, check_parent) {
+            // If the attribute is present, but has no value, it means that all warnings should be ignored.
+            Some(AttributeKind::IgnoreWarnings { warning_codes: None }) => Some(Vec::new()),
+            Some(AttributeKind::IgnoreWarnings {
+                warning_codes: Some(args),
+            }) => Some(args.to_owned()),
+            _ => None,
+        }
     }
 }
 

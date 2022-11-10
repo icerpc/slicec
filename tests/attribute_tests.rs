@@ -562,9 +562,8 @@ mod attributes {
 
             assert!(operation.has_attribute("foo::bar", true));
             assert_eq!(operation.attributes[0].directive(), "foo::bar");
-            assert_eq!(operation.attributes[0].kind, AttributeKind::Single {
+            assert_eq!(operation.attributes[0].kind, AttributeKind::NoArgument {
                 directive: "foo::bar".to_owned(),
-                argument: None
             });
         }
 
@@ -589,9 +588,9 @@ mod attributes {
 
             assert!(operation.has_attribute("foo::bar", true));
             assert_eq!(operation.attributes[0].directive(), "foo::bar");
-            assert_eq!(operation.attributes[0].kind, AttributeKind::Multiple {
+            assert_eq!(operation.attributes[0].kind, AttributeKind::MultipleArguments {
                 directive: "foo::bar".to_owned(),
-                arguments: Some(vec!["a".to_owned(), "b".to_owned(), "c".to_owned()])
+                arguments: vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]
             });
         }
 
@@ -619,13 +618,13 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             match &operation.attributes[0].kind {
-                AttributeKind::Multiple { arguments, .. } => {
-                    for (i, v) in arguments.as_ref().unwrap().iter().enumerate() {
+                AttributeKind::MultipleArguments { arguments, .. } => {
+                    for (i, v) in arguments.iter().enumerate() {
                         assert_eq!(v, expected.get(i).unwrap().to_owned());
                     }
                 }
-                AttributeKind::Single { argument, .. } => {
-                    assert_eq!(argument.as_ref().unwrap(), expected.first().unwrap().to_owned());
+                AttributeKind::SingleArgument { argument, .. } => {
+                    assert_eq!(argument, expected.first().unwrap().to_owned());
                 }
                 _ => panic!("Expected multiple attribute"),
             }
@@ -687,24 +686,24 @@ mod attributes {
             assert_eq!(parent_attributes[0], None);
             assert_eq!(
                 parent_attributes[1],
-                Some(&AttributeKind::Single {
+                Some(&AttributeKind::SingleArgument {
                     directive: "attribute".to_owned(),
-                    argument: Some("I".to_owned())
+                    argument: "I".to_owned()
                 })
             );
             assert_eq!(parent_attributes[2], None);
             assert_eq!(
                 parent_attributes[3],
-                Some(&AttributeKind::Single {
+                Some(&AttributeKind::SingleArgument {
                     directive: "attribute".to_owned(),
-                    argument: Some("B".to_owned())
+                    argument: "B".to_owned()
                 })
             );
             assert_eq!(
                 parent_attributes[4],
-                Some(&AttributeKind::Single {
+                Some(&AttributeKind::SingleArgument {
                     directive: "attribute".to_owned(),
-                    argument: Some("A".to_owned())
+                    argument: "A".to_owned()
                 })
             );
         }

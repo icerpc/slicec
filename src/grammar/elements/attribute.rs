@@ -19,8 +19,9 @@ impl Attribute {
             AttributeKind::Compress { .. } => COMPRESS,
             AttributeKind::Format { .. } => FORMAT,
             AttributeKind::IgnoreWarnings { .. } => IGNORE_WARNINGS,
-            AttributeKind::Single { directive, .. } => directive,
-            AttributeKind::Multiple { directive, .. } => directive,
+            AttributeKind::SingleArgument { directive, .. } => directive,
+            AttributeKind::MultipleArguments { directive, .. } => directive,
+            AttributeKind::NoArgument { directive } => directive,
         }
         .to_owned()
     }
@@ -47,16 +48,28 @@ pub enum AttributeKind {
     Format {
         format: ClassFormat,
     },
+
     IgnoreWarnings {
         warning_codes: Option<Vec<String>>,
     },
-    Single {
+
+    // The following are used for attributes that are not recognized by the compiler. They may be language mapping
+    // specific attributes that will be handled by the respective language mapping.
+    /// An attribute with a no arguments.
+    NoArgument {
         directive: String,
-        argument: Option<String>,
     },
-    Multiple {
+
+    /// An attribute with a single argument.
+    SingleArgument {
         directive: String,
-        arguments: Option<Vec<String>>,
+        argument: String,
+    },
+
+    /// An attribute with multiple arguments.
+    MultipleArguments {
+        directive: String,
+        arguments: Vec<String>,
     },
 }
 
@@ -64,51 +77,63 @@ impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> 
     fn from(
         (reporter, directive, arguments, span): (&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span),
     ) -> Self {
-        // Check for known attributes, if a parsing error occurs return AttributeKind::Multiple.
-        let unknown_attribute = AttributeKind::Multiple {
-            directive: directive.to_owned(),
-            arguments: arguments.to_owned(),
+        // Check for known attributes, if a parsing error occurs return an unknown attribute.
+        let unknown_attribute = match arguments {
+            Some(args) => match args.len() {
+                0 => AttributeKind::NoArgument {
+                    directive: directive.to_owned(),
+                },
+                1 => AttributeKind::SingleArgument {
+                    directive: directive.to_owned(),
+                    argument: args[0].to_owned(),
+                },
+                _ => AttributeKind::MultipleArguments {
+                    directive: directive.to_owned(),
+                    arguments: args.to_owned(),
+                },
+            },
+            _ => AttributeKind::NoArgument {
+                directive: directive.to_owned(),
+            },
         };
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
             COMPRESS => {
-                // Check for invalid arguments.
                 let valid_options = ["Args", "Return"];
-                let default = vec![];
-                let invalid_args = arguments
-                    .as_ref()
-                    .unwrap_or(&default)
-                    .iter()
-                    .filter(|arg| !valid_options.contains(&arg.as_str()))
-                    .collect::<Vec<&String>>();
-                invalid_args.iter().for_each(|arg| {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::ArgumentNotSupported(arg.to_string(), "compress attribute".to_owned()),
-                        Some(span),
-                        vec![Note::new(
-                            format!(
-                                "The valid argument(s) for the compress attribute are {}",
-                                message_value_separator(&valid_options).as_str(),
-                            ),
-                            Some(span),
-                        )],
-                    ));
-                });
-
-                if !invalid_args.is_empty() {
-                    return unknown_attribute;
-                };
-
-                Some(AttributeKind::Compress {
-                    compress_args: arguments
-                        .as_ref()
-                        .map(|args| args.contains(&"Args".to_owned()))
-                        .unwrap_or(false),
-                    compress_return: arguments
-                        .as_ref()
-                        .map(|args| args.contains(&"Return".to_owned()))
-                        .unwrap_or(false),
-                })
+                match arguments {
+                    Some(arguments) => {
+                        let invalid_arguments = arguments
+                            .iter()
+                            .filter(|arg| !valid_options.contains(&arg.as_str()))
+                            .collect::<Vec<&String>>();
+                        match invalid_arguments[..] {
+                            [] => Some(AttributeKind::Compress {
+                                compress_args: arguments.contains(&"Args".to_owned()),
+                                compress_return: arguments.contains(&"Return".to_owned()),
+                            }),
+                            _ => {
+                                for arg in invalid_arguments.iter() {
+                                    reporter.report_error(Error::new_with_notes(
+                                        ErrorKind::ArgumentNotSupported(
+                                            arg.to_string(),
+                                            "compress attribute".to_owned(),
+                                        ),
+                                        Some(span),
+                                        vec![Note::new(
+                                            "The valid argument(s) for the compress attribute are `Args` and `Return`",
+                                            Some(span),
+                                        )],
+                                    ))
+                                }
+                                return unknown_attribute;
+                            }
+                        }
+                    }
+                    None => Some(AttributeKind::Compress {
+                        compress_args: false,
+                        compress_return: false,
+                    }),
+                }
             }
             DEPRECATED => Some(AttributeKind::Deprecated {
                 reason: arguments.as_ref().map(|args| args[0].to_owned()),
@@ -136,10 +161,7 @@ impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> 
                         ErrorKind::ArgumentNotSupported(arg.to_string(), "format attribute".to_owned()),
                         Some(span),
                         vec![Note::new(
-                            format!(
-                                "The valid arguments for the format attribute are {}",
-                                message_value_separator(&["Compact", "Sliced"])
-                            ),
+                            "The valid arguments for the format attribute are `Compact` and `Sliced`",
                             Some(span),
                         )],
                     ));
@@ -160,48 +182,9 @@ impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> 
         };
 
         // If the attribute is not known, return check if it is a single or multiple arguments
-        attribute_kind.unwrap_or_else(|| {
-            if let Some(args) = &arguments {
-                if args.len() > 1 {
-                    AttributeKind::Multiple {
-                        directive: directive.to_owned(),
-                        arguments: arguments.to_owned(),
-                    }
-                } else {
-                    AttributeKind::Single {
-                        directive: directive.to_owned(),
-                        argument: args.get(0).map(|arg| arg.to_owned()),
-                    }
-                }
-            } else {
-                AttributeKind::Single {
-                    directive: directive.to_owned(),
-                    argument: None,
-                }
-            }
-        })
+        attribute_kind.unwrap_or(unknown_attribute)
     }
 }
 
 implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
-
-/// Helper
-fn message_value_separator(valid_strings: &[&str]) -> String {
-    let separator = match valid_strings.len() {
-        0 | 1 => "",
-        2 => " and ",
-        _ => ", ",
-    };
-    let mut backtick_strings = valid_strings
-        .iter()
-        .map(|arg| "`".to_owned() + arg + "`")
-        .collect::<Vec<_>>();
-    match valid_strings.len() {
-        0 | 1 | 2 => backtick_strings.join(separator),
-        _ => {
-            let last = backtick_strings.pop().unwrap();
-            backtick_strings.join(separator) + ", and " + &last
-        }
-    }
-}
