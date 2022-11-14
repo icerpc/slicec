@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note};
-use crate::grammar::attributes::{COMPRESS, DEPRECATED, FORMAT, IGNORE_WARNINGS};
+use crate::grammar::attributes::*;
 use crate::slice_file::Span;
 use std::str::FromStr;
 
