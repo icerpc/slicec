@@ -89,7 +89,7 @@ fn handle_file_encoding(
     (Some(encoding), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: i64, span: Span) -> FileEncoding {
+fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEncoding {
     let version = match i {
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
@@ -430,7 +430,7 @@ fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    explicit_value: Option<i64>,
+    explicit_value: Option<i128>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     // If an explicit value was provided use it, otherwise compute an implicit value.
@@ -438,7 +438,7 @@ fn construct_enumerator(
     let value = explicit_value.unwrap_or_else(|| {
         match parser.last_enumerator_value {
             Some(last_value) => {
-                if last_value == i64::MAX {
+                if last_value == i128::MAX {
                     parser.diagnostic_reporter.report_error(Error::new_with_notes(
                         ErrorKind::ImplicitEnumeratorValueOverflows(identifier.value.clone()),
                         Some(&span),
@@ -549,7 +549,7 @@ fn construct_attribute(directive: Identifier, arguments: Option<Vec<String>>, sp
     }
 }
 
-fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
+fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
     // Check the literal for a base prefix. If present, remove it and set the base.
     // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
     let (literal, base) = match s {
@@ -558,7 +558,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
         _ => (s, 10),
     };
 
-    match i64::from_str_radix(literal, base) {
+    match i128::from_str_radix(literal, base) {
         Ok(x) => x,
         Err(err) => {
             let error = match err.kind() {
@@ -571,8 +571,8 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
     }
 }
 
-fn parse_tag_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
+fn parse_tag_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
         parser
             .diagnostic_reporter
             .report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(&span)));
@@ -580,8 +580,8 @@ fn parse_tag_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
     i as u32
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
+fn parse_compact_id_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
         parser
             .diagnostic_reporter
             .report_error(Error::new(ErrorKind::CompactIdOutOfBounds, Some(&span)));

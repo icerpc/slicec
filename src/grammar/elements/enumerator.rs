@@ -7,7 +7,7 @@ use crate::utils::ptr_util::WeakPtr;
 #[derive(Debug)]
 pub struct Enumerator {
     pub identifier: Identifier,
-    pub value: i64,
+    pub value: i128,
     pub parent: WeakPtr<Enum>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,

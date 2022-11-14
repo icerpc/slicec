@@ -33,13 +33,13 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
         enum_def
             .enumerators()
             .iter()
-            .filter(|enumerator| enumerator.value > i32::MAX as i64)
+            .filter(|enumerator| enumerator.value > i32::MAX as i128)
             .for_each(|enumerator| {
                 let error = ErrorKind::EnumeratorValueOutOfBounds(
                     enumerator.identifier().to_owned(),
                     enumerator.value,
                     0,
-                    i32::MAX as i64,
+                    i32::MAX as i128,
                 );
                 diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
             });
@@ -97,7 +97,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
 
 /// Validate that enumerator values aren't re-used within an enum.
 fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
-    let mut value_to_enumerator_map: HashMap<i64, &Enumerator> = HashMap::new();
+    let mut value_to_enumerator_map: HashMap<i128, &Enumerator> = HashMap::new();
     for enumerator in enum_def.enumerators() {
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and emit an error. Otherwise add the enumerator and its value to the map.

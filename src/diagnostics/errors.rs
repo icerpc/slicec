@@ -92,7 +92,7 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `enumerator_value` - The value of the enumerator that was already used.
-    DuplicateEnumeratorValue(i64),
+    DuplicateEnumeratorValue(i128),
 
     /// Enums cannot have optional underlying types.
     ///
@@ -109,9 +109,9 @@ pub enum ErrorKind {
     /// * `value` - The value of the out of bounds enumerator.
     /// * `min` - The minimum value of the underlying type of the enum.
     /// * `max` - The maximum value of the underlying type of the enum.
-    EnumeratorValueOutOfBounds(String, i64, i64, i64),
+    EnumeratorValueOutOfBounds(String, i128, i128, i128),
 
-    /// An enumerator's implicitly assigned value was larger than `i64::MAX`.
+    /// An enumerator's implicitly assigned value was larger than `i128::MAX`.
     ///
     /// # Fields
     ///
@@ -256,7 +256,7 @@ pub enum ErrorKind {
     /// * `actual kind` - The name of the found kind.
     TypeMismatch(String, String),
 
-    /// An integer literal was outside the parsable range of 0..i64::MAX.
+    /// An integer literal was outside the parsable range of 0..i128::MAX.
     IntegerLiteralTooLarge,
 
     /// An integer literal contained illegal characters for its base.
@@ -267,7 +267,7 @@ pub enum ErrorKind {
     InvalidIntegerLiteral(u32),
 
     /// An invalid Slice encoding was used.
-    InvalidEncodingVersion(i64),
+    InvalidEncodingVersion(i128),
 
     /// A file scoped module contained submodules.
     FileScopedModuleCannotContainSubModules(String),
@@ -562,7 +562,7 @@ implement_error_functions!(
     (
         "E045",
         ErrorKind::ImplicitEnumeratorValueOverflows,
-        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
+        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i128::MAX),
         identifier
     ),
     (

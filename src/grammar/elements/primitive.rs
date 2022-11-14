@@ -74,22 +74,22 @@ impl Primitive {
         self.is_numeric() || matches!(self, Self::Bool)
     }
 
-    pub fn numeric_bounds(&self) -> Option<(i64, i64)> {
-        static VARINT62_MIN: i64 = -2_305_843_009_213_693_952; // -2^61
-        static VARINT62_MAX: i64 = 2_305_843_009_213_693_951; // 2^61 - 1
-        static VARUINT62_MAX: i64 = 4_611_686_018_427_387_903; // 2^62 - 1
+    pub fn numeric_bounds(&self) -> Option<(i128, i128)> {
+        static VARINT62_MIN: i128 = -2_305_843_009_213_693_952; // -2^61
+        static VARINT62_MAX: i128 = 2_305_843_009_213_693_951; // 2^61 - 1
+        static VARUINT62_MAX: i128 = 4_611_686_018_427_387_903; // 2^62 - 1
 
         match self {
-            Self::Int8 => Some((i8::MIN as i64, i8::MAX as i64)),
-            Self::UInt8 => Some((0, u8::MAX as i64)),
-            Self::Int16 => Some((i16::MIN as i64, i16::MAX as i64)),
-            Self::UInt16 => Some((0, u16::MAX as i64)),
-            Self::Int32 => Some((i32::MIN as i64, i32::MAX as i64)),
-            Self::UInt32 => Some((0, u32::MAX as i64)),
-            Self::VarInt32 => Some((i32::MIN as i64, i32::MAX as i64)),
-            Self::VarUInt32 => Some((0, u32::MAX as i64)),
-            Self::Int64 => Some((i64::MIN, i64::MAX)),
-            Self::UInt64 => Some((0, u64::MAX as i64)),
+            Self::Int8 => Some((i8::MIN as i128, i8::MAX as i128)),
+            Self::UInt8 => Some((0, u8::MAX as i128)),
+            Self::Int16 => Some((i16::MIN as i128, i16::MAX as i128)),
+            Self::UInt16 => Some((0, u16::MAX as i128)),
+            Self::Int32 => Some((i32::MIN as i128, i32::MAX as i128)),
+            Self::UInt32 => Some((0, u32::MAX as i128)),
+            Self::VarInt32 => Some((i32::MIN as i128, i32::MAX as i128)),
+            Self::VarUInt32 => Some((0, u32::MAX as i128)),
+            Self::Int64 => Some((i64::MIN as i128, i64::MAX as i128)),
+            Self::UInt64 => Some((0, u64::MAX as i128)),
             Self::VarInt62 => Some((VARINT62_MIN, VARINT62_MAX)),
             Self::VarUInt62 => Some((0, VARUINT62_MAX)),
             _ => None,
