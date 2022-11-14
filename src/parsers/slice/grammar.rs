@@ -565,8 +565,12 @@ fn try_construct_attribute(
     arguments: Option<Vec<String>>,
     span: Span,
 ) -> Attribute {
-    let reporter = &mut parser.diagnostic_reporter;
-    Attribute::from((reporter, &directive.value, arguments, span))
+    Attribute::new(
+        parser.diagnostic_reporter,
+        &directive.value,
+        arguments.unwrap_or_default(),
+        span,
+    )
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {

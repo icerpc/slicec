@@ -13,7 +13,12 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub fn directive(&self) -> String {
+    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: Vec<String>, span: Span) -> Self {
+        let kind = AttributeKind::new(reporter, directive, &arguments, &span);
+        Self { kind, span }
+    }
+
+    pub fn directive(&self) -> &str {
         match &self.kind {
             AttributeKind::Deprecated { .. } => DEPRECATED,
             AttributeKind::Compress { .. } => COMPRESS,
@@ -23,16 +28,6 @@ impl Attribute {
             AttributeKind::MultipleArguments { directive, .. } => directive,
             AttributeKind::NoArgument { directive } => directive,
         }
-        .to_owned()
-    }
-}
-
-impl From<(&mut &mut DiagnosticReporter, &String, Option<Vec<String>>, Span)> for Attribute {
-    fn from(
-        (reporter, directive, arguments, span): (&mut &mut DiagnosticReporter, &String, Option<Vec<String>>, Span),
-    ) -> Self {
-        let kind = AttributeKind::from((reporter, directive, &arguments, &span));
-        Self { kind, span }
     }
 }
 
@@ -48,7 +43,6 @@ pub enum AttributeKind {
     Format {
         format: ClassFormat,
     },
-
     IgnoreWarnings {
         warning_codes: Option<Vec<String>>,
     },
@@ -73,74 +67,63 @@ pub enum AttributeKind {
     },
 }
 
-impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> for AttributeKind {
-    fn from(
-        (reporter, directive, arguments, span): (&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span),
-    ) -> Self {
+impl AttributeKind {
+    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: &Vec<String>, span: &Span) -> Self {
         // Check for known attributes, if a parsing error occurs return an unknown attribute.
-        let unknown_attribute = match arguments {
-            Some(args) => match args.len() {
-                0 => AttributeKind::NoArgument {
-                    directive: directive.to_owned(),
-                },
-                1 => AttributeKind::SingleArgument {
-                    directive: directive.to_owned(),
-                    argument: args[0].to_owned(),
-                },
-                _ => AttributeKind::MultipleArguments {
-                    directive: directive.to_owned(),
-                    arguments: args.to_owned(),
-                },
-            },
-            _ => AttributeKind::NoArgument {
+        let unknown_attribute = match arguments.len() {
+            0 => AttributeKind::NoArgument {
                 directive: directive.to_owned(),
+            },
+            1 => AttributeKind::SingleArgument {
+                directive: directive.to_owned(),
+                argument: arguments[0].to_owned(),
+            },
+            _ => AttributeKind::MultipleArguments {
+                directive: directive.to_owned(),
+                arguments: arguments.to_owned(),
             },
         };
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
             COMPRESS => {
                 let valid_options = ["Args", "Return"];
-                match arguments {
-                    Some(arguments) => {
-                        let invalid_arguments = arguments
-                            .iter()
-                            .filter(|arg| !valid_options.contains(&arg.as_str()))
-                            .collect::<Vec<&String>>();
-                        match invalid_arguments[..] {
-                            [] => Some(AttributeKind::Compress {
-                                compress_args: arguments.contains(&"Args".to_owned()),
-                                compress_return: arguments.contains(&"Return".to_owned()),
-                            }),
-                            _ => {
-                                for arg in invalid_arguments.iter() {
-                                    reporter.report_error(Error::new_with_notes(
-                                        ErrorKind::ArgumentNotSupported(
-                                            arg.to_string(),
-                                            "compress attribute".to_owned(),
-                                        ),
+                if !arguments.is_empty() {
+                    let invalid_arguments = arguments
+                        .iter()
+                        .filter(|arg| !valid_options.contains(&arg.as_str()))
+                        .collect::<Vec<&String>>();
+                    match invalid_arguments[..] {
+                        [] => Some(AttributeKind::Compress {
+                            compress_args: arguments.contains(&"Args".to_owned()),
+                            compress_return: arguments.contains(&"Return".to_owned()),
+                        }),
+                        _ => {
+                            for arg in invalid_arguments.iter() {
+                                reporter.report_error(Error::new_with_notes(
+                                    ErrorKind::ArgumentNotSupported(arg.to_string(), "compress attribute".to_owned()),
+                                    Some(span),
+                                    vec![Note::new(
+                                        "The valid argument(s) for the compress attribute are `Args` and `Return`",
                                         Some(span),
-                                        vec![Note::new(
-                                            "The valid argument(s) for the compress attribute are `Args` and `Return`",
-                                            Some(span),
-                                        )],
-                                    ))
-                                }
-                                return unknown_attribute;
+                                    )],
+                                ))
                             }
+                            return unknown_attribute;
                         }
                     }
-                    None => Some(AttributeKind::Compress {
+                } else {
+                    Some(AttributeKind::Compress {
                         compress_args: false,
                         compress_return: false,
-                    }),
+                    })
                 }
             }
             DEPRECATED => Some(AttributeKind::Deprecated {
-                reason: arguments.as_ref().map(|args| args[0].to_owned()),
+                reason: arguments.get(0).map(|arg| arg.to_owned()),
             }),
             FORMAT => {
                 // Check that the format attribute has arguments
-                if arguments.is_none() || arguments.is_some() && arguments.as_ref().unwrap().is_empty() {
+                if arguments.is_empty() {
                     reporter.report_error(Error::new(
                         ErrorKind::CannotBeEmpty("format attribute".to_owned()),
                         Some(span),
@@ -148,11 +131,8 @@ impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> 
                     return unknown_attribute;
                 }
 
-                // Safe unwrap
-                let args = arguments.as_ref().unwrap();
-
                 // Check if the arguments are valid
-                let invalid_args = args
+                let invalid_args = arguments
                     .iter()
                     .filter(|arg| ClassFormat::from_str(arg).is_err())
                     .collect::<Vec<&String>>();
@@ -172,11 +152,11 @@ impl From<(&mut &mut DiagnosticReporter, &String, &Option<Vec<String>>, &Span)> 
 
                 // Safe unwrap since args.len() > 0 and we checked that all the arguments are valid
                 Some(AttributeKind::Format {
-                    format: ClassFormat::from_str(&args[0]).unwrap(),
+                    format: ClassFormat::from_str(&arguments[0]).unwrap(),
                 })
             }
             IGNORE_WARNINGS => Some(AttributeKind::IgnoreWarnings {
-                warning_codes: arguments.to_owned(),
+                warning_codes: Some(arguments.to_owned()),
             }),
             _ => None,
         };
