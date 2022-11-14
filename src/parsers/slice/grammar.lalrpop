@@ -60,6 +60,7 @@ extern {
         any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
+        any_exception_keyword => TokenKind::AnyExceptionKeyword,
         compact_keyword => TokenKind::CompactKeyword,
         encoding_keyword => TokenKind::EncodingKeyword,
         idempotent_keyword => TokenKind::IdempotentKeyword,
