@@ -53,6 +53,13 @@ impl TypeRefPatcher<'_> {
                         .collect::<Option<Vec<_>>>() // None if any of the bases couldn't be resolved.
                         .map(PatchKind::BaseInterfaces)
                 }
+                Node::Operation(operation_ptr) => {
+                    if let ExceptionSpecification::Specific(type_ref) = &operation_ptr.borrow().throws {
+                        self.resolve_definition(type_ref, ast).map(PatchKind::ThrowsType)
+                    } else {
+                        None
+                    }
+                }
                 Node::Parameter(parameter_ptr) => {
                     let type_ref = &parameter_ptr.borrow().data_type;
                     self.resolve_definition(type_ref, ast).map(PatchKind::ParameterType)
@@ -127,6 +134,14 @@ impl TypeRefPatcher<'_> {
                     let parameter_ptr: &mut OwnedPtr<Parameter> = (&mut elements[i]).try_into().unwrap();
                     let parameter_type_ref = &mut parameter_ptr.borrow_mut().data_type;
                     parameter_type_ref.patch(parameter_type_ptr, attributes);
+                }
+                PatchKind::ThrowsType((exception_type_ptr, attributes)) => {
+                    let operation_ptr: &mut OwnedPtr<Operation> = (&mut elements[i]).try_into().unwrap();
+                    if let ExceptionSpecification::Specific(throws_type_ref) = &mut operation_ptr.borrow_mut().throws {
+                        throws_type_ref.patch(exception_type_ptr, attributes);
+                    } else {
+                        unreachable!() // If a patch exists, there must of been a type_ref to patch.
+                    }
                 }
                 PatchKind::EnumUnderlyingType((enum_underlying_type_ptr, attributes)) => {
                     let enum_ptr: &mut OwnedPtr<Enum> = (&mut elements[i]).try_into().unwrap();
@@ -302,6 +317,7 @@ enum PatchKind {
     BaseInterfaces(Vec<Patch<Interface>>),
     DataMemberType(Patch<dyn Type>),
     ParameterType(Patch<dyn Type>),
+    ThrowsType(Patch<Exception>),
     EnumUnderlyingType(Patch<Primitive>),
     TypeAliasUnderlyingType(Patch<dyn Type>),
     SequenceType(Patch<dyn Type>),

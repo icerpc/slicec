@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::assert_errors;
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::Encoding;
 use slice::parse_from_strings;
@@ -36,4 +37,49 @@ fn operation_members_are_compatible_with_encoding() {
         vec![Note::new("file encoding was set to Slice2 here:", None)],
     );
     assert_errors!(result.diagnostic_reporter, [&expected]);
+}
+
+#[test]
+fn anyexception_cannot_be_used_without_slice1() {
+    let slice = "
+        module Test;
+
+        interface I
+        {
+            op() throws AnyException;
+        }
+    ";
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Error::new(ErrorKind::AnyExceptionNotSupported, None);
+    assert_errors!(diagnostic_reporter, [&expected]);
+}
+
+mod slice1 {
+    use crate::helpers::parsing_helpers::*;
+    use slice::grammar::*;
+
+    #[test]
+    fn operations_can_throw_anyexception() {
+        let slice = "
+            encoding = 1;
+
+            module Test;
+
+            interface I
+            {
+                op() throws AnyException;
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+        assert!(matches!(&operation.throws, ExceptionSpecification::AnyException));
+    }
 }

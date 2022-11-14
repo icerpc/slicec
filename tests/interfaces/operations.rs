@@ -186,6 +186,74 @@ fn can_have_return_tuple() {
 }
 
 #[test]
+fn operations_can_omit_throws_clause() {
+    let slice = "
+        module Test;
+
+        interface I
+        {
+            op();
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    assert!(matches!(&operation.throws, ExceptionSpecification::None));
+}
+
+#[test]
+fn operations_can_throw_specific_exceptions() {
+    let slice = "
+        module Test;
+
+        exception E {}
+
+        interface I
+        {
+            op() throws E;
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    assert!(matches!(
+        &operation.throws,
+        ExceptionSpecification::Specific(exception_ref) if exception_ref.parser_scoped_identifier() == "Test::E",
+    ));
+}
+
+#[test]
+fn operations_can_only_throw_exceptions() {
+    // Arrange
+    let slice = "
+        module Test;
+
+        struct S {}
+
+        interface I
+        {
+            op() throws S;
+        }
+    ";
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Error::new(
+        ErrorKind::Syntax("type mismatch: expected an exception but found a struct".to_owned()),
+        None,
+    );
+    assert_errors!(diagnostic_reporter, [&expected]);
+}
+
+#[test]
 #[ignore] // TODO: This validation is no longer done by the parser, and should be done by a validator.
 fn return_tuple_must_contain_two_or_more_elements() {
     // Arrange

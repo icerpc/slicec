@@ -362,6 +362,24 @@ impl ComputeSupportedEncodings for Interface {
                     patcher.diagnostic_reporter.report_error(error);
                 }
             }
+
+            match &operation.throws {
+                ExceptionSpecification::None => {},
+                ExceptionSpecification::Specific(exception_type) => {
+                    // This method automatically emits errors for encoding mismatches.
+                    patcher.get_supported_encodings_for_type_ref(exception_type, file_encoding, false);
+                }
+                ExceptionSpecification::AnyException => {
+                    if *file_encoding != Encoding::Slice1 {
+                        let error = Error::new_with_notes(
+                            ErrorKind::AnyExceptionNotSupported,
+                            Some(operation.span()),
+                            patcher.get_file_encoding_mismatch_notes(operation),
+                        );
+                        patcher.diagnostic_reporter.report_error(error);
+                    }
+                }
+            }
         }
         None
     }

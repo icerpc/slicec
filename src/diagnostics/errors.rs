@@ -78,6 +78,9 @@ pub enum ErrorKind {
     /// * `encoding` - The encoding that was specified.
     StreamedParametersNotSupported(Encoding),
 
+    /// A non-Slice1 operation used the `AnyException` keyword.
+    AnyExceptionNotSupported,
+
     /// An unsupported type was used in the specified encoding.
     ///
     /// # Fields
@@ -575,5 +578,11 @@ implement_error_functions!(
         ErrorKind::FileScopedModuleCannotContainSubModules,
         format!("file scoped module `{identifier}` cannot contain sub modules"),
         identifier
+    ),
+    (
+        "E048",
+        ErrorKind::AnyExceptionNotSupported,
+        format!("operations that throw AnyException are only supported by the Slice1 encoding")
+
     )
 );
