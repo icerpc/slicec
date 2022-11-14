@@ -10,7 +10,7 @@ pub struct Operation {
     pub identifier: Identifier,
     pub return_type: Vec<WeakPtr<Parameter>>,
     pub parameters: Vec<WeakPtr<Parameter>>,
-    pub throws: Option<TypeRef<Exception>>,
+    pub throws: ExceptionSpecification,
     pub is_idempotent: bool,
     pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,
@@ -135,3 +135,17 @@ impl Operation {
 implement_Element_for!(Operation, "operation");
 implement_Entity_for!(Operation);
 implement_Contained_for!(Operation, Interface);
+
+/// Stores which exceptions an operation can throw.
+#[derive(Debug)]
+pub enum ExceptionSpecification {
+    /// The operation doesn't throw any Slice exceptions.
+    None,
+
+    /// The operation can only throw a specific Slice exception.
+    Specific(TypeRef<Exception>),
+
+    /// The operation can throw any Slice exception.
+    /// This is only supported by the Slice1 encoding.
+    AnyException,
+}

@@ -169,8 +169,8 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <ttr: (throws_keyword <TypeRef>)?> <r: @R> ";" ContainerEnd => {
-        construct_operation(parser, p, ik.is_some(), i, ps, rt, ttr, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";" ContainerEnd => {
+        construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -185,6 +185,14 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
         construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
     },
     "(" <List<Parameter>> ")" => <>,
+}
+
+ExceptionSpecification: ExceptionSpecification = {
+    throws_keyword <tr: TypeRef> => {
+        let exception = tr.downcast::<Exception>().unwrap();
+        ExceptionSpecification::Specific(exception)
+    },
+    throws_keyword any_exception_keyword => ExceptionSpecification::AnyException,
 }
 
 ParameterModifier: (bool, Option<u32>) = {

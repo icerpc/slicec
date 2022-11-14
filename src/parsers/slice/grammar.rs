@@ -313,13 +313,14 @@ fn construct_operation(
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
     return_type: Option<Vec<OwnedPtr<Parameter>>>,
-    throws: Option<TypeRef>,
+    exception_specification: Option<ExceptionSpecification>,
     span: Span,
 ) -> OwnedPtr<Operation> {
-    let throws = throws.map(|type_ref| type_ref.downcast::<Exception>().unwrap());
-
     // If no return type was provided set the return type to an empty Vec.
     let mut return_type = return_type.unwrap_or_default();
+
+    // If no throws clause was present, set the exception specification to `None`.
+    let throws = exception_specification.unwrap_or(ExceptionSpecification::None);
 
     let mut operation_ptr = OwnedPtr::new(Operation {
         identifier,
