@@ -364,7 +364,7 @@ impl ComputeSupportedEncodings for Interface {
             }
 
             match &operation.throws {
-                ExceptionSpecification::None => {},
+                ExceptionSpecification::None => {}
                 ExceptionSpecification::Specific(exception_type) => {
                     // This method automatically emits errors for encoding mismatches.
                     patcher.get_supported_encodings_for_type_ref(exception_type, file_encoding, false);
