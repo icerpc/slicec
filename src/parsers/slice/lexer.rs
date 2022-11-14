@@ -217,12 +217,13 @@ where
             "float64" => TokenKind::Float64Keyword,
             "String" => TokenKind::StringKeyword,
             "AnyClass" => TokenKind::AnyClassKeyword,
-            "tag" => TokenKind::TagKeyword,
-            "stream" => TokenKind::StreamKeyword,
             "compact" => TokenKind::CompactKeyword,
-            "idempotent" => TokenKind::IdempotentKeyword,
-            "unchecked" => TokenKind::UncheckedKeyword,
             "encoding" => TokenKind::EncodingKeyword,
+            "idempotent" => TokenKind::IdempotentKeyword,
+            "stream" => TokenKind::StreamKeyword,
+            "tag" => TokenKind::TagKeyword,
+            "throws" => TokenKind::ThrowsKeyword,
+            "unchecked" => TokenKind::UncheckedKeyword,
             ident => TokenKind::Identifier(ident),
         }
     }

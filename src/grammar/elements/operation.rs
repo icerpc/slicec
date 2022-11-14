@@ -10,6 +10,7 @@ pub struct Operation {
     pub identifier: Identifier,
     pub return_type: Vec<WeakPtr<Parameter>>,
     pub parameters: Vec<WeakPtr<Parameter>>,
+    pub throws: Option<TypeRef<Exception>>,
     pub is_idempotent: bool,
     pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,

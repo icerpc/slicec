@@ -60,12 +60,13 @@ extern {
         any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
-        tag_keyword => TokenKind::TagKeyword,
-        stream_keyword => TokenKind::StreamKeyword,
         compact_keyword => TokenKind::CompactKeyword,
-        idempotent_keyword => TokenKind::IdempotentKeyword,
-        unchecked_keyword => TokenKind::UncheckedKeyword,
         encoding_keyword => TokenKind::EncodingKeyword,
+        idempotent_keyword => TokenKind::IdempotentKeyword,
+        stream_keyword => TokenKind::StreamKeyword,
+        tag_keyword => TokenKind::TagKeyword,
+        throws_keyword => TokenKind::ThrowsKeyword,
+        unchecked_keyword => TokenKind::UncheckedKeyword,
 
         // Brackets
         "(" => TokenKind::LeftParenthesis,
@@ -167,8 +168,8 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <r: @R> ";" ContainerEnd => {
-        construct_operation(parser, p, ik.is_some(), i, ps, rt, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <ttr: (throws_keyword <TypeRef>)?> <r: @R> ";" ContainerEnd => {
+        construct_operation(parser, p, ik.is_some(), i, ps, rt, ttr, Span::new(l, r, parser.file_name))
     }
 }
 

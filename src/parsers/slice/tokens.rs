@@ -62,12 +62,13 @@ pub enum TokenKind<'input> {
     AnyClassKeyword,  // "AnyClass"
 
     // Other keywords
-    TagKeyword,        // "tag"
-    StreamKeyword,     // "stream"
     CompactKeyword,    // "compact"
-    IdempotentKeyword, // "idempotent"
-    UncheckedKeyword,  // "unchecked"
     EncodingKeyword,   // "encoding"
+    IdempotentKeyword, // "idempotent"
+    StreamKeyword,     // "stream"
+    TagKeyword,        // "tag"
+    ThrowsKeyword,     // "throws"
+    UncheckedKeyword,  // "unchecked"
 
     // Brackets
     LeftParenthesis,    // "("
