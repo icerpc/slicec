@@ -4,6 +4,7 @@ use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::AsTypes;
+use super::AttributeKind;
 use crate::grammar::attributes;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
@@ -52,17 +53,24 @@ pub trait Attributable {
         self.get_raw_attribute(directive, recurse).is_some()
     }
 
-    fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&Vec<String>> {
+    fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&AttributeKind> {
         self.get_raw_attribute(directive, recurse)
-            .map(|attribute| &attribute.arguments)
+            .map(|attribute| &attribute.kind)
     }
 
-    fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>>;
+    fn get_attribute_list(&self, directive: &str) -> Vec<Option<&AttributeKind>>;
 
     fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
 
-    fn get_ignored_warnings(&self, check_parent: bool) -> Option<&Vec<String>> {
-        self.get_attribute(attributes::IGNORE_WARNINGS, check_parent)
+    fn get_ignored_warnings(&self, check_parent: bool) -> Option<Vec<String>> {
+        match self.get_attribute(attributes::IGNORE_WARNINGS, check_parent) {
+            // If the attribute is present, but has no value, it means that all warnings should be ignored.
+            Some(AttributeKind::IgnoreWarnings { warning_codes: None }) => Some(Vec::new()),
+            Some(AttributeKind::IgnoreWarnings {
+                warning_codes: Some(args),
+            }) => Some(args.to_owned()),
+            _ => None,
+        }
     }
 }
 
@@ -72,8 +80,10 @@ pub trait Commentable {
 
 pub trait Entity: NamedSymbol + Attributable + Commentable {
     fn get_deprecation(&self, check_parent: bool) -> Option<Option<&String>> {
-        self.get_attribute(attributes::DEPRECATED, check_parent)
-            .map(|args| args.first())
+        match self.get_attribute(attributes::DEPRECATED, check_parent) {
+            Some(AttributeKind::Deprecated { reason }) => Some(reason.as_ref()),
+            _ => None,
+        }
     }
 }
 
@@ -163,7 +173,7 @@ macro_rules! implement_Attributable_for {
                 &self.attributes
             }
 
-            fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>> {
+            fn get_attribute_list(&self, directive: &str) -> Vec<Option<&AttributeKind>> {
                 let mut result = vec![self.get_attribute(directive, false)];
 
                 if let Some(parent) = self.parent() {
@@ -175,7 +185,7 @@ macro_rules! implement_Attributable_for {
 
             fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
                 for attribute in &self.attributes {
-                    if attribute.directive == directive {
+                    if attribute.directive() == directive {
                         return Some(attribute);
                     }
                 }

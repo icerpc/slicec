@@ -267,7 +267,7 @@ LocalAttribute = "[" <Attribute> "]";
 
 Attribute: Attribute = {
     <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <List<AttributeArgument>> ")")?> <r: @R> => {
-        construct_attribute(rsi, aas, Span::new(l, r, parser.file_name))
+        try_construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
     }
 }
 

@@ -98,31 +98,29 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        if let Some(attribute) = self.get_attribute(attributes::COMPRESS, false) {
-            attribute.contains(&"Args".to_owned())
-        } else {
-            false
+        match self.get_attribute(attributes::COMPRESS, false) {
+            Some(AttributeKind::Compress {
+                compress_args,
+                compress_return: _,
+            }) => *compress_args,
+            _ => false,
         }
     }
 
     pub fn compress_return(&self) -> bool {
-        if let Some(attribute) = self.get_attribute(attributes::COMPRESS, false) {
-            attribute.contains(&"Return".to_owned())
-        } else {
-            false
+        match self.get_attribute(attributes::COMPRESS, false) {
+            Some(AttributeKind::Compress {
+                compress_args: _,
+                compress_return,
+            }) => *compress_return,
+            _ => false,
         }
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        if let Some(format) = self.get_attribute(attributes::FORMAT, true) {
-            match format[0].as_str() {
-                "Compact" => ClassFormat::Compact,
-                "Sliced" => ClassFormat::Sliced,
-                _ => panic!("unknown format type"),
-            }
-        } else {
-            // Compact is the default format for classes.
-            ClassFormat::Compact
+        match self.get_attribute(attributes::FORMAT, true) {
+            Some(AttributeKind::Format { format }) => format.clone(),
+            _ => ClassFormat::Compact,
         }
     }
 

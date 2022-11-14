@@ -561,8 +561,10 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "foo::bar");
-            assert_eq!(operation.attributes[0].arguments.len(), 0);
+            assert_eq!(operation.attributes[0].directive(), "foo::bar");
+            assert_eq!(operation.attributes[0].kind, AttributeKind::NoArgument {
+                directive: "foo::bar".to_owned(),
+            });
         }
 
         #[test]
@@ -585,15 +587,18 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "foo::bar");
-            assert_eq!(operation.attributes[0].arguments, vec!["a", "b", "c"]);
+            assert_eq!(operation.attributes[0].directive(), "foo::bar");
+            assert_eq!(operation.attributes[0].kind, AttributeKind::MultipleArguments {
+                directive: "foo::bar".to_owned(),
+                arguments: vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]
+            });
         }
 
         #[test_case("a", &["a"]; "single argument")]
-        #[test_case("a,b,c", &["a", "b", "c"]; "multiple arguments")]
         #[test_case("\"a b c\"", &["a b c"]; "quoted argument")]
+        #[test_case("a,b,c", &["a", "b", "c"]; "multiple arguments")]
         #[test_case("\"a, b, c\"", &["a, b, c"]; "quoted argument with comma")]
-        fn attribute_parameters(input: &str, expected: &[&str]) {
+        fn attribute_parameters_multiple(input: &str, expected: &[&str]) {
             // Arrange
             let slice = format!(
                 "
@@ -612,8 +617,16 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            for (i, v) in operation.attributes[0].arguments.iter().enumerate() {
-                assert_eq!(v, expected.get(i).unwrap().to_owned());
+            match &operation.attributes[0].kind {
+                AttributeKind::MultipleArguments { arguments, .. } => {
+                    for (i, v) in arguments.iter().enumerate() {
+                        assert_eq!(v, expected.get(i).unwrap().to_owned());
+                    }
+                }
+                AttributeKind::SingleArgument { argument, .. } => {
+                    assert_eq!(argument, expected.first().unwrap().to_owned());
+                }
+                _ => panic!("Expected multiple attribute"),
             }
         }
 
@@ -671,10 +684,28 @@ mod attributes {
 
             assert_eq!(parent_attributes.len(), 5);
             assert_eq!(parent_attributes[0], None);
-            assert_eq!(parent_attributes[1], Some(&vec!["I".to_owned()]));
+            assert_eq!(
+                parent_attributes[1],
+                Some(&AttributeKind::SingleArgument {
+                    directive: "attribute".to_owned(),
+                    argument: "I".to_owned()
+                })
+            );
             assert_eq!(parent_attributes[2], None);
-            assert_eq!(parent_attributes[3], Some(&vec!["B".to_owned()]));
-            assert_eq!(parent_attributes[4], Some(&vec!["A".to_owned()]));
+            assert_eq!(
+                parent_attributes[3],
+                Some(&AttributeKind::SingleArgument {
+                    directive: "attribute".to_owned(),
+                    argument: "B".to_owned()
+                })
+            );
+            assert_eq!(
+                parent_attributes[4],
+                Some(&AttributeKind::SingleArgument {
+                    directive: "attribute".to_owned(),
+                    argument: "A".to_owned()
+                })
+            );
         }
     }
 }

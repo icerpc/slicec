@@ -7,7 +7,7 @@ use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
-use crate::grammar::attributes;
+use crate::grammar::{attributes, AttributeKind};
 use crate::slice_file::SliceFile;
 
 use std::collections::{HashMap, HashSet};
@@ -168,9 +168,13 @@ fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<Stri
         .filter_map(|(path, file)| {
             file.attributes
                 .iter()
-                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
-                .map(|attr| attr.arguments.clone())
-                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
+                .find(|attr| attr.directive() == attributes::IGNORE_WARNINGS)
+                .map(|attr| match &attr.kind {
+                    AttributeKind::IgnoreWarnings { warning_codes } => {
+                        (path.clone(), warning_codes.clone().unwrap_or_default())
+                    }
+                    _ => unreachable!(),
+                })
         })
         .collect()
 }
