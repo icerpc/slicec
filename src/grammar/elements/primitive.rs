@@ -75,9 +75,9 @@ impl Primitive {
     }
 
     pub fn numeric_bounds(&self) -> Option<(i128, i128)> {
-        static VARINT62_MIN: i128 = -2_305_843_009_213_693_952; // -2^61
-        static VARINT62_MAX: i128 = 2_305_843_009_213_693_951; // 2^61 - 1
-        static VARUINT62_MAX: i128 = 4_611_686_018_427_387_903; // 2^62 - 1
+        const VARINT62_MIN: i128 = -2_305_843_009_213_693_952; // -2^61
+        const VARINT62_MAX: i128 = 2_305_843_009_213_693_951; // 2^61 - 1
+        const VARUINT62_MAX: i128 = 4_611_686_018_427_387_903; // 2^62 - 1
 
         match self {
             Self::Int8 => Some((i8::MIN as i128, i8::MAX as i128)),
