@@ -190,14 +190,16 @@ fn can_have_return_tuple() {
 #[test_case("(b: bool)"; "1 element")]
 fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     // Arrange
-    let slice = format!("
-        module Test;
+    let slice = format!(
+        "
+            module Test;
 
-        interface I
-        {{
-            op() -> {return_tuple};
-        }}
-    ");
+            interface I
+            {{
+                op() -> {return_tuple};
+            }}
+        "
+    );
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);
