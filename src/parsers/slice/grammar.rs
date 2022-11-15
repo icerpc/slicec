@@ -437,21 +437,7 @@ fn construct_enumerator(
     // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
     let value = explicit_value.unwrap_or_else(|| {
         match parser.last_enumerator_value {
-            Some(last_value) => {
-                if last_value == i128::MAX {
-                    parser.diagnostic_reporter.report_error(Error::new_with_notes(
-                        ErrorKind::ImplicitEnumeratorValueOverflows(identifier.value.clone()),
-                        Some(&span),
-                        vec![Note::new(
-                            "enumerators without an explicit value are set to the previous enumerator's value plus one\nconsider decreasing the last explicit value that came before this enumerator",
-                            None,
-                        )],
-                    ));
-                    0 // Dummy value
-                } else {
-                    last_value + 1
-                }
-            },
+            Some(last_value) => last_value + 1,
             None => 0,
         }
     });

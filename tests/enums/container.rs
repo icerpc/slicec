@@ -210,30 +210,6 @@ fn enumerators_must_be_unique() {
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
-#[test]
-fn automatically_assigned_values_will_not_overflow() {
-    // Arrange
-    let max = i128::MAX;
-    let slice = format!(
-        "
-            module Test;
-            enum E
-            {{
-                A = {max},
-                B,
-            }}
-        "
-    );
-
-    // Act
-    let diagnostic_reporter = parse_for_diagnostics(&slice);
-
-    // Assert
-    assert_errors!(diagnostic_reporter, [
-        "enumerator `B` has an implicit value larger than `170141183460469231731687303715884105727` which overflows",
-    ]);
-}
-
 #[test_case("unchecked enum", true ; "unchecked")]
 #[test_case("enum", false ; "checked")]
 fn can_be_unchecked(enum_definition: &str, expected_result: bool) {

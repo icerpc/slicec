@@ -111,13 +111,6 @@ pub enum ErrorKind {
     /// * `max` - The maximum value of the underlying type of the enum.
     EnumeratorValueOutOfBounds(String, i128, i128, i128),
 
-    /// An enumerator's implicitly assigned value was larger than `i128::MAX`.
-    ///
-    /// # Fields
-    ///
-    /// * `enumerator_identifier` - The identifier of the enumerator.
-    ImplicitEnumeratorValueOverflows(String),
-
     /// Enums must be contain at least one enumerator.
     ///
     /// # Fields
@@ -558,12 +551,6 @@ implement_error_functions!(
         ErrorKind::InvalidEncodingVersion,
         format!("'{version}' is not a valid Slice encoding version"),
         version
-    ),
-    (
-        "E045",
-        ErrorKind::ImplicitEnumeratorValueOverflows,
-        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i128::MAX),
-        identifier
     ),
     (
         "E046",
