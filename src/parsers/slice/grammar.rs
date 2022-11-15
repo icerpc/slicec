@@ -393,6 +393,15 @@ fn construct_single_return_type(
     })]
 }
 
+fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter>>, span: Span) {
+    if return_tuple.len() < 2 {
+        parser.diagnostic_reporter.report_error(Error::new(
+            ErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
+            Some(&span),
+        ));
+    }
+}
+
 fn construct_enum(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),

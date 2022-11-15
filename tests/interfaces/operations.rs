@@ -4,6 +4,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
+use test_case::test_case;
 
 #[test]
 fn can_have_no_parameters() {
@@ -185,18 +186,20 @@ fn can_have_return_tuple() {
     ));
 }
 
-#[test]
-#[ignore] // TODO: This validation is no longer done by the parser, and should be done by a validator.
-fn return_tuple_must_contain_two_or_more_elements() {
+#[test_case("()"; "0 elements")]
+#[test_case("(b: bool)"; "1 element")]
+fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     // Arrange
-    let slice = "
-        module Test;
+    let slice = format!(
+        "
+            module Test;
 
-        interface I
-        {
-            op() -> ();
-        }
-    ";
+            interface I
+            {{
+                op() -> {return_tuple};
+            }}
+        "
+    );
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);
