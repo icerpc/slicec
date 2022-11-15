@@ -339,10 +339,11 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
+        const MAX_VALUE: i128 = i32::MAX as i128;
         let expected_errors: [Error; 3] = [
-            Error::new(ErrorKind::MustBePositive("enumerator values".to_owned()), None),
-            Error::new(ErrorKind::MustBePositive("enumerator values".to_owned()), None),
-            Error::new(ErrorKind::MustBePositive("enumerator values".to_owned()), None),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), -1, 0, MAX_VALUE), None),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds("B".to_owned(), -2, 0, MAX_VALUE), None),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds("C".to_owned(), -3, 0, MAX_VALUE), None),
         ];
         assert_errors!(diagnostic_reporter, expected_errors);
     }

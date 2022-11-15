@@ -213,13 +213,6 @@ pub enum ErrorKind {
     /// * `actual kind` - The name of the found kind.
     ConcreteTypeMismatch(String, String),
 
-    /// The provided kind should be positive.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that was not positive.
-    MustBePositive(String),
-
     /// An identifier was redefined.
     ///
     /// # Fields
@@ -372,12 +365,6 @@ implement_error_functions!(
         ErrorKind::CannotHaveDuplicateTag,
         format!("invalid tag on member `{}`: tags must be unique", identifier),
         identifier
-    ),
-    (
-        "E015",
-        ErrorKind::MustBePositive,
-        format!("{kind} must be positive"),
-        kind
     ),
     (
         "E016",

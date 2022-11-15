@@ -19,30 +19,15 @@ pub fn enum_validators() -> ValidationChain {
 /// Validate that the enumerators are within the bounds of the specified underlying type.
 fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
-        // Enum was defined in a Slice1 file.
-        // Slice1 does not allow negative numbers.
-        enum_def
-            .enumerators()
-            .iter()
-            .filter(|enumerator| enumerator.value < 0)
-            .for_each(|enumerator| {
-                let error = ErrorKind::MustBePositive("enumerator values".to_owned());
+        // Enum was defined in a Slice1 file, so it's underlying type is int32 and its enumerators must be positive.
+        for enumerator in enum_def.enumerators() {
+            let value = enumerator.value;
+            if value < 0 || value > i32::MAX as i128 {
+                let identifier = enumerator.identifier().to_owned();
+                let error = ErrorKind::EnumeratorValueOutOfBounds(identifier, value, 0, i32::MAX as i128);
                 diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
-            });
-        // Enums in Slice1 always have an underlying type of int32.
-        enum_def
-            .enumerators()
-            .iter()
-            .filter(|enumerator| enumerator.value > i32::MAX as i128)
-            .for_each(|enumerator| {
-                let error = ErrorKind::EnumeratorValueOutOfBounds(
-                    enumerator.identifier().to_owned(),
-                    enumerator.value,
-                    0,
-                    i32::MAX as i128,
-                );
-                diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
-            });
+            }
+        }
     } else {
         // Enum was defined in a Slice2 file.
         // Non-integrals are handled by `allowed_underlying_types`
