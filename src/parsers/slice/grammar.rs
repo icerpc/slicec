@@ -435,7 +435,7 @@ fn construct_enumerator(
 ) -> OwnedPtr<Enumerator> {
     // If an explicit value was provided use it, otherwise compute an implicit value.
     // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-    let value = explicit_value.unwrap_or_else(|| {
+    let value = explicit_value.unwrap_or({
         match parser.last_enumerator_value {
             Some(last_value) => last_value + 1,
             None => 0,
