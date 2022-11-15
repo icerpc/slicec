@@ -73,7 +73,7 @@ fn enumerator_values_can_be_out_of_order() {
 #[test]
 fn validate_backing_type_out_of_bounds() {
     // Arranges
-    let out_of_bounds_value = i16::MAX as i32 + 1;
+    let out_of_bounds_value = i16::MAX as i128 + 1;
     let slice = format!(
         "
             module Test;
@@ -89,7 +89,7 @@ fn validate_backing_type_out_of_bounds() {
 
     // Assert
     let expected = Error::new(
-        ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value as i64, -32768_i64, 32767_i64),
+        ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), out_of_bounds_value, -32768_i128, 32767_i128),
         None,
     );
     assert_errors!(diagnostic_reporter, [&expected]);
@@ -213,7 +213,7 @@ fn enumerators_must_be_unique() {
 #[test]
 fn automatically_assigned_values_will_not_overflow() {
     // Arrange
-    let max = i64::MAX;
+    let max = i128::MAX;
     let slice = format!(
         "
             module Test;
@@ -230,7 +230,7 @@ fn automatically_assigned_values_will_not_overflow() {
 
     // Assert
     assert_errors!(diagnostic_reporter, [
-        "enumerator `B` has an implicit value larger than `9223372036854775807` which overflows",
+        "enumerator `B` has an implicit value larger than `170141183460469231731687303715884105727` which overflows",
     ]);
 }
 
@@ -374,7 +374,7 @@ mod slice1 {
     #[test]
     fn enumerators_cannot_contain_out_of_bounds_values() {
         // Arrange
-        let value = i32::MAX as i64 + 1;
+        let value = i32::MAX as i128 + 1;
         let slice = format!(
             "
                 encoding = 1;
@@ -392,7 +392,7 @@ mod slice1 {
 
         // Assert
         let expected = Error::new(
-            ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), i32::MAX as i64 + 1, 0_i64, i32::MAX as i64),
+            ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), value, 0, i32::MAX as i128),
             None,
         );
         assert_errors!(diagnostic_reporter, [&expected]);

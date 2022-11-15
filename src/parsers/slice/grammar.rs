@@ -438,7 +438,7 @@ fn construct_enumerator(
     let value = explicit_value.unwrap_or_else(|| {
         match parser.last_enumerator_value {
             Some(last_value) => {
-                if last_value == i64::MAX {
+                if last_value == i128::MAX {
                     parser.diagnostic_reporter.report_error(Error::new_with_notes(
                         ErrorKind::ImplicitEnumeratorValueOverflows(identifier.value.clone()),
                         Some(&span),
