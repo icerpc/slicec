@@ -31,7 +31,7 @@ pub struct Parser<'a> {
     pub(super) diagnostic_reporter: &'a mut DiagnosticReporter,
     pub(super) current_scope: Scope,
     pub(super) file_encoding: Encoding,
-    pub(super) last_enumerator_value: Option<i64>,
+    pub(super) last_enumerator_value: Option<i128>,
 }
 
 impl<'a> Parser<'a> {

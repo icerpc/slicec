@@ -256,7 +256,7 @@ pub enum ErrorKind {
     /// * `actual kind` - The name of the found kind.
     TypeMismatch(String, String),
 
-    /// An integer literal was outside the parsable range of 0..i64::MAX.
+    /// An integer literal was outside the parsable range of 0..i128::MAX.
     IntegerLiteralTooLarge,
 
     /// An integer literal contained illegal characters for its base.
@@ -267,7 +267,7 @@ pub enum ErrorKind {
     InvalidIntegerLiteral(u32),
 
     /// An invalid Slice encoding was used.
-    InvalidEncodingVersion(i64),
+    InvalidEncodingVersion(i128),
 
     /// A file scoped module contained submodules.
     FileScopedModuleCannotContainSubModules(String),
@@ -545,7 +545,7 @@ implement_error_functions!(
     (
         "E042",
         ErrorKind::IntegerLiteralTooLarge,
-        "integer literal is outside the parsable range of 0 <= i <= 9223372036854775807"
+        "integer literal is outside the parsable range of 0 <= i <= 170141183460469231731687303715884105727"
     ),
     (
         "E043",
