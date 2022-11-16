@@ -60,12 +60,14 @@ extern {
         any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
-        tag_keyword => TokenKind::TagKeyword,
-        stream_keyword => TokenKind::StreamKeyword,
+        any_exception_keyword => TokenKind::AnyExceptionKeyword,
         compact_keyword => TokenKind::CompactKeyword,
-        idempotent_keyword => TokenKind::IdempotentKeyword,
-        unchecked_keyword => TokenKind::UncheckedKeyword,
         encoding_keyword => TokenKind::EncodingKeyword,
+        idempotent_keyword => TokenKind::IdempotentKeyword,
+        stream_keyword => TokenKind::StreamKeyword,
+        tag_keyword => TokenKind::TagKeyword,
+        throws_keyword => TokenKind::ThrowsKeyword,
+        unchecked_keyword => TokenKind::UncheckedKeyword,
 
         // Brackets
         "(" => TokenKind::LeftParenthesis,
@@ -167,8 +169,8 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <r: @R> ";" ContainerEnd => {
-        construct_operation(parser, p, ik.is_some(), i, ps, rt, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";" ContainerEnd => {
+        construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -186,6 +188,14 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
         ps
     },
+}
+
+ExceptionSpecification: Throws = {
+    throws_keyword <tr: TypeRef> => {
+        let exception = tr.downcast::<Exception>().unwrap();
+        Throws::Specific(exception)
+    },
+    throws_keyword any_exception_keyword => Throws::AnyException,
 }
 
 ParameterModifier: (bool, Option<u32>) = {

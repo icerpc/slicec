@@ -313,15 +313,20 @@ fn construct_operation(
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
     return_type: Option<Vec<OwnedPtr<Parameter>>>,
+    exception_specification: Option<Throws>,
     span: Span,
 ) -> OwnedPtr<Operation> {
     // If no return type was provided set the return type to an empty Vec.
     let mut return_type = return_type.unwrap_or_default();
 
+    // If no throws clause was present, set the exception specification to `None`.
+    let throws = exception_specification.unwrap_or(Throws::None);
+
     let mut operation_ptr = OwnedPtr::new(Operation {
         identifier,
         parameters: Vec::new(),
         return_type: Vec::new(),
+        throws,
         is_idempotent,
         encoding: parser.file_encoding,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
