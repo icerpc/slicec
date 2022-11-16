@@ -52,6 +52,36 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
 }
 
 #[test]
+fn implicit_enumerator_values_overflow_cleanly() {
+    // Arrange
+    let slice = "
+        module Test;
+        enum E
+        {
+            A,
+            B = 170141183460469231731687303715884105727, // i128::MAX
+            C,
+        }
+    ";
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = [
+        Error::new(
+            ErrorKind::EnumeratorValueOutOfBounds("B".to_owned(), i128::MAX, -2147483648, 2147483647),
+            None,
+        ),
+        Error::new(
+            ErrorKind::EnumeratorValueOutOfBounds("C".to_owned(), i128::MIN, -2147483648, 2147483647),
+            None,
+        ),
+    ];
+    assert_errors!(diagnostic_reporter, expected);
+}
+
+#[test]
 fn enumerator_values_can_be_out_of_order() {
     // Arrange
     let slice = "
