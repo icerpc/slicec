@@ -525,7 +525,7 @@ implement_error_functions!(
     (
         "E042",
         ErrorKind::IntegerLiteralOverflows,
-        "integer literal is outside the parsable range of 0 <= i <= 170141183460469231731687303715884105727"
+        "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
         "E043",
