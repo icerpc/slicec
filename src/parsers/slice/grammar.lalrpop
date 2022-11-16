@@ -184,7 +184,10 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
     <l: @L> <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
         construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
     },
-    "(" <List<Parameter>> ")" => <>,
+    <l: @L> "(" <ps: List<Parameter>> ")" <r: @R> => {
+        check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
+        ps
+    },
 }
 
 ExceptionSpecification: Throws = {
