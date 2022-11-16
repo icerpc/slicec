@@ -144,10 +144,9 @@ fn invalid_underlying_type(underlying_type: &str) {
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
-#[test_case("10"; "numeric identifier")]
-#[test_case("😊"; "unicode identifier")]
-#[ignore = "reason: validation not implemented"] // TODO
-fn enumerator_invalid_identifiers(identifier: &str) {
+#[test_case("10", "expected one of \"[\", \"}\", doc_comment, identifier, but found 'IntegerLiteral(\"10\")'"; "numeric identifier")]
+#[test_case("😊", "unknown symbol '😊'"; "unicode identifier")]
+fn enumerator_invalid_identifiers(identifier: &str, expected: &str) {
     // Arrange
     let slice = format!(
         "
@@ -163,7 +162,7 @@ fn enumerator_invalid_identifiers(identifier: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter, [""]);
+    assert_errors!(diagnostic_reporter, [expected]);
 }
 
 #[test]

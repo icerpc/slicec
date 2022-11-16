@@ -196,7 +196,6 @@ mod comments {
     }
 
     #[test]
-    #[ignore]
     fn doc_comments_see_also() {
         // Arrange
         let slice = "
