@@ -201,7 +201,7 @@ fn operations_can_omit_throws_clause() {
 
     // Assert
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-    assert!(matches!(&operation.throws, ExceptionSpecification::None));
+    assert!(matches!(&operation.throws, Throws::None));
 }
 
 #[test]
@@ -224,7 +224,7 @@ fn operations_can_throw_specific_exceptions() {
     let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
     assert!(matches!(
         &operation.throws,
-        ExceptionSpecification::Specific(exception_ref) if exception_ref.parser_scoped_identifier() == "Test::E",
+        Throws::Specific(exception_ref) if exception_ref.parser_scoped_identifier() == "Test::E",
     ));
 }
 

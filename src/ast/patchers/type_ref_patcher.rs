@@ -54,7 +54,7 @@ impl TypeRefPatcher<'_> {
                         .map(PatchKind::BaseInterfaces)
                 }
                 Node::Operation(operation_ptr) => {
-                    if let ExceptionSpecification::Specific(type_ref) = &operation_ptr.borrow().throws {
+                    if let Throws::Specific(type_ref) = &operation_ptr.borrow().throws {
                         self.resolve_definition(type_ref, ast).map(PatchKind::ThrowsType)
                     } else {
                         None
@@ -137,7 +137,7 @@ impl TypeRefPatcher<'_> {
                 }
                 PatchKind::ThrowsType((exception_type_ptr, attributes)) => {
                     let operation_ptr: &mut OwnedPtr<Operation> = (&mut elements[i]).try_into().unwrap();
-                    if let ExceptionSpecification::Specific(throws_type_ref) = &mut operation_ptr.borrow_mut().throws {
+                    if let Throws::Specific(throws_type_ref) = &mut operation_ptr.borrow_mut().throws {
                         throws_type_ref.patch(exception_type_ptr, attributes);
                     } else {
                         unreachable!() // If a patch exists, there must of been a type_ref to patch.

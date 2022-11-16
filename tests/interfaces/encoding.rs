@@ -80,6 +80,6 @@ mod slice1 {
 
         // Assert
         let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-        assert!(matches!(&operation.throws, ExceptionSpecification::AnyException));
+        assert!(matches!(&operation.throws, Throws::AnyException));
     }
 }

@@ -187,12 +187,12 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
     "(" <List<Parameter>> ")" => <>,
 }
 
-ExceptionSpecification: ExceptionSpecification = {
+ExceptionSpecification: Throws = {
     throws_keyword <tr: TypeRef> => {
         let exception = tr.downcast::<Exception>().unwrap();
-        ExceptionSpecification::Specific(exception)
+        Throws::Specific(exception)
     },
-    throws_keyword any_exception_keyword => ExceptionSpecification::AnyException,
+    throws_keyword any_exception_keyword => Throws::AnyException,
 }
 
 ParameterModifier: (bool, Option<u32>) = {

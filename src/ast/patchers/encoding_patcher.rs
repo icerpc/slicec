@@ -364,12 +364,12 @@ impl ComputeSupportedEncodings for Interface {
             }
 
             match &operation.throws {
-                ExceptionSpecification::None => {}
-                ExceptionSpecification::Specific(exception_type) => {
+                Throws::None => {}
+                Throws::Specific(exception_type) => {
                     // This method automatically emits errors for encoding mismatches.
                     patcher.get_supported_encodings_for_type_ref(exception_type, file_encoding, false);
                 }
-                ExceptionSpecification::AnyException => {
+                Throws::AnyException => {
                     if *file_encoding != Encoding::Slice1 {
                         let error = Error::new_with_notes(
                             ErrorKind::AnyExceptionNotSupported,
