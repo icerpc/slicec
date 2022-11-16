@@ -27,7 +27,7 @@ impl Enum {
             .collect()
     }
 
-    pub fn get_min_max_values(&self) -> Option<(i64, i64)> {
+    pub fn get_min_max_values(&self) -> Option<(i128, i128)> {
         let values = self.enumerators.iter().map(|enumerator| enumerator.borrow().value);
 
         // There might not be a minimum value if the enum is empty.
