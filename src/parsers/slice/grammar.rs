@@ -549,7 +549,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
         Err(err) => {
             let error = match err.kind() {
                 IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral(base),
-                _ => ErrorKind::IntegerLiteralTooLarge,
+                _ => ErrorKind::IntegerLiteralOverflows,
             };
             parser.diagnostic_reporter.report_error(Error::new(error, Some(&span)));
             0 // Dummy value

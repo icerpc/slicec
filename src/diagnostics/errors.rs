@@ -243,7 +243,7 @@ pub enum ErrorKind {
     TypeMismatch(String, String),
 
     /// An integer literal was outside the parsable range of 0..i128::MAX.
-    IntegerLiteralTooLarge,
+    IntegerLiteralOverflows,
 
     /// An integer literal contained illegal characters for its base.
     ///
@@ -524,7 +524,7 @@ implement_error_functions!(
     ),
     (
         "E042",
-        ErrorKind::IntegerLiteralTooLarge,
+        ErrorKind::IntegerLiteralOverflows,
         "integer literal is outside the parsable range of 0 <= i <= 170141183460469231731687303715884105727"
     ),
     (
