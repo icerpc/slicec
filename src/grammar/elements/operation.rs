@@ -97,14 +97,14 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        self.filter_slice_attributes(false).iter().any(|a| match a.kind {
+        self.attributes(false).iter().any(|a| match a.kind {
             AttributeKind::Compress { compress_args, .. } => compress_args,
             _ => false,
         })
     }
 
     pub fn compress_return(&self) -> bool {
-        self.filter_slice_attributes(false).iter().any(|a| match a.kind {
+        self.attributes(false).iter().any(|a| match a.kind {
             AttributeKind::Compress {
                 compress_args: _,
                 compress_return,
@@ -114,7 +114,7 @@ impl Operation {
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        self.filter_slice_attributes(false)
+        self.attributes(false)
             .into_iter()
             .find_map(|a| match &a.kind {
                 AttributeKind::ClassFormat { format } => Some(format.clone()),
@@ -124,7 +124,7 @@ impl Operation {
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.filter_slice_attributes(false)
+        self.attributes(false)
             .iter()
             .any(|a| matches!(&a.kind, AttributeKind::Oneway))
     }

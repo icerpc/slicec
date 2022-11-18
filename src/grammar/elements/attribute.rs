@@ -25,8 +25,8 @@ impl Attribute {
             AttributeKind::ClassFormat { .. } => FORMAT,
             AttributeKind::IgnoreWarnings { .. } => IGNORE_WARNINGS,
             AttributeKind::Oneway { .. } => ONEWAY,
-            AttributeKind::Other { directive, .. } => directive,
             AttributeKind::LanguageKind { directive, .. } => directive,
+            AttributeKind::Other { directive, .. } => directive,
         }
     }
 }
@@ -47,21 +47,22 @@ pub enum AttributeKind {
         warning_codes: Option<Vec<String>>,
     },
     Oneway,
-    // The following is used for attributes that are not recognized by the compiler. They may be language mapping
+
+    // The following are used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
-    Other {
-        directive: String,
-        arguments: Vec<String>,
-    },
     LanguageKind {
         directive: String,
         kind: Box<dyn LanguageKind>,
+    },
+
+    Other {
+        directive: String,
+        arguments: Vec<String>,
     },
 }
 
 pub trait LanguageKind {
     fn as_any(&self) -> &dyn std::any::Any;
-
     fn clone_kind(&self) -> Box<dyn LanguageKind>;
     fn debug_kind(&self) -> &str;
 }

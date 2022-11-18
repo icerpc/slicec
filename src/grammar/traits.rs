@@ -47,27 +47,7 @@ pub trait NamedSymbol: ScopedSymbol {
 
 pub trait Attributable {
     fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
-
-    fn filter_slice_attributes(&self, include_parent: bool) -> Vec<&Attribute> {
-        self.attributes(include_parent)
-            .into_iter()
-            .filter(|a| {
-                !matches!(
-                    &a.kind,
-                    AttributeKind::LanguageKind { .. } | AttributeKind::Other { .. }
-                )
-            })
-            .collect::<_>()
-    }
 }
-
-// fn find_slice_attribute<F, R>(&self, f: F, include_parent: bool) -> Option<R>
-//     where
-//         F: FnOnce(&Attribute) -> Option<R>,
-//         R: Sized,
-//     {
-//         self.filter_slice_attributes(include_parent).iter().find_map(|a| f(a))
-//     }
 
 pub trait Commentable {
     fn comment(&self) -> Option<&DocComment>;
