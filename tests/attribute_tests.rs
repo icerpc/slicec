@@ -634,7 +634,7 @@ mod attributes {
                         assert_eq!(v, expected.get(i).unwrap().to_owned());
                     }
                 }
-                _ => panic!(""),
+                _ => unreachable!(),
             }
         }
 
