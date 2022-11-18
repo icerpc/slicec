@@ -36,7 +36,6 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
     let kind = element.kind();
 
     if !supported_on.contains(&kind) {
-        println!("kind: {}", kind);
         if let Some(attribute) = element
             .attributes(false)
             .into_iter()
