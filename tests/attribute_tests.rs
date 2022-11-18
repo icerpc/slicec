@@ -560,14 +560,16 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            let Some((directive, arguments)) = operation.attributes(false).iter().find_map(|a| match &a.kind {
-                AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
-                    Some((directive, arguments))
-                }
-                _ => None,
-            }) else {
-                panic!("Expected to find a `foo::bar` attribute");
-            };
+            let (directive, arguments) = operation
+                .attributes(false)
+                .iter()
+                .find_map(|a| match &a.kind {
+                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
+                        Some((directive, arguments))
+                    }
+                    _ => None,
+                })
+                .unwrap();
 
             assert_eq!(directive, "foo::bar");
             assert_eq!(arguments.len(), 0);
@@ -592,14 +594,16 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            let Some((directive, arguments)) = operation.attributes(false).iter().find_map(|a| match &a.kind {
-                AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
-                    Some((directive, arguments))
-                }
-                _ => None,
-            }) else {
-                panic!("Expected to find a `foo::bar` attribute");
-            };
+            let (directive, arguments) = operation
+                .attributes(false)
+                .iter()
+                .find_map(|a| match &a.kind {
+                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
+                        Some((directive, arguments))
+                    }
+                    _ => None,
+                })
+                .unwrap();
 
             assert_eq!(directive, "foo::bar");
             assert_eq!(arguments, &vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]);
