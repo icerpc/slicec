@@ -14,13 +14,16 @@ pub fn attribute_validators() -> ValidationChain {
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
     parameters.iter().for_each(|m| {
-        if m.has_attribute(attributes::DEPRECATED, false) {
+        if m.attributes(false)
+            .iter()
+            .any(|a| matches!(a.kind, AttributeKind::Deprecated { .. }))
+        {
             let error = Error::new(
                 ErrorKind::DeprecatedAttributeCannotBeApplied(m.kind().to_owned() + "(s)"),
                 Some(m.span()),
             );
             diagnostic_reporter.report_error(error);
-        }
+        };
     });
 }
 
@@ -31,8 +34,14 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
     // interfaces and operations.
     let supported_on = ["interface", "operation"];
     let kind = element.kind();
+
     if !supported_on.contains(&kind) {
-        if let Some(attribute) = element.get_raw_attribute("compress", false) {
+        println!("kind: {}", kind);
+        if let Some(attribute) = element
+            .attributes(false)
+            .into_iter()
+            .find(|a| matches!(a.kind, AttributeKind::Compress { .. }))
+        {
             diagnostic_reporter.report_error(Error::new(
                 ErrorKind::CompressAttributeCannotBeApplied,
                 Some(attribute.span()),

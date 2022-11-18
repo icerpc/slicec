@@ -22,16 +22,16 @@ impl Attribute {
         match &self.kind {
             AttributeKind::Deprecated { .. } => DEPRECATED,
             AttributeKind::Compress { .. } => COMPRESS,
-            AttributeKind::Format { .. } => FORMAT,
+            AttributeKind::ClassFormat { .. } => FORMAT,
             AttributeKind::IgnoreWarnings { .. } => IGNORE_WARNINGS,
-            AttributeKind::SingleArgument { directive, .. } => directive,
-            AttributeKind::MultipleArguments { directive, .. } => directive,
-            AttributeKind::NoArgument { directive } => directive,
+            AttributeKind::Oneway { .. } => ONEWAY,
+            AttributeKind::Other { directive, .. } => directive,
+            AttributeKind::LanguageKind { directive, .. } => directive,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum AttributeKind {
     Deprecated {
         reason: Option<String>,
@@ -40,48 +40,50 @@ pub enum AttributeKind {
         compress_args: bool,
         compress_return: bool,
     },
-    Format {
+    ClassFormat {
         format: ClassFormat,
     },
     IgnoreWarnings {
         warning_codes: Option<Vec<String>>,
     },
-
-    // The following are used for attributes that are not recognized by the compiler. They may be language mapping
+    Oneway,
+    // The following is used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
-    /// An attribute with a no arguments.
-    NoArgument {
-        directive: String,
-    },
-
-    /// An attribute with a single argument.
-    SingleArgument {
-        directive: String,
-        argument: String,
-    },
-
-    /// An attribute with multiple arguments.
-    MultipleArguments {
+    Other {
         directive: String,
         arguments: Vec<String>,
     },
+    LanguageKind {
+        directive: String,
+        kind: Box<dyn LanguageKind>,
+    },
+}
+
+pub trait LanguageKind {
+    fn as_any(&self) -> &dyn std::any::Any;
+
+    fn clone_kind(&self) -> Box<dyn LanguageKind>;
+    fn debug_kind(&self) -> &str;
+}
+
+impl Clone for Box<dyn LanguageKind> {
+    fn clone(&self) -> Self {
+        self.clone_kind()
+    }
+}
+
+impl std::fmt::Debug for Box<dyn LanguageKind> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.debug_kind())
+    }
 }
 
 impl AttributeKind {
-    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: &Vec<String>, span: &Span) -> Self {
+    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: &[String], span: &Span) -> Self {
         // Check for known attributes, if a parsing error occurs return an unknown attribute.
-        let unknown_attribute = match arguments.len() {
-            0 => AttributeKind::NoArgument {
-                directive: directive.to_owned(),
-            },
-            1 => AttributeKind::SingleArgument {
-                directive: directive.to_owned(),
-                argument: arguments[0].to_owned(),
-            },
-            _ => AttributeKind::MultipleArguments {
-                directive: directive.to_owned(),
-                arguments: arguments.to_owned(),
-            },
+        let unmatched_attribute = AttributeKind::Other {
+            directive: directive.to_owned(),
+            arguments: arguments.to_owned(),
         };
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
@@ -108,7 +110,7 @@ impl AttributeKind {
                                     )],
                                 ))
                             }
-                            return unknown_attribute;
+                            return unmatched_attribute;
                         }
                     }
                 } else {
@@ -128,7 +130,7 @@ impl AttributeKind {
                         ErrorKind::CannotBeEmpty("format attribute".to_owned()),
                         Some(span),
                     ));
-                    return unknown_attribute;
+                    return unmatched_attribute;
                 }
 
                 // Check if the arguments are valid
@@ -147,11 +149,11 @@ impl AttributeKind {
                     ));
                 });
                 if !invalid_args.is_empty() {
-                    return unknown_attribute;
+                    return unmatched_attribute;
                 };
 
                 // Safe unwrap since args.len() > 0 and we checked that all the arguments are valid
-                Some(AttributeKind::Format {
+                Some(AttributeKind::ClassFormat {
                     format: ClassFormat::from_str(&arguments[0]).unwrap(),
                 })
             }
@@ -162,7 +164,7 @@ impl AttributeKind {
         };
 
         // If the attribute is not known, return check if it is a single or multiple arguments
-        attribute_kind.unwrap_or(unknown_attribute)
+        attribute_kind.unwrap_or(unmatched_attribute)
     }
 }
 

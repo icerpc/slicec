@@ -5,7 +5,6 @@ use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::AsTypes;
 use super::AttributeKind;
-use crate::grammar::attributes;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -47,43 +46,39 @@ pub trait NamedSymbol: ScopedSymbol {
 }
 
 pub trait Attributable {
-    fn attributes(&self) -> &Vec<Attribute>;
+    fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
 
-    fn has_attribute(&self, directive: &str, recurse: bool) -> bool {
-        self.get_raw_attribute(directive, recurse).is_some()
-    }
-
-    fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&AttributeKind> {
-        self.get_raw_attribute(directive, recurse)
-            .map(|attribute| &attribute.kind)
-    }
-
-    fn get_attribute_list(&self, directive: &str) -> Vec<Option<&AttributeKind>>;
-
-    fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
-
-    fn get_ignored_warnings(&self, check_parent: bool) -> Option<Vec<String>> {
-        match self.get_attribute(attributes::IGNORE_WARNINGS, check_parent) {
-            // If the attribute is present, but has no value, it means that all warnings should be ignored.
-            Some(AttributeKind::IgnoreWarnings { warning_codes: None }) => Some(Vec::new()),
-            Some(AttributeKind::IgnoreWarnings {
-                warning_codes: Some(args),
-            }) => Some(args.to_owned()),
-            _ => None,
-        }
+    fn filter_slice_attributes(&self, include_parent: bool) -> Vec<&Attribute> {
+        self.attributes(include_parent)
+            .into_iter()
+            .filter(|a| {
+                !matches!(
+                    &a.kind,
+                    AttributeKind::LanguageKind { .. } | AttributeKind::Other { .. }
+                )
+            })
+            .collect::<_>()
     }
 }
+
+// fn find_slice_attribute<F, R>(&self, f: F, include_parent: bool) -> Option<R>
+//     where
+//         F: FnOnce(&Attribute) -> Option<R>,
+//         R: Sized,
+//     {
+//         self.filter_slice_attributes(include_parent).iter().find_map(|a| f(a))
+//     }
 
 pub trait Commentable {
     fn comment(&self) -> Option<&DocComment>;
 }
 
 pub trait Entity: NamedSymbol + Attributable + Commentable {
-    fn get_deprecation(&self, check_parent: bool) -> Option<Option<&String>> {
-        match self.get_attribute(attributes::DEPRECATED, check_parent) {
-            Some(AttributeKind::Deprecated { reason }) => Some(reason.as_ref()),
+    fn get_deprecation(&self, check_parent: bool) -> Option<Option<String>> {
+        self.attributes(check_parent).iter().find_map(|a| match &a.kind {
+            AttributeKind::Deprecated { reason } => Some(reason.to_owned()),
             _ => None,
-        }
+        })
     }
 }
 
@@ -169,31 +164,16 @@ macro_rules! implement_Named_Symbol_for {
 macro_rules! implement_Attributable_for {
     ($type:ty) => {
         impl Attributable for $type {
-            fn attributes(&self) -> &Vec<Attribute> {
-                &self.attributes
-            }
+            fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
+                let mut attributes = self.attributes.iter().collect::<Vec<&Attribute>>();
 
-            fn get_attribute_list(&self, directive: &str) -> Vec<Option<&AttributeKind>> {
-                let mut result = vec![self.get_attribute(directive, false)];
-
-                if let Some(parent) = self.parent() {
-                    result.extend(parent.get_attribute_list(directive))
-                }
-
-                result
-            }
-
-            fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
-                for attribute in &self.attributes {
-                    if attribute.directive() == directive {
-                        return Some(attribute);
+                if include_parent {
+                    if let Some(parent) = self.parent() {
+                        attributes.extend(parent.attributes(true));
                     }
                 }
 
-                match self.parent() {
-                    Some(parent) if recurse => parent.get_raw_attribute(directive, recurse),
-                    _ => None,
-                }
+                attributes
             }
         }
     };
