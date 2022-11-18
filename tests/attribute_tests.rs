@@ -693,7 +693,7 @@ mod attributes {
                 .into_iter()
                 .map(|a| match &a.kind {
                     AttributeKind::Other { directive, arguments } => (directive.as_str(), arguments),
-                    _ => panic!(""),
+                    _ => unreachable!(),
                 })
                 .collect::<Vec<_>>();
 
