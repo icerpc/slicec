@@ -21,6 +21,10 @@ pub struct SliceOptions {
     #[arg(short = 'R', long, num_args = 1, action = Append, value_parser = is_valid_reference)]
     pub references: Vec<String>,
 
+    /// Preprocessor Symbols defined on the command line.
+    #[arg(short = 'D', long, num_args = 1, action = Append)]
+    pub definitions: Vec<String>,
+
     /// Instructs the compiler to treat warnings as errors.
     #[arg(short, long)]
     pub warn_as_error: bool,

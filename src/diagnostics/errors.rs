@@ -78,6 +78,9 @@ pub enum ErrorKind {
     /// * `encoding` - The encoding that was specified.
     StreamedParametersNotSupported(Encoding),
 
+    /// A non-Slice1 operation used the `AnyException` keyword.
+    AnyExceptionNotSupported,
+
     /// An unsupported type was used in the specified encoding.
     ///
     /// # Fields
@@ -92,7 +95,7 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `enumerator_value` - The value of the enumerator that was already used.
-    DuplicateEnumeratorValue(i64),
+    DuplicateEnumeratorValue(i128),
 
     /// Enums cannot have optional underlying types.
     ///
@@ -109,14 +112,7 @@ pub enum ErrorKind {
     /// * `value` - The value of the out of bounds enumerator.
     /// * `min` - The minimum value of the underlying type of the enum.
     /// * `max` - The maximum value of the underlying type of the enum.
-    EnumeratorValueOutOfBounds(String, i64, i64, i64),
-
-    /// An enumerator's implicitly assigned value was larger than `i64::MAX`.
-    ///
-    /// # Fields
-    ///
-    /// * `enumerator_identifier` - The identifier of the enumerator.
-    ImplicitEnumeratorValueOverflows(String),
+    EnumeratorValueOutOfBounds(String, i128, i128, i128),
 
     /// Enums must be contain at least one enumerator.
     ///
@@ -220,13 +216,6 @@ pub enum ErrorKind {
     /// * `actual kind` - The name of the found kind.
     ConcreteTypeMismatch(String, String),
 
-    /// The provided kind should be positive.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that was not positive.
-    MustBePositive(String),
-
     /// An identifier was redefined.
     ///
     /// # Fields
@@ -256,8 +245,8 @@ pub enum ErrorKind {
     /// * `actual kind` - The name of the found kind.
     TypeMismatch(String, String),
 
-    /// An integer literal was outside the parsable range of 0..i64::MAX.
-    IntegerLiteralTooLarge,
+    /// An integer literal was outside the parsable range of 0..i128::MAX.
+    IntegerLiteralOverflows,
 
     /// An integer literal contained illegal characters for its base.
     ///
@@ -267,7 +256,7 @@ pub enum ErrorKind {
     InvalidIntegerLiteral(u32),
 
     /// An invalid Slice encoding was used.
-    InvalidEncodingVersion(i64),
+    InvalidEncodingVersion(i128),
 
     /// A file scoped module contained submodules.
     FileScopedModuleCannotContainSubModules(String),
@@ -379,12 +368,6 @@ implement_error_functions!(
         ErrorKind::CannotHaveDuplicateTag,
         format!("invalid tag on member `{}`: tags must be unique", identifier),
         identifier
-    ),
-    (
-        "E015",
-        ErrorKind::MustBePositive,
-        format!("{kind} must be positive"),
-        kind
     ),
     (
         "E016",
@@ -544,8 +527,8 @@ implement_error_functions!(
     ),
     (
         "E042",
-        ErrorKind::IntegerLiteralTooLarge,
-        "integer literal is outside the parsable range of 0 <= i <= 9223372036854775807"
+        ErrorKind::IntegerLiteralOverflows,
+        "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
         "E043",
@@ -560,12 +543,6 @@ implement_error_functions!(
         version
     ),
     (
-        "E045",
-        ErrorKind::ImplicitEnumeratorValueOverflows,
-        format!("enumerator `{identifier}` has an implicit value larger than `{}` which overflows", i64::MAX),
-        identifier
-    ),
-    (
         "E046",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
@@ -575,5 +552,11 @@ implement_error_functions!(
         ErrorKind::FileScopedModuleCannotContainSubModules,
         format!("file scoped module `{identifier}` cannot contain sub modules"),
         identifier
+    ),
+    (
+        "E048",
+        ErrorKind::AnyExceptionNotSupported,
+        format!("operations that throw AnyException are only supported by the Slice1 encoding")
+
     )
 );

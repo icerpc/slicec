@@ -35,13 +35,13 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
     reference_files.dedup();
 
     for path in source_files {
-        if let Some(slice_file) = try_parse_file(&path, true, &mut data) {
+        if let Some(slice_file) = try_parse_file(&path, true, &options.definitions, &mut data) {
             data.files.insert(path.to_owned(), slice_file);
         }
     }
 
     for path in reference_files {
-        if let Some(slice_file) = try_parse_file(&path, false, &mut data) {
+        if let Some(slice_file) = try_parse_file(&path, false, &options.definitions, &mut data) {
             data.files.insert(path.to_owned(), slice_file);
         }
     }
@@ -52,11 +52,11 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
     patch_ast(data)
 }
 
-fn try_parse_file(file: &str, is_source: bool, data: &mut CompilationData) -> Option<SliceFile> {
+fn try_parse_file(file: &str, is_source: bool, symbols: &[String], data: &mut CompilationData) -> Option<SliceFile> {
     match fs::read_to_string(file) {
         Ok(raw_text) => {
             // The parser emits errors through `DiagnosticReporter` on it's own, so we don't need to handle them.
-            try_parse_string(file, &raw_text, is_source, data).ok()
+            try_parse_string(file, &raw_text, is_source, symbols, data).ok()
         }
         Err(err) => {
             data.diagnostic_reporter
@@ -75,6 +75,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         diagnostic_format: DiagnosticFormat::Human,
         validate: false,
         output_dir: None,
+        definitions: vec![],
     });
 
     let mut data = CompilationData {
@@ -85,7 +86,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
 
     for (i, input) in inputs.iter().enumerate() {
         let name = format!("string-{}", i);
-        if let Ok(slice_file) = try_parse_string(&name, input, false, &mut data) {
+        if let Ok(slice_file) = try_parse_string(&name, input, false, &slice_options.definitions, &mut data) {
             data.files.insert(slice_file.filename.clone(), slice_file);
         }
     }
@@ -96,12 +97,18 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
     patch_ast(data)
 }
 
-fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut CompilationData) -> Result<SliceFile, ()> {
+fn try_parse_string(
+    file: &str,
+    raw_text: &str,
+    is_source: bool,
+    symbols: &[String],
+    data: &mut CompilationData,
+) -> Result<SliceFile, ()> {
     let ast = &mut data.ast;
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
     // Run the raw text through the preprocessor.
-    let mut defined_symbols = HashSet::new();
+    let mut defined_symbols = HashSet::from_iter(symbols.to_owned());
     let mut preprocessor = crate::parsers::Preprocessor::new(file, &mut defined_symbols, diagnostic_reporter);
     let preprocessed_text = preprocessor.parse_slice_file(raw_text)?;
 

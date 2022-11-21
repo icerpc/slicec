@@ -4,6 +4,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
+use test_case::test_case;
 
 #[test]
 fn can_have_no_parameters() {
@@ -186,17 +187,87 @@ fn can_have_return_tuple() {
 }
 
 #[test]
-#[ignore] // TODO: This validation is no longer done by the parser, and should be done by a validator.
-fn return_tuple_must_contain_two_or_more_elements() {
-    // Arrange
+fn operations_can_omit_throws_clause() {
     let slice = "
         module Test;
 
         interface I
         {
-            op() -> ();
+            op();
         }
     ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    assert!(matches!(&operation.throws, Throws::None));
+}
+
+#[test]
+fn operations_can_throw_specific_exceptions() {
+    let slice = "
+        module Test;
+
+        exception E {}
+
+        interface I
+        {
+            op() throws E;
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    assert!(matches!(
+        &operation.throws,
+        Throws::Specific(exception_ref) if exception_ref.parser_scoped_identifier() == "Test::E",
+    ));
+}
+
+#[test]
+fn operations_can_only_throw_exceptions() {
+    // Arrange
+    let slice = "
+        module Test;
+
+        struct S {}
+
+        interface I
+        {
+            op() throws S;
+        }
+    ";
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Error::new(
+        ErrorKind::Syntax("type mismatch: expected an exception but found a struct".to_owned()),
+        None,
+    );
+    assert_errors!(diagnostic_reporter, [&expected]);
+}
+
+#[test_case("()"; "0 elements")]
+#[test_case("(b: bool)"; "1 element")]
+fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
+    // Arrange
+    let slice = format!(
+        "
+            module Test;
+
+            interface I
+            {{
+                op() -> {return_tuple};
+            }}
+        "
+    );
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);

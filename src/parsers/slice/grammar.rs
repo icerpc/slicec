@@ -89,7 +89,7 @@ fn handle_file_encoding(
     (Some(encoding), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: i64, span: Span) -> FileEncoding {
+fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEncoding {
     let version = match i {
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
@@ -313,15 +313,20 @@ fn construct_operation(
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
     return_type: Option<Vec<OwnedPtr<Parameter>>>,
+    exception_specification: Option<Throws>,
     span: Span,
 ) -> OwnedPtr<Operation> {
     // If no return type was provided set the return type to an empty Vec.
     let mut return_type = return_type.unwrap_or_default();
 
+    // If no throws clause was present, set the exception specification to `None`.
+    let throws = exception_specification.unwrap_or(Throws::None);
+
     let mut operation_ptr = OwnedPtr::new(Operation {
         identifier,
         parameters: Vec::new(),
         return_type: Vec::new(),
+        throws,
         is_idempotent,
         encoding: parser.file_encoding,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
@@ -393,6 +398,15 @@ fn construct_single_return_type(
     })]
 }
 
+fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter>>, span: Span) {
+    if return_tuple.len() < 2 {
+        parser.diagnostic_reporter.report_error(Error::new(
+            ErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
+            Some(&span),
+        ));
+    }
+}
+
 fn construct_enum(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
@@ -430,28 +444,14 @@ fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    explicit_value: Option<i64>,
+    explicit_value: Option<i128>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     // If an explicit value was provided use it, otherwise compute an implicit value.
     // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-    let value = explicit_value.unwrap_or_else(|| {
+    let value = explicit_value.unwrap_or({
         match parser.last_enumerator_value {
-            Some(last_value) => {
-                if last_value == i64::MAX {
-                    parser.diagnostic_reporter.report_error(Error::new_with_notes(
-                        ErrorKind::ImplicitEnumeratorValueOverflows(identifier.value.clone()),
-                        Some(&span),
-                        vec![Note::new(
-                            "enumerators without an explicit value are set to the previous enumerator's value plus one\nconsider decreasing the last explicit value that came before this enumerator",
-                            None,
-                        )],
-                    ));
-                    0 // Dummy value
-                } else {
-                    last_value + 1
-                }
-            },
+            Some(last_value) => last_value.wrapping_add(1),
             None => 0,
         }
     });
@@ -555,7 +555,7 @@ fn try_construct_attribute(
     )
 }
 
-fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
+fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
     // Check the literal for a base prefix. If present, remove it and set the base.
     // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
     let (literal, base) = match s {
@@ -564,12 +564,12 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
         _ => (s, 10),
     };
 
-    match i64::from_str_radix(literal, base) {
+    match i128::from_str_radix(literal, base) {
         Ok(x) => x,
         Err(err) => {
             let error = match err.kind() {
                 IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral(base),
-                _ => ErrorKind::IntegerLiteralTooLarge,
+                _ => ErrorKind::IntegerLiteralOverflows,
             };
             parser.diagnostic_reporter.report_error(Error::new(error, Some(&span)));
             0 // Dummy value
@@ -577,8 +577,8 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i64 {
     }
 }
 
-fn parse_tag_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
+fn parse_tag_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
         parser
             .diagnostic_reporter
             .report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(&span)));
@@ -586,8 +586,8 @@ fn parse_tag_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
     i as u32
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: i64, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i64).contains(&i) {
+fn parse_compact_id_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
         parser
             .diagnostic_reporter
             .report_error(Error::new(ErrorKind::CompactIdOutOfBounds, Some(&span)));

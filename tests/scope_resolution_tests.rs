@@ -10,7 +10,6 @@ mod scope_resolution {
     use slice::grammar::*;
 
     #[test]
-    #[ignore] // TODO: This validation is no longer done by the parser, and should be done by a validator.
     fn file_scoped_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "
@@ -25,7 +24,7 @@ mod scope_resolution {
 
         // Assert
         let expected = Error::new_with_notes(
-            ErrorKind::Syntax("file level modules cannot contain sub-modules".to_owned()),
+            ErrorKind::FileScopedModuleCannotContainSubModules("T".to_owned()),
             None,
             vec![Note::new("file level module 'T' declared here", None)],
         );
@@ -272,7 +271,6 @@ mod scope_resolution {
     }
 
     #[test]
-    #[ignore = "reason: TODO Need to update AST Error emission"]
     fn missing_type_should_fail() {
         // Arrange
         let slice = "

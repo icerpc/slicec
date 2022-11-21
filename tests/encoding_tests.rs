@@ -7,7 +7,6 @@ mod encodings {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
     use slice::diagnostics::{Error, ErrorKind};
-    use slice::parse_from_strings;
     use test_case::test_case;
 
     /// Verifies that the supported encodings compile
@@ -44,7 +43,6 @@ mod encodings {
     }
 
     #[test]
-    #[ignore = "No error message is being emitted"]
     fn encoding_must_be_first() {
         // Arrange
         let slice = "
@@ -53,9 +51,10 @@ mod encodings {
         ";
 
         // Act
-        let error = parse_from_strings(&[slice], None).err().is_some();
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert!(error);
+        let expected = Error::new(ErrorKind::Syntax("expected one of \"[\", class_keyword, compact_keyword, custom_keyword, doc_comment, enum_keyword, exception_keyword, interface_keyword, module_keyword, struct_keyword, type_alias_keyword, unchecked_keyword, but found 'EncodingKeyword'".to_owned()), None);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
