@@ -14,6 +14,7 @@ mod output {
             diagnostic_format: DiagnosticFormat::Human,
             validate: false,
             output_dir: None,
+            definitions: vec![],
         }
     }
 
