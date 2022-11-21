@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::grammar::attributes;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
 
@@ -98,34 +97,36 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        match self.get_attribute(attributes::COMPRESS, false) {
-            Some(AttributeKind::Compress {
-                compress_args,
-                compress_return: _,
-            }) => *compress_args,
+        self.attributes(false).iter().any(|a| match a.kind {
+            AttributeKind::Compress { compress_args, .. } => compress_args,
             _ => false,
-        }
+        })
     }
 
     pub fn compress_return(&self) -> bool {
-        match self.get_attribute(attributes::COMPRESS, false) {
-            Some(AttributeKind::Compress {
+        self.attributes(false).iter().any(|a| match a.kind {
+            AttributeKind::Compress {
                 compress_args: _,
                 compress_return,
-            }) => *compress_return,
+            } => compress_return,
             _ => false,
-        }
+        })
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        match self.get_attribute(attributes::FORMAT, true) {
-            Some(AttributeKind::Format { format }) => format.clone(),
-            _ => ClassFormat::Compact,
-        }
+        self.attributes(false)
+            .into_iter()
+            .find_map(|a| match &a.kind {
+                AttributeKind::ClassFormat { format } => Some(format.clone()),
+                _ => None,
+            })
+            .unwrap_or(ClassFormat::Compact)
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.has_attribute(attributes::ONEWAY, false)
+        self.attributes(false)
+            .iter()
+            .any(|a| matches!(&a.kind, AttributeKind::Oneway))
     }
 }
 
