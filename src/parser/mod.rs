@@ -75,6 +75,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         diagnostic_format: DiagnosticFormat::Human,
         validate: false,
         output_dir: None,
+        definitions: vec![],
     });
 
     let mut data = CompilationData {
@@ -101,7 +102,7 @@ fn try_parse_string(file: &str, raw_text: &str, is_source: bool, data: &mut Comp
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
     // Run the raw text through the preprocessor.
-    let mut defined_symbols = HashSet::new();
+    let mut defined_symbols = HashSet::from_iter(diagnostic_reporter.definitions.clone());
     let mut preprocessor = crate::parsers::Preprocessor::new(file, &mut defined_symbols, diagnostic_reporter);
     let preprocessed_text = preprocessor.parse_slice_file(raw_text)?;
 
