@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod comments;
-mod cycle_detection;
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
@@ -131,11 +130,6 @@ fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
         unsafe {
             compilation_data = crate::ast::patch_ast(compilation_data)?;
         }
-    }
-
-    // TODO move this to a validator now that the patchers can handle traversing cycles on their own.
-    if !compilation_data.has_errors() {
-        cycle_detection::detect_cycles(&compilation_data.files, &mut compilation_data.diagnostic_reporter);
     }
 
     compilation_data.into()
