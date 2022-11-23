@@ -49,7 +49,7 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
     // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
-    data.diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
+    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
 
     // Check for any cyclic data structures. If any exist, exit early to avoid infinite loops during validation.
     cycle_detection::detect_cycles(&data.files, diagnostic_reporter);
