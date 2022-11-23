@@ -36,14 +36,10 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
         }
     }
 
-    let mut string_paths = slice_paths
+    slice_paths
         .into_iter()
         .map(|path| path.to_str().unwrap().to_owned())
-        .collect::<Vec<_>>();
-
-    string_paths.sort();
-    string_paths.dedup();
-    string_paths
+        .collect()
 }
 
 fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
