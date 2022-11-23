@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::ast::Ast;
-use crate::command_line::DiagnosticFormat;
+use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::*;
 use crate::slice_file::{SliceFile, Span};
 use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
@@ -16,6 +16,14 @@ pub struct CompilationData {
 }
 
 impl CompilationData {
+    pub fn create(options: &SliceOptions) -> Self {
+        CompilationData {
+            ast: Ast::create(),
+            diagnostic_reporter: DiagnosticReporter::new(options),
+            files: HashMap::new(),
+        }
+    }
+
     pub fn into_exit_code(self) -> i32 {
         // We need to check if there are any errors before printing diagnostics since emit_diagnostics consumes the
         // diagnostics reporter.

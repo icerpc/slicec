@@ -2,14 +2,13 @@
 
 pub mod comments;
 
-use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
+use crate::diagnostics::{Error, ErrorKind};
 use crate::slice_file::SliceFile;
 use crate::utils::file_util;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including
@@ -17,11 +16,7 @@ use std::collections::{HashMap, HashSet};
 // undefined behavior.
 
 pub fn parse_files(options: &SliceOptions) -> CompilationResult {
-    let mut data = CompilationData {
-        ast: Ast::create(),
-        diagnostic_reporter: DiagnosticReporter::new(options),
-        files: HashMap::new(),
-    };
+    let mut data = CompilationData::create(options);
 
     let source_files = file_util::find_slice_files(&options.sources);
     let mut reference_files = file_util::find_slice_files(&options.references);
@@ -72,11 +67,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         definitions: vec![],
     });
 
-    let mut data = CompilationData {
-        ast: Ast::create(),
-        diagnostic_reporter: DiagnosticReporter::new(&slice_options),
-        files: HashMap::new(),
-    };
+    let mut data = CompilationData::create(&slice_options);
 
     for (i, input) in inputs.iter().enumerate() {
         let name = format!("string-{}", i);
