@@ -6,7 +6,6 @@ use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
-use crate::grammar::attributes;
 use crate::slice_file::SliceFile;
 use crate::utils::file_util;
 
@@ -43,9 +42,6 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
             data.files.insert(path.to_owned(), slice_file);
         }
     }
-
-    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
-    data.diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
 
     patch_ast(data)
 }
@@ -88,9 +84,6 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
             data.files.insert(slice_file.filename.clone(), slice_file);
         }
     }
-
-    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
-    data.diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
 
     patch_ast(data)
 }
@@ -139,19 +132,4 @@ fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     }
 
     compilation_data.into()
-}
-
-// Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
-// `ignoreWarnings` attribute and the values are the arguments of the attribute.
-fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
-    files
-        .iter()
-        .filter_map(|(path, file)| {
-            file.attributes
-                .iter()
-                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
-                .map(|attr| attr.arguments.clone())
-                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
-        })
-        .collect()
 }
