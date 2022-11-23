@@ -2,15 +2,13 @@
 
 pub mod comments;
 
-use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
-use crate::grammar::attributes;
+use crate::diagnostics::{Error, ErrorKind};
 use crate::slice_file::SliceFile;
 use crate::utils::file_util;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 // NOTE! it is NOT safe to call any methods on any of the slice entities during parsing.
 // Slice entities are NOT considered fully constructed until AFTER parsing is finished (including
@@ -18,11 +16,7 @@ use std::collections::{HashMap, HashSet};
 // undefined behavior.
 
 pub fn parse_files(options: &SliceOptions) -> CompilationResult {
-    let mut data = CompilationData {
-        ast: Ast::create(),
-        diagnostic_reporter: DiagnosticReporter::new(options),
-        files: HashMap::new(),
-    };
+    let mut data = CompilationData::create(options);
 
     let source_files = file_util::find_slice_files(&options.sources);
     let mut reference_files = file_util::find_slice_files(&options.references);
@@ -44,10 +38,7 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
         }
     }
 
-    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
-    data.diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
-
-    patch_ast(data)
+    data.into()
 }
 
 fn try_parse_file(file: &str, is_source: bool, symbols: &[String], data: &mut CompilationData) -> Option<SliceFile> {
@@ -76,11 +67,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         definitions: vec![],
     });
 
-    let mut data = CompilationData {
-        ast: Ast::create(),
-        diagnostic_reporter: DiagnosticReporter::new(&slice_options),
-        files: HashMap::new(),
-    };
+    let mut data = CompilationData::create(&slice_options);
 
     for (i, input) in inputs.iter().enumerate() {
         let name = format!("string-{}", i);
@@ -89,10 +76,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         }
     }
 
-    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
-    data.diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
-
-    patch_ast(data)
+    data.into()
 }
 
 fn try_parse_string(
@@ -128,30 +112,4 @@ fn try_parse_string(
         file_encoding,
         is_source,
     ))
-}
-
-fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
-    // TODO integrate this better with CompilationData in the future.
-    if !compilation_data.has_errors() {
-        unsafe {
-            compilation_data = crate::ast::patch_ast(compilation_data)?;
-        }
-    }
-
-    compilation_data.into()
-}
-
-// Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
-// `ignoreWarnings` attribute and the values are the arguments of the attribute.
-fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
-    files
-        .iter()
-        .filter_map(|(path, file)| {
-            file.attributes
-                .iter()
-                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
-                .map(|attr| attr.arguments.clone())
-                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
-        })
-        .collect()
 }

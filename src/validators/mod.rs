@@ -13,8 +13,10 @@ use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
+use crate::slice_file::SliceFile;
 use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
+use std::collections::HashMap;
 
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
@@ -46,6 +48,9 @@ pub enum Validator {
 pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
+    // Update the diagnostic reporter with the slice files that contain the file level ignoreWarnings attribute.
+    diagnostic_reporter.file_level_ignored_warnings = file_ignored_warnings_map(&data.files);
+
     // Check for any cyclic data structures. If any exist, exit early to avoid infinite loops during validation.
     cycle_detection::detect_cycles(&data.files, diagnostic_reporter);
     if diagnostic_reporter.has_errors() {
@@ -58,6 +63,21 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
     }
 
     data.into()
+}
+
+// Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
+// `ignoreWarnings` attribute and the values are the arguments of the attribute.
+fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<String, Vec<String>> {
+    files
+        .iter()
+        .filter_map(|(path, file)| {
+            file.attributes
+                .iter()
+                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
+                .map(|attr| attr.arguments.clone())
+                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
+        })
+        .collect()
 }
 
 struct ValidatorVisitor<'a> {
