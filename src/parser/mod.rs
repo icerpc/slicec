@@ -43,7 +43,7 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
         }
     }
 
-    patch_ast(data)
+    data.into()
 }
 
 fn try_parse_file(file: &str, is_source: bool, symbols: &[String], data: &mut CompilationData) -> Option<SliceFile> {
@@ -85,7 +85,7 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
         }
     }
 
-    patch_ast(data)
+    data.into()
 }
 
 fn try_parse_string(
@@ -121,15 +121,4 @@ fn try_parse_string(
         file_encoding,
         is_source,
     ))
-}
-
-fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
-    // TODO integrate this better with CompilationData in the future.
-    if !compilation_data.has_errors() {
-        unsafe {
-            compilation_data = crate::ast::patch_ast(compilation_data)?;
-        }
-    }
-
-    compilation_data.into()
 }

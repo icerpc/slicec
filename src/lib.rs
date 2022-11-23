@@ -20,12 +20,15 @@ pub extern crate convert_case;
 
 use crate::command_line::SliceOptions;
 use crate::compilation_result::CompilationResult;
-use crate::validators::validate_compilation_data;
 
 pub fn parse_from_options(options: &SliceOptions) -> CompilationResult {
-    parser::parse_files(options).and_then(validate_compilation_data)
+    parser::parse_files(options)
+        .and_then(|data| unsafe { ast::patch_ast(data) })
+        .and_then(validators::validate_compilation_data)
 }
 
 pub fn parse_from_strings(inputs: &[&str], option: Option<SliceOptions>) -> CompilationResult {
-    parser::parse_strings(inputs, option).and_then(validate_compilation_data)
+    parser::parse_strings(inputs, option)
+        .and_then(|data| unsafe { ast::patch_ast(data) })
+        .and_then(validators::validate_compilation_data)
 }
