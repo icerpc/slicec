@@ -367,7 +367,8 @@ impl ComputeSupportedEncodings for Interface {
                 Throws::None => {}
                 Throws::Specific(exception_type) => {
                     // Ensure the exception is supported by the operation's (file's) encoding.
-                    if !patcher.get_supported_encodings_for(exception_type.definition()).supports(file_encoding) {
+                    let exception_def = exception_type.definition();
+                    if !patcher.get_supported_encodings_for(exception_def).supports(file_encoding) {
                         let error = Error::new_with_notes(
                             ErrorKind::UnsupportedType(exception_type.type_string(), *file_encoding),
                             Some(exception_type.span()),
