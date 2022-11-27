@@ -366,8 +366,15 @@ impl ComputeSupportedEncodings for Interface {
             match &operation.throws {
                 Throws::None => {}
                 Throws::Specific(exception_type) => {
-                    // This method automatically emits errors for encoding mismatches.
-                    patcher.get_supported_encodings_for_type_ref(exception_type, file_encoding, false);
+                    // Ensure the exception is supported by the operation's (file's) encoding.
+                    if !patcher.get_supported_encodings_for(exception_type.definition()).supports(file_encoding) {
+                        let error = Error::new_with_notes(
+                            ErrorKind::UnsupportedType(exception_type.type_string(), *file_encoding),
+                            Some(exception_type.span()),
+                            patcher.get_file_encoding_mismatch_notes(exception_type),
+                        );
+                        patcher.diagnostic_reporter.report_error(error);
+                    }
                 }
                 Throws::AnyException => {
                     if *file_encoding != Encoding::Slice1 {
