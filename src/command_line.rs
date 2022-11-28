@@ -46,6 +46,21 @@ pub struct SliceOptions {
     pub disable_color: bool,
 }
 
+impl Default for SliceOptions {
+    fn default() -> Self {
+        SliceOptions {
+            sources: vec![],
+            references: vec![],
+            warn_as_error: true,
+            disable_color: false,
+            diagnostic_format: DiagnosticFormat::Human,
+            validate: false,
+            output_dir: None,
+            definitions: vec![],
+        }
+    }
+}
+
 const SLICE_FILE_EXTENSION: &str = "slice";
 
 fn is_valid_source(s: &str) -> Result<String, String> {

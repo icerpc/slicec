@@ -2,11 +2,11 @@
 
 use slice::ast::Ast;
 use slice::diagnostics::DiagnosticReporter;
-use slice::parse_from_strings;
+use slice::compile_from_strings;
 
 /// This function is used to parse a Slice file and return the AST.
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
-    match parse_from_strings(&[&slice.into()], None) {
+    match compile_from_strings(&[&slice.into()], None) {
         Ok(data) => data.ast,
         Err(e) => panic!("{:?}", e.diagnostic_reporter),
     }
@@ -14,7 +14,7 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 
 /// This function is used to parse a Slice file and return the DiagnosticReporter.
 pub fn parse_for_diagnostics(slice: impl Into<String>) -> DiagnosticReporter {
-    match parse_from_strings(&[&slice.into()], None) {
+    match compile_from_strings(&[&slice.into()], None) {
         Ok(data) => data.diagnostic_reporter,
         Err(data) => data.diagnostic_reporter,
     }

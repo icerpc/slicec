@@ -8,7 +8,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::*;
-use slice::parse_from_strings;
+use slice::compile_from_strings;
 
 #[test]
 fn can_have_no_operations() {
@@ -43,7 +43,7 @@ fn can_have_self_referencing_operations() {
     ";
 
     // Act
-    let result = parse_from_strings(&[slice], None);
+    let result = compile_from_strings(&[slice], None);
 
     // Assert
     assert!(result.is_ok());

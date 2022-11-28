@@ -4,7 +4,7 @@ mod command_line {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::grammar::*;
-    use slice::parse_from_strings;
+    use slice::compile_from_strings;
 
     fn default_options() -> SliceOptions {
         SliceOptions {
@@ -37,7 +37,7 @@ mod command_line {
         default_options.definitions = vec!["Foo".to_string()];
 
         // Act
-        let compilation_data = parse_from_strings(&[slice], Some(default_options)).unwrap();
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).unwrap();
 
         // Assert
         assert!(compilation_data.ast.find_element::<Operation>("Test::I::op").is_ok());

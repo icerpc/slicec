@@ -4,7 +4,7 @@ use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::Encoding;
-use slice::parse_from_strings;
+use slice::compile_from_strings;
 
 #[test]
 fn operation_members_are_compatible_with_encoding() {
@@ -28,7 +28,7 @@ fn operation_members_are_compatible_with_encoding() {
     ";
 
     // Act
-    let result = parse_from_strings(&[slice1, slice2], None).err().unwrap();
+    let result = compile_from_strings(&[slice1, slice2], None).err().unwrap();
 
     // Assert
     let expected = Error::new_with_notes(
