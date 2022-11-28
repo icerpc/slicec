@@ -57,7 +57,7 @@ pub struct SliceFile {
 }
 
 impl SliceFile {
-    pub fn new_unparsed(relative_path: String, raw_text: String, is_source: bool) -> Self {
+    pub fn new(relative_path: String, raw_text: String, is_source: bool) -> Self {
         // Store the starting position of each line the file.
         // Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.

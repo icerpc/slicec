@@ -21,7 +21,7 @@ pub fn parse_files(options: &SliceOptions) -> CompilationResult {
     let mut data = CompilationData::create(options);
 
     // Recursively resolve any Slice files contained in the paths specified by the user.
-    let files = file_util::get_files_from_options(options, &mut data.diagnostic_reporter);
+    let files = file_util::resolve_files_from(options, &mut data.diagnostic_reporter);
 
     // If any files were unreadable, return without parsing. Otherwise, parse the files normally.
     match data.diagnostic_reporter.has_errors() {
@@ -46,12 +46,12 @@ pub fn parse_strings(inputs: &[&str], options: Option<SliceOptions>) -> Compilat
     let data = CompilationData::create(&slice_options);
 
     // Create a Slice file from each of the strings.
-    let mut string_files = Vec::new();
+    let mut files = Vec::new();
     for (i, &input) in inputs.iter().enumerate() {
-        string_files.push(SliceFile::new_unparsed(format!("string-{i}"), input.to_owned(), false))
+        files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
     }
 
-    parse_files_impl(string_files, data, &slice_options)
+    parse_files_impl(files, data, &slice_options)
 }
 
 fn parse_files_impl(mut files: Vec<SliceFile>, mut data: CompilationData, options: &SliceOptions) -> CompilationResult {

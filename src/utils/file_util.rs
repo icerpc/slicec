@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::{fs, io};
 
-pub fn get_files_from_options(options: &SliceOptions, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<SliceFile> {
+pub fn resolve_files_from_options(options: &SliceOptions, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<SliceFile> {
     // Create a map of all the Slice files with entries like: (absolute_path, is_source).
     // HashMap protects against files being passed twice (as reference and source).
     // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
@@ -20,7 +20,7 @@ pub fn get_files_from_options(options: &SliceOptions, diagnostic_reporter: &mut 
     let mut files = Vec::new();
     for (file_path, is_source) in file_paths {
         match fs::read_to_string(&file_path) {
-            Ok(raw_text) => files.push(SliceFile::new_unparsed(file_path, raw_text, is_source)),
+            Ok(raw_text) => files.push(SliceFile::new(file_path, raw_text, is_source)),
             Err(err) => diagnostic_reporter.report_error(Error::new(ErrorKind::IO(err), None)),
         }
     }
