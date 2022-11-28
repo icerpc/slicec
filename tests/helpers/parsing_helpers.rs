@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use slice::ast::Ast;
-use slice::diagnostics::DiagnosticReporter;
 use slice::compile_from_strings;
+use slice::diagnostics::DiagnosticReporter;
 
 /// This function is used to parse a Slice file and return the AST.
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {

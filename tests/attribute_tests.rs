@@ -537,8 +537,8 @@ mod attributes {
     mod generalized_api {
 
         use crate::helpers::parsing_helpers::parse_for_ast;
-        use slice::grammar::*;
         use slice::compile_from_strings;
+        use slice::grammar::*;
         use test_case::test_case;
 
         #[test]

@@ -5,8 +5,8 @@ pub mod helpers;
 mod typealias {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
-    use slice::grammar::*;
     use slice::compile_from_strings;
+    use slice::grammar::*;
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", 2 ; "structs")]

@@ -39,7 +39,7 @@ mod output {
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -82,7 +82,7 @@ mod output {
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 

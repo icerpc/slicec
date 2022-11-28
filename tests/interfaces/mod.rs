@@ -6,9 +6,9 @@ mod operations;
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
+use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::*;
-use slice::compile_from_strings;
 
 #[test]
 fn can_have_no_operations() {

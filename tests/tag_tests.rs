@@ -6,9 +6,9 @@ mod tags {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind, Note};
     use slice::grammar::*;
-    use slice::compile_from_strings;
     use test_case::test_case;
 
     #[test]

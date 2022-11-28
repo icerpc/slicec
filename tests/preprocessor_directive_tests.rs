@@ -3,8 +3,8 @@
 mod command_line {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
-    use slice::grammar::*;
     use slice::compile_from_strings;
+    use slice::grammar::*;
 
     fn default_options() -> SliceOptions {
         SliceOptions {

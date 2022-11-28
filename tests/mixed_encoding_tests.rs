@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
+use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::Encoding;
-use slice::compile_from_strings;
 
 #[test]
 fn valid_mixed_encoding_works() {

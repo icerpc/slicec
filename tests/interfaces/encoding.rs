@@ -2,9 +2,9 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
+use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::Encoding;
-use slice::compile_from_strings;
 
 #[test]
 fn operation_members_are_compatible_with_encoding() {
