@@ -10,7 +10,7 @@ use std::path::Path;
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Debug, Parser)]
+#[derive(Debug, Default, Parser)]
 #[command(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
 pub struct SliceOptions {
     /// List of slice files to compile.
@@ -46,21 +46,6 @@ pub struct SliceOptions {
     pub disable_color: bool,
 }
 
-impl Default for SliceOptions {
-    fn default() -> Self {
-        SliceOptions {
-            sources: vec![],
-            references: vec![],
-            warn_as_error: true,
-            disable_color: false,
-            diagnostic_format: DiagnosticFormat::Human,
-            validate: false,
-            output_dir: None,
-            definitions: vec![],
-        }
-    }
-}
-
 const SLICE_FILE_EXTENSION: &str = "slice";
 
 fn is_valid_source(s: &str) -> Result<String, String> {
@@ -89,4 +74,10 @@ fn is_valid_reference(s: &str) -> Result<String, String> {
 pub enum DiagnosticFormat {
     Human,
     Json,
+}
+
+impl Default for DiagnosticFormat {
+    fn default() -> Self {
+        DiagnosticFormat::Human
+    }
 }
