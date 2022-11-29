@@ -30,11 +30,11 @@ fn parse_file(
     mut symbols: HashSet<String>,
 ) {
     // Preprocess the file's raw text.
-    let mut preprocessor = Preprocessor::new(&file.filename, &mut symbols, diagnostic_reporter);
+    let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
 
     // Parse the preprocessed text.
-    let mut parser = Parser::new(&file.filename, ast, diagnostic_reporter);
+    let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
     let Ok((encoding, attributes, modules)) = parser.parse_slice_file(preprocessed_text) else { return; };
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.

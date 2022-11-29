@@ -55,7 +55,7 @@ pub fn compile_from_strings(inputs: &[&str], options: Option<SliceOptions>) -> C
 
 fn compile_files(files: Vec<SliceFile>, mut data: CompilationData, options: &SliceOptions) -> CompilationResult {
     // Convert the `Vec<SliceFile>` into a `HashMap<absolute_path, SliceFile>` for easier lookup, and store it.
-    data.files = files.into_iter().map(|file| (file.filename.clone(), file)).collect();
+    data.files = files.into_iter().map(|f| (f.relative_path.clone(), f)).collect();
 
     // Retrieve any preprocessor symbols defined by the compiler itself, or by the user on the command line.
     let defined_symbols = HashSet::from_iter(options.definitions.iter().cloned());
