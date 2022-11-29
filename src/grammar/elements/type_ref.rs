@@ -89,6 +89,10 @@ impl<T: Element + ?Sized> Attributable for TypeRef<T> {
         assert!(!include_parent);
         self.attributes.iter().collect()
     }
+
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+        vec![self.attributes(false)]
+    }
 }
 
 impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {

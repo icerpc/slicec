@@ -98,20 +98,17 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        self.attributes(false).iter().any(|a| match a.kind {
-            AttributeKind::Compress { compress_args, .. } => compress_args,
-            _ => false,
-        })
+        match self.get_attribute(false, Attribute::match_compress) {
+            Some((compress_args, ..)) => compress_args,
+            None => false,
+        }
     }
 
     pub fn compress_return(&self) -> bool {
-        self.attributes(false).iter().any(|a| match a.kind {
-            AttributeKind::Compress {
-                compress_args: _,
-                compress_return,
-            } => compress_return,
-            _ => false,
-        })
+        match self.get_attribute(false, Attribute::match_compress) {
+            Some((.., compress_return)) => compress_return,
+            None => false,
+        }
     }
 
     pub fn class_format(&self) -> ClassFormat {

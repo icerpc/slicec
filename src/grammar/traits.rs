@@ -47,6 +47,23 @@ pub trait NamedSymbol: ScopedSymbol {
 
 pub trait Attributable {
     fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
+
+    fn has_attribute<P, T>(&self, include_parent: bool, predicate: P) -> bool
+    where
+        Self: Sized,
+        P: FnMut(&Attribute) -> Option<T>,
+    {
+        self.get_attribute(include_parent, predicate).is_some()
+    }
+
+    fn get_attribute<P, T>(&self, include_parent: bool, predicate: P) -> Option<T>
+    where
+        Self: Sized,
+        P: FnMut(&Attribute) -> Option<T>,
+    {
+        self.attributes(include_parent).into_iter().find_map(predicate)
+    }
 }
 
 pub trait Commentable {
@@ -153,6 +170,16 @@ macro_rules! implement_Attributable_for {
                 }
 
                 attributes
+            }
+
+            fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+                let mut attributes_list = vec![self.attributes(false)];
+
+                if let Some(parent) = self.parent() {
+                    attributes_list.extend(parent.all_attributes());
+                }
+
+                attributes_list
             }
         }
     };

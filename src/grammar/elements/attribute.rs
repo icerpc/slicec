@@ -29,6 +29,44 @@ impl Attribute {
             AttributeKind::Other { directive, .. } => directive,
         }
     }
+
+    pub fn match_deprecated(attribute: &Attribute) -> Option<&Option<String>> {
+        match &attribute.kind {
+            AttributeKind::Deprecated { reason } => Some(reason),
+            _ => None,
+        }
+    }
+
+    pub fn match_compress(attribute: &Attribute) -> Option<(bool, bool)> {
+        match &attribute.kind {
+            AttributeKind::Compress {
+                compress_args,
+                compress_return,
+            } => Some((*compress_args, *compress_return)),
+            _ => None,
+        }
+    }
+
+    pub fn match_class_format(attribute: &Attribute) -> Option<&ClassFormat> {
+        match &attribute.kind {
+            AttributeKind::ClassFormat { format } => Some(format),
+            _ => None,
+        }
+    }
+
+    pub fn match_ignore_warnings(attribute: &Attribute) -> Option<&Option<Vec<String>>> {
+        match &attribute.kind {
+            AttributeKind::IgnoreWarnings { warning_codes } => Some(warning_codes),
+            _ => None,
+        }
+    }
+
+    pub fn match_oneway(attribute: &Attribute) -> Option<()> {
+        match &attribute.kind {
+            AttributeKind::Oneway => Some(()),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -121,6 +159,7 @@ impl AttributeKind {
                     })
                 }
             }
+            ONEWAY => Some(AttributeKind::Oneway),
             DEPRECATED => Some(AttributeKind::Deprecated {
                 reason: arguments.get(0).map(|arg| arg.to_owned()),
             }),

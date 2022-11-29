@@ -185,4 +185,8 @@ impl Attributable for SliceFile {
         assert!(!include_parent);
         self.attributes.iter().collect()
     }
+
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+        vec![self.attributes(false)]
+    }
 }
