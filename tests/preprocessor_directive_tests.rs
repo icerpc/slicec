@@ -13,7 +13,7 @@ mod command_line {
             warn_as_error: true,
             disable_color: false,
             diagnostic_format: DiagnosticFormat::Human,
-            validate: false,
+            dry_run: false,
             output_dir: None,
             definitions: vec![],
         }

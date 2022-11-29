@@ -31,7 +31,7 @@ pub struct SliceOptions {
 
     /// Validates input files without generating code for them.
     #[arg(long)]
-    pub validate: bool,
+    pub dry_run: bool,
 
     /// Output directory for generated code, defaults to the current working directory.
     #[arg(long)]
