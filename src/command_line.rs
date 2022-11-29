@@ -11,7 +11,7 @@ use std::path::Path;
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
 #[derive(Debug, Default, Parser)]
-#[command(rename_all = "kebab-case")] // Each compiler sets its own `about` message.
+#[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of slice files to compile.
     #[arg(required = true, value_parser = is_valid_source)]
