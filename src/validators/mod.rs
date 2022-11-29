@@ -62,7 +62,9 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
         slice_file.visit_with(&mut validator);
     }
 
-    data.into()
+    // We always return `Ok` here to ensure the language mapping's validation logic is run,
+    // instead of terminating early if this validator found any errors.
+    Ok(data)
 }
 
 // Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
