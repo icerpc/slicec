@@ -5,8 +5,8 @@ pub mod helpers;
 mod typealias {
 
     use crate::helpers::parsing_helpers::parse_for_ast;
+    use slice::compile_from_strings;
     use slice::grammar::*;
-    use slice::parse_from_strings;
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", 2 ; "structs")]
@@ -51,7 +51,7 @@ mod typealias {
         ";
 
         // Act
-        let result = parse_from_strings(&[slice], None);
+        let result = compile_from_strings(&[slice], None);
 
         // Assert
         assert!(result.is_ok());
@@ -70,7 +70,7 @@ mod typealias {
         ";
 
         // Act
-        let result = parse_from_strings(&[slice], None);
+        let result = compile_from_strings(&[slice], None);
 
         // Assert
         assert!(result.is_ok());

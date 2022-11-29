@@ -537,8 +537,8 @@ mod attributes {
     mod generalized_api {
 
         use crate::helpers::parsing_helpers::parse_for_ast;
+        use slice::compile_from_strings;
         use slice::grammar::*;
-        use slice::parse_from_strings;
         use test_case::test_case;
 
         #[test]
@@ -634,7 +634,7 @@ mod attributes {
             );
 
             // Act
-            let errors = parse_from_strings(&[&slice], None).err();
+            let errors = compile_from_strings(&[&slice], None).err();
 
             // Assert
             assert!(errors.is_some());

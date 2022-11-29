@@ -3,7 +3,7 @@
 mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
-    use slice::parse_from_strings;
+    use slice::compile_from_strings;
 
     fn default_options() -> SliceOptions {
         SliceOptions {
@@ -39,7 +39,7 @@ mod output {
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let compilation_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -82,7 +82,7 @@ mod output {
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let compilation_data = parse_from_strings(&[slice], Some(default_options)).expect_err("Expected Slice errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
