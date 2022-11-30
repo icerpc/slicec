@@ -25,30 +25,18 @@ impl CompilationData {
     }
 
     pub fn into_exit_code(self) -> i32 {
-        // We need to check if there are any errors before printing diagnostics since emit_diagnostics consumes the
-        // diagnostics reporter.
-        let has_errors = self.has_errors();
-
-        // Emit any diagnostics that were reported.
-        self.emit_diagnostics(&mut Term::stderr());
-
         // If there are any errors, return a non-zero exit code.
-        i32::from(has_errors)
-    }
+        let exit_code = self.diagnostic_reporter.get_exit_code();
 
-    pub fn has_errors(&self) -> bool {
-        self.diagnostic_reporter.has_errors()
-    }
+        // If any diagnostics were reported, emit them.
+        if self.diagnostic_reporter.has_diagnostics() {
+            self.emit_diagnostics(&mut Term::stderr());
+        }
 
-    pub fn has_diagnostics(&self) -> bool {
-        self.diagnostic_reporter.has_warnings() || self.has_errors()
+        exit_code
     }
 
     pub fn emit_diagnostics(self, writer: &mut impl Write) {
-        if !self.has_diagnostics() {
-            return;
-        }
-
         // Disable colors if the user requested no colors.
         if self.diagnostic_reporter.disable_color {
             set_colors_enabled(false);
@@ -152,7 +140,7 @@ impl CompilationData {
 
 impl From<CompilationData> for CompilationResult {
     fn from(compilation_data: CompilationData) -> Self {
-        match compilation_data.has_errors() {
+        match compilation_data.diagnostic_reporter.has_errors() {
             false => Ok(compilation_data),
             true => Err(compilation_data),
         }

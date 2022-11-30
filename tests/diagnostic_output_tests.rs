@@ -5,19 +5,6 @@ mod output {
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
 
-    fn default_options() -> SliceOptions {
-        SliceOptions {
-            sources: vec![],
-            references: vec![],
-            warn_as_error: true,
-            disable_color: false,
-            diagnostic_format: DiagnosticFormat::Human,
-            dry_run: false,
-            output_dir: None,
-            definitions: vec![],
-        }
-    }
-
     #[test]
     fn output_to_json() {
         let slice = r#"
@@ -35,11 +22,11 @@ mod output {
         "#;
 
         // Set the output format to JSON.
-        let mut default_options = default_options();
+        let mut default_options = SliceOptions::default();
         default_options.diagnostic_format = DiagnosticFormat::Json;
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -78,11 +65,11 @@ mod output {
         "#;
 
         // Disable ANSI codes.
-        let mut default_options = default_options();
+        let mut default_options = SliceOptions::default();
         default_options.disable_color = true;
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect_err("Expected errors");
+        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
