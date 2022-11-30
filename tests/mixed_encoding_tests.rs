@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
+use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind, Note};
 use slice::grammar::Encoding;
-use slice::parse_from_strings;
 
 #[test]
 fn valid_mixed_encoding_works() {
@@ -46,7 +46,7 @@ fn valid_mixed_encoding_works() {
     ";
 
     // Act
-    let parser_result = parse_from_strings(&[encoding2_slice, encoding1_slice], None);
+    let parser_result = compile_from_strings(&[encoding2_slice, encoding1_slice], None);
 
     // Assert
     assert!(parser_result.ok().is_some());
@@ -77,7 +77,7 @@ fn invalid_mixed_encoding_fails() {
     ";
 
     // Act
-    let parser_result = parse_from_strings(&[encoding1_slice, encoding2_slice], None);
+    let parser_result = compile_from_strings(&[encoding1_slice, encoding2_slice], None);
 
     // Assert
     // TODO: we should provide a better error message to the user here

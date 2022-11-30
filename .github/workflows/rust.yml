@@ -12,7 +12,7 @@ env:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
 
     steps:
     - uses: actions/checkout@v3
@@ -25,17 +25,18 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
+          Cargo.lock
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
         restore-keys: |
           ${{ runner.os }}-cargo-
     - name: 🔨 Build
-      run: cargo build --all --all-features
+      run: cargo build
     - name: 🧪 Test
-      run: cargo test --all --all-features
+      run: cargo test
     - name: 🔎 Lint
-      run: cargo clippy --all-features --no-deps
+      run: cargo clippy --no-deps
     - name: 📚 Generate Documentation
-      run: cargo doc --all --no-deps --document-private-items
+      run: cargo doc --no-deps --document-private-items
       env:
         RUSTDOCFLAGS: '-D warnings'
 

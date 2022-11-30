@@ -101,16 +101,32 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
 }
 
 fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    for member in members
-        .into_iter()
-        .filter(|member| member.is_tagged() && member.data_type().uses_classes())
-    {
-        let identifier = member.identifier().to_owned();
-        let error_kind = if member.data_type().is_class_type() {
-            ErrorKind::CannotTagClass(identifier)
-        } else {
-            ErrorKind::CannotTagContainingClass(identifier)
-        };
-        diagnostic_reporter.report_error(Error::new(error_kind, Some(member.span())));
+    // Helper function that recursively checks if a type is a class, or contains classes.
+    // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
+    fn uses_classes(typeref: &TypeRef) -> bool {
+        match typeref.definition().concrete_type() {
+            Types::Struct(struct_def) => struct_def.members().iter().any(|m| uses_classes(&m.data_type)),
+            Types::Class(_) => true,
+            Types::Exception(exception_def) => exception_def.all_members().iter().any(|m| uses_classes(&m.data_type)),
+            Types::Interface(_) => false,
+            Types::Enum(_) => false,
+            Types::CustomType(_) => false,
+            Types::Sequence(sequence) => uses_classes(&sequence.element_type),
+            // It is disallowed for key types to use classes, so we only need to check the value type.
+            Types::Dictionary(dictionary) => uses_classes(&dictionary.value_type),
+            Types::Primitive(primitive) => matches!(primitive, Primitive::AnyClass),
+        }
+    }
+
+    for member in members {
+        if member.is_tagged() && uses_classes(member.data_type()) {
+            let identifier = member.identifier().to_owned();
+            let error_kind = if member.data_type().is_class_type() {
+                ErrorKind::CannotTagClass(identifier)
+            } else {
+                ErrorKind::CannotTagContainingClass(identifier)
+            };
+            diagnostic_reporter.report_error(Error::new(error_kind, Some(member.span())));
+        }
     }
 }

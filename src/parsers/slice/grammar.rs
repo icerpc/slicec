@@ -306,6 +306,7 @@ fn construct_interface(
     interface_ptr
 }
 
+#[allow(clippy::too_many_arguments)]
 fn construct_operation(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),

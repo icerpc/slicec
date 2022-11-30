@@ -6,9 +6,9 @@ mod module {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
-    use slice::parse_from_strings;
     use test_case::test_case;
 
     #[test_case("{}", false; "normal")]
@@ -94,7 +94,7 @@ mod module {
         ";
 
         // Act
-        let err = parse_from_strings(&[slice], None).err();
+        let err = compile_from_strings(&[slice], None).err();
 
         // Assert
         // TODO: better error message once we replace the parser

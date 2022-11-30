@@ -41,10 +41,6 @@ impl Type for TypeAlias {
         self.underlying.min_wire_size()
     }
 
-    fn uses_classes(&self) -> bool {
-        self.underlying.uses_classes()
-    }
-
     fn is_class_type(&self) -> bool {
         self.underlying.is_class_type()
     }

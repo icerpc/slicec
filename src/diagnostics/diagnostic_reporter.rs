@@ -39,17 +39,23 @@ impl DiagnosticReporter {
 
     /// Checks if any errors have been reported during compilation.
     pub fn has_errors(&self) -> bool {
-        (self.error_count != 0) || (self.treat_warnings_as_errors && (self.warning_count != 0))
+        self.error_count != 0
     }
 
-    /// Checks if any warnings have been reported during compilation.
-    pub fn has_warnings(&self) -> bool {
-        self.warning_count != 0
+    /// Checks if any diagnostics (warnings or errors) have been reported during compilation.
+    pub fn has_diagnostics(&self) -> bool {
+        self.error_count + self.warning_count != 0
     }
 
     /// Returns the total number of errors and warnings reported through the diagnostic reporter.
     pub fn get_totals(&self) -> (usize, usize) {
         (self.error_count, self.warning_count)
+    }
+
+    /// Returns 1 if any errors were reported and 0 if no errors were reported.
+    /// If `treat_warnings_as_errors` is true, warnings well be counted as errors by this function.
+    pub fn get_exit_code(&self) -> i32 {
+        i32::from(self.has_errors() || (self.treat_warnings_as_errors && self.has_diagnostics()))
     }
 
     /// Consumes the diagnostic reporter, returning all the diagnostics that have been reported with it.

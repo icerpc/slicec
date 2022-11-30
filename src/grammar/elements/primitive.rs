@@ -141,10 +141,6 @@ impl Type for Primitive {
         }
     }
 
-    fn uses_classes(&self) -> bool {
-        matches!(self, Self::AnyClass)
-    }
-
     fn is_class_type(&self) -> bool {
         matches!(self, Self::AnyClass)
     }
