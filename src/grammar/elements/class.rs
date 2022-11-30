@@ -59,10 +59,6 @@ impl Type for Class {
         1 // A class may be encoded as an index instead of an instance, taking up 1 byte.
     }
 
-    fn uses_classes(&self) -> bool {
-        true
-    }
-
     fn is_class_type(&self) -> bool {
         true
     }

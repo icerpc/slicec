@@ -88,10 +88,6 @@ impl Type for Interface {
         2
     }
 
-    fn uses_classes(&self) -> bool {
-        false
-    }
-
     fn is_class_type(&self) -> bool {
         false
     }

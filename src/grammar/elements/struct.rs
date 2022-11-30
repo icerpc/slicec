@@ -49,10 +49,6 @@ impl Type for Struct {
         }
     }
 
-    fn uses_classes(&self) -> bool {
-        self.members().iter().any(|member| member.data_type.uses_classes())
-    }
-
     fn is_class_type(&self) -> bool {
         false
     }
