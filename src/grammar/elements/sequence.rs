@@ -44,10 +44,6 @@ impl Type for Sequence {
         1
     }
 
-    fn uses_classes(&self) -> bool {
-        self.element_type.uses_classes()
-    }
-
     fn is_class_type(&self) -> bool {
         false
     }

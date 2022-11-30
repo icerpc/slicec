@@ -59,10 +59,6 @@ impl Type for Enum {
         }
     }
 
-    fn uses_classes(&self) -> bool {
-        false
-    }
-
     fn is_class_type(&self) -> bool {
         false
     }
