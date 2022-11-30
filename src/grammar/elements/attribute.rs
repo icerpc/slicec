@@ -25,7 +25,7 @@ impl Attribute {
             AttributeKind::ClassFormat { .. } => FORMAT,
             AttributeKind::IgnoreWarnings { .. } => IGNORE_WARNINGS,
             AttributeKind::Oneway { .. } => ONEWAY,
-            AttributeKind::LanguageKind { directive, .. } => directive,
+            AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
         }
     }
@@ -47,9 +47,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_class_format(attribute: &Attribute) -> Option<&ClassFormat> {
+    pub fn match_class_format(attribute: &Attribute) -> Option<ClassFormat> {
         match &attribute.kind {
-            AttributeKind::ClassFormat { format } => Some(format),
+            AttributeKind::ClassFormat { format } => Some(format.clone()),
             _ => None,
         }
     }
@@ -71,35 +71,21 @@ impl Attribute {
 
 #[derive(Clone, Debug)]
 pub enum AttributeKind {
-    Deprecated {
-        reason: Option<String>,
-    },
-    Compress {
-        compress_args: bool,
-        compress_return: bool,
-    },
-    ClassFormat {
-        format: ClassFormat,
-    },
-    IgnoreWarnings {
-        warning_codes: Option<Vec<String>>,
-    },
+    Deprecated { reason: Option<String> },
+    Compress { compress_args: bool, compress_return: bool },
+    ClassFormat { format: ClassFormat },
+    IgnoreWarnings { warning_codes: Option<Vec<String>> },
     Oneway,
 
     // The following are used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
-    LanguageKind {
-        directive: String,
-        kind: Box<dyn LanguageKind>,
-    },
+    LanguageKind { kind: Box<dyn LanguageKind> },
 
-    Other {
-        directive: String,
-        arguments: Vec<String>,
-    },
+    Other { directive: String, arguments: Vec<String> },
 }
 
 pub trait LanguageKind {
+    fn directive(&self) -> &str;
     fn as_any(&self) -> &dyn std::any::Any;
     fn clone_kind(&self) -> Box<dyn LanguageKind>;
     fn debug_kind(&self) -> &str;

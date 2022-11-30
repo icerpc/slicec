@@ -112,12 +112,7 @@ impl Operation {
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        self.attributes(false)
-            .into_iter()
-            .find_map(|a| match &a.kind {
-                AttributeKind::ClassFormat { format } => Some(format.clone()),
-                _ => None,
-            })
+        self.get_attribute(true, Attribute::match_class_format)
             .unwrap_or(ClassFormat::Compact)
     }
 
