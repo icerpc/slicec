@@ -29,7 +29,7 @@ fn parse_file(
     diagnostic_reporter: &mut DiagnosticReporter,
     mut symbols: HashSet<String>,
 ) {
-    // Preprocess the file's raw text.
+    // Pre-process the file's raw text.
     let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
 

@@ -166,7 +166,7 @@ where
     }
 
     /// Reads and consumes a block comment from the buffer, ignoring it.
-    /// This function expects the lexer's curstor to be immediately after the opening "/*".
+    /// This function expects the lexer's cursor to be immediately after the opening "/*".
     fn consume_block_comment(&mut self) -> Result<(), ErrorKind> {
         let mut last_character_was_an_asterisk = false;
 
