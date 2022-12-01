@@ -37,5 +37,5 @@
     "nonterminal",
     "rustfmt"
   ],
-  "dictionaries": ["softwareTerms", "en_US", "companies", "misc", "lorem"]
+  "dictionaries": ["softwareTerms", "en_US", "companies", "misc", "lorem-ipsum"]
 }
