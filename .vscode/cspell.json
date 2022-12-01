@@ -16,7 +16,6 @@
     "encodable",
     "grcov",
     "lalrpop",
-    "nonstreamed",
     "peekable",
     "rsplit",
     "RUSTDOCFLAGS",

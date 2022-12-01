@@ -45,7 +45,7 @@ impl Operation {
             .collect()
     }
 
-    pub fn has_nonstreamed_parameters(&self) -> bool {
+    pub fn has_non_streamed_parameters(&self) -> bool {
         // Operations can have at most 1 streamed parameter. So, if it has more than 1 parameter
         // there must be non streamed parameters. Otherwise we check if the 1 parameter is
         // streamed.
@@ -56,7 +56,7 @@ impl Operation {
         }
     }
 
-    pub fn has_nonstreamed_return_members(&self) -> bool {
+    pub fn has_non_streamed_return_members(&self) -> bool {
         // Operations can have at most 1 streamed return member. So, if it has more than 1 member
         // there must be non streamed members. Otherwise we check if the 1 member is streamed.
         match self.return_type.len() {
@@ -66,7 +66,7 @@ impl Operation {
         }
     }
 
-    pub fn nonstreamed_parameters(&self) -> Vec<&Parameter> {
+    pub fn non_streamed_parameters(&self) -> Vec<&Parameter> {
         self.parameters()
             .iter()
             .filter(|parameter| !parameter.is_streamed)
@@ -74,7 +74,7 @@ impl Operation {
             .collect()
     }
 
-    pub fn nonstreamed_return_members(&self) -> Vec<&Parameter> {
+    pub fn non_streamed_return_members(&self) -> Vec<&Parameter> {
         self.return_members()
             .iter()
             .filter(|parameter| !parameter.is_streamed)
