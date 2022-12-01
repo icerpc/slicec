@@ -22,8 +22,10 @@ mod output {
         "#;
 
         // Set the output format to JSON.
-        let mut default_options = SliceOptions::default();
-        default_options.diagnostic_format = DiagnosticFormat::Json;
+        let default_options = SliceOptions {
+            diagnostic_format: DiagnosticFormat::Json,
+            ..Default::default()
+        };
 
         // Parse the Slice file.
         let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");
@@ -65,8 +67,10 @@ mod output {
         "#;
 
         // Disable ANSI codes.
-        let mut default_options = SliceOptions::default();
-        default_options.disable_color = true;
+        let default_options = SliceOptions {
+            disable_color: true,
+            ..Default::default()
+        };
 
         // Parse the Slice file.
         let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");

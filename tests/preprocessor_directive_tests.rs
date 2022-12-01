@@ -20,8 +20,10 @@ mod command_line {
         # endif
         ";
 
-        let mut default_options = SliceOptions::default();
-        default_options.definitions = vec!["Foo".to_string()];
+        let default_options = SliceOptions {
+            definitions: vec!["Foo".to_string()],
+            ..Default::default()
+        };
 
         // Act
         let compilation_data = compile_from_strings(&[slice], Some(default_options)).unwrap();
