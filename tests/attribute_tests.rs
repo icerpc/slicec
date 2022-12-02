@@ -560,9 +560,19 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "foo::bar");
-            assert_eq!(operation.attributes[0].arguments.len(), 0);
+            let (directive, arguments) = operation
+                .attributes(false)
+                .iter()
+                .find_map(|a| match &a.kind {
+                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
+                        Some((directive, arguments))
+                    }
+                    _ => None,
+                })
+                .unwrap();
+
+            assert_eq!(directive, "foo::bar");
+            assert_eq!(arguments.len(), 0);
         }
 
         #[test]
@@ -584,16 +594,26 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            assert!(operation.has_attribute("foo::bar", true));
-            assert_eq!(operation.attributes[0].directive, "foo::bar");
-            assert_eq!(operation.attributes[0].arguments, vec!["a", "b", "c"]);
+            let (directive, arguments) = operation
+                .attributes(false)
+                .iter()
+                .find_map(|a| match &a.kind {
+                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
+                        Some((directive, arguments))
+                    }
+                    _ => None,
+                })
+                .unwrap();
+
+            assert_eq!(directive, "foo::bar");
+            assert_eq!(arguments, &vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]);
         }
 
         #[test_case("a", &["a"]; "single argument")]
-        #[test_case("a,b,c", &["a", "b", "c"]; "multiple arguments")]
         #[test_case("\"a b c\"", &["a b c"]; "quoted argument")]
+        #[test_case("a,b,c", &["a", "b", "c"]; "multiple arguments")]
         #[test_case("\"a, b, c\"", &["a, b, c"]; "quoted argument with comma")]
-        fn attribute_parameters(input: &str, expected: &[&str]) {
+        fn attribute_parameters_multiple(input: &str, expected: &[&str]) {
             // Arrange
             let slice = format!(
                 "
@@ -612,8 +632,13 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            for (i, v) in operation.attributes[0].arguments.iter().enumerate() {
-                assert_eq!(v, expected.get(i).unwrap().to_owned());
+            match &operation.attributes[0].kind {
+                AttributeKind::Other { arguments, .. } => {
+                    for (i, v) in arguments.iter().enumerate() {
+                        assert_eq!(v, expected.get(i).unwrap().to_owned());
+                    }
+                }
+                _ => unreachable!(),
             }
         }
 
@@ -641,7 +666,7 @@ mod attributes {
         }
 
         #[test]
-        fn get_attribute_list() {
+        fn parent_attributes() {
             // Arrange
             let slice = r#"
                 [attribute("A")]
@@ -667,14 +692,19 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("A::B::C::I::op").unwrap();
-            let parent_attributes = operation.get_attribute_list("attribute");
+            let parent_attributes = operation
+                .attributes(true)
+                .into_iter()
+                .map(|a| match &a.kind {
+                    AttributeKind::Other { directive, arguments } => (directive.as_str(), arguments),
+                    _ => unreachable!(),
+                })
+                .collect::<Vec<_>>();
 
-            assert_eq!(parent_attributes.len(), 5);
-            assert_eq!(parent_attributes[0], None);
-            assert_eq!(parent_attributes[1], Some(&vec!["I".to_owned()]));
-            assert_eq!(parent_attributes[2], None);
-            assert_eq!(parent_attributes[3], Some(&vec!["B".to_owned()]));
-            assert_eq!(parent_attributes[4], Some(&vec!["A".to_owned()]));
+            assert_eq!(parent_attributes.len(), 3);
+            assert_eq!(parent_attributes[0], ("attribute", &vec!["I".to_owned()]));
+            assert_eq!(parent_attributes[1], ("attribute", &vec!["B".to_owned()]));
+            assert_eq!(parent_attributes[2], ("attribute", &vec!["A".to_owned()]));
         }
     }
 }

@@ -2,7 +2,7 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::Entity;
+use crate::grammar::{AttributeKind, Entity};
 
 use std::collections::HashMap;
 
@@ -84,14 +84,16 @@ impl DiagnosticReporter {
 
         // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
-        if match entity.get_ignored_warnings(true) {
-            None => false,
-            Some(args) if args.is_empty() => true,
-            Some(args) => args.contains(&warning.error_code().to_owned()),
-        } {
+        if entity.attributes(true).iter().any(|a| match &a.kind {
+            AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
+                Some(codes) => codes.is_empty() || codes.contains(&warning.error_code().to_owned()),
+                None => true,
+            },
+            _ => false,
+        }) {
             // Do not push the warning to the diagnostics vector
             return;
-        };
+        }
 
         self.diagnostics.push(Diagnostic::Warning(warning));
     }

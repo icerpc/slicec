@@ -232,7 +232,7 @@ impl TypeRefPatcher<'_> {
                     Warning::new_with_notes(
                         WarningKind::UseOfDeprecatedEntity(
                             entity.identifier().to_owned(),
-                            argument.map_or_else(String::new, |arg| ": ".to_owned() + arg),
+                            argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
                         ),
                         type_ref.span(),
                         vec![Note::new(
@@ -256,11 +256,17 @@ impl TypeRefPatcher<'_> {
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
         let mut type_alias_chain = Vec::new();
 
-        let mut attributes = Vec::new();
+        let mut attributes: Vec<Attribute> = Vec::new();
         let mut current_type_alias = type_alias;
         loop {
             type_alias_chain.push(current_type_alias);
-            attributes.extend(current_type_alias.attributes().clone());
+            attributes.extend(
+                current_type_alias
+                    .attributes(false)
+                    .into_iter()
+                    .cloned()
+                    .collect::<Vec<Attribute>>(),
+            );
             let underlying_type = &current_type_alias.underlying;
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.

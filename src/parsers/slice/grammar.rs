@@ -542,12 +542,18 @@ fn construct_unpatched_type_ref_definition(mut identifier: Identifier) -> TypeRe
     TypeRefDefinition::Unpatched(identifier.value)
 }
 
-fn construct_attribute(directive: Identifier, arguments: Option<Vec<String>>, span: Span) -> Attribute {
-    Attribute {
-        directive: directive.value,
-        arguments: arguments.unwrap_or_default(),
+fn try_construct_attribute(
+    parser: &mut Parser,
+    directive: Identifier,
+    arguments: Option<Vec<String>>,
+    span: Span,
+) -> Attribute {
+    Attribute::new(
+        parser.diagnostic_reporter,
+        &directive.value,
+        arguments.unwrap_or_default(),
         span,
-    }
+    )
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {

@@ -73,11 +73,12 @@ fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<Stri
     files
         .iter()
         .filter_map(|(path, file)| {
-            file.attributes
-                .iter()
-                .find(|attr| attr.directive == attributes::IGNORE_WARNINGS)
-                .map(|attr| attr.arguments.clone())
-                .map(|ignored_warnings| (path.to_owned(), ignored_warnings))
+            file.attributes.iter().find_map(|attr| match &attr.kind {
+                AttributeKind::IgnoreWarnings { warning_codes } => {
+                    Some((path.clone(), warning_codes.clone().unwrap_or_default()))
+                }
+                _ => None,
+            })
         })
         .collect()
 }

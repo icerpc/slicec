@@ -181,20 +181,12 @@ impl SliceFile {
 }
 
 impl Attributable for SliceFile {
-    fn attributes(&self) -> &Vec<Attribute> {
-        &self.attributes
+    fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
+        assert!(!include_parent);
+        self.attributes.iter().collect()
     }
 
-    fn get_attribute_list(&self, _directive: &str) -> Vec<Option<&Vec<String>>> {
-        panic!("Cannot recursively get attributes on a Slice file");
-    }
-
-    fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
-        if recurse {
-            panic!("Cannot recursively get attributes on a Slice file");
-        }
-        self.attributes
-            .iter()
-            .find(|&attribute| attribute.directive == directive)
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+        vec![self.attributes(false)]
     }
 }

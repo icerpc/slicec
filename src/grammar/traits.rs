@@ -4,7 +4,7 @@ use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::AsTypes;
-use crate::grammar::attributes;
+use super::AttributeKind;
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -46,23 +46,23 @@ pub trait NamedSymbol: ScopedSymbol {
 }
 
 pub trait Attributable {
-    fn attributes(&self) -> &Vec<Attribute>;
+    fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
 
-    fn has_attribute(&self, directive: &str, recurse: bool) -> bool {
-        self.get_raw_attribute(directive, recurse).is_some()
+    fn has_attribute<P, T>(&self, include_parent: bool, predicate: P) -> bool
+    where
+        Self: Sized,
+        P: FnMut(&Attribute) -> Option<T>,
+    {
+        self.get_attribute(include_parent, predicate).is_some()
     }
 
-    fn get_attribute(&self, directive: &str, recurse: bool) -> Option<&Vec<String>> {
-        self.get_raw_attribute(directive, recurse)
-            .map(|attribute| &attribute.arguments)
-    }
-
-    fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>>;
-
-    fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute>;
-
-    fn get_ignored_warnings(&self, check_parent: bool) -> Option<&Vec<String>> {
-        self.get_attribute(attributes::IGNORE_WARNINGS, check_parent)
+    fn get_attribute<P, T>(&self, include_parent: bool, predicate: P) -> Option<T>
+    where
+        Self: Sized,
+        P: FnMut(&Attribute) -> Option<T>,
+    {
+        self.attributes(include_parent).into_iter().find_map(predicate)
     }
 }
 
@@ -71,9 +71,11 @@ pub trait Commentable {
 }
 
 pub trait Entity: NamedSymbol + Attributable + Commentable {
-    fn get_deprecation(&self, check_parent: bool) -> Option<Option<&String>> {
-        self.get_attribute(attributes::DEPRECATED, check_parent)
-            .map(|args| args.first())
+    fn get_deprecation(&self, check_parent: bool) -> Option<Option<String>> {
+        self.attributes(check_parent).iter().find_map(|a| match &a.kind {
+            AttributeKind::Deprecated { reason } => Some(reason.to_owned()),
+            _ => None,
+        })
     }
 }
 
@@ -158,31 +160,26 @@ macro_rules! implement_Named_Symbol_for {
 macro_rules! implement_Attributable_for {
     ($type:ty) => {
         impl Attributable for $type {
-            fn attributes(&self) -> &Vec<Attribute> {
-                &self.attributes
-            }
+            fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
+                let mut attributes = self.attributes.iter().collect::<Vec<&Attribute>>();
 
-            fn get_attribute_list(&self, directive: &str) -> Vec<Option<&Vec<String>>> {
-                let mut result = vec![self.get_attribute(directive, false)];
-
-                if let Some(parent) = self.parent() {
-                    result.extend(parent.get_attribute_list(directive))
-                }
-
-                result
-            }
-
-            fn get_raw_attribute(&self, directive: &str, recurse: bool) -> Option<&Attribute> {
-                for attribute in &self.attributes {
-                    if attribute.directive == directive {
-                        return Some(attribute);
+                if include_parent {
+                    if let Some(parent) = self.parent() {
+                        attributes.extend(parent.attributes(true));
                     }
                 }
 
-                match self.parent() {
-                    Some(parent) if recurse => parent.get_raw_attribute(directive, recurse),
-                    _ => None,
+                attributes
+            }
+
+            fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+                let mut attributes_list = vec![self.attributes(false)];
+
+                if let Some(parent) = self.parent() {
+                    attributes_list.extend(parent.all_attributes());
                 }
+
+                attributes_list
             }
         }
     };
