@@ -13,11 +13,3 @@ pub use self::elements::*;
 pub use self::traits::*;
 pub use self::util::*;
 pub use self::wrappers::*;
-
-pub mod attributes {
-    pub const COMPRESS: &str = "compress";
-    pub const DEPRECATED: &str = "deprecated";
-    pub const FORMAT: &str = "format";
-    pub const IGNORE_WARNINGS: &str = "ignoreWarnings";
-    pub const ONEWAY: &str = "oneway";
-}
