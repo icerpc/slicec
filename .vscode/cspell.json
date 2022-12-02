@@ -1,27 +1,19 @@
 {
-  // Version of the setting file.  Always 0.2
   "version": "0.2",
-  // language - current active spelling language
   "language": "en",
-  // words - list of words to be always considered correct
   "words": [
     "AnyException",
-    "clippy",
     "codepoints",
     "Commentable",
-    "dedup",
     "downcasted",
     "downcasting",
-    "elif",
     "encodable",
     "grcov",
-    "lalrpop",
     "peekable",
     "rsplit",
     "RUSTDOCFLAGS",
     "rustup",
     "slicec",
-    "struct",
     "subtoken",
     "subtokens",
     "tokenizes",
@@ -37,5 +29,5 @@
     "nonterminal",
     "rustfmt"
   ],
-  "dictionaries": ["softwareTerms", "en_US", "companies", "misc", "lorem-ipsum"]
+  "dictionaries": ["misc", "en_US", "rust", "softwareTerms"]
 }
