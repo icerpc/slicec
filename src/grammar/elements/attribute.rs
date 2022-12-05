@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -219,9 +219,32 @@ impl AttributeKind {
                 })
             }
 
-            IGNORE_WARNINGS => Some(AttributeKind::IgnoreWarnings {
-                warning_codes: Some(arguments.to_owned()),
-            }),
+            IGNORE_WARNINGS => {
+                for arg in arguments {
+                    if !Warning::all_codes().contains(&arg.as_str()) {
+                        // No exact match was found, check if the casing did not match
+                        let uppercase = arg.to_uppercase();
+                        if Warning::all_codes().contains(&uppercase.as_str()) {
+                            // The casing did not match, report an error with a note
+                            reporter.report_error(Error::new_with_notes(
+                                ErrorKind::InvalidWarningCode(arg.to_owned()),
+                                Some(span),
+                                vec![Note::new(
+                                    format!("The warning code is case sensitive, did you mean to use `{uppercase}`?"),
+                                    Some(span),
+                                )],
+                            ));
+                        } else {
+                            // No exact match and no casing match, report an error
+                            reporter
+                                .report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
+                        }
+                    }
+                }
+                Some(AttributeKind::IgnoreWarnings {
+                    warning_codes: Some(arguments.to_owned()),
+                })
+            }
 
             _ => None,
         };
