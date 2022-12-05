@@ -466,7 +466,7 @@ mod attributes {
 
             interface I
             {
-                [ignoreWarnings(W315)]
+                [ignoreWarnings(W315, w001)]
                 op(s: string) -> string;
             }
             ";
@@ -475,8 +475,11 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::InvalidWarningCode("W315".to_owned()), None);
-            assert_errors!(diagnostic_reporter, [&expected]);
+            let expected = [
+                Error::new(ErrorKind::InvalidWarningCode("W315".to_owned()), None),
+                Error::new(ErrorKind::InvalidWarningCode("w001".to_owned()), None),
+            ];
+            assert_errors!(diagnostic_reporter, expected);
         }
 
         #[test_case(

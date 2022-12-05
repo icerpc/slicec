@@ -222,7 +222,29 @@ impl AttributeKind {
             IGNORE_WARNINGS => {
                 arguments.iter().for_each(|arg| {
                     if !Warning::all_codes().contains(&arg.as_str()) {
-                        reporter.report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
+                        // No exact match was found, check if the casing did not match
+                        if Warning::all_codes()
+                            .iter()
+                            .map(|code| code.to_uppercase())
+                            .any(|code| code == arg.to_uppercase())
+                        {
+                            // The casing did not match, report an error with a note
+                            reporter.report_error(Error::new_with_notes(
+                                ErrorKind::InvalidWarningCode(arg.to_owned()),
+                                Some(span),
+                                vec![Note::new(
+                                    format!(
+                                        "The warning code is case sensitive, did you mean to use {}?",
+                                        arg.to_uppercase()
+                                    ),
+                                    Some(span),
+                                )],
+                            ));
+                        } else {
+                            // No exact match and no casing match, report an error
+                            reporter
+                                .report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
+                        }
                     }
                 });
                 Some(AttributeKind::IgnoreWarnings {
