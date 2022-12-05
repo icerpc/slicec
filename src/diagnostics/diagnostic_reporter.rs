@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::{Diagnostic, Error, Warning};
-use crate::grammar::{AttributeKind, Entity};
+use crate::diagnostics::Diagnostic;
 
 use std::collections::HashMap;
 
@@ -63,38 +62,17 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report_error(&mut self, error: Error) {
-        self.error_count += 1;
-        self.diagnostics.push(Diagnostic::Error(error));
-    }
-
-    pub fn report_warning(&mut self, warning: Warning, entity: &dyn Entity) {
-        self.warning_count += 1;
-
-        // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
-        // warnings), or if it has an argument matching the error code of the warning.
-        if match self.file_level_ignored_warnings.get(&warning.span.file) {
-            None => false,
-            Some(args) if args.is_empty() => true,
-            Some(args) => args.contains(&warning.error_code().to_owned()),
-        } {
-            // Do not push the warning to the diagnostics vector
-            return;
+    pub fn report(&mut self, diagnostic: impl Into<Diagnostic>) {
+        let diagnostic = diagnostic.into();
+        match diagnostic {
+            Diagnostic::Error(error) => {
+                self.error_count += 1;
+                self.diagnostics.push(Diagnostic::Error(error));
+            }
+            Diagnostic::Warning(warning) => {
+                self.warning_count += 1;
+                self.diagnostics.push(Diagnostic::Warning(warning));
+            }
         }
-
-        // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
-        // warnings), or if it has an argument matching the error code of the warning.
-        if entity.attributes(true).iter().any(|a| match &a.kind {
-            AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
-                Some(codes) => codes.is_empty() || codes.contains(&warning.error_code().to_owned()),
-                None => true,
-            },
-            _ => false,
-        }) {
-            // Do not push the warning to the diagnostics vector
-            return;
-        }
-
-        self.diagnostics.push(Diagnostic::Warning(warning));
     }
 }

@@ -7,7 +7,7 @@ mod module {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use slice::compile_from_strings;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{ErrorBuilder, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -121,8 +121,8 @@ mod module {
 
         // Assert
         let expected = vec![
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
+            ErrorBuilder::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned())).build(),
+            ErrorBuilder::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned())).build(),
         ];
         assert_errors!(errors, expected);
     }
@@ -142,10 +142,8 @@ mod module {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = vec![Error::new(
-            ErrorKind::FileScopedModuleCannotContainSubModules("D".to_owned()),
-            None,
-        )];
+        let expected =
+            vec![ErrorBuilder::new(ErrorKind::FileScopedModuleCannotContainSubModules("D".to_owned())).build()];
         assert_errors!(errors, expected);
     }
 }

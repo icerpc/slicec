@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::command_line::SliceOptions;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
+use crate::diagnostics::{DiagnosticReporter, ErrorBuilder, ErrorKind};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -21,7 +21,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     for (file_path, is_source) in file_paths {
         match fs::read_to_string(&file_path) {
             Ok(raw_text) => files.push(SliceFile::new(file_path, raw_text, is_source)),
-            Err(err) => diagnostic_reporter.report_error(Error::new(ErrorKind::IO(err), None)),
+            Err(err) => ErrorBuilder::new(ErrorKind::IO(err)).report(diagnostic_reporter),
         }
     }
     files

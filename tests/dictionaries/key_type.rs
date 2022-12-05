@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
-use slice::diagnostics::{Error, ErrorKind, Note};
+use slice::diagnostics::{Error, ErrorBuilder, ErrorKind};
 use test_case::test_case;
 
 #[test]
@@ -17,7 +17,7 @@ fn optionals_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::KeyMustBeNonOptional, None);
+    let expected = ErrorBuilder::new(ErrorKind::KeyMustBeNonOptional).build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -67,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::KeyTypeNotSupported(key_type.to_owned()), None);
+    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(key_type.to_owned())).build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -86,7 +86,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::KeyTypeNotSupported(key_kind.to_owned()), None);
+    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(key_kind.to_owned())).build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -128,9 +128,10 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(ErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)), None, vec![
-        Note::new(format!("{} '{}' is defined here:", key_kind, key_type), None),
-    ]);
+    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)))
+        .note(format!("{} '{}' is defined here:", key_kind, key_type), None)
+        .build();
+
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -151,10 +152,9 @@ fn non_compact_structs_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(ErrorKind::StructKeyMustBeCompact, None, vec![Note::new(
-        "Struct 'MyStruct' is defined here:",
-        None,
-    )]);
+    let expected = ErrorBuilder::new(ErrorKind::StructKeyMustBeCompact)
+        .note("Struct 'MyStruct' is defined here:", None)
+        .build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -212,21 +212,17 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
     // Assert
     let expected: [Error; 7] = [
-        Error::new(ErrorKind::KeyTypeNotSupported("sequences".to_owned()), None),
-        Error::new(ErrorKind::KeyTypeNotSupported("seq".to_owned()), None),
-        Error::new(ErrorKind::KeyTypeNotSupported("float32".to_owned()), None),
-        Error::new(ErrorKind::KeyTypeNotSupported("f32".to_owned()), None),
-        Error::new_with_notes(
-            ErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()),
-            None,
-            vec![Note::new("struct 'Inner' is defined here:", None)],
-        ),
-        Error::new(ErrorKind::KeyTypeNotSupported("i".to_owned()), None),
-        Error::new_with_notes(
-            ErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()),
-            None,
-            vec![Note::new("struct 'Outer' is defined here:", None)],
-        ),
+        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("sequences".to_owned())).build(),
+        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("seq".to_owned())).build(),
+        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("float32".to_owned())).build(),
+        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("f32".to_owned())).build(),
+        ErrorBuilder::new(ErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()))
+            .note("struct 'Inner' is defined here:", None)
+            .build(),
+        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("i".to_owned())).build(),
+        ErrorBuilder::new(ErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()))
+            .note("struct 'Outer' is defined here:", None)
+            .build(),
     ];
     assert_errors!(diagnostic_reporter, expected);
 }

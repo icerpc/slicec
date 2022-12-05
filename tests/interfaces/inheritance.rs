@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{Error, ErrorKind, Note};
+use slice::diagnostics::{ErrorBuilder, ErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -118,10 +118,9 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected = Error::new_with_notes(ErrorKind::Shadows("op".to_owned()), None, vec![Note::new(
-        "`op` was previously defined here",
-        None,
-    )]);
+    let expected = ErrorBuilder::new(ErrorKind::Shadows("op".to_owned()))
+        .note("`op` was previously defined here", None)
+        .build();
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);

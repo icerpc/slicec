@@ -34,8 +34,9 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
                     diagnostics::ErrorKind::Syntax("unterminated block comment".to_owned())
                 }
             };
-            let span = Span::new(start, end, file_name);
-            diagnostics::Error::new(error_kind, Some(&span))
+            diagnostics::ErrorBuilder::new(error_kind)
+                .span(&Span::new(start, end, file_name))
+                .build()
         }
 
         // The parser encountered a token that didn't fit any grammar rule.
@@ -44,15 +45,17 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             expected,
         } => {
             let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
-            let span = Span::new(start, end, file_name);
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message), Some(&span))
+            diagnostics::ErrorBuilder::new(diagnostics::ErrorKind::Syntax(message))
+                .span(&Span::new(start, end, file_name))
+                .build()
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
-            let span = Span::new(location, location, file_name);
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message), Some(&span))
+            diagnostics::ErrorBuilder::new(diagnostics::ErrorKind::Syntax(message))
+                .span(&Span::new(location, location, file_name))
+                .build()
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.

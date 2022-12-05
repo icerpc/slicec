@@ -17,7 +17,9 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &
 fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        diagnostic_reporter.report_error(Error::new(ErrorKind::KeyMustBeNonOptional, Some(type_ref.span())));
+        ErrorBuilder::new(ErrorKind::KeyMustBeNonOptional)
+            .span(type_ref.span())
+            .report(diagnostic_reporter);
         return false;
     }
 
@@ -26,13 +28,13 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                let diagnostic = Error::new_with_notes(ErrorKind::StructKeyMustBeCompact, Some(type_ref.span()), vec![
-                    Note::new(
+                ErrorBuilder::new(ErrorKind::StructKeyMustBeCompact)
+                    .span(type_ref.span())
+                    .note(
                         format!("struct '{}' is defined here:", struct_def.identifier()),
                         Some(struct_def.span()),
-                    ),
-                ]);
-                diagnostic_reporter.report_error(diagnostic);
+                    )
+                    .report(diagnostic_reporter);
                 return false;
             }
 
@@ -40,24 +42,23 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    diagnostic_reporter.report_error(Error::new(
-                        ErrorKind::KeyTypeNotSupported(member.identifier().to_owned()),
-                        Some(member.span()),
-                    ));
+                    ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(member.identifier().to_owned()))
+                        .span(member.span())
+                        .report(diagnostic_reporter);
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                let error = Error::new_with_notes(
-                    ErrorKind::StructKeyContainsDisallowedType(struct_def.identifier().to_owned()),
-                    Some(type_ref.span()),
-                    vec![Note::new(
-                        format!("struct '{}' is defined here:", struct_def.identifier()),
-                        Some(struct_def.span()),
-                    )],
-                );
-                diagnostic_reporter.report_error(error);
+                ErrorBuilder::new(ErrorKind::StructKeyContainsDisallowedType(
+                    struct_def.identifier().to_owned(),
+                ))
+                .span(type_ref.span())
+                .note(
+                    format!("struct '{}' is defined here:", struct_def.identifier()),
+                    Some(struct_def.span()),
+                )
+                .report(diagnostic_reporter);
                 return false;
             }
             return true;
@@ -83,20 +84,24 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let mut diagnostic = Error::new(ErrorKind::KeyTypeNotSupported(pluralized_kind), Some(type_ref.span()));
+        let builder = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(pluralized_kind)).span(type_ref.span());
 
         // If the key type is a user-defined type, point to where it was defined.
-        if let Some(named_symbol_def) = named_symbol {
-            diagnostic.attach_notes(vec![Note::new(
-                format!(
-                    "{} '{}' is defined here:",
-                    named_symbol_def.kind(),
-                    named_symbol_def.identifier(),
-                ),
-                Some(named_symbol_def.span()),
-            )]);
-        }
-        diagnostic_reporter.report_error(diagnostic);
+        let error = if let Some(named_symbol_def) = named_symbol {
+            builder
+                .note(
+                    format!(
+                        "{} '{}' is defined here:",
+                        named_symbol_def.kind(),
+                        named_symbol_def.identifier(),
+                    ),
+                    Some(named_symbol_def.span()),
+                )
+                .build()
+        } else {
+            builder.build()
+        };
+        diagnostic_reporter.report(error);
     }
     is_valid
 }

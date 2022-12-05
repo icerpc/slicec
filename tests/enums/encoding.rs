@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{ErrorBuilder, ErrorKind};
     use slice::grammar::Encoding;
 
     use crate::assert_errors;
@@ -26,17 +26,18 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(
-            ErrorKind::NotSupportedWithEncoding("enum".to_owned(), "E".to_owned(), Encoding::Slice1),
+        let expected = ErrorBuilder::new(ErrorKind::NotSupportedWithEncoding(
+            "enum".to_owned(),
+            "E".to_owned(),
+            Encoding::Slice1,
+        ))
+        .note("file encoding was set to Slice1 here:", None)
+        .note(
+            "enums with underlying types are not supported by the Slice1 encoding",
             None,
-            vec![
-                Note::new("file encoding was set to Slice1 here:", None),
-                Note::new(
-                    "enums with underlying types are not supported by the Slice1 encoding",
-                    None,
-                ),
-            ],
-        );
+        )
+        .build();
+
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

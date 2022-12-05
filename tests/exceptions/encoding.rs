@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{ErrorBuilder, ErrorKind};
     use slice::grammar::Encoding;
 
     use crate::assert_errors;
@@ -31,9 +31,9 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(ErrorKind::ExceptionNotSupported(Encoding::Slice1), None, vec![
-            Note::new("file encoding was set to Slice1 here:", None),
-        ]);
+        let expected = ErrorBuilder::new(ErrorKind::ExceptionNotSupported(Encoding::Slice1))
+            .note("file encoding was set to Slice1 here:", None)
+            .build();
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
@@ -42,7 +42,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{ErrorBuilder, ErrorKind};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
@@ -66,18 +66,19 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(
-            ErrorKind::NotSupportedWithEncoding("exception".to_owned(), "B".to_owned(), Encoding::Slice2),
+        let expected = ErrorBuilder::new(ErrorKind::NotSupportedWithEncoding(
+            "exception".to_owned(),
+            "B".to_owned(),
+            Encoding::Slice2,
+        ))
+        .note("file is using the Slice2 encoding by default", None)
+        .note(
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             None,
-            vec![
-                Note::new("file is using the Slice2 encoding by default", None),
-                Note::new(
-                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                    None,
-                ),
-                Note::new("exception inheritance is only supported by the Slice1 encoding", None),
-            ],
-        );
+        )
+        .note("exception inheritance is only supported by the Slice1 encoding", None)
+        .build();
+
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

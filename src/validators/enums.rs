@@ -23,9 +23,14 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
         for enumerator in enum_def.enumerators() {
             let value = enumerator.value;
             if value < 0 || value > i32::MAX as i128 {
-                let identifier = enumerator.identifier().to_owned();
-                let error = ErrorKind::EnumeratorValueOutOfBounds(identifier, value, 0, i32::MAX as i128);
-                diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
+                ErrorBuilder::new(ErrorKind::EnumeratorValueOutOfBounds(
+                    enumerator.identifier().to_owned(),
+                    value,
+                    0,
+                    i32::MAX as i128,
+                ))
+                .span(enumerator.span())
+                .report(diagnostic_reporter);
             }
         }
     } else {
@@ -44,7 +49,9 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                         min,
                         max,
                     );
-                    diagnostic_reporter.report_error(Error::new(error, Some(enumerator.span())));
+                    ErrorBuilder::new(error)
+                        .span(enumerator.span())
+                        .report(diagnostic_reporter);
                 });
         }
         match &enum_def.underlying {
@@ -69,11 +76,12 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                let error = ErrorKind::UnderlyingTypeMustBeIntegral(
+                ErrorBuilder::new(ErrorKind::UnderlyingTypeMustBeIntegral(
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
-                );
-                diagnostic_reporter.report_error(Error::new(error, Some(enum_def.span())));
+                ))
+                .span(enum_def.span())
+                .report(diagnostic_reporter);
             }
         }
         None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
@@ -86,16 +94,14 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
     for enumerator in enum_def.enumerators() {
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and emit an error. Otherwise add the enumerator and its value to the map.
-        if let Some(other_enumerator) = value_to_enumerator_map.get(&enumerator.value) {
-            let error = ErrorKind::DuplicateEnumeratorValue(enumerator.value);
-            let note = Note::new(
-                format!(
-                    "the value was previously used by `{}` here:",
-                    other_enumerator.identifier(),
-                ),
-                Some(other_enumerator.span()),
-            );
-            diagnostic_reporter.report_error(Error::new_with_notes(error, Some(enumerator.span()), vec![note]));
+        if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value) {
+            ErrorBuilder::new(ErrorKind::DuplicateEnumeratorValue(enumerator.value))
+                .span(enumerator.span())
+                .note(
+                    format!("the value was previously used by `{}` here:", alt_enum.identifier(),),
+                    Some(alt_enum.span()),
+                )
+                .report(diagnostic_reporter);
         } else {
             value_to_enumerator_map.insert(enumerator.value, enumerator);
         }
@@ -106,10 +112,11 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            diagnostic_reporter.report_error(Error::new(
-                ErrorKind::CannotUseOptionalUnderlyingType(enum_def.identifier().to_owned()),
-                Some(enum_def.span()),
-            ));
+            ErrorBuilder::new(ErrorKind::CannotUseOptionalUnderlyingType(
+                enum_def.identifier().to_owned(),
+            ))
+            .span(enum_def.span())
+            .report(diagnostic_reporter);
         }
     }
 }
@@ -117,9 +124,8 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        diagnostic_reporter.report_error(Error::new(
-            ErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()),
-            Some(enum_def.span()),
-        ));
+        ErrorBuilder::new(ErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()))
+            .span(enum_def.span())
+            .report(diagnostic_reporter);
     }
 }

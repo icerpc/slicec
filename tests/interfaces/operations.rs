@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{ErrorBuilder, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -247,10 +247,11 @@ fn operations_can_only_throw_exceptions() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(
-        ErrorKind::Syntax("type mismatch: expected an exception but found a struct".to_owned()),
-        None,
-    );
+    let expected = ErrorBuilder::new(ErrorKind::Syntax(
+        "type mismatch: expected an exception but found a struct".to_owned(),
+    ))
+    .build();
+
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -273,14 +274,14 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements, None);
+    let expected = ErrorBuilder::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements).build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 mod streams {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{ErrorBuilder, ErrorKind};
     use slice::grammar::*;
 
     #[test]
@@ -324,8 +325,8 @@ mod streams {
 
         // Assert
         let expected = [
-            Error::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned()), None),
-            Error::new(ErrorKind::MultipleStreamedMembers, None),
+            ErrorBuilder::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned())).build(),
+            ErrorBuilder::new(ErrorKind::MultipleStreamedMembers).build(),
         ];
         assert_errors!(diagnostic_reporter, expected);
     }
@@ -343,7 +344,7 @@ mod streams {
         ";
 
         // Act
-        let expected = Error::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned()), None);
+        let expected = ErrorBuilder::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned())).build();
 
         // Assert
         let diagnostic_reporter = parse_for_diagnostics(slice);

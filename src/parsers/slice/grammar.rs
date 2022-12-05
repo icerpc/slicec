@@ -2,7 +2,7 @@
 
 use super::parser::Parser;
 use crate::ast::node::Node;
-use crate::diagnostics::{Error, ErrorKind, Note};
+use crate::diagnostics::{ErrorBuilder, ErrorKind};
 use crate::grammar::*;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
@@ -75,15 +75,11 @@ fn handle_file_encoding(
     encoding: FileEncoding,
 ) -> (Option<FileEncoding>, Vec<Attribute>) {
     // The file encoding can only be set once.
-    if let Some(old_file_encoding) = old_encoding {
-        parser.diagnostic_reporter.report_error(Error::new_with_notes(
-            ErrorKind::MultipleEncodingVersions,
-            Some(encoding.span()),
-            vec![Note::new(
-                "file encoding was previously specified here",
-                Some(old_file_encoding.span()),
-            )],
-        ));
+    if let Some(encoding) = old_encoding {
+        ErrorBuilder::new(ErrorKind::MultipleEncodingVersions)
+            .span(encoding.span())
+            .note("file encoding was previously specified here", Some(encoding.span()))
+            .report(parser.diagnostic_reporter);
     }
     parser.file_encoding = encoding.version;
     (Some(encoding), attributes)
@@ -94,11 +90,10 @@ fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEnco
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
         v => {
-            parser.diagnostic_reporter.report_error(Error::new_with_notes(
-                ErrorKind::InvalidEncodingVersion(v),
-                Some(&span),
-                vec![Note::new("must be '1' or '2'", None)],
-            ));
+            ErrorBuilder::new(ErrorKind::InvalidEncodingVersion(v))
+                .span(&span)
+                .note("must be '1' or '2'", None)
+                .report(parser.diagnostic_reporter);
             Encoding::default() // Dummy
         }
     };
@@ -401,10 +396,9 @@ fn construct_single_return_type(
 
 fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter>>, span: Span) {
     if return_tuple.len() < 2 {
-        parser.diagnostic_reporter.report_error(Error::new(
-            ErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
-            Some(&span),
-        ));
+        ErrorBuilder::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements)
+            .span(&span)
+            .report(parser.diagnostic_reporter)
     }
 }
 
@@ -572,7 +566,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
                 IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral(base),
                 _ => ErrorKind::IntegerLiteralOverflows,
             };
-            parser.diagnostic_reporter.report_error(Error::new(error, Some(&span)));
+            ErrorBuilder::new(error).span(&span).report(parser.diagnostic_reporter);
             0 // Dummy value
         }
     }
@@ -580,18 +574,18 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
 
 fn parse_tag_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
-        parser
-            .diagnostic_reporter
-            .report_error(Error::new(ErrorKind::TagValueOutOfBounds, Some(&span)));
+        ErrorBuilder::new(ErrorKind::TagValueOutOfBounds)
+            .span(&span)
+            .report(parser.diagnostic_reporter)
     }
     i as u32
 }
 
 fn parse_compact_id_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
-        parser
-            .diagnostic_reporter
-            .report_error(Error::new(ErrorKind::CompactIdOutOfBounds, Some(&span)));
+        ErrorBuilder::new(ErrorKind::CompactIdOutOfBounds)
+            .span(&span)
+            .report(parser.diagnostic_reporter)
     }
     i as u32
 }

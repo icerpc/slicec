@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note};
+use crate::diagnostics::{DiagnosticReporter, ErrorBuilder, ErrorKind};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -131,14 +131,16 @@ impl AttributeKind {
                         }),
                         _ => {
                             for arg in invalid_arguments.iter() {
-                                reporter.report_error(Error::new_with_notes(
-                                    ErrorKind::ArgumentNotSupported(arg.to_string(), "compress attribute".to_owned()),
-                                    Some(span),
-                                    vec![Note::new(
-                                        "The valid argument(s) for the compress attribute are `Args` and `Return`",
-                                        Some(span),
-                                    )],
+                                ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+                                    arg.to_string(),
+                                    "compress attribute".to_owned(),
                                 ))
+                                .span(span)
+                                .note(
+                                    "The valid argument(s) for the compress attribute are `Args` and `Return`",
+                                    Some(span),
+                                )
+                                .report(reporter)
                             }
                             return unmatched_attribute;
                         }
@@ -154,14 +156,10 @@ impl AttributeKind {
             ONEWAY => match arguments {
                 [] => Some(AttributeKind::Oneway),
                 _ => {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::TooManyArguments(ONEWAY.to_owned()),
-                        Some(span),
-                        vec![Note::new(
-                            "The oneway attribute does not take any arguments",
-                            Some(span),
-                        )],
-                    ));
+                    ErrorBuilder::new(ErrorKind::TooManyArguments(ONEWAY.to_owned()))
+                        .span(span)
+                        .note("The oneway attribute does not take any arguments", Some(span))
+                        .report(reporter);
                     return unmatched_attribute;
                 }
             },
@@ -172,14 +170,10 @@ impl AttributeKind {
                     reason: Some(reason.to_owned()),
                 }),
                 [..] => {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::TooManyArguments(DEPRECATED.to_owned()),
-                        Some(span),
-                        vec![Note::new(
-                            "The deprecated attribute takes at most one argument",
-                            Some(span),
-                        )],
-                    ));
+                    ErrorBuilder::new(ErrorKind::TooManyArguments(DEPRECATED.to_owned()))
+                        .span(span)
+                        .note("The deprecated attribute takes at most one argument", Some(span))
+                        .report(reporter);
                     return unmatched_attribute;
                 }
             },
@@ -187,10 +181,9 @@ impl AttributeKind {
             FORMAT => {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
-                    reporter.report_error(Error::new(
-                        ErrorKind::CannotBeEmpty("format attribute".to_owned()),
-                        Some(span),
-                    ));
+                    ErrorBuilder::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()))
+                        .span(span)
+                        .report(reporter);
                     return unmatched_attribute;
                 }
 
@@ -200,14 +193,16 @@ impl AttributeKind {
                     .filter(|arg| ClassFormat::from_str(arg).is_err())
                     .collect::<Vec<&String>>();
                 invalid_args.iter().for_each(|arg| {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::ArgumentNotSupported(arg.to_string(), "format attribute".to_owned()),
+                    ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+                        arg.to_string(),
+                        "format attribute".to_owned(),
+                    ))
+                    .note(
+                        "The valid arguments for the format attribute are `Compact` and `Sliced`",
                         Some(span),
-                        vec![Note::new(
-                            "The valid arguments for the format attribute are `Compact` and `Sliced`",
-                            Some(span),
-                        )],
-                    ));
+                    )
+                    .span(span)
+                    .report(reporter);
                 });
                 if !invalid_args.is_empty() {
                     return unmatched_attribute;

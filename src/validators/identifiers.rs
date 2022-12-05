@@ -16,15 +16,13 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            let error = Error::new_with_notes(
-                ErrorKind::Redefinition(window[1].value.clone()),
-                Some(window[1].span()),
-                vec![Note::new(
+            ErrorBuilder::new(ErrorKind::Redefinition(window[1].value.clone()))
+                .span(window[1].span())
+                .note(
                     format!("`{}` was previously defined here", window[0].value),
                     Some(window[0].span()),
-                )],
-            );
-            diagnostic_reporter.report_error(error);
+                )
+                .report(diagnostic_reporter);
         }
     });
 }
@@ -39,15 +37,13 @@ pub fn check_for_shadowing(
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                let error = Error::new_with_notes(
-                    ErrorKind::Shadows(identifier.value.clone()),
-                    Some(identifier.span()),
-                    vec![Note::new(
+                ErrorBuilder::new(ErrorKind::Shadows(identifier.value.clone()))
+                    .span(identifier.span())
+                    .note(
                         format!("`{}` was previously defined here", inherited_identifier.value),
                         Some(inherited_identifier.span()),
-                    )],
-                );
-                diagnostic_reporter.report_error(error);
+                    )
+                    .report(diagnostic_reporter);
             });
     });
 }

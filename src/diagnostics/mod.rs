@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::grammar::{AttributeKind, Entity};
 use crate::slice_file::Span;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
@@ -77,6 +78,18 @@ impl Serialize for Diagnostic {
     }
 }
 
+impl From<Error> for Diagnostic {
+    fn from(error: Error) -> Self {
+        Diagnostic::Error(error)
+    }
+}
+
+impl From<Warning> for Diagnostic {
+    fn from(warning: Warning) -> Self {
+        Diagnostic::Warning(warning)
+    }
+}
+
 #[derive(Debug)]
 pub struct Warning {
     kind: WarningKind,
@@ -85,26 +98,6 @@ pub struct Warning {
 }
 
 impl Warning {
-    pub fn new(warning_kind: WarningKind, span: &Span) -> Self {
-        Warning {
-            kind: warning_kind,
-            span: span.clone(),
-            notes: Vec::new(),
-        }
-    }
-
-    pub fn new_with_notes(warning_kind: WarningKind, span: &Span, notes: Vec<Note>) -> Self {
-        Warning {
-            kind: warning_kind,
-            span: span.clone(),
-            notes,
-        }
-    }
-
-    pub fn attach_notes(&mut self, notes: Vec<Note>) {
-        self.notes.extend(notes);
-    }
-
     pub fn error_code(&self) -> &str {
         self.kind.error_code()
     }
@@ -116,6 +109,63 @@ impl fmt::Display for Warning {
     }
 }
 
+pub struct WarningBuilder {
+    kind: WarningKind,
+    span: Span,
+    notes: Vec<Note>,
+}
+
+impl WarningBuilder {
+    pub fn new(kind: WarningKind, span: &Span) -> Self {
+        WarningBuilder {
+            kind,
+            span: span.to_owned(),
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
+        self.notes.push(Note::new(message, span));
+        self
+    }
+
+    pub fn report(self, reporter: &mut DiagnosticReporter, entity: &dyn Entity) {
+        let warning = self.build();
+        // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if match reporter.file_level_ignored_warnings.get(&warning.span.file) {
+            None => false,
+            Some(args) if args.is_empty() => true,
+            Some(args) => args.contains(&warning.error_code().to_owned()),
+        } {
+            // Do not push the warning to the diagnostics vector
+            return;
+        }
+
+        // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if entity.attributes(true).iter().any(|a| match &a.kind {
+            AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
+                Some(codes) => codes.is_empty() || codes.contains(&warning.error_code().to_owned()),
+                None => true,
+            },
+            _ => false,
+        }) {
+            // Do not push the warning to the diagnostics vector
+            return;
+        }
+        reporter.report(warning);
+    }
+
+    pub fn build(self) -> Warning {
+        Warning {
+            kind: self.kind,
+            span: self.span,
+            notes: self.notes,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Error {
     kind: ErrorKind,
@@ -124,26 +174,6 @@ pub struct Error {
 }
 
 impl Error {
-    pub fn new(error_kind: impl Into<ErrorKind>, span: Option<&Span>) -> Self {
-        Error {
-            kind: error_kind.into(),
-            span: span.cloned(),
-            notes: Vec::new(),
-        }
-    }
-
-    pub fn new_with_notes(error_kind: impl Into<ErrorKind>, span: Option<&Span>, notes: Vec<Note>) -> Self {
-        Error {
-            kind: error_kind.into(),
-            span: span.cloned(),
-            notes,
-        }
-    }
-
-    pub fn attach_notes(&mut self, notes: Vec<Note>) {
-        self.notes.extend(notes);
-    }
-
     pub fn error_code(&self) -> Option<&str> {
         self.kind.error_code()
     }
@@ -152,6 +182,49 @@ impl Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.kind.message())
+    }
+}
+
+pub struct ErrorBuilder {
+    kind: ErrorKind,
+    span: Option<Span>,
+    notes: Vec<Note>,
+}
+
+impl ErrorBuilder {
+    pub fn new(kind: ErrorKind) -> Self {
+        ErrorBuilder {
+            kind,
+            span: None,
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn span(mut self, span: &Span) -> Self {
+        self.span = Some(span.to_owned());
+        self
+    }
+
+    pub fn note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
+        self.notes.push(Note::new(message, span));
+        self
+    }
+
+    pub fn notes(mut self, notes: Vec<Note>) -> Self {
+        self.notes.extend(notes);
+        self
+    }
+
+    pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
+        diagnostic_reporter.report(self.build());
+    }
+
+    pub fn build(self) -> Error {
+        Error {
+            kind: self.kind,
+            span: self.span,
+            notes: self.notes,
+        }
     }
 }
 

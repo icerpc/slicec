@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::diagnostics::{Error, ErrorKind, Note};
+use slice::diagnostics::{ErrorBuilder, ErrorKind};
 use slice::grammar::*;
 use slice::slice_file::Span;
 
@@ -54,10 +54,10 @@ fn does_not_support_multiple_inheritance() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(
-        ErrorKind::Syntax("expected one of \"{\", but found 'Comma'".to_owned()),
-        Some(&Span::new((13, 20).into(), (13, 21).into(), "string-0")),
-    );
+    let expected = ErrorBuilder::new(ErrorKind::Syntax("expected one of \"{\", but found 'Comma'".to_owned()))
+        .span(&Span::new((13, 20).into(), (13, 21).into(), "string-0"))
+        .build();
+
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -108,10 +108,9 @@ fn data_member_shadowing_is_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(ErrorKind::Shadows("i".to_owned()), None, vec![Note::new(
-        "`i` was previously defined here",
-        None,
-    )]);
+    let expected = ErrorBuilder::new(ErrorKind::Shadows("i".to_owned()))
+        .note("`i` was previously defined here", None)
+        .build();
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 

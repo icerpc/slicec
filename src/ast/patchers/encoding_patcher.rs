@@ -100,8 +100,10 @@ impl EncodingPatcher<'_> {
             };
             notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
 
-            let error = Error::new_with_notes(diagnostic_kind, Some(entity_def.span()), notes);
-            self.diagnostic_reporter.report_error(error);
+            ErrorBuilder::new(diagnostic_kind)
+                .span(entity_def.span())
+                .notes(notes)
+                .report(self.diagnostic_reporter);
 
             // Replace the supported encodings with a dummy that supports all encodings.
             // Otherwise everything that uses this type will also not be supported by the file's
@@ -183,12 +185,10 @@ impl EncodingPatcher<'_> {
             }
 
             diagnostics.into_iter().for_each(|error| {
-                let error = Error::new_with_notes(
-                    error,
-                    Some(type_ref.span()),
-                    self.get_file_encoding_mismatch_notes(type_ref),
-                );
-                self.diagnostic_reporter.report_error(error);
+                ErrorBuilder::new(error)
+                    .span(type_ref.span())
+                    .notes(self.get_file_encoding_mismatch_notes(type_ref))
+                    .report(self.diagnostic_reporter);
             });
 
             // Return a dummy value that supports all encodings, instead of the real result.
@@ -354,12 +354,10 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    let error = Error::new_with_notes(
-                        ErrorKind::StreamedParametersNotSupported(Encoding::Slice1),
-                        Some(member.span()),
-                        patcher.get_file_encoding_mismatch_notes(member),
-                    );
-                    patcher.diagnostic_reporter.report_error(error);
+                    ErrorBuilder::new(ErrorKind::StreamedParametersNotSupported(Encoding::Slice1))
+                        .span(member.span())
+                        .notes(patcher.get_file_encoding_mismatch_notes(member))
+                        .report(patcher.diagnostic_reporter)
                 }
             }
 
@@ -369,22 +367,18 @@ impl ComputeSupportedEncodings for Interface {
                     // Ensure the exception is supported by the operation's (file's) encoding.
                     let supported_encodings = patcher.get_supported_encodings_for(exception_type.definition());
                     if !supported_encodings.supports(file_encoding) {
-                        let error = Error::new_with_notes(
-                            ErrorKind::UnsupportedType(exception_type.type_string(), *file_encoding),
-                            Some(exception_type.span()),
-                            patcher.get_file_encoding_mismatch_notes(exception_type),
-                        );
-                        patcher.diagnostic_reporter.report_error(error);
+                        ErrorBuilder::new(ErrorKind::UnsupportedType(exception_type.type_string(), *file_encoding))
+                            .span(exception_type.span())
+                            .notes(patcher.get_file_encoding_mismatch_notes(exception_type))
+                            .report(patcher.diagnostic_reporter)
                     }
                 }
                 Throws::AnyException => {
                     if *file_encoding != Encoding::Slice1 {
-                        let error = Error::new_with_notes(
-                            ErrorKind::AnyExceptionNotSupported,
-                            Some(operation.span()),
-                            patcher.get_file_encoding_mismatch_notes(operation),
-                        );
-                        patcher.diagnostic_reporter.report_error(error);
+                        ErrorBuilder::new(ErrorKind::AnyExceptionNotSupported)
+                            .span(operation.span())
+                            .notes(patcher.get_file_encoding_mismatch_notes(operation))
+                            .report(patcher.diagnostic_reporter)
                     }
                 }
             }
