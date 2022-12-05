@@ -2,9 +2,15 @@
 
 use super::super::*;
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note, Warning};
-use crate::grammar::attributes::*;
 use crate::slice_file::Span;
 use std::str::FromStr;
+
+const COMPRESS: &str = "compress";
+const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
+const DEPRECATED: &str = "deprecated";
+const FORMAT: &str = "format";
+const IGNORE_WARNINGS: &str = "ignoreWarnings";
+const ONEWAY: &str = "oneway";
 
 #[derive(Clone, Debug)]
 pub struct Attribute {
@@ -30,9 +36,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_deprecated(attribute: &Attribute) -> Option<&Option<String>> {
+    pub fn match_deprecated(attribute: &Attribute) -> Option<Option<String>> {
         match &attribute.kind {
-            AttributeKind::Deprecated { reason } => Some(reason),
+            AttributeKind::Deprecated { reason } => Some(reason.clone()),
             _ => None,
         }
     }
@@ -113,11 +119,10 @@ impl AttributeKind {
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
             COMPRESS => {
-                let valid_options = ["Args", "Return"];
                 if !arguments.is_empty() {
                     let invalid_arguments = arguments
                         .iter()
-                        .filter(|arg| !valid_options.contains(&arg.as_str()))
+                        .filter(|arg| !COMPRESS_ARGS.contains(&arg.as_str()))
                         .collect::<Vec<&String>>();
                     match invalid_arguments[..] {
                         [] => Some(AttributeKind::Compress {
@@ -145,10 +150,40 @@ impl AttributeKind {
                     })
                 }
             }
-            ONEWAY => Some(AttributeKind::Oneway),
-            DEPRECATED => Some(AttributeKind::Deprecated {
-                reason: arguments.get(0).map(|arg| arg.to_owned()),
-            }),
+
+            ONEWAY => match arguments {
+                [] => Some(AttributeKind::Oneway),
+                _ => {
+                    reporter.report_error(Error::new_with_notes(
+                        ErrorKind::TooManyArguments(ONEWAY.to_owned()),
+                        Some(span),
+                        vec![Note::new(
+                            "The oneway attribute does not take any arguments",
+                            Some(span),
+                        )],
+                    ));
+                    return unmatched_attribute;
+                }
+            },
+
+            DEPRECATED => match arguments {
+                [] => Some(AttributeKind::Deprecated { reason: None }),
+                [reason] => Some(AttributeKind::Deprecated {
+                    reason: Some(reason.to_owned()),
+                }),
+                [..] => {
+                    reporter.report_error(Error::new_with_notes(
+                        ErrorKind::TooManyArguments(DEPRECATED.to_owned()),
+                        Some(span),
+                        vec![Note::new(
+                            "The deprecated attribute takes at most one argument",
+                            Some(span),
+                        )],
+                    ));
+                    return unmatched_attribute;
+                }
+            },
+
             FORMAT => {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
@@ -183,6 +218,7 @@ impl AttributeKind {
                     format: ClassFormat::from_str(&arguments[0]).unwrap(),
                 })
             }
+
             IGNORE_WARNINGS => {
                 arguments.iter().for_each(|arg| {
                     if !Warning::all_codes().contains(&arg.as_str()) {
@@ -193,6 +229,7 @@ impl AttributeKind {
                     warning_codes: Some(arguments.to_owned()),
                 })
             }
+
             _ => None,
         };
 
