@@ -261,6 +261,11 @@ pub enum ErrorKind {
     /// A file scoped module contained submodules.
     FileScopedModuleCannotContainSubModules(String),
 
+    /// A malformed or invalid Warning code was supplied to the ignore warnings attribute.
+    ///
+    /// # Fields
+    InvalidWarningCode(String),
+
     // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
     MissingRequiredArgument(String), // (arg)
@@ -558,5 +563,11 @@ implement_error_functions!(
         ErrorKind::AnyExceptionNotSupported,
         format!("operations that throw AnyException are only supported by the Slice1 encoding")
 
+    ),
+    (
+        "E049",
+        ErrorKind::InvalidWarningCode,
+        format!("the warning code `{code}` is not valid"),
+        code
     )
 );

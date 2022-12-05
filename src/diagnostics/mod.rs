@@ -180,7 +180,15 @@ impl fmt::Display for Note {
 
 #[macro_export]
 macro_rules! implement_error_functions {
+
     (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+
+        impl $crate::diagnostics::Warning {
+            pub fn all_codes() -> Vec<&'static str> {
+                vec![$($code),*]
+            }
+        }
+
         impl WarningKind {
             pub fn error_code(&self) -> &str {
                 match self {

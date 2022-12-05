@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note, Warning};
 use crate::grammar::attributes::*;
 use crate::slice_file::Span;
 use std::str::FromStr;
@@ -183,9 +183,16 @@ impl AttributeKind {
                     format: ClassFormat::from_str(&arguments[0]).unwrap(),
                 })
             }
-            IGNORE_WARNINGS => Some(AttributeKind::IgnoreWarnings {
-                warning_codes: Some(arguments.to_owned()),
-            }),
+            IGNORE_WARNINGS => {
+                arguments.iter().for_each(|arg| {
+                    if !Warning::all_codes().contains(&arg.as_str()) {
+                        reporter.report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
+                    }
+                });
+                Some(AttributeKind::IgnoreWarnings {
+                    warning_codes: Some(arguments.to_owned()),
+                })
+            }
             _ => None,
         };
 
