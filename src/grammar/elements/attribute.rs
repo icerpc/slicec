@@ -220,14 +220,10 @@ impl AttributeKind {
             }
 
             IGNORE_WARNINGS => {
-                arguments.iter().for_each(|arg| {
+                for arg in arguments.iter() {
                     if !Warning::all_codes().contains(&arg.as_str()) {
                         // No exact match was found, check if the casing did not match
-                        if Warning::all_codes()
-                            .iter()
-                            .map(|code| code.to_uppercase())
-                            .any(|code| code == arg.to_uppercase())
-                        {
+                        if Warning::all_codes().iter().any(|code| *code == arg.to_uppercase()) {
                             // The casing did not match, report an error with a note
                             reporter.report_error(Error::new_with_notes(
                                 ErrorKind::InvalidWarningCode(arg.to_owned()),
@@ -246,7 +242,7 @@ impl AttributeKind {
                                 .report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
                         }
                     }
-                });
+                }
                 Some(AttributeKind::IgnoreWarnings {
                     warning_codes: Some(arguments.to_owned()),
                 })
