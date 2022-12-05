@@ -220,17 +220,17 @@ impl AttributeKind {
             }
 
             IGNORE_WARNINGS => {
-                for arg in arguments.iter() {
+                for arg in arguments {
                     if !Warning::all_codes().contains(&arg.as_str()) {
                         // No exact match was found, check if the casing did not match
                         let uppercase = arg.to_uppercase();
-                        if Warning::all_codes().iter().any(|code| *code == uppercase) {
+                        if Warning::all_codes().contains(&uppercase.as_str()) {
                             // The casing did not match, report an error with a note
                             reporter.report_error(Error::new_with_notes(
                                 ErrorKind::InvalidWarningCode(arg.to_owned()),
                                 Some(span),
                                 vec![Note::new(
-                                    format!("The warning code is case sensitive, did you mean to use {}?", uppercase),
+                                    format!("The warning code is case sensitive, did you mean to use `{uppercase}`?"),
                                     Some(span),
                                 )],
                             ));

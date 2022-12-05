@@ -180,7 +180,6 @@ impl fmt::Display for Note {
 
 #[macro_export]
 macro_rules! implement_error_functions {
-
     (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
 
         impl $crate::diagnostics::Warning {
