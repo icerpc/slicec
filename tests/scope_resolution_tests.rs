@@ -6,7 +6,7 @@ mod scope_resolution {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{ErrorBuilder, ErrorKind};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
     #[test]
@@ -23,9 +23,8 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = ErrorBuilder::new(ErrorKind::FileScopedModuleCannotContainSubModules("T".to_owned()))
-            .note("file level module 'T' declared here", None)
-            .build();
+        let expected = Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("T".to_owned()))
+            .add_note("file level module 'T' declared here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -230,9 +229,8 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = ErrorBuilder::new(ErrorKind::Redefinition("B".to_string()))
-            .note("`B` was previously defined here", None)
-            .build();
+        let expected =
+            Error::new(ErrorKind::Redefinition("B".to_string())).add_note("`B` was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -263,7 +261,7 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = ErrorBuilder::new(ErrorKind::TypeMismatch("Type".to_string(), "module".to_string())).build();
+        let expected = Error::new(ErrorKind::TypeMismatch("Type".to_string(), "module".to_string()));
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

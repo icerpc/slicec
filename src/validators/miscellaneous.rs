@@ -16,10 +16,10 @@ pub fn miscellaneous_validators() -> ValidationChain {
 fn file_scoped_modules_cannot_contain_sub_modules(module_def: &Module, diagnostic_reporter: &mut DiagnosticReporter) {
     if module_def.is_file_scoped {
         module_def.submodules().iter().for_each(|submodule| {
-            ErrorBuilder::new(ErrorKind::FileScopedModuleCannotContainSubModules(
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules(
                 module_def.identifier().to_owned(),
             ))
-            .span(submodule.span())
+            .set_span(submodule.span())
             .report(diagnostic_reporter);
         });
     }
@@ -32,7 +32,7 @@ fn at_most_one_stream_parameter(members: &[&Parameter], diagnostic_reporter: &mu
         .split_last() // Split at the last element, which is the one we do not want to report an error for.
         .unwrap().1 // All members before the split. Safe to unwrap since we know there are at least two members.
         .iter()
-        .for_each(|m| ErrorBuilder::new(ErrorKind::MultipleStreamedMembers).span(m.span()).report(diagnostic_reporter));
+        .for_each(|m| Error::new(ErrorKind::MultipleStreamedMembers).set_span(m.span()).report(diagnostic_reporter));
     }
 }
 
@@ -43,8 +43,8 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
         .into_iter()
         .filter(|m| m.is_streamed)
         .for_each(|m| {
-           ErrorBuilder::new(ErrorKind::StreamedMembersMustBeLast(m.identifier().to_owned()))
-                .span(m.span())
+           Error::new(ErrorKind::StreamedMembersMustBeLast(m.identifier().to_owned()))
+                .set_span(m.span())
                 .report(diagnostic_reporter);
         });
 }
@@ -52,8 +52,8 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
 fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && struct_def.members().is_empty() {
-        ErrorBuilder::new(ErrorKind::CompactStructCannotBeEmpty)
-            .span(struct_def.span())
+        Error::new(ErrorKind::CompactStructCannotBeEmpty)
+            .set_span(struct_def.span())
             .report(diagnostic_reporter);
     }
 }

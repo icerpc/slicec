@@ -2,7 +2,7 @@
 
 pub mod helpers;
 use slice::compile_from_strings;
-use slice::diagnostics::{ErrorBuilder, ErrorKind};
+use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::Encoding;
 
 #[test]
@@ -83,15 +83,13 @@ fn invalid_mixed_encoding_fails() {
     // TODO: we should provide a better error message to the user here
     let diagnostic_reporter = parser_result.err().unwrap().diagnostic_reporter;
     let expected = [
-        ErrorBuilder::new(ErrorKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1))
-            .note("file encoding was set to Slice1 here:", None)
-            .build(),
-        ErrorBuilder::new(ErrorKind::UnsupportedType(
+        Error::new(ErrorKind::UnsupportedType("ACustomType".to_owned(), Encoding::Slice1))
+            .add_note("file encoding was set to Slice1 here:", None),
+        Error::new(ErrorKind::UnsupportedType(
             "ACompactStruct".to_owned(),
             Encoding::Slice1,
         ))
-        .note("file encoding was set to Slice1 here:", None)
-        .build(),
+        .add_note("file encoding was set to Slice1 here:", None),
     ];
 
     assert_errors!(diagnostic_reporter, expected);

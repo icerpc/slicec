@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{ErrorBuilder, ErrorKind, WarningKind};
+        use slice::diagnostics::{Error, ErrorKind, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -77,7 +77,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = ErrorBuilder::new(ErrorKind::CannotBeEmpty("format attribute".to_owned())).build();
+            let expected = Error::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -98,15 +98,14 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+            let expected = Error::new(ErrorKind::ArgumentNotSupported(
                 "Foo".to_owned(),
                 "format attribute".to_owned(),
             ))
-            .note(
+            .add_note(
                 "The valid arguments for the format attribute are `Compact` and `Sliced`",
                 None,
-            )
-            .build();
+            );
 
             assert_errors!(diagnostic_reporter, [&expected]);
         }
@@ -148,8 +147,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected =
-                ErrorBuilder::new(ErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned())).build();
+            let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()));
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -328,15 +326,14 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+            let expected = Error::new(ErrorKind::ArgumentNotSupported(
                 "Foo".to_owned(),
                 "compress attribute".to_owned(),
             ))
-            .note(
+            .add_note(
                 "The valid argument(s) for the compress attribute are `Args` and `Return`",
                 None,
-            )
-            .build();
+            );
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -357,7 +354,7 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = ErrorBuilder::new(ErrorKind::CompressAttributeCannotBeApplied).build();
+            let expected = Error::new(ErrorKind::CompressAttributeCannotBeApplied);
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -477,8 +474,8 @@ mod attributes {
 
             // Assert
             let expected = [
-                ErrorBuilder::new(ErrorKind::InvalidWarningCode("W315".to_owned())).build(),
-                ErrorBuilder::new(ErrorKind::InvalidWarningCode("w001".to_owned())).build(),
+                Error::new(ErrorKind::InvalidWarningCode("W315".to_owned())),
+                Error::new(ErrorKind::InvalidWarningCode("w001".to_owned())),
             ];
             assert_errors!(diagnostic_reporter, expected);
         }

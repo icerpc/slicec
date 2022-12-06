@@ -18,10 +18,10 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
             .iter()
             .any(|a| matches!(a.kind, AttributeKind::Deprecated { .. }))
         {
-            ErrorBuilder::new(ErrorKind::DeprecatedAttributeCannotBeApplied(
+            Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied(
                 m.kind().to_owned() + "(s)",
             ))
-            .span(m.span())
+            .set_span(m.span())
             .report(diagnostic_reporter)
         };
     });
@@ -41,8 +41,8 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
             .into_iter()
             .find(|a| matches!(a.kind, AttributeKind::Compress { .. }))
         {
-            ErrorBuilder::new(ErrorKind::CompressAttributeCannotBeApplied)
-                .span(attribute.span())
+            Error::new(ErrorKind::CompressAttributeCannotBeApplied)
+                .set_span(attribute.span())
                 .report(diagnostic_reporter);
         }
     }

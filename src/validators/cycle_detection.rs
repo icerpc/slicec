@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::{DiagnosticReporter, ErrorBuilder, ErrorKind};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
@@ -32,8 +32,8 @@ impl<'a> CycleDetector<'a> {
             let type_id = &type_id;
             let cycle_string = &self.dependency_stack[i..].join(" -> ");
             let message = format!("self-referential type {type_id} has infinite size.\n{cycle_string}");
-            ErrorBuilder::new(ErrorKind::Syntax(message))
-                .span(type_def.span())
+            Error::new(ErrorKind::Syntax(message))
+                .set_span(type_def.span())
                 .report(self.diagnostic_reporter);
             true
         } else {

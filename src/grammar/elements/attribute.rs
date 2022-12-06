@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, ErrorBuilder, ErrorKind, Warning};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -131,12 +131,12 @@ impl AttributeKind {
                         }),
                         _ => {
                             for arg in invalid_arguments.iter() {
-                                ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+                                Error::new(ErrorKind::ArgumentNotSupported(
                                     arg.to_string(),
                                     "compress attribute".to_owned(),
                                 ))
-                                .span(span)
-                                .note(
+                                .set_span(span)
+                                .add_note(
                                     "The valid argument(s) for the compress attribute are `Args` and `Return`",
                                     Some(span),
                                 )
@@ -156,9 +156,9 @@ impl AttributeKind {
             ONEWAY => match arguments {
                 [] => Some(AttributeKind::Oneway),
                 _ => {
-                    ErrorBuilder::new(ErrorKind::TooManyArguments(ONEWAY.to_owned()))
-                        .span(span)
-                        .note("The oneway attribute does not take any arguments", Some(span))
+                    Error::new(ErrorKind::TooManyArguments(ONEWAY.to_owned()))
+                        .set_span(span)
+                        .add_note("The oneway attribute does not take any arguments", Some(span))
                         .report(reporter);
                     return unmatched_attribute;
                 }
@@ -170,9 +170,9 @@ impl AttributeKind {
                     reason: Some(reason.to_owned()),
                 }),
                 [..] => {
-                    ErrorBuilder::new(ErrorKind::TooManyArguments(DEPRECATED.to_owned()))
-                        .span(span)
-                        .note("The deprecated attribute takes at most one argument", Some(span))
+                    Error::new(ErrorKind::TooManyArguments(DEPRECATED.to_owned()))
+                        .set_span(span)
+                        .add_note("The deprecated attribute takes at most one argument", Some(span))
                         .report(reporter);
                     return unmatched_attribute;
                 }
@@ -181,8 +181,8 @@ impl AttributeKind {
             FORMAT => {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
-                    ErrorBuilder::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()))
-                        .span(span)
+                    Error::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()))
+                        .set_span(span)
                         .report(reporter);
                     return unmatched_attribute;
                 }
@@ -193,15 +193,15 @@ impl AttributeKind {
                     .filter(|arg| ClassFormat::from_str(arg).is_err())
                     .collect::<Vec<&String>>();
                 invalid_args.iter().for_each(|arg| {
-                    ErrorBuilder::new(ErrorKind::ArgumentNotSupported(
+                    Error::new(ErrorKind::ArgumentNotSupported(
                         arg.to_string(),
                         "format attribute".to_owned(),
                     ))
-                    .note(
+                    .add_note(
                         "The valid arguments for the format attribute are `Compact` and `Sliced`",
                         Some(span),
                     )
-                    .span(span)
+                    .set_span(span)
                     .report(reporter);
                 });
                 if !invalid_args.is_empty() {
@@ -221,17 +221,17 @@ impl AttributeKind {
                         let uppercase = arg.to_uppercase();
                         if Warning::all_codes().contains(&uppercase.as_str()) {
                             // The casing did not match, report an error with a note
-                            ErrorBuilder::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
-                                .span(span)
-                                .note(
+                            Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
+                                .set_span(span)
+                                .add_note(
                                     format!("The warning code is case sensitive, did you mean to use `{uppercase}`?"),
                                     Some(span),
                                 )
                                 .report(reporter);
                         } else {
                             // No exact match and no casing match, report an error
-                            ErrorBuilder::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
-                                .span(span)
+                            Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
+                                .set_span(span)
                                 .report(reporter);
                         }
                     }

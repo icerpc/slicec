@@ -2,7 +2,7 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
-use slice::diagnostics::{Error, ErrorBuilder, ErrorKind};
+use slice::diagnostics::{Error, ErrorKind};
 use test_case::test_case;
 
 #[test]
@@ -17,7 +17,7 @@ fn optionals_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = ErrorBuilder::new(ErrorKind::KeyMustBeNonOptional).build();
+    let expected = Error::new(ErrorKind::KeyMustBeNonOptional);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -67,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(key_type.to_owned())).build();
+    let expected = Error::new(ErrorKind::KeyTypeNotSupported(key_type.to_owned()));
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -86,7 +86,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(key_kind.to_owned())).build();
+    let expected = Error::new(ErrorKind::KeyTypeNotSupported(key_kind.to_owned()));
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -128,9 +128,8 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = ErrorBuilder::new(ErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)))
-        .note(format!("{} '{}' is defined here:", key_kind, key_type), None)
-        .build();
+    let expected = Error::new(ErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)))
+        .add_note(format!("{} '{}' is defined here:", key_kind, key_type), None);
 
     assert_errors!(diagnostic_reporter, [&expected]);
 }
@@ -152,9 +151,7 @@ fn non_compact_structs_are_disallowed() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = ErrorBuilder::new(ErrorKind::StructKeyMustBeCompact)
-        .note("Struct 'MyStruct' is defined here:", None)
-        .build();
+    let expected = Error::new(ErrorKind::StructKeyMustBeCompact).add_note("Struct 'MyStruct' is defined here:", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -212,17 +209,15 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
 
     // Assert
     let expected: [Error; 7] = [
-        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("sequences".to_owned())).build(),
-        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("seq".to_owned())).build(),
-        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("float32".to_owned())).build(),
-        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("f32".to_owned())).build(),
-        ErrorBuilder::new(ErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()))
-            .note("struct 'Inner' is defined here:", None)
-            .build(),
-        ErrorBuilder::new(ErrorKind::KeyTypeNotSupported("i".to_owned())).build(),
-        ErrorBuilder::new(ErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()))
-            .note("struct 'Outer' is defined here:", None)
-            .build(),
+        Error::new(ErrorKind::KeyTypeNotSupported("sequences".to_owned())),
+        Error::new(ErrorKind::KeyTypeNotSupported("seq".to_owned())),
+        Error::new(ErrorKind::KeyTypeNotSupported("float32".to_owned())),
+        Error::new(ErrorKind::KeyTypeNotSupported("f32".to_owned())),
+        Error::new(ErrorKind::StructKeyContainsDisallowedType("Inner".to_owned()))
+            .add_note("struct 'Inner' is defined here:", None),
+        Error::new(ErrorKind::KeyTypeNotSupported("i".to_owned())),
+        Error::new(ErrorKind::StructKeyContainsDisallowedType("Outer".to_owned()))
+            .add_note("struct 'Outer' is defined here:", None),
     ];
     assert_errors!(diagnostic_reporter, expected);
 }

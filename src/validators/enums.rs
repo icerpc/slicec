@@ -23,13 +23,13 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
         for enumerator in enum_def.enumerators() {
             let value = enumerator.value;
             if value < 0 || value > i32::MAX as i128 {
-                ErrorBuilder::new(ErrorKind::EnumeratorValueOutOfBounds(
+                Error::new(ErrorKind::EnumeratorValueOutOfBounds(
                     enumerator.identifier().to_owned(),
                     value,
                     0,
                     i32::MAX as i128,
                 ))
-                .span(enumerator.span())
+                .set_span(enumerator.span())
                 .report(diagnostic_reporter);
             }
         }
@@ -49,8 +49,8 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                         min,
                         max,
                     );
-                    ErrorBuilder::new(error)
-                        .span(enumerator.span())
+                    Error::new(error)
+                        .set_span(enumerator.span())
                         .report(diagnostic_reporter);
                 });
         }
@@ -76,11 +76,11 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                ErrorBuilder::new(ErrorKind::UnderlyingTypeMustBeIntegral(
+                Error::new(ErrorKind::UnderlyingTypeMustBeIntegral(
                     enum_def.identifier().to_owned(),
                     underlying_type.definition().kind().to_owned(),
                 ))
-                .span(enum_def.span())
+                .set_span(enum_def.span())
                 .report(diagnostic_reporter);
             }
         }
@@ -95,9 +95,9 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and emit an error. Otherwise add the enumerator and its value to the map.
         if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value) {
-            ErrorBuilder::new(ErrorKind::DuplicateEnumeratorValue(enumerator.value))
-                .span(enumerator.span())
-                .note(
+            Error::new(ErrorKind::DuplicateEnumeratorValue(enumerator.value))
+                .set_span(enumerator.span())
+                .add_note(
                     format!("the value was previously used by `{}` here:", alt_enum.identifier(),),
                     Some(alt_enum.span()),
                 )
@@ -112,10 +112,10 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            ErrorBuilder::new(ErrorKind::CannotUseOptionalUnderlyingType(
+            Error::new(ErrorKind::CannotUseOptionalUnderlyingType(
                 enum_def.identifier().to_owned(),
             ))
-            .span(enum_def.span())
+            .set_span(enum_def.span())
             .report(diagnostic_reporter);
         }
     }
@@ -124,8 +124,8 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        ErrorBuilder::new(ErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()))
-            .span(enum_def.span())
+        Error::new(ErrorKind::MustContainEnumerators(enum_def.identifier().to_owned()))
+            .set_span(enum_def.span())
             .report(diagnostic_reporter);
     }
 }

@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{ErrorBuilder, ErrorKind};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -38,9 +38,8 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = ErrorBuilder::new(ErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1))
-            .note("file encoding was set to Slice1 here:", None)
-            .build();
+        let expected = Error::new(ErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1))
+            .add_note("file encoding was set to Slice1 here:", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -82,7 +81,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{ErrorBuilder, ErrorKind};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -104,14 +103,13 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = ErrorBuilder::new(ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2))
-            .note("file is using the Slice2 encoding by default", None)
-            .note(
+        let expected = Error::new(ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2))
+            .add_note("file is using the Slice2 encoding by default", None)
+            .add_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
                 None,
             )
-            .note("classes are only supported by the Slice1 encoding", None)
-            .build();
+            .add_note("classes are only supported by the Slice1 encoding", None);
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }

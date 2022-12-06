@@ -4,7 +4,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{ErrorBuilder, ErrorKind};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
     #[test]
@@ -22,14 +22,13 @@ mod slice2 {
 
         // Assert
         let kind = ErrorKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2);
-        let expected = ErrorBuilder::new(kind)
-            .note("file is using the Slice2 encoding by default", None)
-            .note(
+        let expected = Error::new(kind)
+            .add_note("file is using the Slice2 encoding by default", None)
+            .add_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
                 None,
             )
-            .note("classes are only supported by the Slice1 encoding", None)
-            .build();
+            .add_note("classes are only supported by the Slice1 encoding", None);
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }

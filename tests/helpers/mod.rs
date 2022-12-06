@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use slice::diagnostics::{Warning, WarningBuilder, WarningKind};
+use slice::diagnostics::{Warning, WarningKind};
 
 pub mod macros;
 pub mod parsing_helpers;
@@ -13,5 +13,5 @@ pub fn new_warning(kind: WarningKind) -> Warning {
         end: slice::slice_file::Location { row: 0, col: 0 },
         file: "string".to_string(),
     };
-    WarningBuilder::new(kind, &span).build()
+    Warning::new(kind, &span)
 }
