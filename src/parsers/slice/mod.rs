@@ -12,8 +12,8 @@ type ParseError<'a> = lalrpop_util::ParseError<Location, tokens::TokenKind<'a>, 
 
 // TODO add more specific error messages for common cases.
 
-/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [error](diagnostics::Error) that
-/// can be handled by the [`DiagnosticReporter`](diagnostics::DiagnosticReporter).
+/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [`error`](diagnostics::Error)
+/// that can be handled by the [`DiagnosticReporter`](diagnostics::DiagnosticReporter).
 fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics::Error {
     match parse_error {
         // A custom error we emitted; See `tokens::ErrorKind`.
