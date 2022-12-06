@@ -5,32 +5,36 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
-use crate::diagnostics::{Error, ErrorBuilder, ErrorKind};
+use crate::diagnostics;
 use crate::slice_file::{Location, Span};
 
 type ParseError<'a> = lalrpop_util::ParseError<Location, tokens::TokenKind<'a>, tokens::Error>;
 
 // TODO add more specific error messages for common cases.
 
-/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [`error`](Error)
-/// that can be handled by the [`DiagnosticReporter`](crate::diagnostics::DiagnosticReporter).
-fn construct_error_from(parse_error: ParseError, file_name: &str) -> Error {
+/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [error](diagnostics::Error) that
+/// can be handled by the [`DiagnosticReporter`](diagnostics::DiagnosticReporter).
+fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics::Error {
     match parse_error {
         // A custom error we emitted; See `tokens::ErrorKind`.
         ParseError::User {
             error: (start, parse_error_kind, end),
         } => {
             let error_kind = match parse_error_kind {
-                tokens::ErrorKind::MissingDirective => ErrorKind::Syntax("missing preprocessor directive".to_owned()),
-                tokens::ErrorKind::UnknownDirective { keyword } => {
-                    ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
+                tokens::ErrorKind::MissingDirective => {
+                    diagnostics::ErrorKind::Syntax("missing preprocessor directive".to_owned())
                 }
-                tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => ErrorKind::Syntax(match suggestion {
-                    Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                    None => format!("unknown symbol '{symbol}'"),
-                }),
+                tokens::ErrorKind::UnknownDirective { keyword } => {
+                    diagnostics::ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
+                }
+                tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => {
+                    diagnostics::ErrorKind::Syntax(match suggestion {
+                        Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
+                        None => format!("unknown symbol '{symbol}'"),
+                    })
+                }
             };
-            ErrorBuilder::new(error_kind)
+            diagnostics::ErrorBuilder::new(error_kind)
                 .span(&Span::new(start, end, file_name))
                 .build()
         }
@@ -41,7 +45,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Error {
             expected,
         } => {
             let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
-            ErrorBuilder::new(ErrorKind::Syntax(message))
+            diagnostics::ErrorBuilder::new(diagnostics::ErrorKind::Syntax(message))
                 .span(&Span::new(start, end, file_name))
                 .build()
         }
@@ -49,7 +53,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Error {
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
-            ErrorBuilder::new(ErrorKind::Syntax(message))
+            diagnostics::ErrorBuilder::new(diagnostics::ErrorKind::Syntax(message))
                 .span(&Span::new(location, location, file_name))
                 .build()
         }
