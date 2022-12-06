@@ -1,7 +1,55 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::{DiagnosticReporter, Note};
 use crate::grammar::Encoding;
 use crate::implement_error_functions;
+use crate::slice_file::Span;
+
+#[derive(Debug)]
+pub struct Error {
+    pub(super) kind: ErrorKind,
+    pub(super) span: Option<Span>,
+    pub(super) notes: Vec<Note>,
+}
+
+impl Error {
+    pub fn new(kind: ErrorKind) -> Self {
+        Error {
+            kind,
+            span: None,
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn set_span(mut self, span: &Span) -> Self {
+        self.span = Some(span.to_owned());
+        self
+    }
+
+    pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
+        self.notes.push(Note::new(message, span));
+        self
+    }
+
+    pub fn add_notes(mut self, notes: Vec<Note>) -> Self {
+        self.notes.extend(notes);
+        self
+    }
+
+    pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
+        diagnostic_reporter.report(self);
+    }
+
+    pub fn error_code(&self) -> Option<&str> {
+        self.kind.error_code()
+    }
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.kind.message())
+    }
+}
 
 #[derive(Debug)]
 pub enum ErrorKind {

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Note, Warning};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -131,14 +131,16 @@ impl AttributeKind {
                         }),
                         _ => {
                             for arg in invalid_arguments.iter() {
-                                reporter.report_error(Error::new_with_notes(
-                                    ErrorKind::ArgumentNotSupported(arg.to_string(), "compress attribute".to_owned()),
-                                    Some(span),
-                                    vec![Note::new(
-                                        "The valid argument(s) for the compress attribute are `Args` and `Return`",
-                                        Some(span),
-                                    )],
+                                Error::new(ErrorKind::ArgumentNotSupported(
+                                    arg.to_string(),
+                                    "compress attribute".to_owned(),
                                 ))
+                                .set_span(span)
+                                .add_note(
+                                    "The valid arguments for the compress attribute are `Args` and `Return`",
+                                    Some(span),
+                                )
+                                .report(reporter)
                             }
                             return unmatched_attribute;
                         }
@@ -154,14 +156,10 @@ impl AttributeKind {
             ONEWAY => match arguments {
                 [] => Some(AttributeKind::Oneway),
                 _ => {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::TooManyArguments(ONEWAY.to_owned()),
-                        Some(span),
-                        vec![Note::new(
-                            "The oneway attribute does not take any arguments",
-                            Some(span),
-                        )],
-                    ));
+                    Error::new(ErrorKind::TooManyArguments(ONEWAY.to_owned()))
+                        .set_span(span)
+                        .add_note("The oneway attribute does not take any arguments", Some(span))
+                        .report(reporter);
                     return unmatched_attribute;
                 }
             },
@@ -172,14 +170,10 @@ impl AttributeKind {
                     reason: Some(reason.to_owned()),
                 }),
                 [..] => {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::TooManyArguments(DEPRECATED.to_owned()),
-                        Some(span),
-                        vec![Note::new(
-                            "The deprecated attribute takes at most one argument",
-                            Some(span),
-                        )],
-                    ));
+                    Error::new(ErrorKind::TooManyArguments(DEPRECATED.to_owned()))
+                        .set_span(span)
+                        .add_note("The deprecated attribute takes at most one argument", Some(span))
+                        .report(reporter);
                     return unmatched_attribute;
                 }
             },
@@ -187,10 +181,9 @@ impl AttributeKind {
             FORMAT => {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
-                    reporter.report_error(Error::new(
-                        ErrorKind::CannotBeEmpty("format attribute".to_owned()),
-                        Some(span),
-                    ));
+                    Error::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()))
+                        .set_span(span)
+                        .report(reporter);
                     return unmatched_attribute;
                 }
 
@@ -200,14 +193,16 @@ impl AttributeKind {
                     .filter(|arg| ClassFormat::from_str(arg).is_err())
                     .collect::<Vec<&String>>();
                 invalid_args.iter().for_each(|arg| {
-                    reporter.report_error(Error::new_with_notes(
-                        ErrorKind::ArgumentNotSupported(arg.to_string(), "format attribute".to_owned()),
+                    Error::new(ErrorKind::ArgumentNotSupported(
+                        arg.to_string(),
+                        "format attribute".to_owned(),
+                    ))
+                    .add_note(
+                        "The valid arguments for the format attribute are `Compact` and `Sliced`",
                         Some(span),
-                        vec![Note::new(
-                            "The valid arguments for the format attribute are `Compact` and `Sliced`",
-                            Some(span),
-                        )],
-                    ));
+                    )
+                    .set_span(span)
+                    .report(reporter);
                 });
                 if !invalid_args.is_empty() {
                     return unmatched_attribute;
@@ -226,18 +221,18 @@ impl AttributeKind {
                         let uppercase = arg.to_uppercase();
                         if Warning::all_codes().contains(&uppercase.as_str()) {
                             // The casing did not match, report an error with a note
-                            reporter.report_error(Error::new_with_notes(
-                                ErrorKind::InvalidWarningCode(arg.to_owned()),
-                                Some(span),
-                                vec![Note::new(
+                            Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
+                                .set_span(span)
+                                .add_note(
                                     format!("The warning code is case sensitive, did you mean to use `{uppercase}`?"),
                                     Some(span),
-                                )],
-                            ));
+                                )
+                                .report(reporter);
                         } else {
                             // No exact match and no casing match, report an error
-                            reporter
-                                .report_error(Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()), Some(span)));
+                            Error::new(ErrorKind::InvalidWarningCode(arg.to_owned()))
+                                .set_span(span)
+                                .report(reporter);
                         }
                     }
                 }

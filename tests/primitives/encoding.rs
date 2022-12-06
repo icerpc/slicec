@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -38,11 +38,8 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(
-            ErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1),
-            None,
-            vec![Note::new("file encoding was set to Slice1 here:", None)],
-        );
+        let expected = Error::new(ErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1))
+            .add_note("file encoding was set to Slice1 here:", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -84,7 +81,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -106,18 +103,14 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(
-            ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2),
-            None,
-            vec![
-                Note::new("file is using the Slice2 encoding by default", None),
-                Note::new(
-                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                    None,
-                ),
-                Note::new("classes are only supported by the Slice1 encoding", None),
-            ],
-        );
+        let expected = Error::new(ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2))
+            .add_note("file is using the Slice2 encoding by default", None)
+            .add_note(
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+                None,
+            )
+            .add_note("classes are only supported by the Slice1 encoding", None);
+
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

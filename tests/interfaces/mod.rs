@@ -7,7 +7,7 @@ mod operations;
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::compile_from_strings;
-use slice::diagnostics::{Error, ErrorKind, Note};
+use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 
 #[test]
@@ -109,9 +109,7 @@ fn cannot_redefine_operations() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new_with_notes(ErrorKind::Redefinition("op".to_owned()), None, vec![Note::new(
-        "`op` was previously defined here",
-        None,
-    )]);
+    let expected =
+        Error::new(ErrorKind::Redefinition("op".to_owned())).add_note("`op` was previously defined here", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }

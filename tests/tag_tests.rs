@@ -7,7 +7,7 @@ mod tags {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use slice::compile_from_strings;
-    use slice::diagnostics::{Error, ErrorKind, Note};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -29,7 +29,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("b".to_owned()), None);
+        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("b".to_owned()));
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -49,7 +49,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("myParam".to_string()), None);
+        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("myParam".to_string()));
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -69,9 +69,8 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(ErrorKind::OptionalsNotSupported(Encoding::Slice1), None, vec![
-            Note::new("file encoding was set to Slice1 here:", None),
-        ]);
+        let expected = Error::new(ErrorKind::OptionalsNotSupported(Encoding::Slice1))
+            .add_note("file encoding was set to Slice1 here:", None);
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }
@@ -93,8 +92,8 @@ mod tags {
 
         // Assert
         let expected: [Error; 2] = [
-            Error::new(ErrorKind::RequiredMustPrecedeOptional("p3".to_owned()), None),
-            Error::new(ErrorKind::RequiredMustPrecedeOptional("p4".to_owned()), None),
+            Error::new(ErrorKind::RequiredMustPrecedeOptional("p3".to_owned())),
+            Error::new(ErrorKind::RequiredMustPrecedeOptional("p4".to_owned())),
         ];
         assert_errors!(diagnostic_reporter, expected);
     }
@@ -120,7 +119,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagClass("c".to_owned()), None);
+        let expected = Error::new(ErrorKind::CannotTagClass("c".to_owned()));
         assert_errors!(errors, [&expected]);
     }
 
@@ -150,7 +149,7 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagContainingClass("s".to_owned()), None);
+        let expected = Error::new(ErrorKind::CannotTagContainingClass("s".to_owned()));
         assert_errors!(errors, [&expected]);
     }
 
@@ -191,9 +190,8 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new_with_notes(ErrorKind::CannotHaveDuplicateTag("b".to_owned()), None, vec![
-            Note::new("The data member `a` has previous used the tag value `1`", None),
-        ]);
+        let expected = Error::new(ErrorKind::CannotHaveDuplicateTag("b".to_owned()))
+            .add_note("The data member `a` has previous used the tag value `1`", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -237,7 +235,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TagValueOutOfBounds, None);
+        let expected = Error::new(ErrorKind::TagValueOutOfBounds);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -256,7 +254,7 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TagValueOutOfBounds, None);
+        let expected = Error::new(ErrorKind::TagValueOutOfBounds);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

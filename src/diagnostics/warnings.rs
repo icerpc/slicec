@@ -1,6 +1,68 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::{DiagnosticReporter, Note};
+use crate::grammar::{AttributeKind, Entity};
 use crate::implement_error_functions;
+use crate::slice_file::Span;
+
+#[derive(Debug)]
+pub struct Warning {
+    pub(super) kind: WarningKind,
+    pub(super) span: Span,
+    pub(super) notes: Vec<Note>,
+}
+
+impl Warning {
+    pub fn new(kind: WarningKind, span: &Span) -> Self {
+        Warning {
+            kind,
+            span: span.to_owned(),
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
+        self.notes.push(Note::new(message, span));
+        self
+    }
+
+    pub fn report(self, reporter: &mut DiagnosticReporter, entity: &dyn Entity) {
+        // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if match reporter.file_level_ignored_warnings.get(&self.span.file) {
+            None => false,
+            Some(args) if args.is_empty() => true,
+            Some(args) => args.contains(&self.error_code().to_owned()),
+        } {
+            // Do not push the warning to the diagnostics vector
+            return;
+        }
+
+        // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
+        // warnings), or if it has an argument matching the error code of the warning.
+        if entity.attributes(true).iter().any(|a| match &a.kind {
+            AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
+                Some(codes) => codes.is_empty() || codes.contains(&self.error_code().to_owned()),
+                None => true,
+            },
+            _ => false,
+        }) {
+            // Do not push the warning to the diagnostics vector
+            return;
+        }
+        reporter.report(self);
+    }
+
+    pub fn error_code(&self) -> &str {
+        self.kind.error_code()
+    }
+}
+
+impl std::fmt::Display for Warning {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.kind.message())
+    }
+}
 
 #[derive(Debug)]
 pub enum WarningKind {

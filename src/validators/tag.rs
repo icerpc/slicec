@@ -27,19 +27,17 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            let error = Error::new_with_notes(
-                ErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()),
-                Some(window[1].span()),
-                vec![Note::new(
+            Error::new(ErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()))
+                .set_span(window[1].span())
+                .add_note(
                     format!(
                         "The data member `{}` has previous used the tag value `{}`",
                         &window[0].identifier(),
                         window[0].tag().unwrap()
                     ),
                     Some(window[0].span()),
-                )],
-            );
-            diagnostic_reporter.report_error(error);
+                )
+                .report(diagnostic_reporter);
         };
     });
 }
@@ -53,7 +51,9 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
         Some(_) => true,
         None if seen => {
             let error = ErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
-            diagnostic_reporter.report_error(Error::new(error, Some(parameter.data_type.span())));
+            Error::new(error)
+                .set_span(parameter.data_type.span())
+                .report(diagnostic_reporter);
             true
         }
         None => false,
@@ -67,15 +67,13 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged data members.
         for member in struct_def.members() {
             if member.tag.is_some() {
-                let error = Error::new_with_notes(
-                    ErrorKind::CompactStructCannotContainTaggedMembers,
-                    Some(member.span()),
-                    vec![Note::new(
+                Error::new(ErrorKind::CompactStructCannotContainTaggedMembers)
+                    .set_span(member.span())
+                    .add_note(
                         format!("struct '{}' is declared compact here", struct_def.identifier()),
                         Some(struct_def.span()),
-                    )],
-                );
-                diagnostic_reporter.report_error(error);
+                    )
+                    .report(diagnostic_reporter);
             }
         }
     }
@@ -92,10 +90,9 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            diagnostic_reporter.report_error(Error::new(
-                ErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()),
-                Some(member.span()),
-            ));
+            Error::new(ErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()))
+                .set_span(member.span())
+                .report(diagnostic_reporter);
         }
     }
 }
@@ -126,7 +123,9 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
             } else {
                 ErrorKind::CannotTagContainingClass(identifier)
             };
-            diagnostic_reporter.report_error(Error::new(error_kind, Some(member.span())));
+            Error::new(error_kind)
+                .set_span(member.span())
+                .report(diagnostic_reporter);
         }
     }
 }

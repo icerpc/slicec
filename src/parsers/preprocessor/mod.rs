@@ -34,8 +34,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
                     })
                 }
             };
-            let span = Span::new(start, end, file_name);
-            diagnostics::Error::new(error_kind, Some(&span))
+            diagnostics::Error::new(error_kind).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser encountered a token that didn't fit any grammar rule.
@@ -44,15 +43,14 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             expected,
         } => {
             let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
-            let span = Span::new(start, end, file_name);
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message), Some(&span))
+            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message)).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
-            let span = Span::new(location, location, file_name);
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message), Some(&span))
+            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message))
+                .set_span(&Span::new(location, location, file_name))
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.

@@ -121,8 +121,8 @@ mod module {
 
         // Assert
         let expected = vec![
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned()), None),
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned())),
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("A".to_owned())),
         ];
         assert_errors!(errors, expected);
     }
@@ -142,10 +142,9 @@ mod module {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = vec![Error::new(
-            ErrorKind::FileScopedModuleCannotContainSubModules("D".to_owned()),
-            None,
-        )];
+        let expected = vec![Error::new(ErrorKind::FileScopedModuleCannotContainSubModules(
+            "D".to_owned(),
+        ))];
         assert_errors!(errors, expected);
     }
 }
