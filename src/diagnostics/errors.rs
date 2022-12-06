@@ -7,9 +7,9 @@ use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct Error {
-    pub kind: ErrorKind,
-    pub span: Option<Span>,
-    pub notes: Vec<Note>,
+    pub(super) kind: ErrorKind,
+    pub(super) span: Option<Span>,
+    pub(super) notes: Vec<Note>,
 }
 
 impl Error {

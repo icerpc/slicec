@@ -7,9 +7,9 @@ use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct Warning {
-    pub kind: WarningKind,
-    pub span: Span,
-    pub notes: Vec<Note>,
+    pub(super) kind: WarningKind,
+    pub(super) span: Span,
+    pub(super) notes: Vec<Note>,
 }
 
 impl Warning {
