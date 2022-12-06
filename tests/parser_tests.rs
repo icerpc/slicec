@@ -9,7 +9,7 @@ fn parse_empty_string() {
     let slice = "";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+    let compilation_data = compile_from_strings(&[slice], None)).unwrap();
 
     // Assert
     assert!(!compilation_data.diagnostic_reporter.has_errors());

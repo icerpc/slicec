@@ -20,13 +20,13 @@ mod command_line {
         # endif
         ";
 
-        let default_options = SliceOptions {
+        let options = SliceOptions {
             definitions: vec!["Foo".to_string()],
             ..Default::default()
         };
 
         // Act
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).unwrap();
+        let compilation_data = compile_from_strings(&[slice], Some(options)).unwrap();
 
         // Assert
         assert!(compilation_data.ast.find_element::<Operation>("Test::I::op").is_ok());
