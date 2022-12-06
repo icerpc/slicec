@@ -30,6 +30,7 @@ fn parse_string_containing_only_whitespace() {
 #[test]
 fn parse_ideographic_space() {
     // Arrange
+    // This is a special whitespace character U+3000 that is invisible.
     let slice = "　";
 
     // Act
