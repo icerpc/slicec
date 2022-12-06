@@ -33,9 +33,17 @@ fn parse_file(
     let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
 
+    // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
+    // To check the length of the preprocessed text without consuming the iterator we convert it to a peekable iterator,
+    // then check the peek value.
+    let mut peekable_preprocessed_text = preprocessed_text.peekable();
+    if peekable_preprocessed_text.peek().is_none() {
+        return;
+    }
+
     // Parse the preprocessed text.
     let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
-    let Ok((encoding, attributes, modules)) = parser.parse_slice_file(preprocessed_text) else { return; };
+    let Ok((encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
     let top_level_modules = modules
