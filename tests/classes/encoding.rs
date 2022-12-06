@@ -21,8 +21,8 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let kind = ErrorKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2);
-        let expected = Error::new(kind)
+        let error_kind = ErrorKind::NotSupportedWithEncoding("class".to_owned(), "C".to_owned(), Encoding::Slice2);
+        let expected = Error::new(error_kind)
             .add_note("file is using the Slice2 encoding by default", None)
             .add_note(
                 "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
