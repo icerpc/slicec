@@ -137,7 +137,7 @@ impl AttributeKind {
                                 ))
                                 .set_span(span)
                                 .add_note(
-                                    "The valid argument(s) for the compress attribute are `Args` and `Return`",
+                                    "The valid arguments for the compress attribute are `Args` and `Return`",
                                     Some(span),
                                 )
                                 .report(reporter)

@@ -331,7 +331,7 @@ mod attributes {
                 "compress attribute".to_owned(),
             ))
             .add_note(
-                "The valid argument(s) for the compress attribute are `Args` and `Return`",
+                "The valid arguments for the compress attribute are `Args` and `Return`",
                 None,
             );
             assert_errors!(diagnostic_reporter, [&expected]);

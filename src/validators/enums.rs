@@ -98,7 +98,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
             Error::new(ErrorKind::DuplicateEnumeratorValue(enumerator.value))
                 .set_span(enumerator.span())
                 .add_note(
-                    format!("the value was previously used by `{}` here:", alt_enum.identifier(),),
+                    format!("the value was previously used by `{}` here:", alt_enum.identifier()),
                     Some(alt_enum.span()),
                 )
                 .report(diagnostic_reporter);

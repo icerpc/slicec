@@ -84,10 +84,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let error = Error::new(ErrorKind::KeyTypeNotSupported(pluralized_kind)).set_span(type_ref.span());
+        let mut error = Error::new(ErrorKind::KeyTypeNotSupported(pluralized_kind)).set_span(type_ref.span());
 
         // If the key type is a user-defined type, point to where it was defined.
-        let error = if let Some(named_symbol_def) = named_symbol {
+        if let Some(named_symbol_def) = named_symbol {
             error.add_note(
                 format!(
                     "{} '{}' is defined here:",
@@ -96,9 +96,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                 ),
                 Some(named_symbol_def.span()),
             )
-        } else {
-            error
-        };
+        }
         error.report(diagnostic_reporter);
     }
     is_valid
