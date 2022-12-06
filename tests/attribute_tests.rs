@@ -459,6 +459,30 @@ mod attributes {
             assert_errors!(diagnostic_reporter);
         }
 
+        #[test]
+        fn ignore_warnings_with_invalid_code() {
+            // Arrange
+            let slice = "
+            module Test;
+
+            interface I
+            {
+                [ignoreWarnings(W315, w001)]
+                op(s: string) -> string;
+            }
+            ";
+
+            // Act
+            let diagnostic_reporter = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = [
+                ErrorBuilder::new(ErrorKind::InvalidWarningCode("W315".to_owned())).build(),
+                ErrorBuilder::new(ErrorKind::InvalidWarningCode("w001".to_owned())).build(),
+            ];
+            assert_errors!(diagnostic_reporter, expected);
+        }
+
         #[test_case(
             "
             module Test;
