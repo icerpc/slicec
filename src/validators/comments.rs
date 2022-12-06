@@ -46,8 +46,9 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
     let supported_on = ["operation"];
     if let Some(comment) = entity.comment() {
         if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
-            let kind = WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
-            Warning::new(kind, comment.span()).report(diagnostic_reporter, entity)
+            let warning_kind =
+                WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
+            Warning::new(warning_kind, comment.span()).report(diagnostic_reporter, entity)
         };
     }
 }

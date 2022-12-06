@@ -88,7 +88,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {
-            error.add_note(
+            error = error.add_note(
                 format!(
                     "{} '{}' is defined here:",
                     named_symbol_def.kind(),
