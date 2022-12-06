@@ -62,7 +62,7 @@ impl DiagnosticReporter {
         self.diagnostics
     }
 
-    pub fn report(&mut self, diagnostic: impl Into<Diagnostic>) {
+    pub(super) fn report(&mut self, diagnostic: impl Into<Diagnostic>) {
         let diagnostic = diagnostic.into();
         match diagnostic {
             Diagnostic::Error(error) => {

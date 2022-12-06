@@ -13,10 +13,6 @@ pub struct Warning {
 }
 
 impl Warning {
-    pub fn error_code(&self) -> &str {
-        self.kind.error_code()
-    }
-
     pub fn new(kind: WarningKind, span: &Span) -> Self {
         Warning {
             kind,
@@ -55,6 +51,10 @@ impl Warning {
             return;
         }
         reporter.report(self);
+    }
+
+    pub fn error_code(&self) -> &str {
+        self.kind.error_code()
     }
 }
 

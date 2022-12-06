@@ -99,7 +99,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         } else {
             error
         };
-        diagnostic_reporter.report(error);
+        error.report(diagnostic_reporter);
     }
     is_valid
 }

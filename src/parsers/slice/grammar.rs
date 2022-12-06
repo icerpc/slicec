@@ -75,10 +75,11 @@ fn handle_file_encoding(
     encoding: FileEncoding,
 ) -> (Option<FileEncoding>, Vec<Attribute>) {
     // The file encoding can only be set once.
-    if let Some(encoding) = old_encoding {
+    if let Some(old_file_encoding) = old_encoding {
+        let old_span = old_file_encoding.span();
         Error::new(ErrorKind::MultipleEncodingVersions)
-            .set_span(encoding.span())
-            .add_note("file encoding was previously specified here", Some(encoding.span()))
+            .set_span(old_span)
+            .add_note("file encoding was previously specified here", Some(old_span))
             .report(parser.diagnostic_reporter);
     }
     parser.file_encoding = encoding.version;

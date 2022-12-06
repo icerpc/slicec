@@ -19,7 +19,7 @@ macro_rules! implement_parse_function {
                 .parse(self, input.into())
                 .map_err(|parse_error| {
                     let error = super::construct_error_from(parse_error, self.file_name);
-                    self.diagnostic_reporter.report(error)
+                    error.report(self.diagnostic_reporter);
                 })
         }
     };
