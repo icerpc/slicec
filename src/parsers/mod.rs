@@ -13,6 +13,7 @@ mod slice;
 use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::DiagnosticReporter;
+use crate::parsers::common::SourceBlock;
 use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
@@ -32,6 +33,15 @@ fn parse_file(
     // Pre-process the file's raw text.
     let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
+
+    // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
+    // To check the length of the preprocessed text without consuming the iterator we convert it to a peekable iterator,
+    // then check the peek value, finally converting it back to a regular iterator.
+    let mut peekable_preprocessed_text = preprocessed_text.peekable();
+    if peekable_preprocessed_text.peek().is_none() {
+        return;
+    }
+    let preprocessed_text = peekable_preprocessed_text.collect::<Vec<SourceBlock>>().into_iter();
 
     // Parse the preprocessed text.
     let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
