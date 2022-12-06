@@ -16,7 +16,7 @@ fn parse_empty_string() {
 }
 
 #[test]
-fn parse_string_containing_whitespace() {
+fn parse_string_containing_only_whitespace() {
     // Arrange
     let slice = " ";
 
