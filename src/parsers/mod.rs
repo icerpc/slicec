@@ -13,7 +13,6 @@ mod slice;
 use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::DiagnosticReporter;
-use crate::parsers::common::SourceBlock;
 use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
@@ -41,11 +40,10 @@ fn parse_file(
     if peekable_preprocessed_text.peek().is_none() {
         return;
     }
-    let preprocessed_text = peekable_preprocessed_text.collect::<Vec<SourceBlock>>().into_iter();
 
     // Parse the preprocessed text.
     let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
-    let Ok((encoding, attributes, modules)) = parser.parse_slice_file(preprocessed_text) else { return; };
+    let Ok((encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
     let top_level_modules = modules
