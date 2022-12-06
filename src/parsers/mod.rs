@@ -35,7 +35,7 @@ fn parse_file(
 
     // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
     // To check the length of the preprocessed text without consuming the iterator we convert it to a peekable iterator,
-    // then check the peek value, finally converting it back to a regular iterator.
+    // then check the peek value.
     let mut peekable_preprocessed_text = preprocessed_text.peekable();
     if peekable_preprocessed_text.peek().is_none() {
         return;
