@@ -4,8 +4,8 @@ pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_diagnostics;
 use slice::command_line::SliceOptions;
-use slice::diagnostics::{Error, ErrorKind};
 use slice::compile_from_strings;
+use slice::diagnostics::{Error, ErrorKind};
 use slice::slice_file::Span;
 
 #[test]
@@ -58,7 +58,7 @@ fn string_literals_cannot_contain_newlines() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax("unterminated string literal".to_owned()))
-        .set_span(&Span::new((2, 22).into(), (2, 32).into(), "string-0"));
+    let span = Span::new((2, 22).into(), (2, 32).into(), "string-0");
+    let expected = Error::new(ErrorKind::Syntax("unterminated string literal".to_owned())).set_span(&span);
     assert_errors!(diagnostic_reporter, [&expected]);
 }

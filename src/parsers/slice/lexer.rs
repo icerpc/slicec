@@ -133,7 +133,7 @@ where
         let start_position = self.get_position();
         let mut is_next_char_escaped = false;
         while let Some((_, c)) = self.buffer.peek() {
-            if *c =='\n' {
+            if *c == '\n' {
                 // String literals cannot contain newlines.
                 return Err(ErrorKind::UnterminatedStringLiteral);
             } else if is_next_char_escaped {
