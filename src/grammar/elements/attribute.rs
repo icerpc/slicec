@@ -197,11 +197,11 @@ impl AttributeKind {
                         arg.to_string(),
                         "format attribute".to_owned(),
                     ))
+                    .set_span(span)
                     .add_note(
                         "The valid arguments for the format attribute are `Compact` and `Sliced`",
                         Some(span),
                     )
-                    .set_span(span)
                     .report(reporter);
                 });
                 if !invalid_args.is_empty() {

@@ -3,7 +3,6 @@
 pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_diagnostics;
-use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::slice_file::Span;
