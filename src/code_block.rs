@@ -16,7 +16,7 @@ impl CodeBlock {
     }
 
     pub fn writeln<T: fmt::Display + ?Sized>(&mut self, s: &T) {
-        self.write(&format!("{}\n", s));
+        self.write(&format!("{s}\n"));
     }
 
     /// Used to write code blocks using the write! and writeln! macros
@@ -36,7 +36,7 @@ impl CodeBlock {
     }
 
     pub fn add_block<T: fmt::Display + ?Sized>(&mut self, s: &T) {
-        self.write(&format!("\n{}\n", s));
+        self.write(&format!("\n{s}\n"));
     }
 
     pub fn is_empty(&self) -> bool {
@@ -80,7 +80,7 @@ impl fmt::Display for CodeBlock {
                 })
                 .collect::<Vec<_>>()
                 .join("\n")
-                .trim_matches(char::is_whitespace)
+                .trim_matches(char::is_whitespace),
         )
     }
 }

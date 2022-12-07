@@ -32,7 +32,7 @@ impl CommentParser {
                 Self::traverse_parse_tree(&mut comment, parse_tree);
             }
             Err(err) => {
-                println!("{:?}", err);
+                println!("{err:?}");
                 // TODO handle the error better.
             }
         }

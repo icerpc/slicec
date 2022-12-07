@@ -388,13 +388,13 @@ implement_error_functions!(
     (
         "E009",
         ErrorKind::CannotUseOptionalUnderlyingType,
-        format!("invalid enum `{}`: enums cannot have optional underlying types", identifier),
+        format!("invalid enum `{identifier}`: enums cannot have optional underlying types"),
         identifier
     ),
     (
         "E010",
         ErrorKind::MustContainEnumerators,
-        format!("invalid enum `{}`: enums must contain at least one enumerator", identifier),
+        format!("invalid enum `{identifier}`: enums must contain at least one enumerator"),
         identifier
     ),
     (
@@ -419,19 +419,19 @@ implement_error_functions!(
     (
         "E014",
         ErrorKind::CannotHaveDuplicateTag,
-        format!("invalid tag on member `{}`: tags must be unique", identifier),
+        format!("invalid tag on member `{identifier}`: tags must be unique"),
         identifier
     ),
     (
         "E016",
         ErrorKind::RequiredMustPrecedeOptional,
-        format!("invalid parameter `{}`: required parameters must precede tagged parameters", identifier),
+        format!("invalid parameter `{identifier}`: required parameters must precede tagged parameters"),
         identifier
     ),
     (
         "E017",
         ErrorKind::StreamedMembersMustBeLast,
-        format!("invalid parameter `{}`: only the last parameter in an operation can use the stream modifier", identifier),
+        format!("invalid parameter `{identifier}`: only the last parameter in an operation can use the stream modifier"),
         identifier
     ),
     (
@@ -447,19 +447,19 @@ implement_error_functions!(
     (
         "E020",
         ErrorKind::TaggedMemberMustBeOptional,
-        format!("invalid tag on member `{}`: tagged members must be optional", identifier),
+        format!("invalid tag on member `{identifier}`: tagged members must be optional"),
         identifier
     ),
     (
         "E021",
         ErrorKind::CannotTagClass,
-        format!("invalid tag on member `{}`: tagged members cannot be classes", identifier),
+        format!("invalid tag on member `{identifier}`: tagged members cannot be classes"),
         identifier
     ),
     (
         "E022",
         ErrorKind::CannotTagContainingClass,
-        format!("invalid tag on member `{}`: tagged members cannot contain classes", identifier),
+        format!("invalid tag on member `{identifier}`: tagged members cannot contain classes"),
         identifier
     ),
     (
@@ -484,7 +484,7 @@ implement_error_functions!(
     (
         "E026",
         ErrorKind::SelfReferentialTypeAliasNeedsConcreteType,
-        format!("self-referential type alias '{}' has no concrete type", identifier),
+        format!("self-referential type alias '{identifier}' has no concrete type"),
         identifier
     ),
     (
@@ -503,7 +503,7 @@ implement_error_functions!(
     (
         "E029",
         ErrorKind::DuplicateEnumeratorValue,
-        format!("enumerator values must be unique; the value `{}` is already in use", value),
+        format!("enumerator values must be unique; the value `{value}` is already in use"),
         value
     ),
     (
