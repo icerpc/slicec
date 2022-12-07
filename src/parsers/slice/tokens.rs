@@ -20,7 +20,7 @@ pub enum TokenKind<'input> {
     /// We allow alphanumeric characters to support hex literals.
     IntegerLiteral(&'input str), // "[0-9][a-zA-Z0-9]*"
 
-    /// A string literal consists of any characters contained within a pair of unescaped double-quotes.
+    /// A string literal consists of any non-newline characters contained within a pair of unescaped double-quotes.
     /// Note that the value doesn't contain the enclosing quotation marks, only the characters in between them.
     StringLiteral(&'input str),
 
