@@ -43,7 +43,7 @@ mod command_line {
         ";
 
         // Act
-        let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+        let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
         // Assert
         assert!(compilation_data.ast.find_element::<Interface>("Test::I").is_err());
@@ -56,7 +56,7 @@ mod command_line {
         let slice = "// This is a comment";
 
         // Act
-        let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+        let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
         // Assert
         assert!(!compilation_data.diagnostic_reporter.has_errors());
