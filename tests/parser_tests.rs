@@ -1,7 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+pub mod helpers;
+
+use crate::helpers::parsing_helpers::parse_for_diagnostics;
 use slice::command_line::SliceOptions;
+use slice::diagnostics::{Error, ErrorKind};
 use slice::compile_from_strings;
+use slice::slice_file::Span;
 
 #[test]
 fn parse_empty_string() {
@@ -38,4 +43,22 @@ fn parse_ideographic_space() {
 
     // Assert
     assert!(!compilation_data.diagnostic_reporter.has_errors());
+}
+
+#[test]
+fn string_literals_cannot_contain_newlines() {
+    // Arrange
+    let slice = r#"
+        [foo("attribute
+        test")]
+        module Test;
+    "#;
+
+    // Act
+    let diagnostic_reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Error::new(ErrorKind::Syntax("unterminated string literal".to_owned()))
+        .set_span(&Span::new((2, 22).into(), (2, 32).into(), "string-0"));
+    assert_errors!(diagnostic_reporter, [&expected]);
 }

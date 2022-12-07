@@ -133,8 +133,11 @@ where
         let start_position = self.get_position();
         let mut is_next_char_escaped = false;
         while let Some((_, c)) = self.buffer.peek() {
-            // If this character is escaped, don't check it and just reset the flag.
-            if is_next_char_escaped {
+            if *c =='\n' {
+                // String literals cannot contain newlines.
+                return Err(ErrorKind::UnterminatedStringLiteral);
+            } else if is_next_char_escaped {
+                // If this character is escaped, don't check it and just reset the flag.
                 is_next_char_escaped = false;
             } else {
                 match c {
