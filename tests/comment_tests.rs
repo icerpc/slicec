@@ -22,7 +22,7 @@ mod comments {
                 interface MyInterface
                 {{
                 }}
-            ",
+            "
         );
 
         // Act

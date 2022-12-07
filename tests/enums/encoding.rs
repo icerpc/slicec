@@ -62,11 +62,10 @@ mod slice2 {
             "
                 module Test;
 
-                unchecked enum E : {}
+                unchecked enum E : {valid_type}
                 {{
                 }}
-            ",
-            valid_type,
+            "
         );
 
         // Act
