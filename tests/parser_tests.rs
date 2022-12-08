@@ -3,7 +3,6 @@
 pub mod helpers;
 
 use crate::helpers::parsing_helpers::parse_for_diagnostics;
-use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::slice_file::Span;
@@ -26,7 +25,7 @@ fn parse_string_containing_only_whitespace() {
     let slice = " ";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+    let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
     // Assert
     assert!(!compilation_data.diagnostic_reporter.has_errors());
@@ -39,7 +38,7 @@ fn parse_ideographic_space() {
     let slice = "　";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+    let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
     // Assert
     assert!(!compilation_data.diagnostic_reporter.has_errors());

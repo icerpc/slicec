@@ -82,7 +82,7 @@ impl CompilationData {
             let mut message = vec![];
 
             // Emit the message with the prefix.
-            message.push(format!("{}: {}", prefix, style(&diagnostic).bold()));
+            message.push(format!("{prefix}: {}", style(&diagnostic).bold()));
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {

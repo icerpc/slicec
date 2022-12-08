@@ -129,7 +129,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported(pluralize_kind(key_kind)))
-        .add_note(format!("{} '{}' is defined here:", key_kind, key_type), None);
+        .add_note(format!("{key_kind} '{key_type}' is defined here:"), None);
 
     assert_errors!(diagnostic_reporter, [&expected]);
 }

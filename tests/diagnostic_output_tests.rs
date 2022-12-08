@@ -22,13 +22,13 @@ mod output {
         "#;
 
         // Set the output format to JSON.
-        let default_options = SliceOptions {
+        let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
             ..Default::default()
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");
+        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -67,13 +67,13 @@ mod output {
         "#;
 
         // Disable ANSI codes.
-        let default_options = SliceOptions {
+        let options = SliceOptions {
             disable_color: true,
             ..Default::default()
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(default_options)).expect("Expected errors");
+        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
 
         let mut output: Vec<u8> = Vec::new();
 

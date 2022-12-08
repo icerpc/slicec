@@ -32,7 +32,7 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
     for path in paths {
         match find_slice_files_in_path(PathBuf::from(path)) {
             Ok(child_paths) => slice_paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{}': {}", path, err),
+            Err(err) => eprintln!("failed to read file '{path}': {err}"),
         }
     }
 
@@ -61,7 +61,7 @@ fn find_slice_files_in_directory(dir: fs::ReadDir) -> io::Result<Vec<PathBuf>> {
         let child_path = child?.path();
         match find_slice_files_in_path(child_path.clone()) {
             Ok(child_paths) => paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{}': {}", child_path.display(), err),
+            Err(err) => eprintln!("failed to read file '{}': {err}", child_path.display()),
         }
     }
     Ok(paths)
