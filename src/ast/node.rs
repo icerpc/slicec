@@ -4,8 +4,8 @@
 
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
-use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
+use in_definite;
 use std::fmt;
 
 // Helper macro for generating `TryFrom` conversion functions to unwrap `Node`s to concrete types, when the type of
@@ -23,10 +23,12 @@ macro_rules! generate_try_from_node_impl {
                 if let Node::$variant(x) = node {
                     Ok($convert(x))
                 } else {
+                    let expected = stringify!($variant).to_case(Case::Lower);
+                    let found = node.to_string().to_case(Case::Lower);
                     Err(format!(
-                        "type mismatch: expected {} but found {}",
-                        prefix_with_article(stringify!($variant).to_case(Case::Lower)),
-                        prefix_with_article(node.to_string().to_case(Case::Lower)),
+                        "type mismatch: expected {} {expected} but found {} {found}",
+                        in_definite::get_a_or_an(&expected),
+                        in_definite::get_a_or_an(&found),
                     ))
                 }
             }
@@ -95,10 +97,13 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
             Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
-            _ => Err(format!(
-                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
-                prefix_with_article(node.to_string().to_case(Case::Lower)),
-            )),
+            _ => {
+                let found = node.to_string().to_case(Case::Lower);
+                Err(format!(
+                    "type mismatch: expected a `Type` but found {} {found} (which doesn't implement `Type`)",
+                    in_definite::get_a_or_an(&found),
+                ))
+            }
         }
     }
 }
@@ -124,10 +129,13 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            _ => Err(format!(
-                "type mismatch: expected an `Entity` but found {} (which doesn't implement `Entity`)",
-                prefix_with_article(node.to_string().to_case(Case::Lower)),
-            )),
+            _ => {
+                let found = node.to_string().to_case(Case::Lower);
+                Err(format!(
+                    "type mismatch: expected an `Entity` but found {} {found} (which doesn't implement `Entity`)",
+                    in_definite::get_a_or_an(&found),
+                ))
+            }
         }
     }
 }
