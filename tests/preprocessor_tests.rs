@@ -45,7 +45,7 @@ fn undefined_preprocessor_directive_blocks_are_consumed() {
         ";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+    let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
     // Assert
     assert!(compilation_data.ast.find_element::<Interface>("Test::I").is_err());
@@ -58,7 +58,7 @@ fn preprocessor_consumes_comments() {
     let slice = "// This is a comment";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(SliceOptions::default())).unwrap();
+    let compilation_data = compile_from_strings(&[slice], None).unwrap();
 
     // Assert
     assert!(!compilation_data.diagnostic_reporter.has_errors());
@@ -103,9 +103,30 @@ fn preprocessor_undefine_symbol() {
     assert!(ast.find_element::<Interface>("Test::I").is_err());
 }
 
+#[test]
+fn preprocessor_define_symbol_multiples_times() {
+    // Arrange
+    let slice = "
+        #define Foo
+        #define Foo
+        #define Foo
+        #if Foo
+        // Foo is defined
+        module Test;
+        interface I {}
+        #endif
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert!(ast.find_element::<Interface>("Test::I").is_ok());
+}
 #[test_case("Foo", "I" ; "Foo is defined")]
 #[test_case("Bar", "J" ; "Bar is defined")]
-#[test_case("Fizz", "K" ; "Fizz is defined")]
+#[test_case("Baz", "K" ; "Baz is defined")]
+#[test_case("Fizz", "X" ; "Fizz is defined")]
 fn preprocessor_conditional_compilation(define: &str, interface: &str) {
     // Arrange
     let slice = format!(
@@ -123,11 +144,17 @@ fn preprocessor_conditional_compilation(define: &str, interface: &str) {
         module Test;
         interface J {{}}
 
+        # elif Baz
+
+        // Baz is defined
+        module Test;
+        interface K {{}}
+
         # else
 
         // Fizz is defined
         module Test;
-        interface K {{}}
+        interface X {{}}
 
         #endif
     "
@@ -203,6 +230,25 @@ fn preprocessor_grouped_expressions() {
     let slice = "
         #define Foo
         #if (Foo || Bar) && (Fizz || Buzz)
+        module Test;
+        interface I {}
+        #endif
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert!(ast.find_element::<Interface>("Test::I").is_err());
+}
+
+#[test]
+fn preprocessor_nested_expressions() {
+    // Arrange
+    let slice = "
+        #define Bar
+        #define Baz
+        #if (Foo && (Bar || Baz))
         module Test;
         interface I {}
         #endif
