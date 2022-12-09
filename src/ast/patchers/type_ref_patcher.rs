@@ -6,8 +6,8 @@ use crate::diagnostics::*;
 use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
-use crate::utils::string_util::prefix_with_article;
 use convert_case::{Case, Casing};
+use in_definite;
 
 pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {
@@ -365,10 +365,13 @@ impl<'a> TryIntoPatch<dyn Type> for &'a Node {
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
             Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => Err(format!(
-                "type mismatch: expected a `Type` but found {} (which doesn't implement `Type`)",
-                prefix_with_article(self.to_string().to_case(Case::Lower)),
-            )),
+            _ => {
+                let found = self.to_string().to_case(Case::Lower);
+                Err(format!(
+                    "type mismatch: expected a `Type` but found {} {found} (which doesn't implement `Type`)",
+                    in_definite::get_a_or_an(&found),
+                ))
+            }
         };
         converted_ptr.map(|ptr| (ptr, attributes))
     }
