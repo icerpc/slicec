@@ -33,7 +33,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
                     format!(
                         "The data member `{}` has previous used the tag value `{}`",
                         &window[0].identifier(),
-                        window[0].tag().unwrap()
+                        window[0].tag().unwrap(),
                     ),
                     Some(window[0].span()),
                 )

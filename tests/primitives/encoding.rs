@@ -30,8 +30,7 @@ mod slice1 {
                 {{
                     v: {value},
                 }}
-            ",
-            value = value,
+            "
         );
 
         // Act
@@ -65,8 +64,7 @@ mod slice1 {
             {{
                 v: {value},
             }}
-        ",
-            value = value,
+        "
         );
 
         // Act

@@ -146,7 +146,7 @@ impl SliceFile {
         // Add pointers and underlining on the line below it, as specified by the provided range.
         let mut line_number = start.row;
         for line in raw_snippet.lines() {
-            writeln!(formatted_snippet, "{} {}", line_number_prefix(Some(line_number)), line);
+            writeln!(formatted_snippet, "{} {line}", line_number_prefix(Some(line_number)));
             if start_pos == end_pos {
                 // If the provided range is a single location, point to that location.
                 let point = style("/\\").yellow().bold();

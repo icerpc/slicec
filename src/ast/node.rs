@@ -52,7 +52,7 @@ macro_rules! generate_node_enum {
                 let name = match self {
                     $(Node::$variant(_) => stringify!($variant),)*
                 };
-                write!(f, "{}", name)
+                write!(f, "{name}")
             }
         }
 
