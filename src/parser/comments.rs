@@ -105,7 +105,7 @@ impl CommentParser {
                                     .trim_start_matches(char::is_whitespace);
                                 current_string.push('\n');
                             }
-                            _ => panic!("matched impossible token: {:?}", subtoken),
+                            _ => panic!("matched impossible token: {subtoken:?}"),
                         }
                     }
 
@@ -150,7 +150,7 @@ impl CommentParser {
                                 current_string = comment.returns.as_mut().unwrap();
                                 current_string.push('\n');
                             }
-                            _ => panic!("matched impossible token: {:?}", subtoken),
+                            _ => panic!("matched impossible token: {subtoken:?}"),
                         }
                     }
 
@@ -197,7 +197,7 @@ impl CommentParser {
                                     .trim_start_matches(char::is_whitespace);
                                 current_string.push('\n');
                             }
-                            _ => panic!("matched impossible token: {:?}", subtoken),
+                            _ => panic!("matched impossible token: {subtoken:?}"),
                         }
                     }
 
@@ -242,7 +242,7 @@ impl CommentParser {
                                 // descriptions. TODO issue the
                                 // error.
                             }
-                            _ => panic!("matched impossible token: {:?}", subtoken),
+                            _ => panic!("matched impossible token: {subtoken:?}"),
                         }
                     }
 
@@ -268,7 +268,7 @@ impl CommentParser {
                     }
                 }
                 Rule::EOI => {}
-                _ => panic!("matched impossible token: {:?}", token),
+                _ => panic!("matched impossible token: {token:?}"),
             }
         }
     }

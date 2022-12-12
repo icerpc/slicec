@@ -129,7 +129,7 @@ impl SliceFile {
             // If a line number was provided, use it, otherwise use the empty string.
             let number_string: &dyn Display = line_number.as_ref().map_or(&"", |i| i);
             // Pad the string with spaces (on the right) so its total length is `line_number_prefix_length`.
-            let padded_number_string = format!("{number_string:<0$}|", line_number_prefix_length);
+            let padded_number_string = format!("{number_string:<line_number_prefix_length$}|");
             // Style the string and return it.
             style(padded_number_string).blue().bold().to_string()
         };

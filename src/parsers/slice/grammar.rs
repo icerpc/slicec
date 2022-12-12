@@ -151,7 +151,7 @@ fn construct_module(
                 Node::Enum(mut x) => add_definition_to_module!(x, Enum, current_module, parser),
                 Node::CustomType(mut x) => add_definition_to_module!(x, CustomType, current_module, parser),
                 Node::TypeAlias(mut x) => add_definition_to_module!(x, TypeAlias, current_module, parser),
-                _ => panic!("impossible definition type encountered: {:?}", definition),
+                _ => panic!("impossible definition type encountered: {definition:?}"),
             }
         }
 
