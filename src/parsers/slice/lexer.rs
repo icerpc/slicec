@@ -35,6 +35,10 @@ where
     /// Since code blocks can be non-adjacent (separated by a preprocessor directive) in a slice file,
     /// it's value can jump forward when switching to a new source block, making it unreliable for indexing.
     cursor: Location,
+
+    /// This flag stores whether the lexer is currently lexing the inside of an attribute.
+    /// It is set to true upon encountering an '[' character, and false upon an ']' character.
+    attribute_mode: bool,
 }
 
 impl<'input, T> Lexer<'input, T>
@@ -51,6 +55,7 @@ where
             current_block,
             buffer,
             cursor: start_location,
+            attribute_mode: false,
         }
     }
 
@@ -249,8 +254,11 @@ where
             '(' => self.return_simple_token(TokenKind::LeftParenthesis, start_location),
             ')' => self.return_simple_token(TokenKind::RightParenthesis, start_location),
             '[' => {
+                // Set the 'attribute_mode' flag since this must be the start of an attribute.
+                self.attribute_mode = true;
                 self.advance_buffer(); // Consume the '[' character.
-                                       // Check if the next character is also '['.
+
+                // Check if the next character is also '['.
                 if matches!(self.buffer.peek(), Some((_, '['))) {
                     self.advance_buffer(); // Consume the second '[' character.
                     Some(Ok((start_location, TokenKind::DoubleLeftBracket, self.cursor)))
@@ -259,8 +267,11 @@ where
                 }
             }
             ']' => {
+                // Clear the 'attribute_mode' flag since this must be the end of an attribute.
+                self.attribute_mode = false;
                 self.advance_buffer(); // Consume the ']' character.
-                                       // Check if the next character is also ']'.
+
+                // Check if the next character is also ']'.
                 if matches!(self.buffer.peek(), Some((_, ']'))) {
                     self.advance_buffer(); // Consume the second ']' character.
                     Some(Ok((start_location, TokenKind::DoubleRightBracket, self.cursor)))
@@ -357,8 +368,13 @@ where
                 }
             }
             _ if c.is_alphabetic() || c == '_' => {
-                let identifier = self.read_identifier();
-                Some(Ok((start_location, Self::parse_identifier(identifier), self.cursor)))
+                let token = if self.attribute_mode {
+                    // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
+                    TokenKind::Identifier(self.read_identifier())
+                } else {
+                    Self::parse_identifier(self.read_identifier())
+                };
+                Some(Ok((start_location, token, self.cursor)))
             }
             _ if c.is_numeric() => {
                 let integer = self.read_integer_literal();
