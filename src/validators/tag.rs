@@ -1,21 +1,18 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
+use super::ValidatorVisitor;
 
-pub fn tag_validators() -> ValidationChain {
-    vec![
-        Validator::Members(tags_have_optional_types),
-        Validator::Members(tagged_members_cannot_use_classes),
-        Validator::Members(tags_are_unique),
-        Validator::Struct(compact_structs_cannot_contain_tags),
-        Validator::Parameters(parameter_order),
-    ]
+impl ValidatorVisitor<'_> {
+pub(super) fn validate_member_tags(&mut self, members: Vec<&dyn Member>) {
+    self.tags_have_optional_types(&members);
+    self.tagged_members_cannot_use_classes(&members);
+    self.tags_are_unique(&members);
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn tags_are_unique(&mut self, members: &Vec<&dyn Member>) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -37,13 +34,13 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
                     ),
                     Some(window[0].span()),
                 )
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
         };
     });
 }
 
 /// Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn parameter_order(&mut self, parameters: &[&Parameter]) {
     // Folding is used to have an accumulator called `seen` that is set to true once a tagged
     // parameter is found. If `seen` is true on a successive iteration and the parameter has
     // no tag then we have a required parameter after a tagged parameter.
@@ -53,7 +50,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
             let error = ErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
             Error::new(error)
                 .set_span(parameter.data_type.span())
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
             true
         }
         None => false,
@@ -61,7 +58,7 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
 }
 
 /// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn compact_structs_cannot_contain_tags(&mut self, struct_def: &Struct) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && !struct_def.members.is_empty() {
         // Compact structs cannot have tagged data members.
@@ -73,14 +70,14 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
                         format!("struct '{}' is declared compact here", struct_def.identifier()),
                         Some(struct_def.span()),
                     )
-                    .report(diagnostic_reporter);
+                    .report(self.diagnostic_reporter);
             }
         }
     }
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn tags_have_optional_types(&mut self, members: &Vec<&dyn Member>) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -92,12 +89,12 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
         if !member.data_type().is_optional {
             Error::new(ErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()))
                 .set_span(member.span())
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
         }
     }
 }
 
-fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn tagged_members_cannot_use_classes(&mut self, members: &Vec<&dyn Member>) {
     // Helper function that recursively checks if a type is a class, or contains classes.
     // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
     fn uses_classes(typeref: &TypeRef) -> bool {
@@ -125,7 +122,8 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
             };
             Error::new(error_kind)
                 .set_span(member.span())
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
         }
     }
+}
 }

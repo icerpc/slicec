@@ -1,18 +1,12 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
+use super::ValidatorVisitor;
 
-pub fn attribute_validators() -> ValidationChain {
-    vec![
-        Validator::Attributes(is_compressible),
-        Validator::Parameters(cannot_be_deprecated),
-    ]
-}
-
+impl ValidatorVisitor<'_> {
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
-fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn cannot_be_deprecated(&mut self, parameters: &[&Parameter]) {
     parameters.iter().for_each(|m| {
         if m.attributes(false)
             .iter()
@@ -22,14 +16,14 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
                 m.kind().to_owned() + "(s)",
             ))
             .set_span(m.span())
-            .report(diagnostic_reporter)
+            .report(self.diagnostic_reporter)
         };
     });
 }
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
 /// verifies that the user did not provide invalid arguments.
-fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn is_compressible(&mut self, element: &dyn Entity) {
     // Validates that the `compress` attribute cannot be applied to anything other than
     // interfaces and operations.
     let supported_on = ["interface", "operation"];
@@ -43,7 +37,8 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
         {
             Error::new(ErrorKind::CompressAttributeCannotBeApplied)
                 .set_span(attribute.span())
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
         }
     }
+}
 }

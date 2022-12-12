@@ -18,6 +18,7 @@ use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
+// TODOAUSTIN don't do this anymore.
 // Re-export the contents of the validators submodules directly into the validators module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
 pub use self::attribute::*;
@@ -27,23 +28,6 @@ pub use self::enums::*;
 pub use self::identifiers::*;
 pub use self::miscellaneous::*;
 pub use self::tag::*;
-
-pub type ValidationChain = Vec<Validator>;
-
-pub enum Validator {
-    Attributes(fn(&dyn Entity, &mut DiagnosticReporter)),
-    DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
-    Dictionaries(fn(&[&Dictionary], &mut DiagnosticReporter)),
-    Enums(fn(&Enum, &mut DiagnosticReporter)),
-    Entities(fn(&dyn Entity, &mut DiagnosticReporter)),
-    Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
-    Module(fn(&Module, &mut DiagnosticReporter)),
-    Identifiers(fn(Vec<&Identifier>, &mut DiagnosticReporter)),
-    InheritedIdentifiers(fn(Vec<&Identifier>, Vec<&Identifier>, &mut DiagnosticReporter)),
-    Operations(fn(&Operation, &mut DiagnosticReporter)),
-    Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
-    Struct(fn(&Struct, &mut DiagnosticReporter)),
-}
 
 pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
     let diagnostic_reporter = &mut data.diagnostic_reporter;
@@ -86,33 +70,13 @@ fn file_ignored_warnings_map(files: &HashMap<String, SliceFile>) -> HashMap<Stri
 struct ValidatorVisitor<'a> {
     ast: &'a Ast,
     diagnostic_reporter: &'a mut DiagnosticReporter,
-    validation_functions: Vec<Validator>,
 }
 
 impl<'a> ValidatorVisitor<'a> {
     pub fn new(ast: &'a Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
-        let validation_functions = [
-            attribute_validators(),
-            comments_validators(),
-            dictionary_validators(),
-            enum_validators(),
-            identifier_validators(),
-            miscellaneous_validators(),
-            tag_validators(),
-        ]
-        .into_iter()
-        .flatten()
-        .collect();
         ValidatorVisitor {
             ast,
             diagnostic_reporter,
-            validation_functions,
-        }
-    }
-
-    fn validate(&mut self, func: impl Fn(&Validator, &Ast, &mut DiagnosticReporter)) {
-        for validator_function in &self.validation_functions {
-            func(validator_function, self.ast, self.diagnostic_reporter);
         }
     }
 }
@@ -171,134 +135,103 @@ where
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_class_start(&mut self, class: &Class) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(class, diagnostic_reporter),
-            Validator::Dictionaries(function) => function(&container_dictionaries(class), diagnostic_reporter),
-            Validator::DocComments(function) => function(class, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(class, diagnostic_reporter),
-            Validator::Identifiers(function) => function(class.members().get_identifiers(), diagnostic_reporter),
-            Validator::InheritedIdentifiers(function) => function(
-                class.members().get_identifiers(),
-                class.all_inherited_members().get_identifiers(),
-                diagnostic_reporter,
-            ),
-            Validator::Members(function) => function(class.members().as_member_vec(), diagnostic_reporter),
-            _ => {}
-        });
+        self.is_compressible(class);
+        self.has_allowed_key_type(&container_dictionaries(class));
+        self.linked_identifiers_exist(class);
+        self.only_operations_can_throw(class);
+        self.check_for_redefinition(class.members().get_identifiers());
+        self.check_for_shadowing(
+            class.members().get_identifiers(),
+            class.all_inherited_members().get_identifiers(),
+        );
+        self.validate_member_tags(class.members().as_member_vec());
     }
 
     fn visit_enum_start(&mut self, enum_def: &Enum) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(enum_def, diagnostic_reporter),
-            Validator::DocComments(function) => function(enum_def, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(enum_def, diagnostic_reporter),
-            Validator::Enums(function) => function(enum_def, diagnostic_reporter),
-            _ => {}
-        });
+        self.is_compressible(enum_def);
+        self.linked_identifiers_exist(enum_def);
+        self.only_operations_can_throw(enum_def);
+        self.backing_type_bounds(enum_def);
+        self.allowed_underlying_types(enum_def);
+        self.enumerator_values_are_unique(enum_def);
+        self.underlying_type_cannot_be_optional(enum_def);
+        self.nonempty_if_checked(enum_def);
     }
 
     fn visit_exception_start(&mut self, exception: &Exception) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(exception, diagnostic_reporter),
-            Validator::Dictionaries(function) => function(&container_dictionaries(exception), diagnostic_reporter),
-            Validator::DocComments(function) => function(exception, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(exception, diagnostic_reporter),
-            Validator::Identifiers(function) => function(exception.members().get_identifiers(), diagnostic_reporter),
-            Validator::InheritedIdentifiers(function) => function(
-                exception.members().get_identifiers(),
-                exception.all_inherited_members().get_identifiers(),
-                diagnostic_reporter,
-            ),
-            Validator::Members(function) => function(exception.members().as_member_vec(), diagnostic_reporter),
-            _ => {}
-        });
+        self.is_compressible(exception);
+        self.has_allowed_key_type(&container_dictionaries(exception));
+        self.linked_identifiers_exist(exception);
+        self.only_operations_can_throw(exception);
+        self.check_for_redefinition(exception.members().get_identifiers());
+        self.check_for_shadowing(
+            exception.members().get_identifiers(),
+            exception.all_inherited_members().get_identifiers(),
+        );
+        self.validate_member_tags(exception.members().as_member_vec());
     }
 
     fn visit_interface_start(&mut self, interface: &Interface) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(interface, diagnostic_reporter),
-            Validator::DocComments(function) => function(interface, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(interface, diagnostic_reporter),
-            Validator::Identifiers(function) => function(interface.operations().get_identifiers(), diagnostic_reporter),
-            Validator::InheritedIdentifiers(function) => function(
-                interface.operations().get_identifiers(),
-                interface.all_inherited_operations().get_identifiers(),
-                diagnostic_reporter,
-            ),
-            _ => {}
-        });
+        self.is_compressible(interface);
+        self.linked_identifiers_exist(interface);
+        self.only_operations_can_throw(interface);
+        self.check_for_redefinition(interface.operations().get_identifiers());
+        self.check_for_shadowing(
+            interface.operations().get_identifiers(),
+            interface.all_inherited_operations().get_identifiers(),
+        );
     }
 
     fn visit_module_start(&mut self, module_def: &Module) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(module_def, diagnostic_reporter),
-            Validator::Module(function) => function(module_def, diagnostic_reporter),
-            Validator::Identifiers(function) => {
-                let identifiers = module_def
-                    .contents()
-                    .iter()
-                    .map(|definition| definition.borrow().raw_identifier())
-                    .collect::<Vec<_>>();
-                function(identifiers, diagnostic_reporter)
-            }
-            _ => {}
-        });
+        self.linked_identifiers_exist(module_def);
+        self.only_operations_can_throw(module_def);
+        self.check_for_redefinition(
+            module_def
+                .contents()
+                .iter()
+                .map(|definition| definition.borrow().raw_identifier())
+                .collect::<_>()
+        );
+        self.file_scoped_modules_cannot_contain_sub_modules(module_def);
     }
 
     fn visit_operation_start(&mut self, operation: &Operation) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(operation, diagnostic_reporter),
-            Validator::Dictionaries(function) => {
-                function(&member_dictionaries(operation.parameters()), diagnostic_reporter);
-                function(&member_dictionaries(operation.return_members()), diagnostic_reporter);
-            }
-            Validator::DocComments(function) => function(operation, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(operation, diagnostic_reporter),
-            Validator::Members(function) => {
-                function(operation.parameters().as_member_vec(), diagnostic_reporter);
-                function(operation.return_members().as_member_vec(), diagnostic_reporter);
-            }
-            Validator::Operations(function) => function(operation, diagnostic_reporter),
-            Validator::Parameters(function) => {
-                function(operation.parameters().as_slice(), diagnostic_reporter);
-                function(operation.return_members().as_slice(), diagnostic_reporter);
-            }
-            _ => {}
-        });
+        self.is_compressible(operation);
+        self.linked_identifiers_exist(operation);
+        self.only_operations_can_throw(operation);
+        self.non_empty_return_comment(operation);
+        self.missing_parameter_comment(operation);
+
+        for members in [operation.parameters(), operation.return_members()] {
+            self.cannot_be_deprecated(members.as_slice()); // TODOAUSTIN do we need as_slice?
+            self.stream_parameter_is_last(members.as_slice());
+            self.at_most_one_stream_parameter(members.as_slice());
+            self.parameter_order(members.as_slice());
+            self.validate_member_tags(members.as_member_vec());
+            self.has_allowed_key_type(&member_dictionaries(members));
+        }
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
-        self.validate(|validator, _ast, diagnostic_reporter| {
-            if let Validator::Attributes(function) = validator {
-                function(parameter, diagnostic_reporter)
-            }
-        })
+        self.is_compressible(parameter);
     }
 
     fn visit_struct_start(&mut self, struct_def: &Struct) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
-            Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
-            Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(struct_def, diagnostic_reporter),
-            Validator::Identifiers(function) => function(struct_def.members().get_identifiers(), diagnostic_reporter),
-            Validator::Members(function) => function(struct_def.members().as_member_vec(), diagnostic_reporter),
-            Validator::Struct(function) => function(struct_def, diagnostic_reporter),
-            _ => {}
-        });
+        self.is_compressible(struct_def);
+        self.has_allowed_key_type(&container_dictionaries(struct_def));
+        self.linked_identifiers_exist(struct_def);
+        self.only_operations_can_throw(struct_def);
+        self.check_for_redefinition(struct_def.members().get_identifiers());
+        self.validate_compact_struct_not_empty(struct_def);
+        self.compact_structs_cannot_contain_tags(struct_def);
+        self.validate_member_tags(struct_def.members().as_member_vec());
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Dictionaries(function) => {
-                if let Types::Dictionary(dictionary) = type_alias.underlying.concrete_type() {
-                    function(&[dictionary], diagnostic_reporter)
-                }
-            }
-            Validator::DocComments(function) => function(type_alias, ast, diagnostic_reporter),
-            Validator::Entities(function) => function(type_alias, diagnostic_reporter),
-            _ => {}
-        });
+        if let Types::Dictionary(dictionary) = type_alias.underlying.concrete_type() {
+            self.has_allowed_key_type(&[dictionary]);
+        }
+        self.linked_identifiers_exist(type_alias);
+        self.only_operations_can_throw(type_alias);
     }
 }

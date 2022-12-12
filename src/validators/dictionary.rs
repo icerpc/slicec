@@ -1,25 +1,22 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
+use super::ValidatorVisitor;
 
-pub fn dictionary_validators() -> ValidationChain {
-    vec![Validator::Dictionaries(has_allowed_key_type)]
-}
-
-pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
+impl ValidatorVisitor<'_> {
+pub(super) fn has_allowed_key_type(&mut self, dictionaries: &[&Dictionary]) {
     for dictionary in dictionaries {
-        check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+        self.check_dictionary_key_type(&dictionary.key_type);
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
+pub(super) fn check_dictionary_key_type(&mut self, type_ref: &TypeRef) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
         Error::new(ErrorKind::KeyMustBeNonOptional)
             .set_span(type_ref.span())
-            .report(diagnostic_reporter);
+            .report(self.diagnostic_reporter);
         return false;
     }
 
@@ -34,17 +31,17 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                         format!("struct '{}' is defined here:", struct_def.identifier()),
                         Some(struct_def.span()),
                     )
-                    .report(diagnostic_reporter);
+                    .report(self.diagnostic_reporter);
                 return false;
             }
 
             // Check that all the data members of the struct are also valid key types.
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
-                if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
+                if !self.check_dictionary_key_type(member.data_type()) {
                     Error::new(ErrorKind::KeyTypeNotSupported(member.identifier().to_owned()))
                         .set_span(member.span())
-                        .report(diagnostic_reporter);
+                        .report(self.diagnostic_reporter);
                     contains_invalid_key_types = true;
                 }
             }
@@ -58,7 +55,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                     format!("struct '{}' is defined here:", struct_def.identifier()),
                     Some(struct_def.span()),
                 )
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
                 return false;
             }
             return true;
@@ -97,7 +94,8 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                 Some(named_symbol_def.span()),
             )
         }
-        error.report(diagnostic_reporter);
+        error.report(self.diagnostic_reporter);
     }
     is_valid
+}
 }

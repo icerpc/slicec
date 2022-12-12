@@ -1,17 +1,11 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::diagnostics::*;
-use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
+use crate::diagnostics::{Error, ErrorKind};
+use crate::grammar::{Entity, Identifier, Symbol};
+use super::ValidatorVisitor;
 
-pub fn identifier_validators() -> ValidationChain {
-    vec![
-        Validator::Identifiers(check_for_redefinition),
-        Validator::InheritedIdentifiers(check_for_shadowing),
-    ]
-}
-
-pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
+impl ValidatorVisitor<'_> {
+pub(super) fn check_for_redefinition(&mut self, mut identifiers: Vec<&Identifier>) {
     // Sort first so that we can use windows to search for duplicates.
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
@@ -22,16 +16,12 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
                     format!("`{}` was previously defined here", window[0].value),
                     Some(window[0].span()),
                 )
-                .report(diagnostic_reporter);
+                .report(self.diagnostic_reporter);
         }
     });
 }
 
-pub fn check_for_shadowing(
-    identifiers: Vec<&Identifier>,
-    inherited_symbols: Vec<&Identifier>,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) {
+pub(super) fn check_for_shadowing(&mut self, identifiers: Vec<&Identifier>, inherited_symbols: Vec<&Identifier>) {
     identifiers.iter().for_each(|identifier| {
         inherited_symbols
             .iter()
@@ -43,9 +33,10 @@ pub fn check_for_shadowing(
                         format!("`{}` was previously defined here", inherited_identifier.value),
                         Some(inherited_identifier.span()),
                     )
-                    .report(diagnostic_reporter);
+                    .report(self.diagnostic_reporter);
             });
     });
+}
 }
 
 trait EntityIdentifiersExtension {

@@ -4,6 +4,7 @@ use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
+
 use std::collections::HashMap;
 
 pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic_reporter: &mut DiagnosticReporter) {
