@@ -688,6 +688,26 @@ mod attributes {
         }
 
         #[test]
+        fn attribute_directives_can_be_slice_keywords() {
+            // Arrange
+            let slice = "
+                [custom]
+                module Test;
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let module = ast.find_element::<Module>("Test").unwrap();
+            assert_eq!(module.attributes.len(), 1);
+            assert!(matches!(
+                &module.attributes[0].kind,
+                AttributeKind::Other { directive, .. } if directive == "custom",
+            ));
+        }
+
+        #[test]
         fn parent_attributes() {
             // Arrange
             let slice = r#"
