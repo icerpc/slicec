@@ -41,6 +41,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -103,5 +104,58 @@ mod slice2 {
 
         // Assert
         assert_errors!(diagnostic_reporter);
+    }
+
+    /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.
+    #[test]
+    fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
+        // Arrange
+        let slice1 = "
+            encoding = 1;
+            module Test;
+
+            exception E
+            {
+                a: AnyClass,
+            }
+        ";
+
+        let slice2 = "
+            module Test;
+
+            interface I
+            {
+                op() throws E;
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = compile_from_strings(&[slice1, slice2], None)
+            .unwrap_err()
+            .diagnostic_reporter;
+
+        // Assert
+        let expected = Error::new(ErrorKind::UnsupportedType("E".to_owned(), Encoding::Slice2));
+        assert_errors!(diagnostic_reporter, [&expected]);
+    }
+
+    #[test]
+    fn cannot_throw_any_exception() {
+        // Arrange
+        let slice = "
+            module Test;
+
+            interface I
+            {
+                op() throws AnyException;
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
