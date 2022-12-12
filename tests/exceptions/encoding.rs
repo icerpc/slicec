@@ -106,9 +106,9 @@ mod slice2 {
         assert_errors!(diagnostic_reporter);
     }
 
-    /// Verify that exceptions defined in a Slice1 file cannot be thrown from a Slice2 file.
+    /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.
     #[test]
-    fn slice1_exceptions_cannot_be_thrown() {
+    fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
         // Arrange
         let slice1 = "
             encoding = 1;
