@@ -314,6 +314,14 @@ pub enum ErrorKind {
     /// # Fields
     InvalidWarningCode(String),
 
+    InfiniteSizeCycle(String, String),
+
+    CannotResolveDueToCycles,
+
+    DoesNotExist(String),
+
+    DoesNotExistInScope(String, String),
+
     // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
     MissingRequiredArgument(String), // (arg)
@@ -465,14 +473,14 @@ implement_error_functions!(
     (
         "E023",
         ErrorKind::TypeMismatch,
-        format!("type mismatch: expected a `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
+        format!("type mismatch: expected a(n) `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
         expected,
         found
     ),
     (
         "E024",
         ErrorKind::ConcreteTypeMismatch,
-        format!("type mismatch: expected `{expected}` but found a `{found}`"),
+        format!("type mismatch: expected a(n) `{expected}` but found a(n) `{found}`"),
         expected,
         found
     ),
@@ -617,5 +625,30 @@ implement_error_functions!(
         ErrorKind::InvalidWarningCode,
         format!("the warning code `{code}` is not valid"),
         code
+    ),
+    (
+        "E050",
+        ErrorKind::InfiniteSizeCycle,
+        format!("self-referential type {type_id} has infinite size.\n{cycle_string}"),
+        type_id, cycle_string
+
+    ),
+    (
+        "E051",
+        ErrorKind::CannotResolveDueToCycles,
+        "Failed to resolve type due to a cycle in its definition".to_owned()
+    ),
+    (
+        "E052",
+        ErrorKind::DoesNotExist,
+        format!("no element with identifier `{identifier}` exists"),
+        identifier
+    ),
+    (
+        "E053",
+        ErrorKind::DoesNotExistInScope,
+        format!("no element with identifier `{identifier}` exists in the scope `{scope}`"),
+        identifier, scope
+
     )
 );

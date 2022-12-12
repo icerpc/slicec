@@ -80,9 +80,11 @@ fn must_inherit_from_exception() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter, [
-        "type mismatch: expected an exception but found a class",
-    ]);
+    let expected = Error::new(ErrorKind::ConcreteTypeMismatch(
+        "exception".to_owned(),
+        "class".to_owned(),
+    ));
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]

@@ -7,6 +7,7 @@ mod patchers;
 
 use self::node::Node;
 use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::diagnostics::{self, Error, ErrorKind};
 use crate::grammar::{Element, NamedSymbol, Primitive};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
@@ -56,6 +57,7 @@ pub struct Ast {
     lookup_table: HashMap<String, usize>,
 }
 
+#[allow(clippy::result_large_err)]
 impl Ast {
     /// Creates an Ast that contains only the [primitive](Primitive) types.
     ///
@@ -145,11 +147,11 @@ impl Ast {
     /// let fake_node = ast.find_node("foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, String> {
+    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, Error> {
         self.lookup_table
             .get(identifier)
             .map(|i| &self.elements[*i])
-            .ok_or_else(|| format!("no element with identifier `{identifier}` exists"))
+            .ok_or_else(|| Error::new(ErrorKind::DoesNotExist(identifier.to_owned())))
     }
 
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
@@ -190,7 +192,7 @@ impl Ast {
     /// let fake_node = ast.find_node_with_scope("hello", "foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, String> {
+    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, diagnostics::Error> {
         // If the identifier is globally scoped (starts with '::'), find the node without scoping.
         if let Some(unprefixed_identifier) = identifier.strip_prefix("::") {
             return self.find_node(unprefixed_identifier);
@@ -212,7 +214,7 @@ impl Ast {
 
         // If the identifier wasn't defined in any of the scopes, check for it at global scope.
         self.find_node(identifier)
-            .map_err(|_| format!("no element with identifier `{identifier}` exists in the scope `{scope}`"))
+            .map_err(|_| Error::new(ErrorKind::DoesNotExistInScope(identifier.to_owned(), scope.to_owned())))
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
@@ -253,9 +255,9 @@ impl Ast {
     /// let wrong_type = ast.find_element::<Exception>("bool");
     /// assert!(fake_element.is_err());
     /// ```
-    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, String>
+    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, Error>
     where
-        &'a T: TryFrom<&'a Node, Error = String>,
+        &'a T: TryFrom<&'a Node, Error = Error>,
     {
         self.find_node(identifier).and_then(|x| x.try_into())
     }
@@ -298,9 +300,9 @@ impl Ast {
         &'a self,
         identifier: &str,
         scope: &str,
-    ) -> Result<&'a T, String>
+    ) -> Result<&'a T, Error>
     where
-        &'a T: TryFrom<&'a Node, Error = String>,
+        &'a T: TryFrom<&'a Node, Error = Error>,
     {
         self.find_node_with_scope(identifier, scope).and_then(|x| x.try_into())
     }

@@ -19,39 +19,23 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
         // A custom error we emitted; See `tokens::ErrorKind`.
         ParseError::User {
             error: (start, parse_error_kind, end),
-        } => {
-            let error_kind = match parse_error_kind {
-                tokens::ErrorKind::MissingDirective => {
-                    diagnostics::ErrorKind::Syntax("missing preprocessor directive".to_owned())
-                }
-                tokens::ErrorKind::UnknownDirective { keyword } => {
-                    diagnostics::ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
-                }
-                tokens::ErrorKind::UnknownSymbol { symbol, suggestion } => {
-                    diagnostics::ErrorKind::Syntax(match suggestion {
-                        Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                        None => format!("unknown symbol '{symbol}'"),
-                    })
-                }
-            };
-            diagnostics::Error::new(error_kind).set_span(&Span::new(start, end, file_name))
-        }
+        } => diagnostics::Error::from(parse_error_kind).set_span(&Span::new(start, end, file_name)),
 
         // The parser encountered a token that didn't fit any grammar rule.
         ParseError::UnrecognizedToken {
             token: (start, token_kind, end),
             expected,
-        } => {
-            let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message)).set_span(&Span::new(start, end, file_name))
-        }
+        } => diagnostics::Error::new(diagnostics::ErrorKind::Syntax(format!(
+            "expected one of {}, but found '{token_kind:?}'",
+            expected.join(", ")
+        )))
+        .set_span(&Span::new(start, end, file_name)),
 
         // The parser hit EOF in the middle of a grammar rule.
-        ParseError::UnrecognizedEOF { location, expected } => {
-            let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message))
-                .set_span(&Span::new(location, location, file_name))
-        }
+        ParseError::UnrecognizedEOF { location, expected } => diagnostics::Error::new(diagnostics::ErrorKind::Syntax(
+            format!("expected one of {}, but found 'EOF'", expected.join(", ")),
+        ))
+        .set_span(&Span::new(location, location, file_name)),
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.
         ParseError::InvalidToken { .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),

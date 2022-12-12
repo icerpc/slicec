@@ -247,10 +247,10 @@ fn operations_can_only_throw_exceptions() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax(
-        "type mismatch: expected an exception but found a struct".to_owned(),
+    let expected = Error::new(ErrorKind::ConcreteTypeMismatch(
+        "exception".to_owned(),
+        "struct".to_owned(),
     ));
-
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 

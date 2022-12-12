@@ -7,7 +7,6 @@ use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use convert_case::{Case, Casing};
-use in_definite;
 
 pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {
@@ -27,6 +26,7 @@ struct TypeRefPatcher<'a> {
     diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
+#[allow(clippy::result_large_err)]
 impl TypeRefPatcher<'_> {
     fn compute_patches(&mut self, ast: &Ast) {
         for node in ast.as_slice() {
@@ -192,7 +192,7 @@ impl TypeRefPatcher<'_> {
         // First, lookup the type as a node in the AST.
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
-        let lookup_result: Result<Patch<T>, String> = ast
+        let lookup_result: Result<Patch<T>, Error> = ast
             .find_node_with_scope(type_string, type_ref.module_scope())
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
@@ -209,10 +209,8 @@ impl TypeRefPatcher<'_> {
         // If we resolved a definition for the type reference, return it, otherwise report what went wrong.
         match lookup_result {
             Ok(definition) => Some(definition),
-            Err(message) => {
-                Error::new(ErrorKind::Syntax(message))
-                    .set_span(type_ref.span())
-                    .report(self.diagnostic_reporter);
+            Err(err) => {
+                err.set_span(type_ref.span()).report(self.diagnostic_reporter);
                 None
             }
         }
@@ -245,7 +243,7 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, String>
+    fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, Error>
     where
         T: ?Sized,
         &'a Node: TryIntoPatch<T>,
@@ -310,7 +308,7 @@ impl TypeRefPatcher<'_> {
                 .add_notes(notes)
                 .report(self.diagnostic_reporter);
 
-                return Err("Failed to resolve type due to a cycle in its definition".to_owned());
+                return Err(Error::new(ErrorKind::CannotResolveDueToCycles));
             }
         }
     }
@@ -340,20 +338,21 @@ impl Default for PatchKind {
 
 /// Trait to provide a uniform API for converting [`Node`]s and [`WeakPtr`]s into patches.
 trait TryIntoPatch<T: ?Sized> {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String>;
+    #[allow(clippy::result_large_err)]
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error>;
 }
 
 impl<'a, T> TryIntoPatch<T> for &'a Node
 where
-    &'a Node: TryInto<WeakPtr<T>, Error = String>,
+    &'a Node: TryInto<WeakPtr<T>, Error = Error>,
 {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error> {
         self.try_into().map(|ptr| (ptr, attributes))
     }
 }
 
 impl<'a> TryIntoPatch<dyn Type> for &'a Node {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, Error> {
         let converted_ptr = match self {
             Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Type)),
             Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Type)),
@@ -365,28 +364,26 @@ impl<'a> TryIntoPatch<dyn Type> for &'a Node {
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
             Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => {
-                let found = self.to_string().to_case(Case::Lower);
-                Err(format!(
-                    "type mismatch: expected a `Type` but found {} {found} (which doesn't implement `Type`)",
-                    in_definite::get_a_or_an(&found),
-                ))
-            }
+            _ => Err(Error::new(ErrorKind::TypeMismatch(
+                "Type".to_owned(),
+                self.to_string().to_case(Case::Lower),
+            ))),
         };
         converted_ptr.map(|ptr| (ptr, attributes))
     }
 }
 
 impl<T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, String> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error> {
         self.downcast()
             .map(|ptr| (ptr, attributes))
-            .map_err(|_| "todo".to_owned())
+            // TODO: this error message is not very helpful
+            .map_err(|_| Error::new(ErrorKind::Syntax("TODO".to_owned())))
     }
 }
 
 impl TryIntoPatch<dyn Type> for WeakPtr<dyn Type> {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, String> {
+    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, Error> {
         Ok((self, attributes))
     }
 }

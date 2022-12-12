@@ -2,6 +2,7 @@
 
 //! This module defines all the tokens and errors that the Slice [Lexer](super::lexer::Lexer) can return.
 
+use crate::diagnostics;
 use crate::slice_file::Location;
 
 pub type Token<'a> = (Location, TokenKind<'a>, Location);
@@ -111,4 +112,22 @@ pub enum ErrorKind {
     /// Returned when a block comment is missing its closing "*/".
     /// Ex: `/* this is a bad comment`, there's no closing "*/" before EOF.
     UnterminatedBlockComment,
+}
+
+impl From<ErrorKind> for diagnostics::Error {
+    fn from(kind: ErrorKind) -> diagnostics::Error {
+        let kind = match kind {
+            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax(match suggestion {
+                Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
+                None => format!("unknown symbol '{symbol}'"),
+            }),
+            ErrorKind::UnterminatedStringLiteral => {
+                diagnostics::ErrorKind::Syntax("unterminated string literal".to_owned())
+            }
+            ErrorKind::UnterminatedBlockComment => {
+                diagnostics::ErrorKind::Syntax("unterminated block comment".to_owned())
+            }
+        };
+        diagnostics::Error::new(kind)
+    }
 }
