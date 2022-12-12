@@ -51,16 +51,13 @@ fn throws_nothing() {
     let ast = parse_for_ast(slice);
     let op = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-    match &op.throws {
-        Throws::None => (),
-        _ => panic!("Expected throws to be nothing"),
-    }
+    assert!(matches!(op.throws, Throws::None));
 }
 
 #[test]
 fn throws_any_exception() {
     let slice = "
-        encoding=1;
+        encoding = 1;
         module Test;
 
         interface I
@@ -72,8 +69,5 @@ fn throws_any_exception() {
     let ast = parse_for_ast(slice);
     let op = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-    match &op.throws {
-        Throws::AnyException => (),
-        _ => panic!("Expected throws to be any"),
-    }
+    assert!(matches!(op.throws, Throws::AnyException));
 }
