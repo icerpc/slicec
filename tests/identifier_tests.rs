@@ -46,3 +46,28 @@ fn escaped_identifiers() {
     assert!(ast.find_element::<Struct>("MyModule::MyStruct").is_ok());
     assert!(ast.find_element::<Enum>("MyModule::MyEnum").is_ok());
 }
+
+#[test]
+fn escaped_scoped_identifiers_containing_keywords() {
+    // Arrange
+    let slice = r#"
+    module Foo
+    {
+        struct \module {}
+    }
+
+    module Bar
+    {
+        struct BarStruct
+        {
+            s: Foo::\module
+        }
+    }
+    "#;
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert!(ast.find_element::<Struct>("Foo::module").is_ok());
+}
