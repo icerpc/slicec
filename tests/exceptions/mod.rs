@@ -26,15 +26,14 @@ fn throws_specific_exception() {
     let ast = parse_for_ast(slice);
     let op = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-    match &op.throws {
-        Throws::Specific(exception) => assert_eq!(
-            exception.parser_scoped_identifier(),
-            ast.find_element::<Exception>("Test::E")
-                .unwrap()
-                .parser_scoped_identifier()
-        ),
-        _ => panic!("Expected throws to be specific"),
-    }
+    let Throws::Specific(exception) = &op.throws else { panic!("Expected throws to be specific") };
+
+    assert_eq!(
+        exception.parser_scoped_identifier(),
+        ast.find_element::<Exception>("Test::E")
+            .unwrap()
+            .parser_scoped_identifier()
+    )
 }
 
 #[test]
