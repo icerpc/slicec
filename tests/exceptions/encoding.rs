@@ -108,7 +108,6 @@ mod slice2 {
 
     /// Verify that exceptions defined in a Slice1 file cannot be thrown from a Slice2 file.
     #[test]
-    #[ignore = "Validation not implemented"]
     fn slice1_exceptions_cannot_be_thrown() {
         // Arrange
         let slice1 = "
@@ -117,6 +116,7 @@ mod slice2 {
 
             exception E
             {
+                a: AnyClass,
             }
         ";
 
@@ -131,12 +131,11 @@ mod slice2 {
 
         // Act
         let diagnostic_reporter = compile_from_strings(&[slice1, slice2], None)
-            .unwrap()
+            .unwrap_err()
             .diagnostic_reporter;
 
         // Assert
-        let expected = Error::new(ErrorKind::ExceptionNotSupported(Encoding::Slice2));
-
+        let expected = Error::new(ErrorKind::UnsupportedType("E".to_owned(), Encoding::Slice2));
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
