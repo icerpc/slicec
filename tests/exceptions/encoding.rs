@@ -138,4 +138,24 @@ mod slice2 {
         let expected = Error::new(ErrorKind::UnsupportedType("E".to_owned(), Encoding::Slice2));
         assert_errors!(diagnostic_reporter, [&expected]);
     }
+
+    #[test]
+    fn cannot_throw_any_exception() {
+        // Arrange
+        let slice = "
+            module Test;
+
+            interface I
+            {
+                op() throws AnyException;
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
+        assert_errors!(diagnostic_reporter, [&expected]);
+    }
 }
