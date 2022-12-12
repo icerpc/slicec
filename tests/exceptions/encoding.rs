@@ -41,6 +41,7 @@ mod slice2 {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -103,5 +104,39 @@ mod slice2 {
 
         // Assert
         assert_errors!(diagnostic_reporter);
+    }
+
+    /// Verify that exceptions defined in a Slice1 file cannot be thrown from a Slice2 file.
+    #[test]
+    #[ignore = "Validation not implemented"]
+    fn slice1_exceptions_cannot_be_thrown() {
+        // Arrange
+        let slice1 = "
+            encoding = 1;
+            module Test;
+
+            exception E
+            {
+            }
+        ";
+
+        let slice2 = "
+            module Test;
+
+            interface I
+            {
+                op() throws E;
+            }
+        ";
+
+        // Act
+        let diagnostic_reporter = compile_from_strings(&[slice1, slice2], None)
+            .unwrap()
+            .diagnostic_reporter;
+
+        // Assert
+        let expected = Error::new(ErrorKind::ExceptionNotSupported(Encoding::Slice2));
+
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

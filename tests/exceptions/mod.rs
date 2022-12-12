@@ -6,8 +6,7 @@ mod inheritance;
 mod tags;
 
 use crate::helpers::parsing_helpers::parse_for_ast;
-use slice::grammar::{Exception, Operation, Throws};
-use std::any::Any;
+use slice::grammar::{Exception, NamedSymbol, Operation, Throws};
 
 #[test]
 fn throws_specific_exception() {
@@ -29,8 +28,10 @@ fn throws_specific_exception() {
 
     match &op.throws {
         Throws::Specific(exception) => assert_eq!(
-            exception.type_id(),
-            ast.find_element::<Exception>("Test::E").unwrap().type_id()
+            exception.parser_scoped_identifier(),
+            ast.find_element::<Exception>("Test::E")
+                .unwrap()
+                .parser_scoped_identifier()
         ),
         _ => panic!("Expected throws to be specific"),
     }
@@ -59,11 +60,12 @@ fn throws_nothing() {
 #[test]
 fn throws_any_exception() {
     let slice = "
+        encoding=1;
         module Test;
 
         interface I
         {
-            op() throws ;
+            op() throws AnyException;
         }
     ";
 
