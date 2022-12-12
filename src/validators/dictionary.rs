@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::ValidatorVisitor;
 use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
-use super::ValidatorVisitor;
 
 impl ValidatorVisitor<'_> {
 pub(super) fn has_allowed_key_type(&mut self, dictionaries: &[&Dictionary]) {

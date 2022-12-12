@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::ValidatorVisitor;
 use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::{Entity, Identifier, Symbol};
-use super::ValidatorVisitor;
 
 impl ValidatorVisitor<'_> {
 pub(super) fn check_for_redefinition(&mut self, mut identifiers: Vec<&Identifier>) {

@@ -1,9 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::ValidatorVisitor;
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::*;
-use super::ValidatorVisitor;
-
 use std::collections::HashMap;
 
 impl ValidatorVisitor<'_> {

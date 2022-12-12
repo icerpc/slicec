@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::ValidatorVisitor;
 use crate::diagnostics::{Warning, WarningKind};
 use crate::grammar::{find_inline_tags, Commentable, Entity, Operation, Symbol};
-use super::ValidatorVisitor;
 
 impl ValidatorVisitor<'_> {
 pub(super) fn non_empty_return_comment(&mut self, operation: &Operation) {

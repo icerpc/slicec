@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use super::ValidatorVisitor;
 use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
-use super::ValidatorVisitor;
 
 impl ValidatorVisitor<'_> {
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
