@@ -192,7 +192,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         self.missing_parameter_comment(operation);
 
         for members in [operation.parameters(), operation.return_members()] {
-            self.cannot_be_deprecated(members.as_slice()); // TODOAUSTIN do we need as_slice?
+            self.cannot_be_deprecated(members.as_slice());
             self.stream_parameter_is_last(members.as_slice());
             self.at_most_one_stream_parameter(members.as_slice());
             self.parameter_order(members.as_slice());
