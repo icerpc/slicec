@@ -18,17 +18,6 @@ use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
-// TODOAUSTIN don't do this anymore.
-// Re-export the contents of the validators submodules directly into the validators module. This is
-// for convenience, so users don't need to worry about the submodule structure while importing.
-pub use self::attribute::*;
-pub use self::comments::*;
-pub use self::dictionary::*;
-pub use self::enums::*;
-pub use self::identifiers::*;
-pub use self::miscellaneous::*;
-pub use self::tag::*;
-
 pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 

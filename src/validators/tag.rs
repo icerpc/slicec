@@ -12,7 +12,7 @@ pub(super) fn validate_member_tags(&mut self, members: Vec<&dyn Member>) {
 }
 
 /// Validates that the tags are unique.
-pub(super) fn tags_are_unique(&mut self, members: &[&dyn Member]) {
+fn tags_are_unique(&mut self, members: &[&dyn Member]) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -77,7 +77,7 @@ pub(super) fn compact_structs_cannot_contain_tags(&mut self, struct_def: &Struct
 }
 
 /// Validate that the data type of the tagged member is optional.
-pub(super) fn tags_have_optional_types(&mut self, members: &[&dyn Member]) {
+fn tags_have_optional_types(&mut self, members: &[&dyn Member]) {
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
@@ -94,7 +94,7 @@ pub(super) fn tags_have_optional_types(&mut self, members: &[&dyn Member]) {
     }
 }
 
-pub(super) fn tagged_members_cannot_use_classes(&mut self, members: &Vec<&dyn Member>) {
+fn tagged_members_cannot_use_classes(&mut self, members: &[&dyn Member]) {
     // Helper function that recursively checks if a type is a class, or contains classes.
     // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
     fn uses_classes(typeref: &TypeRef) -> bool {

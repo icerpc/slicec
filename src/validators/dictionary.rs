@@ -11,7 +11,7 @@ pub(super) fn has_allowed_key_type(&mut self, dictionaries: &[&Dictionary]) {
     }
 }
 
-pub(super) fn check_dictionary_key_type(&mut self, type_ref: &TypeRef) -> bool {
+fn check_dictionary_key_type(&mut self, type_ref: &TypeRef) -> bool {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
         Error::new(ErrorKind::KeyMustBeNonOptional)

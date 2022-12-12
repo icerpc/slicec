@@ -2,7 +2,7 @@
 
 use super::ValidatorVisitor;
 use crate::diagnostics::{Error, ErrorKind};
-use crate::grammar::{Module, NamedSymbol, Parameter, Struct, Symbol};
+use crate::grammar::*;
 
 impl ValidatorVisitor<'_> {
 pub(super) fn file_scoped_modules_cannot_contain_sub_modules(&mut self, module_def: &Module) {
