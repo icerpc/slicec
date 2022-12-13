@@ -313,15 +313,27 @@ pub enum ErrorKind {
     /// A malformed or invalid Warning code was supplied to the ignore warnings attribute.
     ///
     /// # Fields
+    ///
+    /// * `code` - The invalid warning code.
     InvalidWarningCode(String),
 
+    /// An self-referential type had an infinite size cycle.
+    ///
+    /// # Fields
+    ///
+    /// * `type_id` - The type id of the type that caused the error.
+    /// * `cycle` - The cycle that was found.
     InfiniteSizeCycle(String, String),
 
+    /// Failed to resolve a type due to a cycle in its definition.
     CannotResolveDueToCycles,
 
+    /// No element with the specified identifier was found.
+    ///
+    /// # Fields
+    ///
+    /// * `identifier` - The identifier that was not found.
     DoesNotExist(String),
-
-    DoesNotExistInScope(String, String),
 
     // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
@@ -651,12 +663,5 @@ implement_error_functions!(
         ErrorKind::DoesNotExist,
         format!("no element with identifier `{identifier}` exists"),
         identifier
-    ),
-    (
-        "E053",
-        ErrorKind::DoesNotExistInScope,
-        format!("no element with identifier `{identifier}` exists in the scope `{scope}`"),
-        identifier, scope
-
     )
 );

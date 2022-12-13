@@ -214,7 +214,6 @@ impl Ast {
 
         // If the identifier wasn't defined in any of the scopes, check for it at global scope.
         self.find_node(identifier)
-            .map_err(|_| Error::new(ErrorKind::DoesNotExistInScope(identifier.to_owned(), scope.to_owned())))
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
