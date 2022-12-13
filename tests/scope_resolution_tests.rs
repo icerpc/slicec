@@ -282,8 +282,7 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
-            "no element with identifier `Nested::C` exists in the scope `A`",
-        ]);
+        let expected = Error::new(ErrorKind::DoesNotExist("Nested::C".to_string()));
+        assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
