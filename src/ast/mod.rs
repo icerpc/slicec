@@ -7,7 +7,7 @@ mod patchers;
 
 use self::node::Node;
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{self, Error, ErrorKind};
+use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::{Element, NamedSymbol, Primitive};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
@@ -192,7 +192,7 @@ impl Ast {
     /// let fake_node = ast.find_node_with_scope("hello", "foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, diagnostics::Error> {
+    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, Error> {
         // If the identifier is globally scoped (starts with '::'), find the node without scoping.
         if let Some(unprefixed_identifier) = identifier.strip_prefix("::") {
             return self.find_node(unprefixed_identifier);
