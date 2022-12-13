@@ -88,7 +88,7 @@ warning [W001]: doc comment has a param tag for 'x', but there is no parameter b
 6 |             /// @param x this is an x
   |             -------------------------
   |
-error [E020]: invalid tag on member `x`: tagged members must be optional
+error [E019]: invalid tag on member `x`: tagged members must be optional
  --> string-0:9:17
    |
 9  |             op2(x:

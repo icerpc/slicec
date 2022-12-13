@@ -344,8 +344,6 @@ pub enum ErrorKind {
     TooManyArguments(String), // (expected)
 
     UnexpectedAttribute(String), // (attribute)
-
-    InvalidAttribute(String, String), // (attribute, kind)
 }
 
 implement_error_functions!(
@@ -444,47 +442,47 @@ implement_error_functions!(
         identifier
     ),
     (
-        "E016",
+        "E015",
         ErrorKind::RequiredMustPrecedeOptional,
         format!("invalid parameter `{identifier}`: required parameters must precede tagged parameters"),
         identifier
     ),
     (
-        "E017",
+        "E016",
         ErrorKind::StreamedMembersMustBeLast,
         format!("invalid parameter `{identifier}`: only the last parameter in an operation can use the stream modifier"),
         identifier
     ),
     (
-        "E018",
+        "E017",
         ErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
         "return tuples must have at least 2 elements"
     ),
     (
-        "E019",
+        "E018",
         ErrorKind::CompactStructCannotContainTaggedMembers,
         "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
-        "E020",
+        "E019",
         ErrorKind::TaggedMemberMustBeOptional,
         format!("invalid tag on member `{identifier}`: tagged members must be optional"),
         identifier
     ),
     (
-        "E021",
+        "E020",
         ErrorKind::CannotTagClass,
         format!("invalid tag on member `{identifier}`: tagged members cannot be classes"),
         identifier
     ),
     (
-        "E022",
+        "E021",
         ErrorKind::CannotTagContainingClass,
         format!("invalid tag on member `{identifier}`: tagged members cannot contain classes"),
         identifier
     ),
     (
-        "E023",
+        "E022",
         ErrorKind::TypeMismatch,
         format!(
             "type mismatch: expected {} `{expected}` but found a {found} (which doesn't implement `{expected}`)",
@@ -494,7 +492,7 @@ implement_error_functions!(
         found
     ),
     (
-        "E024",
+        "E023",
         ErrorKind::ConcreteTypeMismatch,
         format!(
             "type mismatch: expected {} `{expected}` but found {} `{found}`",
@@ -505,18 +503,18 @@ implement_error_functions!(
         found
     ),
     (
-        "E025",
+        "E024",
         ErrorKind::CompactStructCannotBeEmpty,
         "compact structs must be non-empty"
     ),
     (
-        "E026",
+        "E025",
         ErrorKind::SelfReferentialTypeAliasNeedsConcreteType,
         format!("self-referential type alias '{identifier}' has no concrete type"),
         identifier
     ),
     (
-        "E027",
+        "E026",
         ErrorKind::EnumeratorValueOutOfBounds,
         format!(
             "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
@@ -524,142 +522,135 @@ implement_error_functions!(
         identifier, value, min, max
     ),
     (
-        "E028",
+        "E027",
         ErrorKind::TagValueOutOfBounds,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        "E029",
+        "E028",
         ErrorKind::DuplicateEnumeratorValue,
         format!("enumerator values must be unique; the value `{value}` is already in use"),
         value
     ),
     (
-        "E030",
+        "E029",
         ErrorKind::NotSupportedWithEncoding,
         format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
         kind, identifier, encoding
     ),
     (
-        "E031",
+        "E030",
         ErrorKind::UnsupportedType,
         format!("the type `{type_string}` is not supported by the {encoding} encoding"),
         type_string,
         encoding
     ),
     (
-        "E032",
+        "E031",
         ErrorKind::ExceptionNotSupported,
         format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
-        "E033",
+        "E032",
         ErrorKind::OptionalsNotSupported,
         format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
-        "E034",
+        "E033",
         ErrorKind::StreamedParametersNotSupported,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
-        "E035",
+        "E034",
         ErrorKind::UnexpectedAttribute,
         format!("unexpected attribute `{attribute}`"),
         attribute
     ),
     (
-        "E036",
+        "E035",
         ErrorKind::MissingRequiredArgument,
         format!("missing required argument `{argument}`"),
         argument
     ),
     (
-        "E037",
+        "E036",
         ErrorKind::TooManyArguments,
         format!("too many arguments, expected `{expected}`"),
         expected
     ),
     (
-        "E038",
+        "E037",
         ErrorKind::MissingRequiredAttribute,
         format!("missing required attribute `{attribute}`"),
         attribute
     ),
     (
-        "E039",
+        "E038",
         ErrorKind::MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E040",
-        ErrorKind::InvalidAttribute,
-        format!("attribute `{attribute}` cannot be used on `{kind}`"),
-        attribute,
-        kind
-    ),
-    (
-        "E041",
+        "E039",
         ErrorKind::CompactIdOutOfBounds,
         "compact IDs must be within the range 0 <= ID <= 2147483647"
     ),
     (
-        "E042",
+        "E040",
         ErrorKind::IntegerLiteralOverflows,
         "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
-        "E043",
+        "E041",
         ErrorKind::InvalidIntegerLiteral,
         format!("integer literal contains illegal characters for base-{base}"),
         base
     ),
     (
-        "E044",
+        "E042",
         ErrorKind::InvalidEncodingVersion,
         format!("'{version}' is not a valid Slice encoding version"),
         version
     ),
     (
-        "E046",
+        "E043",
         ErrorKind::MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
     ),
     (
-        "E047",
+        "E044",
         ErrorKind::FileScopedModuleCannotContainSubModules,
         format!("file scoped module `{identifier}` cannot contain sub modules"),
         identifier
     ),
     (
-        "E048",
+        "E045",
         ErrorKind::AnyExceptionNotSupported,
         format!("operations that throw AnyException are only supported by the Slice1 encoding")
 
     ),
     (
-        "E049",
+        "E046",
         ErrorKind::InvalidWarningCode,
         format!("the warning code `{code}` is not valid"),
         code
     ),
     (
-        "E050",
+        "E047",
         ErrorKind::InfiniteSizeCycle,
         format!("self-referential type {type_id} has infinite size.\n{cycle_string}"),
         type_id, cycle_string
 
     ),
     (
-        "E051",
+        "E048",
         ErrorKind::CannotResolveDueToCycles,
         "failed to resolve type due to a cycle in its definition".to_owned()
     ),
     (
-        "E052",
+        "E049",
         ErrorKind::DoesNotExist,
         format!("no element with identifier `{identifier}` exists"),
         identifier
