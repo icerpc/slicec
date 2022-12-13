@@ -4,6 +4,7 @@ use super::{DiagnosticReporter, Note};
 use crate::grammar::Encoding;
 use crate::implement_error_functions;
 use crate::slice_file::Span;
+use in_definite;
 
 #[derive(Debug)]
 pub struct Error {
@@ -473,14 +474,21 @@ implement_error_functions!(
     (
         "E023",
         ErrorKind::TypeMismatch,
-        format!("type mismatch: expected a(n) `{expected}` but found a {found} (which doesn't implement `{expected}`)"),
+        format!(
+            "type mismatch: expected {} `{expected}` but found a {found} (which doesn't implement `{expected}`)",
+            in_definite::get_a_or_an(expected)
+        ),
         expected,
         found
     ),
     (
         "E024",
         ErrorKind::ConcreteTypeMismatch,
-        format!("type mismatch: expected a(n) `{expected}` but found a(n) `{found}`"),
+        format!(
+            "type mismatch: expected {} `{expected}` but found {} `{found}`",
+            in_definite::get_a_or_an(expected),
+            in_definite::get_a_or_an(found)
+        ),
         expected,
         found
     ),
