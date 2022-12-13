@@ -2,10 +2,10 @@
 
 //! TODO write a doc comment for the module.
 
+use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use convert_case::{Case, Casing};
-use in_definite;
 use std::fmt;
 
 // Helper macro for generating `TryFrom` conversion functions to unwrap `Node`s to concrete types, when the type of
@@ -13,7 +13,7 @@ use std::fmt;
 macro_rules! generate_try_from_node_impl {
     ($variant:ident, $from_type:ty, $to_type:ty, $convert:path) => {
         impl<'a> TryFrom<$from_type> for $to_type {
-            type Error = String;
+            type Error = Error;
 
             /// Attempts to unwrap a node to the specified concrete type.
             ///
@@ -23,13 +23,10 @@ macro_rules! generate_try_from_node_impl {
                 if let Node::$variant(x) = node {
                     Ok($convert(x))
                 } else {
-                    let expected = stringify!($variant).to_case(Case::Lower);
-                    let found = node.to_string().to_case(Case::Lower);
-                    Err(format!(
-                        "type mismatch: expected {} {expected} but found {} {found}",
-                        in_definite::get_a_or_an(&expected),
-                        in_definite::get_a_or_an(&found),
-                    ))
+                    Err(Error::new(ErrorKind::ConcreteTypeMismatch(
+                        stringify!($variant).to_case(Case::Lower),
+                        node.to_string().to_case(Case::Lower),
+                    )))
                 }
             }
         }
@@ -79,7 +76,7 @@ generate_node_enum! {
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Type {
-    type Error = String;
+    type Error = Error;
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Type].
     ///
@@ -97,19 +94,16 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
             Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
-            _ => {
-                let found = node.to_string().to_case(Case::Lower);
-                Err(format!(
-                    "type mismatch: expected a `Type` but found {} {found} (which doesn't implement `Type`)",
-                    in_definite::get_a_or_an(&found),
-                ))
-            }
+            _ => Err(Error::new(ErrorKind::TypeMismatch(
+                "Type".to_owned(),
+                node.to_string().to_case(Case::Lower),
+            ))),
         }
     }
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
-    type Error = String;
+    type Error = Error;
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Entity].
     ///
@@ -129,13 +123,10 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            _ => {
-                let found = node.to_string().to_case(Case::Lower);
-                Err(format!(
-                    "type mismatch: expected an `Entity` but found {} {found} (which doesn't implement `Entity`)",
-                    in_definite::get_a_or_an(&found),
-                ))
-            }
+            _ => Err(Error::new(ErrorKind::TypeMismatch(
+                "Entity".to_owned(),
+                node.to_string().to_case(Case::Lower),
+            ))),
         }
     }
 }

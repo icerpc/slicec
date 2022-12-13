@@ -97,9 +97,11 @@ fn must_inherit_from_interface() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter, [
-        "type mismatch: expected an interface but found a class",
-    ]);
+    let expected = Error::new(ErrorKind::ConcreteTypeMismatch(
+        "interface".to_owned(),
+        "class".to_owned(),
+    ));
+    assert_errors!(diagnostic_reporter, [&expected]);
 }
 
 #[test]
