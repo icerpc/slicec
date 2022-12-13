@@ -656,7 +656,7 @@ implement_error_functions!(
     (
         "E051",
         ErrorKind::CannotResolveDueToCycles,
-        "Failed to resolve type due to a cycle in its definition".to_owned()
+        "failed to resolve type due to a cycle in its definition".to_owned()
     ),
     (
         "E052",
