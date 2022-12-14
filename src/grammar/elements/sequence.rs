@@ -23,7 +23,7 @@ impl Sequence {
             }
 
             if let Types::Primitive(primitive) = definition {
-                primitive.is_numeric_or_bool() && primitive.is_fixed_size()
+                primitive.is_numeric_or_bool() && primitive.fixed_wire_size().is_some()
             } else {
                 false
             }
@@ -36,12 +36,8 @@ impl Type for Sequence {
         format!("sequence<{}>", self.element_type.type_string())
     }
 
-    fn is_fixed_size(&self) -> bool {
-        false
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        1
+    fn fixed_wire_size(&self) -> Option<u32> {
+        None
     }
 
     fn is_class_type(&self) -> bool {
@@ -49,14 +45,10 @@ impl Type for Sequence {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        if self.element_type.is_fixed_size() {
-            if self.element_type.min_wire_size() == 1 {
-                Some(TagFormat::OptimizedVSize)
-            } else {
-                Some(TagFormat::VSize)
-            }
-        } else {
-            Some(TagFormat::FSize)
+        match self.element_type.fixed_wire_size() {
+            Some(1) => Some(TagFormat::OptimizedVSize),
+            Some(_) => Some(TagFormat::VSize),
+            None => Some(TagFormat::FSize),
         }
     }
 

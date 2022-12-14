@@ -102,42 +102,25 @@ impl Type for Primitive {
         self.kind().to_owned()
     }
 
-    fn is_fixed_size(&self) -> bool {
-        matches!(
-            self,
-            Self::Bool
-                | Self::Int8
-                | Self::UInt8
-                | Self::Int16
-                | Self::UInt16
-                | Self::Int32
-                | Self::UInt32
-                | Self::Int64
-                | Self::UInt64
-                | Self::Float32
-                | Self::Float64
-        )
-    }
-
-    fn min_wire_size(&self) -> u32 {
+    fn fixed_wire_size(&self) -> Option<u32> {
         match self {
-            Self::Bool => 1,
-            Self::Int8 => 1,
-            Self::UInt8 => 1,
-            Self::Int16 => 2,
-            Self::UInt16 => 2,
-            Self::Int32 => 4,
-            Self::UInt32 => 4,
-            Self::VarInt32 => 1,
-            Self::VarUInt32 => 1,
-            Self::Int64 => 8,
-            Self::UInt64 => 8,
-            Self::VarInt62 => 1,
-            Self::VarUInt62 => 1,
-            Self::Float32 => 4,
-            Self::Float64 => 8,
-            Self::String => 1,   // At least 1 byte for the empty string.
-            Self::AnyClass => 1, // At least 1 byte to encode an index (instead of an instance).
+            Self::Bool => Some(1),
+            Self::Int8 => Some(1),
+            Self::UInt8 => Some(1),
+            Self::Int16 => Some(2),
+            Self::UInt16 => Some(2),
+            Self::Int32 => Some(4),
+            Self::UInt32 => Some(4),
+            Self::VarInt32 => Some(1),
+            Self::VarUInt32 => Some(1),
+            Self::Int64 => Some(8),
+            Self::UInt64 => Some(8),
+            Self::VarInt62 => Some(1),
+            Self::VarUInt62 => Some(1),
+            Self::Float32 => Some(4),
+            Self::Float64 => Some(8),
+            Self::String => None,
+            Self::AnyClass => None,
         }
     }
 

@@ -2,7 +2,7 @@
 
 // TODO this entire file needs to be looked over again.
 
-use crate::grammar::Member;
+use crate::grammar::{Encoding, Member};
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -21,10 +21,14 @@ pub enum TypeContext {
     Nested,
 }
 
-pub fn get_bit_sequence_size<T: Member>(members: &[&T]) -> usize {
+pub fn get_bit_sequence_size<T: Member>(encoding: Encoding, members: &[&T]) -> usize {
+    if encoding == Encoding::Slice1 {
+        return 0;
+    }
+
     members
         .iter()
-        .filter(|member| !member.is_tagged() && member.data_type().is_bit_sequence_encodable())
+        .filter(|member| !member.is_tagged() && member.data_type().is_optional)
         .count()
 }
 

@@ -51,12 +51,8 @@ impl Type for Class {
         self.identifier().to_owned()
     }
 
-    fn is_fixed_size(&self) -> bool {
-        false // A class can always be encoded as either a full instance, or just an index.
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        1 // A class may be encoded as an index instead of an instance, taking up 1 byte.
+    fn fixed_wire_size(&self) -> Option<u32> {
+        None
     }
 
     fn is_class_type(&self) -> bool {

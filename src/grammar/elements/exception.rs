@@ -50,17 +50,13 @@ impl Type for Exception {
         self.identifier().to_owned()
     }
 
-    fn is_fixed_size(&self) -> bool {
+    fn fixed_wire_size(&self) -> Option<u32> {
         // An exception is fixed size if and only if all its members are fixed size.
-        self.all_members().iter().all(|member| member.data_type.is_fixed_size())
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        // The min-wire-size of an exception is the min-wire-size of all its members added together.
         self.all_members()
             .iter()
-            .map(|member| member.data_type.min_wire_size())
-            .sum()
+            .map(|member| member.data_type.fixed_wire_size())
+            .collect::<Option<Vec<u32>>>()
+            .map(|sizes| sizes.iter().sum())
     }
 
     fn is_class_type(&self) -> bool {
