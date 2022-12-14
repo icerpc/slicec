@@ -36,6 +36,7 @@ impl Type for Struct {
             .map(|member| member.data_type.fixed_wire_size())
             .collect::<Option<Vec<u32>>>()
             .map(|sizes| sizes.iter().sum())
+            .map(|size: u32| size + if self.is_compact { 0 } else { 1 })
     }
 
     fn is_class_type(&self) -> bool {
