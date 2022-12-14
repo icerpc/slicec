@@ -151,7 +151,11 @@ impl Ast {
         self.lookup_table
             .get(identifier)
             .map(|i| &self.elements[*i])
-            .ok_or_else(|| Error::new(ErrorKind::DoesNotExist(identifier.to_owned())))
+            .ok_or_else(|| {
+                Error::new(ErrorKind::DoesNotExist {
+                    identifier: identifier.to_owned(),
+                })
+            })
     }
 
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.

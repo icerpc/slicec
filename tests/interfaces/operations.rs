@@ -247,10 +247,10 @@ fn operations_can_only_throw_exceptions() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ConcreteTypeMismatch(
-        "exception".to_owned(),
-        "struct".to_owned(),
-    ));
+    let expected = Error::new(ErrorKind::ConcreteTypeMismatch {
+        expected: "exception".to_owned(),
+        kind: "struct".to_owned(),
+    });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -324,7 +324,9 @@ mod streams {
 
         // Assert
         let expected = [
-            Error::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned())),
+            Error::new(ErrorKind::StreamedMembersMustBeLast {
+                parameter_identifier: "s".to_owned(),
+            }),
             Error::new(ErrorKind::MultipleStreamedMembers),
         ];
         assert_errors!(diagnostic_reporter, expected);
@@ -343,7 +345,9 @@ mod streams {
         ";
 
         // Act
-        let expected = Error::new(ErrorKind::StreamedMembersMustBeLast("s".to_owned()));
+        let expected = Error::new(ErrorKind::StreamedMembersMustBeLast {
+            parameter_identifier: "s".to_owned(),
+        });
 
         // Assert
         let diagnostic_reporter = parse_for_diagnostics(slice);

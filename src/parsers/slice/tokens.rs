@@ -117,16 +117,18 @@ pub enum ErrorKind {
 impl From<ErrorKind> for diagnostics::Error {
     fn from(kind: ErrorKind) -> diagnostics::Error {
         let kind = match kind {
-            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax(match suggestion {
-                Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                None => format!("unknown symbol '{symbol}'"),
-            }),
-            ErrorKind::UnterminatedStringLiteral => {
-                diagnostics::ErrorKind::Syntax("unterminated string literal".to_owned())
-            }
-            ErrorKind::UnterminatedBlockComment => {
-                diagnostics::ErrorKind::Syntax("unterminated block comment".to_owned())
-            }
+            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax {
+                message: match suggestion {
+                    Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
+                    None => format!("unknown symbol '{symbol}'"),
+                },
+            },
+            ErrorKind::UnterminatedStringLiteral => diagnostics::ErrorKind::Syntax {
+                message: "unterminated string literal".to_owned(),
+            },
+            ErrorKind::UnterminatedBlockComment => diagnostics::ErrorKind::Syntax {
+                message: "unterminated block comment".to_owned(),
+            },
         };
         diagnostics::Error::new(kind)
     }

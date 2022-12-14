@@ -16,9 +16,9 @@ pub fn miscellaneous_validators() -> ValidationChain {
 fn file_scoped_modules_cannot_contain_sub_modules(module_def: &Module, diagnostic_reporter: &mut DiagnosticReporter) {
     if module_def.is_file_scoped {
         module_def.submodules().iter().for_each(|submodule| {
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules(
-                module_def.identifier().to_owned(),
-            ))
+            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+                identifier: module_def.identifier().to_owned(),
+            })
             .set_span(submodule.span())
             .report(diagnostic_reporter);
         });
@@ -43,7 +43,7 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
         .into_iter()
         .filter(|m| m.is_streamed)
         .for_each(|m| {
-           Error::new(ErrorKind::StreamedMembersMustBeLast(m.identifier().to_owned()))
+           Error::new(ErrorKind::StreamedMembersMustBeLast{parameter_identifier: m.identifier().to_owned()})
                 .set_span(m.span())
                 .report(diagnostic_reporter);
         });

@@ -309,8 +309,9 @@ mod comments {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected =
-            &crate::helpers::new_warning(WarningKind::InvalidDocCommentLinkIdentifier("OtherStruct".to_owned()));
+        let expected = &crate::helpers::new_warning(WarningKind::InvalidDocCommentLinkIdentifier {
+            identifier: "OtherStruct".to_owned(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -329,7 +330,9 @@ mod comments {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = &crate::helpers::new_warning(WarningKind::InvalidDocCommentTag("@linked".to_owned()));
+        let expected = &crate::helpers::new_warning(WarningKind::InvalidDocCommentTag {
+            tag: "@linked".to_owned(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

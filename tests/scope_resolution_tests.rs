@@ -23,8 +23,10 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::FileScopedModuleCannotContainSubModules("T".to_owned()))
-            .add_note("file level module 'T' declared here", None);
+        let expected = Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+            identifier: "T".to_owned(),
+        })
+        .add_note("file level module 'T' declared here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -229,8 +231,10 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected =
-            Error::new(ErrorKind::Redefinition("B".to_string())).add_note("`B` was previously defined here", None);
+        let expected = Error::new(ErrorKind::Redefinition {
+            identifier: "B".to_string(),
+        })
+        .add_note("`B` was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -261,7 +265,10 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TypeMismatch("Type".to_string(), "module".to_string()));
+        let expected = Error::new(ErrorKind::TypeMismatch {
+            expected: "Type".to_string(),
+            actual: "module".to_string(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -282,7 +289,9 @@ mod scope_resolution {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::DoesNotExist("Nested::C".to_string()));
+        let expected = Error::new(ErrorKind::DoesNotExist {
+            identifier: "Nested::C".to_string(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

@@ -77,7 +77,9 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::CannotBeEmpty("format attribute".to_owned()));
+            let expected = Error::new(ErrorKind::CannotBeEmpty {
+                member_identifier: "format attribute".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -98,10 +100,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::ArgumentNotSupported(
-                "Foo".to_owned(),
-                "format attribute".to_owned(),
-            ))
+            let expected = Error::new(ErrorKind::ArgumentNotSupported {
+                argument_name: "Foo".to_owned(),
+                method_name: "format attribute".to_owned(),
+            })
             .add_note(
                 "The valid arguments for the format attribute are `Compact` and `Sliced`",
                 None,
@@ -147,7 +149,9 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied("parameter(s)".to_owned()));
+            let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
+                kind: "parameter(s)".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -198,8 +202,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected =
-                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+                identifier: "Bar".to_owned(),
+                deprecation_reason: "".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -228,8 +234,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected =
-                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("Bar".to_owned(), "".to_owned()));
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+                identifier: "Bar".to_owned(),
+                deprecation_reason: "".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -254,10 +262,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity(
-                "A".to_owned(),
-                ": Message here".to_owned(),
-            ));
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+                identifier: "A".to_owned(),
+                deprecation_reason: ": Message here".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -281,8 +289,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected =
-                &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity("A".to_owned(), "".to_owned()));
+            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+                identifier: "A".to_owned(),
+                deprecation_reason: "".to_owned(),
+            });
             assert_errors!(diagnostic_reporter, [&expected]);
         }
 
@@ -326,10 +336,10 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::ArgumentNotSupported(
-                "Foo".to_owned(),
-                "compress attribute".to_owned(),
-            ))
+            let expected = Error::new(ErrorKind::ArgumentNotSupported {
+                argument_name: "Foo".to_owned(),
+                method_name: "compress attribute".to_owned(),
+            })
             .add_note(
                 "The valid arguments for the compress attribute are `Args` and `Return`",
                 None,
@@ -474,8 +484,12 @@ mod attributes {
 
             // Assert
             let expected = [
-                Error::new(ErrorKind::InvalidWarningCode("W315".to_owned())),
-                Error::new(ErrorKind::InvalidWarningCode("w001".to_owned())),
+                Error::new(ErrorKind::InvalidWarningCode {
+                    code: "W315".to_owned(),
+                }),
+                Error::new(ErrorKind::InvalidWarningCode {
+                    code: "w001".to_owned(),
+                }),
             ];
             assert_errors!(diagnostic_reporter, expected);
         }
@@ -549,7 +563,9 @@ mod attributes {
             let diagnostic_reporter = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment("x".to_owned()));
+            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment {
+                identifier: "x".to_owned(),
+            });
 
             debug_assert_eq!(expected.error_code(), "W001");
             assert_errors!(diagnostic_reporter, [&expected]);

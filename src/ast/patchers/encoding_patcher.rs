@@ -86,11 +86,11 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let diagnostic_kind = ErrorKind::NotSupportedWithEncoding(
-                entity_def.kind().to_owned(),
-                entity_def.identifier().to_owned(),
-                file_encoding,
-            );
+            let diagnostic_kind = ErrorKind::NotSupportedWithEncoding {
+                kind: entity_def.kind().to_owned(),
+                identifier: entity_def.identifier().to_owned(),
+                encoding: file_encoding,
+            };
             let mut notes = match additional_info {
                 Some(message) => vec![Note {
                     message: message.to_owned(),
@@ -134,7 +134,9 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    diagnostics.push(ErrorKind::ExceptionNotSupported(Encoding::Slice1));
+                    diagnostics.push(ErrorKind::ExceptionNotSupported {
+                        encoding: Encoding::Slice1,
+                    });
                 }
                 encodings
             }
@@ -170,7 +172,9 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                diagnostics.push(ErrorKind::OptionalsNotSupported(Encoding::Slice1));
+                diagnostics.push(ErrorKind::OptionalsNotSupported {
+                    encoding: Encoding::Slice1,
+                });
             }
         }
 
@@ -180,7 +184,10 @@ impl EncodingPatcher<'_> {
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if diagnostics.is_empty() {
-                let error = ErrorKind::UnsupportedType(type_ref.type_string(), *file_encoding);
+                let error = ErrorKind::UnsupportedType {
+                    kind: type_ref.type_string(),
+                    encoding: *file_encoding,
+                };
                 diagnostics.push(error);
             }
 
@@ -354,10 +361,12 @@ impl ComputeSupportedEncodings for Interface {
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    Error::new(ErrorKind::StreamedParametersNotSupported(Encoding::Slice1))
-                        .set_span(member.span())
-                        .add_notes(patcher.get_file_encoding_mismatch_notes(member))
-                        .report(patcher.diagnostic_reporter)
+                    Error::new(ErrorKind::StreamedParametersNotSupported {
+                        encoding: Encoding::Slice1,
+                    })
+                    .set_span(member.span())
+                    .add_notes(patcher.get_file_encoding_mismatch_notes(member))
+                    .report(patcher.diagnostic_reporter)
                 }
             }
 
@@ -367,10 +376,13 @@ impl ComputeSupportedEncodings for Interface {
                     // Ensure the exception is supported by the operation's (file's) encoding.
                     let supported_encodings = patcher.get_supported_encodings_for(exception_type.definition());
                     if !supported_encodings.supports(file_encoding) {
-                        Error::new(ErrorKind::UnsupportedType(exception_type.type_string(), *file_encoding))
-                            .set_span(exception_type.span())
-                            .add_notes(patcher.get_file_encoding_mismatch_notes(exception_type))
-                            .report(patcher.diagnostic_reporter)
+                        Error::new(ErrorKind::UnsupportedType {
+                            kind: exception_type.type_string(),
+                            encoding: *file_encoding,
+                        })
+                        .set_span(exception_type.span())
+                        .add_notes(patcher.get_file_encoding_mismatch_notes(exception_type))
+                        .report(patcher.diagnostic_reporter)
                     }
                 }
                 Throws::AnyException => {

@@ -58,6 +58,9 @@ fn string_literals_cannot_contain_newlines() {
 
     // Assert
     let span = Span::new((2, 22).into(), (2, 32).into(), "string-0");
-    let expected = Error::new(ErrorKind::Syntax("unterminated string literal".to_owned())).set_span(&span);
+    let expected = Error::new(ErrorKind::Syntax {
+        message: "unterminated string literal".to_owned(),
+    })
+    .set_span(&span);
     assert_errors!(diagnostic_reporter, [&expected]);
 }

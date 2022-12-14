@@ -61,14 +61,18 @@ pub enum ErrorKind {
 impl From<ErrorKind> for diagnostics::Error {
     fn from(kind: ErrorKind) -> diagnostics::Error {
         let kind = match kind {
-            ErrorKind::MissingDirective => diagnostics::ErrorKind::Syntax("missing preprocessor directive".to_owned()),
-            ErrorKind::UnknownDirective { keyword } => {
-                diagnostics::ErrorKind::Syntax(format!("unknown preprocessor directive: '{keyword}'"))
-            }
-            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax(match suggestion {
-                Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                None => format!("unknown symbol '{symbol}'"),
-            }),
+            ErrorKind::MissingDirective => diagnostics::ErrorKind::Syntax {
+                message: "missing preprocessor directive".to_owned(),
+            },
+            ErrorKind::UnknownDirective { keyword } => diagnostics::ErrorKind::Syntax {
+                message: format!("unknown preprocessor directive: '{keyword}'"),
+            },
+            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax {
+                message: match suggestion {
+                    Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
+                    None => format!("unknown symbol '{symbol}'"),
+                },
+            },
         };
         diagnostics::Error::new(kind)
     }

@@ -97,10 +97,10 @@ fn must_inherit_from_interface() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ConcreteTypeMismatch(
-        "interface".to_owned(),
-        "class".to_owned(),
-    ));
+    let expected = Error::new(ErrorKind::ConcreteTypeMismatch {
+        expected: "interface".to_owned(),
+        kind: "class".to_owned(),
+    });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -120,7 +120,10 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected = Error::new(ErrorKind::Shadows("op".to_owned())).add_note("`op` was previously defined here", None);
+    let expected = Error::new(ErrorKind::Shadows {
+        identifier: "op".to_owned(),
+    })
+    .add_note("`op` was previously defined here", None);
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);

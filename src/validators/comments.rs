@@ -35,8 +35,13 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                 .map(|p| p.identifier.value.clone())
                 .any(|identifier| identifier == param.0)
             {
-                Warning::new(WarningKind::ExtraParameterInDocComment(param.0.clone()), comment.span())
-                    .report(diagnostic_reporter, operation);
+                Warning::new(
+                    WarningKind::ExtraParameterInDocComment {
+                        identifier: param.0.clone(),
+                    },
+                    comment.span(),
+                )
+                .report(diagnostic_reporter, operation);
             }
         });
     }
@@ -46,8 +51,10 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
     let supported_on = ["operation"];
     if let Some(comment) = entity.comment() {
         if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
-            let warning_kind =
-                WarningKind::ExtraThrowInDocComment(entity.kind().to_owned(), entity.identifier().to_owned());
+            let warning_kind = WarningKind::ExtraThrowInDocComment {
+                kind: entity.kind().to_owned(),
+                identifier: entity.identifier().to_owned(),
+            };
             Warning::new(warning_kind, comment.span()).report(diagnostic_reporter, entity)
         };
     }
@@ -63,15 +70,20 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
                         .is_err()
                     {
                         Warning::new(
-                            WarningKind::InvalidDocCommentLinkIdentifier(value.to_owned()),
+                            WarningKind::InvalidDocCommentLinkIdentifier {
+                                identifier: value.to_owned(),
+                            },
                             comment.span(),
                         )
                         .report(diagnostic_reporter, entity);
                     }
                 }
                 other if other.starts_with('@') => {
-                    Warning::new(WarningKind::InvalidDocCommentTag(other.to_owned()), comment.span())
-                        .report(diagnostic_reporter, entity);
+                    Warning::new(
+                        WarningKind::InvalidDocCommentTag { tag: other.to_owned() },
+                        comment.span(),
+                    )
+                    .report(diagnostic_reporter, entity);
                 }
                 _ => {}
             }

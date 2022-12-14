@@ -37,8 +37,11 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType(value.to_owned(), Encoding::Slice1))
-            .add_note("file encoding was set to Slice1 here:", None);
+        let expected = Error::new(ErrorKind::UnsupportedType {
+            kind: value.to_owned(),
+            encoding: Encoding::Slice1,
+        })
+        .add_note("file encoding was set to Slice1 here:", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -101,13 +104,16 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2))
-            .add_note("file is using the Slice2 encoding by default", None)
-            .add_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                None,
-            )
-            .add_note("classes are only supported by the Slice1 encoding", None);
+        let expected = Error::new(ErrorKind::UnsupportedType {
+            kind: "AnyClass".to_owned(),
+            encoding: Encoding::Slice2,
+        })
+        .add_note("file is using the Slice2 encoding by default", None)
+        .add_note(
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            None,
+        )
+        .add_note("classes are only supported by the Slice1 encoding", None);
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }
