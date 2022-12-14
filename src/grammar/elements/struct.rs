@@ -30,9 +30,11 @@ impl Type for Struct {
     }
 
     fn fixed_wire_size(&self) -> Option<u32> {
-        // A struct is fixed size if and only if all its members are fixed size.
+        // Return `None` if any of the struct's members aren't of fixed size.
+        // Otherwise the fixed size of the struct is equal to the fixed size of it's members added together,
+        // plus 1 if the struct isn't compact (to encode TagEndMarker).
         self.members()
-            .iter()
+            .into_iter()
             .map(|member| member.data_type.fixed_wire_size())
             .collect::<Option<Vec<u32>>>()
             .map(|sizes| sizes.iter().sum())
