@@ -378,7 +378,7 @@ impl<T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
         self.downcast()
             .map(|ptr| (ptr, attributes))
             // TODO: this error message is not very helpful
-            .map_err(|_| Error::new(ErrorKind::Syntax{message: "TODO".to_owned()}))
+            .map_err(|_| Error::new(ErrorKind::Syntax{ message: "TODO".to_owned() }))
     }
 }
 
