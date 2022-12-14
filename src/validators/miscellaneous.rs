@@ -43,7 +43,7 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
         .into_iter()
         .filter(|m| m.is_streamed)
         .for_each(|m| {
-           Error::new(ErrorKind::StreamedMembersMustBeLast{parameter_identifier: m.identifier().to_owned()})
+           Error::new(ErrorKind::StreamedMembersMustBeLast { parameter_identifier: m.identifier().to_owned()} )
                 .set_span(m.span())
                 .report(diagnostic_reporter);
         });
