@@ -55,9 +55,13 @@ impl std::fmt::Display for Error {
 #[derive(Debug)]
 pub enum ErrorKind {
     // ----------------  Generic Errors ---------------- //
-    IO(std::io::Error),
+    IO {
+        error: std::io::Error,
+    },
 
-    Syntax(String),
+    Syntax {
+        message: String,
+    },
 
     // ----------------  Attribute Errors ---------------- //
     /// Used to indicate when the compress attribute cannot be applied.
@@ -68,7 +72,9 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `kind` - The kind which the deprecated attribute was applied to.
-    DeprecatedAttributeCannotBeApplied(String),
+    DeprecatedAttributeCannotBeApplied {
+        kind: String,
+    },
 
     // ----------------  Argument Errors ---------------- //
     /// The provided argument is not supported for the given method.
@@ -77,7 +83,10 @@ pub enum ErrorKind {
     ///
     /// * `argument_name` - The name of the argument.
     /// * `method_name` - The name of the method.
-    ArgumentNotSupported(String, String),
+    ArgumentNotSupported {
+        argument_name: String,
+        method_name: String,
+    },
 
     // ---------------- Dictionary Errors ---------------- //
     /// Dictionaries cannot use optional types as keys.
@@ -88,14 +97,18 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `identifier` - The identifier of the type that was used as a dictionary key type.
-    KeyTypeNotSupported(String),
+    KeyTypeNotSupported {
+        identifier: String,
+    },
 
     /// Struct contains a member that cannot be used as a dictionary key type.
     ///
     /// # Fields
     ///
     /// * `struct_identifier` - The identifier of the struct.
-    StructKeyContainsDisallowedType(String),
+    StructKeyContainsDisallowedType {
+        struct_identifier: String,
+    },
 
     /// Structs must be compact to be used as a dictionary key type.
     StructKeyMustBeCompact,
@@ -111,21 +124,29 @@ pub enum ErrorKind {
     /// * `kind` - The kind that was is not supported.
     /// * `identifier` - The identifier of the kind that is not supported.
     /// * `encoding` - The encoding that was specified.
-    NotSupportedWithEncoding(String, String, Encoding),
+    NotSupportedWithEncoding {
+        kind: String,
+        identifier: String,
+        encoding: Encoding,
+    },
 
     /// Optional are not supported in the specified encoding.
     ///
     /// # Fields
     ///
     /// * `encoding` - The encoding that was specified.
-    OptionalsNotSupported(Encoding),
+    OptionalsNotSupported {
+        encoding: Encoding,
+    },
 
     /// Streamed parameters are not supported with the specified encoding.
     ///
     /// # Fields
     ///
     /// * `encoding` - The encoding that was specified.
-    StreamedParametersNotSupported(Encoding),
+    StreamedParametersNotSupported {
+        encoding: Encoding,
+    },
 
     /// A non-Slice1 operation used the `AnyException` keyword.
     AnyExceptionNotSupported,
@@ -136,7 +157,10 @@ pub enum ErrorKind {
     ///
     /// * `kind` - The name of the kind that was used in the specified encoding.
     /// * `encoding` - The encoding that was specified.
-    UnsupportedType(String, Encoding),
+    UnsupportedType {
+        kind: String,
+        encoding: Encoding,
+    },
 
     // ----------------  Enum Errors ---------------- //
     /// Enumerator values must be unique.
@@ -144,14 +168,18 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `enumerator_value` - The value of the enumerator that was already used.
-    DuplicateEnumeratorValue(i128),
+    DuplicateEnumeratorValue {
+        enumerator_value: i128,
+    },
 
     /// Enums cannot have optional underlying types.
     ///
     /// # Fields
     ///
     /// * `enum_identifier` - The identifier of the enum.
-    CannotUseOptionalUnderlyingType(String),
+    CannotUseOptionalUnderlyingType {
+        enum_identifier: String,
+    },
 
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum.
     ///
@@ -161,14 +189,21 @@ pub enum ErrorKind {
     /// * `value` - The value of the out of bounds enumerator.
     /// * `min` - The minimum value of the underlying type of the enum.
     /// * `max` - The maximum value of the underlying type of the enum.
-    EnumeratorValueOutOfBounds(String, i128, i128, i128),
+    EnumeratorValueOutOfBounds {
+        enumerator_identifier: String,
+        value: i128,
+        min: i128,
+        max: i128,
+    },
 
     /// Enums must be contain at least one enumerator.
     ///
     /// # Fields
     ///
     /// * `enum_identifier` - The identifier of the enum.
-    MustContainEnumerators(String),
+    MustContainEnumerators {
+        enum_identifier: String,
+    },
 
     /// Enum underlying types must be integral types.
     ///
@@ -176,7 +211,10 @@ pub enum ErrorKind {
     ///
     /// * `enum_identifier` - The identifier of the enum.
     /// * `kind` - The name of the non-integral type that was used as the underlying type of the enum.
-    UnderlyingTypeMustBeIntegral(String, String),
+    UnderlyingTypeMustBeIntegral {
+        enum_identifier: String,
+        kind: String,
+    },
 
     // ----------------  Exception Errors ---------------- //
     /// Exceptions cannot be used as a data type with the specified encoding.
@@ -184,7 +222,9 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `encoding` - The encoding that was specified.
-    ExceptionNotSupported(Encoding),
+    ExceptionNotSupported {
+        encoding: Encoding,
+    },
 
     // ----------------  Operation Errors ---------------- //
     /// A streamed parameter was not the last parameter in the operation.
@@ -192,14 +232,18 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `parameter_identifier` - The identifier of the parameter that caused the error.
-    StreamedMembersMustBeLast(String),
+    StreamedMembersMustBeLast {
+        parameter_identifier: String,
+    },
 
     /// The required parameters of an operation did not precede the optional parameters.
     ///
     /// # Fields
     ///
     /// * `parameter_identifier` - The identifier of the parameter that caused the error.
-    RequiredMustPrecedeOptional(String),
+    RequiredMustPrecedeOptional {
+        parameter_identifier: String,
+    },
 
     /// Return tuples for an operation must contain at least two element.
     ReturnTuplesMustContainAtLeastTwoElements,
@@ -220,21 +264,27 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `member_identifier` - The identifier of the tagged member.
-    CannotHaveDuplicateTag(String),
+    CannotHaveDuplicateTag {
+        member_identifier: String,
+    },
 
     /// Cannot tag a class.
     ///
     /// # Fields
     ///
     /// * `member_identifier` - The identifier of the tagged member.
-    CannotTagClass(String),
+    CannotTagClass {
+        member_identifier: String,
+    },
 
     /// Cannot tag a member that contains a class.
     ///
     /// # Fields
     ///
     /// * `member_identifier` - The identifier of the tagged member.
-    CannotTagContainingClass(String),
+    CannotTagContainingClass {
+        member_identifier: String,
+    },
 
     /// A tag value was not in the expected range, 0 .. i32::MAX.
     TagValueOutOfBounds,
@@ -244,7 +294,9 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `member_identifier` - The identifier of the tagged member.
-    TaggedMemberMustBeOptional(String),
+    TaggedMemberMustBeOptional {
+        member_identifier: String,
+    },
 
     // ----------------  General Errors ---------------- //
     /// A compact ID was not in the expected range, 0 .. i32::MAX.
@@ -255,44 +307,58 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `method_name` - The name of the method.
-    CannotBeEmpty(String),
+    CannotBeEmpty {
+        member_identifier: String,
+    },
 
     /// Used to indicate when two concrete types should match, but do not.
     ///
     /// # Fields
     ///
-    /// * `expected kind` - The name of the expected kind.
-    /// * `actual kind` - The name of the found kind.
-    ConcreteTypeMismatch(String, String),
+    /// * `expected` - The name of the expected kind.
+    /// * `kind` - The name of the found kind.
+    ConcreteTypeMismatch {
+        expected: String,
+        kind: String,
+    },
 
     /// An identifier was redefined.
     ///
     /// # Fields
     ///
     /// * `identifier` - The identifier that was redefined.
-    Redefinition(String),
+    Redefinition {
+        identifier: String,
+    },
 
     /// A self-referential type alias has no concrete type.
     ///
     /// # Fields
     ///
     /// * `identifier` - The name of the type alias.
-    SelfReferentialTypeAliasNeedsConcreteType(String),
+    SelfReferentialTypeAliasNeedsConcreteType {
+        identifier: String,
+    },
 
     /// An identifier was used to shadow another identifier.
     ///
     /// # Fields
     ///
     /// * `identifier` - The identifier that is shadowing previously defined identifier.
-    Shadows(String),
+    Shadows {
+        identifier: String,
+    },
 
     /// Used to indicate when two types should match, but do not.
     ///
     /// # Fields
     ///
-    /// * `expected kind` - The name of the expected kind.
-    /// * `actual kind` - The name of the found kind.
-    TypeMismatch(String, String),
+    /// * `expected` - The name of the expected kind.
+    /// * `actual` - The name of the found kind.
+    TypeMismatch {
+        expected: String,
+        actual: String,
+    },
 
     /// An integer literal was outside the parsable range of 0..i128::MAX.
     IntegerLiteralOverflows,
@@ -302,20 +368,28 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `base` - The base of the integer literal; Ex: 16 (hex), 10 (dec).
-    InvalidIntegerLiteral(u32),
+    InvalidIntegerLiteral {
+        base: u32,
+    },
 
     /// An invalid Slice encoding was used.
-    InvalidEncodingVersion(i128),
+    InvalidEncodingVersion {
+        encoding: i128,
+    },
 
     /// A file scoped module contained submodules.
-    FileScopedModuleCannotContainSubModules(String),
+    FileScopedModuleCannotContainSubModules {
+        identifier: String,
+    },
 
     /// A malformed or invalid Warning code was supplied to the ignore warnings attribute.
     ///
     /// # Fields
     ///
     /// * `code` - The invalid warning code.
-    InvalidWarningCode(String),
+    InvalidWarningCode {
+        code: String,
+    },
 
     /// An self-referential type had an infinite size cycle.
     ///
@@ -323,7 +397,10 @@ pub enum ErrorKind {
     ///
     /// * `type_id` - The type id of the type that caused the error.
     /// * `cycle` - The cycle that was found.
-    InfiniteSizeCycle(String, String),
+    InfiniteSizeCycle {
+        type_id: String,
+        cycle: String,
+    },
 
     /// Failed to resolve a type due to a cycle in its definition.
     CannotResolveDueToCycles,
@@ -333,25 +410,35 @@ pub enum ErrorKind {
     /// # Fields
     ///
     /// * `identifier` - The identifier that was not found.
-    DoesNotExist(String),
+    DoesNotExist {
+        identifier: String,
+    },
 
     // ----------------  Attribute Errors ---------------- //
     // The following are errors that are needed to report cs attribute errors.
-    MissingRequiredArgument(String), // (arg)
+    MissingRequiredArgument {
+        argument: String,
+    },
 
-    MissingRequiredAttribute(String), // (attribute)
+    MissingRequiredAttribute {
+        attribute: String,
+    },
 
-    TooManyArguments(String), // (expected)
+    TooManyArguments {
+        expected: String,
+    },
 
-    UnexpectedAttribute(String), // (attribute)
+    UnexpectedAttribute {
+        attribute: String,
+    },
 }
 
 implement_error_functions!(
     ErrorKind,
     (
         ErrorKind::IO,
-        format!("{io_error}"),
-        io_error
+        format!("{error}"),
+        error
     ),
     (
         ErrorKind::Syntax,
@@ -372,15 +459,15 @@ implement_error_functions!(
     (
         "E003",
         ErrorKind::CannotBeEmpty,
-        format!("{method} arguments cannot be empty"),
-        method
+        format!("{member_identifier} arguments cannot be empty"),
+        member_identifier
     ),
     (
         "E004",
         ErrorKind::ArgumentNotSupported,
-        format!("argument '{arg}' is not supported for `{method}`"),
-        arg,
-        method
+        format!("argument '{argument_name}' is not supported for `{method_name}`"),
+        argument_name,
+        method_name
     ),
     (
         "E005",
@@ -401,27 +488,27 @@ implement_error_functions!(
     (
         "E008",
         ErrorKind::StructKeyContainsDisallowedType,
-        format!("struct '{identifier}' contains members that cannot be used as a dictionary key type"),
-        identifier
+        format!("struct '{struct_identifier}' contains members that cannot be used as a dictionary key type"),
+        struct_identifier
     ),
     (
         "E009",
         ErrorKind::CannotUseOptionalUnderlyingType,
-        format!("invalid enum `{identifier}`: enums cannot have optional underlying types"),
-        identifier
+        format!("invalid enum `{enum_identifier}`: enums cannot have optional underlying types"),
+        enum_identifier
     ),
     (
         "E010",
         ErrorKind::MustContainEnumerators,
-        format!("invalid enum `{identifier}`: enums must contain at least one enumerator"),
-        identifier
+        format!("invalid enum `{enum_identifier}`: enums must contain at least one enumerator"),
+        enum_identifier
     ),
     (
         "E011",
         ErrorKind::UnderlyingTypeMustBeIntegral,
-        format!("invalid enum `{identifier}`: underlying type '{underlying}' is not supported for enums"),
-        identifier,
-        underlying
+        format!("invalid enum `{enum_identifier}`: underlying type '{kind}' is not supported for enums"),
+        enum_identifier,
+        kind
     ),
     (
         "E012",
@@ -438,20 +525,20 @@ implement_error_functions!(
     (
         "E014",
         ErrorKind::CannotHaveDuplicateTag,
-        format!("invalid tag on member `{identifier}`: tags must be unique"),
-        identifier
+        format!("invalid tag on member `{member_identifier}`: tags must be unique"),
+        member_identifier
     ),
     (
         "E015",
         ErrorKind::RequiredMustPrecedeOptional,
-        format!("invalid parameter `{identifier}`: required parameters must precede tagged parameters"),
-        identifier
+        format!("invalid parameter `{parameter_identifier}`: required parameters must precede tagged parameters"),
+        parameter_identifier
     ),
     (
         "E016",
         ErrorKind::StreamedMembersMustBeLast,
-        format!("invalid parameter `{identifier}`: only the last parameter in an operation can use the stream modifier"),
-        identifier
+        format!("invalid parameter `{parameter_identifier}`: only the last parameter in an operation can use the stream modifier"),
+        parameter_identifier
     ),
     (
         "E017",
@@ -466,41 +553,41 @@ implement_error_functions!(
     (
         "E019",
         ErrorKind::TaggedMemberMustBeOptional,
-        format!("invalid tag on member `{identifier}`: tagged members must be optional"),
-        identifier
+        format!("invalid tag on member `{member_identifier}`: tagged members must be optional"),
+        member_identifier
     ),
     (
         "E020",
         ErrorKind::CannotTagClass,
-        format!("invalid tag on member `{identifier}`: tagged members cannot be classes"),
-        identifier
+        format!("invalid tag on member `{member_identifier}`: tagged members cannot be classes"),
+        member_identifier
     ),
     (
         "E021",
         ErrorKind::CannotTagContainingClass,
-        format!("invalid tag on member `{identifier}`: tagged members cannot contain classes"),
-        identifier
+        format!("invalid tag on member `{member_identifier}`: tagged members cannot contain classes"),
+        member_identifier
     ),
     (
         "E022",
         ErrorKind::TypeMismatch,
         format!(
-            "type mismatch: expected {} `{expected}` but found a {found} (which doesn't implement `{expected}`)",
+            "type mismatch: expected {} `{expected}` but found a {actual} (which doesn't implement `{expected}`)",
             in_definite::get_a_or_an(expected)
         ),
         expected,
-        found
+        actual
     ),
     (
         "E023",
         ErrorKind::ConcreteTypeMismatch,
         format!(
-            "type mismatch: expected {} `{expected}` but found {} `{found}`",
+            "type mismatch: expected {} `{expected}` but found {} `{kind}`",
             in_definite::get_a_or_an(expected),
-            in_definite::get_a_or_an(found)
+            in_definite::get_a_or_an(kind)
         ),
         expected,
-        found
+        kind
     ),
     (
         "E024",
@@ -517,9 +604,9 @@ implement_error_functions!(
         "E026",
         ErrorKind::EnumeratorValueOutOfBounds,
         format!(
-            "invalid enumerator `{identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
+            "invalid enumerator `{enumerator_identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
         ),
-        identifier, value, min, max
+        enumerator_identifier, value, min, max
     ),
     (
         "E027",
@@ -529,8 +616,8 @@ implement_error_functions!(
     (
         "E028",
         ErrorKind::DuplicateEnumeratorValue,
-        format!("enumerator values must be unique; the value `{value}` is already in use"),
-        value
+        format!("enumerator values must be unique; the value `{enumerator_value}` is already in use"),
+        enumerator_value
     ),
     (
         "E029",
@@ -541,8 +628,8 @@ implement_error_functions!(
     (
         "E030",
         ErrorKind::UnsupportedType,
-        format!("the type `{type_string}` is not supported by the {encoding} encoding"),
-        type_string,
+        format!("the type `{kind}` is not supported by the {encoding} encoding"),
+        kind,
         encoding
     ),
     (
@@ -611,8 +698,8 @@ implement_error_functions!(
     (
         "E042",
         ErrorKind::InvalidEncodingVersion,
-        format!("'{version}' is not a valid Slice encoding version"),
-        version
+        format!("'{encoding}' is not a valid Slice encoding version"),
+        encoding
     ),
     (
         "E043",
@@ -640,9 +727,8 @@ implement_error_functions!(
     (
         "E047",
         ErrorKind::InfiniteSizeCycle,
-        format!("self-referential type {type_id} has infinite size.\n{cycle_string}"),
-        type_id, cycle_string
-
+        format!("self-referential type {type_id} has infinite size.\n{cycle}"),
+        type_id, cycle
     ),
     (
         "E048",

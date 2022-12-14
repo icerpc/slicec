@@ -91,7 +91,7 @@ fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEnco
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
         v => {
-            Error::new(ErrorKind::InvalidEncodingVersion(v))
+            Error::new(ErrorKind::InvalidEncodingVersion { encoding: v })
                 .set_span(&span)
                 .add_note("must be '1' or '2'", None)
                 .report(parser.diagnostic_reporter);
@@ -564,7 +564,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
         Ok(x) => x,
         Err(err) => {
             let error = match err.kind() {
-                IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral(base),
+                IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral { base },
                 _ => ErrorKind::IntegerLiteralOverflows,
             };
             Error::new(error).set_span(&span).report(parser.diagnostic_reporter);

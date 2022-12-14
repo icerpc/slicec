@@ -25,11 +25,11 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::NotSupportedWithEncoding(
-            "struct".to_owned(),
-            "A".to_owned(),
-            Encoding::Slice1,
-        ))
+        let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
+            kind: "struct".to_owned(),
+            identifier: "A".to_owned(),
+            encoding: Encoding::Slice1,
+        })
         .add_note("file encoding was set to Slice1 here:", None)
         .add_note("structs must be `compact` to be supported by the Slice1 encoding", None);
 
@@ -62,12 +62,15 @@ mod slice2 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType("AnyClass".to_owned(), Encoding::Slice2))
-            .add_note("file is using the Slice2 encoding by default", None)
-            .add_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                None,
-            );
+        let expected = Error::new(ErrorKind::UnsupportedType {
+            kind: "AnyClass".to_owned(),
+            encoding: Encoding::Slice2,
+        })
+        .add_note("file is using the Slice2 encoding by default", None)
+        .add_note(
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            None,
+        );
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }

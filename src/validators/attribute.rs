@@ -18,9 +18,9 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
             .iter()
             .any(|a| matches!(a.kind, AttributeKind::Deprecated { .. }))
         {
-            Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied(
-                m.kind().to_owned() + "(s)",
-            ))
+            Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
+                kind: m.kind().to_owned() + "(s)",
+            })
             .set_span(m.span())
             .report(diagnostic_reporter)
         };

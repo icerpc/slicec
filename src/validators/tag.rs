@@ -27,17 +27,19 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            Error::new(ErrorKind::CannotHaveDuplicateTag(window[1].identifier().to_owned()))
-                .set_span(window[1].span())
-                .add_note(
-                    format!(
-                        "The data member `{}` has previous used the tag value `{}`",
-                        &window[0].identifier(),
-                        window[0].tag().unwrap(),
-                    ),
-                    Some(window[0].span()),
-                )
-                .report(diagnostic_reporter);
+            Error::new(ErrorKind::CannotHaveDuplicateTag {
+                member_identifier: window[1].identifier().to_owned(),
+            })
+            .set_span(window[1].span())
+            .add_note(
+                format!(
+                    "The data member `{}` has previous used the tag value `{}`",
+                    &window[0].identifier(),
+                    window[0].tag().unwrap(),
+                ),
+                Some(window[0].span()),
+            )
+            .report(diagnostic_reporter);
         };
     });
 }
@@ -50,7 +52,9 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let error = ErrorKind::RequiredMustPrecedeOptional(parameter.identifier().to_owned());
+            let error = ErrorKind::RequiredMustPrecedeOptional {
+                parameter_identifier: parameter.identifier().to_owned(),
+            };
             Error::new(error)
                 .set_span(parameter.data_type.span())
                 .report(diagnostic_reporter);
@@ -90,9 +94,11 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            Error::new(ErrorKind::TaggedMemberMustBeOptional(member.identifier().to_owned()))
-                .set_span(member.span())
-                .report(diagnostic_reporter);
+            Error::new(ErrorKind::TaggedMemberMustBeOptional {
+                member_identifier: member.identifier().to_owned(),
+            })
+            .set_span(member.span())
+            .report(diagnostic_reporter);
         }
     }
 }
@@ -119,9 +125,13 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
         if member.is_tagged() && uses_classes(member.data_type()) {
             let identifier = member.identifier().to_owned();
             let error_kind = if member.data_type().is_class_type() {
-                ErrorKind::CannotTagClass(identifier)
+                ErrorKind::CannotTagClass {
+                    member_identifier: identifier,
+                }
             } else {
-                ErrorKind::CannotTagContainingClass(identifier)
+                ErrorKind::CannotTagContainingClass {
+                    member_identifier: identifier,
+                }
             };
             Error::new(error_kind)
                 .set_span(member.span())

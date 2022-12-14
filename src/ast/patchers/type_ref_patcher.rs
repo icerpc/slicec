@@ -228,10 +228,10 @@ impl TypeRefPatcher<'_> {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
                 Warning::new(
-                    WarningKind::UseOfDeprecatedEntity(
-                        entity.identifier().to_owned(),
-                        argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
-                    ),
+                    WarningKind::UseOfDeprecatedEntity {
+                        identifier: entity.identifier().to_owned(),
+                        deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
+                    },
                     type_ref.span(),
                 )
                 .add_note(
@@ -301,9 +301,9 @@ impl TypeRefPatcher<'_> {
                     })
                     .collect::<Vec<Note>>();
 
-                Error::new(ErrorKind::SelfReferentialTypeAliasNeedsConcreteType(
-                    current_type_alias.module_scoped_identifier(),
-                ))
+                Error::new(ErrorKind::SelfReferentialTypeAliasNeedsConcreteType {
+                    identifier: current_type_alias.module_scoped_identifier(),
+                })
                 .set_span(current_type_alias.span())
                 .add_notes(notes)
                 .report(self.diagnostic_reporter);
@@ -364,10 +364,10 @@ impl<'a> TryIntoPatch<dyn Type> for &'a Node {
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
             Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => Err(Error::new(ErrorKind::TypeMismatch(
-                "Type".to_owned(),
-                self.to_string().to_case(Case::Lower),
-            ))),
+            _ => Err(Error::new(ErrorKind::TypeMismatch {
+                expected: "Type".to_owned(),
+                actual: self.to_string().to_case(Case::Lower),
+            })),
         };
         converted_ptr.map(|ptr| (ptr, attributes))
     }
@@ -378,7 +378,7 @@ impl<T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
         self.downcast()
             .map(|ptr| (ptr, attributes))
             // TODO: this error message is not very helpful
-            .map_err(|_| Error::new(ErrorKind::Syntax("TODO".to_owned())))
+            .map_err(|_| Error::new(ErrorKind::Syntax{ message: "TODO".to_owned() }))
     }
 }
 

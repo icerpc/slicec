@@ -115,7 +115,7 @@ impl fmt::Display for Note {
 
 #[macro_export]
 macro_rules! implement_error_functions {
-    (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+    (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:ident)* )),*) => {
 
         impl $crate::diagnostics::Warning {
             pub fn all_codes() -> Vec<&'static str> {
@@ -142,7 +142,7 @@ macro_rules! implement_error_functions {
         }
     };
 
-    (ErrorKind, $(($($code:literal,)? $kind:path, $message:expr $(, $variant:pat)* )),*) => {
+    (ErrorKind, $(($($code:literal,)? $kind:path, $message:expr $(, $variant:ident)* )),*) => {
         impl ErrorKind {
             pub fn error_code(&self) -> Option<&str> {
                 match self {
@@ -174,15 +174,15 @@ macro_rules! implement_error_functions {
         $kind
     };
 
-    (@error $kind:path, $($variant:pat),+) => {
-        $kind(..)
+    (@error $kind:path, $($variant:ident),+) => {
+        $kind {..}
     };
 
     (@description $kind:path,) => {
         $kind
     };
 
-    (@description $kind:path, $($variant:pat),+) => {
-        $kind($($variant),*)
+    (@description $kind:path, $($variant:ident),+) => {
+        $kind{$($variant),*}
     };
 }

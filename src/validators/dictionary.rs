@@ -42,17 +42,19 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    Error::new(ErrorKind::KeyTypeNotSupported(member.identifier().to_owned()))
-                        .set_span(member.span())
-                        .report(diagnostic_reporter);
+                    Error::new(ErrorKind::KeyTypeNotSupported {
+                        identifier: member.identifier().to_owned(),
+                    })
+                    .set_span(member.span())
+                    .report(diagnostic_reporter);
                     contains_invalid_key_types = true;
                 }
             }
 
             if contains_invalid_key_types {
-                Error::new(ErrorKind::StructKeyContainsDisallowedType(
-                    struct_def.identifier().to_owned(),
-                ))
+                Error::new(ErrorKind::StructKeyContainsDisallowedType {
+                    struct_identifier: struct_def.identifier().to_owned(),
+                })
                 .set_span(type_ref.span())
                 .add_note(
                     format!("struct '{}' is defined here:", struct_def.identifier()),
@@ -84,7 +86,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             _ => definition.kind().to_owned() + "s",
         };
 
-        let mut error = Error::new(ErrorKind::KeyTypeNotSupported(pluralized_kind)).set_span(type_ref.span());
+        let mut error = Error::new(ErrorKind::KeyTypeNotSupported {
+            identifier: pluralized_kind,
+        })
+        .set_span(type_ref.span());
 
         // If the key type is a user-defined type, point to where it was defined.
         if let Some(named_symbol_def) = named_symbol {

@@ -71,7 +71,7 @@ pub enum WarningKind {
     /// # Fields
     ///
     /// * `identifier` - The name of the parameter from the user-supplied doc comment.
-    ExtraParameterInDocComment(String),
+    ExtraParameterInDocComment { identifier: String },
 
     /// The user-supplied doc comment indicated that the operation should return a value, but the operation does not.
     ExtraReturnValueInDocComment,
@@ -82,21 +82,21 @@ pub enum WarningKind {
     ///
     /// * `kind` - The kind of that entity that was indicated to throw.
     /// * `identifier` - The identifier of that entity that was indicated to throw.
-    ExtraThrowInDocComment(String, String),
+    ExtraThrowInDocComment { kind: String, identifier: String },
 
     /// The user-supplied doc comment link referenced an entity that does not exist.
     ///
     /// # Fields
     ///
     /// * `identifier` - The identifier of the entity that was referenced.
-    InvalidDocCommentLinkIdentifier(String),
+    InvalidDocCommentLinkIdentifier { identifier: String },
 
     /// The user-supplied doc comment tag is invalid.
     ///
     /// # Fields
     ///
     /// * `tag` - The doc comment tag
-    InvalidDocCommentTag(String),
+    InvalidDocCommentTag { tag: String },
 
     /// The code references a Slice entity that is deprecated.
     ///
@@ -105,14 +105,17 @@ pub enum WarningKind {
     /// * `identifier` - The identifier of the deprecated entity.
     /// * `deprecation_reason` - The reason why the slice entity was deprecated. If not supplied it will an empty
     ///   string.
-    UseOfDeprecatedEntity(String, String),
+    UseOfDeprecatedEntity {
+        identifier: String,
+        deprecation_reason: String,
+    },
 
     /// The user applied an attribute on a type that will result in no changes
     ///
     /// # Fields
     /// * `attribute` - The attribute that was applied
     /// * `kind` - The entity the user applied the attribute to.
-    InconsequentialUseOfAttribute(String, String),
+    InconsequentialUseOfAttribute { attribute: String, kind: String },
 }
 
 implement_error_functions!(
@@ -120,8 +123,8 @@ implement_error_functions!(
     (
         "W001",
         WarningKind::ExtraParameterInDocComment,
-        format!("doc comment has a param tag for '{param_name}', but there is no parameter by that name"),
-        param_name
+        format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
+        identifier
     ),
     (
         "W002",

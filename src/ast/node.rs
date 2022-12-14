@@ -23,10 +23,10 @@ macro_rules! generate_try_from_node_impl {
                 if let Node::$variant(x) = node {
                     Ok($convert(x))
                 } else {
-                    Err(Error::new(ErrorKind::ConcreteTypeMismatch(
-                        stringify!($variant).to_case(Case::Lower),
-                        node.to_string().to_case(Case::Lower),
-                    )))
+                    Err(Error::new(ErrorKind::ConcreteTypeMismatch {
+                        expected: stringify!($variant).to_case(Case::Lower),
+                        kind: node.to_string().to_case(Case::Lower),
+                    }))
                 }
             }
         }
@@ -94,10 +94,10 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
             Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
-            _ => Err(Error::new(ErrorKind::TypeMismatch(
-                "Type".to_owned(),
-                node.to_string().to_case(Case::Lower),
-            ))),
+            _ => Err(Error::new(ErrorKind::TypeMismatch {
+                expected: "Type".to_owned(),
+                actual: node.to_string().to_case(Case::Lower),
+            })),
         }
     }
 }
@@ -123,10 +123,10 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            _ => Err(Error::new(ErrorKind::TypeMismatch(
-                "Entity".to_owned(),
-                node.to_string().to_case(Case::Lower),
-            ))),
+            _ => Err(Error::new(ErrorKind::TypeMismatch {
+                expected: "Entity".to_owned(),
+                actual: node.to_string().to_case(Case::Lower),
+            })),
         }
     }
 }

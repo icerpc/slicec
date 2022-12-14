@@ -26,11 +26,11 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::NotSupportedWithEncoding(
-            "enum".to_owned(),
-            "E".to_owned(),
-            Encoding::Slice1,
-        ))
+        let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
+            kind: "enum".to_owned(),
+            identifier: "E".to_owned(),
+            encoding: Encoding::Slice1,
+        })
         .add_note("file encoding was set to Slice1 here:", None)
         .add_note(
             "enums with underlying types are not supported by the Slice1 encoding",

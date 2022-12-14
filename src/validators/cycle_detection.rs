@@ -30,9 +30,12 @@ impl<'a> CycleDetector<'a> {
         // the dependency chain we're currently checking.
         if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {
             let cycle_string = self.dependency_stack[i..].join(" -> ");
-            Error::new(ErrorKind::InfiniteSizeCycle(type_id.to_string(), cycle_string))
-                .set_span(type_def.span())
-                .report(self.diagnostic_reporter);
+            Error::new(ErrorKind::InfiniteSizeCycle {
+                type_id: type_id.to_string(),
+                cycle: cycle_string,
+            })
+            .set_span(type_def.span())
+            .report(self.diagnostic_reporter);
             true
         } else {
             false

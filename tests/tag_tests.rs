@@ -29,7 +29,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("b".to_owned()));
+        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+            member_identifier: "b".to_owned(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -49,7 +51,9 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional("myParam".to_string()));
+        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+            member_identifier: "myParam".to_string(),
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
@@ -69,8 +73,10 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::OptionalsNotSupported(Encoding::Slice1))
-            .add_note("file encoding was set to Slice1 here:", None);
+        let expected = Error::new(ErrorKind::OptionalsNotSupported {
+            encoding: Encoding::Slice1,
+        })
+        .add_note("file encoding was set to Slice1 here:", None);
 
         assert_errors!(diagnostic_reporter, [&expected]);
     }
@@ -91,9 +97,13 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected: [Error; 2] = [
-            Error::new(ErrorKind::RequiredMustPrecedeOptional("p3".to_owned())),
-            Error::new(ErrorKind::RequiredMustPrecedeOptional("p4".to_owned())),
+        let expected = [
+            Error::new(ErrorKind::RequiredMustPrecedeOptional {
+                parameter_identifier: "p3".to_owned(),
+            }),
+            Error::new(ErrorKind::RequiredMustPrecedeOptional {
+                parameter_identifier: "p4".to_owned(),
+            }),
         ];
         assert_errors!(diagnostic_reporter, expected);
     }
@@ -119,7 +129,9 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagClass("c".to_owned()));
+        let expected = Error::new(ErrorKind::CannotTagClass {
+            member_identifier: "c".to_owned(),
+        });
         assert_errors!(errors, [&expected]);
     }
 
@@ -149,7 +161,9 @@ mod tags {
         let errors = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagContainingClass("s".to_owned()));
+        let expected = Error::new(ErrorKind::CannotTagContainingClass {
+            member_identifier: "s".to_owned(),
+        });
         assert_errors!(errors, [&expected]);
     }
 
@@ -190,8 +204,10 @@ mod tags {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotHaveDuplicateTag("b".to_owned()))
-            .add_note("The data member `a` has previous used the tag value `1`", None);
+        let expected = Error::new(ErrorKind::CannotHaveDuplicateTag {
+            member_identifier: "b".to_owned(),
+        })
+        .add_note("The data member `a` has previous used the tag value `1`", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

@@ -31,8 +31,11 @@ fn operation_members_are_compatible_with_encoding() {
     let result = compile_from_strings(&[slice1, slice2], None).err().unwrap();
 
     // Assert
-    let expected = Error::new(ErrorKind::UnsupportedType("C".to_owned(), Encoding::Slice2))
-        .add_note("file encoding was set to Slice2 here:", None);
+    let expected = Error::new(ErrorKind::UnsupportedType {
+        kind: "C".to_owned(),
+        encoding: Encoding::Slice2,
+    })
+    .add_note("file encoding was set to Slice2 here:", None);
 
     assert_errors!(result.diagnostic_reporter, [&expected]);
 }

@@ -69,18 +69,18 @@ fn implicit_enumerator_values_overflow_cleanly() {
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::EnumeratorValueOutOfBounds(
-            "B".to_owned(),
-            i128::MAX,
-            -2147483648,
-            2147483647,
-        )),
-        Error::new(ErrorKind::EnumeratorValueOutOfBounds(
-            "C".to_owned(),
-            i128::MIN,
-            -2147483648,
-            2147483647,
-        )),
+        Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            enumerator_identifier: "B".to_owned(),
+            value: i128::MAX,
+            min: -2147483648,
+            max: 2147483647,
+        }),
+        Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            enumerator_identifier: "C".to_owned(),
+            value: i128::MIN,
+            min: -2147483648,
+            max: 2147483647,
+        }),
     ];
     assert_errors!(diagnostic_reporter, expected);
 }
@@ -122,12 +122,12 @@ fn validate_backing_type_out_of_bounds() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds(
-        "A".to_owned(),
-        out_of_bounds_value,
-        -32768_i128,
-        32767_i128,
-    ));
+    let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+        enumerator_identifier: "A".to_owned(),
+        value: out_of_bounds_value,
+        min: -32768_i128,
+        max: 32767_i128,
+    });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -173,10 +173,10 @@ fn invalid_underlying_type(underlying_type: &str) {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral(
-        "E".to_owned(),
-        underlying_type.to_owned(),
-    ));
+    let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+        enum_identifier: "E".to_owned(),
+        kind: underlying_type.to_owned(),
+    });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -217,7 +217,9 @@ fn optional_underlying_types_fail() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::CannotUseOptionalUnderlyingType("E".to_owned()));
+    let expected = Error::new(ErrorKind::CannotUseOptionalUnderlyingType {
+        enum_identifier: "E".to_owned(),
+    });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -238,8 +240,8 @@ fn enumerators_must_be_unique() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected =
-        Error::new(ErrorKind::DuplicateEnumeratorValue(1)).add_note("the value was previously used by `A` here:", None);
+    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 1 })
+        .add_note("the value was previously used by `A` here:", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -275,7 +277,9 @@ fn checked_enums_can_not_be_empty() {
         {
         }
     ";
-    let expected = Error::new(ErrorKind::MustContainEnumerators("E".to_owned()));
+    let expected = Error::new(ErrorKind::MustContainEnumerators {
+        enum_identifier: "E".to_owned(),
+    });
 
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
@@ -343,7 +347,7 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
     let diagnostic_reporter = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue(79));
+    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 79 });
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
@@ -374,9 +378,24 @@ mod slice1 {
         // Assert
         const MAX_VALUE: i128 = i32::MAX as i128;
         let expected_errors: [Error; 3] = [
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds("A".to_owned(), -1, 0, MAX_VALUE)),
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds("B".to_owned(), -2, 0, MAX_VALUE)),
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds("C".to_owned(), -3, 0, MAX_VALUE)),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "A".to_owned(),
+                value: -1,
+                min: 0,
+                max: MAX_VALUE,
+            }),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "B".to_owned(),
+                value: -2,
+                min: 0,
+                max: MAX_VALUE,
+            }),
+            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "C".to_owned(),
+                value: -3,
+                min: 0,
+                max: MAX_VALUE,
+            }),
         ];
         assert_errors!(diagnostic_reporter, expected_errors);
     }
@@ -401,12 +420,12 @@ mod slice1 {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds(
-            "A".to_owned(),
+        let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            enumerator_identifier: "A".to_owned(),
             value,
-            0,
-            i32::MAX as i128,
-        ));
+            min: 0,
+            max: i32::MAX as i128,
+        });
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

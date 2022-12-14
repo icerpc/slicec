@@ -27,13 +27,14 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             expected,
         } => {
             let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message)).set_span(&Span::new(start, end, file_name))
+            diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
+                .set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax(message))
+            diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
                 .set_span(&Span::new(location, location, file_name))
         }
 
