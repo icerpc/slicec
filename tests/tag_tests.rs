@@ -6,7 +6,6 @@ mod tags {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
@@ -274,7 +273,7 @@ mod tags {
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 
-    #[test] // TODO: We should not be panicking here. We should be returning an error.
+    #[test]
     fn strings_invalid_as_tag_value() {
         // Arrange
         let slice = "
@@ -286,9 +285,11 @@ mod tags {
         ";
 
         // Act
-        let err = compile_from_strings(&[slice], None).err();
+        let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert!(err.is_some());
+        assert_errors!(diagnostic_reporter, [
+            "expected one of \"-\", integer_literal, but found 'StringLiteral(\"test string\")'"
+        ]);
     }
 }
