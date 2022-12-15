@@ -97,7 +97,7 @@ mod module {
 
         // Assert
         assert_errors!(reporter, [
-            "expected one of \"[\", \"[[\", doc_comment, encoding_keyword, module_keyword, but found 'CustomKeyword'"
+            "expected one of '[', '[[', 'doc comment', 'encoding', 'module', but found 'custom'"
         ]);
     }
 

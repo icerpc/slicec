@@ -289,7 +289,7 @@ mod tags {
 
         // Assert
         assert_errors!(diagnostic_reporter, [
-            "expected one of \"-\", integer_literal, but found 'StringLiteral(\"test string\")'"
+            "expected one of '-', 'integer literal', but found 'test string'"
         ]);
     }
 }
