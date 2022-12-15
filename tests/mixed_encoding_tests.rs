@@ -80,7 +80,6 @@ fn invalid_mixed_encoding_fails() {
     let parser_result = compile_from_strings(&[encoding1_slice, encoding2_slice], None);
 
     // Assert
-    // TODO: we should provide a better error message to the user here
     let diagnostic_reporter = parser_result.err().unwrap().diagnostic_reporter;
     let expected = [
         Error::new(ErrorKind::UnsupportedType {

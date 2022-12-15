@@ -6,7 +6,6 @@ mod module {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::compile_from_strings;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
@@ -94,11 +93,12 @@ mod module {
         ";
 
         // Act
-        let err = compile_from_strings(&[slice], None).err();
+        let reporter = parse_for_diagnostics(slice);
 
         // Assert
-        // TODO: better error message once we replace the parser
-        assert!(err.is_some());
+        assert_errors!(reporter, [
+            "expected one of \"[\", \"[[\", doc_comment, encoding_keyword, module_keyword, but found 'CustomKeyword'"
+        ]);
     }
 
     #[test]
