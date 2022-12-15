@@ -14,12 +14,7 @@ pub use self::diagnostic_reporter::DiagnosticReporter;
 pub use self::errors::{Error, ErrorKind};
 pub use self::warnings::{Warning, WarningKind};
 
-/// A Diagnostic contains information about syntax errors, logic errors, etc., encountered while compiling slice
-/// code.
-///
-/// Each Diagnostic has a kind, specifying the type of diagnostic encountered, such as SyntaxError, LogicError, or IO.
-/// Additionally, a Diagnostic can have an optional Span which specifies the location in the source code where the
-/// diagnostic occurred.
+/// A diagnostic is a message that is reported to the user during compilation. It can be an [Error] or a [Warning].
 #[derive(Debug)]
 pub enum Diagnostic {
     Error(Error),
@@ -27,6 +22,7 @@ pub enum Diagnostic {
 }
 
 impl Diagnostic {
+    /// Returns the message of the diagnostic.
     pub fn message(&self) -> String {
         match self {
             Diagnostic::Error(error) => error.to_string(),
@@ -34,6 +30,7 @@ impl Diagnostic {
         }
     }
 
+    /// Returns the [Span] of the diagnostic if it has one.
     pub fn span(&self) -> Option<&Span> {
         match self {
             Diagnostic::Error(error) => error.span.as_ref(),
@@ -41,6 +38,7 @@ impl Diagnostic {
         }
     }
 
+    /// Returns a slice of [Note]s associated with the diagnostic.
     pub fn notes(&self) -> &[Note] {
         match self {
             Diagnostic::Error(error) => &error.notes,
@@ -48,6 +46,7 @@ impl Diagnostic {
         }
     }
 
+    /// Returns the error code of the diagnostic if it has one.
     pub fn error_code(&self) -> Option<&str> {
         match self {
             Diagnostic::Error(error) => error.error_code(),
@@ -99,6 +98,7 @@ pub struct Note {
 }
 
 impl Note {
+    /// Creates a new [Note] with the given message and span.
     pub fn new(message: impl Into<String>, span: Option<&Span>) -> Self {
         Note {
             message: message.into(),
@@ -113,8 +113,9 @@ impl fmt::Display for Note {
     }
 }
 
+/// A macro that implements the `error_code` and `message` functions for [WarningKind] and [ErrorKind] enums.
 #[macro_export]
-macro_rules! implement_error_functions {
+macro_rules! implement_diagnostic_functions {
     (WarningKind, $(($code:expr, $kind:path, $message:expr $(, $variant:ident)* )),*) => {
 
         impl $crate::diagnostics::Warning {
@@ -127,7 +128,7 @@ macro_rules! implement_error_functions {
             pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => $code,
+                        implement_diagnostic_functions!(@error $kind, $($variant),*) => $code,
                     )*
                 }
             }
@@ -135,7 +136,7 @@ macro_rules! implement_error_functions {
             pub fn message(&self) -> String {
                 match self {
                     $(
-                        implement_error_functions!(@description $kind, $($variant),*) => $message.into(),
+                        implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
                 }
             }
@@ -147,7 +148,7 @@ macro_rules! implement_error_functions {
             pub fn error_code(&self) -> Option<&str> {
                 match self {
                     $(
-                        implement_error_functions!(@error $kind, $($variant),*) => implement_error_functions!(@code $($code)?),
+                        implement_diagnostic_functions!(@error $kind, $($variant),*) => implement_diagnostic_functions!(@code $($code)?),
                     )*
                 }
             }
@@ -155,7 +156,7 @@ macro_rules! implement_error_functions {
             pub fn message(&self) -> String {
                 match self {
                     $(
-                        implement_error_functions!(@description $kind, $($variant),*) => $message.into(),
+                        implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
                 }
             }

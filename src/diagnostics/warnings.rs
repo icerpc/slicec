@@ -2,7 +2,7 @@
 
 use super::{DiagnosticReporter, Note};
 use crate::grammar::{AttributeKind, Entity};
-use crate::implement_error_functions;
+use crate::implement_diagnostic_functions;
 use crate::slice_file::Span;
 
 #[derive(Debug)]
@@ -118,7 +118,7 @@ pub enum WarningKind {
     InconsequentialUseOfAttribute { attribute: String, kind: String },
 }
 
-implement_error_functions!(
+implement_diagnostic_functions!(
     WarningKind,
     (
         "W001",

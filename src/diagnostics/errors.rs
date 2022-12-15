@@ -2,7 +2,7 @@
 
 use super::{DiagnosticReporter, Note};
 use crate::grammar::Encoding;
-use crate::implement_error_functions;
+use crate::implement_diagnostic_functions;
 use crate::slice_file::Span;
 use in_definite;
 
@@ -433,7 +433,7 @@ pub enum ErrorKind {
     },
 }
 
-implement_error_functions!(
+implement_diagnostic_functions!(
     ErrorKind,
     (
         ErrorKind::IO,
