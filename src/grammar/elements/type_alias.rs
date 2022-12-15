@@ -31,14 +31,8 @@ impl Type for TypeAlias {
         self.identifier().to_owned()
     }
 
-    // TODO most of these should panic. Since type-aliases are transparent and removed during
-    // type-patching, most of these should never actually be called.
-    fn is_fixed_size(&self) -> bool {
-        self.underlying.is_fixed_size()
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        self.underlying.min_wire_size()
+    fn fixed_wire_size(&self) -> Option<u32> {
+        self.underlying.fixed_wire_size()
     }
 
     fn is_class_type(&self) -> bool {

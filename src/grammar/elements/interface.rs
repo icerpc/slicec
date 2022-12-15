@@ -77,15 +77,8 @@ impl Type for Interface {
         self.identifier().to_owned()
     }
 
-    fn is_fixed_size(&self) -> bool {
-        false
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        // Interfaces are passed on the wire as proxies, and the smallest valid proxy (with Slice2)
-        // is "/". Taking up 1 byte for the length of the string, and 1 byte for the '/' character.
-        // Note the min_wire_size for a Slice1 encoded proxy is 3, but we take the minimum of both.
-        2
+    fn fixed_wire_size(&self) -> Option<u32> {
+        None
     }
 
     fn is_class_type(&self) -> bool {

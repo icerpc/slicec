@@ -18,12 +18,8 @@ impl Type for Dictionary {
         )
     }
 
-    fn is_fixed_size(&self) -> bool {
-        false
-    }
-
-    fn min_wire_size(&self) -> u32 {
-        1
+    fn fixed_wire_size(&self) -> Option<u32> {
+        None
     }
 
     fn is_class_type(&self) -> bool {
@@ -31,7 +27,7 @@ impl Type for Dictionary {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        if self.key_type.is_fixed_size() && self.value_type.is_fixed_size() {
+        if self.key_type.fixed_wire_size().is_some() && self.value_type.fixed_wire_size().is_some() {
             Some(TagFormat::VSize)
         } else {
             Some(TagFormat::FSize)

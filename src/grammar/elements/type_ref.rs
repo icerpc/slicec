@@ -49,10 +49,6 @@ impl<T: Element + ?Sized> TypeRef<T> {
 }
 
 impl<T: Type + ?Sized> TypeRef<T> {
-    pub fn is_bit_sequence_encodable(&self) -> bool {
-        self.is_optional && self.min_wire_size() == 0
-    }
-
     // This intentionally shadows the trait method of the same name on `Type`.
     pub fn type_string(&self) -> String {
         let mut s = self.definition().type_string();
@@ -63,23 +59,11 @@ impl<T: Type + ?Sized> TypeRef<T> {
     }
 
     // This intentionally shadows the trait method of the same name on `Type`.
-    pub fn is_fixed_size(&self) -> bool {
-        !self.is_optional && T::is_fixed_size(self)
-    }
-
-    // This intentionally shadows the trait method of the same name on `Type`.
-    pub fn min_wire_size(&self) -> u32 {
+    pub fn fixed_wire_size(&self) -> Option<u32> {
         if self.is_optional {
-            match self.definition().concrete_type() {
-                // TODO explain why still take up 1 byte.
-                // TODO this is not totally correct the min_wire_size of a optional interface
-                // depends on the encoding
-                Types::Class(_) => 1,
-                Types::Primitive(primitive) if matches!(primitive, Primitive::AnyClass) => 1,
-                _ => 0,
-            }
+            None
         } else {
-            T::min_wire_size(self)
+            T::fixed_wire_size(self)
         }
     }
 }
