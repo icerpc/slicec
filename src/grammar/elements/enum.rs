@@ -46,10 +46,9 @@ impl Type for Enum {
     }
 
     fn fixed_wire_size(&self) -> Option<u32> {
-        match &self.underlying {
-            Some(underlying) => underlying.fixed_wire_size(),
-            _ => None,
-        }
+        self.underlying
+            .as_ref()
+            .and_then(|underlying| underlying.fixed_wire_size())
     }
 
     fn is_class_type(&self) -> bool {
