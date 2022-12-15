@@ -36,7 +36,7 @@ impl Type for Struct {
         self.members()
             .into_iter()
             .map(|member| member.data_type.fixed_wire_size())
-            .collect::<Option<Vec<u32>>>()
+            .collect::<Option<Vec<u32>>>() // ensure all members are of fixed size; will return none if any are not
             .map(|sizes| sizes.iter().sum())
             .map(|size: u32| size + if self.is_compact { 0 } else { 1 })
     }
