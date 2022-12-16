@@ -24,14 +24,10 @@ impl TryFrom<String> for FilePath {
     /// Creates a new [FilePath] from the given path. If the path does not exist, an [Error] is returned.
     #[allow(clippy::result_large_err)]
     fn try_from(path: String) -> Result<Self, Self::Error> {
-        let path_buf = PathBuf::from(&path);
-        match path_buf.canonicalize() {
-            Ok(canonicalized_path) => Ok(Self {
-                path,
-                canonicalized_path,
-            }),
-            Err(error) => Err(error),
-        }
+        PathBuf::from(&path).canonicalize().map(|canonicalized_path| Self {
+            path,
+            canonicalized_path,
+        })
     }
 }
 
@@ -56,14 +52,26 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     file_paths.extend(
         find_slice_files(&options.references)
             .into_iter()
-            .filter_map(|f| FilePath::try_from(f).ok())
+            .filter_map(|f| match FilePath::try_from(f) {
+                Ok(file_path) => Some(file_path),
+                Err(error) => {
+                    Error::new(ErrorKind::IO { error }).report(diagnostic_reporter);
+                    None
+                }
+            })
             .map(|f| (f, false)),
     );
 
     file_paths.extend(
         find_slice_files(&options.sources)
             .into_iter()
-            .filter_map(|f| FilePath::try_from(f).ok())
+            .filter_map(|f| match FilePath::try_from(f) {
+                Ok(file_path) => Some(file_path),
+                Err(error) => {
+                    Error::new(ErrorKind::IO { error }).report(diagnostic_reporter);
+                    None
+                }
+            })
             .map(|f| (f, true)),
     );
 
