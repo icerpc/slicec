@@ -23,15 +23,12 @@ impl FilePath {
     #[allow(clippy::result_large_err)]
     pub fn new(path: String) -> Result<Self, Error> {
         let path_buf = PathBuf::from(&path);
-        if let Ok(canonicalized_path) = path_buf.canonicalize() {
-            Ok(Self {
+        match path_buf.canonicalize() {
+            Ok(canonicalized_path) => Ok(Self {
                 path,
                 canonicalized_path,
-            })
-        } else {
-            Err(Error::new(ErrorKind::IO {
-                error: io::ErrorKind::NotFound.into(),
-            }))
+            }),
+            Err(error) => Err(Error::new(ErrorKind::IO { error })),
         }
     }
 }
