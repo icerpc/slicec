@@ -25,7 +25,7 @@ fn duplicate_reference_files_ignored() {
 }
 
 #[test]
-fn duplicate_source_file_ignored() {
+fn duplicate_source_files_ignored() {
     // Arrange
     let file_path_one = PathBuf::from(["tests", "files", "test.slice"].join(&MAIN_SEPARATOR.to_string()));
     let file_path_two =
