@@ -122,6 +122,7 @@ fn clean_message(expected: Vec<String>) -> String {
             "\"-\"" => tokens::TokenKind::Minus.to_string(),
             _ => s.to_owned(),
         })
+        .map(|s| format!("'{s}'"))
         .collect::<Vec<String>>()
         .join(", ")
 }
