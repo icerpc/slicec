@@ -14,6 +14,8 @@ use std::{fs, io};
 struct FilePath {
     // The path that the user supplied
     path: String,
+    // The canonicalized path
+    canonicalized_path: PathBuf,
 }
 
 impl FilePath {
@@ -21,8 +23,11 @@ impl FilePath {
     #[allow(clippy::result_large_err)]
     pub fn new(path: String) -> Result<Self, Error> {
         let path_buf = PathBuf::from(&path);
-        if path_buf.canonicalize().is_ok() {
-            Ok(Self { path })
+        if let Ok(canonicalized_path) = path_buf.canonicalize() {
+            Ok(Self {
+                path,
+                canonicalized_path,
+            })
         } else {
             Err(Error::new(ErrorKind::IO {
                 error: io::ErrorKind::NotFound.into(),
@@ -33,16 +38,13 @@ impl FilePath {
 
 impl Hash for FilePath {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let path_buf = PathBuf::from(&self.path);
-        path_buf.canonicalize().unwrap().hash(state);
+        self.canonicalized_path.hash(state);
     }
 }
 
 impl PartialEq for FilePath {
     fn eq(&self, other: &Self) -> bool {
-        let self_path_buf = PathBuf::from(&self.path);
-        let other_path_buf = PathBuf::from(&other.path);
-        self_path_buf.canonicalize().unwrap() == other_path_buf.canonicalize().unwrap()
+        self.canonicalized_path == other.canonicalized_path
     }
 }
 
