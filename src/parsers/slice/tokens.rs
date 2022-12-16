@@ -2,6 +2,8 @@
 
 //! This module defines all the tokens and errors that the Slice [Lexer](super::lexer::Lexer) can return.
 
+use std::fmt;
+
 use crate::diagnostics;
 use crate::slice_file::Location;
 
@@ -93,6 +95,82 @@ pub enum TokenKind<'input> {
     QuestionMark, // "?"
     Arrow,        // "->"
     Minus,        // "-"
+}
+
+impl std::fmt::Display for TokenKind<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", match &self {
+            TokenKind::Identifier(input) => input,     // "[_a-zA-Z][_a-zA-Z0-9]*"
+            TokenKind::IntegerLiteral(input) => input, // "[0-9][a-zA-Z0-9]*"
+            TokenKind::StringLiteral(input) => input,
+            TokenKind::DocComment(input) => input,
+
+            // Definition keywords
+            TokenKind::ModuleKeyword => "module",
+            TokenKind::StructKeyword => "struct",
+            TokenKind::ExceptionKeyword => "exception",
+            TokenKind::ClassKeyword => "class",
+            TokenKind::InterfaceKeyword => "interface",
+            TokenKind::EnumKeyword => "enum",
+            TokenKind::CustomKeyword => "custom",
+            TokenKind::TypeAliasKeyword => "typealias",
+
+            // Collection keywords
+            TokenKind::SequenceKeyword => "sequence",
+            TokenKind::DictionaryKeyword => "dictionary",
+
+            // Primitive type keywords
+            TokenKind::BoolKeyword => "bool",
+            TokenKind::Int8Keyword => "int8",
+            TokenKind::UInt8Keyword => "uint8",
+            TokenKind::Int16Keyword => "int16",
+            TokenKind::UInt16Keyword => "uint16",
+            TokenKind::Int32Keyword => "int32",
+            TokenKind::UInt32Keyword => "uint32",
+            TokenKind::VarInt32Keyword => "varint32",
+            TokenKind::VarUInt32Keyword => "varuint32",
+            TokenKind::Int64Keyword => "int64",
+            TokenKind::UInt64Keyword => "uint64",
+            TokenKind::VarInt62Keyword => "varint62",
+            TokenKind::VarUInt62Keyword => "varuint62",
+            TokenKind::Float32Keyword => "float32",
+            TokenKind::Float64Keyword => "float64",
+            TokenKind::StringKeyword => "String",
+            TokenKind::AnyClassKeyword => "AnyClass",
+
+            // Other keywords
+            TokenKind::AnyExceptionKeyword => "AnyException",
+            TokenKind::CompactKeyword => "compact",
+            TokenKind::EncodingKeyword => "encoding",
+            TokenKind::IdempotentKeyword => "idempotent",
+            TokenKind::StreamKeyword => "stream",
+            TokenKind::TagKeyword => "tag",
+            TokenKind::ThrowsKeyword => "throws",
+            TokenKind::UncheckedKeyword => "unchecked",
+
+            // Brackets
+            TokenKind::LeftParenthesis => "(",
+            TokenKind::RightParenthesis => ")",
+            TokenKind::LeftBracket => "[",
+            TokenKind::RightBracket => "]",
+            TokenKind::DoubleLeftBracket => "[[",
+            TokenKind::DoubleRightBracket => "]]",
+            TokenKind::LeftBrace => "{",
+            TokenKind::RightBrace => "}",
+            TokenKind::LeftChevron => "<",
+            TokenKind::RightChevron => ">",
+
+            // Symbols
+            TokenKind::Comma => ",",
+            TokenKind::Colon => ":",
+            TokenKind::DoubleColon => "::",
+            TokenKind::Semicolon => ";",
+            TokenKind::Equals => "=",
+            TokenKind::QuestionMark => "?",
+            TokenKind::Arrow => "->",
+            TokenKind::Minus => "-",
+        })
+    }
 }
 
 /// This enum specifies all the kinds of errors that the Slice [Lexer](super::lexer::Lexer) can return.

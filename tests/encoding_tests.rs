@@ -54,7 +54,7 @@ mod encodings {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax{message: "expected one of \"[\", class_keyword, compact_keyword, custom_keyword, doc_comment, enum_keyword, exception_keyword, interface_keyword, module_keyword, struct_keyword, type_alias_keyword, unchecked_keyword, but found 'EncodingKeyword'".to_owned()});
+        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', 'unchecked', but found 'encoding'".to_owned()});
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }
