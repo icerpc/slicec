@@ -3,15 +3,21 @@
   "language": "en",
   "words": [
     "AnyException",
+    "canonicalize",
+    "canonicalized",
     "codepoints",
     "Commentable",
     "downcasted",
     "downcasting",
     "encodable",
     "grcov",
+    "Hasher",
+    "lalrpop",
+    "nonterminal",
     "peekable",
     "rsplit",
     "RUSTDOCFLAGS",
+    "rustfmt",
     "rustup",
     "slicec",
     "subtoken",
@@ -24,10 +30,12 @@
     "Unsize",
     "upcasting",
     "varint",
-    "varuint",
-    "lalrpop",
-    "nonterminal",
-    "rustfmt"
+    "varuint"
   ],
-  "dictionaries": ["misc", "en_US", "rust", "softwareTerms"]
+  "dictionaries": [
+    "misc",
+    "en_US",
+    "rust",
+    "softwareTerms"
+  ]
 }
