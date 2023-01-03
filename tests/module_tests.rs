@@ -6,7 +6,7 @@ mod module {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -176,5 +176,23 @@ mod module {
         })
         .add_note("`Bar` was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
+    }
+
+    #[test_case("Foo"; "module")]
+    #[test_case("Foo::Bar"; "nested module")]
+    fn modules_can_be_reopened(module_name: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            module {module_name} {{}}
+            module {module_name} {{}}
+            "
+        );
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostic_reporter, Vec::<Diagnostic>::new());
     }
 }
