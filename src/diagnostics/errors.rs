@@ -56,7 +56,7 @@ impl std::fmt::Display for Error {
 pub enum ErrorKind {
     // ----------------  Generic Errors ---------------- //
     IO {
-        action: String,
+        action: &'static str,
         path: String,
         error: std::io::Error,
     },

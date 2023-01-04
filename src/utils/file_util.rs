@@ -56,7 +56,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
                 Ok(file_path) => Some(file_path),
                 Err(error) => {
                     Error::new(ErrorKind::IO {
-                        action: "read".to_owned(),
+                        action: "read",
                         path: f,
                         error,
                     })
@@ -74,7 +74,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
                 Ok(file_path) => Some(file_path),
                 Err(error) => {
                     Error::new(ErrorKind::IO {
-                        action: "read".to_owned(),
+                        action: "read",
                         path: f,
                         error,
                     })
@@ -92,7 +92,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         match fs::read_to_string(&file_path.path) {
             Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, is_source)),
             Err(error) => Error::new(ErrorKind::IO {
-                action: "read".to_owned(),
+                action: "read",
                 path: file_path.path,
                 error,
             })
@@ -109,7 +109,7 @@ fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReport
         match find_slice_files_in_path(PathBuf::from(path), diagnostic_reporter) {
             Ok(child_paths) => slice_paths.extend(child_paths),
             Err(error) => Error::new(ErrorKind::IO {
-                action: "read".to_owned(),
+                action: "read",
                 path: path.to_owned(),
                 error,
             })
@@ -146,7 +146,7 @@ fn find_slice_files_in_directory(
         match find_slice_files_in_path(child_path.clone(), diagnostic_reporter) {
             Ok(child_paths) => paths.extend(child_paths),
             Err(error) => Error::new(ErrorKind::IO {
-                action: "read".to_owned(),
+                action: "read",
                 path: child_path.display().to_string(),
                 error,
             })
