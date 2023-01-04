@@ -180,7 +180,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 
-#[test_case("10", "expected one of '[', '}', 'doc comment', 'identifier', but found '10'"; "numeric identifier")]
+#[test_case("10", "expected one of '[', '}', 'doc comment', or 'identifier', but found '10'"; "numeric identifier")]
 #[test_case("😊", "unknown symbol '😊'"; "unicode identifier")]
 fn enumerator_invalid_identifiers(identifier: &str, expected: &str) {
     // Arrange

@@ -97,7 +97,7 @@ mod module {
 
         // Assert
         assert_errors!(reporter, [
-            "expected one of '[', '[[', 'doc comment', 'encoding', 'module', but found 'custom'"
+            "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'"
         ]);
     }
 
