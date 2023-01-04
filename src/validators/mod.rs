@@ -12,7 +12,7 @@ mod tag;
 use crate::ast::node::Node;
 use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::utils::ptr_util::WeakPtr;
@@ -63,32 +63,58 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
         slice_file.visit_with(&mut validator);
     }
 
-    // Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
-    // is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
-    //
-    // So we compute a map of all the identifiers in modules with the same name (fully scoped), then check that.
-    let mut merged_module_content_identifiers: HashMap<String, Vec<&Identifier>> = HashMap::new();
+    validate_module_contents(&mut data);
+
+    // We always return `Ok` here to ensure the language mapping's validation logic is run,
+    // instead of terminating early if this validator found any errors.
+    Ok(data)
+}
+
+/// Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
+/// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
+///
+/// So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
+fn validate_module_contents(data: &mut CompilationData) {
+    let mut merged_module_contents: HashMap<String, Vec<&Definition>> = HashMap::new();
     for node in data.ast.as_slice() {
         if let Node::Module(module_ptr) = node {
             // Borrow the module's pointer and store its fully scoped identifier.
             let module = module_ptr.borrow();
             let scoped_module_identifier = module.parser_scoped_identifier();
-            // Get all the identifiers of the direct members of this module.
-            let module_content_identifiers = module.contents().iter().map(|def| def.borrow().raw_identifier());
-            // Add the identifiers to the map, with the module's scoped identifier as the key.
-            merged_module_content_identifiers
+
+            // Add the contents to the map, with the module's scoped identifier as the key.
+            merged_module_contents
                  .entry(scoped_module_identifier)
                  .or_default() // If an entry doesn't exist for the key, create one now.
-                 .extend(module_content_identifiers); // Add this module's identifiers to the existing vector.
+                 .extend(module.contents()); // Add this module's contents to the existing vector.
         }
     }
-    for identifiers in merged_module_content_identifiers.into_values() {
-        check_for_redefinition(identifiers, &mut data.diagnostic_reporter);
-    }
 
-    // We always return `Ok` here to ensure the language mapping's validation logic is run,
-    // instead of terminating early if this validator found any errors.
-    Ok(data)
+    for mut module_contents in merged_module_contents.into_values() {
+        // Sort the contents by identifier first so that we can use windows to search for duplicates.
+        module_contents.sort_by_key(|def| def.borrow().raw_identifier().value.to_owned());
+        module_contents.windows(2).for_each(|window| {
+            let identifier_0 = window[0].borrow().raw_identifier();
+            let identifier_1 = window[1].borrow().raw_identifier();
+
+            // We don't want to report a redefinition error if both definitions are modules, since
+            // that's allowed. If both identifiers are the same and either definition is not a module, then we have a
+            // redefinition error.
+            if identifier_0.value == identifier_1.value
+                && !(matches!(window[0], Definition::Module(_)) && matches!(window[1], Definition::Module(_)))
+            {
+                Error::new(ErrorKind::Redefinition {
+                    identifier: identifier_1.value.clone(),
+                })
+                .set_span(identifier_1.span())
+                .add_note(
+                    format!("`{}` was previously defined here", identifier_0.value),
+                    Some(identifier_0.span()),
+                )
+                .report(&mut data.diagnostic_reporter);
+            }
+        });
+    }
 }
 
 // Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
