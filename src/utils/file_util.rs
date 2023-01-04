@@ -49,41 +49,8 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
     let mut file_paths = HashMap::new();
 
-    file_paths.extend(
-        find_slice_files(&options.references, diagnostic_reporter)
-            .into_iter()
-            .filter_map(|f| match FilePath::try_from(f.clone()) {
-                Ok(file_path) => Some(file_path),
-                Err(error) => {
-                    Error::new(ErrorKind::IO {
-                        action: "read",
-                        path: f,
-                        error,
-                    })
-                    .report(diagnostic_reporter);
-                    None
-                }
-            })
-            .map(|f| (f, false)),
-    );
-
-    file_paths.extend(
-        find_slice_files(&options.sources, diagnostic_reporter)
-            .into_iter()
-            .filter_map(|f| match FilePath::try_from(f.clone()) {
-                Ok(file_path) => Some(file_path),
-                Err(error) => {
-                    Error::new(ErrorKind::IO {
-                        action: "read",
-                        path: f,
-                        error,
-                    })
-                    .report(diagnostic_reporter);
-                    None
-                }
-            })
-            .map(|f| (f, true)),
-    );
+    file_paths.extend(find_slice_files(&options.references, false, diagnostic_reporter));
+    file_paths.extend(find_slice_files(&options.sources, true, diagnostic_reporter));
 
     // Iterate through the discovered files and try to read them into Strings.
     // Report an error if it fails, otherwise create a new `SliceFile` to hold the data.
@@ -103,7 +70,11 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     files
 }
 
-fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReporter) -> Vec<String> {
+fn find_slice_files(
+    paths: &[String],
+    source_files: bool,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) -> Vec<(FilePath, bool)> {
     let mut slice_paths = Vec::new();
     for path in paths {
         match find_slice_files_in_path(PathBuf::from(path), diagnostic_reporter) {
@@ -119,7 +90,20 @@ fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReport
 
     slice_paths
         .into_iter()
-        .map(|path| path.to_str().unwrap().to_owned())
+        .map(|path| path.display().to_string())
+        .filter_map(|f| match FilePath::try_from(f.clone()) {
+            Ok(file_path) => Some(file_path),
+            Err(error) => {
+                Error::new(ErrorKind::IO {
+                    action: "read",
+                    path: f,
+                    error,
+                })
+                .report(diagnostic_reporter);
+                None
+            }
+        })
+        .map(|f| (f, source_files))
         .collect()
 }
 
