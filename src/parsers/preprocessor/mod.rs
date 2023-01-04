@@ -26,14 +26,17 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             token: (start, token_kind, end),
             expected,
         } => {
-            let message = format!("expected one of {}, but found '{token_kind:?}'", expected.join(", "));
+            let message = format!(
+                "expected one of {}, but found '{token_kind:?}'",
+                clean_message(&expected)
+            );
             diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
                 .set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
-            let message = format!("expected one of {}, but found 'EOF'", expected.join(", "));
+            let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
             diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
                 .set_span(&Span::new(location, location, file_name))
         }
@@ -44,5 +47,16 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
         // Only rules that explicitly match 'EOF' or only match a finite number of tokens can emit this error.
         // None of our rules do, so this is impossible (there's no limit to the length of a slice file's contents).
         ParseError::ExtraToken { .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
+    }
+}
+
+fn clean_message(expected: &[String]) -> String {
+    match expected {
+        [first] => first.to_owned(),
+        [first, second] => format!("{} or {}", first, second),
+        many => {
+            let (last, others) = many.split_last().unwrap();
+            format!("{}, or {last}", others.join(", "))
+        }
     }
 }

@@ -26,14 +26,14 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             token: (start, token_kind, end),
             expected,
         } => {
-            let message = format!("expected one of {}, but found '{token_kind}'", clean_message(expected));
+            let message = format!("expected one of {}, but found '{token_kind}'", clean_message(&expected));
             diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
                 .set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
-            let message = format!("expected one of {}, but found 'EOF'", clean_message(expected));
+            let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
             diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
                 .set_span(&Span::new(location, location, file_name))
         }
@@ -47,8 +47,8 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
     }
 }
 
-fn clean_message(expected: Vec<String>) -> String {
-    match expected
+fn clean_message(expected: &[String]) -> String {
+    let keyword = expected
         .iter()
         .map(|s| match s.as_str() {
             "identifier" => "identifier".to_owned(),
@@ -123,15 +123,14 @@ fn clean_message(expected: Vec<String>) -> String {
             _ => s.to_owned(),
         })
         .map(|s| format!("'{s}'"))
-        .collect::<Vec<String>>()[..]
-        .as_ref()
-    {
+        .collect::<Vec<String>>();
+
+    match &keyword[..] {
         [first] => first.to_owned(),
         [first, second] => format!("{} or {}", first, second),
         many => {
-            let mut many = many.to_vec();
-            let last = many.pop().unwrap();
-            format!("{}, or {}", many.join(", "), last)
+            let (last, others) = many.split_last().unwrap();
+            format!("{}, or {last}", others.join(", "))
         }
     }
 }
