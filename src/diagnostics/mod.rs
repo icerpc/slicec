@@ -22,14 +22,6 @@ pub enum Diagnostic {
 }
 
 impl Diagnostic {
-    /// Returns the message of the diagnostic.
-    pub fn message(&self) -> String {
-        match self {
-            Diagnostic::Error(error) => error.to_string(),
-            Diagnostic::Warning(warning) => warning.to_string(),
-        }
-    }
-
     /// Returns the [Span] of the diagnostic if it has one.
     pub fn span(&self) -> Option<&Span> {
         match self {
@@ -57,7 +49,10 @@ impl Diagnostic {
 
 impl fmt::Display for Diagnostic {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message())
+        match self {
+            Diagnostic::Error(error) => write!(f, "{}", error),
+            Diagnostic::Warning(warning) => write!(f, "{}", warning),
+        }
     }
 }
 
@@ -68,7 +63,7 @@ impl Serialize for Diagnostic {
             Diagnostic::Error(_) => "error",
             Diagnostic::Warning(_) => "warning",
         };
-        state.serialize_field("message", &self.message())?;
+        state.serialize_field("message", &self.to_string())?;
         state.serialize_field("severity", severity)?;
         state.serialize_field("span", &self.span())?;
         state.serialize_field("notes", self.notes())?;
@@ -132,13 +127,16 @@ macro_rules! implement_diagnostic_functions {
                     )*
                 }
             }
+        }
 
-            pub fn message(&self) -> String {
-                match self {
+        impl std::fmt::Display for WarningKind {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                let message: String = match self {
                     $(
                         implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
-                }
+                };
+                write!(f, "{}", message)
             }
         }
     };
@@ -152,13 +150,16 @@ macro_rules! implement_diagnostic_functions {
                     )*
                 }
             }
+        }
 
-            pub fn message(&self) -> String {
-                match self {
+        impl std::fmt::Display for ErrorKind {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                let message: String = match self {
                     $(
                         implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
-                }
+                };
+                write!(f, "{}", message)
             }
         }
     };
