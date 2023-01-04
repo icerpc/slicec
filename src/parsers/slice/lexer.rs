@@ -193,7 +193,7 @@ where
 
     /// Checks if an identifier corresponds to a Slice keyword. If it does,
     /// return the keyword's token. Otherwise, return an `[TokenKind::Identifier]` token.
-    fn parse_identifier(identifier: &str) -> TokenKind {
+    fn check_if_keyword(identifier: &str) -> TokenKind {
         debug_assert!(identifier.chars().all(|c| c.is_alphanumeric() || c == '_'));
         debug_assert!(!identifier.is_empty());
 
@@ -372,7 +372,7 @@ where
                     // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
                     TokenKind::Identifier(self.read_identifier())
                 } else {
-                    Self::parse_identifier(self.read_identifier())
+                    Self::check_if_keyword(self.read_identifier())
                 };
                 Some(Ok((start_location, token, self.cursor)))
             }
