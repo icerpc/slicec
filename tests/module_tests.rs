@@ -177,4 +177,22 @@ mod module {
         .add_note("`Bar` was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
+
+    #[test_case("Foo"; "module")]
+    #[test_case("Foo::Bar"; "nested module")]
+    fn modules_can_be_reopened(module_name: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            module {module_name} {{}}
+            module {module_name} {{}}
+            "
+        );
+
+        // Act
+        let diagnostic_reporter = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostic_reporter);
+    }
 }
