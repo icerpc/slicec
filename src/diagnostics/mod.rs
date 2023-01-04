@@ -2,7 +2,6 @@
 
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
-use std::fmt;
 
 mod diagnostic_reporter;
 mod errors;
@@ -55,12 +54,6 @@ impl Diagnostic {
     }
 }
 
-impl fmt::Display for Diagnostic {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message())
-    }
-}
-
 impl Serialize for Diagnostic {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("Diagnostic", 4)?;
@@ -93,8 +86,8 @@ impl From<Warning> for Diagnostic {
 /// was defined.
 #[derive(Serialize, Debug, Clone)]
 pub struct Note {
-    pub message: String,
-    pub span: Option<Span>,
+    pub(super) message: String,
+    pub(super) span: Option<Span>,
 }
 
 impl Note {
@@ -104,12 +97,6 @@ impl Note {
             message: message.into(),
             span: span.cloned(),
         }
-    }
-}
-
-impl fmt::Display for Note {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
     }
 }
 
