@@ -50,12 +50,17 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     let mut file_paths = HashMap::new();
 
     file_paths.extend(
-        find_slice_files(&options.references)
+        find_slice_files(&options.references, diagnostic_reporter)
             .into_iter()
-            .filter_map(|f| match FilePath::try_from(f) {
+            .filter_map(|f| match FilePath::try_from(f.clone()) {
                 Ok(file_path) => Some(file_path),
                 Err(error) => {
-                    Error::new(ErrorKind::IO { error }).report(diagnostic_reporter);
+                    Error::new(ErrorKind::IO {
+                        action: "read".to_owned(),
+                        path: f,
+                        error,
+                    })
+                    .report(diagnostic_reporter);
                     None
                 }
             })
@@ -63,12 +68,17 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     );
 
     file_paths.extend(
-        find_slice_files(&options.sources)
+        find_slice_files(&options.sources, diagnostic_reporter)
             .into_iter()
-            .filter_map(|f| match FilePath::try_from(f) {
+            .filter_map(|f| match FilePath::try_from(f.clone()) {
                 Ok(file_path) => Some(file_path),
                 Err(error) => {
-                    Error::new(ErrorKind::IO { error }).report(diagnostic_reporter);
+                    Error::new(ErrorKind::IO {
+                        action: "read".to_owned(),
+                        path: f,
+                        error,
+                    })
+                    .report(diagnostic_reporter);
                     None
                 }
             })
@@ -81,19 +91,29 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     for (file_path, is_source) in file_paths {
         match fs::read_to_string(&file_path.path) {
             Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, is_source)),
-            Err(error) => Error::new(ErrorKind::IO { error }).report(diagnostic_reporter),
+            Err(error) => Error::new(ErrorKind::IO {
+                action: "read".to_owned(),
+                path: file_path.path,
+                error,
+            })
+            .report(diagnostic_reporter),
         }
     }
 
     files
 }
 
-fn find_slice_files(paths: &[String]) -> Vec<String> {
+fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReporter) -> Vec<String> {
     let mut slice_paths = Vec::new();
     for path in paths {
-        match find_slice_files_in_path(PathBuf::from(path)) {
+        match find_slice_files_in_path(PathBuf::from(path), diagnostic_reporter) {
             Ok(child_paths) => slice_paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{path}': {err}"),
+            Err(error) => Error::new(ErrorKind::IO {
+                action: "read".to_owned(),
+                path: path.to_owned(),
+                error,
+            })
+            .report(diagnostic_reporter),
         }
     }
 
@@ -103,10 +123,10 @@ fn find_slice_files(paths: &[String]) -> Vec<String> {
         .collect()
 }
 
-fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
+fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticReporter) -> io::Result<Vec<PathBuf>> {
     // If the path is a directory, recursively search it for more slice files.
     if fs::metadata(&path)?.is_dir() {
-        find_slice_files_in_directory(path.read_dir()?)
+        find_slice_files_in_directory(path.read_dir()?, diagnostic_reporter)
     }
     // If the path is not a directory, check if it ends with 'slice'.
     else if path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some() {
@@ -116,13 +136,21 @@ fn find_slice_files_in_path(path: PathBuf) -> io::Result<Vec<PathBuf>> {
     }
 }
 
-fn find_slice_files_in_directory(dir: fs::ReadDir) -> io::Result<Vec<PathBuf>> {
+fn find_slice_files_in_directory(
+    dir: fs::ReadDir,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) -> io::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     for child in dir {
         let child_path = child?.path();
-        match find_slice_files_in_path(child_path.clone()) {
+        match find_slice_files_in_path(child_path.clone(), diagnostic_reporter) {
             Ok(child_paths) => paths.extend(child_paths),
-            Err(err) => eprintln!("failed to read file '{}': {err}", child_path.display()),
+            Err(error) => Error::new(ErrorKind::IO {
+                action: "read".to_owned(),
+                path: child_path.display().to_string(),
+                error,
+            })
+            .report(diagnostic_reporter),
         }
     }
     Ok(paths)
