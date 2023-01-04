@@ -54,7 +54,7 @@ mod encodings {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 }

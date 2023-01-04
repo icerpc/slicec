@@ -48,7 +48,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
 }
 
 fn clean_message(expected: Vec<String>) -> String {
-    expected
+    match expected
         .iter()
         .map(|s| match s.as_str() {
             "identifier" => "identifier".to_owned(),
@@ -123,6 +123,15 @@ fn clean_message(expected: Vec<String>) -> String {
             _ => s.to_owned(),
         })
         .map(|s| format!("'{s}'"))
-        .collect::<Vec<String>>()
-        .join(", ")
+        .collect::<Vec<String>>()[..]
+        .as_ref()
+    {
+        [first] => first.to_owned(),
+        [first, second] => format!("{} or {}", first, second),
+        many => {
+            let mut many = many.to_vec();
+            let last = many.pop().unwrap();
+            format!("{}, or {}", many.join(", "), last)
+        }
+    }
 }
