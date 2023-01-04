@@ -88,7 +88,6 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     let tagged_members = members
         .iter()
         .filter(|member| member.tag().is_some())
-        .clone()
         .collect::<Vec<_>>();
 
     // Validate that tagged members are optional.

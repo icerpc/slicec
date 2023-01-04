@@ -53,7 +53,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
 fn clean_message(expected: &[String]) -> String {
     match expected {
         [first] => first.to_owned(),
-        [first, second] => format!("{} or {}", first, second),
+        [first, second] => format!("{first} or {second}"),
         many => {
             let (last, others) = many.split_last().unwrap();
             format!("{}, or {last}", others.join(", "))

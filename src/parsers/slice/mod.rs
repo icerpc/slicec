@@ -127,7 +127,7 @@ fn clean_message(expected: &[String]) -> String {
 
     match &keyword[..] {
         [first] => first.to_owned(),
-        [first, second] => format!("{} or {}", first, second),
+        [first, second] => format!("{first} or {second}"),
         many => {
             let (last, others) = many.split_last().unwrap();
             format!("{}, or {last}", others.join(", "))
