@@ -82,7 +82,7 @@ impl CompilationData {
             let mut message = vec![];
 
             // Emit the message with the prefix.
-            message.push(format!("{prefix}: {}", style(&diagnostic).bold()));
+            message.push(format!("{prefix}: {}", style(&diagnostic.message()).bold()));
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
@@ -95,7 +95,7 @@ impl CompilationData {
                     "    {} {}: {:}",
                     style("=").blue().bold(),
                     style("note").bold(),
-                    style(&note).bold(),
+                    style(&note.message).bold(),
                 ));
                 if let Some(span) = &note.span {
                     Self::append_snippet(&mut message, span, &files)

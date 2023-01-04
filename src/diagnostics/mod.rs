@@ -2,7 +2,6 @@
 
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
-use std::fmt;
 
 mod diagnostic_reporter;
 mod errors;
@@ -45,13 +44,12 @@ impl Diagnostic {
             Diagnostic::Warning(warning) => Some(warning.error_code()),
         }
     }
-}
 
-impl fmt::Display for Diagnostic {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    /// Returns the message of the diagnostic.
+    pub fn message(&self) -> String {
         match self {
-            Diagnostic::Error(error) => write!(f, "{}", error),
-            Diagnostic::Warning(warning) => write!(f, "{}", warning),
+            Diagnostic::Error(error) => error.to_string(),
+            Diagnostic::Warning(warning) => warning.to_string(),
         }
     }
 }
@@ -63,7 +61,7 @@ impl Serialize for Diagnostic {
             Diagnostic::Error(_) => "error",
             Diagnostic::Warning(_) => "warning",
         };
-        state.serialize_field("message", &self.to_string())?;
+        state.serialize_field("message", &self.message())?;
         state.serialize_field("severity", severity)?;
         state.serialize_field("span", &self.span())?;
         state.serialize_field("notes", self.notes())?;
@@ -88,8 +86,8 @@ impl From<Warning> for Diagnostic {
 /// was defined.
 #[derive(Serialize, Debug, Clone)]
 pub struct Note {
-    pub message: String,
-    pub span: Option<Span>,
+    pub(super) message: String,
+    pub(super) span: Option<Span>,
 }
 
 impl Note {
@@ -99,12 +97,6 @@ impl Note {
             message: message.into(),
             span: span.cloned(),
         }
-    }
-}
-
-impl fmt::Display for Note {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
     }
 }
 
