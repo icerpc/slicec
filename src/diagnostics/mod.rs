@@ -21,6 +21,14 @@ pub enum Diagnostic {
 }
 
 impl Diagnostic {
+    /// Returns the message of the diagnostic.
+    pub fn message(&self) -> String {
+        match self {
+            Diagnostic::Error(error) => error.to_string(),
+            Diagnostic::Warning(warning) => warning.to_string(),
+        }
+    }
+
     /// Returns the [Span] of the diagnostic if it has one.
     pub fn span(&self) -> Option<&Span> {
         match self {
@@ -42,14 +50,6 @@ impl Diagnostic {
         match self {
             Diagnostic::Error(error) => error.error_code(),
             Diagnostic::Warning(warning) => Some(warning.error_code()),
-        }
-    }
-
-    /// Returns the message of the diagnostic.
-    pub fn message(&self) -> String {
-        match self {
-            Diagnostic::Error(error) => error.to_string(),
-            Diagnostic::Warning(warning) => warning.to_string(),
         }
     }
 }
@@ -119,16 +119,13 @@ macro_rules! implement_diagnostic_functions {
                     )*
                 }
             }
-        }
 
-        impl std::fmt::Display for WarningKind {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                let message: String = match self {
+            pub fn message(&self) -> String {
+                match self {
                     $(
                         implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
-                };
-                write!(f, "{}", message)
+                }
             }
         }
     };
@@ -142,16 +139,13 @@ macro_rules! implement_diagnostic_functions {
                     )*
                 }
             }
-        }
 
-        impl std::fmt::Display for ErrorKind {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                let message: String = match self {
+            pub fn message(&self) -> String {
+                match self {
                     $(
                         implement_diagnostic_functions!(@description $kind, $($variant),*) => $message.into(),
                     )*
-                };
-                write!(f, "{}", message)
+                }
             }
         }
     };

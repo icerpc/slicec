@@ -60,7 +60,7 @@ impl Warning {
 
 impl std::fmt::Display for Warning {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.kind)
+        write!(f, "{}", self.kind.message())
     }
 }
 
