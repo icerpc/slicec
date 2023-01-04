@@ -6,7 +6,7 @@ mod module {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::{Diagnostic, Error, ErrorKind};
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -193,6 +193,6 @@ mod module {
         let diagnostic_reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, Vec::<Diagnostic>::new());
+        assert_errors!(diagnostic_reporter);
     }
 }
