@@ -63,10 +63,18 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
         slice_file.visit_with(&mut validator);
     }
 
-    // Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
-    // is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
-    //
-    // So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
+    validate_module_contents(&mut data);
+
+    // We always return `Ok` here to ensure the language mapping's validation logic is run,
+    // instead of terminating early if this validator found any errors.
+    Ok(data)
+}
+
+/// Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
+/// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
+///
+/// So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
+fn validate_module_contents(data: &mut CompilationData) {
     let mut merged_module_contents: HashMap<String, Vec<&Definition>> = HashMap::new();
     for node in data.ast.as_slice() {
         if let Node::Module(module_ptr) = node {
@@ -103,14 +111,10 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
                     format!("`{}` was previously defined here", identifier_0.value),
                     Some(identifier_0.span()),
                 )
-                .report(diagnostic_reporter);
+                .report(&mut data.diagnostic_reporter);
             }
         });
     }
-
-    // We always return `Ok` here to ensure the language mapping's validation logic is run,
-    // instead of terminating early if this validator found any errors.
-    Ok(data)
 }
 
 // Returns a HashMap where the keys are the relative paths of the .slice files that have the file level
