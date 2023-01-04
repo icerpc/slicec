@@ -18,14 +18,14 @@ struct FilePath {
     canonicalized_path: PathBuf,
 }
 
-impl TryFrom<String> for FilePath {
+impl TryFrom<&str> for FilePath {
     type Error = io::Error;
 
     /// Creates a new [FilePath] from the given path. If the path does not exist, an [Error] is returned.
     #[allow(clippy::result_large_err)]
-    fn try_from(path: String) -> Result<Self, Self::Error> {
+    fn try_from(path: &str) -> Result<Self, Self::Error> {
         PathBuf::from(&path).canonicalize().map(|canonicalized_path| Self {
-            path,
+            path: path.to_owned(),
             canonicalized_path,
         })
     }
@@ -91,12 +91,12 @@ fn find_slice_files(
     slice_paths
         .into_iter()
         .map(|path| path.display().to_string())
-        .filter_map(|f| match FilePath::try_from(f.clone()) {
+        .filter_map(|path| match FilePath::try_from(path.as_str()) {
             Ok(file_path) => Some(file_path),
             Err(error) => {
                 Error::new(ErrorKind::IO {
                     action: "read",
-                    path: f,
+                    path,
                     error,
                 })
                 .report(diagnostic_reporter);
