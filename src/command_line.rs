@@ -29,8 +29,8 @@ pub struct SliceOptions {
     #[arg(short, long)]
     pub warn_as_error: bool,
 
-    // Instructs the compiler to ignore warnings. Specify a list of warnings to ignore, or leave empty to ignore all
-    // warnings.
+    /// Instructs the compiler to ignore warnings. Specify a list of warnings to ignore, or leave empty to ignore all
+    /// warnings.
     #[arg(long)]
     pub ignore_warnings: Option<Vec<String>>,
 
