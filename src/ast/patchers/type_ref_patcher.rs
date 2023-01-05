@@ -227,18 +227,16 @@ impl TypeRefPatcher<'_> {
 
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                Warning::new(
-                    WarningKind::UseOfDeprecatedEntity {
-                        identifier: entity.identifier().to_owned(),
-                        deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
-                    },
-                    type_ref.span(),
-                )
+                Warning::new(WarningKind::UseOfDeprecatedEntity {
+                    identifier: entity.identifier().to_owned(),
+                    deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
+                })
+                .set_span(type_ref.span())
                 .add_note(
                     format!("{} was deprecated here:", entity.identifier()),
                     Some(entity.span()),
                 )
-                .report(self.diagnostic_reporter, container);
+                .report(self.diagnostic_reporter, Some(container));
             }
         }
     }

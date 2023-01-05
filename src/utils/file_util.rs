@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use crate::command_line::SliceOptions;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
+use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning, WarningKind};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -49,8 +49,31 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
     let mut file_paths = HashMap::new();
 
-    file_paths.extend(find_slice_files(&options.references, false, diagnostic_reporter));
-    file_paths.extend(find_slice_files(&options.sources, true, diagnostic_reporter));
+    let reference_files = find_slice_files(&options.references, diagnostic_reporter);
+
+    // Any duplicate reference files will be reported as a warning.
+    for reference_file in reference_files {
+        let path = reference_file.path.clone();
+        if file_paths.insert(reference_file, false).is_some() {
+            Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter, None);
+        }
+    }
+
+    let source_files = find_slice_files(&options.sources, diagnostic_reporter);
+
+    // Any duplicate source files (that duplicate another source file, not a reference file) will be reported as
+    // a warning.
+    for source_file in source_files {
+        let path = source_file.path.clone();
+        // Insert will return replace and return the previous value if the key already exists.
+        // We use this to allow replacing references with sources.
+        if let Some(is_source) = file_paths.insert(source_file, true) {
+            // Only report an error if the file was previously a source file.
+            if is_source {
+                Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter, None);
+            }
+        }
+    }
 
     // Iterate through the discovered files and try to read them into Strings.
     // Report an error if it fails, otherwise create a new `SliceFile` to hold the data.
@@ -70,11 +93,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     files
 }
 
-fn find_slice_files(
-    paths: &[String],
-    source_files: bool,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) -> Vec<(FilePath, bool)> {
+fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReporter) -> Vec<FilePath> {
     let mut slice_paths = Vec::new();
     for path in paths {
         match find_slice_files_in_path(PathBuf::from(path), diagnostic_reporter) {
@@ -103,7 +122,6 @@ fn find_slice_files(
                 None
             }
         })
-        .map(|f| (f, source_files))
         .collect()
 }
 
