@@ -13,5 +13,5 @@ pub fn new_warning(kind: WarningKind) -> Warning {
         end: slice::slice_file::Location { row: 0, col: 0 },
         file: "string".to_string(),
     };
-    Warning::new(kind, &span)
+    Warning::new(kind).set_span(&span)
 }

@@ -8,17 +8,22 @@ use crate::slice_file::Span;
 #[derive(Debug)]
 pub struct Warning {
     pub(super) kind: WarningKind,
-    pub(super) span: Span,
+    pub(super) span: Option<Span>,
     pub(super) notes: Vec<Note>,
 }
 
 impl Warning {
-    pub fn new(kind: WarningKind, span: &Span) -> Self {
+    pub fn new(kind: WarningKind) -> Self {
         Warning {
             kind,
-            span: span.to_owned(),
+            span: None,
             notes: Vec::new(),
         }
+    }
+
+    pub fn set_span(mut self, span: &Span) -> Self {
+        self.span = Some(span.to_owned());
+        self
     }
 
     pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
@@ -26,30 +31,35 @@ impl Warning {
         self
     }
 
-    pub fn report(self, reporter: &mut DiagnosticReporter, entity: &dyn Entity) {
+    pub fn report(self, reporter: &mut DiagnosticReporter, entity: Option<&dyn Entity>) {
         // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
         // warnings), or if it has an argument matching the error code of the warning.
-        if match reporter.file_level_ignored_warnings.get(&self.span.file) {
-            None => false,
-            Some(args) if args.is_empty() => true,
-            Some(args) => args.contains(&self.error_code().to_owned()),
-        } {
-            // Do not push the warning to the diagnostics vector
-            return;
+        if let Some(span) = &self.span {
+            if match reporter.file_level_ignored_warnings.get(&span.file) {
+                None => false,
+                Some(args) if args.is_empty() => true,
+                Some(args) => args.contains(&self.error_code().to_owned()),
+            } {
+                // Do not push the warning to the diagnostics vector
+                return;
+            }
         }
 
-        // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring all
-        // warnings), or if it has an argument matching the error code of the warning.
-        if entity.attributes(true).iter().any(|a| match &a.kind {
-            AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
-                Some(codes) => codes.is_empty() || codes.contains(&self.error_code().to_owned()),
-                None => true,
-            },
-            _ => false,
-        }) {
-            // Do not push the warning to the diagnostics vector
-            return;
+        if let Some(entity) = entity {
+            // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring
+            // all warnings), or if it has an argument matching the error code of the warning.
+            if entity.attributes(true).iter().any(|a| match &a.kind {
+                AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
+                    Some(codes) => codes.is_empty() || codes.contains(&self.error_code().to_owned()),
+                    None => true,
+                },
+                _ => false,
+            }) {
+                // Do not push the warning to the diagnostics vector
+                return;
+            }
         }
+
         reporter.report(self);
     }
 
@@ -66,6 +76,13 @@ impl std::fmt::Display for Warning {
 
 #[derive(Debug)]
 pub enum WarningKind {
+    /// The user supplied either a reference or source file more than once.
+    ///
+    /// # Fields
+    ///
+    /// * `path` - The path of the file that was supplied more than once.
+    DuplicateFile { path: String },
+
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ///
     /// # Fields
@@ -122,43 +139,49 @@ implement_diagnostic_functions!(
     WarningKind,
     (
         "W001",
+        WarningKind::DuplicateFile,
+        format!("slice file was provided more than once: '{path}'"),
+        path
+    ),
+    (
+        "W002",
         WarningKind::ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
-        "W002",
+        "W003",
         WarningKind::ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
-        "W003",
+        "W004",
         WarningKind::ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
-        "W004",
+        "W005",
         WarningKind::InvalidDocCommentLinkIdentifier,
         format!("doc comment references an identifier `{identifier}` that does not exist"),
         identifier
     ),
     (
-        "W005",
+        "W006",
         WarningKind::InvalidDocCommentTag,
         format!("doc comment tag `{tag}` is invalid"),
         tag
     ),
     (
-        "W006",
+        "W007",
         WarningKind::UseOfDeprecatedEntity,
         format!("`{identifier}` is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W007",
+        "W008",
         WarningKind::InconsequentialUseOfAttribute,
         format!("`{attribute}` does not have any effect on {kind}"),
         attribute,

@@ -33,7 +33,7 @@ impl Diagnostic {
     pub fn span(&self) -> Option<&Span> {
         match self {
             Diagnostic::Error(error) => error.span.as_ref(),
-            Diagnostic::Warning(warning) => Some(&warning.span),
+            Diagnostic::Warning(warning) => warning.span.as_ref(),
         }
     }
 
