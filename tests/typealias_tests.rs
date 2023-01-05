@@ -4,8 +4,8 @@ pub mod helpers;
 
 mod typealias {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
-    use slice::compile_from_strings;
+    use crate::assert_errors;
+    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -51,10 +51,10 @@ mod typealias {
         ";
 
         // Act
-        let result = compile_from_strings(&[slice], None);
+        let reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert!(result.is_ok());
+        assert_errors!(reporter);
     }
 
     #[test]
@@ -70,10 +70,10 @@ mod typealias {
         ";
 
         // Act
-        let result = compile_from_strings(&[slice], None);
+        let reporter = parse_for_diagnostics(slice);
 
         // Assert
-        assert!(result.is_ok());
+        assert_errors!(reporter);
     }
 
     #[test]

@@ -2,7 +2,7 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_ast;
+use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
 use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
 use slice::grammar::*;
@@ -49,7 +49,7 @@ fn undefined_preprocessor_directive_blocks_are_consumed() {
 
     // Assert
     assert!(compilation_data.ast.find_element::<Interface>("Test::I").is_err());
-    assert!(!compilation_data.diagnostic_reporter.has_errors());
+    assert_errors!(compilation_data.diagnostic_reporter);
 }
 
 #[test]
@@ -58,10 +58,10 @@ fn preprocessor_consumes_comments() {
     let slice = "// This is a comment";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], None).unwrap();
+    let reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert!(!compilation_data.diagnostic_reporter.has_errors());
+    assert_errors!(reporter);
 }
 
 #[test]
