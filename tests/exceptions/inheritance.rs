@@ -114,7 +114,7 @@ fn data_member_shadowing_is_disallowed() {
     let expected = Error::new(ErrorKind::Shadows {
         identifier: "i".to_owned(),
     })
-    .add_note("`i` was previously defined here", None);
+    .add_note("'i' was previously defined here", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 

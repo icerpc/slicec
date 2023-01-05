@@ -206,7 +206,7 @@ mod tags {
         let expected = Error::new(ErrorKind::CannotHaveDuplicateTag {
             member_identifier: "b".to_owned(),
         })
-        .add_note("The data member `a` has previous used the tag value `1`", None);
+        .add_note("The data member 'a' has previous used the tag value '1'", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

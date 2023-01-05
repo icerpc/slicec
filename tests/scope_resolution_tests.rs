@@ -234,7 +234,7 @@ mod scope_resolution {
         let expected = Error::new(ErrorKind::Redefinition {
             identifier: "B".to_string(),
         })
-        .add_note("`B` was previously defined here", None);
+        .add_note("'B' was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

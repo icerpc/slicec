@@ -191,7 +191,7 @@ mod comments {
 
         // Assert
         assert_errors!(diagnostic_reporter, [
-            "doc comment indicates that struct `S` throws, however, only operations can throw",
+            "doc comment indicates that struct 'S' throws, however, only operations can throw",
         ]);
     }
 

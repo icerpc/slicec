@@ -123,7 +123,7 @@ fn operation_shadowing_is_disallowed() {
     let expected = Error::new(ErrorKind::Shadows {
         identifier: "op".to_owned(),
     })
-    .add_note("`op` was previously defined here", None);
+    .add_note("'op' was previously defined here", None);
 
     // Act
     let diagnostic_reporter = parse_for_diagnostics(slice);

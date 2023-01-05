@@ -439,7 +439,7 @@ implement_diagnostic_functions!(
     ErrorKind,
     (
         ErrorKind::IO,
-        format!("failed to {action} {path}: {error}"),
+        format!("failed to {action} '{path}': {error}"),
         action,
         path,
         error
@@ -469,7 +469,7 @@ implement_diagnostic_functions!(
     (
         "E004",
         ErrorKind::ArgumentNotSupported,
-        format!("argument '{argument_name}' is not supported for `{method_name}`"),
+        format!("argument '{argument_name}' is not supported for '{method_name}'"),
         argument_name,
         method_name
     ),
@@ -498,50 +498,50 @@ implement_diagnostic_functions!(
     (
         "E009",
         ErrorKind::CannotUseOptionalUnderlyingType,
-        format!("invalid enum `{enum_identifier}`: enums cannot have optional underlying types"),
+        format!("invalid enum '{enum_identifier}': enums cannot have optional underlying types"),
         enum_identifier
     ),
     (
         "E010",
         ErrorKind::MustContainEnumerators,
-        format!("invalid enum `{enum_identifier}`: enums must contain at least one enumerator"),
+        format!("invalid enum '{enum_identifier}': enums must contain at least one enumerator"),
         enum_identifier
     ),
     (
         "E011",
         ErrorKind::UnderlyingTypeMustBeIntegral,
-        format!("invalid enum `{enum_identifier}`: underlying type '{kind}' is not supported for enums"),
+        format!("invalid enum '{enum_identifier}': underlying type '{kind}' is not supported for enums"),
         enum_identifier,
         kind
     ),
     (
         "E012",
         ErrorKind::Redefinition,
-        format!("redefinition of `{identifier}`"),
+        format!("redefinition of '{identifier}'"),
         identifier
     ),
     (
         "E013",
         ErrorKind::Shadows,
-        format!("`{identifier}` shadows another symbol"),
+        format!("'{identifier}' shadows another symbol"),
         identifier
     ),
     (
         "E014",
         ErrorKind::CannotHaveDuplicateTag,
-        format!("invalid tag on member `{member_identifier}`: tags must be unique"),
+        format!("invalid tag on member '{member_identifier}': tags must be unique"),
         member_identifier
     ),
     (
         "E015",
         ErrorKind::RequiredMustPrecedeOptional,
-        format!("invalid parameter `{parameter_identifier}`: required parameters must precede tagged parameters"),
+        format!("invalid parameter '{parameter_identifier}': required parameters must precede tagged parameters"),
         parameter_identifier
     ),
     (
         "E016",
         ErrorKind::StreamedMembersMustBeLast,
-        format!("invalid parameter `{parameter_identifier}`: only the last parameter in an operation can use the stream modifier"),
+        format!("invalid parameter '{parameter_identifier}': only the last parameter in an operation can use the stream modifier"),
         parameter_identifier
     ),
     (
@@ -557,26 +557,26 @@ implement_diagnostic_functions!(
     (
         "E019",
         ErrorKind::TaggedMemberMustBeOptional,
-        format!("invalid tag on member `{member_identifier}`: tagged members must be optional"),
+        format!("invalid tag on member '{member_identifier}': tagged members must be optional"),
         member_identifier
     ),
     (
         "E020",
         ErrorKind::CannotTagClass,
-        format!("invalid tag on member `{member_identifier}`: tagged members cannot be classes"),
+        format!("invalid tag on member '{member_identifier}': tagged members cannot be classes"),
         member_identifier
     ),
     (
         "E021",
         ErrorKind::CannotTagContainingClass,
-        format!("invalid tag on member `{member_identifier}`: tagged members cannot contain classes"),
+        format!("invalid tag on member '{member_identifier}': tagged members cannot contain classes"),
         member_identifier
     ),
     (
         "E022",
         ErrorKind::TypeMismatch,
         format!(
-            "type mismatch: expected {} `{expected}` but found a {actual} (which doesn't implement `{expected}`)",
+            "type mismatch: expected {} '{expected}' but found a {actual} (which doesn't implement '{expected}')",
             in_definite::get_a_or_an(expected)
         ),
         expected,
@@ -586,7 +586,7 @@ implement_diagnostic_functions!(
         "E023",
         ErrorKind::ConcreteTypeMismatch,
         format!(
-            "type mismatch: expected {} `{expected}` but found {} `{kind}`",
+            "type mismatch: expected {} '{expected}' but found {} '{kind}'",
             in_definite::get_a_or_an(expected),
             in_definite::get_a_or_an(kind)
         ),
@@ -608,7 +608,7 @@ implement_diagnostic_functions!(
         "E026",
         ErrorKind::EnumeratorValueOutOfBounds,
         format!(
-            "invalid enumerator `{enumerator_identifier}`: enumerator value '{value}' is out of bounds. The value must be between `{min}..{max}`, inclusive",
+            "invalid enumerator '{enumerator_identifier}': enumerator value '{value}' is out of bounds. The value must be between '{min}..{max}', inclusive",
         ),
         enumerator_identifier, value, min, max
     ),
@@ -620,19 +620,19 @@ implement_diagnostic_functions!(
     (
         "E028",
         ErrorKind::DuplicateEnumeratorValue,
-        format!("enumerator values must be unique; the value `{enumerator_value}` is already in use"),
+        format!("enumerator values must be unique; the value '{enumerator_value}' is already in use"),
         enumerator_value
     ),
     (
         "E029",
         ErrorKind::NotSupportedWithEncoding,
-        format!("{kind} `{identifier}` is not supported by the {encoding} encoding"),
+        format!("{kind} '{identifier}' is not supported by the {encoding} encoding"),
         kind, identifier, encoding
     ),
     (
         "E030",
         ErrorKind::UnsupportedType,
-        format!("the type `{kind}` is not supported by the {encoding} encoding"),
+        format!("the type '{kind}' is not supported by the {encoding} encoding"),
         kind,
         encoding
     ),
@@ -657,25 +657,25 @@ implement_diagnostic_functions!(
     (
         "E034",
         ErrorKind::UnexpectedAttribute,
-        format!("unexpected attribute `{attribute}`"),
+        format!("unexpected attribute '{attribute}'"),
         attribute
     ),
     (
         "E035",
         ErrorKind::MissingRequiredArgument,
-        format!("missing required argument `{argument}`"),
+        format!("missing required argument '{argument}'"),
         argument
     ),
     (
         "E036",
         ErrorKind::TooManyArguments,
-        format!("too many arguments, expected `{expected}`"),
+        format!("too many arguments, expected '{expected}'"),
         expected
     ),
     (
         "E037",
         ErrorKind::MissingRequiredAttribute,
-        format!("missing required attribute `{attribute}`"),
+        format!("missing required attribute '{attribute}'"),
         attribute
     ),
     (
@@ -713,7 +713,7 @@ implement_diagnostic_functions!(
     (
         "E044",
         ErrorKind::FileScopedModuleCannotContainSubModules,
-        format!("file scoped module `{identifier}` cannot contain sub modules"),
+        format!("file scoped module '{identifier}' cannot contain sub modules"),
         identifier
     ),
     (
@@ -725,7 +725,7 @@ implement_diagnostic_functions!(
     (
         "E046",
         ErrorKind::InvalidWarningCode,
-        format!("the warning code `{code}` is not valid"),
+        format!("the warning code '{code}' is not valid"),
         code
     ),
     (
@@ -742,7 +742,7 @@ implement_diagnostic_functions!(
     (
         "E049",
         ErrorKind::DoesNotExist,
-        format!("no element with identifier `{identifier}` exists"),
+        format!("no element with identifier '{identifier}' exists"),
         identifier
     )
 );

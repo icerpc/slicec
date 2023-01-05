@@ -241,7 +241,7 @@ fn enumerators_must_be_unique() {
 
     // Assert
     let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 1 })
-        .add_note("the value was previously used by `A` here:", None);
+        .add_note("the value was previously used by 'A' here:", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
 

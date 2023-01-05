@@ -119,6 +119,6 @@ fn cannot_redefine_data_members() {
     let expected = [Error::new(ErrorKind::Redefinition {
         identifier: "a".to_string(),
     })
-    .add_note("`a` was previously defined here", None)];
+    .add_note("'a' was previously defined here", None)];
     assert_errors!(diagnostic_reporter, &expected);
 }
