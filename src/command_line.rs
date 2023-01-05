@@ -31,7 +31,7 @@ pub struct SliceOptions {
 
     /// Instructs the compiler to ignore warnings. Specify a list of warnings to ignore, or leave empty to ignore all
     /// warnings.
-    #[arg(long)]
+    #[arg(long, value_parser = is_valid_warning_code)]
     pub ignore_warnings: Option<Vec<String>>,
 
     /// Validates input files without generating code for them.
@@ -52,6 +52,16 @@ pub struct SliceOptions {
 }
 
 const SLICE_FILE_EXTENSION: &str = "slice";
+
+fn is_valid_warning_code(s: &str) -> Result<String, String> {
+    // Check that the string begins with the letter W and is followed by three digits
+    // (e.g. W001).
+    if s.len() == 4 && s.starts_with('W') && s[1..].chars().all(|c| c.is_ascii_digit()) {
+        Ok(s.to_owned())
+    } else {
+        Err("Warning codes must begin with the letter 'W' and be followed by three digits".to_owned())
+    }
+}
 
 fn is_valid_source(s: &str) -> Result<String, String> {
     match Path::new(s).extension() {
