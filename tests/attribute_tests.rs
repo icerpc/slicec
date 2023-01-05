@@ -537,7 +537,7 @@ mod attributes {
             interface I
             {
                 /// @param x a parameter that should be used in ops
-                /// @returns a result
+                /// @return a result
                 [ignoreWarnings(W003, W004)]
                 op(s: string);
             }
@@ -551,7 +551,7 @@ mod attributes {
             interface I
             {
                 /// @param x a parameter that should be used in ops
-                /// @returns a result
+                /// @return a result
                 [ignoreWarnings(W003, W004)]
                 op(s: string);
             }

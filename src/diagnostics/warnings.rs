@@ -60,6 +60,13 @@ impl Warning {
             }
         }
 
+        // Do not report warnings if the user has specified the `ignore-warnings` flag.
+        match reporter.ignored_warnings {
+            Some(ref args) if args.is_empty() => return,
+            Some(ref args) if args.contains(&self.error_code().to_owned()) => return,
+            _ => {}
+        }
+
         reporter.report(self);
     }
 
