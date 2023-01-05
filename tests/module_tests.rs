@@ -174,7 +174,7 @@ mod module {
         let expected = Error::new(ErrorKind::Redefinition {
             identifier: "Bar".to_owned(),
         })
-        .add_note("`Bar` was previously defined here", None);
+        .add_note("'Bar' was previously defined here", None);
         assert_errors!(diagnostic_reporter, [&expected]);
     }
 

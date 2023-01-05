@@ -108,7 +108,7 @@ fn validate_module_contents(data: &mut CompilationData) {
                 })
                 .set_span(identifier_1.span())
                 .add_note(
-                    format!("`{}` was previously defined here", identifier_0.value),
+                    format!("'{}' was previously defined here", identifier_0.value),
                     Some(identifier_0.span()),
                 )
                 .report(&mut data.diagnostic_reporter);

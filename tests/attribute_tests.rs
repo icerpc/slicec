@@ -105,7 +105,7 @@ mod attributes {
                 method_name: "format attribute".to_owned(),
             })
             .add_note(
-                "The valid arguments for the format attribute are `Compact` and `Sliced`",
+                "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
                 None,
             );
 
@@ -341,7 +341,7 @@ mod attributes {
                 method_name: "compress attribute".to_owned(),
             })
             .add_note(
-                "The valid arguments for the compress attribute are `Args` and `Return`",
+                "The valid arguments for the compress attribute are 'Args' and 'Return'",
                 None,
             );
             assert_errors!(diagnostic_reporter, [&expected]);

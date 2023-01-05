@@ -134,33 +134,33 @@ implement_diagnostic_functions!(
     (
         "W003",
         WarningKind::ExtraThrowInDocComment,
-        format!("doc comment indicates that {kind} `{identifier}` throws, however, only operations can throw"),
+        format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
         "W004",
         WarningKind::InvalidDocCommentLinkIdentifier,
-        format!("doc comment references an identifier `{identifier}` that does not exist"),
+        format!("doc comment references an identifier '{identifier}' that does not exist"),
         identifier
     ),
     (
         "W005",
         WarningKind::InvalidDocCommentTag,
-        format!("doc comment tag `{tag}` is invalid"),
+        format!("doc comment tag '{tag}' is invalid"),
         tag
     ),
     (
         "W006",
         WarningKind::UseOfDeprecatedEntity,
-        format!("`{identifier}` is deprecated {deprecation_reason}"),
+        format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
         "W007",
         WarningKind::InconsequentialUseOfAttribute,
-        format!("`{attribute}` does not have any effect on {kind}"),
+        format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
         kind
     )

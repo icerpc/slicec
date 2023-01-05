@@ -230,7 +230,7 @@ impl AttributeKind {
                             Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
                                 .set_span(span)
                                 .add_note(
-                                    format!("The warning code is case sensitive, did you mean to use `{uppercase}`?"),
+                                    format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
                                     Some(span),
                                 )
                                 .report(reporter);

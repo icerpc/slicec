@@ -21,7 +21,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
             })
             .set_span(window[1].span())
             .add_note(
-                format!("`{}` was previously defined here", window[0].value),
+                format!("'{}' was previously defined here", window[0].value),
                 Some(window[0].span()),
             )
             .report(diagnostic_reporter);
@@ -44,7 +44,7 @@ pub fn check_for_shadowing(
                 })
                 .set_span(identifier.span())
                 .add_note(
-                    format!("`{}` was previously defined here", inherited_identifier.value),
+                    format!("'{}' was previously defined here", inherited_identifier.value),
                     Some(inherited_identifier.span()),
                 )
                 .report(diagnostic_reporter);

@@ -34,7 +34,7 @@ impl DocComment {
     }
 }
 
-/// Search for inline tags which have the format `{@tag value}`
+/// Search for inline tags which have the format '{@tag value}'
 pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
     let mut tags = Vec::new();
 

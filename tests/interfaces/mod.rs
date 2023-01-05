@@ -111,6 +111,6 @@ fn cannot_redefine_operations() {
     let expected = Error::new(ErrorKind::Redefinition {
         identifier: "op".to_owned(),
     })
-    .add_note("`op` was previously defined here", None);
+    .add_note("'op' was previously defined here", None);
     assert_errors!(diagnostic_reporter, [&expected]);
 }
