@@ -15,6 +15,11 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
+    // The list of warnings to ignore from the 'ignore-warnings' flag.
+    // Some([]) means ignore all warnings.
+    // Some([...]) means ignore the specified warnings.
+    // None means don't ignore any warnings.
+    pub ignored_warnings: Option<Vec<String>>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
     /// The relative paths of all Slice files that have the file level `ignoreWarnings` attribute.
@@ -33,6 +38,7 @@ impl DiagnosticReporter {
             diagnostic_format: slice_options.diagnostic_format,
             file_level_ignored_warnings: HashMap::new(),
             disable_color: slice_options.disable_color,
+            ignored_warnings: slice_options.ignore_warnings.clone(),
         }
     }
 
