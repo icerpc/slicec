@@ -439,7 +439,7 @@ implement_diagnostic_functions!(
     ErrorKind,
     (
         ErrorKind::IO,
-        format!("failed to {action} {path}: {error}"),
+        format!("failed to {action} '{path}': {error}"),
         action,
         path,
         error
