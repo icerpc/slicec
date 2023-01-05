@@ -223,7 +223,7 @@ where
             "varuint62" => TokenKind::VarUInt62Keyword,
             "float32" => TokenKind::Float32Keyword,
             "float64" => TokenKind::Float64Keyword,
-            "String" => TokenKind::StringKeyword,
+            "string" => TokenKind::StringKeyword,
             "AnyClass" => TokenKind::AnyClassKeyword,
             "AnyException" => TokenKind::AnyExceptionKeyword,
             "compact" => TokenKind::CompactKeyword,

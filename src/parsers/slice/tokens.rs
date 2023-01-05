@@ -61,7 +61,7 @@ pub enum TokenKind<'input> {
     VarUInt62Keyword, // "varuint62"
     Float32Keyword,   // "float32"
     Float64Keyword,   // "float64"
-    StringKeyword,    // "String"
+    StringKeyword,    // "string"
     AnyClassKeyword,  // "AnyClass"
 
     // Other keywords
@@ -135,7 +135,7 @@ impl std::fmt::Display for TokenKind<'_> {
             TokenKind::VarUInt62Keyword => "varuint62",
             TokenKind::Float32Keyword => "float32",
             TokenKind::Float64Keyword => "float64",
-            TokenKind::StringKeyword => "String",
+            TokenKind::StringKeyword => "string",
             TokenKind::AnyClassKeyword => "AnyClass",
 
             // Other keywords
