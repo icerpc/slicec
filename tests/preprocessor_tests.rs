@@ -261,34 +261,36 @@ fn preprocessor_nested_expressions() {
     assert!(ast.find_element::<Interface>("Test::I").is_err());
 }
 
-#[test]
-fn preprocessor_conditionals_can_contain_empty_source_blocks() {
-    // Arrange
-    let conditional_slice = "
-        #define Foo
-        #if Foo
-        #endif
-    ";
-    let conditional_else_if_slice = "
-        #define Bar
-        #if Foo
-        #elif Bar
-        #endif
-    ";
-    let conditional_else_slice = "
-        #if Foo
-        #elif Bar
-        #else
-        #endif
-    ";
-
-    // Act
-    let reporter_one = parse_for_diagnostics(conditional_slice);
-    let reporter_two = parse_for_diagnostics(conditional_else_if_slice);
-    let reporter_three = parse_for_diagnostics(conditional_else_slice);
+#[test_case(
+    "
+    #define Foo
+    #if Foo
+    #endif
+    "
+    ; "conditional"
+)]
+#[test_case(
+    "
+    #define Bar
+    #if Foo
+    #elif Bar
+    #endif
+    "
+    ; "conditional with elif"
+)]
+#[test_case(
+    "
+    #if Foo
+    #elif Bar
+    #else
+    #endif
+    "
+    ; "conditional with elif and else"
+)]
+fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
+    // Arrange/Act
+    let reporter = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter_one);
-    assert_errors!(reporter_two);
-    assert_errors!(reporter_three);
+    assert_errors!(reporter);
 }
