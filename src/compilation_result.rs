@@ -97,8 +97,11 @@ impl CompilationData {
                     style("note").bold(),
                     style(&note.message).bold(),
                 ));
-                if let Some(span) = &note.span {
-                    Self::append_snippet(&mut message, span, &files)
+                // Only display the snippet if the note has a different span than the diagnostic.
+                if note.span.as_ref() != diagnostic.span() {
+                    if let Some(span) = &note.span {
+                        Self::append_snippet(&mut message, span, &files)
+                    }
                 }
             });
             writeln!(writer, "{}", message.join("\n"))?;
