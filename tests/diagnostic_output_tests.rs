@@ -4,6 +4,8 @@ mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
+    use slice::diagnostics::{Error, ErrorKind};
+    use slice::slice_file::Span;
 
     #[test]
     fn output_to_json() {
@@ -175,6 +177,54 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":13},"end":{"row":6,"col":38},"file":"string-0"},"notes":[],"error_code":"W002"}"#,
             "\n",
         );
+        assert_eq!(expected, String::from_utf8(output).unwrap());
+    }
+
+    #[test]
+    fn notes_with_same_span_as_diagnostic_suppressed() {
+        // Arrange
+        let slice = "\
+            encoding = 2;
+            module Foo;
+        ";
+
+        // Disable ANSI codes.
+        let options = SliceOptions {
+            disable_color: true,
+            ..Default::default()
+        };
+
+        let mut compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let mut output: Vec<u8> = Vec::new();
+
+        // Report a diagnostic with a note that has the same span as the diagnostic.
+        let span = Span {
+            start: (1, 1).into(),
+            end: (2, 2).into(),
+            file: "string-0".to_owned(),
+        };
+
+        Error::new(ErrorKind::Syntax {
+            message: "foo".to_owned(),
+        })
+        .set_span(&span)
+        .add_note("bar", Some(&span))
+        .report(&mut compilation_data.diagnostic_reporter);
+
+        // Act
+        compilation_data.emit_diagnostics(&mut output);
+
+        // Assert
+        let expected = "\
+error: foo
+ --> string-0:1:1\n  |
+1 | encoding = 2;
+  | -------------
+2 |             module Foo;
+  | -
+  |
+    = note: bar
+";
         assert_eq!(expected, String::from_utf8(output).unwrap());
     }
 }
