@@ -167,6 +167,17 @@ impl<'input> Lexer<'input> {
                     }
                 }
             }
+            '/' => {
+                self.advance_buffer(); // Consume the first '/' character.
+
+                // Consume the rest of the comment.
+                while matches!(self.buffer.peek(), Some(c) if (*c != '\n')) {
+                    self.advance_buffer(); // Consume the character.
+                }
+
+                self.mode = LexerMode::Unknown;
+                Ok((start_location, TokenKind::DirectiveEnd, start_location))
+            }
             ch if ch.is_alphabetic() || ch == '_' => {
                 let identifier = self.read_identifier();
                 Ok((start_location, TokenKind::Identifier(identifier), self.cursor))

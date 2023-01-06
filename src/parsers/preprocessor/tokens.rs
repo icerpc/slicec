@@ -38,6 +38,9 @@ pub enum TokenKind<'input> {
     // Brackets
     LeftParenthesis,  // "("
     RightParenthesis, // ")"
+
+    // Other
+    Comment, // "//"
 }
 
 /// This enum specifies all the kinds of errors that the preprocessor [Lexer](super::lexer::Lexer) can return.

@@ -294,3 +294,22 @@ fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
     // Assert
     assert_errors!(reporter);
 }
+
+#[test]
+fn preprocessor_ignores_comments() {
+    // Arrange
+    // If Bar is defined, then the comment was not ignored
+    let slice = "
+        #define Foo // define Bar
+        #if Bar // This is a comment
+        module Test;
+        interface I {}
+        #endif // This is another comment
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert!(ast.find_element::<Interface>("Test::I").is_err());
+}
