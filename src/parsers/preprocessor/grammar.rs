@@ -32,12 +32,12 @@ fn evaluate_if_statement<'a>(
     if if_block.0 {
         return if_block.1;
     }
-    // // Check the elif statements in order. If one is true, return its block.
+    // Check the elif statements in order. If one is true, return its block.
     for elif_block in elif_blocks {
         if elif_block.0 {
             return elif_block.1;
         }
     }
-    // // Otherwise return the optionally present else block.
+    // Otherwise return the optionally present else block.
     else_block.flatten()
 }
