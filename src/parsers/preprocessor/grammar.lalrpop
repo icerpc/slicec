@@ -80,7 +80,7 @@ EndifDirective: () = {
 }
 
 ConditionalStatement: Option<SourceBlock<'input>> = {
-    <if_block: (IfDirective source_block?)> <elif_blocks: (ElifDirective source_block?)*> <else_block: (ElseDirective <source_block>)?> EndifDirective => {
+    <if_block: (IfDirective source_block?)> <elif_blocks: (ElifDirective source_block?)*> <else_block: (ElseDirective <source_block?>)?> EndifDirective => {
         evaluate_if_statement(if_block, elif_blocks, else_block)
     }
 }

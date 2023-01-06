@@ -26,7 +26,7 @@ lalrpop_mod!(
 fn evaluate_if_statement<'a>(
     if_block: (bool, Option<SourceBlock<'a>>),
     elif_blocks: Vec<(bool, Option<SourceBlock<'a>>)>,
-    else_block: Option<SourceBlock<'a>>,
+    else_block: Option<Option<SourceBlock<'a>>>,
 ) -> Option<SourceBlock<'a>> {
     // If the if-statement was true, return its block.
     if if_block.0 {
@@ -39,5 +39,5 @@ fn evaluate_if_statement<'a>(
         }
     }
     // // Otherwise return the optionally present else block.
-    else_block
+    else_block.flatten()
 }

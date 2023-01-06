@@ -262,17 +262,33 @@ fn preprocessor_nested_expressions() {
 }
 
 #[test]
-fn preprocessor_empty_expressions_allowed() {
+fn preprocessor_conditionals_can_contain_empty_source_blocks() {
     // Arrange
-    let slice = "
+    let conditional_slice = "
+        #define Foo
+        #if Foo
+        #endif
+    ";
+    let conditional_else_if_slice = "
         #define Bar
-        #if Bar
+        #if Foo
+        #elif Bar
+        #endif
+    ";
+    let conditional_else_slice = "
+        #if Foo
+        #elif Bar
+        #else
         #endif
     ";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let reporter_one = parse_for_diagnostics(conditional_slice);
+    let reporter_two = parse_for_diagnostics(conditional_else_if_slice);
+    let reporter_three = parse_for_diagnostics(conditional_else_slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(reporter_one);
+    assert_errors!(reporter_two);
+    assert_errors!(reporter_three);
 }
