@@ -313,3 +313,24 @@ fn preprocessor_ignores_comments() {
     // Assert
     assert!(ast.find_element::<Interface>("Test::I").is_err());
 }
+
+#[test]
+fn preprocessor_comments_consume_rest_of_line() {
+    // Arrange
+    // If Bar is defined, then the comment was not ignored
+    let slice = "
+        #define Bar
+        #if // Bar
+        module Test;
+        interface I {}
+        #endif // This is another comment
+    ";
+
+    // Act
+    let reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    assert_errors!(reporter, [
+        "expected one of \"!\", \"(\", or identifier, but found 'DirectiveEnd'"
+    ]);
+}
