@@ -42,11 +42,6 @@ impl CodeBlock {
     pub fn is_empty(&self) -> bool {
         self.content.trim().is_empty()
     }
-
-    pub fn into_string(self) -> String {
-        // Do not return content here as we want the the format function to be applied first
-        self.to_string()
-    }
 }
 
 /// Formats a CodeBlock for display. Whitespace characters are removed from the beginning, the end,
@@ -122,5 +117,12 @@ impl From<String> for CodeBlock {
 impl From<&str> for CodeBlock {
     fn from(s: &str) -> Self {
         CodeBlock { content: s.to_owned() }
+    }
+}
+
+impl From<CodeBlock> for String {
+    fn from(code: CodeBlock) -> Self {
+        // Do not return `code.content` here as we want the the format function to be applied first
+        code.to_string()
     }
 }
