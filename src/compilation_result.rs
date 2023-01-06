@@ -98,8 +98,8 @@ impl CompilationData {
                     style(&note.message).bold(),
                 ));
                 // Only display the snippet if the note has a different span than the diagnostic.
-                if let Some(span) = &note.span {
-                    if note.span() != diagnostic.span() {
+                if note.span.as_ref() != diagnostic.span() {
+                    if let Some(span) = &note.span {
                         Self::append_snippet(&mut message, span, &files)
                     }
                 }
