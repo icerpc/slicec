@@ -126,3 +126,10 @@ impl From<CodeBlock> for String {
         code.to_string()
     }
 }
+
+impl From<&mut CodeBlock> for String {
+    fn from(code: &mut CodeBlock) -> Self {
+        // Do not return `code.content` here as we want the the format function to be applied first
+        code.to_string()
+    }
+}
