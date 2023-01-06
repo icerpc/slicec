@@ -436,26 +436,41 @@ fn construct_enum(
     enum_ptr
 }
 
+fn construct_enumerator_value(parser: &mut Parser, kind: EnumeratorValueKind, span: Span) -> OwnedPtr<EnumeratorValue> {
+    let value = match kind {
+        // If an explicit value was provided use it, otherwise compute an implicit value.
+        EnumeratorValueKind::Explicit(value) => value,
+        // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
+        EnumeratorValueKind::Implicit => match parser.last_enumerator_value {
+            Some(last_value) => last_value.wrapping_add(1),
+            None => 0,
+        },
+    };
+    OwnedPtr::new(EnumeratorValue { kind, value, span })
+}
+
 fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    explicit_value: Option<i128>,
+    enumerator_value: OwnedPtr<EnumeratorValue>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
-    // If an explicit value was provided use it, otherwise compute an implicit value.
-    // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-    let value = explicit_value.unwrap_or({
-        match parser.last_enumerator_value {
-            Some(last_value) => last_value.wrapping_add(1),
-            None => 0,
+    let mut enumerator_value = enumerator_value;
+    let value_kind = enumerator_value.borrow().kind.clone();
+
+    // Patch the span of the enumerator value to be the same as the span of the enumerator if it's implicitly defined.
+    if let EnumeratorValueKind::Implicit = value_kind {
+        unsafe {
+            enumerator_value.borrow_mut().span = span.clone();
         }
-    });
-    parser.last_enumerator_value = Some(value);
+    }
+
+    parser.last_enumerator_value = Some(enumerator_value.borrow().value);
 
     OwnedPtr::new(Enumerator {
         identifier,
-        value,
+        value: enumerator_value,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
