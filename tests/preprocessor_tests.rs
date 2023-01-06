@@ -260,3 +260,19 @@ fn preprocessor_nested_expressions() {
     // Assert
     assert!(ast.find_element::<Interface>("Test::I").is_err());
 }
+
+#[test]
+fn preprocessor_empty_expressions_allowed() {
+    // Arrange
+    let slice = "
+        #define Bar
+        #if Bar
+        #endif
+    ";
+
+    // Act
+    let reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    assert_errors!(reporter);
+}
