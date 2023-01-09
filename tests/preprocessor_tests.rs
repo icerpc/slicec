@@ -305,6 +305,7 @@ fn preprocessor_ignores_comments() {
         module Test;
         interface I {}
         #endif // This is another comment
+        // Hello
     ";
 
     // Act

@@ -115,36 +115,36 @@ impl<'input> Lexer<'input> {
 
     /// Attempts to read and return a preprocessor directive token from the buffer.
     /// Returns `Ok(x)` to indicate success (`x` is the next token), and `Err(y)` to indicate an error occurred.
-    fn lex_next_preprocessor_token(&mut self, c: char) -> LexerResult<'input> {
+    fn lex_next_preprocessor_token(&mut self, c: char) -> Option<LexerResult<'input>> {
         let start_location = self.cursor;
         match c {
-            '(' => self.return_simple_token(TokenKind::LeftParenthesis, start_location),
-            ')' => self.return_simple_token(TokenKind::RightParenthesis, start_location),
-            '!' => self.return_simple_token(TokenKind::Not, start_location),
+            '(' => Some(self.return_simple_token(TokenKind::LeftParenthesis, start_location)),
+            ')' => Some(self.return_simple_token(TokenKind::RightParenthesis, start_location)),
+            '!' => Some(self.return_simple_token(TokenKind::Not, start_location)),
             '&' => {
                 self.advance_buffer(); // Consume the '&' character.
                                        // Ensure the next character is also an '&' (since the whole token should be "&&").
                 if matches!(self.buffer.peek(), Some('&')) {
-                    self.return_simple_token(TokenKind::And, start_location)
+                    Some(self.return_simple_token(TokenKind::And, start_location))
                 } else {
                     let error = ErrorKind::UnknownSymbol {
                         symbol: "&".to_owned(),
                         suggestion: Some("&&".to_owned()),
                     };
-                    Err((start_location, error, self.cursor))
+                    Some(Err((start_location, error, self.cursor)))
                 }
             }
             '|' => {
                 self.advance_buffer(); // Consume the '|' character.
                                        // Ensure the next character is also a '|' (since the whole token should be "||").
                 if matches!(self.buffer.peek(), Some('|')) {
-                    self.return_simple_token(TokenKind::Or, start_location)
+                    Some(self.return_simple_token(TokenKind::Or, start_location))
                 } else {
                     let error = ErrorKind::UnknownSymbol {
                         symbol: "|".to_owned(),
                         suggestion: Some("||".to_owned()),
                     };
-                    Err((start_location, error, self.cursor))
+                    Some(Err((start_location, error, self.cursor)))
                 }
             }
             '#' => {
@@ -152,18 +152,18 @@ impl<'input> Lexer<'input> {
                 self.skip_inline_whitespace(); // Consume any inline whitespace characters
                 let identifier = self.read_identifier(); // Reads and consumes an identifier from the buffer.
                 match identifier {
-                    "define" => Ok((start_location, TokenKind::DefineKeyword, self.cursor)),
-                    "undef" => Ok((start_location, TokenKind::UndefineKeyword, self.cursor)),
-                    "if" => Ok((start_location, TokenKind::IfKeyword, self.cursor)),
-                    "elif" => Ok((start_location, TokenKind::ElifKeyword, self.cursor)),
-                    "else" => Ok((start_location, TokenKind::ElseKeyword, self.cursor)),
-                    "endif" => Ok((start_location, TokenKind::EndifKeyword, self.cursor)),
-                    "" => Err((start_location, ErrorKind::MissingDirective, self.cursor)),
+                    "define" => Some(Ok((start_location, TokenKind::DefineKeyword, self.cursor))),
+                    "undef" => Some(Ok((start_location, TokenKind::UndefineKeyword, self.cursor))),
+                    "if" => Some(Ok((start_location, TokenKind::IfKeyword, self.cursor))),
+                    "elif" => Some(Ok((start_location, TokenKind::ElifKeyword, self.cursor))),
+                    "else" => Some(Ok((start_location, TokenKind::ElseKeyword, self.cursor))),
+                    "endif" => Some(Ok((start_location, TokenKind::EndifKeyword, self.cursor))),
+                    "" => Some(Err((start_location, ErrorKind::MissingDirective, self.cursor))),
                     keyword => {
                         let error = ErrorKind::UnknownDirective {
                             keyword: keyword.to_owned(),
                         };
-                        Err((start_location, error, self.cursor))
+                        Some(Err((start_location, error, self.cursor)))
                     }
                 }
             }
@@ -174,28 +174,20 @@ impl<'input> Lexer<'input> {
                     Some('/') => {
                         // Consume the rest of the line, ending at either `\n` or `EOF`.
                         self.advance_to_end_of_line();
-
-                        if self.buffer.peek().is_some() {
-                            // There was a remaining character meaning it was a newline
-                            self.advance_buffer(); // Consume the newline character.
-                        }
-
-                        self.mode = LexerMode::Unknown;
-                        Ok((start_location, TokenKind::DirectiveEnd, start_location))
+                        None
                     }
                     _ => {
                         let error = ErrorKind::UnknownSymbol {
                             symbol: "/".to_owned(),
                             suggestion: Some("//".to_owned()),
                         };
-
-                        Err((start_location, error, self.cursor))
+                        Some(Err((start_location, error, self.cursor)))
                     }
                 }
             }
             ch if ch.is_alphabetic() || ch == '_' => {
                 let identifier = self.read_identifier();
-                Ok((start_location, TokenKind::Identifier(identifier), self.cursor))
+                Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
             }
             ch if !ch.is_whitespace() => {
                 self.advance_buffer(); // Consume the unknown character.
@@ -203,12 +195,12 @@ impl<'input> Lexer<'input> {
                     symbol: c.to_string(),
                     suggestion: None,
                 };
-                Err((start_location, error, self.cursor))
+                Some(Err((start_location, error, self.cursor)))
             }
             '\n' => {
                 // End of line also means the end of a preprocessor directive.
                 self.mode = LexerMode::Unknown;
-                Ok((start_location, TokenKind::DirectiveEnd, start_location))
+                Some(Ok((start_location, TokenKind::DirectiveEnd, start_location)))
             }
             _ => panic!("'lex_next_preprocessor_token' encountered whitespace that should of been skipped"),
         }
@@ -231,7 +223,9 @@ impl<'input> Iterator for Lexer<'input> {
 
         while let Some(c) = self.buffer.peek().cloned() {
             if self.mode == LexerMode::PreprocessorDirective {
-                return Some(self.lex_next_preprocessor_token(c));
+                if let Some(token) = self.lex_next_preprocessor_token(c) {
+                    return Some(token);
+                };
             } else if c == '\n' {
                 self.advance_buffer();
             } else if c == '#' {
@@ -242,16 +236,16 @@ impl<'input> Iterator for Lexer<'input> {
                 // Either way, we skip the rest of the loop to ensure we don't consume the '#', so it's
                 // preserved for preprocessor directive lexing.
                 let next_token = match self.mode {
-                    LexerMode::SourceBlock => Ok(self.create_source_block_token(
+                    LexerMode::SourceBlock => Some(Ok(self.create_source_block_token(
                         start_location.take().unwrap(),
                         start_position.take().unwrap(),
                         self.position,
-                    )),
+                    ))),
                     _ => self.lex_next_preprocessor_token('#'),
                 };
 
                 self.mode = LexerMode::PreprocessorDirective;
-                return Some(next_token);
+                return next_token;
             } else {
                 // The first non-whitespace character on this line isn't '#'. This line must be source code.
 
