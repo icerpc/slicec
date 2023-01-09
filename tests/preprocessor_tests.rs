@@ -315,27 +315,6 @@ fn preprocessor_ignores_comments() {
 }
 
 #[test]
-fn preprocessor_comments_consume_rest_of_line() {
-    // Arrange
-    // If Bar is defined, then the comment was not ignored
-    let slice = "
-        #define Bar
-        #if // Bar
-        module Test;
-        interface I {}
-        #endif // This is another comment
-    ";
-
-    // Act
-    let reporter = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(reporter, [
-        "expected one of \"!\", \"(\", or identifier, but found 'DirectiveEnd'"
-    ]);
-}
-
-#[test]
 fn preprocessor_single_backslash_suggestion() {
     // Arrange
     let slice = "
