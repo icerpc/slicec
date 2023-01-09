@@ -168,12 +168,8 @@ impl<'input> Lexer<'input> {
                 }
             }
             '/' => {
-                self.advance_buffer(); // Consume the first '/' character.
-
                 // Consume the rest of the comment.
-                while matches!(self.buffer.peek(), Some(c) if (*c != '\n')) {
-                    self.advance_buffer(); // Consume the character.
-                }
+                self.advance_to_end_of_line();
 
                 self.mode = LexerMode::Unknown;
                 Ok((start_location, TokenKind::DirectiveEnd, start_location))
