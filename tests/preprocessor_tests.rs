@@ -334,3 +334,17 @@ fn preprocessor_comments_consume_rest_of_line() {
         "expected one of \"!\", \"(\", or identifier, but found 'DirectiveEnd'"
     ]);
 }
+
+#[test]
+fn preprocessor_single_backslash_suggestion() {
+    // Arrange
+    let slice = "
+        # define bar / foo
+    ";
+
+    // Act
+    let reporter = parse_for_diagnostics(slice);
+
+    // Assert
+    assert_errors!(reporter, [r#"unknown symbol '/', try using '//' instead"#]);
+}

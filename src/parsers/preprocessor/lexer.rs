@@ -168,11 +168,30 @@ impl<'input> Lexer<'input> {
                 }
             }
             '/' => {
-                // Consume the rest of the comment.
-                self.advance_to_end_of_line();
+                self.advance_buffer(); // Consume the '/' character.
 
-                self.mode = LexerMode::Unknown;
-                Ok((start_location, TokenKind::DirectiveEnd, start_location))
+                match self.buffer.peek() {
+                    Some('/') => {
+                        // Consume the rest of the line, ending at either `\n` or `EOF`.
+                        self.advance_to_end_of_line();
+
+                        if self.buffer.peek().is_some() {
+                            // There was a remaining character meaning it was a newline
+                            self.advance_buffer(); // Consume the newline character.
+                        }
+
+                        self.mode = LexerMode::Unknown;
+                        Ok((start_location, TokenKind::DirectiveEnd, start_location))
+                    }
+                    _ => {
+                        let error = ErrorKind::UnknownSymbol {
+                            symbol: "/".to_owned(),
+                            suggestion: Some("//".to_owned()),
+                        };
+
+                        Err((start_location, error, self.cursor))
+                    }
+                }
             }
             ch if ch.is_alphabetic() || ch == '_' => {
                 let identifier = self.read_identifier();
