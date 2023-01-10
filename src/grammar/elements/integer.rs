@@ -3,7 +3,7 @@
 use super::super::*;
 use crate::slice_file::Span;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct Integer {
     pub value: i128,
     pub span: Span,
