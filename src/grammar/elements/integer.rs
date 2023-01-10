@@ -10,3 +10,4 @@ pub struct Integer {
 }
 
 implement_Element_for!(Integer, "integer");
+implement_Symbol_for!(Integer);
