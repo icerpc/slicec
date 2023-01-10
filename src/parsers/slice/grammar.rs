@@ -440,12 +440,12 @@ fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    enumerator_value: EnumeratorValue,
+    value: EnumeratorValue,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     OwnedPtr::new(Enumerator {
         identifier,
-        value: enumerator_value,
+        value,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
