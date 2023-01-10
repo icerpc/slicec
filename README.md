@@ -33,7 +33,8 @@ The test suite can be run from the command line by running `cargo test` in the r
 
 ## Code coverage report
 
-Code coverage reports can be generated using [grcov](https://docs.rs/crate/grcov) from a regular command prompt, using the following command
+Code coverage reports can be generated using [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) from a regular
+command prompt, using the following command
 
 For Linux and macOS:
 
@@ -41,4 +42,4 @@ For Linux and macOS:
 ./generate-coverage-report.sh
 ```
 
-The output html is in the `target/debug/coverage/` directory.
+The output html is in the `target/llvm-cov/html/` directory.
