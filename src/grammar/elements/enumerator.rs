@@ -23,9 +23,9 @@ pub struct Enumerator {
 
 impl Enumerator {
     pub fn value(&self) -> i128 {
-        match self.value {
+        match &self.value {
             EnumeratorValue::Implicit(value) => value,
-            EnumeratorValue::Explicit(ref integer) => integer.value,
+            EnumeratorValue::Explicit(integer) => integer.value,
         }
     }
 }
