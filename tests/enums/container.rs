@@ -511,9 +511,9 @@ mod slice2 {
         let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
         let enumerators_a = enum_def_a.enumerators();
 
-        assert_eq!(enumerators_a[1].value.borrow().kind, EnumeratorValueKind::Implicit);
+        assert_eq!(enumerators_a[1].value.span, None);
         assert_eq!(enumerators_a[1].value(), 2);
-        assert_eq!(enumerators_a[2].value.borrow().kind, EnumeratorValueKind::Implicit);
+        assert_eq!(enumerators_a[2].value.span, None);
         assert_eq!(enumerators_a[2].value(), 3);
     }
 
@@ -537,11 +537,11 @@ mod slice2 {
         let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
         let enumerators_a = enum_def_a.enumerators();
 
-        assert_eq!(enumerators_a[0].value.borrow().kind, EnumeratorValueKind::Explicit(1));
+        assert!(enumerators_a[0].value.span.is_some());
         assert_eq!(enumerators_a[0].value(), 1);
-        assert_eq!(enumerators_a[1].value.borrow().kind, EnumeratorValueKind::Explicit(2));
+        assert!(enumerators_a[1].value.span.is_some());
         assert_eq!(enumerators_a[1].value(), 2);
-        assert_eq!(enumerators_a[2].value.borrow().kind, EnumeratorValueKind::Explicit(3));
+        assert!(enumerators_a[2].value.span.is_some());
         assert_eq!(enumerators_a[2].value(), 3);
     }
 }

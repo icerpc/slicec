@@ -210,9 +210,11 @@ Enum: OwnedPtr<Enum> = {
     }
 }
 
-EnumeratorValue: OwnedPtr<EnumeratorValue> = {
-    "=" <l: @L> <i: SignedInteger> <r: @R> => construct_enumerator_value(parser, EnumeratorValueKind::Explicit(i), Span::new(l, r, parser.file_name)),
-    <l: @L> <r: @R> => construct_enumerator_value(parser, EnumeratorValueKind::Implicit, Span::new(l, r, parser.file_name)),
+EnumeratorValue: Option<EnumeratorValue> = {
+    "=" <l: @L> <i: SignedInteger> <r: @R> => {
+        Some(construct_enumerator_value(parser, i, Span::new(l, r, parser.file_name)))
+    },
+    <l: @L> <r: @R> => None,
 }
 
 Enumerator: OwnedPtr<Enumerator> = {

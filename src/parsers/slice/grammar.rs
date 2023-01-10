@@ -436,37 +436,27 @@ fn construct_enum(
     enum_ptr
 }
 
-fn construct_enumerator_value(parser: &mut Parser, kind: EnumeratorValueKind, span: Span) -> OwnedPtr<EnumeratorValue> {
-    let value = match kind {
-        // If an explicit value was provided use it, otherwise compute an implicit value.
-        EnumeratorValueKind::Explicit(value) => value,
-        // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-        EnumeratorValueKind::Implicit => match parser.last_enumerator_value {
-            Some(last_value) => last_value.wrapping_add(1),
-            None => 0,
-        },
-    };
-    OwnedPtr::new(EnumeratorValue { kind, value, span })
-}
-
 fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    enumerator_value: OwnedPtr<EnumeratorValue>,
+    enumerator_value: Option<EnumeratorValue>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
-    let mut enumerator_value = enumerator_value;
-    let value_kind = enumerator_value.borrow().kind.clone();
+    let enumerator_value = if let Some(value) = enumerator_value {
+        // The enumerator value was explicitly defined and has already been parsed as a EnumeratorValue
+        value
+    } else {
+        // The enumerator value was not explicitly defined, so we need to create one.
+        let value = match parser.last_enumerator_value {
+            Some(last_value) => last_value.wrapping_add(1),
+            None => 0,
+        };
 
-    // Patch the span of the enumerator value to be the same as the span of the enumerator if it's implicitly defined.
-    if let EnumeratorValueKind::Implicit = value_kind {
-        unsafe {
-            enumerator_value.borrow_mut().span = span.clone();
-        }
-    }
+        EnumeratorValue { value, span: None }
+    };
 
-    parser.last_enumerator_value = Some(enumerator_value.borrow().value);
+    parser.last_enumerator_value = Some(enumerator_value.value);
 
     OwnedPtr::new(Enumerator {
         identifier,
@@ -477,6 +467,13 @@ fn construct_enumerator(
         comment,
         span,
     })
+}
+
+fn construct_enumerator_value(_parser: &mut Parser, value: i128, span: Span) -> EnumeratorValue {
+    EnumeratorValue {
+        span: Some(span),
+        value,
+    }
 }
 
 fn construct_custom_type(
