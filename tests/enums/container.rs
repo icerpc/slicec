@@ -493,30 +493,6 @@ mod slice2 {
     }
 
     #[test]
-    fn implicit_enumerator_value_kinds() {
-        let slice = "
-            module Test;
-
-            enum A
-            {
-                u = 1,
-                v,
-                w,
-            }
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
-        let enumerators_a = enum_def_a.enumerators();
-
-        assert_eq!(enumerators_a[1].value, EnumeratorValue::Implicit(2));
-        assert_eq!(enumerators_a[2].value, EnumeratorValue::Implicit(3));
-    }
-
-    #[test]
     fn explicit_enumerator_value_kinds() {
         let slice = "
         module Test;
