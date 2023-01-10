@@ -460,7 +460,8 @@ fn construct_enumerator_value(parser: &mut Parser, integer: Option<Integer>) -> 
         parser.last_enumerator_value = Some(int.value);
         EnumeratorValue::Explicit(int)
     } else {
-        // The enumerator value was not explicitly defined, so we need to create one.
+        // Compute an implicit value.
+        // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
         let value = match parser.last_enumerator_value {
             Some(last_value) => last_value.wrapping_add(1),
             None => 0,
