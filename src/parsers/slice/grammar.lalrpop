@@ -216,7 +216,7 @@ EnumeratorValue: EnumeratorValue = {
         let int = Integer { value, span };
         construct_enumerator_value(parser, Some(int))
     },
-    <l: @L> <r: @R> => construct_enumerator_value(parser, None),
+    => construct_enumerator_value(parser, None),
 }
 
 Enumerator: OwnedPtr<Enumerator> = {
