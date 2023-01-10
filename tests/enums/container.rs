@@ -24,9 +24,9 @@ fn enumerator_default_values() {
 
     // Assert
     let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
-    assert_eq!(enumerators[0].value, 0);
-    assert_eq!(enumerators[1].value, 1);
-    assert_eq!(enumerators[2].value, 2);
+    assert_eq!(enumerators[0].value(), 0);
+    assert_eq!(enumerators[1].value(), 1);
+    assert_eq!(enumerators[2].value(), 2);
 }
 
 #[test]
@@ -47,8 +47,8 @@ fn subsequent_unsigned_value_is_incremented_previous_value() {
 
     // Assert
     let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
-    assert_eq!(enumerators[1].value, 3);
-    assert_eq!(enumerators[2].value, 4);
+    assert_eq!(enumerators[1].value(), 3);
+    assert_eq!(enumerators[2].value(), 4);
 }
 
 #[test]
@@ -324,10 +324,10 @@ fn enumerators_support_different_base_literals() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert_eq!(ast.find_element::<Enumerator>("Test::E::B").unwrap().value, 0b1001111);
-    assert_eq!(ast.find_element::<Enumerator>("Test::E::D").unwrap().value, 128);
-    assert_eq!(ast.find_element::<Enumerator>("Test::E::H").unwrap().value, 0xA4FD);
-    assert_eq!(ast.find_element::<Enumerator>("Test::E::N").unwrap().value, -0xbc81);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::B").unwrap().value(), 0b1001111);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::D").unwrap().value(), 128);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::H").unwrap().value(), 0xA4FD);
+    assert_eq!(ast.find_element::<Enumerator>("Test::E::N").unwrap().value(), -0xbc81);
 }
 
 #[test]
@@ -482,12 +482,37 @@ mod slice2 {
         assert_eq!(enumerators[0].identifier(), "A");
         assert_eq!(enumerators[1].identifier(), "B");
         assert_eq!(enumerators[2].identifier(), "C");
-        assert_eq!(enumerators[0].value, 1);
-        assert_eq!(enumerators[1].value, 2);
-        assert_eq!(enumerators[2].value, 3);
+        assert_eq!(enumerators[0].value(), 1);
+        assert_eq!(enumerators[1].value(), 2);
+        assert_eq!(enumerators[2].value(), 3);
         assert!(matches!(
             enum_def.underlying.as_ref().unwrap().definition(),
             Primitive::Int16,
         ));
+    }
+
+    #[test]
+    fn explicit_enumerator_value_kinds() {
+        let slice = "
+        module Test;
+
+        enum A
+        {
+            u = 1,
+            v = 2,
+            w = 3,
+        }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
+        let enumerators_a = enum_def_a.enumerators();
+
+        assert!(matches!(enumerators_a[0].value, EnumeratorValue::Explicit(..)));
+        assert!(matches!(enumerators_a[1].value, EnumeratorValue::Explicit(..)));
+        assert!(matches!(enumerators_a[2].value, EnumeratorValue::Explicit(..)));
     }
 }

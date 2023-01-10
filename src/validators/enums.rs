@@ -21,7 +21,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
     if enum_def.supported_encodings().supports(&Encoding::Slice1) {
         // Enum was defined in a Slice1 file, so it's underlying type is int32 and its enumerators must be positive.
         for enumerator in enum_def.enumerators() {
-            let value = enumerator.value;
+            let value = enumerator.value();
             if value < 0 || value > i32::MAX as i128 {
                 Error::new(ErrorKind::EnumeratorValueOutOfBounds {
                     enumerator_identifier: enumerator.identifier().to_owned(),
@@ -41,11 +41,11 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
             enum_def
                 .enumerators()
                 .iter()
-                .filter(|enumerator| enumerator.value < min || enumerator.value > max)
+                .filter(|enumerator| enumerator.value() < min || enumerator.value() > max)
                 .for_each(|enumerator| {
                     let error = ErrorKind::EnumeratorValueOutOfBounds {
                         enumerator_identifier: enumerator.identifier().to_owned(),
-                        value: enumerator.value,
+                        value: enumerator.value(),
                         min,
                         max,
                     };
@@ -94,9 +94,9 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
     for enumerator in enum_def.enumerators() {
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and emit an error. Otherwise add the enumerator and its value to the map.
-        if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value) {
+        if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value()) {
             Error::new(ErrorKind::DuplicateEnumeratorValue {
-                enumerator_value: enumerator.value,
+                enumerator_value: enumerator.value(),
             })
             .set_span(enumerator.span())
             .add_note(
@@ -105,7 +105,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
             )
             .report(diagnostic_reporter);
         } else {
-            value_to_enumerator_map.insert(enumerator.value, enumerator);
+            value_to_enumerator_map.insert(enumerator.value(), enumerator);
         }
     }
 }

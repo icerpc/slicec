@@ -440,19 +440,9 @@ fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    explicit_value: Option<i128>,
+    value: EnumeratorValue,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
-    // If an explicit value was provided use it, otherwise compute an implicit value.
-    // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-    let value = explicit_value.unwrap_or({
-        match parser.last_enumerator_value {
-            Some(last_value) => last_value.wrapping_add(1),
-            None => 0,
-        }
-    });
-    parser.last_enumerator_value = Some(value);
-
     OwnedPtr::new(Enumerator {
         identifier,
         value,
@@ -462,6 +452,23 @@ fn construct_enumerator(
         comment,
         span,
     })
+}
+
+fn construct_enumerator_value(parser: &mut Parser, integer: Option<Integer>) -> EnumeratorValue {
+    if let Some(int) = integer {
+        // The enumerator value was explicitly defined.
+        parser.last_enumerator_value = Some(int.value);
+        EnumeratorValue::Explicit(int)
+    } else {
+        // Compute an implicit value.
+        // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
+        let value = match parser.last_enumerator_value {
+            Some(last_value) => last_value.wrapping_add(1),
+            None => 0,
+        };
+        parser.last_enumerator_value = Some(value);
+        EnumeratorValue::Implicit(value)
+    }
 }
 
 fn construct_custom_type(
