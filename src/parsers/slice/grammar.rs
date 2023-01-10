@@ -440,24 +440,9 @@ fn construct_enumerator(
     parser: &mut Parser,
     (comment, attributes): (Option<DocComment>, Vec<Attribute>),
     identifier: Identifier,
-    enumerator_value: Option<EnumeratorValue>,
+    enumerator_value: EnumeratorValue,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
-    let enumerator_value = if let Some(value) = enumerator_value {
-        // The enumerator value was explicitly defined and has already been parsed as a EnumeratorValue
-        value
-    } else {
-        // The enumerator value was not explicitly defined, so we need to create one.
-        let value = match parser.last_enumerator_value {
-            Some(last_value) => last_value.wrapping_add(1),
-            None => 0,
-        };
-
-        EnumeratorValue { value, span: None }
-    };
-
-    parser.last_enumerator_value = Some(enumerator_value.value);
-
     OwnedPtr::new(Enumerator {
         identifier,
         value: enumerator_value,
@@ -469,10 +454,19 @@ fn construct_enumerator(
     })
 }
 
-fn construct_enumerator_value(_parser: &mut Parser, value: i128, span: Span) -> EnumeratorValue {
-    EnumeratorValue {
-        span: Some(span),
-        value,
+fn construct_enumerator_value(parser: &mut Parser, integer: Option<Integer>) -> EnumeratorValue {
+    if let Some(int) = integer {
+        // The enumerator value was explicitly defined.
+        parser.last_enumerator_value = Some(int.value);
+        EnumeratorValue::Explicit(int)
+    } else {
+        // The enumerator value was not explicitly defined, so we need to create one.
+        let value = match parser.last_enumerator_value {
+            Some(last_value) => last_value.wrapping_add(1),
+            None => 0,
+        };
+        parser.last_enumerator_value = Some(value);
+        EnumeratorValue::Implicit(value)
     }
 }
 

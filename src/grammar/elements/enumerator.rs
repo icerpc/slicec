@@ -4,10 +4,10 @@ use super::super::*;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
 
-#[derive(Debug)]
-pub struct EnumeratorValue {
-    pub span: Option<Span>,
-    pub value: i128,
+#[derive(Debug, PartialEq, Eq)]
+pub enum EnumeratorValue {
+    Implicit(i128),
+    Explicit(Integer),
 }
 
 #[derive(Debug)]
@@ -23,11 +23,12 @@ pub struct Enumerator {
 
 impl Enumerator {
     pub fn value(&self) -> i128 {
-        self.value.value
+        match self.value {
+            EnumeratorValue::Implicit(value) => value,
+            EnumeratorValue::Explicit(ref integer) => integer.value,
+        }
     }
 }
-
-implement_Element_for!(EnumeratorValue, "enumerator value");
 
 implement_Element_for!(Enumerator, "enumerator");
 implement_Entity_for!(Enumerator);

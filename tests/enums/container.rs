@@ -435,6 +435,7 @@ mod slice2 {
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
+    use slice::slice_file::Span;
 
     #[test]
     fn enumerators_can_contain_negative_values() {
@@ -511,10 +512,8 @@ mod slice2 {
         let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
         let enumerators_a = enum_def_a.enumerators();
 
-        assert_eq!(enumerators_a[1].value.span, None);
-        assert_eq!(enumerators_a[1].value(), 2);
-        assert_eq!(enumerators_a[2].value.span, None);
-        assert_eq!(enumerators_a[2].value(), 3);
+        assert_eq!(enumerators_a[1].value, EnumeratorValue::Implicit(2));
+        assert_eq!(enumerators_a[2].value, EnumeratorValue::Implicit(3));
     }
 
     #[test]
@@ -537,11 +536,26 @@ mod slice2 {
         let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
         let enumerators_a = enum_def_a.enumerators();
 
-        assert!(enumerators_a[0].value.span.is_some());
-        assert_eq!(enumerators_a[0].value(), 1);
-        assert!(enumerators_a[1].value.span.is_some());
-        assert_eq!(enumerators_a[1].value(), 2);
-        assert!(enumerators_a[2].value.span.is_some());
-        assert_eq!(enumerators_a[2].value(), 3);
+        assert_eq!(
+            enumerators_a[0].value,
+            EnumeratorValue::Explicit(Integer {
+                value: 1,
+                span: Span::new((6, 17).into(), (6, 18).into(), "string-0")
+            })
+        );
+        assert_eq!(
+            enumerators_a[1].value,
+            EnumeratorValue::Explicit(Integer {
+                value: 2,
+                span: Span::new((7, 17).into(), (7, 18).into(), "string-0")
+            })
+        );
+        assert_eq!(
+            enumerators_a[2].value,
+            EnumeratorValue::Explicit(Integer {
+                value: 3,
+                span: Span::new((8, 17).into(), (8, 18).into(), "string-0")
+            })
+        );
     }
 }
