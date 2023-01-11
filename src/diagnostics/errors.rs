@@ -70,23 +70,17 @@ pub enum ErrorKind {
     CompressAttributeCannotBeApplied,
 
     /// Used to indicate when the deprecated attribute cannot be applied.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind which the deprecated attribute was applied to.
     DeprecatedAttributeCannotBeApplied {
+        /// The kind which the deprecated attribute was applied to.
         kind: String,
     },
 
     // ----------------  Argument Errors ---------------- //
     /// The provided argument is not supported for the given method.
-    ///
-    /// # Fields
-    ///
-    /// * `argument_name` - The name of the argument.
-    /// * `method_name` - The name of the method.
     ArgumentNotSupported {
+        /// The name of the argument.
         argument_name: String,
+        /// The name of the method.
         method_name: String,
     },
 
@@ -95,20 +89,14 @@ pub enum ErrorKind {
     KeyMustBeNonOptional,
 
     /// An unsupported type was used as a dictionary key type.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the type that was used as a dictionary key type.
     KeyTypeNotSupported {
+        /// The identifier of the type that was used as a dictionary key type.
         identifier: String,
     },
 
     /// Struct contains a member that cannot be used as a dictionary key type.
-    ///
-    /// # Fields
-    ///
-    /// * `struct_identifier` - The identifier of the struct.
     StructKeyContainsDisallowedType {
+        /// The identifier of the struct.
         struct_identifier: String,
     },
 
@@ -120,33 +108,24 @@ pub enum ErrorKind {
     MultipleEncodingVersions,
 
     /// The provided kind with identifier is not supported in the specified encoding.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind that was is not supported.
-    /// * `identifier` - The identifier of the kind that is not supported.
-    /// * `encoding` - The encoding that was specified.
     NotSupportedWithEncoding {
+        /// The kind that was is not supported.
         kind: String,
+        /// The identifier of the kind that is not supported.
         identifier: String,
+        /// The encoding that was specified.
         encoding: Encoding,
     },
 
     /// Optional are not supported in the specified encoding.
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified.
     OptionalsNotSupported {
+        /// The encoding that was specified.
         encoding: Encoding,
     },
 
     /// Streamed parameters are not supported with the specified encoding.
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified.
     StreamedParametersNotSupported {
+        ///  The encoding that was specified.
         encoding: Encoding,
     },
 
@@ -154,96 +133,69 @@ pub enum ErrorKind {
     AnyExceptionNotSupported,
 
     /// An unsupported type was used in the specified encoding.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The name of the kind that was used in the specified encoding.
-    /// * `encoding` - The encoding that was specified.
     UnsupportedType {
+        /// The name of the kind that was used in the specified encoding.
         kind: String,
+        /// The encoding that was specified.
         encoding: Encoding,
     },
 
     // ----------------  Enum Errors ---------------- //
     /// Enumerator values must be unique.
-    ///
-    /// # Fields
-    ///
-    /// * `enumerator_value` - The value of the enumerator that was already used.
     DuplicateEnumeratorValue {
+        /// The value of the enumerator that was already used.
         enumerator_value: i128,
     },
 
     /// Enums cannot have optional underlying types.
-    ///
-    /// # Fields
-    ///
-    /// * `enum_identifier` - The identifier of the enum.
     CannotUseOptionalUnderlyingType {
+        /// The identifier of the enum.
         enum_identifier: String,
     },
 
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum.
-    ///
-    /// # Fields
-    ///
-    /// * `enumerator_identifier` - The identifier of the enumerator.
-    /// * `value` - The value of the out of bounds enumerator.
-    /// * `min` - The minimum value of the underlying type of the enum.
-    /// * `max` - The maximum value of the underlying type of the enum.
     EnumeratorValueOutOfBounds {
+        /// The identifier of the enumerator.
         enumerator_identifier: String,
+        /// The value of the out of bounds enumerator.
         value: i128,
+        /// The minimum value of the underlying type of the enum.
         min: i128,
+        /// The maximum value of the underlying type of the enum.
         max: i128,
     },
 
     /// Enums must be contain at least one enumerator.
-    ///
-    /// # Fields
-    ///
-    /// * `enum_identifier` - The identifier of the enum.
     MustContainEnumerators {
+        /// The identifier of the enum.
         enum_identifier: String,
     },
 
     /// Enum underlying types must be integral types.
-    ///
-    /// # Fields
-    ///
-    /// * `enum_identifier` - The identifier of the enum.
-    /// * `kind` - The name of the non-integral type that was used as the underlying type of the enum.
     UnderlyingTypeMustBeIntegral {
+        /// The identifier of the enum.
         enum_identifier: String,
+        /// The name of the non-integral type that was used as the underlying type of the enum.
         kind: String,
     },
 
     // ----------------  Exception Errors ---------------- //
     /// Exceptions cannot be used as a data type with the specified encoding.
-    ///
-    /// # Fields
-    ///
-    /// * `encoding` - The encoding that was specified.
     ExceptionNotSupported {
+        /// The encoding that was specified.
         encoding: Encoding,
     },
 
     // ----------------  Operation Errors ---------------- //
     /// A streamed parameter was not the last parameter in the operation.
-    ///
-    /// # Fields
-    ///
-    /// * `parameter_identifier` - The identifier of the parameter that caused the error.
     StreamedMembersMustBeLast {
+        /// The identifier of the parameter that caused the error.
         parameter_identifier: String,
     },
 
     /// The required parameters of an operation did not precede the optional parameters.
-    ///
-    /// # Fields
-    ///
-    /// * `parameter_identifier` - The identifier of the parameter that caused the error.
     RequiredMustPrecedeOptional {
+        /// The identifier of the parameter that caused the error.
         parameter_identifier: String,
     },
 
@@ -262,29 +214,20 @@ pub enum ErrorKind {
 
     // ----------------  Tag Errors ---------------- //
     /// A duplicate tag value was found.
-    ///
-    /// # Fields
-    ///
-    /// * `member_identifier` - The identifier of the tagged member.
     CannotHaveDuplicateTag {
+        /// The identifier of the tagged member.
         member_identifier: String,
     },
 
     /// Cannot tag a class.
-    ///
-    /// # Fields
-    ///
-    /// * `member_identifier` - The identifier of the tagged member.
     CannotTagClass {
+        /// The identifier of the tagged member.
         member_identifier: String,
     },
 
     /// Cannot tag a member that contains a class.
-    ///
-    /// # Fields
-    ///
-    /// * `member_identifier` - The identifier of the tagged member.
     CannotTagContainingClass {
+        /// The identifier of the tagged member.
         member_identifier: String,
     },
 
@@ -292,11 +235,8 @@ pub enum ErrorKind {
     TagValueOutOfBounds,
 
     /// A tagged data member was not set to optional.
-    ///
-    /// # Fields
-    ///
-    /// * `member_identifier` - The identifier of the tagged member.
     TaggedMemberMustBeOptional {
+        /// The identifier of the tagged member.
         member_identifier: String,
     },
 
@@ -305,60 +245,42 @@ pub enum ErrorKind {
     CompactIdOutOfBounds,
 
     /// Used to indicate when a method must contain arguments.
-    ///
-    /// # Fields
-    ///
-    /// * `method_name` - The name of the method.
     CannotBeEmpty {
+        /// The name of the method.
         member_identifier: String,
     },
 
     /// Used to indicate when two concrete types should match, but do not.
-    ///
-    /// # Fields
-    ///
-    /// * `expected` - The name of the expected kind.
-    /// * `kind` - The name of the found kind.
     ConcreteTypeMismatch {
+        /// The name of the expected kind.
         expected: String,
+        /// The name of the found kind.
         kind: String,
     },
 
     /// An identifier was redefined.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier that was redefined.
     Redefinition {
+        /// The identifier that was redefined.
         identifier: String,
     },
 
     /// A self-referential type alias has no concrete type.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The name of the type alias.
     SelfReferentialTypeAliasNeedsConcreteType {
+        /// The name of the type alias.
         identifier: String,
     },
 
     /// An identifier was used to shadow another identifier.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier that is shadowing previously defined identifier.
     Shadows {
+        /// The identifier that is shadowing previously defined identifier.
         identifier: String,
     },
 
     /// Used to indicate when two types should match, but do not.
-    ///
-    /// # Fields
-    ///
-    /// * `expected` - The name of the expected kind.
-    /// * `actual` - The name of the found kind.
     TypeMismatch {
+        /// The name of the expected kind.
         expected: String,
+        /// The name of the found kind.
         actual: String,
     },
 
@@ -366,16 +288,14 @@ pub enum ErrorKind {
     IntegerLiteralOverflows,
 
     /// An integer literal contained illegal characters for its base.
-    ///
-    /// # Fields
-    ///
-    /// * `base` - The base of the integer literal; Ex: 16 (hex), 10 (dec).
     InvalidIntegerLiteral {
+        /// The base of the integer literal; Ex: 16 (hex), 10 (dec).
         base: u32,
     },
 
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion {
+        /// The encoding version that was used.
         encoding: i128,
     },
 
@@ -385,22 +305,16 @@ pub enum ErrorKind {
     },
 
     /// A malformed or invalid Warning code was supplied to the ignore warnings attribute.
-    ///
-    /// # Fields
-    ///
-    /// * `code` - The invalid warning code.
     InvalidWarningCode {
+        /// The invalid warning code.
         code: String,
     },
 
     /// An self-referential type had an infinite size cycle.
-    ///
-    /// # Fields
-    ///
-    /// * `type_id` - The type id of the type that caused the error.
-    /// * `cycle` - The cycle that was found.
     InfiniteSizeCycle {
+        /// The type id of the type that caused the error.
         type_id: String,
+        /// The cycle that was found.
         cycle: String,
     },
 
@@ -408,11 +322,8 @@ pub enum ErrorKind {
     CannotResolveDueToCycles,
 
     /// No element with the specified identifier was found.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier that was not found.
     DoesNotExist {
+        /// The identifier that was not found.
         identifier: String,
     },
 
