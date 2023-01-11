@@ -183,8 +183,8 @@ pub enum ErrorKind {
     /// Ex: `-` isn't a valid symbol, but "->" is a valid symbol. So the parser will suggest "->` to the user.
     UnknownSymbol { symbol: String, suggestion: Option<String> },
 
-    /// Returned when a string is missing its closing quotation mark.
-    /// Ex: `"this is a bad string`, there's no closing '"' before EOF.
+    /// Returned when a string is missing its closing quotation mark. Note that strings cannot span multiple lines.
+    /// Ex: `"this is a bad string`, there's no closing '"' before EOL.
     UnterminatedStringLiteral,
 
     /// Returned when a block comment is missing its closing "*/".

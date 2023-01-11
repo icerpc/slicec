@@ -48,7 +48,7 @@ pub enum ErrorKind {
     MissingDirective,
 
     /// Returned when an unknown directive was specified.
-    /// Ex: `#foo`, 'foo' isn't a valid directive.
+    /// Ex: `#foo`, "foo" isn't a valid directive.
     UnknownDirective { keyword: String },
 
     /// Returned when an unknown symbol is encountered.

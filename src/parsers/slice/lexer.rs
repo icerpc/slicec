@@ -91,7 +91,7 @@ where
     }
 
     /// Consumes whitespace characters in the buffer until a non-whitespace character is reached.
-    /// After calling this function, the next character will be non-whitespace of `None` (end of buffer).
+    /// After calling this function, the next character will be non-whitespace or `None` (end of buffer).
     fn skip_whitespace(&mut self) {
         // Loop while the next character in the buffer is whitespace.
         while matches!(self.buffer.peek(), Some((_, c)) if c.is_whitespace()) {
