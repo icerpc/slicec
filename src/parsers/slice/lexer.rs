@@ -448,7 +448,7 @@ impl<'input> From<&'input str> for Lexer<'input, std::iter::Once<SourceBlock<'in
 
         let source_block = SourceBlock {
             content: s,
-            start: Location { row: 1, col: 1 },
+            start: Location::default(),
             end: Location {
                 row: newlines.len() + 1,
                 col: chars_in_last_line,

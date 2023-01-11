@@ -40,7 +40,7 @@ impl<'input> Lexer<'input> {
             input,
             buffer: input.chars().peekable(),
             position: 0,
-            cursor: Location { row: 1, col: 1 },
+            cursor: Location::default(),
             mode: LexerMode::Unknown,
         }
     }
