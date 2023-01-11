@@ -84,62 +84,55 @@ impl std::fmt::Display for Warning {
 #[derive(Debug)]
 pub enum WarningKind {
     /// The user supplied either a reference or source file more than once.
-    ///
-    /// # Fields
-    ///
-    /// * `path` - The path of the file that was supplied more than once.
-    DuplicateFile { path: String },
+    DuplicateFile {
+        /// The path of the file that was supplied more than once.
+        path: String,
+    },
 
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The name of the parameter from the user-supplied doc comment.
-    ExtraParameterInDocComment { identifier: String },
+    ExtraParameterInDocComment {
+        /// The name of the parameter from the user-supplied doc comment.
+        identifier: String,
+    },
 
     /// The user-supplied doc comment indicated that the operation should return a value, but the operation does not.
     ExtraReturnValueInDocComment,
 
     /// The user-supplied doc comment indicated that the entity should throw, but the entity does not support throwing.
-    ///
-    /// # Fields
-    ///
-    /// * `kind` - The kind of that entity that was indicated to throw.
-    /// * `identifier` - The identifier of that entity that was indicated to throw.
-    ExtraThrowInDocComment { kind: String, identifier: String },
+    ExtraThrowInDocComment {
+        /// The kind of the entity that was indicated to throw.
+        kind: String,
+        /// The identifier of the entity that was indicated to throw.
+        identifier: String,
+    },
 
     /// The user-supplied doc comment link referenced an entity that does not exist.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the entity that was referenced.
-    InvalidDocCommentLinkIdentifier { identifier: String },
+    InvalidDocCommentLinkIdentifier {
+        /// The identifier of the entity that was referenced.
+        identifier: String,
+    },
 
     /// The user-supplied doc comment tag is invalid.
-    ///
-    /// # Fields
-    ///
-    /// * `tag` - The doc comment tag
-    InvalidDocCommentTag { tag: String },
+    InvalidDocCommentTag {
+        /// The doc comment tag.
+        tag: String,
+    },
 
     /// The code references a Slice entity that is deprecated.
-    ///
-    /// # Fields
-    ///
-    /// * `identifier` - The identifier of the deprecated entity.
-    /// * `deprecation_reason` - The reason why the slice entity was deprecated. If not supplied it will an empty
-    ///   string.
     UseOfDeprecatedEntity {
+        /// The identifier of the deprecated entity.
         identifier: String,
+        /// The reason why the slice entity was deprecated. If not supplied, it defaults to an empty string.
         deprecation_reason: String,
     },
 
-    /// The user applied an attribute on a type that will result in no changes
-    ///
-    /// # Fields
-    /// * `attribute` - The attribute that was applied
-    /// * `kind` - The entity the user applied the attribute to.
-    InconsequentialUseOfAttribute { attribute: String, kind: String },
+    /// The user applied an attribute on a type that will result in no changes.
+    InconsequentialUseOfAttribute {
+        /// The attribute that was applied.
+        attribute: String,
+        /// The entity the user applied the attribute to.
+        kind: String,
+    },
 }
 
 implement_diagnostic_functions!(
