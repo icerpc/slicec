@@ -89,6 +89,7 @@ pub enum WarningKind {
         path: String,
     },
 
+    /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ExtraParameterInDocComment {
         /// The name of the parameter from the user-supplied doc comment.
         identifier: String,
@@ -99,9 +100,9 @@ pub enum WarningKind {
 
     /// The user-supplied doc comment indicated that the entity should throw, but the entity does not support throwing.
     ExtraThrowInDocComment {
-        /// The kind of that entity that was indicated to throw.
+        /// The kind of the entity that was indicated to throw.
         kind: String,
-        /// The identifier of that entity that was indicated to throw.
+        /// The identifier of the entity that was indicated to throw.
         identifier: String,
     },
 
@@ -121,7 +122,7 @@ pub enum WarningKind {
     UseOfDeprecatedEntity {
         /// The identifier of the deprecated entity.
         identifier: String,
-        /// The reason why the slice entity was deprecated. If not supplied it will an empty string.
+        /// The reason why the slice entity was deprecated. If not supplied, it defaults to an empty string.
         deprecation_reason: String,
     },
 

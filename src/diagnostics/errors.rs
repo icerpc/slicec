@@ -109,7 +109,7 @@ pub enum ErrorKind {
 
     /// The provided kind with identifier is not supported in the specified encoding.
     NotSupportedWithEncoding {
-        /// The kind that was is not supported.
+        /// The kind that is not supported.
         kind: String,
         /// The identifier of the kind that is not supported.
         identifier: String,
@@ -272,7 +272,7 @@ pub enum ErrorKind {
 
     /// An identifier was used to shadow another identifier.
     Shadows {
-        /// The identifier that is shadowing previously defined identifier.
+        /// The identifier that is shadowing a previously defined identifier.
         identifier: String,
     },
 
