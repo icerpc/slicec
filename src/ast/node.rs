@@ -137,7 +137,7 @@ macro_rules! impl_into_node_for {
         impl From<OwnedPtr<$variant>> for Node {
             // Macro variables in comments aren't expanded, so instead of writing a doc comment normally, we generate
             // documentation for this function using a `doc` attribute.
-            #[doc = concat!("Wraps the OwnedPtr<", stringify!($variant), "> in a [Node] of the corresponding variant [Node::", stringify!($variant), "].")]
+            #[doc = concat!("Wraps the `OwnedPtr<", stringify!($variant), ">` in a [Node] of the corresponding variant [Node::", stringify!($variant), "].")]
             fn from(ptr: OwnedPtr<$variant>) -> Node {
                 Node::$variant(ptr)
             }
