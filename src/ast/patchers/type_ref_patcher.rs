@@ -314,7 +314,9 @@ impl TypeRefPatcher<'_> {
 
 type Patch<T> = (WeakPtr<T>, Vec<Attribute>);
 
+#[derive(Default)]
 enum PatchKind {
+    #[default]
     None,
     BaseClass(Patch<Class>),
     BaseException(Patch<Exception>),
@@ -326,12 +328,6 @@ enum PatchKind {
     TypeAliasUnderlyingType(Patch<dyn Type>),
     SequenceType(Patch<dyn Type>),
     DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
-}
-
-impl Default for PatchKind {
-    fn default() -> Self {
-        Self::None
-    }
 }
 
 /// Trait to provide a uniform API for converting [`Node`]s and [`WeakPtr`]s into patches.
