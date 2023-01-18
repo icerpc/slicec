@@ -85,14 +85,9 @@ fn is_valid_reference(s: &str) -> Result<String, String> {
 /// # Variants
 /// * Human - Any emitted diagnostics will be printed to the console with an easily readable format.
 /// * Json - Any emitted diagnostics will be serialized as JSON objects and printed to the console.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, ValueEnum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, ValueEnum, Default)]
 pub enum DiagnosticFormat {
+    #[default]
     Human,
     Json,
-}
-
-impl Default for DiagnosticFormat {
-    fn default() -> Self {
-        DiagnosticFormat::Human
-    }
 }
