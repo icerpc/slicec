@@ -1,0 +1,303 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+use super::tokens::*;
+use crate::slice_file::{Location, Span};
+
+use std::iter::Peekable;
+use std::str::Chars;
+use std::vec::IntoIter;
+
+type LexerResult<'a> = Result<Token<'a>, Error<'a>>;
+
+/// Converts the lines of a doc comment into a stream of semantic tokens.
+///
+/// This token stream is in turn consumed by the [comment parser](super::parser::CommentParser) which parses the tokens
+/// into a [`DocComment`](crate::grammar::DocComment).
+#[derive(Debug)]
+pub struct Lexer<'input> {
+    /// Iterator over the lines of the doc comment this lexer is operating on.
+    lines: IntoIter<(&'input str, Span)>,
+
+    /// The line that is currently being lexed (the lexer works one line at a time).
+    current_line: &'input str,
+
+    /// Iterator over the characters in the current line.
+    /// This is what the lexer actually operates on, by peeking at and consuming codepoints from this buffer.
+    buffer: Peekable<Chars<'input>>,
+
+    /// The lexer's position in the current line's buffer.
+    position: usize,
+
+    /// The lexer's current [location](crate::slice_file::Location) in the input.
+    /// Used to tag tokens with their starting and ending locations.
+    cursor: Location,
+
+    /// The current mode of the lexer; controls how the input is tokenized in a context-dependent manner.
+    mode: LexerMode,
+}
+
+impl<'input> Lexer<'input> {
+    /// Creates a new lexer over the provided lines.
+    pub fn new(lines: Vec<(&'input str, Span)>) -> Self {
+        let mut lines = lines.into_iter();
+        let (first_line, first_span) = lines.next().expect("created lexer over an empty comment");
+
+        // Create a lexer. The values don't matter, because they're all set by `switch_to_next_line`.
+        let mut lexer = Lexer {
+            lines,
+            current_line: "",
+            buffer: "".chars().peekable(),
+            position: 0,
+            cursor: Location::default(),
+            mode: LexerMode::Message,
+        };
+        lexer.switch_to_next_line(first_line, first_span); // Actually initializes the lexer.
+        lexer
+    }
+
+    /// The lexer operates on a doc comment one line at a time, this function tells the lexer to discard the line it's
+    /// currently lexing and switch to the provided line (and span). It updates all the lexer's fields accordingly.
+    fn switch_to_next_line(&mut self, line: &'input str, span: Span) {
+        self.current_line = line;
+        self.buffer = self.current_line.chars().peekable();
+        self.position = 0;
+        self.cursor = span.start;
+
+        // If the first non-whitespace character on this line is '@', then this line starts a new tag, and we put the
+        // lexer in `BlockTag` mode accordingly. Otherwise, we put the lexer in its 'default' `Message` mode instead.
+        if self.current_line.trim_start().starts_with('@') {
+            self.mode = LexerMode::BlockTag;
+        } else {
+            self.mode = LexerMode::Message;
+        }
+    }
+
+    /// Consumes the next character in the buffer and moves the lexer's cursor forward accordingly.
+    fn advance_buffer(&mut self) {
+        if self.buffer.next().is_some() {
+            self.position += 1;
+            self.cursor.col += 1;
+        }
+    }
+
+    /// Skips over whitespace characters in the buffer until a non-whitespace character is reached.
+    /// After calling this function, the next character will be non-whitespace or `None` (end of buffer).
+    fn skip_whitespace(&mut self) {
+        // Loop while the next character in the buffer is whitespace (except '\n').
+        while matches!(self.buffer.peek(), Some(c) if c.is_whitespace()) {
+            self.advance_buffer(); // Consume the character.
+        }
+    }
+
+    /// Reads, consumes, and returns a string of alphanumeric characters from the buffer.
+    /// After calling this function, the next char will be a non-alphanumeric character or `None` (end-of-buffer).
+    fn read_identifier(&mut self) -> &'input str {
+        let start_position = self.position;
+
+        // Loop while the next character in the buffer is an alphanumeric or underscore.
+        while matches!(self.buffer.peek(), Some(c) if (c.is_alphanumeric() || *c == '_')) {
+            self.advance_buffer(); // Consume the character.
+        }
+
+        &self.current_line[start_position..self.position]
+    }
+
+    /// Attempts to read and validate a tag keyword from the buffer.
+    /// Tag keywords always start with a '@' character followed by an identifier (with optional whitespace in between).
+    /// If a valid tag keyword is found, this function returns `Some(Ok(<keyword_token>)))`, otherwise it returns
+    /// `Some(Err(...))`.
+    ///
+    /// This function also ensures the tag is used in the correct context. For instance, `@link` is only valid as an
+    /// inline tag. If found while the lexer is in `BlockTag` mode, this returns a `IncorrectContextForTag` error.
+    fn read_tag_keyword(&mut self) -> LexerResult<'input> {
+        let start_location = self.cursor;
+
+        // Consume the '@' character and skip any whitespace between it and the keyword.
+        assert!(matches!(self.buffer.next(), Some('@')));
+        self.skip_whitespace();
+
+        // Read the keyword following the '@' character from the buffer.
+        let keyword = self.read_identifier();
+
+        // Return the token (or error) corresponding to the keyword.
+        let token = match keyword {
+            "param" => Ok((start_location, TokenKind::ParamKeyword, self.cursor)),
+            "returns" => Ok((start_location, TokenKind::ReturnsKeyword, self.cursor)),
+            "throws" => Ok((start_location, TokenKind::ThrowsKeyword, self.cursor)),
+            "see" => Ok((start_location, TokenKind::SeeKeyword, self.cursor)),
+            "link" => Ok((start_location, TokenKind::LinkKeyword, self.cursor)),
+            "" => Err((start_location, ErrorKind::MissingTag, self.cursor)),
+            tag => Err((start_location, ErrorKind::UnknownTag { tag }, self.cursor)),
+        };
+
+        // Check if the keyword was valid within the current context (inline vs block).
+        let is_inline = self.mode == LexerMode::InlineTag;
+        if let Ok((start, token_kind, end)) = &token {
+            let is_valid = match token_kind {
+                TokenKind::ParamKeyword
+                | TokenKind::ReturnsKeyword
+                | TokenKind::ThrowsKeyword
+                | TokenKind::SeeKeyword => !is_inline,
+                TokenKind::LinkKeyword => is_inline,
+                _ => unreachable!("Encounted non-keyword token in 'lex_tag_keyword'!"),
+            };
+            if !is_valid {
+                let error = ErrorKind::IncorrectContextForTag { tag: keyword, is_inline };
+                return Err((*start, error, *end));
+            }
+        }
+
+        // If all the checks were fine, we return the token here.
+        token
+    }
+
+    /// TODO
+    fn lex_message(&mut self) -> Token<'input> {
+        let start_location = self.cursor;
+        let start_position = self.position;
+
+        // Check for the start of an inline tag. This is a '{' token followed by a '@' token.
+        // If both are present, we switch to `InlineTag` mode and return the '{' we consumed.
+        // Otherwise, we fall through into the rest of the function which returns a normal `Text` token.
+        if matches!(self.buffer.peek(), Some('{')) {
+            self.advance_buffer(); // Consume the '{' character.
+            self.skip_whitespace(); // Skip any whitespace.
+
+            if matches!(self.buffer.peek(), Some('@')) {
+                self.mode = LexerMode::InlineTag;
+                return (start_location, TokenKind::LeftBrace, self.cursor);
+            }
+        }
+
+        // Loop while the next character in the buffer is not '{'.
+        while matches!(self.buffer.peek(), Some(c) if *c != '{') {
+            self.advance_buffer(); // Consume the character.
+        }
+
+        // Return the text.
+        let text = &self.current_line[start_position..self.position];
+        (start_location, TokenKind::Text(text), self.cursor)
+    }
+
+    /// TODO
+    fn lex_tag_component(&mut self) -> Option<LexerResult<'input>> {
+        self.skip_whitespace();
+
+        // Check what the next character in the buffer is (if the buffer isn't empty. If it is, we just return `None`).
+        self.buffer.peek().cloned().map(|c| match c {
+            // If the next character is a '@' it must be the start of a tag keyword.
+            '@' => self.read_tag_keyword(),
+
+            // If the next character is a ':' it can either be a scope separator "::" or the end of block tag ":".
+            ':' => {
+                let start_location = self.cursor;
+                self.advance_buffer(); // Consume the ':' character.
+
+                // Check if the next character is also ':'. If so, this is a scope separator, otherwise it's just ':'.
+                if matches!(self.buffer.peek(), Some(':')) {
+                    self.advance_buffer(); // Consume the 2nd ':' character.
+                    Ok((start_location, TokenKind::DoubleColon, self.cursor))
+                } else {
+                    // If we were lexing a block tag, this marks the end of the tag; switch back to `Message` mode.
+                    if self.mode == LexerMode::BlockTag {
+                        self.mode = LexerMode::Message;
+                    }
+                    Ok((start_location, TokenKind::Colon, self.cursor))
+                }
+            }
+
+            // If the next character is a '}' it should be the end of an inline tag.
+            '}' => {
+                // If we were lexing an inline tag, this marks the end of the tag; switch back to `Message` mode.
+                if self.mode == LexerMode::InlineTag {
+                    self.mode = LexerMode::Message;
+                }
+                let start_location = self.cursor;
+                self.advance_buffer(); // Consume the '}' character.
+                Ok((start_location, TokenKind::RightBrace, self.cursor))
+            }
+
+            // If the next character is none of the above, it's either the start of an identifier or an unknown symbol.
+            c => {
+                let start_location = self.cursor;
+                if c.is_alphanumeric() || c == '_' {
+                    let identifier = self.read_identifier();
+                    Ok((start_location, TokenKind::Identifier(identifier), self.cursor))
+                } else {
+                    self.advance_buffer(); // Consume the unknown symbol.
+                    Err((start_location, ErrorKind::UnknownSymbol { symbol: c }, self.cursor))
+                }
+            }
+        })
+    }
+}
+
+impl<'input> Iterator for Lexer<'input> {
+    type Item = LexerResult<'input>;
+
+    /// Attempts to lex and return the next token in this lexer's token stream.
+    /// Returns `None` to indicate end-of-stream, `Some(Ok(x))` to indicate success (where `x` is the next token),
+    /// and `Some(Err(y))` to indicate that an error occurred during lexing.
+    fn next(&mut self) -> Option<Self::Item> {
+        // While the buffer isn't empty, attempt to lex a token from it.
+        // This loop exits when we return a token, error, or reach the end of the comment.
+        while self.buffer.peek().is_some() {
+            let item = match self.mode {
+                LexerMode::BlockTag | LexerMode::InlineTag => self.lex_tag_component(),
+                LexerMode::Message => Some(Ok(self.lex_message())),
+                _ => unreachable!("comment lexer finished with a non-empty buffer!"),
+            };
+            // If the lexer has lexed a token or encountered an error, return it.
+            if let Some(result) = item {
+                return Some(result);
+            }
+        }
+
+        // If we get to this match, we've hit the end of the current line.
+        match self.mode {
+            // If the lexer is in `BlockTag` mode when it hit EOL, this means there was no ':' after the tag section.
+            // So, we inject one into the token stream, since we can infer a '\n' to indicate the end of the tag.
+            LexerMode::BlockTag => {
+                self.mode = LexerMode::Message; // Change the mode so the ':' is only injected once.
+                Some(Ok((self.cursor, TokenKind::Colon, self.cursor)))
+            }
+
+            // If the lexer is in `InlineTag` mode when it hit EOL, this means there was no closing '}'.
+            // So, we return an `UnterminatedInlineTag` error since inline tags can't span multiple lines.
+            LexerMode::InlineTag => {
+                self.mode = LexerMode::Message; // Change the mode so the error is only reported once.
+                Some(Err((self.cursor, ErrorKind::UnterminatedInlineTag, self.cursor)))
+            }
+
+            // If the lexer is in `Message` mode when it hit EOL, this is normal and expected.
+            // We check if there's another line to the comment. If so, we start lexing that line; otherwise we switch
+            // the lexer to `Finished` mode, since there's no more input left. Either way we return a `Newline` token.
+            LexerMode::Message => {
+                if let Some((next_line, next_span)) = self.lines.next() {
+                    self.switch_to_next_line(next_line, next_span);
+                } else {
+                    self.mode = LexerMode::Finished;
+                }
+                Some(Ok((self.cursor, TokenKind::Newline, self.cursor)))
+            }
+
+            // If the lexer has hit the end of the comment, return `None` to signal this.
+            LexerMode::Finished => None,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum LexerMode {
+    /// TODO write doc comment for these mode enumerators!
+    BlockTag,
+
+
+    InlineTag,
+
+
+    Message,
+
+
+    Finished,
+}
