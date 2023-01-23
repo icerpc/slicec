@@ -49,10 +49,9 @@ impl Warning {
             // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring
             // all warnings), or if it has an argument matching the error code of the warning.
             if entity.attributes(true).iter().any(|a| match &a.kind {
-                AttributeKind::IgnoreWarnings { warning_codes } => match warning_codes {
-                    Some(codes) => codes.is_empty() || codes.contains(&self.error_code().to_owned()),
-                    None => true,
-                },
+                AttributeKind::IgnoreWarnings { warning_codes } => {
+                    warning_codes.is_empty() || warning_codes.contains(&self.error_code().to_owned())
+                }
                 _ => false,
             }) {
                 // Do not push the warning to the diagnostics vector
