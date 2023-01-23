@@ -62,6 +62,7 @@ impl<'input> Lexer<'input> {
         self.buffer = self.current_line.chars().peekable();
         self.position = 0;
         self.cursor = span.start;
+        self.cursor.col += 3; // We skip the leading "///".
 
         // If the first non-whitespace character on this line is '@', then this line starts a new tag, and we put the
         // lexer in `BlockTag` mode accordingly. Otherwise, we put the lexer in its 'default' `Message` mode instead.
@@ -113,7 +114,8 @@ impl<'input> Lexer<'input> {
         let start_location = self.cursor;
 
         // Consume the '@' character and skip any whitespace between it and the keyword.
-        assert!(matches!(self.buffer.next(), Some('@')));
+        assert!(matches!(self.buffer.peek(), Some('@')));
+        self.advance_buffer();
         self.skip_whitespace();
 
         // Read the keyword following the '@' character from the buffer.
@@ -255,13 +257,6 @@ impl<'input> Iterator for Lexer<'input> {
 
         // If we get to this match, we've hit the end of the current line.
         match self.mode {
-            // If the lexer is in `BlockTag` mode when it hit EOL, this means there was no ':' after the tag section.
-            // So, we inject one into the token stream, since we can infer a '\n' to indicate the end of the tag.
-            LexerMode::BlockTag => {
-                self.mode = LexerMode::Message; // Change the mode so the ':' is only injected once.
-                Some(Ok((self.cursor, TokenKind::Colon, self.cursor)))
-            }
-
             // If the lexer is in `InlineTag` mode when it hit EOL, this means there was no closing '}'.
             // So, we return an `UnterminatedInlineTag` error since inline tags can't span multiple lines.
             LexerMode::InlineTag => {
@@ -269,10 +264,10 @@ impl<'input> Iterator for Lexer<'input> {
                 Some(Err((self.cursor, ErrorKind::UnterminatedInlineTag, self.cursor)))
             }
 
-            // If the lexer is in `Message` mode when it hit EOL, this is normal and expected.
+            // If the lexer is in `Message` or `BlockTag` mode when it hit EOL, this is normal and expected.
             // We check if there's another line to the comment. If so, we start lexing that line; otherwise we switch
             // the lexer to `Finished` mode, since there's no more input left. Either way we return a `Newline` token.
-            LexerMode::Message => {
+            LexerMode::BlockTag | LexerMode::Message => {
                 if let Some((next_line, next_span)) = self.lines.next() {
                     self.switch_to_next_line(next_line, next_span);
                 } else {
@@ -289,15 +284,25 @@ impl<'input> Iterator for Lexer<'input> {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum LexerMode {
-    /// TODO write doc comment for these mode enumerators!
+    /// Indicates that the lexer is currently lexing a block tag.
+    /// While in thie mode the lexer only looks for tag keywords and identifiers.
+    ///
+    /// This mode starts when the lexer starts reading a new line, and the first non-whitespace character on the line
+    /// is '@'. When the lexer hits a ':' or the end of a line, it switches into [`Message`](LexerMode::Message) mode.
     BlockTag,
 
-
+    /// Indicates that the lexer is currently lexing an inline tag. Similar to [`BlockTag`](LexerMode::BlockTag) mode,
+    /// while in this mode the lexer only looks for tag keywords and identifier.
+    ///
+    /// This mode starts when the lexer sees an opening brace, and ends when it hits a closing brace or newline.
+    /// In both cases it switches to [`Message`](LexerMode::Message) mode.
     InlineTag,
 
-
+    /// Indicates that the lexer is currently lexing raw text.
+    /// While in this mode the lexer performs no additional analysis of the text and simply forwards it along.
     Message,
 
-
+    /// Indicates that the lexer has reached the end of the doc comment.
+    /// While in this mode, calling `next` is no-op and the lexer just returns `None` for everything.
     Finished,
 }
