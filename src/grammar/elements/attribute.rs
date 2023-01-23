@@ -60,9 +60,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_ignore_warnings(attribute: &Attribute) -> Option<&Option<Vec<String>>> {
+    pub fn match_ignore_warnings(attribute: &Attribute) -> Option<Option<Vec<String>>> {
         match &attribute.kind {
-            AttributeKind::IgnoreWarnings { warning_codes } => Some(warning_codes),
+            AttributeKind::IgnoreWarnings { warning_codes } => Some(warning_codes.clone()),
             _ => None,
         }
     }

@@ -2,6 +2,8 @@
 
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::Diagnostic;
+use crate::grammar::{Attributable, Attribute};
+use crate::slice_file::SliceFile;
 
 use std::collections::HashMap;
 
@@ -75,5 +77,13 @@ impl DiagnosticReporter {
             Diagnostic::Warning(_) => self.warning_count += 1,
         }
         self.diagnostics.push(diagnostic);
+    }
+
+    /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
+    pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
+        if let Some(ignored_warnings) = slice_file.get_attribute(false, Attribute::match_ignore_warnings) {
+            self.file_level_ignored_warnings
+                .insert(slice_file.relative_path.clone(), ignored_warnings.unwrap_or_default());
+        }
     }
 }
