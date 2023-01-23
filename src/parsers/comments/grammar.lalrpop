@@ -56,28 +56,28 @@ pub DocComment: DocComment = {
 }
 
 Overview: Overview = {
-    <l: @L> <message: Message> <r: @R> => {
+    <l: @L> <message: MessageLines> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
         Overview { message, span }
     },
 }
 
 ParamBlock: ParamTag = {
-    <l: @L> param_keyword <identifier: Identifier> ":" <message: Message> <r: @R> => {
+    <l: @L> param_keyword <identifier: Identifier> <message: Section> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ParamTag { identifier, message, span }
     },
 }
 
 ReturnsBlock: ReturnsTag = {
-    <l: @L> returns_keyword <identifier: Identifier?> ":" <message: Message> <r: @R> => {
+    <l: @L> returns_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ReturnsTag { identifier, message, span }
     },
 }
 
 ThrowsBlock: ThrowsTag = {
-    <l: @L> throws_keyword <identifier: Identifier?> ":" <message: Message> <r: @R> => {
+    <l: @L> throws_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ThrowsTag { identifier, message, span }
     },
@@ -97,20 +97,21 @@ InlineLink: LinkTag = {
     },
 }
 
-Message: Message = {
-    => Message::new(),
-    <mut message: Message> newline => {
-        message.push(MessageComponent::Text("\n".to_owned()));
-        message
-    },
-    <mut message: Message> <text: text> => {
-        message.push(MessageComponent::Text(text.to_owned()));
-        message
-    },
-    <mut message: Message> "{" <link: InlineLink> "}" => {
-        message.push(MessageComponent::Link(link));
-        message
-    },
+Section: Message = {
+    <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines> => {
+        construct_section_message(inline_message.flatten(), message_lines)
+    }
+}
+
+MessageLines: Message = {
+    (<Message?> newline)* => sanitize_message_lines(<>),
+}
+
+Message = MessageComponent+;
+
+MessageComponent: MessageComponent = {
+    <text: text> => MessageComponent::Text(text.to_owned()),
+    "{" <link: InlineLink> "}" => MessageComponent::Link(link),
 }
 
 Identifier: Identifier = {

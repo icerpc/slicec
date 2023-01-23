@@ -5,7 +5,7 @@
 //! While many of these functions could be written directly into the parser rules, we implement them here instead, to
 //! keep the rules focused on grammar instead of implementation details, making the grammar easier to read and modify.
 
-use crate::grammar::{DocComment, Overview};
+use crate::grammar::{DocComment, Message, MessageComponent, Overview};
 
 use lalrpop_util::lalrpop_mod;
 
@@ -51,4 +51,71 @@ fn get_scoped_identifier_string<'a>(first: &'a str, mut others: Vec<&'a str>, is
         others.insert(0, ""); // Gives a leading "::" when we `join`.
     }
     others.join("::")
+}
+
+/// Removes any leading whitespace from the inline part of the message, then combines it with any following lines.
+fn construct_section_message(inline_message: Option<Message>, mut message_lines: Message) -> Message {
+    if let Some(mut message) = inline_message {
+        // Remove any leading whitespace from the inline portion of the message.
+        if let Some(MessageComponent::Text(text)) = message.first_mut() {
+            *text = text.trim_start().to_owned();
+        }
+
+        // Add a newline to the end of the inline message.
+        message.push(MessageComponent::Text("\n".to_owned()));
+
+        // Combine the 2 messages together, with the inline portion at the front.
+        message.append(&mut message_lines);
+        message_lines = message;
+    }
+
+    message_lines
+}
+
+/// Removes any common leading whitespace from the provided message lines and returns the result.
+/// Each element in the vector represents one line of the message.
+/// `None` means the line existed but was empty, `Some(message)` means the line had a message.
+fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
+    // First compute the amount of leading whitespace that is common to every line.
+    let mut common_leading_whitespace = usize::MAX;
+    for line in &lines {
+        // We only check lines that have a message on them (eg: they're non-empty).
+        if let Some(message) = &line {
+            // To check the start of the line, we check the first message component.
+            // It's safe to unwrap because the parser will have returned `None` for an empty message.
+            match message.first().unwrap() {
+                MessageComponent::Text(text) => {
+                    // Determine how many whitespace characters are at the beginning of this line,
+                    // then take the minimum of this and the amount of whitespace on all the other lines so far.
+                    let whitespace_index = text.find(|c: char| c.is_whitespace() && c != '\n').unwrap_or_default();
+                    common_leading_whitespace = std::cmp::min(whitespace_index, common_leading_whitespace);
+                }
+                MessageComponent::Link(_) => {
+                    // If a line starts with a link, the common leading whitespace must be 0.
+                    // We set this, then exit the loop, since we can't find less than 0 whitespace characters.
+                    common_leading_whitespace = 0;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Now that we know the common leading whitespace, we iterate through the lines again and remove the whitespace.
+    lines
+        .into_iter()
+        .map(|line| match line {
+            // If the message had text, we remove the common leading whitespace and append a newline at the end.
+            Some(message) => {
+                if let MessageComponent::Text(text) = message.first().unwrap() {
+                    text.replace_range(..common_leading_whitespace, "");
+                }
+                message.push(MessageComponent::Text("\n".to_owned()));
+                message
+            }
+
+            // If the line was empty, we create a new message that only contains a newline character.
+            None => vec![MessageComponent::Text("\n".to_owned())],
+        })
+        .flatten() // Combine all the lines together into a single message.
+        .collect()
 }
