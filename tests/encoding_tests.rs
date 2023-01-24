@@ -21,10 +21,10 @@ mod encodings {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test]
@@ -35,11 +35,11 @@ mod encodings {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [Error::new(ErrorKind::InvalidEncodingVersion { encoding: 3 })];
-        assert_errors!(diagnostic_reporter, expected);
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -51,10 +51,10 @@ mod encodings {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }

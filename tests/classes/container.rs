@@ -74,9 +74,9 @@ fn cycles_are_allowed(cycle_string: &str) {
         "
     );
 
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 /// Verifies that classes can be empty
@@ -113,12 +113,12 @@ fn cannot_redefine_data_members() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [Error::new(ErrorKind::Redefinition {
         identifier: "a".to_string(),
     })
     .add_note("'a' was previously defined here", None)];
-    assert_errors!(diagnostic_reporter, &expected);
+    assert_errors!(diagnostics, &expected);
 }

@@ -2,7 +2,7 @@
 
 use slice::ast::Ast;
 use slice::compile_from_strings;
-use slice::diagnostics::DiagnosticReporter;
+use slice::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
@@ -13,11 +13,12 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 }
 
 /// This function is used to parse a Slice file and return the DiagnosticReporter.
-pub fn parse_for_diagnostics(slice: impl Into<String>) -> DiagnosticReporter {
-    match compile_from_strings(&[&slice.into()], None) {
-        Ok(data) => data.diagnostic_reporter,
-        Err(data) => data.diagnostic_reporter,
-    }
+pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
+    let data = match compile_from_strings(&[&slice.into()], None) {
+        Ok(data) => data,
+        Err(data) => data,
+    };
+    data.diagnostic_reporter.into_diagnostics()
 }
 
 /// This function returns the kind of an element, but pluralized.

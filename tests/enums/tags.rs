@@ -19,8 +19,8 @@ fn cannot_contain_tags() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Act & Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }

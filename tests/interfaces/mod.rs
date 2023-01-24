@@ -42,10 +42,10 @@ fn can_have_self_referencing_operations() {
     ";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -105,12 +105,12 @@ fn cannot_redefine_operations() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::Redefinition {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }

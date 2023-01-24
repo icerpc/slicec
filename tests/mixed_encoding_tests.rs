@@ -80,7 +80,7 @@ fn invalid_mixed_encoding_fails() {
     let parser_result = compile_from_strings(&[encoding1_slice, encoding2_slice], None);
 
     // Assert
-    let diagnostic_reporter = parser_result.err().unwrap().diagnostic_reporter;
+    let diagnostics = parser_result.err().unwrap().diagnostic_reporter.into_diagnostics();
     let expected = [
         Error::new(ErrorKind::UnsupportedType {
             kind: "ACustomType".to_owned(),
@@ -94,5 +94,5 @@ fn invalid_mixed_encoding_fails() {
         .add_note("file encoding was set to Slice1 here:", None),
     ];
 
-    assert_errors!(diagnostic_reporter, expected);
+    assert_errors!(diagnostics, expected);
 }

@@ -77,12 +77,12 @@ fn cannot_redefine_data_members() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::Redefinition {
         identifier: "a".to_owned(),
     })
     .add_note("'a' was previously defined here", None);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }

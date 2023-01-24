@@ -93,10 +93,10 @@ mod module {
         ";
 
         // Act
-        let reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(reporter, [
+        assert_errors!(diagnostics, [
             "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'"
         ]);
     }
@@ -117,7 +117,7 @@ mod module {
         ";
 
         // Act
-        let errors = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = vec![
@@ -128,7 +128,7 @@ mod module {
                 identifier: "A".to_owned(),
             }),
         ];
-        assert_errors!(errors, expected);
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -143,13 +143,13 @@ mod module {
         ";
 
         // Act
-        let errors = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = vec![Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
             identifier: "D".to_owned(),
         })];
-        assert_errors!(errors, expected);
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -168,14 +168,14 @@ mod module {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::Redefinition {
             identifier: "Bar".to_owned(),
         })
         .add_note("'Bar' was previously defined here", None);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test_case("Foo"; "module")]
@@ -190,9 +190,9 @@ mod module {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 }

@@ -45,11 +45,10 @@ fn undefined_preprocessor_directive_blocks_are_consumed() {
         ";
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], None).unwrap();
+    let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(compilation_data.ast.find_element::<Interface>("Test::I").is_err());
-    assert_errors!(compilation_data.diagnostic_reporter);
+    assert!(ast.find_element::<Interface>("Test::I").is_err());
 }
 
 #[test]
@@ -58,10 +57,10 @@ fn preprocessor_consumes_comments() {
     let slice = "// This is a comment";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -289,10 +288,10 @@ fn preprocessor_nested_expressions() {
 )]
 fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
     // Arrange/Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -323,8 +322,8 @@ fn preprocessor_single_backslash_suggestion() {
     ";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter, [r#"unknown symbol '/', try using '//' instead"#]);
+    assert_errors!(diagnostics, [r#"unknown symbol '/', try using '//' instead"#]);
 }

@@ -244,14 +244,14 @@ fn operations_can_only_throw_exceptions() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::ConcreteTypeMismatch {
         expected: "exception".to_owned(),
         kind: "struct".to_owned(),
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("()"; "0 elements")]
@@ -270,11 +270,11 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 mod streams {
@@ -320,7 +320,7 @@ mod streams {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -329,7 +329,7 @@ mod streams {
             }),
             Error::new(ErrorKind::MultipleStreamedMembers),
         ];
-        assert_errors!(diagnostic_reporter, expected);
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -345,12 +345,12 @@ mod streams {
         ";
 
         // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
         let expected = Error::new(ErrorKind::StreamedMembersMustBeLast {
             parameter_identifier: "s".to_owned(),
         });
-
-        // Assert
-        let diagnostic_reporter = parse_for_diagnostics(slice);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }
