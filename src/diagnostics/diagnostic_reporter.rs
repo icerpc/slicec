@@ -83,7 +83,7 @@ impl DiagnosticReporter {
     pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
         if let Some(ignored_warnings) = slice_file.get_attribute(false, Attribute::match_ignore_warnings) {
             self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), ignored_warnings.unwrap_or_default());
+                .insert(slice_file.relative_path.clone(), ignored_warnings);
         }
     }
 }
