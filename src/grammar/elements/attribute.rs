@@ -60,7 +60,7 @@ impl Attribute {
         }
     }
 
-    pub fn match_ignore_warnings(attribute: &Attribute) -> Option<Option<Vec<String>>> {
+    pub fn match_ignore_warnings(attribute: &Attribute) -> Option<Vec<String>> {
         match &attribute.kind {
             AttributeKind::IgnoreWarnings { warning_codes } => Some(warning_codes.clone()),
             _ => None,
@@ -80,7 +80,7 @@ pub enum AttributeKind {
     Deprecated { reason: Option<String> },
     Compress { compress_args: bool, compress_return: bool },
     ClassFormat { format: ClassFormat },
-    IgnoreWarnings { warning_codes: Option<Vec<String>> },
+    IgnoreWarnings { warning_codes: Vec<String> },
     Oneway,
 
     // The following are used for attributes that are not recognized by the compiler. They may be language mapping
@@ -243,7 +243,7 @@ impl AttributeKind {
                     }
                 }
                 Some(AttributeKind::IgnoreWarnings {
-                    warning_codes: Some(arguments.to_owned()),
+                    warning_codes: arguments.to_owned(),
                 })
             }
 
