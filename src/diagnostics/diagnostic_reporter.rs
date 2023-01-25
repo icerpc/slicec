@@ -24,8 +24,6 @@ pub struct DiagnosticReporter {
     pub ignored_warnings: Option<Vec<String>>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    /// The relative paths of all Slice files that have the file level `ignoreWarnings` attribute.
-    pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
     // If true, diagnostic output will not be styled.
     pub disable_color: bool,
 }
@@ -38,7 +36,6 @@ impl DiagnosticReporter {
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
-            file_level_ignored_warnings: HashMap::new(),
             disable_color: slice_options.disable_color,
             ignored_warnings: slice_options.ignore_warnings.clone(),
         }
@@ -77,29 +74,5 @@ impl DiagnosticReporter {
             Diagnostic::Warning(_) => self.warning_count += 1,
         }
         self.diagnostics.push(diagnostic);
-    }
-
-    /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
-    pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
-        // Vector all of ignore warning attributes. The attribute can be specified multiple times. An empty inner vector
-        // indicates that all warnings should be ignored.
-        // eg. [ignoreWarnings]
-        //     [ignoreWarnings("W001", "W002")]
-        let ignore_warning_attributes = slice_file
-            .attributes(false)
-            .into_iter()
-            .filter_map(Attribute::match_ignore_warnings)
-            .collect::<Vec<Vec<_>>>();
-
-        // If any of the vectors are empty then we just ignore all warnings.
-        if ignore_warning_attributes.iter().any(Vec::is_empty) {
-            self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), Vec::new());
-        } else if !ignore_warning_attributes.is_empty() {
-            // Otherwise we ignore the specified warnings.
-            self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), ignore_warning_attributes.concat());
-        }
-        // else we don't ignore any warnings.
     }
 }
