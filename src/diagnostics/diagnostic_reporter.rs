@@ -100,6 +100,6 @@ impl DiagnosticReporter {
             self.file_level_ignored_warnings
                 .insert(slice_file.relative_path.clone(), ignore_warning_attributes.concat());
         }
-        // else we are not ignoring any warnings.
+        // else we don't ignore any warnings.
     }
 }
