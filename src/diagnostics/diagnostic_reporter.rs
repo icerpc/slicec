@@ -81,7 +81,7 @@ impl DiagnosticReporter {
 
     /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
     pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
-        // Vector all of ignore warning attributes. The attribute can be specified multiple times. An empty vector
+        // Vector all of ignore warning attributes. The attribute can be specified multiple times. An empty inner vector
         // indicates that all warnings should be ignored.
         // eg. [ignoreWarnings]
         //     [ignoreWarnings("W001", "W002")]
