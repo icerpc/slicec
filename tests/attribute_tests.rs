@@ -570,6 +570,29 @@ mod attributes {
             debug_assert_eq!(expected.error_code(), "W002");
             assert_errors!(diagnostics, [&expected]);
         }
+
+        #[test]
+        fn non_repeatable_attributes_error() {
+            // Act
+            let slice = "
+                module Test;
+                interface Foo
+                {
+                    [compress(Args)]
+                    [compress(Return)]
+                    op();
+                }
+            ";
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = [Error::new(ErrorKind::AttributeIsNotRepeatable {
+                attribute: "compress".to_owned(),
+            })];
+
+            assert_errors!(diagnostics, &expected);
+        }
     }
 
     mod generalized_api {

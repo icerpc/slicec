@@ -344,6 +344,10 @@ pub enum ErrorKind {
     UnexpectedAttribute {
         attribute: String,
     },
+
+    AttributeIsNotRepeatable {
+        attribute: String,
+    },
 }
 
 implement_diagnostic_functions!(
@@ -655,5 +659,11 @@ implement_diagnostic_functions!(
         ErrorKind::DoesNotExist,
         format!("no element with identifier '{identifier}' exists"),
         identifier
+    ),
+    (
+        "E050",
+        ErrorKind::AttributeIsNotRepeatable,
+        format!("duplicate attribute '{attribute}'"),
+        attribute
     )
 );

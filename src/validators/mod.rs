@@ -227,6 +227,22 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
+    fn visit_custom_type(&mut self, custom_type: &CustomType) {
+        self.validate(|validator, _ast, diagnostic_reporter| {
+            if let Validator::Attributes(function) = validator {
+                function(custom_type, diagnostic_reporter)
+            }
+        });
+    }
+
+    fn visit_enumerator(&mut self, enumerator: &Enumerator) {
+        self.validate(|validator, _ast, diagnostic_reporter| {
+            if let Validator::Attributes(function) = validator {
+                function(enumerator, diagnostic_reporter)
+            }
+        });
+    }
+
     fn visit_exception_start(&mut self, exception: &Exception) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(exception, diagnostic_reporter),
@@ -261,6 +277,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_module_start(&mut self, module_def: &Module) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
+            Validator::Attributes(function) => function(module_def, diagnostic_reporter),
             Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(module_def, diagnostic_reporter),
             Validator::Module(function) => function(module_def, diagnostic_reporter),
@@ -312,8 +329,17 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
+    fn visit_data_member(&mut self, data_member: &DataMember) {
+        self.validate(|validator, _ast, diagnostic_reporter| {
+            if let Validator::Attributes(function) = validator {
+                function(data_member, diagnostic_reporter)
+            }
+        })
+    }
+
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
+            Validator::Attributes(function) => function(type_alias, diagnostic_reporter),
             Validator::Dictionaries(function) => {
                 if let Types::Dictionary(dictionary) = type_alias.underlying.concrete_type() {
                     function(&[dictionary], diagnostic_reporter)

@@ -81,9 +81,25 @@ impl DiagnosticReporter {
 
     /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
     pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
-        if let Some(ignored_warnings) = slice_file.get_attribute(false, Attribute::match_ignore_warnings) {
+        // Vector all of ignore warning attributes. The attribute can be specified multiple times. An empty inner vector
+        // indicates that all warnings should be ignored.
+        // eg. [ignoreWarnings]
+        //     [ignoreWarnings("W001", "W002")]
+        let ignore_warning_attributes = slice_file
+            .attributes(false)
+            .into_iter()
+            .filter_map(Attribute::match_ignore_warnings)
+            .collect::<Vec<Vec<_>>>();
+
+        // If any of the vectors are empty then we just ignore all warnings.
+        if ignore_warning_attributes.iter().any(Vec::is_empty) {
             self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), ignored_warnings);
+                .insert(slice_file.relative_path.clone(), Vec::new());
+        } else if !ignore_warning_attributes.is_empty() {
+            // Otherwise we ignore the specified warnings.
+            self.file_level_ignored_warnings
+                .insert(slice_file.relative_path.clone(), ignore_warning_attributes.concat());
         }
+        // else we don't ignore any warnings.
     }
 }
