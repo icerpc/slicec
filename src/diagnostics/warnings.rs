@@ -60,6 +60,33 @@ pub enum WarningKind {
         path: String,
     },
 
+    /// The user made a syntatical mistake in a doc comment.
+    DocCommentSyntax {
+        /// Message explaining the mistake to the user.
+        message: String,
+    },
+
+    /// The user specified an unknown tag type.
+    UnknownDocCommentTag {
+        /// The unknown tag's keyword.
+        tag: String,
+    },
+
+    /// The user didn't have a tag keyword after an '@' character.
+    MissingDocCommentTag,
+
+    /// An inline tag is missing it's closing brace. Ex: `{@link Foo` (there's no closing '}').
+    UnterminatedInlineTag,
+
+    /// The user used a doc comment tag in a place where it was invalid to do so.
+    /// Ex: Using '@param' (a block tag), in the context of an inline tag: `{@param foo}`.
+    InvalidDocCommentTagUsage {
+        /// The tag that was used.
+        tag: String,
+        /// Where the tag was used; `true` if it was used inline, `false` if it was used in a block.
+        is_inline: bool,
+    },
+
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ExtraParameterInDocComment {
         /// The name of the parameter from the user-supplied doc comment.
@@ -81,12 +108,6 @@ pub enum WarningKind {
     InvalidDocCommentLinkIdentifier {
         /// The identifier of the entity that was referenced.
         identifier: String,
-    },
-
-    /// The user-supplied doc comment tag is invalid.
-    InvalidDocCommentTag {
-        /// The doc comment tag.
-        tag: String,
     },
 
     /// The code references a Slice entity that is deprecated.
@@ -114,45 +135,66 @@ implement_diagnostic_functions!(
         format!("slice file was provided more than once: '{path}'"),
         path
     ),
+    ("W002", WarningKind::DocCommentSyntax, message, message),
     (
-        "W002",
+        "W003",
+        WarningKind::UnknownDocCommentTag,
+        format!("doc comment tag '{tag}' is invalid"),
+        tag
+    ),
+    (
+        "W004",
+        WarningKind::MissingDocCommentTag,
+        "missing doc comment tag"
+    ),
+    (
+        "W005",
+        WarningKind::UnterminatedInlineTag,
+        "missing a closing '}' on an inline doc comment tag."
+    ),
+    (
+        "W006",
+        WarningKind::InvalidDocCommentTagUsage,
+        format!(
+            "doc comment tag '{tag}' cannot be used {}",
+            if *is_inline { "inline" } else { "to start a block" },
+        ),
+        tag,
+        is_inline
+    ),
+    (
+        "W007",
         WarningKind::ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
-        "W003",
+        "W008",
         WarningKind::ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
-        "W004",
+        "W009",
         WarningKind::ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
-        "W005",
+        "W010",
         WarningKind::InvalidDocCommentLinkIdentifier,
         format!("doc comment references an identifier '{identifier}' that does not exist"),
         identifier
     ),
     (
-        "W006",
-        WarningKind::InvalidDocCommentTag,
-        format!("doc comment tag '{tag}' is invalid"),
-        tag
-    ),
-    (
-        "W007",
+        "W011",
         WarningKind::UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W008",
+        "W012",
         WarningKind::InconsequentialUseOfAttribute,
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
