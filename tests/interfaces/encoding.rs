@@ -2,7 +2,6 @@
 
 use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
-use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::Encoding;
 
@@ -28,11 +27,7 @@ fn operation_members_are_compatible_with_encoding() {
     ";
 
     // Act
-    let diagnostics = compile_from_strings(&[slice1, slice2], None)
-        .err()
-        .unwrap()
-        .diagnostic_reporter
-        .into_diagnostics();
+    let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
     // Assert
     let expected = Error::new(ErrorKind::UnsupportedType {

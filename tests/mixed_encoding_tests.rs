@@ -1,6 +1,8 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 pub mod helpers;
+
+use crate::helpers::parsing_helpers::parse_multiple_for_diagnostics;
 use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::Encoding;
@@ -77,10 +79,9 @@ fn invalid_mixed_encoding_fails() {
     ";
 
     // Act
-    let parser_result = compile_from_strings(&[encoding1_slice, encoding2_slice], None);
+    let diagnostics = parse_multiple_for_diagnostics(&[encoding1_slice, encoding2_slice]);
 
     // Assert
-    let diagnostics = parser_result.err().unwrap().diagnostic_reporter.into_diagnostics();
     let expected = [
         Error::new(ErrorKind::UnsupportedType {
             kind: "ACustomType".to_owned(),

@@ -12,13 +12,20 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     }
 }
 
-/// This function is used to parse a Slice file and return the DiagnosticReporter.
+/// This function is used to parse a Slice file and return any Diagnostics that were emitted.
 pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
-    let data = match compile_from_strings(&[&slice.into()], None) {
+    parse_multiple_for_diagnostics(&[&slice.into()])
+}
+
+/// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
+pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
+    let data = match compile_from_strings(slice, None) {
         Ok(data) => data,
         Err(data) => data,
     };
-    data.diagnostic_reporter.into_diagnostics()
+    data.diagnostic_reporter
+        .into_diagnostics(&data.ast, &data.files)
+        .collect()
 }
 
 /// This function returns the kind of an element, but pluralized.
