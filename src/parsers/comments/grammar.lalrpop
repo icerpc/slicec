@@ -86,14 +86,14 @@ ThrowsBlock: ThrowsTag = {
 SeeBlock: SeeTag = {
     <l: @L> see_keyword <identifier: ScopedIdentifier> <r: @R> newline => {
         let span = Span::new(l, r, comment_parser.file_name);
-        SeeTag { value: identifier, span }
+        SeeTag { link: identifier, span }
     },
 }
 
 InlineLink: LinkTag = {
     <l: @L> link_keyword <identifier: ScopedIdentifier> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
-        LinkTag { value: identifier, span }
+        LinkTag { link: identifier, span }
     },
 }
 

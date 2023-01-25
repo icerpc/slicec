@@ -44,13 +44,13 @@ pub struct ThrowsTag {
 
 #[derive(Debug)]
 pub struct SeeTag {
-    pub value: Identifier,
+    pub link: Identifier,
     pub span: Span,
 }
 
 #[derive(Debug)]
 pub struct LinkTag {
-    pub value: Identifier,
+    pub link: Identifier,
     pub span: Span,
 }
 

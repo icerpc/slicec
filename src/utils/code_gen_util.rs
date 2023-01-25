@@ -55,6 +55,6 @@ pub fn format_message(message: &Message, link_formatter: fn(&str) -> String) -> 
     // If the component is text, append it as is. If the component is a link, format it first, then append it.
     message.iter().fold(String::new(), |s, component| match &component {
         MessageComponent::Text(text) => s + text,
-        MessageComponent::Link(link) => s + &link_formatter(&link.value.value),
+        MessageComponent::Link(link_tag) => s + &link_formatter(&link_tag.link.value),
     })
 }
