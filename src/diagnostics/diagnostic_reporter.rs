@@ -81,13 +81,14 @@ impl DiagnosticReporter {
 
     /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
     pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
-        slice_file
+        let ignored_warnings = slice_file
             .attributes(false)
             .into_iter()
             .filter_map(Attribute::match_ignore_warnings)
-            .for_each(|ignored_warnings| {
-                self.file_level_ignored_warnings
-                    .insert(slice_file.relative_path.clone(), ignored_warnings);
-            })
+            .collect::<Vec<Vec<_>>>()
+            .concat();
+
+        self.file_level_ignored_warnings
+            .insert(slice_file.relative_path.clone(), ignored_warnings);
     }
 }
