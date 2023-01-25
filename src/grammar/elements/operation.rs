@@ -98,21 +98,21 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        match self.get_attribute(false, Attribute::match_compress) {
+        match self.find_attribute(false, Attribute::match_compress) {
             Some((compress_args, ..)) => compress_args,
             None => false,
         }
     }
 
     pub fn compress_return(&self) -> bool {
-        match self.get_attribute(false, Attribute::match_compress) {
+        match self.find_attribute(false, Attribute::match_compress) {
             Some((.., compress_return)) => compress_return,
             None => false,
         }
     }
 
     pub fn class_format(&self) -> ClassFormat {
-        self.get_attribute(true, Attribute::match_class_format)
+        self.find_attribute(true, Attribute::match_class_format)
             .unwrap_or(ClassFormat::Compact)
     }
 

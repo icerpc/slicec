@@ -45,18 +45,23 @@ pub trait NamedSymbol: ScopedSymbol {
 }
 
 pub trait Attributable {
+    /// Returns the attributes of the element.
     fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
+
+    /// Returns all the attributes of the element and its parents.
     fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
 
+    /// Returns true if the predicate matches any attribute. False otherwise.
     fn has_attribute<P, T>(&self, include_parent: bool, predicate: P) -> bool
     where
         Self: Sized,
         P: FnMut(&Attribute) -> Option<T>,
     {
-        self.get_attribute(include_parent, predicate).is_some()
+        self.find_attribute(include_parent, predicate).is_some()
     }
 
-    fn get_attribute<P, T>(&self, include_parent: bool, predicate: P) -> Option<T>
+    /// Returns the first attribute that matches the predicate.
+    fn find_attribute<P, T>(&self, include_parent: bool, predicate: P) -> Option<T>
     where
         Self: Sized,
         P: FnMut(&Attribute) -> Option<T>,

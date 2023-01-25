@@ -95,6 +95,7 @@ pub trait LanguageKind {
     fn as_any(&self) -> &dyn std::any::Any;
     fn clone_kind(&self) -> Box<dyn LanguageKind>;
     fn debug_kind(&self) -> &str;
+    fn is_repeatable(&self) -> bool;
 }
 
 impl Clone for Box<dyn LanguageKind> {
@@ -252,6 +253,18 @@ impl AttributeKind {
 
         // If the attribute is not known, return check if it is a single or multiple arguments
         attribute_kind.unwrap_or(unmatched_attribute)
+    }
+
+    pub fn is_repeatable(&self) -> bool {
+        match &self {
+            AttributeKind::Compress { .. } => false,
+            AttributeKind::Oneway => false,
+            AttributeKind::Deprecated { .. } => false,
+            AttributeKind::ClassFormat { .. } => false,
+            AttributeKind::IgnoreWarnings { .. } => true,
+            AttributeKind::LanguageKind { kind } => kind.is_repeatable(),
+            AttributeKind::Other { .. } => true,
+        }
     }
 }
 
