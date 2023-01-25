@@ -96,7 +96,7 @@ impl DiagnosticReporter {
             self.file_level_ignored_warnings
                 .insert(slice_file.relative_path.clone(), Vec::new());
         } else if !ignore_warning_attributes.is_empty() {
-            // Otherwise we are ignoring the specified warnings.
+            // Otherwise we ignore the specified warnings.
             self.file_level_ignored_warnings
                 .insert(slice_file.relative_path.clone(), ignore_warning_attributes.concat());
         }
