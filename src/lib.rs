@@ -6,7 +6,6 @@ pub mod command_line;
 pub mod compilation_result;
 pub mod diagnostics;
 pub mod grammar;
-pub mod parser;
 pub mod parsers;
 pub mod slice_file;
 pub mod supported_encodings;
