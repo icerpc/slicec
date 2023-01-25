@@ -663,7 +663,7 @@ implement_diagnostic_functions!(
     (
         "E050",
         ErrorKind::AttributeIsNotRepeatable,
-        format!("attribute '{attribute}' is not repeatable"),
+        format!("duplicate attribute '{attribute}'"),
         attribute
     )
 );
