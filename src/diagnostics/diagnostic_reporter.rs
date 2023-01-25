@@ -1,8 +1,9 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
+use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::Diagnostic;
-use crate::grammar::{Attributable, Attribute};
+use crate::grammar::{Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
 
 use std::collections::HashMap;
@@ -24,8 +25,6 @@ pub struct DiagnosticReporter {
     pub ignored_warnings: Option<Vec<String>>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    /// The relative paths of all Slice files that have the file level `ignoreWarnings` attribute.
-    pub file_level_ignored_warnings: HashMap<String, Vec<String>>,
     // If true, diagnostic output will not be styled.
     pub disable_color: bool,
 }
@@ -38,7 +37,6 @@ impl DiagnosticReporter {
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
-            file_level_ignored_warnings: HashMap::new(),
             disable_color: slice_options.disable_color,
             ignored_warnings: slice_options.ignore_warnings.clone(),
         }
@@ -65,9 +63,53 @@ impl DiagnosticReporter {
         i32::from(self.has_errors() || (self.treat_warnings_as_errors && self.has_diagnostics()))
     }
 
-    /// Consumes the diagnostic reporter, returning all the diagnostics that have been reported with it.
-    pub fn into_diagnostics(self) -> Vec<Diagnostic> {
-        self.diagnostics
+    /// Consumes the diagnostic reporter and returns an iterator over all its diagnostics, but with any that should
+    /// be ignored filtered out (due to `ignoreWarnings` attributes, or the `ignore-warnings` command line option).
+    pub fn into_diagnostics<'a>(
+        self,
+        ast: &'a Ast,
+        files: &'a HashMap<String, SliceFile>,
+    ) -> impl Iterator<Item = Diagnostic> + 'a {
+        // Helper function that returns true if a warning should be ignored according to the provided list.
+        // This happens if the list exists and is empty (ignores everything), or if the code is contained within it.
+        fn is_warning_ignored_by(code: &String, ignored_codes: &Vec<String>) -> bool {
+            ignored_codes.is_empty() || ignored_codes.contains(code)
+        }
+
+        // Helper function that checks whether a warning should be ignored according to the provided attributes.
+        fn is_warning_ignored_by_attributes(code: &String, attributes: Vec<&Attribute>) -> bool {
+            attributes
+                .into_iter()
+                .filter_map(Attribute::match_ignore_warnings)
+                .any(|ignored_codes| is_warning_ignored_by(code, &ignored_codes))
+        }
+
+        // Filter out any warnings that should be ignored.
+        self.diagnostics.into_iter().filter(move |diagnostic| {
+            let mut is_ignored = false;
+
+            if let Diagnostic::Warning(warning) = &diagnostic {
+                let warning_code = warning.error_code().to_owned();
+
+                // Check if the warning is ignored by an `ignored-warnings` flag passed on the command line.
+                if let Some(ignored_codes) = &self.ignored_warnings {
+                    is_ignored |= is_warning_ignored_by(&warning_code, ignored_codes)
+                }
+
+                // If the warning has a span, check if it's ignored by an `ignoreWarnings` attribute on its file.
+                if let Some(span) = &warning.span {
+                    let file = files.get(&span.file).expect("slice file didn't exist");
+                    is_ignored |= is_warning_ignored_by_attributes(&warning_code, file.attributes(false));
+                }
+
+                // If the warning has a scope, check if it's ignored by an `ignoreWarnings` attribute in that scope.
+                if let Some(scope) = &warning.scope {
+                    let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
+                    is_ignored |= is_warning_ignored_by_attributes(&warning_code, entity.attributes(true));
+                }
+            }
+            !is_ignored
+        })
     }
 
     pub(super) fn report(&mut self, diagnostic: impl Into<Diagnostic>) {
@@ -77,29 +119,5 @@ impl DiagnosticReporter {
             Diagnostic::Warning(_) => self.warning_count += 1,
         }
         self.diagnostics.push(diagnostic);
-    }
-
-    /// Adds an entry into this reporter's `file_level_ignored_warnings` map for the specified slice file.
-    pub(crate) fn add_file_level_ignore_warnings_for(&mut self, slice_file: &SliceFile) {
-        // Vector all of ignore warning attributes. The attribute can be specified multiple times. An empty inner vector
-        // indicates that all warnings should be ignored.
-        // eg. [ignoreWarnings]
-        //     [ignoreWarnings("W001", "W002")]
-        let ignore_warning_attributes = slice_file
-            .attributes(false)
-            .into_iter()
-            .filter_map(Attribute::match_ignore_warnings)
-            .collect::<Vec<Vec<_>>>();
-
-        // If any of the vectors are empty then we just ignore all warnings.
-        if ignore_warning_attributes.iter().any(Vec::is_empty) {
-            self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), Vec::new());
-        } else if !ignore_warning_attributes.is_empty() {
-            // Otherwise we ignore the specified warnings.
-            self.file_level_ignored_warnings
-                .insert(slice_file.relative_path.clone(), ignore_warning_attributes.concat());
-        }
-        // else we don't ignore any warnings.
     }
 }

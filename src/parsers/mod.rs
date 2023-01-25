@@ -55,7 +55,4 @@ fn parse_file(
     file.encoding = encoding;
     file.attributes = attributes;
     file.contents = top_level_modules;
-
-    // Update the file level ignored warnings map in the diagnostic reporter.
-    diagnostic_reporter.add_file_level_ignore_warnings_for(file);
 }

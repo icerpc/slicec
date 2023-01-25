@@ -42,8 +42,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
-    use slice::compile_from_strings;
+    use crate::helpers::parsing_helpers::{parse_for_diagnostics, parse_multiple_for_diagnostics};
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -132,10 +131,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostics = compile_from_strings(&[slice1, slice2], None)
-            .unwrap_err()
-            .diagnostic_reporter
-            .into_diagnostics();
+        let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
         let expected = Error::new(ErrorKind::UnsupportedType {

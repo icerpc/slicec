@@ -55,7 +55,7 @@ impl CompilationData {
         let counts = self.diagnostic_reporter.get_totals();
 
         // Write each diagnostic as a single line of JSON.
-        for diagnostic in self.diagnostic_reporter.into_diagnostics() {
+        for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
             let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
             writeln!(writer, "{json}")?;
         }
@@ -66,7 +66,7 @@ impl CompilationData {
         // The for loop consumes the diagnostics, so we compute the count now.
         let counts = self.diagnostic_reporter.get_totals();
 
-        for diagnostic in self.diagnostic_reporter.into_diagnostics() {
+        for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
             let error_code = diagnostic

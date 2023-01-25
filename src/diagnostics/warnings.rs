@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
 use super::{DiagnosticReporter, Note};
-use crate::grammar::{AttributeKind, Entity};
 use crate::implement_diagnostic_functions;
 use crate::slice_file::Span;
 
@@ -9,6 +8,7 @@ use crate::slice_file::Span;
 pub struct Warning {
     pub(super) kind: WarningKind,
     pub(super) span: Option<Span>,
+    pub(super) scope: Option<String>,
     pub(super) notes: Vec<Note>,
 }
 
@@ -17,6 +17,7 @@ impl Warning {
         Warning {
             kind,
             span: None,
+            scope: None,
             notes: Vec::new(),
         }
     }
@@ -26,47 +27,18 @@ impl Warning {
         self
     }
 
+    pub fn set_scope(mut self, scope: impl Into<String>) -> Self {
+        self.scope = Some(scope.into());
+        self
+    }
+
     pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
         self.notes.push(Note::new(message, span));
         self
     }
 
-    pub fn report(self, reporter: &mut DiagnosticReporter, entity: Option<&dyn Entity>) {
-        // Returns true if the Slice file has the file level `ignoreWarnings` attribute with no arguments (ignoring all
-        // warnings), or if it has an argument matching the error code of the warning.
-        if let Some(span) = &self.span {
-            if match reporter.file_level_ignored_warnings.get(&span.file) {
-                None => false,
-                Some(args) if args.is_empty() => true,
-                Some(args) => args.contains(&self.error_code().to_owned()),
-            } {
-                // Do not push the warning to the diagnostics vector
-                return;
-            }
-        }
-
-        if let Some(entity) = entity {
-            // Returns true if the entity (or its parent) has the`ignoreWarnings` attribute with no arguments (ignoring
-            // all warnings), or if it has an argument matching the error code of the warning.
-            if entity.attributes(true).iter().any(|a| match &a.kind {
-                AttributeKind::IgnoreWarnings { warning_codes } => {
-                    warning_codes.is_empty() || warning_codes.contains(&self.error_code().to_owned())
-                }
-                _ => false,
-            }) {
-                // Do not push the warning to the diagnostics vector
-                return;
-            }
-        }
-
-        // Do not report warnings if the user has specified the `ignore-warnings` flag.
-        match reporter.ignored_warnings {
-            Some(ref args) if args.is_empty() => return,
-            Some(ref args) if args.contains(&self.error_code().to_owned()) => return,
-            _ => {}
-        }
-
-        reporter.report(self);
+    pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
+        diagnostic_reporter.report(self);
     }
 
     pub fn error_code(&self) -> &str {
