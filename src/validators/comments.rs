@@ -22,7 +22,8 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
         if comment.returns.is_some() && operation.return_members().is_empty() {
             Warning::new(WarningKind::ExtraReturnValueInDocComment)
                 .set_span(comment.span())
-                .report(diagnostic_reporter, Some(operation));
+                .set_scope(operation.parser_scope())
+                .report(diagnostic_reporter);
         }
     }
 }
@@ -40,7 +41,8 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                     identifier: param.0.clone(),
                 })
                 .set_span(comment.span())
-                .report(diagnostic_reporter, Some(operation));
+                .set_scope(operation.parser_scope())
+                .report(diagnostic_reporter);
             }
         });
     }
@@ -56,7 +58,8 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
             };
             Warning::new(warning_kind)
                 .set_span(comment.span())
-                .report(diagnostic_reporter, Some(entity))
+                .set_scope(entity.parser_scope())
+                .report(diagnostic_reporter)
         };
     }
 }
@@ -74,13 +77,15 @@ fn linked_identifiers_exist(entity: &dyn Entity, ast: &Ast, diagnostic_reporter:
                             identifier: value.to_owned(),
                         })
                         .set_span(comment.span())
-                        .report(diagnostic_reporter, Some(entity));
+                        .set_scope(entity.parser_scope())
+                        .report(diagnostic_reporter);
                     }
                 }
                 other if other.starts_with('@') => {
                     Warning::new(WarningKind::InvalidDocCommentTag { tag: other.to_owned() })
                         .set_span(comment.span())
-                        .report(diagnostic_reporter, Some(entity));
+                        .set_scope(entity.parser_scope())
+                        .report(diagnostic_reporter);
                 }
                 _ => {}
             }

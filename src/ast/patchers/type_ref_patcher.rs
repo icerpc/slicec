@@ -197,7 +197,7 @@ impl TypeRefPatcher<'_> {
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
                 // which are resolved and erased after TypeRef patching is completed.
-                self.check_for_deprecated_type(type_ref, node, ast);
+                self.check_for_deprecated_type(type_ref, node);
 
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
@@ -216,15 +216,11 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn check_for_deprecated_type<T: Element + ?Sized>(&mut self, type_ref: &TypeRef<T>, node: &Node, ast: &Ast) {
+    fn check_for_deprecated_type<T: Element + ?Sized>(&mut self, type_ref: &TypeRef<T>, node: &Node) {
         // Check if the type is an entity, and if so, check if it has the `deprecated` attribute.
         // Only entities can be deprecated, so this check is sufficient.
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
             if let Some(argument) = entity.get_deprecation(true) {
-                // All of these type_refs must be inside of a container entity. TypeRefs do not have a reference
-                // to their parent entity, so we use the TypeRef's parser scope to look up the parent entity.
-                let container = ast.find_element::<dyn Entity>(type_ref.parser_scope()).unwrap();
-
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
                 Warning::new(WarningKind::UseOfDeprecatedEntity {
@@ -232,11 +228,12 @@ impl TypeRefPatcher<'_> {
                     deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
                 })
                 .set_span(type_ref.span())
+                .set_scope(type_ref.parser_scope())
                 .add_note(
                     format!("{} was deprecated here:", entity.identifier()),
                     Some(entity.span()),
                 )
-                .report(self.diagnostic_reporter, Some(container));
+                .report(self.diagnostic_reporter);
             }
         }
     }

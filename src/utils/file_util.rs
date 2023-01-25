@@ -55,7 +55,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     for reference_file in reference_files {
         let path = reference_file.path.clone();
         if file_paths.insert(reference_file, false).is_some() {
-            Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter, None);
+            Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter);
         }
     }
 
@@ -70,7 +70,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         if let Some(is_source) = file_paths.insert(source_file, true) {
             // Only report an error if the file was previously a source file.
             if is_source {
-                Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter, None);
+                Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter);
             }
         }
     }
