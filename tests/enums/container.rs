@@ -65,7 +65,7 @@ fn implicit_enumerator_values_overflow_cleanly() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = [
@@ -82,7 +82,7 @@ fn implicit_enumerator_values_overflow_cleanly() {
             max: 2147483647,
         }),
     ];
-    assert_errors!(diagnostic_reporter, expected);
+    assert_errors!(diagnostics, expected);
 }
 
 #[test]
@@ -98,10 +98,10 @@ fn enumerator_values_can_be_out_of_order() {
         ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn validate_backing_type_out_of_bounds() {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
@@ -128,7 +128,7 @@ fn validate_backing_type_out_of_bounds() {
         min: -32768_i128,
         max: 32767_i128,
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -148,10 +148,10 @@ fn validate_backing_type_bounds() {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test_case("string"; "string")]
@@ -170,14 +170,14 @@ fn invalid_underlying_type(underlying_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
         enum_identifier: "E".to_owned(),
         kind: underlying_type.to_owned(),
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("10", "expected one of '[', '}', 'doc comment', or 'identifier', but found '10'"; "numeric identifier")]
@@ -195,10 +195,10 @@ fn enumerator_invalid_identifiers(identifier: &str, expected: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter, [expected]);
+    assert_errors!(diagnostics, [expected]);
 }
 
 #[test]
@@ -214,13 +214,13 @@ fn optional_underlying_types_fail() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::CannotUseOptionalUnderlyingType {
         enum_identifier: "E".to_owned(),
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -237,12 +237,12 @@ fn enumerators_must_be_unique() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 1 })
         .add_note("the value was previously used by 'A' here:", None);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("unchecked enum", true ; "unchecked")]
@@ -281,9 +281,9 @@ fn checked_enums_can_not_be_empty() {
         enum_identifier: "E".to_owned(),
     });
 
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -344,11 +344,11 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 79 });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 mod slice1 {
@@ -373,7 +373,7 @@ mod slice1 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         const MAX_VALUE: i128 = i32::MAX as i128;
@@ -397,7 +397,7 @@ mod slice1 {
                 max: MAX_VALUE,
             }),
         ];
-        assert_errors!(diagnostic_reporter, expected_errors);
+        assert_errors!(diagnostics, expected_errors);
     }
 
     #[test]
@@ -417,7 +417,7 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
@@ -426,7 +426,7 @@ mod slice1 {
             min: 0,
             max: i32::MAX as i128,
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }
 
@@ -451,10 +451,10 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test]

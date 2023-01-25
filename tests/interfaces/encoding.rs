@@ -28,7 +28,11 @@ fn operation_members_are_compatible_with_encoding() {
     ";
 
     // Act
-    let result = compile_from_strings(&[slice1, slice2], None).err().unwrap();
+    let diagnostics = compile_from_strings(&[slice1, slice2], None)
+        .err()
+        .unwrap()
+        .diagnostic_reporter
+        .into_diagnostics();
 
     // Assert
     let expected = Error::new(ErrorKind::UnsupportedType {
@@ -37,7 +41,7 @@ fn operation_members_are_compatible_with_encoding() {
     })
     .add_note("file encoding was set to Slice2 here:", None);
 
-    assert_errors!(result.diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -52,11 +56,11 @@ fn anyexception_cannot_be_used_without_slice1() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 mod slice1 {

@@ -22,7 +22,7 @@ mod slice1 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
@@ -33,7 +33,7 @@ mod slice1 {
         .add_note("file encoding was set to Slice1 here:", None)
         .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None);
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }
 
@@ -59,7 +59,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::UnsupportedType {
@@ -72,7 +72,7 @@ mod slice2 {
             None,
         );
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     /// Verifies using the slice parser with Slice2 will not emit errors when parsing
@@ -91,9 +91,9 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 }

@@ -51,10 +51,10 @@ mod typealias {
         ";
 
         // Act
-        let reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test]
@@ -70,10 +70,10 @@ mod typealias {
         ";
 
         // Act
-        let reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test]

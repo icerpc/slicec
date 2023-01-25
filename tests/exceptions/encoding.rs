@@ -28,14 +28,14 @@ mod slice1 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::ExceptionNotSupported {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }
 
@@ -65,7 +65,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
@@ -80,7 +80,7 @@ mod slice2 {
         )
         .add_note("exception inheritance is only supported by the Slice1 encoding", None);
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing
@@ -102,10 +102,10 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.
@@ -132,16 +132,17 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = compile_from_strings(&[slice1, slice2], None)
+        let diagnostics = compile_from_strings(&[slice1, slice2], None)
             .unwrap_err()
-            .diagnostic_reporter;
+            .diagnostic_reporter
+            .into_diagnostics();
 
         // Assert
         let expected = Error::new(ErrorKind::UnsupportedType {
             kind: "E".to_owned(),
             encoding: Encoding::Slice2,
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -157,10 +158,10 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }

@@ -57,7 +57,7 @@ fn does_not_support_multiple_inheritance() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::Syntax {
@@ -65,7 +65,7 @@ fn does_not_support_multiple_inheritance() {
     })
     .set_span(&Span::new((13, 20).into(), (13, 21).into(), "string-0"));
 
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -86,14 +86,14 @@ fn data_member_shadowing_is_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::Shadows {
         identifier: "i".to_owned(),
     })
     .add_note("'i' was previously defined here", None);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]

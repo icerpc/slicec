@@ -25,13 +25,13 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
             member_identifier: "b".to_owned(),
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -47,13 +47,13 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
             member_identifier: "myParam".to_string(),
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -69,7 +69,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::OptionalsNotSupported {
@@ -77,7 +77,7 @@ mod tags {
         })
         .add_note("file encoding was set to Slice1 here:", None);
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -93,7 +93,7 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = [
@@ -104,7 +104,7 @@ mod tags {
                 parameter_identifier: "p4".to_owned(),
             }),
         ];
-        assert_errors!(diagnostic_reporter, expected);
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -125,13 +125,13 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::CannotTagClass {
             member_identifier: "c".to_owned(),
         });
-        assert_errors!(errors, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -157,13 +157,13 @@ mod tags {
         ";
 
         // Act
-        let errors = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::CannotTagContainingClass {
             member_identifier: "s".to_owned(),
         });
-        assert_errors!(errors, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -200,14 +200,14 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::CannotHaveDuplicateTag {
             member_identifier: "b".to_owned(),
         })
         .add_note("The data member 'a' has previous used the tag value '1'", None);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test_case(0)]
@@ -226,10 +226,10 @@ mod tags {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test_case(77757348128678234_i64 ; "Random large value")]
@@ -247,11 +247,11 @@ mod tags {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::TagValueOutOfBounds);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -266,11 +266,11 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::TagValueOutOfBounds);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -285,10 +285,10 @@ mod tags {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
+        assert_errors!(diagnostics, [
             "expected one of '-' or 'integer literal', but found 'test string'"
         ]);
     }

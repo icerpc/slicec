@@ -12,10 +12,10 @@ fn parse_empty_string() {
     let slice = "";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -24,10 +24,10 @@ fn parse_string_containing_only_whitespace() {
     let slice = " ";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -37,10 +37,10 @@ fn parse_ideographic_space() {
     let slice = "　";
 
     // Act
-    let reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn string_literals_cannot_contain_newlines() {
     "#;
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let span = Span::new((2, 22).into(), (2, 32).into(), "string-0");
@@ -61,5 +61,5 @@ fn string_literals_cannot_contain_newlines() {
         message: "unterminated string literal".to_owned(),
     })
     .set_span(&span);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
