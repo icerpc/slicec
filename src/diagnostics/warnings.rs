@@ -27,8 +27,8 @@ impl Warning {
         self
     }
 
-    pub fn set_scope(mut self, scope: &str) -> Self {
-        self.scope = Some(scope.to_owned());
+    pub fn set_scope(mut self, scope: impl Into<String>) -> Self {
+        self.scope = Some(scope.into());
         self
     }
 

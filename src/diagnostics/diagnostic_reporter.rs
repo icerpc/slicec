@@ -93,22 +93,22 @@ impl DiagnosticReporter {
 
                 // Check if the warning is ignored by an `ignored-warnings` flag passed on the command line.
                 if let Some(ignored_codes) = &self.ignored_warnings {
-                    is_ignored &= is_warning_ignored_by(&warning_code, ignored_codes)
+                    is_ignored |= is_warning_ignored_by(&warning_code, ignored_codes)
                 }
 
                 // If the warning has a span, check if it's ignored by an `ignoreWarnings` attribute on its file.
                 if let Some(span) = &warning.span {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    is_ignored &= is_warning_ignored_by_attributes(&warning_code, file.attributes(false));
+                    is_ignored |= is_warning_ignored_by_attributes(&warning_code, file.attributes(false));
                 }
 
                 // If the warning has a scope, check if it's ignored by an `ignoreWarnings` attribute in that scope.
                 if let Some(scope) = &warning.scope {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    is_ignored &= is_warning_ignored_by_attributes(&warning_code, entity.attributes(true));
+                    is_ignored |= is_warning_ignored_by_attributes(&warning_code, entity.attributes(true));
                 }
             }
-            is_ignored
+            !is_ignored
         })
     }
 
