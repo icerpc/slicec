@@ -584,14 +584,14 @@ mod attributes {
                 }
             ";
 
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [Error::new(ErrorKind::AttributeIsNotRepeatable {
                 attribute: "compress".to_owned(),
             })];
 
-            assert_errors!(diagnostic_reporter, &expected);
+            assert_errors!(diagnostics, &expected);
         }
     }
 
