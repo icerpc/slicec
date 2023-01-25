@@ -92,7 +92,7 @@ impl DiagnosticReporter {
             .collect::<Vec<Vec<_>>>();
 
         // If any of the vectors are empty then we just ignore all warnings.
-        if ignore_warning_attributes.iter().any(|v| v.is_empty()) {
+        if ignore_warning_attributes.iter().any(Vec::is_empty) {
             self.file_level_ignored_warnings
                 .insert(slice_file.relative_path.clone(), Vec::new());
         } else if !ignore_warning_attributes.is_empty() {
