@@ -49,11 +49,11 @@ mod compact_structs {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::CompactStructCannotContainTaggedMembers)
             .add_note("struct 'S' is declared compact here", None);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }

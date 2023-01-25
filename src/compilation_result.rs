@@ -63,9 +63,6 @@ impl CompilationData {
     }
 
     fn output_to_console(self, writer: &mut impl Write) -> std::io::Result<()> {
-        // Take ownership of the files from `self`
-        let files = self.files;
-
         // The for loop consumes the diagnostics, so we compute the count now.
         let counts = self.diagnostic_reporter.get_totals();
 
@@ -86,7 +83,7 @@ impl CompilationData {
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
-                Self::append_snippet(&mut message, span, &files);
+                Self::append_snippet(&mut message, span, &self.files);
             }
 
             // If the diagnostic contains notes, display them.
@@ -100,7 +97,7 @@ impl CompilationData {
                 // Only display the snippet if the note has a different span than the diagnostic.
                 if note.span.as_ref() != diagnostic.span() {
                     if let Some(span) = &note.span {
-                        Self::append_snippet(&mut message, span, &files)
+                        Self::append_snippet(&mut message, span, &self.files)
                     }
                 }
             });

@@ -74,13 +74,13 @@ mod attributes {
             );
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Error::new(ErrorKind::CannotBeEmpty {
                 member_identifier: "format attribute".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -97,7 +97,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Error::new(ErrorKind::ArgumentNotSupported {
@@ -109,7 +109,7 @@ mod attributes {
                 None,
             );
 
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -146,13 +146,13 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
                 kind: "parameter(s)".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -199,14 +199,14 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -231,14 +231,14 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -259,14 +259,14 @@ mod attributes {
                 ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: ": Message here".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -286,14 +286,14 @@ mod attributes {
                 ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -333,7 +333,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Error::new(ErrorKind::ArgumentNotSupported {
@@ -344,7 +344,7 @@ mod attributes {
                 "The valid arguments for the compress attribute are 'Args' and 'Return'",
                 None,
             );
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -361,11 +361,11 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Error::new(ErrorKind::CompressAttributeCannotBeApplied);
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]
@@ -460,10 +460,10 @@ mod attributes {
         )]
         fn ignore_warnings_attribute(slice: &str) {
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            assert_errors!(diagnostic_reporter);
+            assert_errors!(diagnostics);
         }
 
         #[test]
@@ -480,7 +480,7 @@ mod attributes {
             ";
 
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = [
@@ -491,7 +491,7 @@ mod attributes {
                     code: "w001".to_owned(),
                 }),
             ];
-            assert_errors!(diagnostic_reporter, expected);
+            assert_errors!(diagnostics, expected);
         }
 
         #[test_case(
@@ -524,10 +524,10 @@ mod attributes {
         )]
         fn ignore_warnings_attribute_args(slice: &str) {
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            assert_errors!(diagnostic_reporter);
+            assert_errors!(diagnostics);
         }
 
         #[test_case(
@@ -560,7 +560,7 @@ mod attributes {
         // Test that if args are passed to ignoreWarnings, that only those warnings are ignored
         fn ignore_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
             // Act
-            let diagnostic_reporter = parse_for_diagnostics(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment {
@@ -568,7 +568,7 @@ mod attributes {
             });
 
             debug_assert_eq!(expected.error_code(), "W002");
-            assert_errors!(diagnostic_reporter, [&expected]);
+            assert_errors!(diagnostics, [&expected]);
         }
 
         #[test]

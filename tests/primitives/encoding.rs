@@ -34,7 +34,7 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::UnsupportedType {
@@ -42,7 +42,7 @@ mod slice1 {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -71,10 +71,10 @@ mod slice1 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 }
 
@@ -101,7 +101,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = Error::new(ErrorKind::UnsupportedType {
@@ -115,7 +115,7 @@ mod slice2 {
         )
         .add_note("classes are only supported by the Slice1 encoding", None);
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,
@@ -150,10 +150,10 @@ mod slice2 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test_case("uint8?"; "optional uint8")]
@@ -187,9 +187,9 @@ mod slice2 {
         );
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 }

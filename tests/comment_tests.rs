@@ -97,12 +97,10 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
-            "void operation must not contain doc comment return tag"
-        ]);
+        assert_errors!(diagnostics, ["void operation must not contain doc comment return tag"]);
     }
 
     #[test]
@@ -120,10 +118,10 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
+        assert_errors!(diagnostics, [
             "doc comment has a param tag for 'testParam2', but there is no parameter by that name",
         ]);
     }
@@ -144,10 +142,10 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter);
+        assert_errors!(diagnostics);
     }
 
     #[test]
@@ -187,10 +185,10 @@ mod comments {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostic_reporter, [
+        assert_errors!(diagnostics, [
             "doc comment indicates that struct 'S' throws, however, only operations can throw",
         ]);
     }
@@ -306,13 +304,13 @@ mod comments {
             ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = &crate::helpers::new_warning(WarningKind::InvalidDocCommentLinkIdentifier {
             identifier: "OtherStruct".to_owned(),
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 
     #[test]
@@ -327,12 +325,12 @@ mod comments {
             ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let expected = &crate::helpers::new_warning(WarningKind::InvalidDocCommentTag {
             tag: "@linked".to_owned(),
         });
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }

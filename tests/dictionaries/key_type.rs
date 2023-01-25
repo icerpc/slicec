@@ -14,11 +14,11 @@ fn optionals_are_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::KeyMustBeNonOptional);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("bool"; "bool")]
@@ -45,10 +45,10 @@ fn allowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test_case("float32"; "float32")]
@@ -64,13 +64,13 @@ fn disallowed_primitive_types(key_type: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         identifier: key_type.to_owned(),
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("sequence<int8>", "sequences" ; "sequences")]
@@ -85,13 +85,13 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         identifier: key_kind.to_owned(),
     });
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
@@ -107,10 +107,10 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
@@ -129,7 +129,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     );
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
@@ -137,7 +137,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     })
     .add_note(format!("{key_kind} '{key_type}' is defined here:"), None);
 
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -154,11 +154,11 @@ fn non_compact_structs_are_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected = Error::new(ErrorKind::StructKeyMustBeCompact).add_note("Struct 'MyStruct' is defined here:", None);
-    assert_errors!(diagnostic_reporter, [&expected]);
+    assert_errors!(diagnostics, [&expected]);
 }
 
 #[test]
@@ -182,10 +182,10 @@ fn compact_struct_with_allowed_members_is_allowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostic_reporter);
+    assert_errors!(diagnostics);
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     ";
 
     // Act
-    let diagnostic_reporter = parse_for_diagnostics(slice);
+    let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
     let expected: [Error; 7] = [
@@ -239,5 +239,5 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
         })
         .add_note("struct 'Outer' is defined here:", None),
     ];
-    assert_errors!(diagnostic_reporter, expected);
+    assert_errors!(diagnostics, expected);
 }

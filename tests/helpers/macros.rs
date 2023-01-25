@@ -6,27 +6,25 @@
 /// diagnostic reporter errors.
 #[macro_export]
 macro_rules! assert_errors {
-    ($diagnostic_reporter:expr) => {
-        let errors = $diagnostic_reporter.into_diagnostics();
+    ($diagnostics:expr) => {
         assert!(
-            errors.is_empty(),
+            $diagnostics.is_empty(),
             "Expected no errors, got {}.\n{:?}",
-            errors.len(),
-            errors,
+            $diagnostics.len(),
+            $diagnostics,
         );
     };
 
-    ($diagnostic_reporter:expr, $expected_errors:expr) => {
-        let errors = $diagnostic_reporter.into_diagnostics();
+    ($diagnostics:expr, $expected_errors:expr) => {
         assert_eq!(
-            errors.len(),
+            $diagnostics.len(),
             $expected_errors.len(),
             "Expected {} errors, got {}.\n{:?}",
             $expected_errors.len(),
-            errors.len(),
-            errors,
+            $diagnostics.len(),
+            $diagnostics,
         );
-        for (i, error) in errors.iter().enumerate() {
+        for (i, error) in $diagnostics.iter().enumerate() {
             assert_eq!(&error.message(), &$expected_errors[i].to_string());
         }
     };

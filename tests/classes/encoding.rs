@@ -18,7 +18,7 @@ mod slice2 {
         ";
 
         // Act
-        let diagnostic_reporter = parse_for_diagnostics(slice);
+        let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
         let error_kind = ErrorKind::NotSupportedWithEncoding {
@@ -34,6 +34,6 @@ mod slice2 {
             )
             .add_note("classes are only supported by the Slice1 encoding", None);
 
-        assert_errors!(diagnostic_reporter, [&expected]);
+        assert_errors!(diagnostics, [&expected]);
     }
 }
