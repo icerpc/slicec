@@ -14,8 +14,9 @@ macro_rules! implement_parse_function {
             super::grammar::lalrpop::$underlying_parser::new()
                 .parse(self, Lexer::new(input))
                 .map_err(|parse_error| {
-                    let warning = super::construct_warning_from(parse_error, self.file_name);
-                    warning.report(self.reporter, None);
+                    super::construct_warning_from(parse_error, self.file_name)
+                        .set_scope(self.identifier)
+                        .report(self.reporter);
                 })
         }
     };
@@ -23,13 +24,14 @@ macro_rules! implement_parse_function {
 
 pub struct CommentParser<'a> {
     pub file_name: &'a str,
+    pub identifier: &'a String,
     pub(super) reporter: &'a mut DiagnosticReporter,
 }
 
 impl<'a> CommentParser<'a> {
     implement_parse_function!(parse_doc_comment, DocCommentParser, DocComment);
 
-    pub fn new(file_name: &'a str, reporter: &'a mut DiagnosticReporter) -> Self {
-        CommentParser { file_name, reporter }
+    pub fn new(file_name: &'a str, identifier: &'a String, reporter: &'a mut DiagnosticReporter) -> Self {
+        CommentParser { file_name, identifier, reporter }
     }
 }

@@ -268,12 +268,13 @@ impl<'input> Iterator for Lexer<'input> {
             // We check if there's another line to the comment. If so, we start lexing that line; otherwise we switch
             // the lexer to `Finished` mode, since there's no more input left. Either way we return a `Newline` token.
             LexerMode::BlockTag | LexerMode::Message => {
+                let newline_token = (self.cursor, TokenKind::Newline, self.cursor);
                 if let Some((next_line, next_span)) = self.lines.next() {
                     self.switch_to_next_line(next_line, next_span);
                 } else {
                     self.mode = LexerMode::Finished;
                 }
-                Some(Ok((self.cursor, TokenKind::Newline, self.cursor)))
+                Some(Ok(newline_token))
             }
 
             // If the lexer has hit the end of the comment, return `None` to signal this.

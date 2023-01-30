@@ -6,6 +6,7 @@
 //! keep the rules focused on grammar instead of implementation details, making the grammar easier to read and modify.
 
 use crate::grammar::{DocComment, Message, MessageComponent, Overview};
+use crate::slice_file::{Location, Span};
 
 use lalrpop_util::lalrpop_mod;
 
@@ -19,9 +20,8 @@ lalrpop_mod!(
 // Helper macro for storing parsed tags inside the correct field of a doc comment,
 // and extending the doc comment's span to the end of the new tag.
 macro_rules! append_tag_to_comment {
-    ($comment:ident, $field:ident, $block:expr, $l:expr, $r:expr) => {{
+    ($comment:ident, $field:ident, $block:expr, $r:expr) => {{
         $comment.$field.push($block);
-        $comment.span.start = $l;
         $comment.span.end = $r;
         $comment
     }};
@@ -32,10 +32,19 @@ pub(self) use append_tag_to_comment; // To let LALRPOP use the macro.
 /// Creates a new doc comment with the specified overview and everything else empty.
 /// Because of how parsing works, we always get an `Overview` token, so here we check if
 /// the overview is actually empty, and if so, set it to `None` instead.
-fn create_doc_comment(overview: Overview) -> DocComment {
-    let span = overview.span.clone();
+fn create_doc_comment(overview: Option<Overview>, start: Location, file: &str) -> DocComment {
+    // We subtract 3 from the start of the comment to account for the leading "///" that is always present.
+    // This span is automatically extended as more constructs are parsed.
+    let mut span = Span::new(start, start, file);
+    span.start.col -= 3;
+
+    // If an overview is present, extend the comment's span to include the overview.
+    if let Some(overview_field) = &overview {
+        span.end = overview_field.span.end;
+    }
+
     DocComment {
-        overview: (!overview.message.is_empty()).then_some(overview),
+        overview,
         params: Vec::new(),
         returns: Vec::new(),
         throws: Vec::new(),
@@ -54,7 +63,9 @@ fn get_scoped_identifier_string<'a>(first: &'a str, mut others: Vec<&'a str>, is
 }
 
 /// Removes any leading whitespace from the inline part of the message, then combines it with any following lines.
-fn construct_section_message(inline_message: Option<Message>, mut message_lines: Message) -> Message {
+fn construct_section_message(inline_message: Option<Message>, message_lines: Option<Message>) -> Message {
+    let mut message_lines = message_lines.unwrap_or_default();
+
     if let Some(mut message) = inline_message {
         // Remove any leading whitespace from the inline portion of the message.
         if let Some(MessageComponent::Text(text)) = message.first_mut() {
@@ -87,7 +98,7 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
                 MessageComponent::Text(text) => {
                     // Determine how many whitespace characters are at the beginning of this line,
                     // then take the minimum of this and the amount of whitespace on all the other lines so far.
-                    let whitespace_index = text.find(|c: char| c.is_whitespace() && c != '\n').unwrap_or_default();
+                    let whitespace_index = text.find(|c: char| !c.is_whitespace()).unwrap_or_default();
                     common_leading_whitespace = std::cmp::min(whitespace_index, common_leading_whitespace);
                 }
                 MessageComponent::Link(_) => {
@@ -103,10 +114,10 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
     // Now that we know the common leading whitespace, we iterate through the lines again and remove the whitespace.
     lines
         .into_iter()
-        .map(|line| match line {
+        .flat_map(|line| match line {
             // If the message had text, we remove the common leading whitespace and append a newline at the end.
-            Some(message) => {
-                if let MessageComponent::Text(text) = message.first().unwrap() {
+            Some(mut message) => {
+                if let MessageComponent::Text(text) = message.first_mut().unwrap() {
                     text.replace_range(..common_leading_whitespace, "");
                 }
                 message.push(MessageComponent::Text("\n".to_owned()));
@@ -116,6 +127,5 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
             // If the line was empty, we create a new message that only contains a newline character.
             None => vec![MessageComponent::Text("\n".to_owned())],
         })
-        .flatten() // Combine all the lines together into a single message.
         .collect()
 }

@@ -40,18 +40,18 @@ extern {
 // Grammar Rules
 
 pub DocComment: DocComment = {
-    Overview => create_doc_comment(<>),
-    <l: @L> <mut comment: DocComment> <param_block: ParamBlock> <r: @R> => {
-        append_tag_to_comment!(comment, params, param_block, l, r)
+    <l: @L> <overview: Overview?> => create_doc_comment(overview, l, comment_parser.file_name),
+    <mut comment: DocComment> <param_block: ParamBlock> <r: @R> => {
+        append_tag_to_comment!(comment, params, param_block, r)
     },
-    <l: @L> <mut comment: DocComment> <returns_block: ReturnsBlock> <r: @R> => {
-        append_tag_to_comment!(comment, returns, returns_block, l, r)
+    <mut comment: DocComment> <returns_block: ReturnsBlock> <r: @R> => {
+        append_tag_to_comment!(comment, returns, returns_block, r)
     },
-    <l: @L> <mut comment: DocComment> <throws_block: ThrowsBlock> <r: @R> => {
-        append_tag_to_comment!(comment, throws, throws_block, l, r)
+    <mut comment: DocComment> <throws_block: ThrowsBlock> <r: @R> => {
+        append_tag_to_comment!(comment, throws, throws_block, r)
     },
-    <l: @L> <mut comment: DocComment> <see_block: SeeBlock> <r: @R> => {
-        append_tag_to_comment!(comment, see, see_block, l, r)
+    <mut comment: DocComment> <see_block: SeeBlock> <r: @R> => {
+        append_tag_to_comment!(comment, see, see_block, r)
     },
 }
 
@@ -98,13 +98,13 @@ InlineLink: LinkTag = {
 }
 
 Section: Message = {
-    <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines> => {
+    <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> => {
         construct_section_message(inline_message.flatten(), message_lines)
     }
 }
 
 MessageLines: Message = {
-    (<Message?> newline)* => sanitize_message_lines(<>),
+    (<Message?> newline)+ => sanitize_message_lines(<>)
 }
 
 Message = MessageComponent+;

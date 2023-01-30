@@ -4,6 +4,7 @@ use super::parser::Parser;
 use crate::ast::node::Node;
 use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::*;
+use crate::parsers::CommentParser;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use crate::{downgrade_as, upcast_weak_as};
@@ -67,6 +68,9 @@ macro_rules! add_definition_to_module {
     }};
 }
 
+// Convenience type for storing an unparsed doc comment. Each element of the vec is one line of the comment.
+type RawDocComment<'a> = Vec<(&'a str, Span)>;
+
 // Grammar Rule Functions
 
 fn handle_file_encoding(
@@ -103,12 +107,16 @@ fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEnco
 
 fn construct_module(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     definitions: Vec<Node>,
     is_file_scoped: bool,
     span: Span,
 ) -> OwnedPtr<Module> {
+    // If nested module syntax is being used, get the last module's identifier, otherwise use the whole identifier.
+    let last_identifier = identifier.value.rsplit("::").next().unwrap_or(&identifier.value);
+    let comment = parse_doc_comment(parser, last_identifier, raw_comment);
+
     // In case nested module syntax was used, we split the identifier on '::' and construct a module for each segment.
     // We use `rsplit` to iterate in reverse order (right to left) to construct them in child-to-parent order.
     // Ex: `Foo::Bar::Baz`: first create `Baz` to add the definitions in, then `Bar` to add `Baz` to it, etc...
@@ -168,12 +176,13 @@ fn construct_module(
 
 fn construct_struct(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     is_compact: bool,
     identifier: Identifier,
     members: Vec<OwnedPtr<DataMember>>,
     span: Span,
 ) -> OwnedPtr<Struct> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     let mut struct_ptr = OwnedPtr::new(Struct {
         identifier,
         members: Vec::new(),
@@ -194,13 +203,14 @@ fn construct_struct(
 
 fn construct_exception(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     base_type: Option<TypeRef>,
     members: Vec<OwnedPtr<DataMember>>,
     span: Span,
 ) -> OwnedPtr<Exception> {
     let base = base_type.map(|type_ref| type_ref.downcast::<Exception>().unwrap());
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut exception_ptr = OwnedPtr::new(Exception {
         identifier,
@@ -222,7 +232,7 @@ fn construct_exception(
 
 fn construct_class(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     compact_id: Option<u32>,
     base_type: Option<TypeRef>,
@@ -230,6 +240,7 @@ fn construct_class(
     span: Span,
 ) -> OwnedPtr<Class> {
     let base = base_type.map(|type_ref| type_ref.downcast::<Class>().unwrap());
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut class_ptr = OwnedPtr::new(Class {
         identifier,
@@ -251,13 +262,14 @@ fn construct_class(
 }
 
 pub fn construct_data_member(
-    parser: &Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    parser: &mut Parser,
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     tag: Option<u32>,
     data_type: TypeRef,
     span: Span,
 ) -> OwnedPtr<DataMember> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(DataMember {
         identifier,
         data_type,
@@ -272,7 +284,7 @@ pub fn construct_data_member(
 
 fn construct_interface(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     bases: Option<Vec<TypeRef>>,
     operations: Vec<OwnedPtr<Operation>>,
@@ -283,6 +295,7 @@ fn construct_interface(
         .into_iter()
         .map(|base| base.downcast::<Interface>().unwrap())
         .collect::<Vec<_>>();
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut interface_ptr = OwnedPtr::new(Interface {
         identifier,
@@ -305,7 +318,7 @@ fn construct_interface(
 #[allow(clippy::too_many_arguments)]
 fn construct_operation(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     is_idempotent: bool,
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
@@ -318,6 +331,8 @@ fn construct_operation(
 
     // If no throws clause was present, set the exception specification to `None`.
     let throws = exception_specification.unwrap_or(Throws::None);
+
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut operation_ptr = OwnedPtr::new(Operation {
         identifier,
@@ -348,13 +363,14 @@ fn construct_operation(
 }
 
 fn construct_parameter(
-    parser: &Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    parser: &mut Parser,
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     (is_streamed, tag): (bool, Option<u32>),
     data_type: TypeRef,
     span: Span,
 ) -> OwnedPtr<Parameter> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(Parameter {
         identifier,
         data_type,
@@ -405,7 +421,7 @@ fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter
 
 fn construct_enum(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     is_unchecked: bool,
     identifier: Identifier,
     underlying_type: Option<TypeRef>,
@@ -413,6 +429,7 @@ fn construct_enum(
     span: Span,
 ) -> OwnedPtr<Enum> {
     let underlying = underlying_type.map(|type_ref| type_ref.downcast::<Primitive>().unwrap());
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut enum_ptr = OwnedPtr::new(Enum {
         identifier,
@@ -438,11 +455,12 @@ fn construct_enum(
 
 fn construct_enumerator(
     parser: &mut Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     value: EnumeratorValue,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(Enumerator {
         identifier,
         value,
@@ -472,11 +490,12 @@ fn construct_enumerator_value(parser: &mut Parser, integer: Option<Integer>) -> 
 }
 
 fn construct_custom_type(
-    parser: &Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    parser: &mut Parser,
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     span: Span,
 ) -> OwnedPtr<CustomType> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(CustomType {
         identifier,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
@@ -489,12 +508,13 @@ fn construct_custom_type(
 }
 
 fn construct_type_alias(
-    parser: &Parser,
-    (comment, attributes): (Option<DocComment>, Vec<Attribute>),
+    parser: &mut Parser,
+    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     underlying: TypeRef,
     span: Span,
 ) -> OwnedPtr<TypeAlias> {
+    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(TypeAlias {
         identifier,
         underlying,
@@ -598,17 +618,13 @@ fn parse_compact_id_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
     i as u32
 }
 
-// TODO improve this function once comment parsing is also switched to LALRPOP.
-fn parse_doc_comment(raw_comments: Vec<(&str, Span)>) -> Option<DocComment> {
-    if raw_comments.is_empty() {
+fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocComment) -> Option<DocComment> {
+    if raw_comment.is_empty() {
+        // If the doc comment had 0 lines, that just means there is no doc comment.
         None
     } else {
-        // Remove the span information, the comment parser can't take advantage of them yet.
-        let dummy_span = raw_comments[0].1.clone(); // Just use the span of the first line for now.
-        let strings = raw_comments.into_iter().map(|(s, _)| s);
-        let combined = strings.collect::<Vec<_>>().join("\n");
-        Some(crate::parser::comments::CommentParser::parse_doc_comment(
-            &combined, dummy_span,
-        ))
+        let scoped_identifier = parser.current_scope.raw_parser_scope.to_owned() + "::" + identifier;
+        let mut comment_parser = CommentParser::new(parser.file_name, &scoped_identifier, parser.diagnostic_reporter);
+        comment_parser.parse_doc_comment(raw_comment).ok()
     }
 }
