@@ -106,8 +106,8 @@ pub enum WarningKind {
 
     /// The user-supplied doc comment link referenced an entity that does not exist.
     InvalidDocCommentLinkIdentifier {
-        /// The identifier of the entity that was referenced.
-        identifier: String,
+        /// Message describing why the identifier was invalid.
+        message: String,
     },
 
     /// The code references a Slice entity that is deprecated.
@@ -183,8 +183,8 @@ implement_diagnostic_functions!(
     (
         "W010",
         WarningKind::InvalidDocCommentLinkIdentifier,
-        format!("doc comment references an identifier '{identifier}' that does not exist"),
-        identifier
+        message,
+        message
     ),
     (
         "W011",
