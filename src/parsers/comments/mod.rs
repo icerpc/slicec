@@ -54,7 +54,7 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
             Warning::new(WarningKind::DocCommentSyntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
-        _ => unreachable!("impossible error encounted in comment parser: {parse_error:?}"),
+        _ => unreachable!("impossible error encountered in comment parser: {parse_error:?}"),
     }
 }
 

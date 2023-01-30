@@ -141,7 +141,7 @@ impl<'input> Lexer<'input> {
                 | TokenKind::ThrowsKeyword
                 | TokenKind::SeeKeyword => !is_inline,
                 TokenKind::LinkKeyword => is_inline,
-                _ => unreachable!("Encounted non-keyword token in 'lex_tag_keyword'!"),
+                _ => unreachable!("Encountered non-keyword token in 'lex_tag_keyword'!"),
             };
             if !is_valid {
                 let error = ErrorKind::IncorrectContextForTag { tag: keyword, is_inline };
@@ -286,7 +286,7 @@ impl<'input> Iterator for Lexer<'input> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum LexerMode {
     /// Indicates that the lexer is currently lexing a block tag.
-    /// While in thie mode the lexer only looks for tag keywords and identifiers.
+    /// While in this mode the lexer only looks for tag keywords and identifiers.
     ///
     /// This mode starts when the lexer starts reading a new line, and the first non-whitespace character on the line
     /// is '@'. When the lexer hits a ':' or the end of a line, it switches into [`Message`](LexerMode::Message) mode.
