@@ -502,22 +502,22 @@ mod attributes {
             {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
-                /// @param b A test parameter.
-                [ignoreWarnings(W006, W002)]
+                /// @param b: A test parameter.
+                [ignoreWarnings(W003, W007)]
                 op(s: string) -> string;
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W006, W002)]]
+            [[ignoreWarnings(W003, W007)]]
             module Test;
 
             interface I
             {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
-                /// @param b A test parameter.
+                /// @param b: A test parameter.
                 op(s: string) -> string;
             }
             "; "file level"
@@ -536,23 +536,23 @@ mod attributes {
 
             interface I
             {
-                /// @param x a parameter that should be used in ops
-                /// @return a result
-                [ignoreWarnings(W003, W004)]
+                /// @param x: a parameter that should be used in ops
+                /// @returns: a result
+                [ignoreWarnings(W008, W009)]
                 op(s: string);
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W003, W004)]]
+            [[ignoreWarnings(W008, W009)]]
             module Test;
 
             interface I
             {
-                /// @param x a parameter that should be used in ops
-                /// @return a result
-                [ignoreWarnings(W003, W004)]
+                /// @param x: a parameter that should be used in ops
+                /// @returns: a result
+                [ignoreWarnings(W008, W009)]
                 op(s: string);
             }
             "; "file level"
@@ -567,7 +567,7 @@ mod attributes {
                 identifier: "x".to_owned(),
             });
 
-            debug_assert_eq!(expected.error_code(), "W002");
+            debug_assert_eq!(expected.error_code(), "W007");
             assert_errors!(diagnostics, [&expected]);
         }
 
