@@ -295,6 +295,28 @@ fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
 }
 
 #[test]
+fn preprocessor_nested_conditional_blocks() {
+    let slice = "
+        #if !Foo
+            module NotFooModule {}
+            #if !Bar
+                module NotBarModule {}
+            #endif
+        #else
+            module ElseModule {}
+        #endif
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    assert!(ast.find_element::<Module>("NotFooModule").is_ok());
+    assert!(ast.find_element::<Module>("NotBarModule").is_ok());
+    assert!(ast.find_element::<Module>("ElseModule").is_err());
+}
+
+#[test]
 fn preprocessor_ignores_comments() {
     // Arrange
     // If Bar is defined, then the comment was not ignored

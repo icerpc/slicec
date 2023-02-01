@@ -44,14 +44,18 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: std::iter::Flatten<std::vec::IntoIter<Option<SourceBlock<'input>>>> = {
+pub SliceFile: std::iter::Flatten<std::vec::IntoIter<Vec<SourceBlock<'input>>>> = {
     Main* => <>.into_iter().flatten(),
 }
 
-Main: Option<SourceBlock<'input>> = {
-    source_block => Some(<>),
-    DefineDirective => None,
-    UndefineDirective => None,
+BlockContent: Vec<SourceBlock<'input>> = {
+    Main* => <>.into_iter().flatten().collect()
+}
+
+Main: Vec<SourceBlock<'input>> = {
+    source_block => vec![<>],
+    DefineDirective => Vec::new(),
+    UndefineDirective => Vec::new(),
     ConditionalStatement => <>,
 }
 
@@ -79,8 +83,8 @@ EndifDirective: () = {
     endif_keyword directive_end => (),
 }
 
-ConditionalStatement: Option<SourceBlock<'input>> = {
-    <if_block: (IfDirective source_block?)> <elif_blocks: (ElifDirective source_block?)*> <else_block: (ElseDirective <source_block?>)?> EndifDirective => {
+ConditionalStatement: Vec<SourceBlock<'input>> = {
+    <if_block: (IfDirective BlockContent)> <elif_blocks: (ElifDirective BlockContent)*> <else_block: (ElseDirective <BlockContent>)?> EndifDirective => {
         evaluate_if_statement(if_block, elif_blocks, else_block)
     }
 }

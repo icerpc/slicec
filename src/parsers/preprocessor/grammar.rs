@@ -24,20 +24,20 @@ lalrpop_mod!(
 /// Since multiple (or zero) elif blocks can be present, they are passed as a [Vec] (in order).
 /// Since there can only be 0 or 1 else block, it is passed as an [Option].
 fn evaluate_if_statement<'a>(
-    if_block: (bool, Option<SourceBlock<'a>>),
-    elif_blocks: Vec<(bool, Option<SourceBlock<'a>>)>,
-    else_block: Option<Option<SourceBlock<'a>>>,
-) -> Option<SourceBlock<'a>> {
-    // If the if-statement was true, return its block.
+    if_block: (bool, Vec<SourceBlock<'a>>),
+    elif_blocks: Vec<(bool, Vec<SourceBlock<'a>>)>,
+    else_block: Option<Vec<SourceBlock<'a>>>,
+) -> Vec<SourceBlock<'a>> {
+    // If the if-statement was true, return its block's content.
     if if_block.0 {
         return if_block.1;
     }
-    // Check the elif statements in order. If one is true, return its block.
+    // Check the elif statements in order. If one is true, return its block's content.
     for elif_block in elif_blocks {
         if elif_block.0 {
             return elif_block.1;
         }
     }
-    // Otherwise return the optionally present else block.
-    else_block.flatten()
+    // Otherwise, we return the content of the else block if it was present, if not, we return an empty vector.
+    else_block.unwrap_or_default()
 }
