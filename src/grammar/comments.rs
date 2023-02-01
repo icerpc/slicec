@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-// TODO Add comments everywhere!
-
 use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Entity, Identifier, Symbol};
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;

@@ -625,6 +625,7 @@ fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocC
     } else {
         let scoped_identifier = parser.current_scope.raw_parser_scope.to_owned() + "::" + identifier;
         let mut comment_parser = CommentParser::new(parser.file_name, &scoped_identifier, parser.diagnostic_reporter);
+        // Any errors are reported to the `diagnostic_reporter`, so it's okay to `ok` the result here.
         comment_parser.parse_doc_comment(raw_comment).ok()
     }
 }
