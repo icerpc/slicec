@@ -2,11 +2,9 @@
 
 use crate::ast::{Ast, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning, WarningKind};
-use crate::downgrade_as;
+use crate::diagnostics::{DiagnosticReporter, ErrorKind, Warning, WarningKind};
 use crate::grammar::{DocComment, Entity, LinkDefinition, Message, MessageComponent, Symbol};
 use crate::utils::ptr_util::WeakPtr;
-use convert_case::{Case, Casing};
 
 pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = CommentLinkPatcher {
@@ -55,7 +53,7 @@ macro_rules! resolve_link {
         // Look up the link in the AST, and make sure it's an `Entity`.
         let result = $ast
             .find_node_with_scope(&$ident.value, $entity.parser_scope())
-            .and_then(|node| try_into_patch(node));
+            .and_then(|node| <WeakPtr<dyn Entity>>::try_from(node));
 
         $self.link_patches.push(match result {
             Ok(ptr) => Some(ptr),
@@ -150,27 +148,5 @@ fn patch_links_in(message: &mut Message, patches: &mut impl Iterator<Item = Opti
                 link_tag.definition = LinkDefinition::Patched(patch);
             }
         }
-    }
-}
-
-#[allow(clippy::result_large_err)]
-fn try_into_patch(node: &Node) -> Result<WeakPtr<dyn Entity>, Error> {
-    match node {
-        Node::Module(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Struct(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Class(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Exception(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::DataMember(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Interface(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Operation(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Parameter(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Enum(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::Enumerator(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::CustomType(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        Node::TypeAlias(ptr) => Ok(downgrade_as!(ptr, dyn Entity)),
-        _ => Err(Error::new(ErrorKind::TypeMismatch {
-            expected: "Entity".to_owned(),
-            actual: node.to_string().to_case(Case::Lower),
-        })),
     }
 }
