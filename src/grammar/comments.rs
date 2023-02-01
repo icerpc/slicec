@@ -2,8 +2,9 @@
 
 // TODO Add comments everywhere!
 
-use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Identifier, Symbol};
+use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Entity, Identifier, Symbol};
 use crate::slice_file::Span;
+use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
 pub struct DocComment {
@@ -45,13 +46,39 @@ pub struct ThrowsTag {
 #[derive(Debug)]
 pub struct SeeTag {
     pub link: Identifier,
+    pub definition: LinkDefinition,
     pub span: Span,
+}
+
+impl SeeTag {
+    pub fn linked_entity(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct LinkTag {
     pub link: Identifier,
+    pub definition: LinkDefinition,
     pub span: Span,
+}
+
+impl LinkTag {
+    pub fn linked_entity(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum LinkDefinition {
+    Patched(WeakPtr<dyn Entity>),
+    Unpatched,
 }
 
 #[derive(Debug)]
@@ -74,3 +101,5 @@ implement_Element_for!(ThrowsTag, "throws tag");
 implement_Symbol_for!(ThrowsTag);
 implement_Element_for!(SeeTag, "see tag");
 implement_Symbol_for!(SeeTag);
+implement_Element_for!(LinkTag, "link tag");
+implement_Symbol_for!(LinkTag);

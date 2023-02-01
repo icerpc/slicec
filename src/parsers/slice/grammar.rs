@@ -68,7 +68,7 @@ macro_rules! add_definition_to_module {
     }};
 }
 
-// Convenience type for storing an unparsed doc comment. Each element of the vec is one line of the comment.
+// Convenience type for storing an unparsed doc comment. Each element of the vector is one line of the comment.
 type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 // Grammar Rule Functions
