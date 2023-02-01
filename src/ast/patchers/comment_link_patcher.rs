@@ -42,11 +42,12 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
             _ => {} // Skip any non-entity types.
         }
     }
+    assert!(patches.next().is_none());
 
     compilation_data.into()
 }
 
-macro_rules! check_link {
+macro_rules! resolve_link {
     ($tag:expr, $entity:expr, $ast:expr, $self:ident) => {
         // All links should be unpatched at this point.
         debug_assert!(matches!($tag.definition, LinkDefinition::Unpatched));
@@ -87,26 +88,26 @@ struct CommentLinkPatcher<'a> {
 impl CommentLinkPatcher<'_> {
     fn compute_patches_for(&mut self, comment: &DocComment, entity: &dyn Entity, ast: &Ast) {
         if let Some(overview) = &comment.overview {
-            self.check_links_in(&overview.message, entity, ast);
+            self.resolve_links_in(&overview.message, entity, ast);
         }
         for param_tag in &comment.params {
-            self.check_links_in(&param_tag.message, entity, ast);
+            self.resolve_links_in(&param_tag.message, entity, ast);
         }
-        for returns_tag in &comment.params {
-            self.check_links_in(&returns_tag.message, entity, ast);
+        for returns_tag in &comment.returns {
+            self.resolve_links_in(&returns_tag.message, entity, ast);
         }
         for throws_tag in &comment.throws {
-            self.check_links_in(&throws_tag.message, entity, ast);
+            self.resolve_links_in(&throws_tag.message, entity, ast);
         }
         for see_tag in &comment.see {
-            check_link!(see_tag, entity, ast, self);
+            resolve_link!(see_tag, entity, ast, self);
         }
     }
 
-    fn check_links_in(&mut self, message: &Message, entity: &dyn Entity, ast: &Ast) {
+    fn resolve_links_in(&mut self, message: &Message, entity: &dyn Entity, ast: &Ast) {
         for component in message {
             if let MessageComponent::Link(link_tag) = component {
-                check_link!(link_tag, entity, ast, self);
+                resolve_link!(link_tag, entity, ast, self);
             }
         }
     }
