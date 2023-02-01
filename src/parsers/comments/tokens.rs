@@ -10,7 +10,7 @@ pub type Error<'a> = (Location, ErrorKind<'a>, Location);
 /// This enum specifies all the kinds of tokens that the comment [Lexer](super::lexer::Lexer) can return.
 #[derive(Clone, Debug)]
 pub enum TokenKind<'input> {
-    /// An identifier for a Slice definition. This rule is more flexible than the Slice lexer uses to keep this lexer
+    /// An identifier for a Slice definition. This rule is more flexible than Slice allows but this keeps the lexer
     /// simpler. This is fine because we validate that the identifier corresponds to a real identifier later.
     Identifier(&'input str), // "[_a-zA-Z0-9]+"
 
