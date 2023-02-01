@@ -54,7 +54,7 @@ macro_rules! resolve_link {
 
         // Look up the link in the AST, and make sure it's an `Entity`.
         let result = $ast
-            .find_node_with_scope(&$tag.link.value, $entity.module_scope())
+            .find_node_with_scope(&$tag.link.value, $entity.parser_scope())
             .and_then(|node| try_into_patch(node));
 
         $self.link_patches.push(match result {
