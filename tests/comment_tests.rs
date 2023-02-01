@@ -449,7 +449,7 @@ mod comments {
     }
 
     #[test]
-    fn illegal_linked_type_in_doc_comment() {
+    fn doc_comment_links_to_invalid_element() {
         // Arrange
         let slice = "
             module tests;

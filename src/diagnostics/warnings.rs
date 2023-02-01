@@ -148,11 +148,7 @@ implement_diagnostic_functions!(
         format!("doc comment tag '{tag}' is invalid"),
         tag
     ),
-    (
-        "W004",
-        WarningKind::MissingDocCommentTag,
-        "missing doc comment tag"
-    ),
+    ("W004", WarningKind::MissingDocCommentTag, "missing doc comment tag"),
     (
         "W005",
         WarningKind::UnterminatedInlineTag,
