@@ -60,16 +60,16 @@ macro_rules! resolve_link {
         $self.link_patches.push(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
-                let message = match error.kind() {
-                    ErrorKind::DoesNotExist { identifier } => {
-                        format!("no element with identifier '{identifier}' can be found from this scope.")
-                    }
-                    ErrorKind::TypeMismatch { actual, .. } => {
-                        format!("elements of type '{actual}' cannot be referenced in doc comments.")
-                    }
+                let warning_kind = match error.kind() {
+                    ErrorKind::DoesNotExist { identifier } => WarningKind::DoesNotExist {
+                        identifier: identifier.to_owned(),
+                    },
+                    ErrorKind::TypeMismatch { actual, .. } => WarningKind::LinkToIinvalidElement {
+                        kind: actual.to_owned(),
+                    },
                     _ => unreachable!(), // No other types of errors can be returned from `find_element_with_scope`
                 };
-                Warning::new(WarningKind::InvalidDocCommentLinkIdentifier { message })
+                Warning::new(warning_kind)
                     .set_span($tag.span())
                     .set_scope($entity.parser_scoped_identifier())
                     .report($self.diagnostic_reporter);

@@ -104,10 +104,16 @@ pub enum WarningKind {
         identifier: String,
     },
 
-    /// The user-supplied doc comment link referenced an entity that does not exist.
-    InvalidDocCommentLinkIdentifier {
-        /// Message describing why the identifier was invalid.
-        message: String,
+    /// A doc comment link referenced an element that does not exist.
+    DoesNotExist {
+        /// The identifier that the link referenced.
+        identifier: String,
+    },
+
+    /// A doc comment link referenced a type that cannot be referenced: primitive, sequence, or dictionary.
+    LinkToIinvalidElement {
+        /// The kind of element the link references.
+        kind: String,
     },
 
     /// The code references a Slice entity that is deprecated.
@@ -182,19 +188,25 @@ implement_diagnostic_functions!(
     ),
     (
         "W010",
-        WarningKind::InvalidDocCommentLinkIdentifier,
-        message,
-        message
+        WarningKind::DoesNotExist,
+        format!("no element with identifier '{identifier}' can be found from this scope"),
+        identifier
     ),
     (
         "W011",
+        WarningKind::LinkToIinvalidElement,
+        format!("elements of the type '{kind}' cannot be referenced in doc comments"),
+        kind
+    ),
+    (
+        "W012",
         WarningKind::UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W012",
+        "W013",
         WarningKind::InconsequentialUseOfAttribute,
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,

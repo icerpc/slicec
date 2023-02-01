@@ -381,8 +381,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::InvalidDocCommentLinkIdentifier {
-            message: "no element with identifier 'OtherStruct' can be found from this scope.".to_owned(),
+        let expected = crate::helpers::new_warning(WarningKind::DoesNotExist {
+            identifier: "OtherStruct".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
     }
@@ -401,8 +401,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::InvalidDocCommentLinkIdentifier {
-            message: "elements of type 'primitive' cannot be referenced in doc comments.".to_owned(),
+        let expected = crate::helpers::new_warning(WarningKind::LinkToIinvalidElement {
+            kind: "primitive".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
     }
