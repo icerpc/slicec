@@ -119,10 +119,10 @@ impl<'input> Lexer<'input> {
         self.skip_whitespace();
 
         // Read the keyword following the '@' character from the buffer.
-        let keyword = self.read_identifier();
+        let ident = self.read_identifier();
 
         // Return the token (or error) corresponding to the keyword.
-        let token = match keyword {
+        let token = match ident {
             "param" => Ok((start_location, TokenKind::ParamKeyword, self.cursor)),
             "returns" => Ok((start_location, TokenKind::ReturnsKeyword, self.cursor)),
             "throws" => Ok((start_location, TokenKind::ThrowsKeyword, self.cursor)),
@@ -144,7 +144,7 @@ impl<'input> Lexer<'input> {
                 _ => unreachable!("Encountered non-keyword token in 'lex_tag_keyword'!"),
             };
             if !is_valid {
-                let error = ErrorKind::IncorrectContextForTag { tag: keyword, is_inline };
+                let error = ErrorKind::IncorrectContextForTag { tag: ident, is_inline };
                 return Err((*start, error, *end));
             }
         }

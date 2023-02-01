@@ -14,7 +14,7 @@ type ParseError<'a> = lalrpop_util::ParseError<Location, TokenKind<'a>, Error<'a
 // TODO add more specific error messages for common cases.
 
 /// Converts an [error](Error) that was emitted from the parser/lexer into a [warning](Warning) that
-/// can be handled by the [`DiagnosticReporter`](DiagnosticReporter).
+/// can be handled by the [`DiagnosticReporter`](crate::diagnostics::DiagnosticReporter).
 fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
     match parse_error {
         // A custom error we emitted; See `ErrorKind`.
