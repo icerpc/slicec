@@ -66,7 +66,7 @@ macro_rules! check_link {
                     ErrorKind::TypeMismatch { actual, .. } => {
                         format!("elements of type '{actual}' cannot be referenced in doc comments.")
                     }
-                    _ => unreachable!(), // No other types of errors can be thrown from `find_element_with_scope`
+                    _ => unreachable!(), // No other types of errors can be returned from `find_element_with_scope`
                 };
                 Warning::new(WarningKind::InvalidDocCommentLinkIdentifier { message })
                     .set_span($tag.span())
