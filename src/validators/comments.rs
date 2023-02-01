@@ -58,8 +58,8 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
                 })
                 .set_span(throws_tag.span())
                 .set_scope(entity.parser_scoped_identifier())
-                .report(diagnostic_reporter)
+                .report(diagnostic_reporter);
             }
-        };
+        }
     }
 }

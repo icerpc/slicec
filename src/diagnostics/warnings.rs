@@ -75,7 +75,7 @@ pub enum WarningKind {
     /// The user didn't have a tag keyword after an '@' character.
     MissingDocCommentTag,
 
-    /// An inline tag is missing it's closing brace. Ex: `{@link Foo` (there's no closing '}').
+    /// An inline tag is missing its closing brace. Ex: `{@link Foo` (there's no closing '}').
     UnterminatedInlineTag,
 
     /// The user used a doc comment tag in a place where it was invalid to do so.
