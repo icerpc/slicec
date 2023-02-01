@@ -64,7 +64,7 @@ macro_rules! resolve_link {
                     ErrorKind::DoesNotExist { identifier } => WarningKind::DoesNotExist {
                         identifier: identifier.to_owned(),
                     },
-                    ErrorKind::TypeMismatch { actual, .. } => WarningKind::LinkToIinvalidElement {
+                    ErrorKind::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement {
                         kind: actual.to_owned(),
                     },
                     _ => unreachable!(), // No other types of errors can be returned from `find_element_with_scope`

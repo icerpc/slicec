@@ -111,7 +111,7 @@ pub enum WarningKind {
     },
 
     /// A doc comment link referenced a type that cannot be referenced: primitive, sequence, or dictionary.
-    LinkToIinvalidElement {
+    LinkToInvalidElement {
         /// The kind of element the link references.
         kind: String,
     },
@@ -190,7 +190,7 @@ implement_diagnostic_functions!(
     ),
     (
         "W011",
-        WarningKind::LinkToIinvalidElement,
+        WarningKind::LinkToInvalidElement,
         format!("elements of the type '{kind}' cannot be referenced in doc comments"),
         kind
     ),

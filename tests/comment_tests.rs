@@ -462,7 +462,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::LinkToIinvalidElement {
+        let expected = crate::helpers::new_warning(WarningKind::LinkToInvalidElement {
             kind: "primitive".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
