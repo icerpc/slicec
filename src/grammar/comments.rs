@@ -37,8 +37,18 @@ pub struct ReturnsTag {
 #[derive(Debug)]
 pub struct ThrowsTag {
     pub identifier: Option<Identifier>,
+    pub definition: LinkDefinition,
     pub message: Message,
     pub span: Span,
+}
+
+impl ThrowsTag {
+    pub fn thrown_type(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
+        }
+    }
 }
 
 #[derive(Debug)]

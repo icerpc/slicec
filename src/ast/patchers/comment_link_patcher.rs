@@ -48,13 +48,13 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
 }
 
 macro_rules! resolve_link {
-    ($tag:expr, $entity:expr, $ast:expr, $self:ident) => {
+    ($tag:expr, $ident:expr, $entity:expr, $ast:expr, $self:ident) => {
         // All links should be unpatched at this point.
         debug_assert!(matches!($tag.definition, LinkDefinition::Unpatched));
 
         // Look up the link in the AST, and make sure it's an `Entity`.
         let result = $ast
-            .find_node_with_scope(&$tag.link.value, $entity.parser_scope())
+            .find_node_with_scope(&$ident.value, $entity.parser_scope())
             .and_then(|node| try_into_patch(node));
 
         $self.link_patches.push(match result {
@@ -97,17 +97,20 @@ impl CommentLinkPatcher<'_> {
             self.resolve_links_in(&returns_tag.message, entity, ast);
         }
         for throws_tag in &comment.throws {
+            if let Some(identifier) = &throws_tag.identifier {
+                resolve_link!(throws_tag, identifier, entity, ast, self);
+            }
             self.resolve_links_in(&throws_tag.message, entity, ast);
         }
         for see_tag in &comment.see {
-            resolve_link!(see_tag, entity, ast, self);
+            resolve_link!(see_tag, &see_tag.link, entity, ast, self);
         }
     }
 
     fn resolve_links_in(&mut self, message: &Message, entity: &dyn Entity, ast: &Ast) {
         for component in message {
             if let MessageComponent::Link(link_tag) = component {
-                resolve_link!(link_tag, entity, ast, self);
+                resolve_link!(link_tag, &link_tag.link, entity, ast, self);
             }
         }
     }
@@ -125,6 +128,11 @@ fn apply_patches(comment: &mut Option<DocComment>, patches: &mut impl Iterator<I
             patch_links_in(&mut returns_tag.message, patches);
         }
         for throws_tag in &mut comment.throws {
+            if throws_tag.identifier.is_some() {
+                if let Some(patch) = patches.next().unwrap() {
+                    throws_tag.definition = LinkDefinition::Patched(patch);
+                }
+            }
             patch_links_in(&mut throws_tag.message, patches);
         }
         for see_tag in &mut comment.see {

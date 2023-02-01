@@ -208,6 +208,8 @@ mod comments {
         let slice = "
             module tests;
 
+            exception MyException {}
+
             interface TestInterface
             {
                 /// @param testParam1: A string param
@@ -225,10 +227,46 @@ mod comments {
     }
 
     #[test]
-    fn doc_comments_throws() {
+    fn doc_comment_throws() {
         // Arrange
         let slice = "
             module tests;
+
+            interface TestInterface
+            {
+                /// @throws: Message about my thrown thing.
+                testOp(testParam: string) -> bool;
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+
+        let throws_tags = &operation.comment().unwrap().throws;
+        assert_eq!(throws_tags.len(), 1);
+
+        let throws_tag = &throws_tags[0];
+        assert_eq!(throws_tag.span.start, (6, 21).into());
+        assert_eq!(throws_tag.span.end, (6, 60).into());
+
+        assert!(throws_tag.identifier.as_ref().is_none());
+
+        let message = &throws_tag.message;
+        assert_eq!(message.len(), 2);
+        let MessageComponent::Text(text) = &message[0] else { panic!() };
+        assert_eq!(text, "Message about my thrown thing.");
+    }
+
+    #[test]
+    fn doc_comments_throws_specific_type() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            exception MyThrownThing {}
 
             interface TestInterface
             {
@@ -247,13 +285,13 @@ mod comments {
         assert_eq!(throws_tags.len(), 1);
 
         let throws_tag = &throws_tags[0];
-        assert_eq!(throws_tag.span.start, (6, 21).into());
-        assert_eq!(throws_tag.span.end, (6, 74).into());
+        assert_eq!(throws_tag.span.start, (8, 21).into());
+        assert_eq!(throws_tag.span.end, (8, 74).into());
 
         let identifier = throws_tag.identifier.as_ref().unwrap();
         assert_eq!(identifier.value, "MyThrownThing");
-        assert_eq!(identifier.span.start, (6, 29).into());
-        assert_eq!(identifier.span.end, (6, 42).into());
+        assert_eq!(identifier.span.start, (8, 29).into());
+        assert_eq!(identifier.span.end, (8, 42).into());
 
         let message = &throws_tag.message;
         assert_eq!(message.len(), 2);
@@ -262,12 +300,35 @@ mod comments {
     }
 
     #[test]
+    fn doc_comments_throws_invalid_type() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface TestInterface
+            {
+                /// @throws FakeException: causes a warning.
+                testOp(testParam: string) -> bool;
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = crate::helpers::new_warning(WarningKind::DoesNotExist {
+            identifier: "FakeException".to_owned(),
+        });
+        assert_errors!(diagnostics, [&expected]);
+    }
+
+    #[test]
     fn doc_comments_non_operations_cannot_throw() {
         // Arrange
         let slice = "
             module tests;
 
-            /// @throws MyThrownThing: Message about my thrown thing.
+            /// @throws: Message about my thrown thing.
             struct S
             {
             }
