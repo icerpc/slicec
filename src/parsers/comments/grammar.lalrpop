@@ -41,17 +41,17 @@ extern {
 
 pub DocComment: DocComment = {
     <l: @L> <overview: Overview?> => create_doc_comment(overview, l, comment_parser.file_name),
-    <mut comment: DocComment> <param_block: ParamBlock> <r: @R> => {
-        append_tag_to_comment!(comment, params, param_block, r)
+    <mut comment: DocComment> <param_block: ParamBlock> => {
+        append_tag_to_comment!(comment, params, param_block)
     },
-    <mut comment: DocComment> <returns_block: ReturnsBlock> <r: @R> => {
-        append_tag_to_comment!(comment, returns, returns_block, r)
+    <mut comment: DocComment> <returns_block: ReturnsBlock> => {
+        append_tag_to_comment!(comment, returns, returns_block)
     },
-    <mut comment: DocComment> <throws_block: ThrowsBlock> <r: @R> => {
-        append_tag_to_comment!(comment, throws, throws_block, r)
+    <mut comment: DocComment> <throws_block: ThrowsBlock> => {
+        append_tag_to_comment!(comment, throws, throws_block)
     },
-    <mut comment: DocComment> <see_block: SeeBlock> <r: @R> => {
-        append_tag_to_comment!(comment, see, see_block, r)
+    <mut comment: DocComment> <see_block: SeeBlock> => {
+        append_tag_to_comment!(comment, see, see_block)
     },
 }
 
@@ -100,11 +100,11 @@ InlineLink: LinkTag = {
 Section: Message = {
     <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> => {
         construct_section_message(inline_message.flatten(), message_lines)
-    }
+    },
 }
 
 MessageLines: Message = {
-    (<Message?> newline)+ => sanitize_message_lines(<>)
+    (<Message?> newline)+ => sanitize_message_lines(<>),
 }
 
 Message = MessageComponent+;
@@ -126,5 +126,5 @@ ScopedIdentifier: Identifier = {
         let value = get_scoped_identifier_string(i, v, dc.is_some());
         let span = Span::new(l, r, comment_parser.file_name);
         Identifier { value, span }
-    }
+    },
 }

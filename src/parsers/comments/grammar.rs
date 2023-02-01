@@ -20,9 +20,9 @@ lalrpop_mod!(
 // Helper macro for storing parsed tags inside the correct field of a doc comment,
 // and extending the doc comment's span to the end of the new tag.
 macro_rules! append_tag_to_comment {
-    ($comment:ident, $field:ident, $block:expr, $r:expr) => {{
+    ($comment:ident, $field:ident, $block:expr) => {{
+        $comment.span.end = $block.span.end;
         $comment.$field.push($block);
-        $comment.span.end = $r;
         $comment
     }};
 }
