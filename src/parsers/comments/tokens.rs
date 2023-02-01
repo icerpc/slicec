@@ -22,11 +22,11 @@ pub enum TokenKind<'input> {
     Newline, // "\n"
 
     // Tag keywords
-    ParamKeyword,   // "@\s*param"
-    ReturnsKeyword, // "@\s*returns"
-    ThrowsKeyword,  // "@\s*throws"
-    SeeKeyword,     // "@\s*see"
-    LinkKeyword,    // "@\s*link"
+    ParamKeyword,   // "@param"
+    ReturnsKeyword, // "@returns"
+    ThrowsKeyword,  // "@throws"
+    SeeKeyword,     // "@see"
+    LinkKeyword,    // "@link"
 
     // Symbols
     LeftBrace,   // "{"

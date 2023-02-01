@@ -113,12 +113,9 @@ impl<'input> Lexer<'input> {
     fn read_tag_keyword(&mut self) -> LexerResult<'input> {
         let start_location = self.cursor;
 
-        // Consume the '@' character and skip any whitespace between it and the keyword.
+        // Consume the '@' character then read the following keyword.
         assert!(matches!(self.buffer.peek(), Some('@')));
         self.advance_buffer();
-        self.skip_whitespace();
-
-        // Read the keyword following the '@' character from the buffer.
         let ident = self.read_identifier();
 
         // Return the token (or error) corresponding to the keyword.
