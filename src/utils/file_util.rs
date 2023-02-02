@@ -163,38 +163,34 @@ fn find_slice_files(
         .collect()
 }
 
-fn find_slice_files_in_path<P>(path: P, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<PathBuf>
-where
-    P: AsRef<Path>,
-{
+fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<PathBuf> {
     let mut paths = Vec::new();
-    let path_ref = path.as_ref();
-    if path_ref.is_dir() {
+    if path.is_dir() {
         // Recurse into the directory.
         match find_slice_files_in_directory(&path, diagnostic_reporter) {
             Ok(child_paths) => paths.extend(child_paths),
             Err(error) => Error::new(ErrorKind::IO {
                 action: "read",
-                path: path_ref.display().to_string(),
+                path: path.display().to_string(),
                 error,
             })
             .report(diagnostic_reporter),
         }
-    } else if path_ref.is_file() && is_slice_file(&path) {
+    } else if path.is_file() && is_slice_file(&path) {
         // Add the file to the list of paths.
-        paths.push(path_ref.to_path_buf());
+        paths.push(path.to_path_buf());
     }
     // else we ignore the path
 
     paths
 }
 
-fn find_slice_files_in_directory<P>(path: P, diagnostic_reporter: &mut DiagnosticReporter) -> io::Result<Vec<PathBuf>>
-where
-    P: AsRef<Path>,
-{
+fn find_slice_files_in_directory(
+    path: &Path,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) -> io::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
-    let dir = path.as_ref().read_dir()?;
+    let dir = path.read_dir()?;
 
     // Iterate though the directory and recurse into any subdirectories.
     for child in dir {
@@ -204,7 +200,7 @@ where
                 // If we cannot read the directory entry, report an error and continue.
                 Error::new(ErrorKind::IO {
                     action: "read",
-                    path: path.as_ref().display().to_string(),
+                    path: path.display().to_string(),
                     error,
                 })
                 .report(diagnostic_reporter);
@@ -216,12 +212,6 @@ where
 }
 
 /// Returns true if the path has the 'slice' extension.
-fn is_slice_file<P>(path: P) -> bool
-where
-    P: AsRef<Path>,
-{
-    path.as_ref()
-        .extension()
-        .filter(|ext| ext.to_str() == Some("slice"))
-        .is_some()
+fn is_slice_file(path: &Path) -> bool {
+    path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some()
 }
