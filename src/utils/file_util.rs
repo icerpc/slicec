@@ -114,12 +114,25 @@ fn find_slice_files(
             continue;
         }
 
-        // If the path is a file, check if it is a slice file. If the path is a directory and directories are not
-        // allowed, report an error and continue.
-        if path_buf.is_file() && !is_slice_file(&path_buf) || !allow_directories && path_buf.is_dir() {
+        // If the path is a file but is not a Slice file, report an error and continue.
+        if path_buf.is_file() && !is_slice_file(&path_buf) {
             // If the path is a file, check if it is a slice file.
             // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
             let io_error = io::Error::new(io::ErrorKind::Other, "Slice files must end with a '.slice' extension");
+            Error::new(ErrorKind::IO {
+                action: "read",
+                path: path.to_owned(),
+                error: io_error,
+            })
+            .report(diagnostic_reporter);
+            continue;
+        }
+
+        // If the path is a directory and directories are not allowed, report an error and continue.
+        if path_buf.is_dir() && !allow_directories {
+            // If the path is a file, check if it is a slice file.
+            // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
+            let io_error = io::Error::new(io::ErrorKind::Other, "Excepted a Slice file but found a directory.");
             Error::new(ErrorKind::IO {
                 action: "read",
                 path: path.to_owned(),
