@@ -3,7 +3,6 @@
 use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
-use std::path::Path;
 
 // Note: clap uses the doc-comments of fields to populate the '--help' output of slice-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
@@ -14,11 +13,11 @@ use std::path::Path;
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of slice files to compile.
-    #[arg(required = true, value_parser = is_valid_source)]
+    #[arg(required = true)]
     pub sources: Vec<String>,
 
     /// Files that are needed for referencing, but that no code should be generated for.
-    #[arg(short = 'R', long, num_args = 1, action = Append, value_parser = is_valid_reference)]
+    #[arg(short = 'R', long, num_args = 1, action = Append)]
     pub references: Vec<String>,
 
     /// Preprocessor Symbols defined on the command line.
@@ -31,7 +30,7 @@ pub struct SliceOptions {
 
     /// Instructs the compiler to ignore warnings. Specify a list of warnings to ignore, or leave empty to ignore all
     /// warnings.
-    #[arg(long, value_parser = is_valid_warning_code)]
+    #[arg(long)]
     pub ignore_warnings: Option<Vec<String>>,
 
     /// Validates input files without generating code for them.
@@ -49,35 +48,6 @@ pub struct SliceOptions {
     /// Disables ANSI escape code for diagnostic output.
     #[arg(long)]
     pub disable_color: bool,
-}
-
-const SLICE_FILE_EXTENSION: &str = "slice";
-
-fn is_valid_warning_code(s: &str) -> Result<String, String> {
-    // Check that the string begins with the letter W and is followed by three digits
-    // (e.g. W001).
-    if s.len() == 4 && s.starts_with('W') && s[1..].chars().all(|c| c.is_ascii_digit()) {
-        Ok(s.to_owned())
-    } else {
-        Err("Warning codes must begin with the letter 'W' and be followed by three digits".to_owned())
-    }
-}
-
-fn is_valid_source(s: &str) -> Result<String, String> {
-    match Path::new(s).extension() {
-        Some(extension) if extension == SLICE_FILE_EXTENSION => Ok(s.to_owned()),
-        _ => Err("Slice files must end with a .slice extension".to_owned()),
-    }
-}
-
-fn is_valid_reference(s: &str) -> Result<String, String> {
-    if Path::new(s).is_file() {
-        // The user supplied a file, need to check if it ends with '.slice'.
-        is_valid_source(s)
-    } else {
-        // The user supplied a directory, no checks needed.
-        Ok(s.to_owned())
-    }
 }
 
 /// This enum is used to specify the format for emitted diagnostics.

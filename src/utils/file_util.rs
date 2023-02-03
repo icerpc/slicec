@@ -5,7 +5,7 @@ use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning, WarningK
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 /// A wrapper around a file path that implements Hash and Eq. This allows us to use a HashMap to store the path the user
@@ -49,7 +49,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
     let mut file_paths = HashMap::new();
 
-    let reference_files = find_slice_files(&options.references, diagnostic_reporter);
+    let reference_files = find_slice_files(&options.references, true, diagnostic_reporter);
 
     // Any duplicate reference files will be reported as a warning.
     for reference_file in reference_files {
@@ -59,7 +59,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         }
     }
 
-    let source_files = find_slice_files(&options.sources, diagnostic_reporter);
+    let source_files = find_slice_files(&options.sources, false, diagnostic_reporter);
 
     // Any duplicate source files (that duplicate another source file, not a reference file) will be reported as
     // a warning.
@@ -93,18 +93,56 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     files
 }
 
-fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReporter) -> Vec<FilePath> {
+fn find_slice_files(
+    paths: &[String],
+    allow_directories: bool,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) -> Vec<FilePath> {
     let mut slice_paths = Vec::new();
     for path in paths {
-        match find_slice_files_in_path(PathBuf::from(path), diagnostic_reporter) {
-            Ok(child_paths) => slice_paths.extend(child_paths),
-            Err(error) => Error::new(ErrorKind::IO {
+        let path_buf = PathBuf::from(path);
+
+        // If the path does not exist, report an error and continue to the next path.
+        if !path_buf.exists() {
+            // If the path does not exist, report an error and continue.
+            Error::new(ErrorKind::IO {
                 action: "read",
                 path: path.to_owned(),
-                error,
+                error: io::ErrorKind::NotFound.into(),
             })
-            .report(diagnostic_reporter),
+            .report(diagnostic_reporter);
+            continue;
         }
+
+        // If the path is a file but is not a Slice file, report an error and continue.
+        if path_buf.is_file() && !is_slice_file(&path_buf) {
+            // If the path is a file, check if it is a slice file.
+            // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
+            let io_error = io::Error::new(io::ErrorKind::Other, "Slice files must end with a '.slice' extension");
+            Error::new(ErrorKind::IO {
+                action: "read",
+                path: path.to_owned(),
+                error: io_error,
+            })
+            .report(diagnostic_reporter);
+            continue;
+        }
+
+        // If the path is a directory and directories are not allowed, report an error and continue.
+        if path_buf.is_dir() && !allow_directories {
+            // If the path is a file, check if it is a slice file.
+            // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
+            let io_error = io::Error::new(io::ErrorKind::Other, "Excepted a Slice file but found a directory.");
+            Error::new(ErrorKind::IO {
+                action: "read",
+                path: path.to_owned(),
+                error: io_error,
+            })
+            .report(diagnostic_reporter);
+            continue;
+        }
+
+        slice_paths.extend(find_slice_files_in_path(path_buf, diagnostic_reporter));
     }
 
     slice_paths
@@ -125,35 +163,55 @@ fn find_slice_files(paths: &[String], diagnostic_reporter: &mut DiagnosticReport
         .collect()
 }
 
-fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticReporter) -> io::Result<Vec<PathBuf>> {
-    // If the path is a directory, recursively search it for more slice files.
-    if fs::metadata(&path)?.is_dir() {
-        find_slice_files_in_directory(path.read_dir()?, diagnostic_reporter)
-    }
-    // If the path is not a directory, check if it ends with 'slice'.
-    else if path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some() {
-        Ok(vec![path])
-    } else {
-        Ok(vec![])
-    }
-}
-
-fn find_slice_files_in_directory(
-    dir: fs::ReadDir,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) -> io::Result<Vec<PathBuf>> {
+fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<PathBuf> {
     let mut paths = Vec::new();
-    for child in dir {
-        let child_path = child?.path();
-        match find_slice_files_in_path(child_path.clone(), diagnostic_reporter) {
+    if path.is_dir() {
+        // Recurse into the directory.
+        match find_slice_files_in_directory(&path, diagnostic_reporter) {
             Ok(child_paths) => paths.extend(child_paths),
             Err(error) => Error::new(ErrorKind::IO {
                 action: "read",
-                path: child_path.display().to_string(),
+                path: path.display().to_string(),
                 error,
             })
             .report(diagnostic_reporter),
         }
+    } else if path.is_file() && is_slice_file(&path) {
+        // Add the file to the list of paths.
+        paths.push(path.to_path_buf());
+    }
+    // else we ignore the path
+
+    paths
+}
+
+fn find_slice_files_in_directory(
+    path: &Path,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) -> io::Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    let dir = path.read_dir()?;
+
+    // Iterate though the directory and recurse into any subdirectories.
+    for child in dir {
+        match child {
+            Ok(child) => paths.extend(find_slice_files_in_path(child.path(), diagnostic_reporter)),
+            Err(error) => {
+                // If we cannot read the directory entry, report an error and continue.
+                Error::new(ErrorKind::IO {
+                    action: "read",
+                    path: path.display().to_string(),
+                    error,
+                })
+                .report(diagnostic_reporter);
+                continue;
+            }
+        }
     }
     Ok(paths)
+}
+
+/// Returns true if the path has the 'slice' extension.
+fn is_slice_file(path: &Path) -> bool {
+    path.extension().filter(|ext| ext.to_str() == Some("slice")).is_some()
 }
