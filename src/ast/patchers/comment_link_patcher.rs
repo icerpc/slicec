@@ -81,7 +81,7 @@ macro_rules! patch_link {
         if let Some(patch) = $patches.next().unwrap() {
             $tag.definition = LinkDefinition::Patched(patch);
         }
-    }
+    };
 }
 
 struct CommentLinkPatcher<'a> {

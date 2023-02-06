@@ -484,8 +484,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::UnknownDocCommentTag {
-            tag: "linked".to_owned(),
+        let expected = crate::helpers::new_warning(WarningKind::DocCommentSyntax {
+            message: "doc comment tag 'linked' is invalid".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
     }

@@ -25,12 +25,20 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
                 ErrorKind::UnknownSymbol { symbol } => WarningKind::DocCommentSyntax {
                     message: format!("unknown symbol '{symbol}'"),
                 },
-                ErrorKind::UnknownTag { tag } => WarningKind::UnknownDocCommentTag { tag: tag.to_owned() },
-                ErrorKind::MissingTag => WarningKind::MissingDocCommentTag,
-                ErrorKind::UnterminatedInlineTag => WarningKind::UnterminatedInlineTag,
-                ErrorKind::IncorrectContextForTag { tag, is_inline } => WarningKind::InvalidDocCommentTagUsage {
-                    tag: tag.to_owned(),
-                    is_inline,
+                ErrorKind::UnknownTag { tag } => WarningKind::DocCommentSyntax {
+                    message: format!("doc comment tag '{tag}' is invalid"),
+                },
+                ErrorKind::MissingTag => WarningKind::DocCommentSyntax {
+                    message: "missing doc comment tag".to_owned(),
+                },
+                ErrorKind::UnterminatedInlineTag => WarningKind::DocCommentSyntax {
+                    message: "missing a closing '}' on an inline doc comment tag.".to_owned(),
+                },
+                ErrorKind::IncorrectContextForTag { tag, is_inline } => WarningKind::DocCommentSyntax {
+                    message: format!(
+                        "doc comment tag '{tag}' cannot be used {}",
+                        if is_inline { "inline" } else { "to start a block" },
+                    ),
                 },
             };
             Warning::new(warning_kind).set_span(&Span::new(start, end, file_name))

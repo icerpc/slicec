@@ -39,7 +39,7 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W007"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
             r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":10,"col":9},"end":{"row":10,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
@@ -84,7 +84,7 @@ mod output {
 
         // Assert
         let expected = "\
-warning [W007]: doc comment has a param tag for 'x', but there is no parameter by that name
+warning [W003]: doc comment has a param tag for 'x', but there is no parameter by that name
  --> string-0:6:17
   |
 6 |             /// @param x: this is an x
@@ -159,7 +159,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            ignore_warnings: Some(vec!["W008".to_string()]),
+            ignore_warnings: Some(vec!["W004".to_string()]),
             ..Default::default()
         };
 
@@ -174,7 +174,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Assert
         // Only one of the two warnings should be ignored.
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W007"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());

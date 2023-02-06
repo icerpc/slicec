@@ -503,14 +503,14 @@ mod attributes {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
-                [ignoreWarnings(W003, W007)]
+                [ignoreWarnings(W002, W003)]
                 op(s: string) -> string;
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W003, W007)]]
+            [[ignoreWarnings(W002, W003)]]
             module Test;
 
             interface I
@@ -538,21 +538,21 @@ mod attributes {
             {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [ignoreWarnings(W008, W009)]
+                [ignoreWarnings(W004, W005)]
                 op(s: string);
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W008, W009)]]
+            [[ignoreWarnings(W004, W005)]]
             module Test;
 
             interface I
             {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [ignoreWarnings(W008, W009)]
+                [ignoreWarnings(W004, W005)]
                 op(s: string);
             }
             "; "file level"
@@ -567,7 +567,7 @@ mod attributes {
                 identifier: "x".to_owned(),
             });
 
-            debug_assert_eq!(expected.error_code(), "W007");
+            debug_assert_eq!(expected.error_code(), "W003");
             assert_errors!(diagnostics, [&expected]);
         }
 

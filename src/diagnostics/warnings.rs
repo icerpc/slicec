@@ -61,30 +61,9 @@ pub enum WarningKind {
     },
 
     /// The user made a syntactical mistake in a doc comment.
-    Syntax {
+    DocCommentSyntax {
         /// Message explaining the mistake to the user.
         message: String,
-    },
-
-    /// The user specified an unknown tag type.
-    UnknownDocCommentTag {
-        /// The unknown tag's keyword.
-        tag: String,
-    },
-
-    /// The user didn't have a tag keyword after an '@' character.
-    MissingDocCommentTag,
-
-    /// An inline tag is missing its closing brace. Ex: `{@link Foo` (there's no closing '}').
-    UnterminatedInlineTag,
-
-    /// The user used a doc comment tag in a place where it was invalid to do so.
-    /// Ex: Using '@param' (a block tag), in the context of an inline tag: `{@param foo}`.
-    InvalidDocCommentTagUsage {
-        /// The tag that was used.
-        tag: String,
-        /// Where the tag was used; `true` if it was used inline, `false` if it was used in a block.
-        is_inline: bool,
     },
 
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
@@ -144,65 +123,43 @@ implement_diagnostic_functions!(
     ("W002", WarningKind::DocCommentSyntax, message, message),
     (
         "W003",
-        WarningKind::UnknownDocCommentTag,
-        format!("doc comment tag '{tag}' is invalid"),
-        tag
-    ),
-    ("W004", WarningKind::MissingDocCommentTag, "missing doc comment tag"),
-    (
-        "W005",
-        WarningKind::UnterminatedInlineTag,
-        "missing a closing '}' on an inline doc comment tag."
-    ),
-    (
-        "W006",
-        WarningKind::InvalidDocCommentTagUsage,
-        format!(
-            "doc comment tag '{tag}' cannot be used {}",
-            if *is_inline { "inline" } else { "to start a block" },
-        ),
-        tag,
-        is_inline
-    ),
-    (
-        "W007",
         WarningKind::ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
-        "W008",
+        "W004",
         WarningKind::ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
-        "W009",
+        "W005",
         WarningKind::ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
-        "W010",
+        "W006",
         WarningKind::DoesNotExist,
         format!("no element with identifier '{identifier}' can be found from this scope"),
         identifier
     ),
     (
-        "W011",
+        "W007",
         WarningKind::LinkToInvalidElement,
         format!("elements of the type '{kind}' cannot be referenced in doc comments"),
         kind
     ),
     (
-        "W012",
+        "W008",
         WarningKind::UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W013",
+        "W009",
         WarningKind::InconsequentialUseOfAttribute,
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
