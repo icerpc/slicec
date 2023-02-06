@@ -15,9 +15,7 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
     // Iterate through the AST and compute patches for all the doc comments stored in it.
     for node in compilation_data.ast.as_slice() {
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            if let Some(comment) = entity.comment() {
-                patcher.compute_patches_for(comment, entity, &compilation_data.ast);
-            }
+            patcher.compute_patches_for(entity, &compilation_data.ast);
         }
     }
 
@@ -77,6 +75,15 @@ macro_rules! resolve_link {
     };
 }
 
+macro_rules! patch_link {
+    ($tag:expr, $patches:expr) => {
+        // Get the next patch out of the iterator and set the tag's definition to it.
+        if let Some(patch) = $patches.next().unwrap() {
+            $tag.definition = LinkDefinition::Patched(patch);
+        }
+    }
+}
+
 struct CommentLinkPatcher<'a> {
     link_patches: Vec<Option<WeakPtr<dyn Entity>>>,
     diagnostic_reporter: &'a mut DiagnosticReporter,
@@ -84,24 +91,26 @@ struct CommentLinkPatcher<'a> {
 
 #[allow(clippy::result_large_err)] // TODO Adding a new result type for AST lookup would solve this.
 impl CommentLinkPatcher<'_> {
-    fn compute_patches_for(&mut self, comment: &DocComment, entity: &dyn Entity, ast: &Ast) {
-        if let Some(overview) = &comment.overview {
-            self.resolve_links_in(&overview.message, entity, ast);
-        }
-        for param_tag in &comment.params {
-            self.resolve_links_in(&param_tag.message, entity, ast);
-        }
-        for returns_tag in &comment.returns {
-            self.resolve_links_in(&returns_tag.message, entity, ast);
-        }
-        for throws_tag in &comment.throws {
-            if let Some(identifier) = &throws_tag.identifier {
-                resolve_link!(throws_tag, identifier, entity, ast, self);
+    fn compute_patches_for(&mut self, entity: &dyn Entity, ast: &Ast) {
+        if let Some(comment) = entity.comment() {
+            if let Some(overview) = &comment.overview {
+                self.resolve_links_in(&overview.message, entity, ast);
             }
-            self.resolve_links_in(&throws_tag.message, entity, ast);
-        }
-        for see_tag in &comment.see {
-            resolve_link!(see_tag, &see_tag.link, entity, ast, self);
+            for param_tag in &comment.params {
+                self.resolve_links_in(&param_tag.message, entity, ast);
+            }
+            for returns_tag in &comment.returns {
+                self.resolve_links_in(&returns_tag.message, entity, ast);
+            }
+            for throws_tag in &comment.throws {
+                if let Some(identifier) = &throws_tag.identifier {
+                    resolve_link!(throws_tag, identifier, entity, ast, self);
+                }
+                self.resolve_links_in(&throws_tag.message, entity, ast);
+            }
+            for see_tag in &comment.see {
+                resolve_link!(see_tag, &see_tag.link, entity, ast, self);
+            }
         }
     }
 
@@ -127,16 +136,12 @@ fn apply_patches(comment: &mut Option<DocComment>, patches: &mut impl Iterator<I
         }
         for throws_tag in &mut comment.throws {
             if throws_tag.identifier.is_some() {
-                if let Some(patch) = patches.next().unwrap() {
-                    throws_tag.definition = LinkDefinition::Patched(patch);
-                }
+                patch_link!(throws_tag, patches);
             }
             patch_links_in(&mut throws_tag.message, patches);
         }
         for see_tag in &mut comment.see {
-            if let Some(patch) = patches.next().unwrap() {
-                see_tag.definition = LinkDefinition::Patched(patch);
-            }
+            patch_link!(see_tag, patches);
         }
     }
 }
@@ -144,9 +149,7 @@ fn apply_patches(comment: &mut Option<DocComment>, patches: &mut impl Iterator<I
 fn patch_links_in(message: &mut Message, patches: &mut impl Iterator<Item = Option<WeakPtr<dyn Entity>>>) {
     for component in message {
         if let MessageComponent::Link(link_tag) = component {
-            if let Some(patch) = patches.next().unwrap() {
-                link_tag.definition = LinkDefinition::Patched(patch);
-            }
+            patch_link!(link_tag, patches);
         }
     }
 }

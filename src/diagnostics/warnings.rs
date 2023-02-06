@@ -61,7 +61,7 @@ pub enum WarningKind {
     },
 
     /// The user made a syntactical mistake in a doc comment.
-    DocCommentSyntax {
+    Syntax {
         /// Message explaining the mistake to the user.
         message: String,
     },
