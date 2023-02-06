@@ -40,7 +40,7 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
             _ => {} // Skip any non-entity types.
         }
     }
-    assert!(patches.next().is_none());
+    debug_assert!(patches.next().is_none());
 
     compilation_data.into()
 }
@@ -122,7 +122,7 @@ fn apply_patches(comment: &mut Option<DocComment>, patches: &mut impl Iterator<I
         for param_tag in &mut comment.params {
             patch_links_in(&mut param_tag.message, patches);
         }
-        for returns_tag in &mut comment.params {
+        for returns_tag in &mut comment.returns {
             patch_links_in(&mut returns_tag.message, patches);
         }
         for throws_tag in &mut comment.throws {

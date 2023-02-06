@@ -30,8 +30,6 @@ macro_rules! append_tag_to_comment {
 pub(self) use append_tag_to_comment; // To let LALRPOP use the macro.
 
 /// Creates a new doc comment with the specified overview and everything else empty.
-/// Because of how parsing works, we always get an `Overview` token, so here we check if
-/// the overview is actually empty, and if so, set it to `None` instead.
 fn create_doc_comment(overview: Option<Overview>, start: Location, file: &str) -> DocComment {
     // We subtract 3 from the start of the comment to account for the leading "///" that is always present.
     // This span is automatically extended as more constructs are parsed.
@@ -83,7 +81,7 @@ fn construct_section_message(inline_message: Option<Message>, message_lines: Opt
     message_lines
 }
 
-/// Removes any common leading whitespace from the provided message lines and returns the result.
+/// Removes any common leading whitespace from the provided lines and returns the result.
 /// Each element in the vector represents one line of the message.
 /// `None` means the line existed but was empty, `Some(message)` means the line had a message.
 fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
@@ -93,7 +91,7 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
         // We only check lines that have a message on them (eg: they're non-empty).
         if let Some(message) = &line {
             // To check the start of the line, we check the first message component.
-            // It's safe to unwrap because the parser will have returned `None` for an empty message.
+            // It's safe to unwrap because we know the line was non-empty in this block.
             match message.first().unwrap() {
                 MessageComponent::Text(text) => {
                     // Determine how many whitespace characters are at the beginning of this line,
@@ -103,7 +101,7 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
                 }
                 MessageComponent::Link(_) => {
                     // If a line starts with a link, the common leading whitespace must be 0.
-                    // We set this, then exit the loop, since we can't find less than 0 whitespace characters.
+                    // We set this, then exit the loop, since the loop won't find less than 0 whitespace characters.
                     common_leading_whitespace = 0;
                     break;
                 }

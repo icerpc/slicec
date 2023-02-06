@@ -24,7 +24,7 @@ macro_rules! implement_parse_function {
 
 pub struct CommentParser<'a> {
     pub file_name: &'a str,
-    pub identifier: &'a String,
+    pub(super) identifier: &'a String,
     pub(super) reporter: &'a mut DiagnosticReporter,
 }
 
@@ -32,6 +32,10 @@ impl<'a> CommentParser<'a> {
     implement_parse_function!(parse_doc_comment, DocCommentParser, DocComment);
 
     pub fn new(file_name: &'a str, identifier: &'a String, reporter: &'a mut DiagnosticReporter) -> Self {
-        CommentParser { file_name, identifier, reporter }
+        CommentParser {
+            file_name,
+            identifier,
+            reporter,
+        }
     }
 }

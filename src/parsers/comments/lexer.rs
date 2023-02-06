@@ -114,7 +114,7 @@ impl<'input> Lexer<'input> {
         let start_location = self.cursor;
 
         // Consume the '@' character then read the following keyword.
-        assert!(matches!(self.buffer.peek(), Some('@')));
+        debug_assert!(matches!(self.buffer.peek(), Some('@')));
         self.advance_buffer();
         let ident = self.read_identifier();
 

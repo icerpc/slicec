@@ -14,9 +14,8 @@ pub enum TokenKind<'input> {
     /// simpler. This is fine because we validate that the identifier corresponds to a real identifier later.
     Identifier(&'input str), // "[_a-zA-Z0-9]+"
 
-    /// Raw text that isn't parsed any further. These tokens make up messages and descriptions.
-    /// These tokens are only lexed on lines that continue another section,
-    /// or after a ':' character on lines that start a new section.
+    /// Raw text that isn't parsed any further. These tokens make up messages and descriptions and are only lexed on
+    /// lines that continue another section, or after a ':' character on lines that start a new section.
     Text(&'input str),
 
     Newline, // "\n"
@@ -46,8 +45,8 @@ pub enum ErrorKind<'input> {
     /// Ex: `@foo`, "foo" isn't a valid tag.
     UnknownTag { tag: &'input str },
 
-    /// Returned when a '@' isn't followed by a tag identifier (ignoring whitespace).
-    /// Ex: `@`, nothing follows the '@' on this line.
+    /// Returned when a '@' isn't followed by a tag identifier.
+    /// Ex: `@ link`, there's a space between the '@' and the identifier.
     MissingTag,
 
     /// Returned when an inline tag is missing its closing brace '}'. Note that inline tags cannot span multiple lines.
