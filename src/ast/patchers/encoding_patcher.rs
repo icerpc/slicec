@@ -165,7 +165,12 @@ impl EncodingPatcher<'_> {
                 supported_encodings.intersect_with(&value_encodings);
                 supported_encodings
             }
-            Types::Primitive(primitive) => primitive.supported_encodings(),
+            Types::Primitive(primitive) => {
+                if matches!(primitive, Primitive::ServiceAddress) {
+                    allow_nullable_with_slice_1 = true;
+                }
+                primitive.supported_encodings()
+            }
         };
 
         // Optional types aren't supported by the Slice1 encoding (with some exceptions).
