@@ -153,7 +153,11 @@ impl<'input> Lexer<'input> {
         token
     }
 
-    /// TODO
+    /// Reads and returns a token from the buffer while the lexer is in `Message` mode.
+    /// If the first character in the buffer is a '{', this function checks if it's the start of an inline tag.
+    /// If it is, this returns a '{' token and switches the lexer to `InlineTag` mode.
+    /// Otherwise, this reads raw text from the buffer and returns a `Text` token. No errors are possible in this
+    /// function, and since it's only called when the buffer is non-empty, it always returns something.
     fn lex_message(&mut self) -> Token<'input> {
         let start_location = self.cursor;
         let start_position = self.position;
@@ -181,7 +185,10 @@ impl<'input> Lexer<'input> {
         (start_location, TokenKind::Text(text), self.cursor)
     }
 
-    /// TODO
+    /// Attempts to read and return a token from the buffer while the lexer is in `BlockTag` or `InlineTag` mode.
+    /// Returns `None` if there's only whitespace left in the buffer (which is ignored while in these modes).
+    /// Returns `Some(Ok(x))` to indicate success (where `x` is the next token),
+    /// and `Some(Err(y))` to indicate an error occurred during lexing.
     fn lex_tag_component(&mut self) -> Option<LexerResult<'input>> {
         self.skip_whitespace();
 
