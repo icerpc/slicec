@@ -32,7 +32,7 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
                     message: "missing doc comment tag".to_owned(),
                 },
                 ErrorKind::UnterminatedInlineTag => WarningKind::DocCommentSyntax {
-                    message: "missing a closing '}' on an inline doc comment tag.".to_owned(),
+                    message: "missing a closing '}' on an inline doc comment tag".to_owned(),
                 },
                 ErrorKind::IncorrectContextForTag { tag, is_inline } => WarningKind::DocCommentSyntax {
                     message: format!(
@@ -49,9 +49,10 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
             token: (start, token_kind, end),
             expected,
         } => {
+            // TODO: should use Display like in Slice parser.
             let message = format!(
-                "expected one of {}, but found '{token_kind:?}'", // TODO: should use Display like in Slice parser.
-                clean_message(&expected)
+                "expected one of {}, but found '{token_kind:?}'",
+                clean_message(&expected),
             );
             Warning::new(WarningKind::DocCommentSyntax { message }).set_span(&Span::new(start, end, file_name))
         }

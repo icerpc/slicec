@@ -326,9 +326,10 @@ where
                         if is_doc_comment {
                             self.advance_buffer(); // Consume the 3rd '/' character.
                         }
+                        let content_start_loc = self.cursor;
                         let comment = self.read_line_comment();
                         match is_doc_comment {
-                            true => Some(Ok((start_location, TokenKind::DocComment(comment), self.cursor))),
+                            true => Some(Ok((content_start_loc, TokenKind::DocComment(comment), self.cursor))),
                             false => None, // Non-doc comments are ignored.
                         }
                     }

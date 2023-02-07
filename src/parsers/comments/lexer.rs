@@ -51,18 +51,17 @@ impl<'input> Lexer<'input> {
             cursor: Location::default(),
             mode: LexerMode::Message,
         };
-        lexer.switch_to_next_line(first_line, first_span); // Actually initializes the lexer.
+        lexer.switch_to_next_line(first_line, first_span); // Actually initialize the lexer.
         lexer
     }
 
-    /// The lexer operates on a doc comment one line at a time, this function tells the lexer to discard the line it's
+    /// The lexer operates on doc comments one line at a time; this function tells the lexer to discard the line it's
     /// currently lexing and switch to the provided line (and span). It updates all the lexer's fields accordingly.
     fn switch_to_next_line(&mut self, line: &'input str, span: Span) {
         self.current_line = line;
         self.buffer = self.current_line.chars().peekable();
         self.position = 0;
         self.cursor = span.start;
-        self.cursor.col += 3; // We skip the leading "///".
 
         // If the first non-whitespace character on this line is '@', then this line starts a new tag, and we put the
         // lexer in `BlockTag` mode accordingly. Otherwise, we put the lexer in its 'default' `Message` mode instead.
@@ -104,7 +103,7 @@ impl<'input> Lexer<'input> {
     }
 
     /// Attempts to read and validate a tag keyword from the buffer.
-    /// Tag keywords always start with a '@' character followed by an identifier (with optional whitespace in between).
+    /// Tag keywords always start with a '@' character that is followed by an identifier.
     /// If a valid tag keyword is found, this function returns `Some(Ok(<keyword_token>)))`, otherwise it returns
     /// `Some(Err(...))`.
     ///
@@ -133,11 +132,15 @@ impl<'input> Lexer<'input> {
         let is_inline = self.mode == LexerMode::InlineTag;
         if let Ok((start, token_kind, end)) = &token {
             let is_valid = match token_kind {
+                // These tags are never valid inline.
                 TokenKind::ParamKeyword
                 | TokenKind::ReturnsKeyword
                 | TokenKind::ThrowsKeyword
                 | TokenKind::SeeKeyword => !is_inline,
+
+                // These tags are only valid inline.
                 TokenKind::LinkKeyword => is_inline,
+
                 _ => unreachable!("Encountered non-keyword token in 'lex_tag_keyword'!"),
             };
             if !is_valid {
@@ -155,8 +158,8 @@ impl<'input> Lexer<'input> {
         let start_location = self.cursor;
         let start_position = self.position;
 
-        // Check for the start of an inline tag. This is a '{' token followed by a '@' token.
-        // If both are present, we switch to `InlineTag` mode and return the '{' we consumed.
+        // Check for the start of an inline tag. This is a '{' token followed by a '@' token (possibly separated by
+        // whitespace). If both are present, we switch to `InlineTag` mode and return the '{' we consumed.
         // Otherwise, we fall through into the rest of the function which returns a normal `Text` token.
         if matches!(self.buffer.peek(), Some('{')) {
             self.advance_buffer(); // Consume the '{' character.
@@ -182,7 +185,7 @@ impl<'input> Lexer<'input> {
     fn lex_tag_component(&mut self) -> Option<LexerResult<'input>> {
         self.skip_whitespace();
 
-        // Check what the next character in the buffer is (if the buffer isn't empty. If it is, we just return `None`).
+        // Check the next character in the buffer if it isn't empty. If it is empty, the `map` will return `None`.
         self.buffer.peek().cloned().map(|c| match c {
             // If the next character is a '@' it must be the start of a tag keyword.
             '@' => self.read_tag_keyword(),
@@ -216,16 +219,18 @@ impl<'input> Lexer<'input> {
                 Ok((start_location, TokenKind::RightBrace, self.cursor))
             }
 
-            // If the next character is none of the above, it's either the start of an identifier or an unknown symbol.
+            // If the next character is an alphanumeric or underscore, it's the start of an identifier.
+            c if c.is_alphanumeric() || c == '_' => {
+                let start_location = self.cursor;
+                let identifier = self.read_identifier();
+                Ok((start_location, TokenKind::Identifier(identifier), self.cursor))
+            }
+
+            // If none of the above cases matched, the next character is an unknown symbol and we return an error.
             c => {
                 let start_location = self.cursor;
-                if c.is_alphanumeric() || c == '_' {
-                    let identifier = self.read_identifier();
-                    Ok((start_location, TokenKind::Identifier(identifier), self.cursor))
-                } else {
-                    self.advance_buffer(); // Consume the unknown symbol.
-                    Err((start_location, ErrorKind::UnknownSymbol { symbol: c }, self.cursor))
-                }
+                self.advance_buffer(); // Consume the unknown symbol.
+                Err((start_location, ErrorKind::UnknownSymbol { symbol: c }, self.cursor))
             }
         })
     }
@@ -246,7 +251,7 @@ impl<'input> Iterator for Lexer<'input> {
                 LexerMode::Message => Some(Ok(self.lex_message())),
                 _ => unreachable!("comment lexer finished with a non-empty buffer!"),
             };
-            // If the lexer has lexed a token or encountered an error, return it.
+            // If the lexer lexed a token or encountered an error, return it.
             if let Some(result) = item {
                 return Some(result);
             }
@@ -285,15 +290,15 @@ enum LexerMode {
     /// Indicates that the lexer is currently lexing a block tag.
     /// While in this mode the lexer only looks for tag keywords and identifiers.
     ///
-    /// This mode starts when the lexer starts reading a new line, and the first non-whitespace character on the line
+    /// The lexer enters this mode when it starts a new line, and the first non-whitespace character on the line
     /// is '@'. When the lexer hits a ':' or the end of a line, it switches into [`Message`](LexerMode::Message) mode.
     BlockTag,
 
     /// Indicates that the lexer is currently lexing an inline tag. Similar to [`BlockTag`](LexerMode::BlockTag) mode,
     /// while in this mode the lexer only looks for tag keywords and identifier.
     ///
-    /// This mode starts when the lexer sees an opening brace, and ends when it hits a closing brace or newline.
-    /// In both cases it switches to [`Message`](LexerMode::Message) mode.
+    /// This mode starts when the lexer sees an opening brace, and ends when it hits a closing brace or newline;
+    /// in both cases it switches to [`Message`](LexerMode::Message) mode.
     InlineTag,
 
     /// Indicates that the lexer is currently lexing raw text.
