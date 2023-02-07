@@ -21,6 +21,7 @@ pub enum Primitive {
     Float32,
     Float64,
     String,
+    ServiceAddress,
     AnyClass,
 }
 
@@ -120,6 +121,7 @@ impl Type for Primitive {
             Self::Float32 => Some(4),
             Self::Float64 => Some(8),
             Self::String => None,
+            Self::ServiceAddress => None,
             Self::AnyClass => None,
         }
     }
@@ -146,6 +148,7 @@ impl Type for Primitive {
             Self::Float32 => Some(TagFormat::F4),
             Self::Float64 => Some(TagFormat::F8),
             Self::String => Some(TagFormat::OptimizedVSize),
+            Self::ServiceAddress => Some(TagFormat::FSize),
             Self::AnyClass => Some(TagFormat::Class),
         }
     }
@@ -168,6 +171,7 @@ impl Type for Primitive {
             Self::Float32 => vec![Encoding::Slice1, Encoding::Slice2],
             Self::Float64 => vec![Encoding::Slice1, Encoding::Slice2],
             Self::String => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::ServiceAddress => vec![Encoding::Slice1, Encoding::Slice2],
             Self::AnyClass => vec![Encoding::Slice1],
         })
     }
@@ -192,6 +196,7 @@ impl Element for Primitive {
             Self::Float32 => "float32",
             Self::Float64 => "float64",
             Self::String => "string",
+            Self::ServiceAddress => "ServiceAddress",
             Self::AnyClass => "AnyClass",
         }
     }

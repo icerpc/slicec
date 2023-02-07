@@ -73,7 +73,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         Types::Sequence(_) => (false, None),
         Types::Dictionary(_) => (false, None),
         Types::Primitive(primitive) => (
-            !matches!(primitive, Primitive::Float32 | Primitive::Float64 | Primitive::AnyClass),
+            primitive.is_integral() || matches!(primitive, Primitive::Bool | Primitive::String),
             None,
         ),
     };

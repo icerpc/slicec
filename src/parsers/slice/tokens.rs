@@ -46,23 +46,24 @@ pub enum TokenKind<'input> {
     DictionaryKeyword, // "dictionary"
 
     // Primitive type keywords
-    BoolKeyword,      // "bool"
-    Int8Keyword,      // "int8"
-    UInt8Keyword,     // "uint8"
-    Int16Keyword,     // "int16"
-    UInt16Keyword,    // "uint16"
-    Int32Keyword,     // "int32"
-    UInt32Keyword,    // "uint32"
-    VarInt32Keyword,  // "varint32"
-    VarUInt32Keyword, // "varuint32"
-    Int64Keyword,     // "int64"
-    UInt64Keyword,    // "uint64"
-    VarInt62Keyword,  // "varint62"
-    VarUInt62Keyword, // "varuint62"
-    Float32Keyword,   // "float32"
-    Float64Keyword,   // "float64"
-    StringKeyword,    // "string"
-    AnyClassKeyword,  // "AnyClass"
+    BoolKeyword,           // "bool"
+    Int8Keyword,           // "int8"
+    UInt8Keyword,          // "uint8"
+    Int16Keyword,          // "int16"
+    UInt16Keyword,         // "uint16"
+    Int32Keyword,          // "int32"
+    UInt32Keyword,         // "uint32"
+    VarInt32Keyword,       // "varint32"
+    VarUInt32Keyword,      // "varuint32"
+    Int64Keyword,          // "int64"
+    UInt64Keyword,         // "uint64"
+    VarInt62Keyword,       // "varint62"
+    VarUInt62Keyword,      // "varuint62"
+    Float32Keyword,        // "float32"
+    Float64Keyword,        // "float64"
+    StringKeyword,         // "string"
+    ServiceAddressKeyword, // "ServiceAddress"
+    AnyClassKeyword,       // "AnyClass"
 
     // Other keywords
     AnyExceptionKeyword, // "AnyException"
@@ -136,6 +137,7 @@ impl std::fmt::Display for TokenKind<'_> {
             TokenKind::Float32Keyword => "float32",
             TokenKind::Float64Keyword => "float64",
             TokenKind::StringKeyword => "string",
+            TokenKind::ServiceAddressKeyword => "ServiceAddress",
             TokenKind::AnyClassKeyword => "AnyClass",
 
             // Other keywords
