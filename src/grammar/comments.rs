@@ -1,70 +1,113 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 
-use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Symbol};
+use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Entity, Identifier, Symbol};
 use crate::slice_file::Span;
+use crate::utils::ptr_util::WeakPtr;
 
-// TODO improve this to track the span of individual doc comment fields, so we can check for
-// comment validity: EX: making sure 'params' match the operation's actual parameters, etc.
-#[derive(Clone, Debug)] // TODO this shouldn't be cloned. We need to change CsharpComment.
+#[derive(Debug)]
 pub struct DocComment {
-    pub overview: String,
-    pub see_also: Vec<String>,
-    pub params: Vec<(String, String)>,
-    pub returns: Option<String>,
-    pub throws: Vec<(String, String)>,
+    pub overview: Option<Overview>,
+    pub params: Vec<ParamTag>,
+    pub returns: Vec<ReturnsTag>,
+    pub throws: Vec<ThrowsTag>,
+    pub see: Vec<SeeTag>,
     pub span: Span,
 }
 
-impl DocComment {
-    pub fn sanitize(&mut self) {
-        self.overview = self.overview.trim().to_owned();
-        self.see_also = self.see_also.iter().map(|s| s.trim().to_owned()).collect();
-        self.params = self
-            .params
-            .iter()
-            .map(|(s, t)| (s.to_owned(), t.trim().to_owned()))
-            .collect();
-
-        self.returns = self.returns.as_ref().map(|s| s.trim().to_owned());
-        self.throws = self
-            .throws
-            .iter()
-            .map(|(s, t)| (s.to_owned(), t.trim().to_owned()))
-            .collect();
-    }
+#[derive(Debug)]
+pub struct Overview {
+    pub message: Message,
+    pub span: Span,
 }
 
-/// Search for inline tags which have the format '{@tag value}'
-pub fn find_inline_tags(comment: &str) -> Vec<(&str, &str)> {
-    let mut tags = Vec::new();
+#[derive(Debug)]
+pub struct ParamTag {
+    pub identifier: Identifier,
+    pub message: Message,
+    pub span: Span,
+}
 
-    // The section comment that we're trying to match
-    let mut section = comment;
+#[derive(Debug)]
+pub struct ReturnsTag {
+    pub identifier: Option<Identifier>,
+    pub message: Message,
+    pub span: Span,
+}
 
-    while let Some(pos) = section.find('{') {
-        // Search for the closing bracket. If we don't find one just exit the loop.
-        match section[pos..].find('}') {
-            Some(end) => {
-                // The tag is everything between the opening (pos) and closing (pos+end+1) brackets.
-                let tag = &section[pos + 1..pos + end];
-                let tag_parts = tag
-                    .split(char::is_whitespace)
-                    .filter(|s| !s.trim().is_empty())
-                    .collect::<Vec<&str>>();
+#[derive(Debug)]
+pub struct ThrowsTag {
+    pub identifier: Option<Identifier>,
+    pub definition: LinkDefinition,
+    pub message: Message,
+    pub span: Span,
+}
 
-                // Only match tags with two parts. We'll verify the tag type and value later.
-                if tag_parts.len() == 2 {
-                    tags.push((tag_parts[0], tag_parts[1]));
-                }
-
-                // The next section is the part of the comment after the matched closing bracket.
-                section = &section[pos + end + 1..];
-            }
-            None => break,
+impl ThrowsTag {
+    pub fn thrown_type(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
         }
     }
-    tags
 }
+
+#[derive(Debug)]
+pub struct SeeTag {
+    pub link: Identifier,
+    pub definition: LinkDefinition,
+    pub span: Span,
+}
+
+impl SeeTag {
+    pub fn linked_entity(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct LinkTag {
+    pub link: Identifier,
+    pub definition: LinkDefinition,
+    pub span: Span,
+}
+
+impl LinkTag {
+    pub fn linked_entity(&self) -> Option<&dyn Entity> {
+        match &self.definition {
+            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
+            LinkDefinition::Unpatched => None,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum LinkDefinition {
+    Patched(WeakPtr<dyn Entity>),
+    Unpatched,
+}
+
+#[derive(Debug)]
+pub enum MessageComponent {
+    Text(String),
+    Link(LinkTag),
+}
+
+pub type Message = Vec<MessageComponent>;
 
 implement_Element_for!(DocComment, "doc comment");
 implement_Symbol_for!(DocComment);
+implement_Element_for!(Overview, "overview");
+implement_Symbol_for!(Overview);
+implement_Element_for!(ParamTag, "param tag");
+implement_Symbol_for!(ParamTag);
+implement_Element_for!(ReturnsTag, "returns tag");
+implement_Symbol_for!(ReturnsTag);
+implement_Element_for!(ThrowsTag, "throws tag");
+implement_Symbol_for!(ThrowsTag);
+implement_Element_for!(SeeTag, "see tag");
+implement_Symbol_for!(SeeTag);
+implement_Element_for!(LinkTag, "link tag");
+implement_Symbol_for!(LinkTag);

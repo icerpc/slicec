@@ -343,17 +343,13 @@ CompactId: u32 = {
     }
 }
 
-Prelude: (Option<DocComment>, Vec<Attribute>) = {
-    PreludeImpl => (parse_doc_comment(<>.0), <>.1),
-}
-
-PreludeImpl: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
+Prelude: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
     => (Vec::new(), Vec::new()),
-    <mut prelude: PreludeImpl> <l: @L> <comment: doc_comment> <r: @R> => {
+    <mut prelude: Prelude> <l: @L> <comment: doc_comment> <r: @R> => {
         prelude.0.push((comment, Span::new(l, r, parser.file_name)));
         prelude
     },
-    <mut prelude: PreludeImpl> <attribute: LocalAttribute> => {
+    <mut prelude: Prelude> <attribute: LocalAttribute> => {
         prelude.1.push(attribute);
         prelude
     }
