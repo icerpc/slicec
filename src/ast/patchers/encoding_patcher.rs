@@ -166,7 +166,7 @@ impl EncodingPatcher<'_> {
                 supported_encodings
             }
             Types::Primitive(primitive) => {
-                if matches!(primitive, Primitive::ServiceAddress) {
+                if matches!(primitive, Primitive::ServiceAddress | Primitive::AnyClass) {
                     allow_nullable_with_slice_1 = true;
                 }
                 primitive.supported_encodings()
