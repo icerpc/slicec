@@ -40,7 +40,7 @@ fn operation_members_are_compatible_with_encoding() {
 }
 
 #[test]
-fn anyexception_cannot_be_used_without_slice1() {
+fn any_exception_cannot_be_used_without_slice1() {
     let slice = "
         module Test;
 
@@ -63,7 +63,7 @@ mod slice1 {
     use slice::grammar::*;
 
     #[test]
-    fn operations_can_throw_anyexception() {
+    fn operations_can_throw_any_exception() {
         let slice = "
             encoding = 1;
 
