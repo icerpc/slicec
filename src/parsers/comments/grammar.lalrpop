@@ -1,0 +1,130 @@
+// Copyright (c) ZeroC, Inc. All rights reserved.
+
+use crate::grammar::*;
+use crate::parsers::comments::tokens::*;
+use crate::parsers::comments::grammar::*;
+use crate::parsers::comments::parser::CommentParser;
+use crate::slice_file::Span;
+
+// Specify the signature of the parser's entry function.
+grammar<'input, 'a>(comment_parser: &mut CommentParser<'a>);
+
+extern {
+    // Specify the types that the parser should use for location tracking and error emission.
+    type Location = crate::slice_file::Location;
+    type Error = crate::parsers::comments::tokens::Error<'input>;
+
+    // Link the names of terminal tokens with their actual token types. Ex: `identifier => TokenKind::Identifier`
+    // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
+    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `token.rs`.
+    enum TokenKind<'input> {
+        identifier => TokenKind::Identifier(<&'input str>),
+        text => TokenKind::Text(<&'input str>),
+        newline => TokenKind::Newline,
+
+        // Tag keywords
+        param_keyword => TokenKind::ParamKeyword,
+        returns_keyword => TokenKind::ReturnsKeyword,
+        throws_keyword => TokenKind::ThrowsKeyword,
+        see_keyword => TokenKind::SeeKeyword,
+        link_keyword => TokenKind::LinkKeyword,
+
+        // Symbols
+        "{" => TokenKind::LeftBrace,
+        "}" => TokenKind::RightBrace,
+        ":" => TokenKind::Colon,
+        "::" => TokenKind::DoubleColon,
+    }
+}
+
+// Grammar Rules
+
+pub DocComment: DocComment = {
+    <l: @L> <overview: Overview?> => create_doc_comment(overview, l, comment_parser.file_name),
+    <mut comment: DocComment> <param_block: ParamBlock> => {
+        append_tag_to_comment!(comment, params, param_block)
+    },
+    <mut comment: DocComment> <returns_block: ReturnsBlock> => {
+        append_tag_to_comment!(comment, returns, returns_block)
+    },
+    <mut comment: DocComment> <throws_block: ThrowsBlock> => {
+        append_tag_to_comment!(comment, throws, throws_block)
+    },
+    <mut comment: DocComment> <see_block: SeeBlock> => {
+        append_tag_to_comment!(comment, see, see_block)
+    },
+}
+
+Overview: Overview = {
+    <l: @L> <message: MessageLines> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        Overview { message, span }
+    },
+}
+
+ParamBlock: ParamTag = {
+    <l: @L> param_keyword <identifier: Identifier> <message: Section> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        ParamTag { identifier, message, span }
+    },
+}
+
+ReturnsBlock: ReturnsTag = {
+    <l: @L> returns_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        ReturnsTag { identifier, message, span }
+    },
+}
+
+ThrowsBlock: ThrowsTag = {
+    <l: @L> throws_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        ThrowsTag { identifier, definition: LinkDefinition::Unpatched, message, span }
+    },
+}
+
+SeeBlock: SeeTag = {
+    <l: @L> see_keyword <identifier: ScopedIdentifier> <r: @R> newline => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        SeeTag { link: identifier, definition: LinkDefinition::Unpatched, span }
+    },
+}
+
+InlineLink: LinkTag = {
+    <l: @L> link_keyword <identifier: ScopedIdentifier> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        LinkTag { link: identifier, definition: LinkDefinition::Unpatched, span }
+    },
+}
+
+Section: Message = {
+    <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> => {
+        construct_section_message(inline_message.flatten(), message_lines)
+    },
+}
+
+MessageLines: Message = {
+    (<Message?> newline)+ => sanitize_message_lines(<>),
+}
+
+Message = MessageComponent+;
+
+MessageComponent: MessageComponent = {
+    <text: text> => MessageComponent::Text(text.to_owned()),
+    "{" <link: InlineLink> "}" => MessageComponent::Link(link),
+}
+
+Identifier: Identifier = {
+    <l: @L> <identifier: identifier> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        Identifier { value: identifier.to_owned(), span }
+    },
+}
+
+ScopedIdentifier: Identifier = {
+    <l: @L> <dc: "::"?> <i: identifier> <mut v: ("::" <identifier>)*> <r: @R> => {
+        let value = get_scoped_identifier_string(i, v, dc.is_some());
+        let span = Span::new(l, r, comment_parser.file_name);
+        Identifier { value, span }
+    },
+}

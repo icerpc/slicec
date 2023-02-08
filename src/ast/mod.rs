@@ -24,6 +24,7 @@ use std::collections::HashMap;
 pub(crate) unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     compilation_data = patchers::type_ref_patcher::patch_ast(compilation_data)?;
     compilation_data = patchers::encoding_patcher::patch_ast(compilation_data)?;
+    compilation_data = patchers::comment_link_patcher::patch_ast(compilation_data)?;
 
     compilation_data.into()
 }

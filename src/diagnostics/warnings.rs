@@ -60,6 +60,12 @@ pub enum WarningKind {
         path: String,
     },
 
+    /// The user made a syntactical mistake in a doc comment.
+    DocCommentSyntax {
+        /// Message explaining the mistake to the user.
+        message: String,
+    },
+
     /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
     ExtraParameterInDocComment {
         /// The name of the parameter from the user-supplied doc comment.
@@ -77,16 +83,16 @@ pub enum WarningKind {
         identifier: String,
     },
 
-    /// The user-supplied doc comment link referenced an entity that does not exist.
-    InvalidDocCommentLinkIdentifier {
-        /// The identifier of the entity that was referenced.
+    /// A doc comment link referenced an element that does not exist.
+    CouldNotResolveLink {
+        /// The identifier that the link referenced.
         identifier: String,
     },
 
-    /// The user-supplied doc comment tag is invalid.
-    InvalidDocCommentTag {
-        /// The doc comment tag.
-        tag: String,
+    /// A doc comment link referenced a type that cannot be referenced: primitive, sequence, or dictionary.
+    LinkToInvalidElement {
+        /// The kind of element the link references.
+        kind: String,
     },
 
     /// The code references a Slice entity that is deprecated.
@@ -114,45 +120,46 @@ implement_diagnostic_functions!(
         format!("slice file was provided more than once: '{path}'"),
         path
     ),
+    ("W002", WarningKind::DocCommentSyntax, message, message),
     (
-        "W002",
+        "W003",
         WarningKind::ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
-        "W003",
+        "W004",
         WarningKind::ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
-        "W004",
+        "W005",
         WarningKind::ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
-        "W005",
-        WarningKind::InvalidDocCommentLinkIdentifier,
-        format!("doc comment references an identifier '{identifier}' that does not exist"),
+        "W006",
+        WarningKind::CouldNotResolveLink,
+        format!("no element with identifier '{identifier}' can be found from this scope"),
         identifier
     ),
     (
-        "W006",
-        WarningKind::InvalidDocCommentTag,
-        format!("doc comment tag '{tag}' is invalid"),
-        tag
+        "W007",
+        WarningKind::LinkToInvalidElement,
+        format!("elements of the type '{kind}' cannot be referenced in doc comments"),
+        kind
     ),
     (
-        "W007",
+        "W008",
         WarningKind::UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W008",
+        "W009",
         WarningKind::InconsequentialUseOfAttribute,
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,

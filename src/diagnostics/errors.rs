@@ -22,6 +22,12 @@ impl Error {
         }
     }
 
+    // TODO only used by consumers of `find_element` and `find_node`,
+    // we should add a more specific error type for those functions to use.
+    pub fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+
     pub fn set_span(mut self, span: &Span) -> Self {
         self.span = Some(span.to_owned());
         self

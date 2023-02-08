@@ -3,6 +3,7 @@
 //! TODO write a doc comment for the module.
 
 use crate::diagnostics::{Error, ErrorKind};
+use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use convert_case::{Case, Casing};
@@ -96,6 +97,35 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
             _ => Err(Error::new(ErrorKind::TypeMismatch {
                 expected: "Type".to_owned(),
+                actual: node.to_string().to_case(Case::Lower),
+            })),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
+    type Error = Error;
+
+    /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Entity].
+    ///
+    /// If the Slice element held by the node implements [Entity], this succeeds and returns a pointer to the entity,
+    /// otherwise this fails and returns an error message.
+    fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Entity>, Self::Error> {
+        match node {
+            Node::Module(module_ptr) => Ok(downgrade_as!(module_ptr, dyn Entity)),
+            Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
+            Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Entity)),
+            Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Entity)),
+            Node::DataMember(data_member_ptr) => Ok(downgrade_as!(data_member_ptr, dyn Entity)),
+            Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Entity)),
+            Node::Operation(operation_ptr) => Ok(downgrade_as!(operation_ptr, dyn Entity)),
+            Node::Parameter(parameter_ptr) => Ok(downgrade_as!(parameter_ptr, dyn Entity)),
+            Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Entity)),
+            Node::Enumerator(enumerator_ptr) => Ok(downgrade_as!(enumerator_ptr, dyn Entity)),
+            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Entity)),
+            Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Entity)),
+            _ => Err(Error::new(ErrorKind::TypeMismatch {
+                expected: "Entity".to_owned(),
                 actual: node.to_string().to_case(Case::Lower),
             })),
         }
