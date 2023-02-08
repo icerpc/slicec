@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 pub mod helpers;
 
@@ -13,16 +13,14 @@ mod comments {
     #[test]
     fn single_line_doc_comment() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module tests;
 
             /// This is a single line doc comment.
             interface MyInterface
-            {{
-            }}
-            "
-        );
+            {
+            }
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -49,17 +47,15 @@ mod comments {
     #[test]
     fn multi_line_doc_comment() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module tests;
 
-            /// This is a 
+            /// This is a
             /// multiline doc comment.
             interface MyInterface
-            {{
-            }}
-            "
-        );
+            {
+            }
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -78,7 +74,7 @@ mod comments {
         let message = &overview.message;
         assert_eq!(message.len(), 4);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
-        assert_eq!(text, "This is a ");
+        assert_eq!(text, "This is a");
         let MessageComponent::Text(newline) = &message[1] else { panic!() };
         assert_eq!(newline, "\n");
         let MessageComponent::Text(text) = &message[2] else { panic!() };

@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 pub mod ast;
 pub mod code_block;

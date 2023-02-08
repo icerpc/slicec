@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use super::{DiagnosticReporter, Note};
 use crate::implement_diagnostic_functions;

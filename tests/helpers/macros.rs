@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 /// Asserts that an diagnostic reporter contains the expected errors (or is empty).
 ///

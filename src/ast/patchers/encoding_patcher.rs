@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use super::super::Node;
 use crate::compilation_result::{CompilationData, CompilationResult};

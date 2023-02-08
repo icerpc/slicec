@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};

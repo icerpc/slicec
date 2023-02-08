@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::grammar::{Attributable, Attribute, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;

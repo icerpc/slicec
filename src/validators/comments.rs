@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
 use crate::grammar::*;
