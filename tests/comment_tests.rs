@@ -13,16 +13,14 @@ mod comments {
     #[test]
     fn single_line_doc_comment() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module tests;
 
             /// This is a single line doc comment.
             interface MyInterface
             {{
             }}
-            "
-        );
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
@@ -49,17 +47,15 @@ mod comments {
     #[test]
     fn multi_line_doc_comment() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module tests;
 
-            /// This is a 
+            /// This is a
             /// multiline doc comment.
             interface MyInterface
             {{
             }}
-            "
-        );
+        ";
 
         // Act
         let ast = parse_for_ast(slice);

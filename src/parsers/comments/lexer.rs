@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use super::tokens::*;
 use crate::slice_file::{Location, Span};
