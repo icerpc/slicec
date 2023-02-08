@@ -98,6 +98,16 @@ impl Note {
             span: span.cloned(),
         }
     }
+
+    /// Returns the message of the note.
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    /// Returns the [Span] of the note if it has one.
+    pub fn span(&self) -> Option<&Span> {
+        self.span.as_ref()
+    }
 }
 
 /// A macro that implements the `error_code` and `message` functions for [WarningKind] and [ErrorKind] enums.
