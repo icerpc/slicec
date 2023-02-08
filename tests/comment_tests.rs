@@ -18,8 +18,8 @@ mod comments {
 
             /// This is a single line doc comment.
             interface MyInterface
-            {{
-            }}
+            {
+            }
         ";
 
         // Act
@@ -53,8 +53,8 @@ mod comments {
             /// This is a
             /// multiline doc comment.
             interface MyInterface
-            {{
-            }}
+            {
+            }
         ";
 
         // Act
@@ -74,7 +74,7 @@ mod comments {
         let message = &overview.message;
         assert_eq!(message.len(), 4);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
-        assert_eq!(text, "This is a ");
+        assert_eq!(text, "This is a");
         let MessageComponent::Text(newline) = &message[1] else { panic!() };
         assert_eq!(newline, "\n");
         let MessageComponent::Text(text) = &message[2] else { panic!() };
