@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};

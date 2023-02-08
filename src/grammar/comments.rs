@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Symbol};
 use crate::slice_file::Span;

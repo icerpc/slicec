@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::helpers::parsing_helpers::parse_for_ast;
 use slice::grammar::*;

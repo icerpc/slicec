@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 //! This module defines all the tokens and errors that the preprocessor [Lexer](super::lexer::Lexer) can return.
 

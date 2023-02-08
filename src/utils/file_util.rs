@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::command_line::SliceOptions;
 use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning, WarningKind};

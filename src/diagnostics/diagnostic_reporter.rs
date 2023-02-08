@@ -1,4 +1,4 @@
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
