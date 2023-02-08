@@ -57,7 +57,7 @@ macro_rules! resolve_link {
             Ok(ptr) => Some(ptr),
             Err(error) => {
                 let warning_kind = match error.kind() {
-                    ErrorKind::DoesNotExist { identifier } => WarningKind::DoesNotExist {
+                    ErrorKind::DoesNotExist { identifier } => WarningKind::CouldNotResolveLink {
                         identifier: identifier.to_owned(),
                     },
                     ErrorKind::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement {

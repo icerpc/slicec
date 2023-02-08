@@ -316,7 +316,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::DoesNotExist {
+        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
             identifier: "FakeException".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -442,7 +442,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::DoesNotExist {
+        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
             identifier: "OtherStruct".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);

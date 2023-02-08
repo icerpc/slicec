@@ -84,7 +84,7 @@ pub enum WarningKind {
     },
 
     /// A doc comment link referenced an element that does not exist.
-    DoesNotExist {
+    CouldNotResolveLink {
         /// The identifier that the link referenced.
         identifier: String,
     },
@@ -141,7 +141,7 @@ implement_diagnostic_functions!(
     ),
     (
         "W006",
-        WarningKind::DoesNotExist,
+        WarningKind::CouldNotResolveLink,
         format!("no element with identifier '{identifier}' can be found from this scope"),
         identifier
     ),
