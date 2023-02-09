@@ -41,9 +41,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             // Check that all the data members of the struct are also valid key types.
             let mut contains_invalid_key_types = false;
             for member in struct_def.members() {
+                let identifier = member.identifier().to_owned();
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
                     Error::new(ErrorKind::KeyTypeNotSupported {
-                        identifier: member.identifier().to_owned(),
+                        identifier: format!("'{identifier}'"),
                     })
                     .set_span(member.span())
                     .report(diagnostic_reporter);
@@ -79,15 +80,16 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
     };
 
     if !is_valid {
-        let pluralized_kind = match definition.concrete_type() {
-            Types::Primitive(_) => definition.kind().to_owned(),
-            Types::Class(_) => "classes".to_owned(),
-            Types::Dictionary(_) => "dictionaries".to_owned(),
-            _ => definition.kind().to_owned() + "s",
+        let kind = definition.kind().to_owned();
+        let formatted_kind = match definition.concrete_type() {
+            Types::Primitive(_) => format!("'{kind}'"),
+            Types::Class(c) => format!("'{}'", c.identifier()),
+            Types::Exception(e) => format!("'{}'", e.identifier()),
+            Types::Interface(i) => format!("'{}'", i.identifier()),
+            _ => kind,
         };
-
         let mut error = Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: pluralized_kind,
+            identifier: formatted_kind,
         })
         .set_span(type_ref.span());
 

@@ -397,7 +397,7 @@ implement_diagnostic_functions!(
     (
         "E005",
         ErrorKind::KeyMustBeNonOptional,
-        "optional types cannot be used as a dictionary key type"
+        "optional types are not valid dictionary key types"
     ),
     (
         "E006",
@@ -407,13 +407,13 @@ implement_diagnostic_functions!(
     (
         "E007",
         ErrorKind::KeyTypeNotSupported,
-        format!("'{identifier}' cannot be used as a dictionary key type"),
+        format!("{identifier} is not a valid dictionary key type"),
         identifier
     ),
     (
         "E008",
         ErrorKind::StructKeyContainsDisallowedType,
-        format!("struct '{struct_identifier}' contains members that cannot be used as a dictionary key type"),
+        format!("struct '{struct_identifier}' contains members that are not a valid dictionary key types"),
         struct_identifier
     ),
     (

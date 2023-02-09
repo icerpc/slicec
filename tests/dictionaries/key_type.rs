@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::assert_errors;
-use crate::helpers::parsing_helpers::{parse_for_diagnostics, pluralize_kind};
+use crate::helpers::parsing_helpers::parse_for_diagnostics;
 use slice::diagnostics::{Error, ErrorKind};
 use test_case::test_case;
 
@@ -69,13 +69,13 @@ fn disallowed_primitive_types(key_type: &str) {
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-        identifier: key_type.to_owned(),
+        identifier: format!("'{key_type}'"),
     });
     assert_errors!(diagnostics, [&expected]);
 }
 
-#[test_case("sequence<int8>", "sequences" ; "sequences")]
-#[test_case("dictionary<int8, bool>", "dictionaries" ; "dictionaries")]
+#[test_case("sequence<int8>", "sequence" ; "sequence")]
+#[test_case("dictionary<int8, bool>", "dictionary" ; "dictionary")]
 fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     // Arrange
     let slice = format!(
@@ -134,7 +134,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-        identifier: pluralize_kind(key_kind),
+        identifier: format!("'{key_type}'"),
     })
     .add_note(format!("{key_kind} '{key_type}' is defined here:"), None);
 
@@ -217,23 +217,23 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     // Assert
     let expected: [Error; 7] = [
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "sequences".to_owned(),
+            identifier: "sequence".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "seq".to_owned(),
+            identifier: "'seq'".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "float32".to_owned(),
+            identifier: "'float32'".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "f32".to_owned(),
+            identifier: "'f32'".to_owned(),
         }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Inner".to_owned(),
         })
         .add_note("struct 'Inner' is defined here:", None),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "i".to_owned(),
+            identifier: "'i'".to_owned(),
         }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Outer".to_owned(),
