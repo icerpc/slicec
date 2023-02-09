@@ -113,7 +113,7 @@ pub enum WarningKind {
 
     /// The doc comment indicated that the operation should throw an invalid type.
     InvalidThrowInDocComment {
-        /// The identifier of the operation
+        /// The identifier of the operation.
         operation_identifier: String,
         /// The kind of the entity that was indicated to throw.
         kind: String,

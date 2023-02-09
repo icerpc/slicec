@@ -67,11 +67,8 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
 
 fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
-        comment
-            .throws
-            .iter()
-            .filter_map(|tag| tag.thrown_type())
-            .for_each(|entity| {
+        for throws_tag in &comment.throws {
+            if let Some(entity) = throws_tag.thrown_entity() {
                 if entity.kind() != "exception" {
                     Warning::new(WarningKind::InvalidThrowInDocComment {
                         operation_identifier: operation.identifier().to_owned(),
