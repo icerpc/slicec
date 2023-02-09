@@ -72,7 +72,7 @@ fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mu
             .iter()
             .filter_map(|tag| tag.thrown_type())
             .for_each(|entity| {
-                if entity.kind() != "exception" || entity.kind() != "AnyException" {
+                if entity.kind() != "exception" {
                     Warning::new(WarningKind::InvalidThrowInDocComment {
                         operation_identifier: operation.identifier().to_owned(),
                         kind: entity.kind().to_owned(),
