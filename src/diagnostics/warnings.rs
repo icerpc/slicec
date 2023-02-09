@@ -113,11 +113,7 @@ pub enum WarningKind {
 
     /// The doc comment indicated that the operation should throw an invalid type.
     InvalidThrowInDocComment {
-        /// The identifier of the operation.
-        operation_identifier: String,
-        /// The kind of the entity that was indicated to throw.
-        kind: String,
-        /// The identifier of the entity that was indicated to throw.
+        /// The identifier of the type that was indicated to throw.
         identifier: String,
     },
 }
@@ -178,9 +174,7 @@ implement_diagnostic_functions!(
     (
         "W010",
         WarningKind::InvalidThrowInDocComment,
-        format!("doc comment indicates that operation '{operation_identifier}' throws an invalid type: {kind} '{identifier}'"),
-        operation_identifier,
-        kind,
+        format!("doc comment indicates that the operation throws an invalid type '{identifier}'"),
         identifier
     )
 );

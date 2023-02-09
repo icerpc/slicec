@@ -507,7 +507,7 @@ mod comments {
 
         // Assert
         assert_errors!(diagnostics, [
-            "doc comment indicates that operation 'testOp' throws an invalid type: struct 'S'",
+            "doc comment indicates that the operation throws an invalid type 'S'",
         ]);
     }
 }

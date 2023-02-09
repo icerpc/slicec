@@ -68,17 +68,25 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
 fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         for throws_tag in &comment.throws {
-            if let Some(entity) = throws_tag.thrown_entity() {
+            if let Some(entity) = throws_tag.thrown_type() {
                 if entity.kind() != "exception" {
                     Warning::new(WarningKind::InvalidThrowInDocComment {
-                        operation_identifier: operation.identifier().to_owned(),
-                        kind: entity.kind().to_owned(),
                         identifier: entity.identifier().to_owned(),
                     })
-                    .set_span(entity.span())
+                    .add_note(
+                        format!(
+                            "{} '{}' was defined here: ",
+                            entity.kind().to_owned(),
+                            entity.identifier()
+                        ),
+                        Some(entity.span()),
+                    )
+                    .add_note("operations can only throw exceptions", None)
+                    .set_span(throws_tag.span())
                     .set_scope(operation.parser_scoped_identifier())
                     .report(diagnostic_reporter);
                 }
-            });
+            }
+        }
     }
 }
