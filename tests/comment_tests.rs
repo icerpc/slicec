@@ -506,8 +506,6 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, [
-            "doc comment indicates that the operation throws an invalid type 'S'",
-        ]);
+        assert_errors!(diagnostics, ["'S' is not a throwable type"]);
     }
 }

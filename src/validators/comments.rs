@@ -69,6 +69,7 @@ fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mu
     if let Some(comment) = operation.comment() {
         for throws_tag in &comment.throws {
             if let Some(entity) = throws_tag.thrown_type() {
+                // TODO: Add a better type check.
                 if entity.kind() != "exception" {
                     Warning::new(WarningKind::InvalidThrowInDocComment {
                         identifier: entity.identifier().to_owned(),
