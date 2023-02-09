@@ -5,12 +5,21 @@ use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
 pub fn dictionary_validators() -> ValidationChain {
-    vec![Validator::Dictionaries(has_allowed_key_type)]
+    vec![
+        Validator::Dictionaries(has_allowed_key_type),
+        Validator::Dictionaries(has_allowed_value_type),
+    ]
 }
 
 pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
     for dictionary in dictionaries {
         check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+    }
+}
+
+pub fn has_allowed_value_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
+    for dictionary in dictionaries {
+        check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
     }
 }
 
@@ -105,4 +114,21 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
         error.report(diagnostic_reporter);
     }
     is_valid
+}
+
+fn check_dictionary_value_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) {
+    let definition = type_ref.definition();
+    match definition.concrete_type() {
+        Types::Sequence(s) => {
+            if let Types::Dictionary(dictionary) = s.element_type.concrete_type() {
+                check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+                check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
+            }
+        }
+        Types::Dictionary(dictionary) => {
+            check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+            check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
+        }
+        _ => (),
+    }
 }
