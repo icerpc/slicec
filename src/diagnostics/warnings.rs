@@ -110,6 +110,12 @@ pub enum WarningKind {
         /// The entity the user applied the attribute to.
         kind: String,
     },
+
+    /// The doc comment indicated that the operation should throw an invalid type.
+    InvalidThrowInDocComment {
+        /// The identifier of the type that was indicated to throw.
+        identifier: String,
+    },
 }
 
 implement_diagnostic_functions!(
@@ -164,5 +170,11 @@ implement_diagnostic_functions!(
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
         kind
+    ),
+    (
+        "W010",
+        WarningKind::InvalidThrowInDocComment,
+        format!("'{identifier}' is not a throwable type"),
+        identifier
     )
 );
