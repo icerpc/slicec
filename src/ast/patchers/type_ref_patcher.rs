@@ -3,10 +3,8 @@
 use crate::ast::{Ast, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::*;
-use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
-use convert_case::{Case, Casing};
 
 pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
     let mut patcher = TypeRefPatcher {
@@ -178,15 +176,11 @@ impl TypeRefPatcher<'_> {
     fn resolve_definition<'a, T>(&mut self, type_ref: &TypeRef<T>, ast: &'a Ast) -> Option<Patch<T>>
     where
         T: Element + ?Sized,
-        &'a Node: TryIntoPatch<T>,
-        WeakPtr<dyn Type>: TryIntoPatch<T>,
+        &'a Node: TryInto<WeakPtr<T>, Error = Error>,
     {
         // If the definition is already patched, we skip the function and return `None` immediately.
         // Otherwise we retrieve the type string and try to resolve it in the ast.
-        let type_string = match &type_ref.definition {
-            TypeRefDefinition::Patched(_) => return None,
-            TypeRefDefinition::Unpatched(s) => s,
-        };
+        let TypeRefDefinition::Unpatched(type_string) = &type_ref.definition else { return None; };
 
         // There are 3 steps to type resolution.
         // First, lookup the type as a node in the AST.
@@ -202,7 +196,7 @@ impl TypeRefPatcher<'_> {
                 if let Node::TypeAlias(type_alias) = node {
                     self.resolve_type_alias(type_alias.borrow(), ast)
                 } else {
-                    node.try_into_patch(Vec::new())
+                    try_into_patch(node, Vec::new())
                 }
             });
 
@@ -240,9 +234,8 @@ impl TypeRefPatcher<'_> {
 
     fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, Error>
     where
-        T: ?Sized,
-        &'a Node: TryIntoPatch<T>,
-        WeakPtr<dyn Type>: TryIntoPatch<T>,
+        T: Element + ?Sized,
+        &'a Node: TryInto<WeakPtr<T>, Error = Error>,
     {
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
@@ -264,7 +257,13 @@ impl TypeRefPatcher<'_> {
             // If we hit a type alias that is already patched, we immediately return its underlying type.
             // Otherwise we retrieve the alias' type string and try to resolve it in the ast.
             let type_string = match &underlying_type.definition {
-                TypeRefDefinition::Patched(ptr) => return ptr.clone().try_into_patch(attributes),
+                TypeRefDefinition::Patched(ptr) => {
+                    // Lookup the node that is being aliased in the AST, and convert it into a patch.
+                    // TODO: when `T = dyn Type` we can skip this, and use `ptr.clone()` directly.
+                    let nodes = ast.as_slice();
+                    let node = nodes.iter().find(|node| ptr == &<&dyn Element>::from(*node));
+                    return try_into_patch(node.unwrap(), attributes);
+                }
                 TypeRefDefinition::Unpatched(s) => s,
             };
 
@@ -274,7 +273,7 @@ impl TypeRefPatcher<'_> {
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
             } else {
-                return node.try_into_patch(attributes);
+                return try_into_patch(node, attributes);
             }
 
             // Check if we've already seen the next type alias before continuing the loop; if so, it's cyclic and we
@@ -327,54 +326,10 @@ enum PatchKind {
     DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
 }
 
-/// Trait to provide a uniform API for converting [`Node`]s and [`WeakPtr`]s into patches.
-trait TryIntoPatch<T: ?Sized> {
-    #[allow(clippy::result_large_err)]
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error>;
-}
-
-impl<'a, T> TryIntoPatch<T> for &'a Node
+#[allow(clippy::result_large_err)]
+fn try_into_patch<'a, T: ?Sized>(node: &'a Node, attributes: Vec<Attribute>) -> Result<Patch<T>, Error>
 where
     &'a Node: TryInto<WeakPtr<T>, Error = Error>,
 {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error> {
-        self.try_into().map(|ptr| (ptr, attributes))
-    }
-}
-
-impl<'a> TryIntoPatch<dyn Type> for &'a Node {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, Error> {
-        let converted_ptr = match self {
-            Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Type)),
-            Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Type)),
-            Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Type)),
-            Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Type)),
-            Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Type)),
-            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
-            Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
-            Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
-            Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
-            Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => Err(Error::new(ErrorKind::TypeMismatch {
-                expected: "Type".to_owned(),
-                actual: self.to_string().to_case(Case::Lower),
-            })),
-        };
-        converted_ptr.map(|ptr| (ptr, attributes))
-    }
-}
-
-impl<T: Type + 'static> TryIntoPatch<T> for WeakPtr<dyn Type> {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<T>, Error> {
-        self.downcast()
-            .map(|ptr| (ptr, attributes))
-            // TODO: this error message is not very helpful
-            .map_err(|_| Error::new(ErrorKind::Syntax { message: "TODO".to_owned() }))
-    }
-}
-
-impl TryIntoPatch<dyn Type> for WeakPtr<dyn Type> {
-    fn try_into_patch(self, attributes: Vec<Attribute>) -> Result<Patch<dyn Type>, Error> {
-        Ok((self, attributes))
-    }
+    node.try_into().map(|ptr| (ptr, attributes))
 }
