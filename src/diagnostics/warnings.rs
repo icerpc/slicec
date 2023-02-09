@@ -110,6 +110,16 @@ pub enum WarningKind {
         /// The entity the user applied the attribute to.
         kind: String,
     },
+
+    /// The doc comment indicated that the operation should throw an invalid type.
+    InvalidThrowInDocComment {
+        /// The identifier of the operation
+        operation_identifier: String,
+        /// The kind of the entity that was indicated to throw.
+        kind: String,
+        /// The identifier of the entity that was indicated to throw.
+        identifier: String,
+    },
 }
 
 implement_diagnostic_functions!(
@@ -164,5 +174,13 @@ implement_diagnostic_functions!(
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
         kind
+    ),
+    (
+        "W010",
+        WarningKind::InvalidThrowInDocComment,
+        format!("doc comment indicates that operation '{operation_identifier}' throws an invalid type: {kind} '{identifier}'"),
+        operation_identifier,
+        kind,
+        identifier
     )
 );

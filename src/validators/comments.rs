@@ -9,6 +9,7 @@ pub fn comments_validators() -> ValidationChain {
         Validator::Entities(only_operations_can_throw),
         Validator::Operations(non_empty_return_comment),
         Validator::Operations(missing_parameter_comment),
+        Validator::Operations(thrown_type_must_be_exception),
     ]
 }
 
@@ -61,5 +62,26 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
                 .report(diagnostic_reporter);
             }
         }
+    }
+}
+
+fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
+    if let Some(comment) = operation.comment() {
+        comment
+            .throws
+            .iter()
+            .filter_map(|tag| tag.thrown_type())
+            .for_each(|entity| {
+                if entity.kind() != "exception" {
+                    Warning::new(WarningKind::InvalidThrowInDocComment {
+                        operation_identifier: operation.identifier().to_owned(),
+                        kind: entity.kind().to_owned(),
+                        identifier: entity.identifier().to_owned(),
+                    })
+                    .set_span(entity.span())
+                    .set_scope(operation.parser_scoped_identifier())
+                    .report(diagnostic_reporter);
+                }
+            });
     }
 }

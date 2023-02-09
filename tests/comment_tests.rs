@@ -485,4 +485,29 @@ mod comments {
         });
         assert_errors!(diagnostics, [&expected]);
     }
+
+    #[test]
+    fn doc_comment_throws_tag_invalid_type() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            exception E {}
+            struct S {}
+
+            interface I
+            {
+                /// @throws S: Message about my thrown thing.
+                testOp(testParam: string) -> bool throws E ;
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostics, [
+            "doc comment indicates that operation 'testOp' throws an invalid type: struct 'S'",
+        ]);
+    }
 }
