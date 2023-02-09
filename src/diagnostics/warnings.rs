@@ -174,7 +174,7 @@ implement_diagnostic_functions!(
     (
         "W010",
         WarningKind::InvalidThrowInDocComment,
-        format!("doc comment indicates that the operation throws an invalid type '{identifier}'"),
+        format!("'{identifier}' is not a throwable type"),
         identifier
     )
 );
