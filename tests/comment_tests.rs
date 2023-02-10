@@ -211,7 +211,7 @@ mod comments {
                 /// @param testParam1: A string param
                 /// @returns bool
                 /// @throws MyException: Some message about why testOp throws
-                testOp(testParam1: string) -> bool;
+                testOp(testParam1: string) -> bool throws MyException;
             }
         ";
 
@@ -312,10 +312,15 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
-            identifier: "FakeException".to_owned(),
-        });
-        assert_errors!(diagnostics, [&expected]);
+        let expected = [
+            crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
+                identifier: "FakeException".to_owned(),
+            }),
+            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+                identifier: "testOp".to_owned(),
+            }),
+        ];
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -507,5 +512,38 @@ mod comments {
 
         // Assert
         assert_errors!(diagnostics, ["'S' is not a throwable type"]);
+    }
+
+    #[test]
+    fn doc_comment_throw_tag_operation_throws_nothing() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            exception E {}
+
+            interface I
+            {
+                /// @throws E: Message about my thrown thing.
+                testOp(testParam: string) -> bool;
+
+                /// @throws : Second message about my thrown thing.
+                testOpTwo(testParam: string) -> bool;
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+                identifier: "testOp".to_owned(),
+            }),
+            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+                identifier: "testOpTwo".to_owned(),
+            }),
+        ];
+        assert_errors!(diagnostics, expected);
     }
 }

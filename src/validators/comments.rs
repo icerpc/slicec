@@ -7,8 +7,9 @@ use crate::validators::{ValidationChain, Validator};
 pub fn comments_validators() -> ValidationChain {
     vec![
         Validator::Entities(only_operations_can_throw),
-        Validator::Operations(non_empty_return_comment),
         Validator::Operations(missing_parameter_comment),
+        Validator::Operations(missing_throws_comment),
+        Validator::Operations(non_empty_return_comment),
         Validator::Operations(thrown_type_must_be_exception),
     ]
 }
@@ -44,6 +45,19 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                 .set_scope(operation.parser_scoped_identifier())
                 .report(diagnostic_reporter);
             }
+        }
+    }
+}
+
+fn missing_throws_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
+    if let Some(comment) = operation.comment() {
+        if !&comment.throws.is_empty() && matches!(operation.throws, Throws::None) {
+            Warning::new(WarningKind::OperationDoesNotThrow {
+                identifier: operation.identifier().to_owned(),
+            })
+            .set_span(operation.span())
+            .set_scope(operation.parser_scoped_identifier())
+            .report(diagnostic_reporter);
         }
     }
 }
