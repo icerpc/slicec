@@ -8,7 +8,7 @@ pub fn comments_validators() -> ValidationChain {
     vec![
         Validator::Entities(only_operations_can_throw),
         Validator::Operations(missing_parameter_comment),
-        Validator::Operations(missing_throws_comment),
+        Validator::Operations(operation_missing_throws),
         Validator::Operations(non_empty_return_comment),
         Validator::Operations(thrown_type_must_be_exception),
     ]
@@ -49,7 +49,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
     }
 }
 
-fn missing_throws_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
+fn operation_missing_throws(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         if !&comment.throws.is_empty() && matches!(operation.throws, Throws::None) {
             Warning::new(WarningKind::OperationDoesNotThrow {
