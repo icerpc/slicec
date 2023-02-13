@@ -190,30 +190,6 @@ fn compact_struct_with_allowed_members_is_allowed() {
 }
 
 #[test]
-fn foo() {
-    let slice = "
-    encoding = 1;
-module Test;
-class MyClass {}
-interface I {}
-exception E {}
-
-typealias Dict1 = dictionary<MyClass, int8>;
-typealias Dict2 = dictionary<AnyClass, int8>;
-typealias Dict3 = dictionary<sequence<int8>, int8>;
-typealias Dict4 = dictionary<I, int8>;
-typealias Dict5 = dictionary<E, int8>;
-typealias Dict6 = dictionary<dictionary<int8, int8>, int8>;
-    ";
-
-    let diagnostics = parse_for_diagnostics(slice);
-
-    for diagnostic in diagnostics {
-        println!("{:?}", diagnostic.message());
-    }
-}
-
-#[test]
 fn compact_struct_with_disallowed_members_is_disallowed() {
     // Arrange
     let slice = "
