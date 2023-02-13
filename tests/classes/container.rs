@@ -13,8 +13,7 @@ fn can_contain_data_members() {
     let slice = "
         encoding = 1;
         module Test;
-        class C
-        {
+        class C {
             i: int32,
             s: string,
             b: bool,
@@ -47,20 +46,17 @@ fn can_contain_data_members() {
 
 #[test_case(
     "
-        class C
-        {
+        class C {
             c: C,
         }
     "; "single class circular reference"
 )]
 #[test_case(
     "
-        class C1
-        {
+        class C1 {
             c2: C2,
         }
-        class C2
-        {
+        class C2 {
             c1: C1,
         }
     "; "multi class circular reference"
@@ -86,9 +82,7 @@ fn can_be_empty() {
     let slice = "
         encoding = 1;
         module Test;
-        class C
-        {
-        }
+        class C {}
     ";
 
     // Act
@@ -105,8 +99,7 @@ fn cannot_redefine_data_members() {
     let slice = "
         encoding = 1;
         module Test;
-        class C
-        {
+        class C {
             a: int32,
             a: string,
         }

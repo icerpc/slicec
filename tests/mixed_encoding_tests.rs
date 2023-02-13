@@ -14,32 +14,27 @@ fn valid_mixed_encoding_works() {
         encoding = 1;
         module Test;
 
-        compact struct ACompactStruct
-        {
+        compact struct ACompactStruct {
             data: int32,
         }
 
-        enum AnEnum
-        {
+        enum AnEnum {
             A,
             B,
         }
 
-        interface AnInterface
-        {
+        interface AnInterface {
             op() -> AnEnum;
         }
 
-        exception AnException
-        {
+        exception AnException {
             message: string,
         }
     ";
     let encoding2_slice = "
         encoding = 2;
         module Test;
-        struct AStruct
-        {
+        struct AStruct {
             e: AnEnum,
             i: AnInterface,
             c: ACompactStruct,
@@ -63,16 +58,14 @@ fn invalid_mixed_encoding_fails() {
 
         custom ACustomType;
 
-        compact struct ACompactStruct
-        {
+        compact struct ACompactStruct {
             data: int32?,
         }
     ";
     let encoding1_slice = "
         encoding = 1;
         module Test;
-        compact struct AStruct
-        {
+        compact struct AStruct {
             c: ACustomType,
             s: ACompactStruct,
         }

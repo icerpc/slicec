@@ -15,9 +15,7 @@ fn can_have_no_operations() {
     let slice = "
         module Test;
 
-        interface I
-        {
-        }
+        interface I {}
     ";
 
     // Act
@@ -35,8 +33,7 @@ fn can_have_self_referencing_operations() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             myOp() -> I;
         }
     ";
@@ -54,8 +51,7 @@ fn can_have_one_operation() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op1();
         }
     ";
@@ -74,8 +70,7 @@ fn can_have_multiple_operation() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op1();
             op2();
             op3();
@@ -97,8 +92,7 @@ fn cannot_redefine_operations() {
         encoding = 1;
         module Test;
 
-        interface I
-        {
+        interface I {
             op();
             op();
         }

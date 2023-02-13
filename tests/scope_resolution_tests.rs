@@ -14,9 +14,7 @@ mod scope_resolution {
         // Arrange
         let slice = "
             module T;
-            module S
-            {
-            }
+            module S {}
         ";
 
         // Act
@@ -34,20 +32,16 @@ mod scope_resolution {
     fn identifier_exists_in_module_and_submodule() {
         // Arrange
         let slice = "
-            module A
-            {
+            module A {
                 typealias S = int32;
 
-                module B
-                {
-                    struct S
-                    {
+                module B {
+                    struct S {
                         v: string,
                     }
                 }
 
-                struct C
-                {
+                struct C {
                     s1: S,
                     s2: A::S,
                     s3: B::S,
@@ -75,16 +69,13 @@ mod scope_resolution {
     fn identifier_exists_in_module_and_parent_module() {
         // Arrange
         let slice = "
-            module A
-            {
+            module A {
                 typealias S = int32;
 
-                module B
-                {
+                module B {
                     typealias S = string;
 
-                    struct C
-                    {
+                    struct C {
                         s1: S,
                         s2: B::S,
                         s3: A::B::S,
@@ -113,23 +104,18 @@ mod scope_resolution {
     fn identifier_exists_in_multiple_parent_modules() {
         // Arrange
         let slice = "
-            module A
-            {
+            module A {
                 typealias S = int32;
 
-                module B
-                {
+                module B {
 
-                    struct S
-                    {
+                    struct S {
                         v: string,
                     }
 
-                    module B
-                    {
+                    module B {
 
-                        struct C
-                        {
+                        struct C {
                             s1: S,
                             s2: B::S,
                             s3: A::S,
@@ -156,20 +142,15 @@ mod scope_resolution {
     fn identifier_exists_in_multiple_modules_with_common_partial_scope() {
         // Arrange
         let slice = "
-            module A
-            {
-                module B
-                {
+            module A {
+                module B {
                     typealias S = string;
 
-                    module A
-                    {
-                        module B
-                        {
+                    module A {
+                        module B {
                             typealias S = int32;
 
-                            struct C
-                            {
+                            struct C {
                                 s1: A::B::S,
                                 s2: ::A::B::S,
                             }
@@ -177,8 +158,7 @@ mod scope_resolution {
                     }
                 }
 
-                struct C
-                {
+                struct C {
                     s1: A::B::S,
                     s2: ::A::B::S,
                 }
@@ -210,18 +190,12 @@ mod scope_resolution {
     fn interface_has_same_identifier_as_module() {
         // Arrange
         let slice = "
-            module A
-            {
-                module B
-                {
-                }
+            module A {
+                module B {}
 
-                interface B
-                {
-                }
+                interface B {}
 
-                struct S
-                {
+                struct S {
                     b: B,
                 }
             }
@@ -242,22 +216,16 @@ mod scope_resolution {
     fn relative_scope_is_module_before_interface() {
         // Arrange
         let slice = "
-            module A
-            {
-                module B
-                {
-                    module C
-                    {
-                        struct S
-                        {
+            module A {
+                module B {
+                    module C {
+                        struct S {
                             c: C,
                         }
                     }
                 }
 
-                interface C
-                {
-                }
+                interface C {}
             }
         ";
 
@@ -276,10 +244,8 @@ mod scope_resolution {
     fn missing_type_should_fail() {
         // Arrange
         let slice = "
-            module A
-            {
-                struct C
-                {
+            module A {
+                struct C {
                     b: Nested::C,
                 }
             }

@@ -12,8 +12,7 @@ fn can_have_no_parameters() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op();
         }
     ";
@@ -32,8 +31,7 @@ fn can_have_no_return_type() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op(a: int32);
         }
     ";
@@ -52,8 +50,7 @@ fn can_contain_tags() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op(a: tag(1) int32?);
         }
     ";
@@ -73,8 +70,7 @@ fn parameter_and_return_can_have_the_same_tag() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op(a: tag(1) int32?) -> tag(1) string?;
         }
     ";
@@ -96,8 +92,7 @@ fn can_have_parameters() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op(a: int32, b: string, c: varuint62);
         }
     ";
@@ -133,8 +128,7 @@ fn can_have_return_value() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op() -> string;
         }
     ";
@@ -160,8 +154,7 @@ fn can_have_return_tuple() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op() -> (r1: string, r2: bool);
         }
     ";
@@ -191,8 +184,7 @@ fn operations_can_omit_throws_clause() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op();
         }
     ";
@@ -212,8 +204,7 @@ fn operations_can_throw_specific_exceptions() {
 
         exception E {}
 
-        interface I
-        {
+        interface I {
             op() throws E;
         }
     ";
@@ -237,8 +228,7 @@ fn operations_can_only_throw_exceptions() {
 
         struct S {}
 
-        interface I
-        {
+        interface I {
             op() throws S;
         }
     ";
@@ -262,8 +252,7 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
         "
             module Test;
 
-            interface I
-            {{
+            interface I {{
                 op() -> {return_tuple};
             }}
         "
@@ -289,8 +278,7 @@ mod streams {
         let slice = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 op(a: stream uint32) -> stream uint32;
             }
         ";
@@ -313,8 +301,7 @@ mod streams {
         let slice = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 op(s: stream varuint62, s2: stream string);
             }
         ";
@@ -338,8 +325,7 @@ mod streams {
         let slice = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 op(s: stream varuint62, i: int32);
             }
         ";

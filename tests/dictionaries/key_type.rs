@@ -147,9 +147,7 @@ fn non_compact_structs_are_disallowed() {
     let slice = "
         module Test;
 
-        struct MyStruct
-        {
-        }
+        struct MyStruct {}
 
         typealias Dict = dictionary<MyStruct, int8>;
     ";
@@ -168,13 +166,11 @@ fn compact_struct_with_allowed_members_is_allowed() {
     let slice = "
         module Test;
 
-        compact struct Inner
-        {
+        compact struct Inner {
             i32: int32,
         }
 
-        compact struct Outer
-        {
+        compact struct Outer {
             b: bool,
             i: Inner,
         }
@@ -195,14 +191,12 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let slice = "
         module Test;
 
-        compact struct Inner
-        {
+        compact struct Inner {
             i32: int32,
             f32: float32, // disallowed key type
         }
 
-        compact struct Outer
-        {
+        compact struct Outer {
             seq: sequence<int8>, // disallowed key type
             i: Inner, // disallowed key type
             s: string,

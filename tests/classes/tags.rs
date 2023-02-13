@@ -10,8 +10,7 @@ fn can_contain_tags() {
         encoding = 1;
         module Test;
 
-        class C
-        {
+        class C {
             i: int32,
             s: string,
             b: tag(10) bool?,
