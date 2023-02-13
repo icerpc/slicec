@@ -34,7 +34,10 @@ impl Error {
     }
 
     pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
-        self.notes.push(Note::new(message, span));
+        self.notes.push(Note {
+            message: message.into(),
+            span: span.cloned(),
+        });
         self
     }
 
