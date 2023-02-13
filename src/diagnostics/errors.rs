@@ -407,7 +407,7 @@ implement_diagnostic_functions!(
     (
         "E007",
         ErrorKind::KeyTypeNotSupported,
-        format!("{identifier} is not a valid dictionary key type"),
+        format!("invalid dictionary key type: {identifier}"),
         identifier
     ),
     (
