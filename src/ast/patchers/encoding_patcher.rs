@@ -222,14 +222,14 @@ impl EncodingPatcher<'_> {
             }]
         } else {
             vec![
-                Note::new(
-                    format!("file is using the {} encoding by default", Encoding::default()),
-                    None,
-                ),
-                Note::new(
-                    "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
-                    None,
-                ),
+                Note {
+                    message: format!("file is using the {} encoding by default", Encoding::default()),
+                    span: None,
+                },
+                Note {
+                    message: "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'".to_owned(),
+                    span: None,
+                },
             ]
         }
     }

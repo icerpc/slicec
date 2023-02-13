@@ -86,28 +86,8 @@ impl From<Warning> for Diagnostic {
 /// was defined.
 #[derive(Serialize, Debug, Clone)]
 pub struct Note {
-    pub(super) message: String,
-    pub(super) span: Option<Span>,
-}
-
-impl Note {
-    /// Creates a new [Note] with the given message and span.
-    pub fn new(message: impl Into<String>, span: Option<&Span>) -> Self {
-        Note {
-            message: message.into(),
-            span: span.cloned(),
-        }
-    }
-
-    /// Returns the message of the note.
-    pub fn message(&self) -> &str {
-        &self.message
-    }
-
-    /// Returns the [Span] of the note if it has one.
-    pub fn span(&self) -> Option<&Span> {
-        self.span.as_ref()
-    }
+    pub message: String,
+    pub span: Option<Span>,
 }
 
 /// A macro that implements the `error_code` and `message` functions for [WarningKind] and [ErrorKind] enums.
