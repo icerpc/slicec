@@ -69,7 +69,7 @@ fn disallowed_primitive_types(key_type: &str) {
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-        identifier: format!("'{key_type}'"),
+        kind: key_type.to_owned(),
     });
     assert_errors!(diagnostics, [&expected]);
 }
@@ -90,7 +90,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-        identifier: key_kind.to_owned(),
+        kind: key_kind.to_owned(),
     });
     assert_errors!(diagnostics, [&expected]);
 }
@@ -134,7 +134,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-        identifier: format!("'{key_type}'"),
+        kind: format!("{key_kind} '{key_type}'"),
     })
     .add_note(format!("{key_kind} '{key_type}' is defined here:"), None);
 
@@ -190,6 +190,30 @@ fn compact_struct_with_allowed_members_is_allowed() {
 }
 
 #[test]
+fn foo() {
+    let slice = "
+    encoding = 1;
+module Test;
+class MyClass {}
+interface I {}
+exception E {}
+
+typealias Dict1 = dictionary<MyClass, int8>;
+typealias Dict2 = dictionary<AnyClass, int8>;
+typealias Dict3 = dictionary<sequence<int8>, int8>;
+typealias Dict4 = dictionary<I, int8>;
+typealias Dict5 = dictionary<E, int8>;
+typealias Dict6 = dictionary<dictionary<int8, int8>, int8>;
+    ";
+
+    let diagnostics = parse_for_diagnostics(slice);
+
+    for diagnostic in diagnostics {
+        println!("{:?}", diagnostic.message());
+    }
+}
+
+#[test]
 fn compact_struct_with_disallowed_members_is_disallowed() {
     // Arrange
     let slice = "
@@ -217,24 +241,22 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     // Assert
     let expected: [Error; 7] = [
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "sequence".to_owned(),
+            kind: "sequence".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "'seq'".to_owned(),
+            kind: "'seq'".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "'float32'".to_owned(),
+            kind: "float32".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "'f32'".to_owned(),
+            kind: "'f32'".to_owned(),
         }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Inner".to_owned(),
         })
         .add_note("struct 'Inner' is defined here:", None),
-        Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "'i'".to_owned(),
-        }),
+        Error::new(ErrorKind::KeyTypeNotSupported { kind: "'i'".to_owned() }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Outer".to_owned(),
         })

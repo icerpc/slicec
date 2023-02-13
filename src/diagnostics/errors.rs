@@ -96,8 +96,8 @@ pub enum ErrorKind {
 
     /// An unsupported type was used as a dictionary key type.
     KeyTypeNotSupported {
-        /// The identifier of the type that was used as a dictionary key type.
-        identifier: String,
+        /// The type and/or identifier of the type that was used as a dictionary key type.
+        kind: String,
     },
 
     /// Struct contains a member that cannot be used as a dictionary key type.
@@ -407,8 +407,8 @@ implement_diagnostic_functions!(
     (
         "E007",
         ErrorKind::KeyTypeNotSupported,
-        format!("invalid dictionary key type: {identifier}"),
-        identifier
+        format!("invalid dictionary key type: {kind}"),
+        kind
     ),
     (
         "E008",

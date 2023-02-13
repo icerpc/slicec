@@ -24,7 +24,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
     }
 
     let definition = type_ref.definition();
-    let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition.concrete_type() {
+    let is_valid: bool = match definition.concrete_type() {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
@@ -44,7 +44,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
                 let identifier = member.identifier().to_owned();
                 if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
                     Error::new(ErrorKind::KeyTypeNotSupported {
-                        identifier: format!("'{identifier}'"),
+                        kind: format!("'{identifier}'"),
                     })
                     .set_span(member.span())
                     .report(diagnostic_reporter);
@@ -66,45 +66,30 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             }
             return true;
         }
-        Types::Class(class_def) => (false, Some(class_def)),
-        Types::Exception(exception_def) => (false, Some(exception_def)),
-        Types::Interface(interface_def) => (false, Some(interface_def)),
-        Types::Enum(_) => (true, None),
-        Types::CustomType(_) => (true, None),
-        Types::Sequence(_) => (false, None),
-        Types::Dictionary(_) => (false, None),
-        Types::Primitive(primitive) => (
-            primitive.is_integral() || matches!(primitive, Primitive::Bool | Primitive::String),
-            None,
-        ),
+        Types::Class(_) => false,
+        Types::Exception(_) => false,
+        Types::Interface(_) => false,
+        Types::Enum(_) => true,
+        Types::CustomType(_) => true,
+        Types::Sequence(_) => false,
+        Types::Dictionary(_) => false,
+        Types::Primitive(primitive) => {
+            primitive.is_integral() || matches!(primitive, Primitive::Bool | Primitive::String)
+        }
     };
 
     if !is_valid {
         let kind = definition.kind().to_owned();
         let formatted_kind = match definition.concrete_type() {
-            Types::Primitive(_) => format!("'{kind}'"),
-            Types::Class(c) => format!("'{}'", c.identifier()),
-            Types::Exception(e) => format!("'{}'", e.identifier()),
-            Types::Interface(i) => format!("'{}'", i.identifier()),
+            Types::Class(c) => format!("{} '{}'", c.kind(), c.identifier()),
+            Types::Exception(e) => format!("{} '{}'", e.kind(), e.identifier()),
+            Types::Interface(i) => format!("{} '{}'", i.kind(), i.identifier()),
+            Types::Struct(s) => format!("{} '{}'", s.kind(), s.identifier()),
             _ => kind,
         };
-        let mut error = Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: formatted_kind,
-        })
-        .set_span(type_ref.span());
-
-        // If the key type is a user-defined type, point to where it was defined.
-        if let Some(named_symbol_def) = named_symbol {
-            error = error.add_note(
-                format!(
-                    "{} '{}' is defined here:",
-                    named_symbol_def.kind(),
-                    named_symbol_def.identifier(),
-                ),
-                Some(named_symbol_def.span()),
-            )
-        }
-        error.report(diagnostic_reporter);
+        Error::new(ErrorKind::KeyTypeNotSupported { kind: formatted_kind })
+            .set_span(type_ref.span())
+            .report(diagnostic_reporter);
     }
     is_valid
 }
