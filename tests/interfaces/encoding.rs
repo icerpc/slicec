@@ -12,16 +12,13 @@ fn operation_members_are_compatible_with_encoding() {
         encoding = 1;
         module Test;
 
-        class C
-        {
-        }
+        class C {}
     ";
     let slice2 = "
         encoding = 2;
         module Test;
 
-        interface I
-        {
+        interface I {
             op(c: C);
         }
     ";
@@ -44,8 +41,7 @@ fn any_exception_cannot_be_used_without_slice1() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op() throws AnyException;
         }
     ";
@@ -69,8 +65,7 @@ mod slice1 {
 
             module Test;
 
-            interface I
-            {
+            interface I {
                 op() throws AnyException;
             }
         ";

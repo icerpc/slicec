@@ -14,8 +14,7 @@ mod structs {
         let slice = "
             module Test;
 
-            struct S
-            {
+            struct S {
                 i: int32,
                 s: string,
                 b: bool,
@@ -53,9 +52,7 @@ mod structs {
         let slice = "
             module Test;
 
-            struct S
-            {
-            }
+            struct S {}
         ";
 
         // Act
@@ -72,8 +69,7 @@ mod structs {
         let slice = "
             module Test;
 
-            struct S
-            {
+            struct S {
                 a: int32,
                 a: string,
             }
@@ -104,9 +100,7 @@ mod compact_structs {
         let slice = "
             module Test;
 
-            compact struct S
-            {
-            }
+            compact struct S {}
         ";
 
         // Act

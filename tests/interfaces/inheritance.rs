@@ -11,13 +11,9 @@ fn supports_single_inheritance() {
     let slice = "
         module Test;
 
-        interface I
-        {
-        }
+        interface I {}
 
-        interface J : I
-        {
-        }
+        interface J : I {}
     ";
 
     // Act
@@ -42,17 +38,11 @@ fn supports_multiple_inheritance() {
     let slice = "
         module Test;
 
-        interface I
-        {
-        }
+        interface I {}
 
-        interface J
-        {
-        }
+        interface J {}
 
-        interface K : I, J
-        {
-        }
+        interface K : I, J {}
     ";
 
     // Act
@@ -84,13 +74,9 @@ fn must_inherit_from_interface() {
         encoding = 1;
         module Test;
 
-        class C
-        {
-        }
+        class C {}
 
-        interface I : C
-        {
-        }
+        interface I : C {}
     ";
 
     // Act
@@ -110,13 +96,11 @@ fn operation_shadowing_is_disallowed() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op();
         }
 
-        interface J : I
-        {
+        interface J : I {
             op();
         }
     ";
@@ -138,22 +122,17 @@ fn inherits_correct_operations() {
     let slice = "
         module Test;
 
-        interface A
-        {
+        interface A {
             opA();
         }
 
-        interface B : A
-        {
+        interface B : A {
             opB();
         }
 
-        interface C : A
-        {
-        }
+        interface C : A {}
 
-        interface D : B, C
-        {
+        interface D : B, C {
             opD();
         }
     ";

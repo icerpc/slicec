@@ -51,15 +51,12 @@ fn escaped_identifiers() {
 fn escaped_scoped_identifiers_containing_keywords() {
     // Arrange
     let slice = r#"
-    module Foo
-    {
+    module Foo {
         struct \module {}
     }
 
-    module Bar
-    {
-        struct BarStruct
-        {
+    module Bar {
+        struct BarStruct {
             s: Foo::\module
         }
     }

@@ -17,9 +17,7 @@ mod slice1 {
             encoding = 1;
             module Test;
 
-            unchecked enum E : int32
-            {
-            }
+            unchecked enum E : int32 {}
         ";
 
         // Act
@@ -62,9 +60,7 @@ mod slice2 {
             "
                 module Test;
 
-                unchecked enum E : {valid_type}
-                {{
-                }}
+                unchecked enum E : {valid_type} {{}}
             "
         );
 

@@ -26,8 +26,7 @@ mod slice1 {
                 encoding = 1;
                 module Test;
 
-                compact struct S
-                {{
+                compact struct S {{
                     v: {value},
                 }}
             "
@@ -64,8 +63,7 @@ mod slice1 {
             encoding = 1;
             module Test;
 
-            compact struct S
-            {{
+            compact struct S {{
                 v: {value},
             }}
         "
@@ -95,8 +93,7 @@ mod slice2 {
         let slice = "
             module Test;
 
-            compact struct S
-            {
+            compact struct S {
                 v: AnyClass,
             }
         ";
@@ -144,8 +141,7 @@ mod slice2 {
             "
             module Test;
 
-            compact struct S
-            {{
+            compact struct S {{
                 v: {value},
             }}"
         );
@@ -180,8 +176,7 @@ mod slice2 {
             "
                 module Test;
 
-                struct MyStruct
-                {{
+                struct MyStruct {{
                     myVar: {value},
                 }}
             "

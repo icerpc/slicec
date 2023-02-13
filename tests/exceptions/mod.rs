@@ -13,12 +13,9 @@ fn throws_specific_exception() {
     let slice = "
         module Test;
 
-        exception E
-        {
-        }
+        exception E {}
 
-        interface I
-        {
+        interface I {
             op() throws E;
         }
     ";
@@ -41,8 +38,7 @@ fn throws_nothing() {
     let slice = "
         module Test;
 
-        interface I
-        {
+        interface I {
             op();
         }
     ";
@@ -59,8 +55,7 @@ fn throws_any_exception() {
         encoding = 1;
         module Test;
 
-        interface I
-        {
+        interface I {
             op() throws AnyException;
         }
     ";

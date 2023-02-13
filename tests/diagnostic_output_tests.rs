@@ -12,15 +12,12 @@ mod output {
         let slice = r#"
         module  Foo;
 
-        interface I
-        {
+        interface I {
             /// @param x: this is an x
             op();
         }
 
-        enum E
-        {
-        }
+        enum E {}
         "#;
 
         // Set the output format to JSON.
@@ -39,9 +36,9 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
-            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":10,"col":9},"end":{"row":10,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
+            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -52,8 +49,7 @@ mod output {
         let slice = r#"
         module  Foo;
 
-        interface I
-        {
+        interface I {
             /// @param x: this is an x
             op1();
 
@@ -63,9 +59,7 @@ mod output {
             );
         }
 
-        enum E
-        {
-        }
+        enum E {}
         "#;
 
         // Disable ANSI codes.
@@ -85,25 +79,25 @@ mod output {
         // Assert
         let expected = "\
 warning [W003]: doc comment has a param tag for 'x', but there is no parameter by that name
- --> string-0:6:17
+ --> string-0:5:17
   |
-6 |             /// @param x: this is an x
+5 |             /// @param x: this is an x
   |                 ----------------------
   |
 error [E019]: invalid tag on member 'x': tagged members must be optional
- --> string-0:9:17
+ --> string-0:8:17
    |
-9  |             op2(x:
+8  |             op2(x:
    |                 --
-10 |     tag(1)
+9  |     tag(1)
    | ----------
-11 |                     int32, y: tag(2) bool?,
+10 |                     int32, y: tag(2) bool?,
    | -------------------------
    |
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
- --> string-0:15:9
+ --> string-0:14:9
    |
-15 |         enum E
+14 |         enum E {}
    |         ------
    |
 ";
@@ -116,8 +110,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let slice = r#"
         module  Foo;
 
-        interface I
-        {
+        interface I {
             /// @param x: this is an x
             op();
         }
@@ -148,8 +141,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let slice = r#"
         module  Foo;
 
-        interface I
-        {
+        interface I {
             /// @param x: this is an x
             /// @returns: this is a return
             op();
@@ -174,7 +166,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Assert
         // Only one of the two warnings should be ignored.
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":17},"end":{"row":6,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
