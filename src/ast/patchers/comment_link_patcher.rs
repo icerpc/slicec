@@ -50,7 +50,7 @@ macro_rules! resolve_link {
 
         // Look up the link in the AST, and make sure it's an `Entity`.
         let result = $ast
-            .find_node_with_scope(&$ident.value, $entity.parser_scope())
+            .find_node_with_scope(&$ident.value, &$entity.parser_scoped_identifier())
             .and_then(|node| <WeakPtr<dyn Entity>>::try_from(node));
 
         $self.link_patches.push(match result {
