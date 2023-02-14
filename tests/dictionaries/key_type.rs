@@ -135,8 +135,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     // Assert
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         kind: format!("{key_kind} '{key_type}'"),
-    })
-    .add_note(format!("{key_kind} '{key_type}' is defined here:"), None);
+    });
 
     assert_errors!(diagnostics, [&expected]);
 }
@@ -158,7 +157,7 @@ fn non_compact_structs_are_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::StructKeyMustBeCompact).add_note("Struct 'MyStruct' is defined here:", None);
+    let expected = Error::new(ErrorKind::StructKeyMustBeCompact);
     assert_errors!(diagnostics, [&expected]);
 }
 
@@ -230,13 +229,11 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
         }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Inner".to_owned(),
-        })
-        .add_note("struct 'Inner' is defined here:", None),
+        }),
         Error::new(ErrorKind::KeyTypeNotSupported { kind: "'i'".to_owned() }),
         Error::new(ErrorKind::StructKeyContainsDisallowedType {
             struct_identifier: "Outer".to_owned(),
-        })
-        .add_note("struct 'Outer' is defined here:", None),
+        }),
     ];
     assert_errors!(diagnostics, expected);
 }
