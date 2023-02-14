@@ -84,7 +84,6 @@ fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut Diagn
             Types::Class(c) => format!("{} '{}'", c.kind(), c.identifier()),
             Types::Exception(e) => format!("{} '{}'", e.kind(), e.identifier()),
             Types::Interface(i) => format!("{} '{}'", i.kind(), i.identifier()),
-            Types::Struct(s) => format!("{} '{}'", s.kind(), s.identifier()),
             _ => kind,
         };
         Error::new(ErrorKind::KeyTypeNotSupported { kind: formatted_kind })
