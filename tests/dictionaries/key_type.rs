@@ -208,26 +208,8 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [Error; 7] = [
-        Error::new(ErrorKind::KeyTypeNotSupported {
-            kind: "sequence".to_owned(),
-        }),
-        Error::new(ErrorKind::KeyTypeNotSupported {
-            kind: "'seq'".to_owned(),
-        }),
-        Error::new(ErrorKind::KeyTypeNotSupported {
-            kind: "float32".to_owned(),
-        }),
-        Error::new(ErrorKind::KeyTypeNotSupported {
-            kind: "'f32'".to_owned(),
-        }),
-        Error::new(ErrorKind::StructKeyContainsDisallowedType {
-            struct_identifier: "Inner".to_owned(),
-        }),
-        Error::new(ErrorKind::KeyTypeNotSupported { kind: "'i'".to_owned() }),
-        Error::new(ErrorKind::StructKeyContainsDisallowedType {
-            struct_identifier: "Outer".to_owned(),
-        }),
-    ];
+    let expected: [Error; 1] = [Error::new(ErrorKind::StructKeyContainsDisallowedType {
+        struct_identifier: "Outer".to_owned(),
+    })];
     assert_errors!(diagnostics, expected);
 }

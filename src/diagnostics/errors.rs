@@ -28,6 +28,10 @@ impl Error {
         &self.kind
     }
 
+    pub fn span(&self) -> Option<&Span> {
+        self.span.as_ref()
+    }
+
     pub fn set_span(mut self, span: &Span) -> Self {
         self.span = Some(span.to_owned());
         self
