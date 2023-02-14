@@ -6,7 +6,7 @@ mod comments {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::WarningKind;
+    use slice::diagnostics::{Warning, WarningKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -301,10 +301,10 @@ mod comments {
 
         // Assert
         let expected = [
-            crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
+            Warning::new(WarningKind::CouldNotResolveLink {
                 identifier: "FakeException".to_owned(),
             }),
-            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+            Warning::new(WarningKind::OperationDoesNotThrow {
                 identifier: "testOp".to_owned(),
             }),
         ];
@@ -424,7 +424,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
+        let expected = Warning::new(WarningKind::CouldNotResolveLink {
             identifier: "OtherStruct".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -444,7 +444,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::LinkToInvalidElement {
+        let expected = Warning::new(WarningKind::LinkToInvalidElement {
             kind: "primitive".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -464,7 +464,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::DocCommentSyntax {
+        let expected = Warning::new(WarningKind::DocCommentSyntax {
             message: "doc comment tag 'linked' is invalid".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -514,10 +514,10 @@ mod comments {
 
         // Assert
         let expected = [
-            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+            Warning::new(WarningKind::OperationDoesNotThrow {
                 identifier: "testOp".to_owned(),
             }),
-            crate::helpers::new_warning(WarningKind::OperationDoesNotThrow {
+            Warning::new(WarningKind::OperationDoesNotThrow {
                 identifier: "testOpTwo".to_owned(),
             }),
         ];
