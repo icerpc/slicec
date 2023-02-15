@@ -45,7 +45,10 @@ pub trait AsEntities {
     fn concrete_entity(&self) -> Entities;
 }
 
-generate_entities_wrapper!(Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias);
+generate_entities_wrapper!(
+    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum, Enumerator, CustomType,
+    TypeAlias
+);
 
 macro_rules! generate_types_wrapper {
     ($($variant:ident),*) => {
