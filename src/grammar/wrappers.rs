@@ -24,6 +24,29 @@ macro_rules! generate_definition_wrapper {
 
 generate_definition_wrapper!(Module, Struct, Class, Exception, Interface, Enum, CustomType, TypeAlias);
 
+macro_rules! generate_entities_wrapper {
+    ($($variant:ident),*) => {
+        #[derive(Debug)]
+        pub enum Entities<'a> {
+            $($variant(&'a $variant),)*
+        }
+
+        $(
+        impl AsEntities for $variant {
+            fn concrete_entity(&self) -> Entities {
+                Entities::$variant(self)
+            }
+        }
+        )*
+    };
+}
+
+pub trait AsEntities {
+    fn concrete_entity(&self) -> Entities;
+}
+
+generate_entities_wrapper!(Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias);
+
 macro_rules! generate_types_wrapper {
     ($($variant:ident),*) => {
         #[derive(Debug)]

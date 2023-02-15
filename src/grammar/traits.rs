@@ -3,7 +3,7 @@
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, TypeRef};
 use super::util::{Scope, TagFormat};
-use super::wrappers::AsTypes;
+use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -74,7 +74,7 @@ pub trait Commentable {
     fn comment(&self) -> Option<&DocComment>;
 }
 
-pub trait Entity: NamedSymbol + Attributable + Commentable {
+pub trait Entity: NamedSymbol + Attributable + Commentable + AsEntities {
     fn get_deprecation(&self, check_parent: bool) -> Option<Option<String>> {
         self.attributes(check_parent)
             .into_iter()
