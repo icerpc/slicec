@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Error, ErrorKind, WarningKind};
+        use slice::diagnostics::{Error, ErrorKind, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -192,7 +192,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -219,7 +219,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -244,7 +244,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: ": Message here".to_owned(),
             });
@@ -267,7 +267,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -518,7 +518,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment {
+            let expected = &Warning::new(WarningKind::ExtraParameterInDocComment {
                 identifier: "x".to_owned(),
             });
 
