@@ -41,7 +41,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
             // so we can report them in the error message.
             let errors = struct_def
                 .members()
-                .iter()
+                .into_iter()
                 .filter_map(|member| check_dictionary_key_type(member.data_type()))
                 .collect::<Vec<_>>();
             if !errors.is_empty() {
@@ -50,7 +50,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
                 })
                 .set_span(type_ref.span());
 
-                // Convert each error to a node and add it to the struct key error
+                // Convert each error into a note and add it to the struct key error.
                 for e in errors {
                     error = error.add_note(e.to_string(), e.span());
                 }
