@@ -208,8 +208,19 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected: [Error; 1] = [Error::new(ErrorKind::StructKeyContainsDisallowedType {
+    let expected_error = Error::new(ErrorKind::StructKeyContainsDisallowedType {
         struct_identifier: "Outer".to_owned(),
-    })];
-    assert_errors!(diagnostics, expected);
+    });
+    let expected_note_messages = vec![
+        "invalid dictionary key type: sequence".to_owned(),
+        "struct 'Inner' contains members that are not a valid dictionary key types".to_owned(),
+    ];
+
+    assert_eq!(diagnostics.len(), 1);
+    assert_errors!(diagnostics, [&expected_error]);
+
+    let Some(error) = diagnostics.first() else { panic!(); };
+    let note_messages = error.notes().iter().map(|n| n.message.to_owned()).collect::<Vec<_>>();
+
+    assert_eq!(note_messages, expected_note_messages);
 }

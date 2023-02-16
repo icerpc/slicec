@@ -36,14 +36,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                return Some(
-                    Error::new(ErrorKind::StructKeyMustBeCompact)
-                        .set_span(type_ref.span())
-                        .add_note(
-                            format!("struct '{}' is defined here:", struct_def.identifier()),
-                            Some(struct_def.span()),
-                        ),
-                );
+                return Some(Error::new(ErrorKind::StructKeyMustBeCompact).set_span(type_ref.span()));
             }
 
             // Check that all the data members of the struct are also valid key types. We collect the invalid members
