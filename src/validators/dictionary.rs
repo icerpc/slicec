@@ -13,7 +13,9 @@ pub fn dictionary_validators() -> ValidationChain {
 
 pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
     for dictionary in dictionaries {
-        check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+        if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
+            e.report(diagnostic_reporter)
+        }
     }
 }
 
@@ -23,97 +25,72 @@ pub fn has_allowed_value_type(dictionaries: &[&Dictionary], diagnostic_reporter:
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) -> bool {
+fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        Error::new(ErrorKind::KeyMustBeNonOptional)
-            .set_span(type_ref.span())
-            .report(diagnostic_reporter);
-        return false;
+        return Some(Error::new(ErrorKind::KeyMustBeNonOptional).set_span(type_ref.span()));
     }
 
     let definition = type_ref.definition();
-    let (is_valid, named_symbol): (bool, Option<&dyn NamedSymbol>) = match definition.concrete_type() {
+    let is_valid = match definition.concrete_type() {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                Error::new(ErrorKind::StructKeyMustBeCompact)
-                    .set_span(type_ref.span())
-                    .add_note(
-                        format!("struct '{}' is defined here:", struct_def.identifier()),
-                        Some(struct_def.span()),
-                    )
-                    .report(diagnostic_reporter);
-                return false;
+                return Some(Error::new(ErrorKind::StructKeyMustBeCompact).set_span(type_ref.span()));
             }
 
-            // Check that all the data members of the struct are also valid key types.
-            let mut contains_invalid_key_types = false;
-            for member in struct_def.members() {
-                if !check_dictionary_key_type(member.data_type(), diagnostic_reporter) {
-                    Error::new(ErrorKind::KeyTypeNotSupported {
-                        identifier: member.identifier().to_owned(),
-                    })
-                    .set_span(member.span())
-                    .report(diagnostic_reporter);
-                    contains_invalid_key_types = true;
-                }
-            }
-
-            if contains_invalid_key_types {
-                Error::new(ErrorKind::StructKeyContainsDisallowedType {
+            // Check that all the data members of the struct are also valid key types. We collect the invalid members
+            // so we can report them in the error message.
+            let errors = struct_def
+                .members()
+                .into_iter()
+                .filter_map(|member| check_dictionary_key_type(member.data_type()))
+                .collect::<Vec<_>>();
+            if !errors.is_empty() {
+                let mut error = Error::new(ErrorKind::StructKeyContainsDisallowedType {
                     struct_identifier: struct_def.identifier().to_owned(),
                 })
-                .set_span(type_ref.span())
-                .add_note(
-                    format!("struct '{}' is defined here:", struct_def.identifier()),
-                    Some(struct_def.span()),
-                )
-                .report(diagnostic_reporter);
-                return false;
+                .set_span(type_ref.span());
+
+                // Convert each error into a note and add it to the struct key error.
+                for e in errors {
+                    error = error.add_note(e.to_string(), e.span());
+                }
+                return Some(error);
             }
-            return true;
+            true
         }
-        Types::Class(class_def) => (false, Some(class_def)),
-        Types::Exception(exception_def) => (false, Some(exception_def)),
-        Types::Interface(interface_def) => (false, Some(interface_def)),
-        Types::Enum(_) => (true, None),
-        Types::CustomType(_) => (true, None),
-        Types::Sequence(_) => (false, None),
-        Types::Dictionary(_) => (false, None),
-        Types::Primitive(primitive) => (
-            primitive.is_integral() || matches!(primitive, Primitive::Bool | Primitive::String),
-            None,
-        ),
+        Types::Class(_) => false,
+        Types::Exception(_) => false,
+        Types::Interface(_) => false,
+        Types::Enum(_) => true,
+        Types::CustomType(_) => true,
+        Types::Sequence(_) => false,
+        Types::Dictionary(_) => false,
+        Types::Primitive(primitive) => {
+            primitive.is_integral() || matches!(primitive, Primitive::Bool | Primitive::String)
+        }
     };
 
     if !is_valid {
-        let pluralized_kind = match definition.concrete_type() {
-            Types::Primitive(_) => definition.kind().to_owned(),
-            Types::Class(_) => "classes".to_owned(),
-            Types::Dictionary(_) => "dictionaries".to_owned(),
-            _ => definition.kind().to_owned() + "s",
-        };
-
-        let mut error = Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: pluralized_kind,
-        })
-        .set_span(type_ref.span());
-
-        // If the key type is a user-defined type, point to where it was defined.
-        if let Some(named_symbol_def) = named_symbol {
-            error = error.add_note(
-                format!(
-                    "{} '{}' is defined here:",
-                    named_symbol_def.kind(),
-                    named_symbol_def.identifier(),
-                ),
-                Some(named_symbol_def.span()),
-            )
-        }
-        error.report(diagnostic_reporter);
+        return Some(
+            Error::new(ErrorKind::KeyTypeNotSupported {
+                kind: formatted_kind(definition),
+            })
+            .set_span(type_ref.span()),
+        );
     }
-    is_valid
+    None
+}
+
+fn formatted_kind(definition: &dyn Type) -> String {
+    let kind = definition.kind();
+    match definition.concrete_type() {
+        Types::Class(c) => format!("{} '{}'", c.kind(), c.identifier()),
+        Types::Exception(e) => format!("{} '{}'", e.kind(), e.identifier()),
+        Types::Interface(i) => format!("{} '{}'", i.kind(), i.identifier()),
+        _ => kind.to_owned(),
+    }
 }
 
 fn check_dictionary_value_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) {
@@ -121,12 +98,16 @@ fn check_dictionary_value_type(type_ref: &TypeRef, diagnostic_reporter: &mut Dia
     match definition.concrete_type() {
         Types::Sequence(s) => {
             if let Types::Dictionary(dictionary) = s.element_type.concrete_type() {
-                check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+                if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
+                    e.report(diagnostic_reporter)
+                };
                 check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
             }
         }
         Types::Dictionary(dictionary) => {
-            check_dictionary_key_type(&dictionary.key_type, diagnostic_reporter);
+            if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
+                e.report(diagnostic_reporter)
+            };
             check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
         }
         _ => (),

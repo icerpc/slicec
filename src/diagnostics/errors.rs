@@ -28,6 +28,10 @@ impl Error {
         &self.kind
     }
 
+    pub fn span(&self) -> Option<&Span> {
+        self.span.as_ref()
+    }
+
     pub fn set_span(mut self, span: &Span) -> Self {
         self.span = Some(span.to_owned());
         self
@@ -99,8 +103,8 @@ pub enum ErrorKind {
 
     /// An unsupported type was used as a dictionary key type.
     KeyTypeNotSupported {
-        /// The identifier of the type that was used as a dictionary key type.
-        identifier: String,
+        /// The type and/or identifier of the type that was used as a dictionary key type.
+        kind: String,
     },
 
     /// Struct contains a member that cannot be used as a dictionary key type.
@@ -400,7 +404,7 @@ implement_diagnostic_functions!(
     (
         "E005",
         ErrorKind::KeyMustBeNonOptional,
-        "optional types cannot be used as a dictionary key type"
+        "optional types are not valid dictionary key types"
     ),
     (
         "E006",
@@ -410,13 +414,13 @@ implement_diagnostic_functions!(
     (
         "E007",
         ErrorKind::KeyTypeNotSupported,
-        format!("'{identifier}' cannot be used as a dictionary key type"),
-        identifier
+        format!("invalid dictionary key type: {kind}"),
+        kind
     ),
     (
         "E008",
         ErrorKind::StructKeyContainsDisallowedType,
-        format!("struct '{struct_identifier}' contains members that cannot be used as a dictionary key type"),
+        format!("struct '{struct_identifier}' contains members that are not a valid dictionary key types"),
         struct_identifier
     ),
     (

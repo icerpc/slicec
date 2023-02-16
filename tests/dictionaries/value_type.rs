@@ -21,10 +21,10 @@ fn invalid_dictionary_values_produce_error() {
     // Assert
     let expected = vec![
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "float32".to_owned(),
+            kind: "float32".to_owned(),
         }),
         Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "float64".to_owned(),
+            kind: "float64".to_owned(),
         }),
     ];
     assert_errors!(diagnostics, expected);

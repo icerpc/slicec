@@ -27,13 +27,3 @@ pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
         .into_diagnostics(&data.ast, &data.files)
         .collect()
 }
-
-/// This function returns the kind of an element, but pluralized.
-pub fn pluralize_kind(s: &str) -> String {
-    match s {
-        "class" => "classes".to_owned(),
-        "type alias" => "type aliases".to_owned(),
-        "dictionary" => "dictionaries".to_owned(),
-        kind => kind.to_owned() + "s",
-    }
-}

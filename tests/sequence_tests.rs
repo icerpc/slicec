@@ -46,7 +46,7 @@ mod sequences {
 
         // Assert
         let expected = Error::new(ErrorKind::KeyTypeNotSupported {
-            identifier: "float32".to_owned(),
+            kind: "float32".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
     }
