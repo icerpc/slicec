@@ -44,8 +44,7 @@ mod typealias {
         let slice = "
             module Test;
             typealias MyDict = dictionary<varint32, sequence<uint8>>;
-            compact struct S
-            {
+            compact struct S {
                 dict: MyDict,
             }
         ";
@@ -63,8 +62,7 @@ mod typealias {
         let slice = "
             module Test;
             typealias MyDict = dictionary<varint32, sequence<uint8>>;
-            interface I
-            {
+            interface I {
                 op(dict: MyDict);
             }
         ";
@@ -103,8 +101,7 @@ mod typealias {
         let slice = "
             module Test;
             typealias MyInt = varuint32;
-            compact struct S
-            {
+            compact struct S {
                 a: MyInt,
             }
         ";

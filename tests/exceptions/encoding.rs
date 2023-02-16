@@ -17,12 +17,9 @@ mod slice1 {
             encoding = 1;
             module Test;
 
-            exception E
-            {
-            }
+            exception E {}
 
-            compact struct S
-            {
+            compact struct S {
                 e: E,
             }
         ";
@@ -54,13 +51,9 @@ mod slice2 {
         let slice = "
             module Test;
 
-            exception A
-            {
-            }
+            exception A {}
 
-            exception B : A
-            {
-            }
+            exception B : A {}
         ";
 
         // Act
@@ -90,12 +83,9 @@ mod slice2 {
         let slice = "
             module Test;
 
-            exception E
-            {
-            }
+            exception E {}
 
-            struct S
-            {
+            struct S {
                 e: E,
             }
         ";
@@ -115,8 +105,7 @@ mod slice2 {
             encoding = 1;
             module Test;
 
-            exception E
-            {
+            exception E {
                 a: AnyClass,
             }
         ";
@@ -124,8 +113,7 @@ mod slice2 {
         let slice2 = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 op() throws E;
             }
         ";
@@ -147,8 +135,7 @@ mod slice2 {
         let slice = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 op() throws AnyException;
             }
         ";

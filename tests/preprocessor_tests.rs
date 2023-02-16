@@ -15,8 +15,7 @@ fn command_line_defined_symbols() {
         module Test;
 
         # if Foo
-        interface I
-        {
+        interface I {
             op();
         }
         # endif

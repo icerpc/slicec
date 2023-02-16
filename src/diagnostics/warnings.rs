@@ -33,7 +33,10 @@ impl Warning {
     }
 
     pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
-        self.notes.push(Note::new(message, span));
+        self.notes.push(Note {
+            message: message.into(),
+            span: span.cloned(),
+        });
         self
     }
 
@@ -110,6 +113,18 @@ pub enum WarningKind {
         /// The entity the user applied the attribute to.
         kind: String,
     },
+
+    /// The doc comment indicated that the operation should throw an invalid type.
+    InvalidThrowInDocComment {
+        /// The identifier of the type that was indicated to throw.
+        identifier: String,
+    },
+
+    /// The operation is marked with the throws doc comment tag, but the operation does not throw anything.
+    OperationDoesNotThrow {
+        /// The identifier of the operation.
+        identifier: String,
+    },
 }
 
 implement_diagnostic_functions!(
@@ -164,5 +179,17 @@ implement_diagnostic_functions!(
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
         kind
+    ),
+    (
+        "W010",
+        WarningKind::InvalidThrowInDocComment,
+        format!("'{identifier}' is not a throwable type"),
+        identifier
+    ),
+    (
+        "W011",
+        WarningKind::OperationDoesNotThrow,
+        format!("operation '{identifier}' does not throw anything"),
+        identifier
     )
 );

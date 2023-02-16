@@ -8,7 +8,7 @@ mod attributes {
 
         use crate::assert_errors;
         use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-        use slice::diagnostics::{Error, ErrorKind, WarningKind};
+        use slice::diagnostics::{Error, ErrorKind, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -20,8 +20,7 @@ mod attributes {
                 "
                     module Test;
 
-                    interface I
-                    {{
+                    interface I {{
                         [format({format})]
                         op(s: string) -> string;
                     }}
@@ -42,8 +41,7 @@ mod attributes {
             let slice = "
                     module Test;
 
-                    interface I
-                    {
+                    interface I {
                         op(s: string) -> string;
                     }
             ";
@@ -65,8 +63,7 @@ mod attributes {
                 "
                     module Test;
 
-                    interface I
-                    {{
+                    interface I {{
                         [format{args}]
                         op(s: string) -> string;
                     }}
@@ -89,8 +86,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [format(Foo)]
                     op(s: string) -> string;
                 }
@@ -118,8 +114,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [deprecated]
                     op(s: string) -> string;
                 }
@@ -139,8 +134,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     op([deprecated] s: string) -> string;
                 }
             ";
@@ -161,8 +155,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [deprecated(\"Deprecation message here\")]
                     op(s: string) -> string;
                 }
@@ -185,15 +178,12 @@ mod attributes {
             let slice = "
                 module Test;
 
-                struct Foo
-                {
-                }
+                struct Foo {}
 
                 [deprecated]
                 typealias Bar = Foo;
 
-                interface I
-                {
+                interface I {
                     op(s: Bar) -> string;
                 }
             ";
@@ -202,7 +192,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -214,17 +204,12 @@ mod attributes {
             // Arrange
             let slice = "
             [deprecated]
-            module Foo
-            {
-                struct Bar
-                {
-                }
+            module Foo {
+                struct Bar {}
             }
 
-            module Test
-            {
-                struct Baz
-                {
+            module Test {
+                struct Baz {
                     b: Foo::Bar,
                 }
             }
@@ -234,7 +219,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -248,12 +233,9 @@ mod attributes {
                     module Test;
 
                     [deprecated(\"Message here\")]
-                    struct A
-                    {
-                    }
+                    struct A {}
 
-                    struct B
-                    {
+                    struct B {
                         a: A,
                     }
                 ";
@@ -262,7 +244,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: ": Message here".to_owned(),
             });
@@ -276,20 +258,16 @@ mod attributes {
                     module Test;
 
                     [deprecated]
-                    interface A
-                    {
-                    }
+                    interface A {}
 
-                    interface B: A
-                    {
-                    }
+                    interface B: A {}
                 ";
 
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::UseOfDeprecatedEntity {
+            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -302,8 +280,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [compress(Args, Return)]
                     op(s: string) -> string;
                 }
@@ -325,8 +302,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [compress(Foo)]
                     op(s: string) -> string;
                 }
@@ -354,8 +330,7 @@ mod attributes {
                 module Test;
 
                 [compress()]
-                struct S
-                {
+                struct S {
                     s: string,
                 }
             ";
@@ -374,8 +349,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [compress()]
                     op(s: string) -> string;
                 }
@@ -395,8 +369,7 @@ mod attributes {
             "
             module Test;
 
-            interface I
-            {
+            interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 [ignoreWarnings]
@@ -407,34 +380,26 @@ mod attributes {
         #[test_case(
             "
             [ignoreWarnings]
-            module A
-            {
-                struct A1
-                {
+            module A {
+                struct A1 {
                     b: B::B1,
                 }
             }
-            module B
-            {
+            module B {
                 [deprecated]
-                struct B1
-                {
-                }
+                struct B1 {}
             }
             "; "complex"
         )]
         #[test_case(
             "
             [ignoreWarnings]
-            module A
-            {
-                struct A1
-                {
+            module A {
+                struct A1 {
                     b: sequence<B::B1>,
                 }
             }
-            module B
-            {
+            module B {
                 [deprecated]
                 struct B1 {}
             }
@@ -443,18 +408,13 @@ mod attributes {
         #[test_case(
             "
             [[ignoreWarnings]]
-            module A
-            {
-                struct A1
-                {
+            module A {
+                struct A1 {
                     b: B::B1,
                 }
             }
-            module B
-            {
-                struct B1
-                {
-                }
+            module B {
+                struct B1 {}
             }
             "; "file level"
         )]
@@ -472,8 +432,7 @@ mod attributes {
             let slice = "
             module Test;
 
-            interface I
-            {
+            interface I {
                 [ignoreWarnings(W315, w001)]
                 op(s: string) -> string;
             }
@@ -498,8 +457,7 @@ mod attributes {
             "
             module Test;
 
-            interface I
-            {
+            interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
@@ -513,8 +471,7 @@ mod attributes {
             [[ignoreWarnings(W002, W003)]]
             module Test;
 
-            interface I
-            {
+            interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
@@ -534,8 +491,7 @@ mod attributes {
             "
             module Test;
 
-            interface I
-            {
+            interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
                 [ignoreWarnings(W004, W005)]
@@ -548,8 +504,7 @@ mod attributes {
             [[ignoreWarnings(W004, W005)]]
             module Test;
 
-            interface I
-            {
+            interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
                 [ignoreWarnings(W004, W005)]
@@ -563,7 +518,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &crate::helpers::new_warning(WarningKind::ExtraParameterInDocComment {
+            let expected = &Warning::new(WarningKind::ExtraParameterInDocComment {
                 identifier: "x".to_owned(),
             });
 
@@ -576,8 +531,7 @@ mod attributes {
             // Act
             let slice = "
                 module Test;
-                interface Foo
-                {
+                interface Foo {
                     [compress(Args)]
                     [compress(Return)]
                     op();
@@ -608,8 +562,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [foo::bar]
                     op(s: string) -> string;
                 }
@@ -642,8 +595,7 @@ mod attributes {
             let slice = "
                 module Test;
 
-                interface I
-                {
+                interface I {
                     [foo::bar(a, b, c)]
                     op(s: string) -> string;
                 }
@@ -679,8 +631,7 @@ mod attributes {
             let slice = format!(
                 "
                     module Test;
-                    interface I
-                    {{
+                    interface I {{
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
@@ -711,8 +662,7 @@ mod attributes {
             let slice = format!(
                 "
                     module Test;
-                    interface I
-                    {{
+                    interface I {{
                         [foo::bar({input})]
                         op(s: string) -> string;
                     }}
@@ -751,16 +701,12 @@ mod attributes {
             // Arrange
             let slice = r#"
                 [attribute("A")]
-                module A
-                {
+                module A {
                     [attribute("B")]
-                    module B
-                    {
-                        module C
-                        {
+                    module B {
+                        module C {
                             [attribute("I")]
-                            interface I
-                            {
+                            interface I {
                                 op(s: string) -> string;
                             }
                         }

@@ -27,18 +27,12 @@ mod module {
     fn can_be_reopened() {
         // Arrange
         let slice = "
-            module Test
-            {
-                struct S1
-                {
-                }
+            module Test {
+                struct S1 {}
             }
 
-            module Test
-            {
-                struct S2
-                {
-                }
+            module Test {
+                struct S2 {}
             }
         ";
 
@@ -54,11 +48,8 @@ mod module {
     fn can_be_nested() {
         // Arrange
         let slice = "
-            module A
-            {
-                module B
-                {
-                }
+            module A {
+                module B {}
             }
         ";
 
@@ -73,9 +64,7 @@ mod module {
     fn can_use_nested_syntax() {
         // Arrange
         let slice = "
-            module A::B::C::D
-            {
-            }
+            module A::B::C::D {}
         ";
 
         // Act
@@ -107,13 +96,9 @@ mod module {
         let slice = "
             module A;
 
-            module B
-            {
-            }
+            module B {}
 
-            module C
-            {
-            }
+            module C {}
         ";
 
         // Act
@@ -137,9 +122,7 @@ mod module {
         let slice = "
             module A::B::C::D;
 
-            module E
-            {
-            }
+            module E {}
         ";
 
         // Act
@@ -156,13 +139,11 @@ mod module {
     fn cross_module_redefinitions_are_disallowed() {
         // Arrange
         let slice = "
-            module Foo
-            {
+            module Foo {
                 struct Bar {}
             }
 
-            module Foo
-            {
+            module Foo {
                 struct Bar {}
             }
         ";

@@ -5,7 +5,10 @@ use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
 pub fn dictionary_validators() -> ValidationChain {
-    vec![Validator::Dictionaries(has_allowed_key_type)]
+    vec![
+        Validator::Dictionaries(has_allowed_key_type),
+        Validator::Dictionaries(has_allowed_value_type),
+    ]
 }
 
 pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
@@ -13,6 +16,12 @@ pub fn has_allowed_key_type(dictionaries: &[&Dictionary], diagnostic_reporter: &
         if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
             e.report(diagnostic_reporter)
         }
+    }
+}
+
+pub fn has_allowed_value_type(dictionaries: &[&Dictionary], diagnostic_reporter: &mut DiagnosticReporter) {
+    for dictionary in dictionaries {
+        check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
     }
 }
 
@@ -88,5 +97,26 @@ fn formatted_kind(definition: &dyn Type) -> String {
         Types::Exception(e) => format!("{} '{}'", e.kind(), e.identifier()),
         Types::Interface(i) => format!("{} '{}'", i.kind(), i.identifier()),
         _ => kind.to_owned(),
+    }
+}
+
+fn check_dictionary_value_type(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) {
+    let definition = type_ref.definition();
+    match definition.concrete_type() {
+        Types::Sequence(s) => {
+            if let Types::Dictionary(dictionary) = s.element_type.concrete_type() {
+                if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
+                    e.report(diagnostic_reporter)
+                };
+                check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
+            }
+        }
+        Types::Dictionary(dictionary) => {
+            if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
+                e.report(diagnostic_reporter)
+            };
+            check_dictionary_value_type(&dictionary.value_type, diagnostic_reporter);
+        }
+        _ => (),
     }
 }

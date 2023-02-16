@@ -12,8 +12,7 @@ fn can_contain_data_members() {
     let slice = "
         module Test;
 
-        exception E
-        {
+        exception E {
             i: int32,
             s: string,
             b: bool,
@@ -69,8 +68,7 @@ fn cannot_redefine_data_members() {
         encoding = 1;
         module Test;
 
-        exception E
-        {
+        exception E {
             a: int32,
             a: string,
         }

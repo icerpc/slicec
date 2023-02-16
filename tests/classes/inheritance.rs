@@ -12,13 +12,9 @@ fn supports_single_inheritance() {
     let slice = "
         encoding = 1;
         module Test;
-        class I
-        {
-        }
+        class I {}
 
-        class J : I
-        {
-        }
+        class J : I {}
     ";
 
     // Act
@@ -43,17 +39,11 @@ fn does_not_support_multiple_inheritance() {
         encoding = 1;
         module Test;
 
-        class I
-        {
-        }
+        class I {}
 
-        class J
-        {
-        }
+        class J {}
 
-        class K : I, J
-        {
-        }
+        class K : I, J {}
     ";
 
     // Act
@@ -75,12 +65,10 @@ fn data_member_shadowing_is_disallowed() {
         encoding = 1;
         module Test;
 
-        class I
-        {
+        class I {
             i: int32
         }
-        class J : I
-        {
+        class J : I {
             i: int32
         }
     ";
@@ -103,16 +91,13 @@ fn inherits_correct_data_members() {
         encoding = 1;
         module Test;
 
-        class A
-        {
+        class A {
             a: int32
         }
-        class B : A
-        {
+        class B : A {
             b: string
         }
-        class C : B
-        {
+        class C : B {
             c: float64
         }
     ";

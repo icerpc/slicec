@@ -11,8 +11,7 @@ fn cannot_contain_tags() {
     let slice = "
         module Test;
 
-        enum E: int32
-        {
+        enum E: int32 {
             A = 1,
             B: tag(10) = 2,
         }

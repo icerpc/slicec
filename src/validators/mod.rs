@@ -7,6 +7,7 @@ mod dictionary;
 mod enums;
 mod identifiers;
 mod miscellaneous;
+mod sequence;
 mod tag;
 
 use crate::ast::node::Node;
@@ -26,6 +27,7 @@ pub use self::dictionary::*;
 pub use self::enums::*;
 pub use self::identifiers::*;
 pub use self::miscellaneous::*;
+pub use self::sequence::*;
 pub use self::tag::*;
 
 pub type ValidationChain = Vec<Validator>;
@@ -43,6 +45,7 @@ pub enum Validator {
     Operations(fn(&Operation, &mut DiagnosticReporter)),
     Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
     Struct(fn(&Struct, &mut DiagnosticReporter)),
+    Sequences(fn(&[&Sequence], &mut DiagnosticReporter)),
 }
 
 pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
@@ -128,6 +131,7 @@ impl<'a> ValidatorVisitor<'a> {
             enum_validators(),
             identifier_validators(),
             miscellaneous_validators(),
+            sequence_validators(),
             tag_validators(),
         ]
         .into_iter()
@@ -199,6 +203,33 @@ where
         .collect()
 }
 
+fn container_sequences<T>(container: &dyn Container<WeakPtr<T>>) -> Vec<&Sequence>
+where
+    T: Member,
+{
+    container
+        .contents()
+        .iter()
+        .filter_map(|member| match member.borrow().data_type().concrete_type() {
+            Types::Sequence(sequence) => Some(sequence),
+            _ => None,
+        })
+        .collect()
+}
+
+fn member_sequences<T>(members: Vec<&T>) -> Vec<&Sequence>
+where
+    T: Member,
+{
+    members
+        .iter()
+        .filter_map(|member| match member.data_type().concrete_type() {
+            Types::Sequence(sequence) => Some(sequence),
+            _ => None,
+        })
+        .collect()
+}
+
 impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_class_start(&mut self, class: &Class) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
@@ -213,6 +244,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 diagnostic_reporter,
             ),
             Validator::Members(function) => function(class.members().as_member_vec(), diagnostic_reporter),
+            Validator::Sequences(function) => function(&container_sequences(class), diagnostic_reporter),
             _ => {}
         });
     }
@@ -256,6 +288,8 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 diagnostic_reporter,
             ),
             Validator::Members(function) => function(exception.members().as_member_vec(), diagnostic_reporter),
+            Validator::Sequences(function) => function(&container_sequences(exception), diagnostic_reporter),
+
             _ => {}
         });
     }
@@ -304,6 +338,11 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                 function(operation.parameters().as_slice(), diagnostic_reporter);
                 function(operation.return_members().as_slice(), diagnostic_reporter);
             }
+            Validator::Sequences(function) => {
+                function(&member_sequences(operation.parameters()), diagnostic_reporter);
+                function(&member_sequences(operation.return_members()), diagnostic_reporter);
+            }
+
             _ => {}
         });
     }
@@ -325,6 +364,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Identifiers(function) => function(struct_def.members().get_identifiers(), diagnostic_reporter),
             Validator::Members(function) => function(struct_def.members().as_member_vec(), diagnostic_reporter),
             Validator::Struct(function) => function(struct_def, diagnostic_reporter),
+            Validator::Sequences(function) => function(&container_sequences(struct_def), diagnostic_reporter),
             _ => {}
         });
     }
@@ -347,6 +387,11 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             }
             Validator::DocComments(function) => function(type_alias, ast, diagnostic_reporter),
             Validator::Entities(function) => function(type_alias, diagnostic_reporter),
+            Validator::Sequences(function) => {
+                if let Types::Sequence(sequence) = type_alias.underlying.concrete_type() {
+                    function(&[sequence], diagnostic_reporter)
+                }
+            }
             _ => {}
         });
     }

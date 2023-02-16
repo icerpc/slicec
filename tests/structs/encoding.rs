@@ -16,9 +16,7 @@ mod slice1 {
             encoding = 1;
             module Test;
 
-            struct A
-            {
-            }
+            struct A {}
         ";
 
         // Act
@@ -52,8 +50,7 @@ mod slice2 {
         let slice = "
             module Test;
 
-            struct A
-            {
+            struct A {
                 c: AnyClass,
             }
         ";
@@ -83,8 +80,7 @@ mod slice2 {
         let slice = "
             module Test;
 
-            struct A
-            {
+            struct A {
                 i: int32,
                 s: string?,
             }

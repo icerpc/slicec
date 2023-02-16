@@ -6,7 +6,7 @@ mod comments {
 
     use crate::assert_errors;
     use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
-    use slice::diagnostics::WarningKind;
+    use slice::diagnostics::{Warning, WarningKind};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -17,9 +17,7 @@ mod comments {
             module tests;
 
             /// This is a single line doc comment.
-            interface MyInterface
-            {
-            }
+            interface MyInterface {}
         ";
 
         // Act
@@ -52,9 +50,7 @@ mod comments {
 
             /// This is a
             /// multiline doc comment.
-            interface MyInterface
-            {
-            }
+            interface MyInterface {}
         ";
 
         // Act
@@ -89,8 +85,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @param testParam: My test param
                 testOp(testParam: string);
             }
@@ -106,13 +101,13 @@ mod comments {
         assert_eq!(param_tags.len(), 1);
 
         let param_tag = &param_tags[0];
-        assert_eq!(param_tag.span.start, (6, 21).into());
-        assert_eq!(param_tag.span.end, (6, 52).into());
+        assert_eq!(param_tag.span.start, (5, 21).into());
+        assert_eq!(param_tag.span.end, (5, 52).into());
 
         let identifier = &param_tag.identifier;
         assert_eq!(identifier.value, "testParam");
-        assert_eq!(identifier.span.start, (6, 28).into());
-        assert_eq!(identifier.span.end, (6, 37).into());
+        assert_eq!(identifier.span.start, (5, 28).into());
+        assert_eq!(identifier.span.end, (5, 37).into());
 
         let message = &param_tag.message;
         assert_eq!(message.len(), 2);
@@ -126,8 +121,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @returns bool
                 testOp(testParam: string) -> bool;
             }
@@ -143,13 +137,13 @@ mod comments {
         assert_eq!(returns_tags.len(), 1);
 
         let returns_tag = &returns_tags[0];
-        assert_eq!(returns_tag.span.start, (6, 21).into());
-        assert_eq!(returns_tag.span.end, (6, 34).into());
+        assert_eq!(returns_tag.span.start, (5, 21).into());
+        assert_eq!(returns_tag.span.end, (5, 34).into());
 
         let identifier = &returns_tag.identifier.as_ref().unwrap();
         assert_eq!(identifier.value, "bool");
-        assert_eq!(identifier.span.start, (6, 30).into());
-        assert_eq!(identifier.span.end, (6, 34).into());
+        assert_eq!(identifier.span.start, (5, 30).into());
+        assert_eq!(identifier.span.end, (5, 34).into());
 
         let message = &returns_tag.message;
         assert!(message.is_empty());
@@ -161,8 +155,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @returns: This operation will return a bool.
                 testOp(testParam: string);
             }
@@ -181,8 +174,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @param testParam1: A string param
                 /// @param testParam2: A bool param
                 testOp(testParam1: string);
@@ -206,12 +198,11 @@ mod comments {
 
             exception MyException {}
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @param testParam1: A string param
                 /// @returns bool
                 /// @throws MyException: Some message about why testOp throws
-                testOp(testParam1: string) -> bool;
+                testOp(testParam1: string) -> bool throws MyException;
             }
         ";
 
@@ -228,8 +219,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @throws: Message about my thrown thing.
                 testOp(testParam: string) -> bool;
             }
@@ -245,8 +235,8 @@ mod comments {
         assert_eq!(throws_tags.len(), 1);
 
         let throws_tag = &throws_tags[0];
-        assert_eq!(throws_tag.span.start, (6, 21).into());
-        assert_eq!(throws_tag.span.end, (6, 60).into());
+        assert_eq!(throws_tag.span.start, (5, 21).into());
+        assert_eq!(throws_tag.span.end, (5, 60).into());
 
         assert!(throws_tag.identifier.as_ref().is_none());
 
@@ -264,8 +254,7 @@ mod comments {
 
             exception MyThrownThing {}
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @throws MyThrownThing: Message about my thrown thing.
                 testOp(testParam: string) -> bool;
             }
@@ -281,13 +270,13 @@ mod comments {
         assert_eq!(throws_tags.len(), 1);
 
         let throws_tag = &throws_tags[0];
-        assert_eq!(throws_tag.span.start, (8, 21).into());
-        assert_eq!(throws_tag.span.end, (8, 74).into());
+        assert_eq!(throws_tag.span.start, (7, 21).into());
+        assert_eq!(throws_tag.span.end, (7, 74).into());
 
         let identifier = throws_tag.identifier.as_ref().unwrap();
         assert_eq!(identifier.value, "MyThrownThing");
-        assert_eq!(identifier.span.start, (8, 29).into());
-        assert_eq!(identifier.span.end, (8, 42).into());
+        assert_eq!(identifier.span.start, (7, 29).into());
+        assert_eq!(identifier.span.end, (7, 42).into());
 
         let message = &throws_tag.message;
         assert_eq!(message.len(), 2);
@@ -301,8 +290,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @throws FakeException: causes a warning.
                 testOp(testParam: string) -> bool;
             }
@@ -312,10 +300,15 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
-            identifier: "FakeException".to_owned(),
-        });
-        assert_errors!(diagnostics, [&expected]);
+        let expected = [
+            Warning::new(WarningKind::CouldNotResolveLink {
+                identifier: "FakeException".to_owned(),
+            }),
+            Warning::new(WarningKind::OperationDoesNotThrow {
+                identifier: "testOp".to_owned(),
+            }),
+        ];
+        assert_errors!(diagnostics, expected);
     }
 
     #[test]
@@ -325,9 +318,7 @@ mod comments {
             module tests;
 
             /// @throws: Message about my thrown thing.
-            struct S
-            {
-            }
+            struct S {}
         ";
 
         // Act
@@ -345,8 +336,7 @@ mod comments {
         let slice = "
             module tests;
 
-            interface TestInterface
-            {
+            interface TestInterface {
                 /// @see MySee
                 testOp(testParam: string) -> bool;
             }
@@ -362,11 +352,11 @@ mod comments {
         assert_eq!(see_tags.len(), 1);
 
         let see_tag = &see_tags[0];
-        assert_eq!(see_tag.span.start, (6, 21).into());
-        assert_eq!(see_tag.span.end, (6, 31).into());
+        assert_eq!(see_tag.span.start, (5, 21).into());
+        assert_eq!(see_tag.span.end, (5, 31).into());
         assert_eq!(see_tag.link.value, "MySee");
-        assert_eq!(see_tag.link.span.start, (6, 26).into());
-        assert_eq!(see_tag.link.span.end, (6, 31).into());
+        assert_eq!(see_tag.link.span.start, (5, 26).into());
+        assert_eq!(see_tag.link.span.end, (5, 31).into());
     }
 
     #[test_case("/* This is a block comment. */"; "block comment")]
@@ -379,9 +369,7 @@ mod comments {
                 module tests;
 
                 {comment}
-                interface MyInterface
-                {{
-                }}
+                interface MyInterface {{}}
             "
         );
 
@@ -402,9 +390,7 @@ mod comments {
             module tests;
 
             /// This comment is for {@link TestStruct}
-            struct TestStruct
-            {
-            }
+            struct TestStruct {}
             ";
 
         // Act
@@ -438,7 +424,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::CouldNotResolveLink {
+        let expected = Warning::new(WarningKind::CouldNotResolveLink {
             identifier: "OtherStruct".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -458,7 +444,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::LinkToInvalidElement {
+        let expected = Warning::new(WarningKind::LinkToInvalidElement {
             kind: "primitive".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
@@ -471,18 +457,70 @@ mod comments {
             module tests;
 
             /// A test struct. Similar to {@linked OtherStruct}{}.
-            struct TestStruct
-            {
-            }
+            struct TestStruct {}
             ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = crate::helpers::new_warning(WarningKind::DocCommentSyntax {
+        let expected = Warning::new(WarningKind::DocCommentSyntax {
             message: "doc comment tag 'linked' is invalid".to_owned(),
         });
         assert_errors!(diagnostics, [&expected]);
+    }
+
+    #[test]
+    fn doc_comment_throws_tag_invalid_type() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            exception E {}
+            struct S {}
+
+            interface I {
+                /// @throws S: Message about my thrown thing.
+                testOp(testParam: string) -> bool throws E ;
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        assert_errors!(diagnostics, ["'S' is not a throwable type"]);
+    }
+
+    #[test]
+    fn doc_comment_throw_tag_operation_throws_nothing() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            exception E {}
+
+            interface I {
+                /// @throws E: Message about my thrown thing.
+                testOp(testParam: string) -> bool;
+
+                /// @throws : Second message about my thrown thing.
+                testOpTwo(testParam: string) -> bool;
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Warning::new(WarningKind::OperationDoesNotThrow {
+                identifier: "testOp".to_owned(),
+            }),
+            Warning::new(WarningKind::OperationDoesNotThrow {
+                identifier: "testOpTwo".to_owned(),
+            }),
+        ];
+        assert_errors!(diagnostics, expected);
     }
 }
