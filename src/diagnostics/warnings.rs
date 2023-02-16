@@ -125,6 +125,12 @@ pub enum WarningKind {
         /// The identifier of the operation.
         identifier: String,
     },
+
+    /// The doc comment was used on a element that does not support doc comments.
+    DocCommentNotSupported {
+        /// The kind of element the doc comment was applied to.
+        kind: String,
+    },
 }
 
 implement_diagnostic_functions!(
@@ -191,5 +197,11 @@ implement_diagnostic_functions!(
         WarningKind::OperationDoesNotThrow,
         format!("operation '{identifier}' does not throw anything"),
         identifier
+    ),
+    (
+        "W012",
+        WarningKind::DocCommentNotSupported,
+        format!("doc comments are not supported on {kind}(s)"),
+        kind
     )
 );

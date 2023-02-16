@@ -523,4 +523,59 @@ mod comments {
         ];
         assert_errors!(diagnostics, expected);
     }
+
+    #[test]
+    fn doc_comments_not_supported_on_modules() {
+        // Arrange
+        let slice = "
+            /// This is a module comment.
+            module tests;
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Warning::new(WarningKind::DocCommentNotSupported {
+            kind: "module".to_owned(),
+        });
+        assert_errors!(diagnostics, [&expected]);
+    }
+
+    #[test]
+    fn doc_comment_not_supported_on_params_and_returns() {
+        // Arrange
+        let slice = "
+            module tests;
+
+            interface I {
+
+                testOp(
+                    /// comment on param
+                    testParam: string
+                );
+
+                testOpTwo() -> (
+                    /// comment on return
+                    foo: string,
+                    bar: string
+                );
+
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Warning::new(WarningKind::DocCommentNotSupported {
+                kind: "parameter".to_owned(),
+            }),
+            Warning::new(WarningKind::DocCommentNotSupported {
+                kind: "return element".to_owned(),
+            }),
+        ];
+        assert_errors!(diagnostics, expected);
+    }
 }
