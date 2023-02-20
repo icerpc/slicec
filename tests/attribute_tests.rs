@@ -372,14 +372,14 @@ mod attributes {
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
-                [suppressWarnings]
+                [allow]
                 op(s: string) -> string;
             }
             "; "simple"
         )]
         #[test_case(
             "
-            [suppressWarnings]
+            [allow]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -393,7 +393,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [suppressWarnings]
+            [allow]
             module A {
                 struct A1 {
                     b: sequence<B::B1>,
@@ -407,7 +407,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [[suppressWarnings]]
+            [[allow]]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -433,7 +433,7 @@ mod attributes {
             module Test;
 
             interface I {
-                [suppressWarnings(W315, w001)]
+                [allow(W315, w001)]
                 op(s: string) -> string;
             }
             ";
@@ -461,14 +461,14 @@ mod attributes {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
-                [suppressWarnings(W002, W003)]
+                [allow(W002, W003)]
                 op(s: string) -> string;
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[suppressWarnings(W002, W003)]]
+            [[allow(W002, W003)]]
             module Test;
 
             interface I {
@@ -494,20 +494,20 @@ mod attributes {
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [suppressWarnings(W004, W005)]
+                [allow(W004, W005)]
                 op(s: string);
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[suppressWarnings(W004, W005)]]
+            [[allow(W004, W005)]]
             module Test;
 
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [suppressWarnings(W004, W005)]
+                [allow(W004, W005)]
                 op(s: string);
             }
             "; "file level"

@@ -5,11 +5,11 @@ use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
-const COMPRESS: &str = "compress";
+const ALLOW_WARNINGS: &str = "allow";
 const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
+const COMPRESS: &str = "compress";
 const DEPRECATED: &str = "deprecated";
 const FORMAT: &str = "format";
-const SUPPRESS_WARNINGS: &str = "suppressWarnings";
 const ONEWAY: &str = "oneway";
 
 #[derive(Clone, Debug)]
@@ -29,7 +29,7 @@ impl Attribute {
             AttributeKind::Deprecated { .. } => DEPRECATED,
             AttributeKind::Compress { .. } => COMPRESS,
             AttributeKind::ClassFormat { .. } => FORMAT,
-            AttributeKind::SuppressWarnings { .. } => SUPPRESS_WARNINGS,
+            AttributeKind::SuppressWarnings { .. } => ALLOW_WARNINGS,
             AttributeKind::Oneway { .. } => ONEWAY,
             AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
@@ -60,7 +60,7 @@ impl Attribute {
         }
     }
 
-    pub fn match_suppress_warnings(attribute: &Attribute) -> Option<Vec<String>> {
+    pub fn match_allow_warnings(attribute: &Attribute) -> Option<Vec<String>> {
         match &attribute.kind {
             AttributeKind::SuppressWarnings { warning_codes } => Some(warning_codes.clone()),
             _ => None,
@@ -221,7 +221,7 @@ impl AttributeKind {
                 })
             }
 
-            SUPPRESS_WARNINGS => {
+            ALLOW_WARNINGS => {
                 for arg in arguments {
                     if !Warning::all_codes().contains(&arg.as_str()) {
                         // No exact match was found, check if the casing did not match
