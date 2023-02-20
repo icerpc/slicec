@@ -5,7 +5,7 @@ use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
-const ALLOW_WARNINGS: &str = "allow";
+const ALLOW: &str = "allow";
 const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
 const COMPRESS: &str = "compress";
 const DEPRECATED: &str = "deprecated";
@@ -29,7 +29,7 @@ impl Attribute {
             AttributeKind::Deprecated { .. } => DEPRECATED,
             AttributeKind::Compress { .. } => COMPRESS,
             AttributeKind::ClassFormat { .. } => FORMAT,
-            AttributeKind::SuppressWarnings { .. } => ALLOW_WARNINGS,
+            AttributeKind::Allow { .. } => ALLOW,
             AttributeKind::Oneway { .. } => ONEWAY,
             AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
@@ -62,7 +62,7 @@ impl Attribute {
 
     pub fn match_allow_warnings(attribute: &Attribute) -> Option<Vec<String>> {
         match &attribute.kind {
-            AttributeKind::SuppressWarnings { warning_codes } => Some(warning_codes.clone()),
+            AttributeKind::Allow { warning_codes } => Some(warning_codes.clone()),
             _ => None,
         }
     }
@@ -77,16 +77,15 @@ impl Attribute {
 
 #[derive(Clone, Debug)]
 pub enum AttributeKind {
-    Deprecated { reason: Option<String> },
-    Compress { compress_args: bool, compress_return: bool },
+    Allow { warning_codes: Vec<String> },
     ClassFormat { format: ClassFormat },
-    SuppressWarnings { warning_codes: Vec<String> },
+    Compress { compress_args: bool, compress_return: bool },
+    Deprecated { reason: Option<String> },
     Oneway,
 
     // The following are used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
     LanguageKind { kind: Box<dyn LanguageKind> },
-
     Other { directive: String, arguments: Vec<String> },
 }
 
@@ -221,7 +220,7 @@ impl AttributeKind {
                 })
             }
 
-            ALLOW_WARNINGS => {
+            ALLOW => {
                 for arg in arguments {
                     if !Warning::all_codes().contains(&arg.as_str()) {
                         // No exact match was found, check if the casing did not match
@@ -243,7 +242,7 @@ impl AttributeKind {
                         }
                     }
                 }
-                Some(AttributeKind::SuppressWarnings {
+                Some(AttributeKind::Allow {
                     warning_codes: arguments.to_owned(),
                 })
             }
@@ -261,7 +260,7 @@ impl AttributeKind {
             AttributeKind::Oneway => false,
             AttributeKind::Deprecated { .. } => false,
             AttributeKind::ClassFormat { .. } => false,
-            AttributeKind::SuppressWarnings { .. } => true,
+            AttributeKind::Allow { .. } => true,
             AttributeKind::LanguageKind { kind } => kind.is_repeatable(),
             AttributeKind::Other { .. } => true,
         }
