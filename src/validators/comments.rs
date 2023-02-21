@@ -7,12 +7,10 @@ use crate::validators::{ValidationChain, Validator};
 pub fn comments_validators() -> ValidationChain {
     vec![
         Validator::Entities(only_operations_can_throw),
-        Validator::Entities(module_does_not_support_doc_comments),
         Validator::Operations(missing_parameter_comment),
         Validator::Operations(operation_missing_throws),
         Validator::Operations(non_empty_return_comment),
         Validator::Operations(thrown_type_must_be_exception),
-        Validator::Operations(element_does_not_support_doc_comments),
     ]
 }
 
@@ -79,42 +77,6 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
             }
         }
     }
-}
-
-fn module_does_not_support_doc_comments(entity: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
-    if let Some(comment) = entity.comment() {
-        if entity.kind() == "module" {
-            Warning::new(WarningKind::DocCommentNotSupported {
-                kind: entity.kind().to_owned(),
-            })
-            .set_span(comment.span())
-            .set_scope(entity.parser_scoped_identifier())
-            .report(diagnostic_reporter);
-        }
-    }
-}
-
-fn element_does_not_support_doc_comments(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
-    operation.parameters().iter().for_each(|param| {
-        if let Some(comment) = param.comment() {
-            Warning::new(WarningKind::DocCommentNotSupported {
-                kind: param.kind().to_owned(),
-            })
-            .set_span(comment.span())
-            .set_scope(param.parser_scoped_identifier())
-            .report(diagnostic_reporter);
-        }
-    });
-    operation.return_members().iter().for_each(|return_member| {
-        if let Some(comment) = return_member.comment() {
-            Warning::new(WarningKind::DocCommentNotSupported {
-                kind: return_member.kind().to_owned(),
-            })
-            .set_span(comment.span())
-            .set_scope(return_member.parser_scoped_identifier())
-            .report(diagnostic_reporter);
-        }
-    });
 }
 
 fn thrown_type_must_be_exception(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {

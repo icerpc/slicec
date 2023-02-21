@@ -2,7 +2,7 @@
 
 use super::parser::Parser;
 use crate::ast::node::Node;
-use crate::diagnostics::{Error, ErrorKind};
+use crate::diagnostics::{Error, ErrorKind, Warning, WarningKind};
 use crate::grammar::*;
 use crate::parsers::CommentParser;
 use crate::slice_file::Span;
@@ -115,7 +115,6 @@ fn construct_module(
 ) -> OwnedPtr<Module> {
     // If nested module syntax is being used, get the last module's identifier, otherwise use the whole identifier.
     let last_identifier = identifier.value.rsplit("::").next().unwrap_or(&identifier.value);
-    let comment = parse_doc_comment(parser, last_identifier, raw_comment);
 
     // In case nested module syntax was used, we split the identifier on '::' and construct a module for each segment.
     // We use `rsplit` to iterate in reverse order (right to left) to construct them in child-to-parent order.
@@ -148,7 +147,6 @@ fn construct_module(
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
         current_module.borrow_mut().is_file_scoped = is_file_scoped;
         current_module.borrow_mut().attributes = attributes;
-        current_module.borrow_mut().comment = comment;
         for definition in definitions {
             match definition {
                 Node::Module(mut x) => add_definition_to_module!(x, Module, current_module, parser),
@@ -168,6 +166,18 @@ fn construct_module(
             add_definition_to_module!(current_module, Module, parent_module, parser);
             current_module = parent_module;
         }
+    }
+
+    // Module uses the same prelude as everything else. As such, it supports parsing doc comments. Since modules can't
+    // have doc comments, we check for them here and report a warning if one is found.
+    if let Some(comment) = parse_doc_comment(parser, last_identifier, raw_comment) {
+        // Modules can't have doc comments.
+        Warning::new(WarningKind::DocCommentNotSupported {
+            kind: "module".to_owned(),
+        })
+        .set_span(comment.span())
+        .set_scope(current_module.borrow().parser_scoped_identifier())
+        .report(parser.diagnostic_reporter);
     }
 
     // Return the outer-most module.
@@ -369,20 +379,33 @@ fn construct_parameter(
     (is_streamed, tag): (bool, Option<u32>),
     data_type: TypeRef,
     span: Span,
+    is_returned: bool,
 ) -> OwnedPtr<Parameter> {
-    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-    OwnedPtr::new(Parameter {
-        identifier,
+    let parameter = OwnedPtr::new(Parameter {
+        identifier: identifier.clone(),
         data_type,
         tag,
         is_streamed,
-        is_returned: false,                      // Patched by its operation.
+        is_returned,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
-        comment,
+        comment: None,
         span,
-    })
+    });
+
+    // Module uses the same prelude as everything else. As such, it supports parsing doc comments. Since modules can't
+    // have doc comments, we check for them here and report a warning if one is found.
+    if let Some(comment) = parse_doc_comment(parser, &identifier.value, raw_comment) {
+        Warning::new(WarningKind::DocCommentNotSupported {
+            kind: parameter.borrow().kind().to_owned(),
+        })
+        .set_span(comment.span())
+        .set_scope(parameter.borrow().parser_scoped_identifier())
+        .report(parser.diagnostic_reporter);
+    };
+
+    parameter
 }
 
 fn construct_single_return_type(
