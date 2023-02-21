@@ -106,7 +106,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_flag_with_no_args() {
+    fn allow_warnings_flag_with_no_args() {
         let slice = r#"
         module  Foo;
 
@@ -137,7 +137,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_flag_with_args() {
+    fn allow_warnings_flag_with_args() {
         let slice = r#"
         module  Foo;
 
@@ -173,7 +173,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn notes_with_same_span_as_diagnostic_allowed() {
+    fn notes_with_same_span_as_diagnostic_suppressed() {
         // Arrange
         let slice = "\
             encoding = 2;
