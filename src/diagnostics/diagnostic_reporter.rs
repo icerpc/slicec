@@ -72,7 +72,7 @@ impl DiagnosticReporter {
         files: &'a HashMap<String, SliceFile>,
     ) -> impl Iterator<Item = Diagnostic> + 'a {
         // Helper function that returns true if a warning should be allowed according to the provided list.
-        // This happens if the list exists and is empty (ignores everything), or if the code is contained within it.
+        // This happens if the list exists and is empty (allows everything), or if the code is contained within it.
         fn is_warning_allowed_by(code: &String, allowed_codes: &Vec<String>) -> bool {
             allowed_codes.is_empty() || allowed_codes.contains(code)
         }
