@@ -6,8 +6,8 @@ use crate::slice_file::Span;
 use std::str::FromStr;
 
 const ALLOW: &str = "allow";
-const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
 const COMPRESS: &str = "compress";
+const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
 const DEPRECATED: &str = "deprecated";
 const FORMAT: &str = "format";
 const ONEWAY: &str = "oneway";
