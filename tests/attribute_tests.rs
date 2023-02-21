@@ -513,7 +513,7 @@ mod attributes {
             "; "file level"
         )]
         // Test that if args are passed to allow, that only those warnings are allowed
-        fn suppress_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
+        fn allow_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
