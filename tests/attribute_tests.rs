@@ -418,7 +418,7 @@ mod attributes {
             }
             "; "file level"
         )]
-        fn suppress_warnings_attribute(slice: &str) {
+        fn allow_attribute(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
@@ -427,7 +427,7 @@ mod attributes {
         }
 
         #[test]
-        fn suppress_warnings_with_invalid_code() {
+        fn allow_with_invalid_code() {
             // Arrange
             let slice = "
             module Test;
@@ -479,7 +479,7 @@ mod attributes {
             }
             "; "file level"
         )]
-        fn suppress_warnings_attribute_args(slice: &str) {
+        fn allow_attribute_args(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
@@ -512,7 +512,7 @@ mod attributes {
             }
             "; "file level"
         )]
-        // Test that if args are passed to suppressWarnings, that only those warnings are suppressed
+        // Test that if args are passed to allow, that only those warnings are allowed
         fn suppress_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
