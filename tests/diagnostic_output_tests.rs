@@ -106,7 +106,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn ignore_warnings_flag_with_no_args() {
+    fn allow_warnings_flag_with_no_args() {
         let slice = r#"
         module  Foo;
 
@@ -116,11 +116,11 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         }
 
         "#;
-        // ignore_warnings: Some([]),
+        // allow: Some([]),
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            ignore_warnings: Some(vec![]),
+            allow_warnings: Some(vec![]),
             ..Default::default()
         };
 
@@ -137,7 +137,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn ignore_warnings_flag_with_args() {
+    fn allow_warnings_flag_with_args() {
         let slice = r#"
         module  Foo;
 
@@ -151,7 +151,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            ignore_warnings: Some(vec!["W004".to_string()]),
+            allow_warnings: Some(vec!["W004".to_string()]),
             ..Default::default()
         };
 
@@ -164,7 +164,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         compilation_data.emit_diagnostics(&mut output);
 
         // Assert
-        // Only one of the two warnings should be ignored.
+        // Only one of the two warnings should be allowed.
         let expected = concat!(
             r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",

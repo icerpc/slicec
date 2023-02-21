@@ -372,14 +372,14 @@ mod attributes {
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
-                [ignoreWarnings]
+                [allow]
                 op(s: string) -> string;
             }
             "; "simple"
         )]
         #[test_case(
             "
-            [ignoreWarnings]
+            [allow]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -393,7 +393,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [ignoreWarnings]
+            [allow]
             module A {
                 struct A1 {
                     b: sequence<B::B1>,
@@ -407,7 +407,7 @@ mod attributes {
         )]
         #[test_case(
             "
-            [[ignoreWarnings]]
+            [[allow]]
             module A {
                 struct A1 {
                     b: B::B1,
@@ -418,7 +418,7 @@ mod attributes {
             }
             "; "file level"
         )]
-        fn ignore_warnings_attribute(slice: &str) {
+        fn allow_attribute(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
@@ -427,13 +427,13 @@ mod attributes {
         }
 
         #[test]
-        fn ignore_warnings_with_invalid_code() {
+        fn allow_with_invalid_code() {
             // Arrange
             let slice = "
             module Test;
 
             interface I {
-                [ignoreWarnings(W315, w001)]
+                [allow(W315, w001)]
                 op(s: string) -> string;
             }
             ";
@@ -461,14 +461,14 @@ mod attributes {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
-                [ignoreWarnings(W002, W003)]
+                [allow(W002, W003)]
                 op(s: string) -> string;
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W002, W003)]]
+            [[allow(W002, W003)]]
             module Test;
 
             interface I {
@@ -479,7 +479,7 @@ mod attributes {
             }
             "; "file level"
         )]
-        fn ignore_warnings_attribute_args(slice: &str) {
+        fn allow_attribute_args(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
@@ -494,26 +494,26 @@ mod attributes {
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [ignoreWarnings(W004, W005)]
+                [allow(W004, W005)]
                 op(s: string);
             }
             "; "entity"
         )]
         #[test_case(
             "
-            [[ignoreWarnings(W004, W005)]]
+            [[allow(W004, W005)]]
             module Test;
 
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
-                [ignoreWarnings(W004, W005)]
+                [allow(W004, W005)]
                 op(s: string);
             }
             "; "file level"
         )]
-        // Test that if args are passed to ignoreWarnings, that only those warnings are ignored
-        fn ignore_warnings_attribute_with_args_will_not_ignore_all_warnings(slice: &str) {
+        // Test that if args are passed to allow, that only those warnings are allowed
+        fn allow_attribute_with_args_will_not_allow_all_warnings(slice: &str) {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
