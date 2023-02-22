@@ -6,8 +6,7 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::assert_errors;
-        use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+        use crate::helpers::parsing_helpers::*;
         use slice::diagnostics::{Error, ErrorKind, Warning, WarningKind};
         use slice::grammar::*;
         use test_case::test_case;
@@ -77,7 +76,7 @@ mod attributes {
             let expected = Error::new(ErrorKind::CannotBeEmpty {
                 member_identifier: "format attribute".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -101,11 +100,11 @@ mod attributes {
                 method_name: "format attribute".to_owned(),
             })
             .add_note(
-                "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
+                "The valid arguments for the format attribute are `Compact` and `Sliced`",
                 None,
             );
 
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -146,7 +145,7 @@ mod attributes {
             let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
                 kind: "parameter(s)".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -192,11 +191,11 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -219,11 +218,11 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -244,11 +243,11 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: ": Message here".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -267,11 +266,11 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -317,10 +316,11 @@ mod attributes {
                 method_name: "compress attribute".to_owned(),
             })
             .add_note(
-                "The valid arguments for the compress attribute are 'Args' and 'Return'",
+                "The valid arguments for the compress attribute are `Args` and `Return`",
                 None,
             );
-            assert_errors!(diagnostics, [&expected]);
+
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -340,7 +340,7 @@ mod attributes {
 
             // Assert
             let expected = Error::new(ErrorKind::CompressAttributeCannotBeApplied);
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -419,11 +419,7 @@ mod attributes {
             "; "file level"
         )]
         fn allow_attribute(slice: &str) {
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            assert_errors!(diagnostics);
+            parse_for_ast(slice);
         }
 
         #[test]
@@ -450,7 +446,7 @@ mod attributes {
                     code: "w001".to_owned(),
                 }),
             ];
-            assert_errors!(diagnostics, expected);
+            check_diagnostics(diagnostics, expected);
         }
 
         #[test_case(
@@ -480,11 +476,7 @@ mod attributes {
             "; "file level"
         )]
         fn allow_attribute_args(slice: &str) {
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            assert_errors!(diagnostics);
+            parse_for_ast(slice);
         }
 
         #[test_case(
@@ -518,12 +510,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = &Warning::new(WarningKind::ExtraParameterInDocComment {
+            let expected = Warning::new(WarningKind::ExtraParameterInDocComment {
                 identifier: "x".to_owned(),
             });
-
-            debug_assert_eq!(expected.error_code(), "W003");
-            assert_errors!(diagnostics, [&expected]);
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -541,11 +531,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = [Error::new(ErrorKind::AttributeIsNotRepeatable {
+            let expected = Error::new(ErrorKind::AttributeIsNotRepeatable {
                 attribute: "compress".to_owned(),
-            })];
-
-            assert_errors!(diagnostics, &expected);
+            });
+            check_diagnostics(diagnostics, [expected]);
         }
     }
 

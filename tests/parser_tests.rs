@@ -2,7 +2,7 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_for_diagnostics;
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::slice_file::Span;
 
@@ -11,11 +11,8 @@ fn parse_empty_string() {
     // Arrange
     let slice = "";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test]
@@ -23,11 +20,8 @@ fn parse_string_containing_only_whitespace() {
     // Arrange
     let slice = " ";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test]
@@ -36,11 +30,8 @@ fn parse_ideographic_space() {
     // This is a special whitespace character U+3000 that is invisible.
     let slice = "　";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test]
@@ -56,10 +47,11 @@ fn string_literals_cannot_contain_newlines() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let span = Span::new((2, 22).into(), (2, 32).into(), "string-0");
+    let span = Span::new((2, 14).into(), (2, 24).into(), "string-0");
     let expected = Error::new(ErrorKind::Syntax {
         message: "unterminated string literal".to_owned(),
     })
     .set_span(&span);
-    assert_errors!(diagnostics, [&expected]);
+
+    check_diagnostics(diagnostics, [expected]);
 }

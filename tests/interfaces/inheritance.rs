@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
@@ -87,7 +86,7 @@ fn must_inherit_from_interface() {
         expected: "interface".to_owned(),
         kind: "class".to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -104,16 +103,17 @@ fn operation_shadowing_is_disallowed() {
             op();
         }
     ";
-    let expected = Error::new(ErrorKind::Shadows {
-        identifier: "op".to_owned(),
-    })
-    .add_note("'op' was previously defined here", None);
 
     // Act
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostics, [&expected]);
+    let expected = Error::new(ErrorKind::Shadows {
+        identifier: "op".to_owned(),
+    })
+    .add_note("'op' was previously defined here", None);
+
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]

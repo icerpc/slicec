@@ -2,8 +2,7 @@
 
 mod slice1 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -28,17 +27,16 @@ mod slice1 {
             identifier: "A".to_owned(),
             encoding: Encoding::Slice1,
         })
-        .add_note("file encoding was set to Slice1 here:", None)
-        .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None);
+        .add_note("structs must be `compact` to be supported by the Slice1 encoding", None)
+        .add_note("file encoding was set to Slice1 here:", None);
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -69,7 +67,7 @@ mod slice2 {
             None,
         );
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     /// Verifies using the slice parser with Slice2 will not emit errors when parsing
@@ -86,10 +84,7 @@ mod slice2 {
             }
         ";
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        parse_for_ast(slice);
     }
 }

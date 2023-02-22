@@ -2,11 +2,9 @@
 
 mod slice1 {
 
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
-
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -29,20 +27,19 @@ mod slice1 {
             identifier: "E".to_owned(),
             encoding: Encoding::Slice1,
         })
-        .add_note("file encoding was set to Slice1 here:", None)
         .add_note(
             "enums with underlying types are not supported by the Slice1 encoding",
             None,
-        );
+        )
+        .add_note("file encoding was set to Slice1 here:", None);
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]
@@ -64,10 +61,7 @@ mod slice2 {
             "
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        parse_for_ast(slice);
     }
 }

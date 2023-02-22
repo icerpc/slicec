@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_diagnostics;
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use test_case::test_case;
 
@@ -18,7 +17,7 @@ fn optionals_are_disallowed() {
 
     // Assert
     let expected = Error::new(ErrorKind::KeyMustBeNonOptional);
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test_case("bool"; "bool")]
@@ -44,11 +43,8 @@ fn allowed_primitive_types(key_type: &str) {
         "
     );
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test_case("float32"; "float32")]
@@ -71,7 +67,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         kind: key_type.to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test_case("sequence<int8>", "sequence" ; "sequence")]
@@ -92,7 +88,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         kind: key_kind.to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
@@ -107,11 +103,8 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
         "
     );
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
@@ -136,8 +129,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let expected = Error::new(ErrorKind::KeyTypeNotSupported {
         kind: format!("{key_kind} '{key_type}'"),
     });
-
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -156,7 +148,7 @@ fn non_compact_structs_are_disallowed() {
 
     // Assert
     let expected = Error::new(ErrorKind::StructKeyMustBeCompact);
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -177,11 +169,8 @@ fn compact_struct_with_allowed_members_is_allowed() {
         typealias Dict = dictionary<Outer, int8>;
     ";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 #[test]
@@ -208,19 +197,14 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected_error = Error::new(ErrorKind::StructKeyContainsDisallowedType {
+    let expected = Error::new(ErrorKind::StructKeyContainsDisallowedType {
         struct_identifier: "Outer".to_owned(),
-    });
-    let expected_note_messages = vec![
-        "invalid dictionary key type: sequence".to_owned(),
-        "struct 'Inner' contains members that are not a valid dictionary key types".to_owned(),
-    ];
+    })
+    .add_note("invalid dictionary key type: sequence", None)
+    .add_note(
+        "struct 'Inner' contains members that are not a valid dictionary key types",
+        None,
+    );
 
-    assert_eq!(diagnostics.len(), 1);
-    assert_errors!(diagnostics, [&expected_error]);
-
-    let Some(error) = diagnostics.first() else { panic!(); };
-    let note_messages = error.notes().iter().map(|n| n.message.to_owned()).collect::<Vec<_>>();
-
-    assert_eq!(note_messages, expected_note_messages);
+    check_diagnostics(diagnostics, [expected]);
 }

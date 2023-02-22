@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
@@ -62,6 +61,7 @@ fn can_contain_data_members() {
     "; "multi class circular reference"
 )]
 fn cycles_are_allowed(cycle_string: &str) {
+    // Arrange
     let slice = format!(
         "
             encoding = 1;
@@ -70,9 +70,8 @@ fn cycles_are_allowed(cycle_string: &str) {
         "
     );
 
-    let diagnostics = parse_for_diagnostics(slice);
-
-    assert_errors!(diagnostics);
+    // Act/Assert
+    parse_for_ast(slice);
 }
 
 /// Verifies that classes can be empty
@@ -109,9 +108,10 @@ fn cannot_redefine_data_members() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = [Error::new(ErrorKind::Redefinition {
+    let expected = Error::new(ErrorKind::Redefinition {
         identifier: "a".to_string(),
     })
-    .add_note("'a' was previously defined here", None)];
-    assert_errors!(diagnostics, &expected);
+    .add_note("'a' was previously defined here", None);
+
+    check_diagnostics(diagnostics, [expected]);
 }

@@ -4,8 +4,7 @@ pub mod helpers;
 
 mod scope_resolution {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
@@ -23,9 +22,8 @@ mod scope_resolution {
         // Assert
         let expected = Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
             identifier: "T".to_owned(),
-        })
-        .add_note("file level module 'T' declared here", None);
-        assert_errors!(diagnostics, [&expected]);
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -209,7 +207,8 @@ mod scope_resolution {
             identifier: "B".to_string(),
         })
         .add_note("'B' was previously defined here", None);
-        assert_errors!(diagnostics, [&expected]);
+
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -237,7 +236,7 @@ mod scope_resolution {
             expected: "Type".to_string(),
             actual: "module".to_string(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -258,6 +257,6 @@ mod scope_resolution {
         let expected = Error::new(ErrorKind::DoesNotExist {
             identifier: "Nested::C".to_string(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }

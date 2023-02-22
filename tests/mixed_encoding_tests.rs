@@ -2,7 +2,7 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::parse_multiple_for_diagnostics;
+use crate::helpers::parsing_helpers::*;
 use slice::compile_from_strings;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::Encoding;
@@ -87,6 +87,5 @@ fn invalid_mixed_encoding_fails() {
         })
         .add_note("file encoding was set to Slice1 here:", None),
     ];
-
-    assert_errors!(diagnostics, expected);
+    check_diagnostics(diagnostics, expected);
 }
