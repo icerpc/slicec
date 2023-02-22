@@ -457,11 +457,20 @@ fn construct_enumerator(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    value: EnumeratorValue,
+    enumerator_value: Option<Integer>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-    OwnedPtr::new(Enumerator {
+
+    // If the enumerator was given an explicit value, use it. Otherwise it's implicit value is calculated as follows:
+    // If this is the first enumerator in the enum its value is 0 (since `last_enumerator_value` is `None`).
+    // For any other enumerator, its value is equal to the previous enumerator's value plus 1.
+    let value = match enumerator_value {
+        Some(integer) => EnumeratorValue::Explicit(integer),
+        None => EnumeratorValue::Implicit(parser.last_enumerator_value.map_or(0, |x| x.wrapping_add(1))),
+    };
+
+    let enumerator = OwnedPtr::new(Enumerator {
         identifier,
         value,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
@@ -469,24 +478,10 @@ fn construct_enumerator(
         attributes,
         comment,
         span,
-    })
-}
+    });
 
-fn construct_enumerator_value(parser: &mut Parser, integer: Option<Integer>) -> EnumeratorValue {
-    if let Some(int) = integer {
-        // The enumerator value was explicitly defined.
-        parser.last_enumerator_value = Some(int.value);
-        EnumeratorValue::Explicit(int)
-    } else {
-        // Compute an implicit value.
-        // If this is the first enumerator in the enum its implicit value is '0', otherwise it's `last_value + 1`.
-        let value = match parser.last_enumerator_value {
-            Some(last_value) => last_value.wrapping_add(1),
-            None => 0,
-        };
-        parser.last_enumerator_value = Some(value);
-        EnumeratorValue::Implicit(value)
-    }
+    parser.last_enumerator_value = Some(enumerator.borrow().value());
+    enumerator
 }
 
 fn construct_custom_type(
