@@ -47,8 +47,9 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
         eprintln!("Expected {} diagnostics, but got {}.", expected.len(), diagnostics.len());
         eprintln!("The emitted diagnostics were:");
         for diagnostic in diagnostics {
-            eprintln!("{diagnostic:?}");
+            eprintln!("\t{diagnostic:?}");
         }
+        eprintln!();
         panic!("test failure");
     }
 
@@ -88,7 +89,7 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
                 eprintln!("Expected {} notes, but got {}.", expected_notes.len(), emitted_notes.len());
                 eprintln!("The emitted notes were:");
                 for note in emitted_notes {
-                    eprintln!("{note:?}");
+                    eprintln!("\t{note:?}");
                 }
                 failed = true;
             } else {
@@ -114,6 +115,7 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
 
         // If the checks failed, panic to signal a test failure.
         if failed {
+            eprintln!();
             panic!("test failure");
         }
     }
