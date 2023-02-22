@@ -8,10 +8,10 @@ use slice::diagnostics::{Error, ErrorKind};
 fn invalid_dictionary_values_produce_error() {
     // Arrange
     let slice = "
-    module Foo;
+    module Foo
     struct Bar {
-         i: dictionary<int32, dictionary<float32, bool>>,
-         j: dictionary<int32, sequence<dictionary<float64, bool>>>,
+         i: dictionary<int32, dictionary<float32, bool>>
+         j: dictionary<int32, sequence<dictionary<float64, bool>>>
     }
     ";
 

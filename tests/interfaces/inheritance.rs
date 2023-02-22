@@ -9,7 +9,7 @@ use slice::grammar::*;
 fn supports_single_inheritance() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {}
 
@@ -36,7 +36,7 @@ fn supports_single_inheritance() {
 fn supports_multiple_inheritance() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {}
 
@@ -71,8 +71,8 @@ fn supports_multiple_inheritance() {
 fn must_inherit_from_interface() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         class C {}
 
@@ -94,14 +94,14 @@ fn must_inherit_from_interface() {
 fn operation_shadowing_is_disallowed() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op();
+            op()
         }
 
         interface J : I {
-            op();
+            op()
         }
     ";
     let expected = Error::new(ErrorKind::Shadows {
@@ -120,20 +120,20 @@ fn operation_shadowing_is_disallowed() {
 fn inherits_correct_operations() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface A {
-            opA();
+            opA()
         }
 
         interface B : A {
-            opB();
+            opB()
         }
 
         interface C : A {}
 
         interface D : B, C {
-            opD();
+            opD()
         }
     ";
 

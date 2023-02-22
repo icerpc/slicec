@@ -11,7 +11,7 @@ mod slice2 {
     fn unsupported_error() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
             class C {}
         ";
 
@@ -27,7 +27,7 @@ mod slice2 {
         let expected = Error::new(error_kind)
             .add_note("file is using the Slice2 encoding by default", None)
             .add_note(
-                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+                "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'",
                 None,
             )
             .add_note("classes are only supported by the Slice1 encoding", None);

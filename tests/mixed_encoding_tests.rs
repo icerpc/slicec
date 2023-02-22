@@ -11,34 +11,34 @@ use slice::grammar::Encoding;
 fn valid_mixed_encoding_works() {
     // Arrange
     let encoding1_slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         compact struct ACompactStruct {
-            data: int32,
+            data: int32
         }
 
         enum AnEnum {
-            A,
-            B,
+            A
+            B
         }
 
         interface AnInterface {
-            op() -> AnEnum;
+            op() -> AnEnum
         }
 
         exception AnException {
-            message: string,
+            message: string
         }
     ";
     let encoding2_slice = "
-        encoding = 2;
-        module Test;
+        encoding = 2
+        module Test
         struct AStruct {
-            e: AnEnum,
-            i: AnInterface,
-            c: ACompactStruct,
-            ex: AnException,
+            e: AnEnum
+            i: AnInterface
+            c: ACompactStruct
+            ex: AnException
         }
     ";
 
@@ -53,21 +53,21 @@ fn valid_mixed_encoding_works() {
 fn invalid_mixed_encoding_fails() {
     // Arrange
     let encoding2_slice = "
-        encoding = 2;
-        module Test;
+        encoding = 2
+        module Test
 
-        custom ACustomType;
+        custom ACustomType
 
         compact struct ACompactStruct {
-            data: int32?,
+            data: int32?
         }
     ";
     let encoding1_slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
         compact struct AStruct {
-            c: ACustomType,
-            s: ACompactStruct,
+            c: ACustomType
+            s: ACompactStruct
         }
     ";
 

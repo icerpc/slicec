@@ -12,12 +12,12 @@ mod structs {
     fn can_contain_data_members() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct S {
-                i: int32,
-                s: string,
-                b: bool,
+                i: int32
+                s: string
+                b: bool
             }
         ";
 
@@ -50,7 +50,7 @@ mod structs {
     fn can_be_empty() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct S {}
         ";
@@ -67,11 +67,11 @@ mod structs {
     fn cannot_redefine_data_members() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct S {
-                a: int32,
-                a: string,
+                a: int32
+                a: string
             }
         ";
 
@@ -98,7 +98,7 @@ mod compact_structs {
     fn must_not_be_empty() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             compact struct S {}
         ";

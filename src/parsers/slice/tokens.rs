@@ -96,6 +96,9 @@ pub enum TokenKind<'input> {
     QuestionMark, // "?"
     Arrow,        // "->"
     Minus,        // "-"
+
+    // Whitespace
+    Newline, // "\n"
 }
 
 impl std::fmt::Display for TokenKind<'_> {
@@ -171,6 +174,9 @@ impl std::fmt::Display for TokenKind<'_> {
             TokenKind::QuestionMark => "?",
             TokenKind::Arrow => "->",
             TokenKind::Minus => "-",
+
+            // Whitespace
+            TokenKind::Newline => "<newline>",
         })
     }
 }

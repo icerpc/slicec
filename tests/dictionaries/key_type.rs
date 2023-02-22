@@ -9,8 +9,8 @@ use test_case::test_case;
 fn optionals_are_disallowed() {
     // Arrange
     let slice = "
-        module Test;
-        typealias Dict = dictionary<int32?, int8>;
+        module Test
+        typealias Dict = dictionary<int32?, int8>
     ";
 
     // Act
@@ -39,8 +39,8 @@ fn allowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
         "
-            module Test;
-            typealias Dict = dictionary<{key_type}, int8>;
+            module Test
+            typealias Dict = dictionary<{key_type}, int8>
         "
     );
 
@@ -59,8 +59,8 @@ fn disallowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
         "
-            module Test;
-            typealias Dict = dictionary<{key_type}, int8>;
+            module Test
+            typealias Dict = dictionary<{key_type}, int8>
         "
     );
 
@@ -80,8 +80,8 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     // Arrange
     let slice = format!(
         "
-            module Test;
-            typealias Dict = dictionary<{key_type}, int8>;
+            module Test
+            typealias Dict = dictionary<{key_type}, int8>
         "
     );
 
@@ -96,14 +96,14 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
 }
 
 #[test_case("MyEnum", "unchecked enum MyEnum {}" ; "enums")]
-#[test_case("MyCustom", "custom MyCustom;" ; "custom_types")]
+#[test_case("MyCustom", "custom MyCustom" ; "custom_types")]
 fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     // Arrange
     let slice = format!(
         "
-            module Test;
+            module Test
             {key_type_def}
-            typealias Dict = dictionary<{key_type}, int8>;
+            typealias Dict = dictionary<{key_type}, int8>
         "
     );
 
@@ -122,10 +122,10 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let file_encoding = if key_kind == "class" { "1" } else { "2" };
     let slice = format!(
         "
-            encoding = {file_encoding};
-            module Test;
+            encoding = {file_encoding}
+            module Test
             {key_type_def}
-            typealias Dict = dictionary<{key_type}, int8>;
+            typealias Dict = dictionary<{key_type}, int8>
         "
     );
 
@@ -144,11 +144,11 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
 fn non_compact_structs_are_disallowed() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         struct MyStruct {}
 
-        typealias Dict = dictionary<MyStruct, int8>;
+        typealias Dict = dictionary<MyStruct, int8>
     ";
 
     // Act
@@ -163,18 +163,18 @@ fn non_compact_structs_are_disallowed() {
 fn compact_struct_with_allowed_members_is_allowed() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         compact struct Inner {
-            i32: int32,
+            i32: int32
         }
 
         compact struct Outer {
-            b: bool,
-            i: Inner,
+            b: bool
+            i: Inner
         }
 
-        typealias Dict = dictionary<Outer, int8>;
+        typealias Dict = dictionary<Outer, int8>
     ";
 
     // Act
@@ -188,20 +188,20 @@ fn compact_struct_with_allowed_members_is_allowed() {
 fn compact_struct_with_disallowed_members_is_disallowed() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         compact struct Inner {
-            i32: int32,
-            f32: float32, // disallowed key type
+            i32: int32
+            f32: float32 // disallowed key type
         }
 
         compact struct Outer {
-            seq: sequence<int8>, // disallowed key type
-            i: Inner, // disallowed key type
-            s: string,
+            seq: sequence<int8> // disallowed key type
+            i: Inner // disallowed key type
+            s: string
         }
 
-        typealias Dict = dictionary<Outer, int8>;
+        typealias Dict = dictionary<Outer, int8>
     ";
 
     // Act

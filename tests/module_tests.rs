@@ -11,7 +11,7 @@ mod module {
     use test_case::test_case;
 
     #[test_case("{}", false; "normal")]
-    #[test_case(";", true; "file_scoped")]
+    #[test_case("", true; "file_scoped")]
     fn can_be_defined(content: &str, expected: bool) {
         // Arrange
         let slice = format!("module Test {content}");
@@ -78,7 +78,7 @@ mod module {
     fn is_required() {
         // Arrange
         let slice = "
-            custom C;
+            custom C
         ";
 
         // Act
@@ -86,7 +86,7 @@ mod module {
 
         // Assert
         assert_errors!(diagnostics, [
-            "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'"
+            "expected one of '[', '[[', 'doc comment', 'encoding', 'module', or '<newline>', but found 'custom'"
         ]);
     }
 
@@ -94,7 +94,7 @@ mod module {
     fn file_level_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "
-            module A;
+            module A
 
             module B {}
 
@@ -120,7 +120,7 @@ mod module {
     fn nested_file_level_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "
-            module A::B::C::D;
+            module A::B::C::D
 
             module E {}
         ";

@@ -7,11 +7,11 @@ use slice::grammar::*;
 fn can_contain_tags() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
         exception E {
-            i: int32,
-            s: string,
-            b: tag(10) bool?,
+            i: int32
+            s: string
+            b: tag(10) bool?
         }
     ";
 

@@ -91,6 +91,9 @@ extern {
         "?" => TokenKind::QuestionMark,
         "->" => TokenKind::Arrow,
         "-" => TokenKind::Minus,
+
+        // Whitespace
+        newline => TokenKind::Newline,
     }
 }
 
@@ -102,7 +105,7 @@ pub SliceFile: (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>) = {
 }
 
 SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
-    => (None, Vec::new()),
+    newline* => (None, Vec::new()),
     <sfp: SliceFilePrelude> <fe: FileEncoding> => handle_file_encoding(parser, sfp, fe),
     <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
         sfp.1.push(fa);
@@ -111,19 +114,19 @@ SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
 }
 
 FileEncoding: FileEncoding = {
-    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> ";" => {
+    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> StatementEnd newline* => {
         construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
 FileScopedModule: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";" <ds: Definition*> => {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> StatementEnd newline* <ds: Definition*> => {
         construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
     }
 }
 
 Module: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" <ds: Definition*> "}" => {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" newline* <ds: Definition*> "}" newline* => {
         construct_module(parser, p, i, ds, false, Span::new(l, r, parser.file_name))
     }
 }
@@ -140,43 +143,43 @@ Definition: Node = {
 }
 
 Struct: OwnedPtr<Struct> = {
-    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" newline* <dms: List<DataMember>> "}" ContainerEnd newline* => {
         construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Exception: OwnedPtr<Exception> = {
-    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" newline* <dms: List<DataMember>> "}" ContainerEnd newline* => {
         construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Class: OwnedPtr<Class> = {
-    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" newline* <dms: List<DataMember>> "}" ContainerEnd newline* => {
         construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 DataMember: OwnedPtr<DataMember> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <t: Tag?> <tr: TypeRef> <r: @R> => {
+    <p: Prelude> <l: @L> <i: Identifier> ":" newline* <t: Tag?> <tr: TypeRef> <r: @R> => {
         construct_data_member(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
     }
 }
 
 Interface: OwnedPtr<Interface> = {
-    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyList<TypeRef>>)?> "{" <os: Operation*> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyList<TypeRef>>)?> "{" newline* <os: Operation*> "}" ContainerEnd newline* => {
         construct_interface(parser, p, i, trs, os, Span::new(l, r, parser.file_name))
     }
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";" ContainerEnd => {
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> StatementEnd ContainerEnd newline* => {
         construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
     }
 }
 
 Parameter: OwnedPtr<Parameter> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
+    <p: Prelude> <l: @L> <i: Identifier> ":" newline* <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
         construct_parameter(parser, p, i, pm, tr, Span::new(l, r, parser.file_name))
     }
 }
@@ -206,7 +209,7 @@ ParameterModifier: (bool, Option<u32>) = {
 }
 
 Enum: OwnedPtr<Enum> = {
-    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: List<Enumerator>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" newline* <es: List<Enumerator>> "}" ContainerEnd newline* => {
         construct_enum(parser, p, uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
     }
 }
@@ -227,13 +230,13 @@ Enumerator: OwnedPtr<Enumerator> = {
 }
 
 CustomType: OwnedPtr<CustomType> = {
-    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> ";" => {
+    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> StatementEnd newline* => {
         construct_custom_type(parser, p, i, Span::new(l, r, parser.file_name))
     }
 }
 
 TypeAlias: OwnedPtr<TypeAlias> = {
-    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> ";" => {
+    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> StatementEnd newline* => {
         construct_type_alias(parser, p, i, tr, Span::new(l, r, parser.file_name))
     }
 }
@@ -285,9 +288,9 @@ TypeRefDefinition: TypeRefDefinition = {
     GloballyScopedIdentifier => construct_unpatched_type_ref_definition(<>),
 }
 
-FileAttribute = "[[" <Attribute> "]]";
+FileAttribute = "[[" <Attribute> "]]" newline*;
 
-LocalAttribute = "[" <Attribute> "]";
+LocalAttribute = "[" <Attribute> "]" newline*;
 
 Attribute: Attribute = {
     <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <List<AttributeArgument>> ")")?> <r: @R> => {
@@ -332,7 +335,7 @@ SignedInteger: i128 = {
 }
 
 Tag: u32 = {
-    tag_keyword "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
+    tag_keyword "(" <l: @L> <i: SignedInteger> <r: @R> ")" newline* => {
         parse_tag_value(parser, i, Span::new(l, r, parser.file_name))
     }
 }
@@ -345,7 +348,7 @@ CompactId: u32 = {
 
 Prelude: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
     => (Vec::new(), Vec::new()),
-    <mut prelude: Prelude> <l: @L> <comment: doc_comment> <r: @R> => {
+    <mut prelude: Prelude> <l: @L> <comment: doc_comment> <r: @R> newline* => {
         prelude.0.push((comment, Span::new(l, r, parser.file_name)));
         prelude
     },
@@ -363,8 +366,8 @@ List<T>: Vec<T> = {
 }
 
 NonEmptyList<T>: Vec<T> = {
-    <element: T> <mut vector: ("," <T>)*> ","? => {
-        vector.insert(0, element);
+    <mut vector: (<T> ListSeparator newline*)*> <element: T> (ListSeparator newline*)? => {
+        vector.push(element);
         vector
     }
 }
@@ -388,3 +391,7 @@ ContainerIdentifier: Identifier = {
 ContainerEnd: () = {
     => parser.current_scope.pop_scope(),
 }
+
+StatementEnd = { ";", newline }
+
+ListSeparator = { ",", newline }

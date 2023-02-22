@@ -121,6 +121,11 @@ fn clean_message(expected: &[String]) -> String {
             "\"?\"" => tokens::TokenKind::QuestionMark.to_string(),
             "\"->\"" => tokens::TokenKind::Arrow.to_string(),
             "\"-\"" => tokens::TokenKind::Minus.to_string(),
+
+            // Whitespace
+            "newline" => tokens::TokenKind::Newline.to_string(),
+
+            // TODO actually match these things.
             _ => s.to_owned(),
         })
         .map(|s| format!("'{s}'"))

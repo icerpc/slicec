@@ -39,6 +39,10 @@ where
     /// This flag stores whether the lexer is currently lexing the inside of an attribute.
     /// It is set to true upon encountering an '[' character, and false upon an ']' character.
     attribute_mode: bool,
+
+    /// The lexer injects a `Newline` token at EOF to simplify the grammar rules.
+    /// This flag stores whether this token has been injected yet.
+    has_injected_eof_newline: bool,
 }
 
 impl<'input, T> Lexer<'input, T>
@@ -56,6 +60,7 @@ where
             buffer,
             cursor: start_location,
             attribute_mode: false,
+            has_injected_eof_newline: false,
         }
     }
 
@@ -90,11 +95,11 @@ where
         }
     }
 
-    /// Consumes whitespace characters in the buffer until a non-whitespace character is reached.
-    /// After calling this function, the next character will be non-whitespace or `None` (end of buffer).
-    fn skip_whitespace(&mut self) {
+    /// Skips over inline whitespace characters (whitespace other than '\n') in the buffer.
+    /// After calling this function, the next char will be '\n', a non-whitespace character, or `None` (end-of-buffer).
+    fn skip_inline_whitespace(&mut self) {
         // Loop while the next character in the buffer is whitespace.
-        while matches!(self.buffer.peek(), Some((_, c)) if c.is_whitespace()) {
+        while matches!(self.buffer.peek(), Some((_, c)) if (c.is_whitespace() && *c != '\n')) {
             self.advance_buffer(); // Consume the character.
         }
     }
@@ -369,6 +374,7 @@ where
                     Some(Err((start_location, error, self.cursor)))
                 }
             }
+            '\n' => self.return_simple_token(TokenKind::Newline, start_location),
             _ if c.is_alphabetic() || c == '_' => {
                 let token = if self.attribute_mode {
                     // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
@@ -383,7 +389,7 @@ where
                 Some(Ok((start_location, TokenKind::IntegerLiteral(integer), self.cursor)))
             }
             _ if c.is_whitespace() => {
-                self.skip_whitespace();
+                self.skip_inline_whitespace();
                 None
             }
             unknown => {
@@ -407,25 +413,35 @@ where
     /// Returns `None` to indicate end-of-stream, `Some(Ok(x))` to indicate success (where `x` is the next token),
     /// and `Some(Err(y))` to indicate an error occurred during lexing.
     fn next(&mut self) -> Option<Self::Item> {
-        // Continue iterating until we return a token, or reach the end of our source blocks.
-        loop {
-            // Continue iterating until we return a token, or reach the end of the current source block.
-            while let Some((_, c)) = self.buffer.peek().cloned() {
-                // If the lexer has lexed a token or encountered an error, return it.
-                if let Some(token) = self.lex_next_slice_token(c) {
-                    return Some(token);
-                }
+        // Continue iterating until we return a token, or reach the end of the current source block.
+        while let Some((_, c)) = self.buffer.peek().cloned() {
+            // If the lexer has lexed a token or encountered an error, return it.
+            if let Some(token) = self.lex_next_slice_token(c) {
+                return Some(token);
             }
+        }
 
-            // We've reached the end of the current source block.
-            if let Some(next_source_block) = self.source_blocks.next() {
-                // Drop the current source block and replace it with the next source block.
-                self.current_block = next_source_block;
-                self.buffer = self.current_block.content.char_indices().peekable();
-                self.cursor = self.current_block.start;
+        // We've reached the end of the current source block.
+        if let Some(next_source_block) = self.source_blocks.next() {
+            // Store where the source block ends so we can inject a newline token at that location.
+            // This lets the parser treat EOF as a newline, simplifying the grammar rules.
+            let end_location = self.cursor;
+
+            // Drop the current source block and replace it with the next source block.
+            self.current_block = next_source_block;
+            self.buffer = self.current_block.content.char_indices().peekable();
+            self.cursor = self.current_block.start;
+
+            // Inject a newline token at the end of the block.
+            Some(Ok((end_location, TokenKind::Newline, end_location)))
+        } else {
+            // There are no more source blocks to parse, the lexer has hit end of input.
+            if !self.has_injected_eof_newline {
+                // Inject a newline token in place of EOF if this is our first time hitting EOF.
+                self.has_injected_eof_newline = true;
+                Some(Ok((self.cursor, TokenKind::Newline, self.cursor)))
             } else {
-                // There are no more source blocks to parse, the lexer has hit end of input.
-                return None;
+                None
             }
         }
     }

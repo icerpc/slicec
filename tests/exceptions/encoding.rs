@@ -14,13 +14,13 @@ mod slice1 {
     fn can_not_be_data_members() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             exception E {}
 
             compact struct S {
-                e: E,
+                e: E
             }
         ";
 
@@ -49,7 +49,7 @@ mod slice2 {
     fn inheritance_fails() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             exception A {}
 
@@ -67,7 +67,7 @@ mod slice2 {
         })
         .add_note("file is using the Slice2 encoding by default", None)
         .add_note(
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'",
             None,
         )
         .add_note("exception inheritance is only supported by the Slice1 encoding", None);
@@ -81,12 +81,12 @@ mod slice2 {
     fn can_be_data_members() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             exception E {}
 
             struct S {
-                e: E,
+                e: E
             }
         ";
 
@@ -102,19 +102,19 @@ mod slice2 {
     fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
         // Arrange
         let slice1 = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             exception E {
-                a: AnyClass,
+                a: AnyClass
             }
         ";
 
         let slice2 = "
-            module Test;
+            module Test
 
             interface I {
-                op() throws E;
+                op() throws E
             }
         ";
 
@@ -133,10 +133,10 @@ mod slice2 {
     fn cannot_throw_any_exception() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             interface I {
-                op() throws AnyException;
+                op() throws AnyException
             }
         ";
 

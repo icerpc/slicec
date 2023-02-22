@@ -13,7 +13,7 @@ use slice::grammar::*;
 fn can_have_no_operations() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {}
     ";
@@ -31,10 +31,10 @@ fn can_have_no_operations() {
 fn can_have_self_referencing_operations() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            myOp() -> I;
+            myOp() -> I
         }
     ";
 
@@ -49,10 +49,10 @@ fn can_have_self_referencing_operations() {
 fn can_have_one_operation() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op1();
+            op1()
         }
     ";
 
@@ -68,12 +68,12 @@ fn can_have_one_operation() {
 fn can_have_multiple_operation() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op1();
-            op2();
-            op3();
+            op1()
+            op2()
+            op3()
         }
     ";
 
@@ -89,12 +89,12 @@ fn can_have_multiple_operation() {
 fn cannot_redefine_operations() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         interface I {
-            op();
-            op();
+            op()
+            op()
         }
     ";
 

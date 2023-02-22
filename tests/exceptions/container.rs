@@ -10,12 +10,12 @@ use slice::grammar::*;
 fn can_contain_data_members() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         exception E {
-            i: int32,
-            s: string,
-            b: bool,
+            i: int32
+            s: string
+            b: bool
         }
     ";
 
@@ -48,7 +48,7 @@ fn can_contain_data_members() {
 fn can_be_empty() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         exception E {}
     ";
@@ -65,12 +65,12 @@ fn can_be_empty() {
 fn cannot_redefine_data_members() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         exception E {
-            a: int32,
-            a: string,
+            a: int32
+            a: string
         }
     ";
 

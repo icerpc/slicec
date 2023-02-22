@@ -13,7 +13,7 @@ mod scope_resolution {
     fn file_scoped_modules_can_not_contain_sub_modules() {
         // Arrange
         let slice = "
-            module T;
+            module T
             module S {}
         ";
 
@@ -33,19 +33,19 @@ mod scope_resolution {
         // Arrange
         let slice = "
             module A {
-                typealias S = int32;
+                typealias S = int32
 
                 module B {
                     struct S {
-                        v: string,
+                        v: string
                     }
                 }
 
                 struct C {
-                    s1: S,
-                    s2: A::S,
-                    s3: B::S,
-                    s4: A::B::S,
+                    s1: S
+                    s2: A::S
+                    s3: B::S
+                    s4: A::B::S
                 }
             }
         ";
@@ -70,16 +70,16 @@ mod scope_resolution {
         // Arrange
         let slice = "
             module A {
-                typealias S = int32;
+                typealias S = int32
 
                 module B {
-                    typealias S = string;
+                    typealias S = string
 
                     struct C {
-                        s1: S,
-                        s2: B::S,
-                        s3: A::B::S,
-                        s4: A::S,
+                        s1: S
+                        s2: B::S
+                        s3: A::B::S
+                        s4: A::S
                     }
                 }
             }
@@ -105,20 +105,20 @@ mod scope_resolution {
         // Arrange
         let slice = "
             module A {
-                typealias S = int32;
+                typealias S = int32
 
                 module B {
 
                     struct S {
-                        v: string,
+                        v: string
                     }
 
                     module B {
 
                         struct C {
-                            s1: S,
-                            s2: B::S,
-                            s3: A::S,
+                            s1: S
+                            s2: B::S
+                            s3: A::S
                         }
                     }
                 }
@@ -144,23 +144,23 @@ mod scope_resolution {
         let slice = "
             module A {
                 module B {
-                    typealias S = string;
+                    typealias S = string
 
                     module A {
                         module B {
-                            typealias S = int32;
+                            typealias S = int32
 
                             struct C {
-                                s1: A::B::S,
-                                s2: ::A::B::S,
+                                s1: A::B::S
+                                s2: ::A::B::S
                             }
                         }
                     }
                 }
 
                 struct C {
-                    s1: A::B::S,
-                    s2: ::A::B::S,
+                    s1: A::B::S
+                    s2: ::A::B::S
                 }
             }
         ";
@@ -196,7 +196,7 @@ mod scope_resolution {
                 interface B {}
 
                 struct S {
-                    b: B,
+                    b: B
                 }
             }
         ";
@@ -220,7 +220,7 @@ mod scope_resolution {
                 module B {
                     module C {
                         struct S {
-                            c: C,
+                            c: C
                         }
                     }
                 }
@@ -246,7 +246,7 @@ mod scope_resolution {
         let slice = "
             module A {
                 struct C {
-                    b: Nested::C,
+                    b: Nested::C
                 }
             }
         ";

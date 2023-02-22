@@ -11,12 +11,12 @@ use test_case::test_case;
 fn can_contain_data_members() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
         class C {
-            i: int32,
-            s: string,
-            b: bool,
+            i: int32
+            s: string
+            b: bool
         }
     ";
 
@@ -47,25 +47,25 @@ fn can_contain_data_members() {
 #[test_case(
     "
         class C {
-            c: C,
+            c: C
         }
     "; "single class circular reference"
 )]
 #[test_case(
     "
         class C1 {
-            c2: C2,
+            c2: C2
         }
         class C2 {
-            c1: C1,
+            c1: C1
         }
     "; "multi class circular reference"
 )]
 fn cycles_are_allowed(cycle_string: &str) {
     let slice = format!(
         "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
             {cycle_string}
         "
     );
@@ -80,8 +80,8 @@ fn cycles_are_allowed(cycle_string: &str) {
 fn can_be_empty() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
         class C {}
     ";
 
@@ -97,11 +97,11 @@ fn can_be_empty() {
 fn cannot_redefine_data_members() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
         class C {
-            a: int32,
-            a: string,
+            a: int32
+            a: string
         }
     ";
 

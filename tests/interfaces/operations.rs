@@ -10,10 +10,10 @@ use test_case::test_case;
 fn can_have_no_parameters() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op();
+            op()
         }
     ";
 
@@ -29,10 +29,10 @@ fn can_have_no_parameters() {
 fn can_have_no_return_type() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op(a: int32);
+            op(a: int32)
         }
     ";
 
@@ -48,10 +48,10 @@ fn can_have_no_return_type() {
 fn can_contain_tags() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op(a: tag(1) int32?);
+            op(a: tag(1) int32?)
         }
     ";
 
@@ -68,10 +68,10 @@ fn can_contain_tags() {
 fn parameter_and_return_can_have_the_same_tag() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op(a: tag(1) int32?) -> tag(1) string?;
+            op(a: tag(1) int32?) -> tag(1) string?
         }
     ";
 
@@ -90,10 +90,10 @@ fn parameter_and_return_can_have_the_same_tag() {
 fn can_have_parameters() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op(a: int32, b: string, c: varuint62);
+            op(a: int32, b: string, c: varuint62)
         }
     ";
 
@@ -126,10 +126,10 @@ fn can_have_parameters() {
 fn can_have_return_value() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op() -> string;
+            op() -> string
         }
     ";
 
@@ -152,10 +152,10 @@ fn can_have_return_value() {
 fn can_have_return_tuple() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op() -> (r1: string, r2: bool);
+            op() -> (r1: string, r2: bool)
         }
     ";
 
@@ -182,10 +182,10 @@ fn can_have_return_tuple() {
 #[test]
 fn operations_can_omit_throws_clause() {
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op();
+            op()
         }
     ";
 
@@ -200,12 +200,12 @@ fn operations_can_omit_throws_clause() {
 #[test]
 fn operations_can_throw_specific_exceptions() {
     let slice = "
-        module Test;
+        module Test
 
         exception E {}
 
         interface I {
-            op() throws E;
+            op() throws E
         }
     ";
 
@@ -224,12 +224,12 @@ fn operations_can_throw_specific_exceptions() {
 fn operations_can_only_throw_exceptions() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         struct S {}
 
         interface I {
-            op() throws S;
+            op() throws S
         }
     ";
 
@@ -250,10 +250,10 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     // Arrange
     let slice = format!(
         "
-            module Test;
+            module Test
 
             interface I {{
-                op() -> {return_tuple};
+                op() -> {return_tuple}
             }}
         "
     );
@@ -276,10 +276,10 @@ mod streams {
     fn can_have_streamed_parameter_and_return() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             interface I {
-                op(a: stream uint32) -> stream uint32;
+                op(a: stream uint32) -> stream uint32
             }
         ";
 
@@ -299,10 +299,10 @@ mod streams {
     fn operation_can_have_at_most_one_streamed_parameter() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             interface I {
-                op(s: stream varuint62, s2: stream string);
+                op(s: stream varuint62, s2: stream string)
             }
         ";
 
@@ -323,10 +323,10 @@ mod streams {
     fn stream_parameter_must_be_last() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             interface I {
-                op(s: stream varuint62, i: int32);
+                op(s: stream varuint62, i: int32)
             }
         ";
 

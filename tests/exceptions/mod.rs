@@ -11,12 +11,12 @@ use slice::grammar::{Exception, NamedSymbol, Operation, Throws};
 #[test]
 fn throws_specific_exception() {
     let slice = "
-        module Test;
+        module Test
 
         exception E {}
 
         interface I {
-            op() throws E;
+            op() throws E
         }
     ";
 
@@ -36,10 +36,10 @@ fn throws_specific_exception() {
 #[test]
 fn throws_nothing() {
     let slice = "
-        module Test;
+        module Test
 
         interface I {
-            op();
+            op()
         }
     ";
 
@@ -52,11 +52,11 @@ fn throws_nothing() {
 #[test]
 fn throws_any_exception() {
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         interface I {
-            op() throws AnyException;
+            op() throws AnyException
         }
     ";
 
