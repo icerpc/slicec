@@ -12,8 +12,8 @@ mod slice1 {
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             unchecked enum E : int32 {}
         ";
@@ -55,7 +55,7 @@ mod slice2 {
         // Arrange
         let slice = &format!(
             "
-                module Test;
+                module Test
 
                 unchecked enum E : {valid_type} {{}}
             "

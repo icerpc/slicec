@@ -9,8 +9,8 @@ use slice::slice_file::Span;
 fn supports_single_inheritance() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         exception E1 {}
 
@@ -29,8 +29,8 @@ fn supports_single_inheritance() {
 fn does_not_support_multiple_inheritance() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         exception E1 {}
 
@@ -55,8 +55,8 @@ fn does_not_support_multiple_inheritance() {
 fn must_inherit_from_exception() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         class C {}
 
@@ -78,8 +78,8 @@ fn must_inherit_from_exception() {
 fn data_member_shadowing_is_disallowed() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         exception I {
             i: int32
@@ -106,8 +106,8 @@ fn data_member_shadowing_is_disallowed() {
 fn inherits_correct_data_members() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         exception A {
             a: int32

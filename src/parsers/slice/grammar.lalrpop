@@ -111,13 +111,13 @@ SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
 }
 
 FileEncoding: FileEncoding = {
-    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> ";" => {
+    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> ";"? => {
         construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
 FileScopedModule: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";" <ds: Definition*> => {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";"? <ds: Definition*> => {
         construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
     }
 }
@@ -140,19 +140,19 @@ Definition: Node = {
 }
 
 Struct: OwnedPtr<Struct> = {
-    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
         construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Exception: OwnedPtr<Exception> = {
-    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
         construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Class: OwnedPtr<Class> = {
-    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: List<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
         construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
@@ -164,13 +164,13 @@ DataMember: OwnedPtr<DataMember> = {
 }
 
 Interface: OwnedPtr<Interface> = {
-    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyList<TypeRef>>)?> "{" <os: Operation*> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyCommaList<TypeRef>>)?> "{" <os: Operation*> "}" ContainerEnd => {
         construct_interface(parser, p, i, trs, os, Span::new(l, r, parser.file_name))
     }
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: List<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";" ContainerEnd => {
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";"? ContainerEnd => {
         construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
     }
 }
@@ -185,7 +185,7 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
     <l: @L> <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
         construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
     },
-    <l: @L> "(" <ps: List<Parameter>> ")" <r: @R> => {
+    <l: @L> "(" <ps: UndelimitedList<Parameter>> ")" <r: @R> => {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
         ps
     },
@@ -206,7 +206,7 @@ ParameterModifier: (bool, Option<u32>) = {
 }
 
 Enum: OwnedPtr<Enum> = {
-    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: List<Enumerator>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: UndelimitedList<Enumerator>> "}" ContainerEnd => {
         construct_enum(parser, p, uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
     }
 }
@@ -225,13 +225,13 @@ Enumerator: OwnedPtr<Enumerator> = {
 }
 
 CustomType: OwnedPtr<CustomType> = {
-    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> ";" => {
+    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> ";"? => {
         construct_custom_type(parser, p, i, Span::new(l, r, parser.file_name))
     }
 }
 
 TypeAlias: OwnedPtr<TypeAlias> = {
-    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> ";" => {
+    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> ";"? => {
         construct_type_alias(parser, p, i, tr, Span::new(l, r, parser.file_name))
     }
 }
@@ -288,7 +288,7 @@ FileAttribute = "[[" <Attribute> "]]";
 LocalAttribute = "[" <Attribute> "]";
 
 Attribute: Attribute = {
-    <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <List<AttributeArgument>> ")")?> <r: @R> => {
+    <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
         try_construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
     }
 }
@@ -355,16 +355,24 @@ Prelude: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
 
 // Utility Rules
 
-List<T>: Vec<T> = {
-    NonEmptyList<T> => <>,
-    => Vec::new(),
-}
-
-NonEmptyList<T>: Vec<T> = {
+// A list that contains at least one element, and is delimited by commas, with an optional trailing comma.
+NonEmptyCommaList<T>: Vec<T> = {
     <element: T> <mut vector: ("," <T>)*> ","? => {
         vector.insert(0, element);
         vector
     }
+}
+
+// A list of 0 or more elements, that is delimited by commas, with an optional trailing comma.
+CommaList<T>: Vec<T> = {
+    NonEmptyCommaList<T> => <>,
+    => Vec::new(),
+}
+
+// A list of 0 or more elements, with optional comma delimiters; ie: commas can be placed after each element
+// (including trailing commas), but these are all optional and only for user-readability.
+UndelimitedList<T>: Vec<T> = {
+    (<T> ","?)* => <>
 }
 
 ModuleIdentifier: Identifier = {

@@ -13,12 +13,12 @@ mod tags {
     fn tagged_data_members_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
             class C {
-                i: int32,
-                s: string,
-                b: tag(10) bool,
+                i: int32
+                s: string
+                b: tag(10) bool
             }
         ";
 
@@ -36,10 +36,10 @@ mod tags {
     fn tagged_parameters_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
             interface I {
-                op(myParam: tag(10) int32);
+                op(myParam: tag(10) int32)
             }
         ";
 
@@ -57,10 +57,10 @@ mod tags {
     fn non_tagged_optional_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
             interface I {
-                myOp(a: int32?);
+                myOp(a: int32?)
             }
         ";
 
@@ -80,10 +80,10 @@ mod tags {
     fn tagged_parameters_must_be_after_required_parameters() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
             interface I {
-                op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?);
+                op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?)
             }
         ";
 
@@ -106,13 +106,13 @@ mod tags {
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             class C {}
 
             interface I {
-                op(c: tag(1) C?);
+                op(c: tag(1) C?)
             }
         ";
 
@@ -130,17 +130,17 @@ mod tags {
     fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             class C {}
 
             compact struct S {
-                c: C,
+                c: C
             }
 
             interface I {
-                op(s: tag(1) S?);
+                op(s: tag(1) S?)
             }
         ";
 
@@ -158,9 +158,9 @@ mod tags {
     fn valid_tag() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
             struct S {
-                a: tag(1) int32?,
+                a: tag(1) int32?
             }
         ";
 
@@ -178,10 +178,10 @@ mod tags {
     fn cannot_have_duplicate_tags() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
             struct S {
-                a: tag(1) int32?,
-                b: tag(1) int32?,
+                a: tag(1) int32?
+                b: tag(1) int32?
             }
         ";
 
@@ -204,9 +204,9 @@ mod tags {
         // Arrange
         let slice = format!(
             "
-            module Test;
+            module Test
             interface I {{
-                testOp(a: tag({value}) int32?);
+                testOp(a: tag({value}) int32?)
             }}
             "
         );
@@ -221,9 +221,9 @@ mod tags {
         // Arrange
         let slice = format!(
             "
-                module Test;
+                module Test
                 interface I {{
-                    testOp(a: tag({value}) int32?);
+                    testOp(a: tag({value}) int32?)
                 }}
             "
         );
@@ -240,9 +240,9 @@ mod tags {
     fn cannot_have_tag_with_value_smaller_than_minimum() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
             interface I {
-                testOp(a: tag(-1) int32?);
+                testOp(a: tag(-1) int32?)
             }
         ";
 
@@ -258,9 +258,9 @@ mod tags {
     fn strings_invalid_as_tag_value() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
             interface I {
-                testOp(a: tag(\"test string\") int32?);
+                testOp(a: tag(\"test string\") int32?)
             }
         ";
 

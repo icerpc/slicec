@@ -10,11 +10,11 @@ mod output {
     #[test]
     fn output_to_json() {
         let slice = r#"
-        module  Foo;
+        module  Foo
 
         interface I {
             /// @param x: this is an x
-            op();
+            op()
         }
 
         enum E {}
@@ -47,16 +47,16 @@ mod output {
     #[test]
     fn output_to_console() {
         let slice = r#"
-        module  Foo;
+        module  Foo
 
         interface I {
             /// @param x: this is an x
-            op1();
+            op1()
 
             op2(x:
     tag(1)
                     int32, y: tag(2) bool?,
-            );
+            )
         }
 
         enum E {}
@@ -108,11 +108,11 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     #[test]
     fn allow_warnings_flag_with_no_args() {
         let slice = r#"
-        module  Foo;
+        module  Foo
 
         interface I {
             /// @param x: this is an x
-            op();
+            op()
         }
 
         "#;
@@ -139,12 +139,12 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     #[test]
     fn allow_warnings_flag_with_args() {
         let slice = r#"
-        module  Foo;
+        module  Foo
 
         interface I {
             /// @param x: this is an x
             /// @returns: this is a return
-            op();
+            op()
         }
 
         "#;
@@ -176,8 +176,8 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     fn notes_with_same_span_as_diagnostic_suppressed() {
         // Arrange
         let slice = "\
-            encoding = 2;
-            module Foo;
+            encoding = 2
+            module Foo
         ";
 
         // Disable ANSI codes.
@@ -210,9 +210,9 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let expected = "\
 error: foo
  --> string-0:1:1\n  |
-1 | encoding = 2;
-  | -------------
-2 |             module Foo;
+1 | encoding = 2
+  | ------------
+2 |             module Foo
   | -
   |
     = note: bar

@@ -22,16 +22,16 @@ use test_case::test_case;
 #[test_case("float32", Primitive::Float32, None; "float32")]
 #[test_case("float64", Primitive::Float64, None; "float64")]
 #[test_case("string", Primitive::String, None; "string")]
-#[test_case("AnyClass", Primitive::AnyClass, Some("encoding = 1;"); "AnyClass")]
+#[test_case("AnyClass", Primitive::AnyClass, Some("encoding = 1"); "AnyClass")]
 fn type_parses(slice_component: &str, expected: Primitive, encoding: Option<&str>) {
     // Arrange
     let encoding = encoding.unwrap_or("");
     let slice = format!(
         "
             {encoding}
-            module Test;
+            module Test
 
-            typealias P = {slice_component};
+            typealias P = {slice_component}
         "
     );
 

@@ -9,7 +9,7 @@ use slice::grammar::{Enum, Exception, Interface, Struct};
 fn escaped_keywords() {
     // Arrange
     let slice = r#"
-        module \module;
+        module \module
         interface \interface {}
         exception \exception {}
         struct \struct {}
@@ -30,7 +30,7 @@ fn escaped_keywords() {
 fn escaped_identifiers() {
     // Arrange
     let slice = r#"
-        module \MyModule;
+        module \MyModule
         interface \MyInterface {}
         exception \MyException {}
         struct \MyStruct {}
