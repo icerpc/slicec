@@ -12,13 +12,13 @@ mod optional {
         use super::*;
         use test_case::test_case;
 
-        /*TODO #[test_case("ServiceAddress")] ADD OTHER SERVICEADDRESS TESTS
+        #[test_case("ServiceAddress")]
+        #[test_case("AnyClass")]
         fn optional_builtin_types_are_allowed(type_name: &str) {
             // Arrange
             let slice = format!("
                 encoding = 1;
                 module Test;
-                typealias Foo = bool;
                 typealias F = {type_name}?;
             ");
 
@@ -26,7 +26,9 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-        }*/
+            let type_alias = &ast.find_element::<TypeAlias>("Test::F").unwrap();
+            assert!(type_alias.underlying.is_optional);
+        }
 
         #[test_case("bool")]
         #[test_case("int8")]
@@ -44,7 +46,6 @@ mod optional {
         #[test_case("float32")]
         #[test_case("float64")]
         #[test_case("string")]
-        #[test_case("AnyClass")]
         #[test_case("Foo"; "simple")]
         #[test_case("Test::Foo"; "relatively scoped")]
         #[test_case("::Test::Foo"; "globally scoped")]
