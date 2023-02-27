@@ -152,11 +152,11 @@ mod comments {
     fn operation_with_no_return_but_doc_comment_contains_return_fails() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @returns: This operation will return a bool.
-                testOp(testParam: string);
+                testOp(testParam: string)
             }
         ";
 

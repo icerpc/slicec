@@ -6,6 +6,4 @@ interface I {
     myOp()
 }
 
-struct A {
-
-}
+struct A {}

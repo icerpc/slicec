@@ -331,7 +331,7 @@ mod attributes {
 
                 [compress()]
                 struct S {
-                    s: string,
+                    s: string
                 }
             ";
 
@@ -382,7 +382,7 @@ mod attributes {
             [allow]
             module A {
                 struct A1 {
-                    b: B::B1,
+                    b: B::B1
                 }
             }
             module B {
@@ -396,7 +396,7 @@ mod attributes {
             [allow]
             module A {
                 struct A1 {
-                    b: sequence<B::B1>,
+                    b: sequence<B::B1>
                 }
             }
             module B {
@@ -410,7 +410,7 @@ mod attributes {
             [[allow]]
             module A {
                 struct A1 {
-                    b: B::B1,
+                    b: B::B1
                 }
             }
             module B {
