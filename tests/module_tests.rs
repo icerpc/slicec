@@ -4,8 +4,7 @@ pub mod helpers;
 
 mod module {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
     use test_case::test_case;
@@ -85,9 +84,10 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, [
-            "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'"
-        ]);
+        let expected = Error::new(ErrorKind::Syntax {
+            message: "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -105,7 +105,7 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = vec![
+        let expected = [
             Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
                 identifier: "A".to_owned(),
             }),
@@ -113,7 +113,7 @@ mod module {
                 identifier: "A".to_owned(),
             }),
         ];
-        assert_errors!(diagnostics, expected);
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -129,10 +129,10 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = vec![Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+        let expected = [Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
             identifier: "D".to_owned(),
         })];
-        assert_errors!(diagnostics, expected);
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -156,7 +156,8 @@ mod module {
             identifier: "Bar".to_owned(),
         })
         .add_note("'Bar' was previously defined here", None);
-        assert_errors!(diagnostics, [&expected]);
+
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test_case("Foo"; "module")]
@@ -170,10 +171,7 @@ mod module {
             "
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 }

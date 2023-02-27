@@ -4,8 +4,7 @@ pub mod helpers;
 
 mod encodings {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use test_case::test_case;
 
@@ -20,11 +19,8 @@ mod encodings {
             "
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     #[test]
@@ -38,8 +34,8 @@ mod encodings {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [Error::new(ErrorKind::InvalidEncodingVersion { encoding: 3 })];
-        assert_errors!(diagnostics, expected);
+        let expected = Error::new(ErrorKind::InvalidEncodingVersion { encoding: 3 });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -55,6 +51,6 @@ mod encodings {
 
         // Assert
         let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }

@@ -4,8 +4,7 @@ pub mod helpers;
 
 mod sequences {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
@@ -48,6 +47,6 @@ mod sequences {
         let expected = Error::new(ErrorKind::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }

@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
@@ -82,5 +81,6 @@ fn cannot_redefine_data_members() {
         identifier: "a".to_owned(),
     })
     .add_note("'a' was previously defined here", None);
-    assert_errors!(diagnostics, [&expected]);
+
+    check_diagnostics(diagnostics, [expected]);
 }

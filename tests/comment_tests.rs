@@ -4,8 +4,7 @@ pub mod helpers;
 
 mod comments {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Warning, WarningKind};
     use slice::grammar::*;
     use test_case::test_case;
@@ -165,7 +164,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, ["void operation must not contain doc comment return tag"]);
+        let expected = Warning::new(WarningKind::ExtraReturnValueInDocComment);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -185,9 +185,10 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, [
-            "doc comment has a param tag for 'testParam2', but there is no parameter by that name",
-        ]);
+        let expected = Warning::new(WarningKind::ExtraParameterInDocComment {
+            identifier: "testParam2".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -206,11 +207,8 @@ mod comments {
             }
         ";
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     #[test]
@@ -308,7 +306,7 @@ mod comments {
                 identifier: "testOp".to_owned(),
             }),
         ];
-        assert_errors!(diagnostics, expected);
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -325,9 +323,11 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, [
-            "doc comment indicates that struct 'S' throws, however, only operations can throw",
-        ]);
+        let expected = Warning::new(WarningKind::ExtraThrowInDocComment {
+            kind: "struct".to_owned(),
+            identifier: "S".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -427,7 +427,7 @@ mod comments {
         let expected = Warning::new(WarningKind::CouldNotResolveLink {
             identifier: "OtherStruct".to_owned(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -447,7 +447,7 @@ mod comments {
         let expected = Warning::new(WarningKind::LinkToInvalidElement {
             kind: "primitive".to_owned(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -467,7 +467,7 @@ mod comments {
         let expected = Warning::new(WarningKind::DocCommentSyntax {
             message: "doc comment tag 'linked' is invalid".to_owned(),
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -489,7 +489,10 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        assert_errors!(diagnostics, ["'S' is not a throwable type"]);
+        let expected = Warning::new(WarningKind::InvalidThrowInDocComment {
+            identifier: "S".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -521,6 +524,6 @@ mod comments {
                 identifier: "testOpTwo".to_owned(),
             }),
         ];
-        assert_errors!(diagnostics, expected);
+        check_diagnostics(diagnostics, expected);
     }
 }

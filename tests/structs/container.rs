@@ -2,7 +2,6 @@
 
 mod structs {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
@@ -84,14 +83,13 @@ mod structs {
         })
         .add_note("'a' was previously defined here", None);
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }
 
 mod compact_structs {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     /// Verifies that compact structs must contain at least one data member.
     #[test]
@@ -108,6 +106,6 @@ mod compact_structs {
 
         // Assert
         let expected = Error::new(ErrorKind::CompactStructCannotBeEmpty);
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }

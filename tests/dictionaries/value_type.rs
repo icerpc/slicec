@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::parse_for_diagnostics;
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 
 #[test]
@@ -19,7 +18,7 @@ fn invalid_dictionary_values_produce_error() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = vec![
+    let expected = [
         Error::new(ErrorKind::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         }),
@@ -27,5 +26,5 @@ fn invalid_dictionary_values_produce_error() {
             kind: "float64".to_owned(),
         }),
     ];
-    assert_errors!(diagnostics, expected);
+    check_diagnostics(diagnostics, expected);
 }

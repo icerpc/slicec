@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
@@ -79,7 +78,7 @@ fn implicit_enumerator_values_overflow_cleanly() {
             max: 2147483647,
         }),
     ];
-    assert_errors!(diagnostics, expected);
+    check_diagnostics(diagnostics, expected);
 }
 
 #[test]
@@ -93,11 +92,8 @@ fn enumerator_values_can_be_out_of_order() {
             }
         ";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    assert_parses(slice);
 }
 
 #[test]
@@ -123,7 +119,7 @@ fn validate_backing_type_out_of_bounds() {
         min: -32768_i128,
         max: 32767_i128,
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -141,11 +137,8 @@ fn validate_backing_type_bounds() {
         "
     );
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    assert_parses(slice);
 }
 
 #[test_case("string"; "string")]
@@ -170,12 +163,12 @@ fn invalid_underlying_type(underlying_type: &str) {
         enum_identifier: "E".to_owned(),
         kind: underlying_type.to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test_case("10", "expected one of '[', '}', 'doc comment', or 'identifier', but found '10'"; "numeric identifier")]
 #[test_case("😊", "unknown symbol '😊'"; "unicode identifier")]
-fn enumerator_invalid_identifiers(identifier: &str, expected: &str) {
+fn enumerator_invalid_identifiers(identifier: &str, expected_message: &str) {
     // Arrange
     let slice = format!(
         "
@@ -190,7 +183,10 @@ fn enumerator_invalid_identifiers(identifier: &str, expected: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostics, [expected]);
+    let expected = Error::new(ErrorKind::Syntax {
+        message: expected_message.to_owned(),
+    });
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -211,7 +207,7 @@ fn optional_underlying_types_fail() {
     let expected = Error::new(ErrorKind::CannotUseOptionalUnderlyingType {
         enum_identifier: "E".to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -232,7 +228,8 @@ fn enumerators_must_be_unique() {
     // Assert
     let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 1 })
         .add_note("the value was previously used by 'A' here:", None);
-    assert_errors!(diagnostics, [&expected]);
+
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test_case("unchecked enum", true ; "unchecked")]
@@ -259,18 +256,21 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
 
 #[test]
 fn checked_enums_can_not_be_empty() {
+    // Arrange
     let slice = "
         module Test;
 
         enum E {}
     ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
     let expected = Error::new(ErrorKind::MustContainEnumerators {
         enum_identifier: "E".to_owned(),
     });
-
-    let diagnostics = parse_for_diagnostics(slice);
-
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -331,12 +331,11 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
 
     // Assert
     let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 79 });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 mod slice1 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
 
@@ -359,7 +358,7 @@ mod slice1 {
 
         // Assert
         const MAX_VALUE: i128 = i32::MAX as i128;
-        let expected_errors: [Error; 3] = [
+        let expected = [
             Error::new(ErrorKind::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "A".to_owned(),
                 value: -1,
@@ -379,7 +378,7 @@ mod slice1 {
                 max: MAX_VALUE,
             }),
         ];
-        assert_errors!(diagnostics, expected_errors);
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -407,13 +406,12 @@ mod slice1 {
             min: 0,
             max: i32::MAX as i128,
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
     use crate::helpers::parsing_helpers::*;
     use slice::grammar::*;
 
@@ -430,11 +428,8 @@ mod slice2 {
             }
         ";
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     #[test]

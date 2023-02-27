@@ -2,9 +2,10 @@
 
 pub mod helpers;
 
-use crate::helpers::parsing_helpers::{parse_for_ast, parse_for_diagnostics};
+use crate::helpers::parsing_helpers::*;
 use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
+use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -55,11 +56,8 @@ fn preprocessor_consumes_comments() {
     // Arrange
     let slice = "// This is a comment";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    assert_parses(slice);
 }
 
 #[test]
@@ -286,11 +284,7 @@ fn preprocessor_nested_expressions() {
     ; "conditional with elif and else"
 )]
 fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
-    // Arrange/Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    assert_parses(slice);
 }
 
 #[test]
@@ -346,5 +340,8 @@ fn preprocessor_single_backslash_suggestion() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    assert_errors!(diagnostics, [r#"unknown symbol '/', try using '//' instead"#]);
+    let expected = Error::new(ErrorKind::Syntax {
+        message: "unknown symbol '/', try using '//' instead".to_owned(),
+    });
+    check_diagnostics(diagnostics, [expected]);
 }

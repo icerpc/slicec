@@ -4,7 +4,6 @@ mod encoding;
 mod inheritance;
 mod operations;
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
@@ -38,11 +37,8 @@ fn can_have_self_referencing_operations() {
         }
     ";
 
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    assert_errors!(diagnostics);
+    // Act/Assert
+    assert_parses(slice);
 }
 
 #[test]
@@ -106,5 +102,6 @@ fn cannot_redefine_operations() {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);
-    assert_errors!(diagnostics, [&expected]);
+
+    check_diagnostics(diagnostics, [expected]);
 }

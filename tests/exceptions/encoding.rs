@@ -2,11 +2,9 @@
 
 mod slice1 {
 
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
-
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
     /// exception that is a data member.
@@ -32,14 +30,14 @@ mod slice1 {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
-        assert_errors!(diagnostics, [&expected]);
+
+        check_diagnostics(diagnostics, [expected]);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::{parse_for_diagnostics, parse_multiple_for_diagnostics};
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -65,14 +63,14 @@ mod slice2 {
             identifier: "B".to_owned(),
             encoding: Encoding::Slice2,
         })
+        .add_note("exception inheritance is only supported by the Slice1 encoding", None)
         .add_note("file is using the Slice2 encoding by default", None)
         .add_note(
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             None,
-        )
-        .add_note("exception inheritance is only supported by the Slice1 encoding", None);
+        );
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing
@@ -90,11 +88,8 @@ mod slice2 {
             }
         ";
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.
@@ -126,7 +121,7 @@ mod slice2 {
             kind: "E".to_owned(),
             encoding: Encoding::Slice2,
         });
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -145,6 +140,6 @@ mod slice2 {
 
         // Assert
         let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 }

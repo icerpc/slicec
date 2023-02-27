@@ -2,8 +2,7 @@
 
 mod slice1 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
@@ -41,7 +40,8 @@ mod slice1 {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
-        assert_errors!(diagnostics, [&expected]);
+
+        check_diagnostics(diagnostics, [expected]);
     }
 
     /// Verifies that valid Slice1 types (bool, uint8, int16, int32, int64, float32, float64,
@@ -69,18 +69,14 @@ mod slice1 {
         "
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 }
 
 mod slice2 {
 
-    use crate::assert_errors;
-    use crate::helpers::parsing_helpers::parse_for_diagnostics;
+    use crate::helpers::parsing_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
     use test_case::test_case;
@@ -110,10 +106,9 @@ mod slice2 {
         .add_note(
             "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
             None,
-        )
-        .add_note("classes are only supported by the Slice1 encoding", None);
+        );
 
-        assert_errors!(diagnostics, [&expected]);
+        check_diagnostics(diagnostics, [expected]);
     }
 
     /// Verifies that valid Slice2 types (bool, int8, uint8, int16, uint16, int32, uint32,
@@ -146,11 +141,8 @@ mod slice2 {
             }}"
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     #[test_case("uint8?"; "optional uint8")]
@@ -182,10 +174,7 @@ mod slice2 {
             "
         );
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        assert_errors!(diagnostics);
+        // Act/Assert
+        assert_parses(slice);
     }
 }

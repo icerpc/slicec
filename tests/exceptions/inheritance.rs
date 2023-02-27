@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::assert_errors;
 use crate::helpers::parsing_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
@@ -47,9 +46,9 @@ fn does_not_support_multiple_inheritance() {
     let expected = Error::new(ErrorKind::Syntax {
         message: "expected one of '{', but found ','".to_owned(),
     })
-    .set_span(&Span::new((13, 20).into(), (13, 21).into(), "string-0"));
+    .set_span(&Span::new((9, 26).into(), (9, 27).into(), "string-0"));
 
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -72,7 +71,7 @@ fn must_inherit_from_exception() {
         expected: "exception".to_owned(),
         kind: "class".to_owned(),
     });
-    assert_errors!(diagnostics, [&expected]);
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
@@ -99,7 +98,8 @@ fn data_member_shadowing_is_disallowed() {
         identifier: "i".to_owned(),
     })
     .add_note("'i' was previously defined here", None);
-    assert_errors!(diagnostics, [&expected]);
+
+    check_diagnostics(diagnostics, [expected]);
 }
 
 #[test]
