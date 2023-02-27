@@ -20,7 +20,7 @@ mod encodings {
         );
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test]

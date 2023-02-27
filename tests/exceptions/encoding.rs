@@ -89,7 +89,7 @@ mod slice2 {
         ";
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.

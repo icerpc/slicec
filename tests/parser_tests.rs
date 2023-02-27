@@ -12,7 +12,7 @@ fn parse_empty_string() {
     let slice = "";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]
@@ -21,7 +21,7 @@ fn parse_string_containing_only_whitespace() {
     let slice = " ";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn parse_ideographic_space() {
     let slice = "　";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]

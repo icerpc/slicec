@@ -5,6 +5,7 @@ use slice::compile_from_strings;
 use slice::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
+#[must_use]
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     match compile_from_strings(&[&slice.into()], None) {
         Ok(data) => data.ast,
@@ -13,11 +14,13 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 }
 
 /// This function is used to parse a Slice file and return any Diagnostics that were emitted.
+#[must_use]
 pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
     parse_multiple_for_diagnostics(&[&slice.into()])
 }
 
 /// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
+#[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
     let data = match compile_from_strings(slice, None) {
         Ok(data) => data,
@@ -26,6 +29,13 @@ pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
     data.diagnostic_reporter
         .into_diagnostics(&data.ast, &data.files)
         .collect()
+}
+
+/// Asserts that the provided slice parses okay, producing no errors.
+pub fn assert_parses(slice: impl Into<String>) {
+    let diagnostics = parse_for_diagnostics(slice);
+    let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
+    check_diagnostics(diagnostics, expected);
 }
 
 /// Compares diagnostics emitted by the compiler to an array of expected diagnostics.

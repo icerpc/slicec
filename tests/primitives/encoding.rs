@@ -70,7 +70,7 @@ mod slice1 {
         );
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 }
 
@@ -142,7 +142,7 @@ mod slice2 {
         );
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test_case("uint8?"; "optional uint8")]
@@ -175,6 +175,6 @@ mod slice2 {
         );
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 }

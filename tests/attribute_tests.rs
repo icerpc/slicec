@@ -419,7 +419,7 @@ mod attributes {
             "; "file level"
         )]
         fn allow_attribute(slice: &str) {
-            parse_for_ast(slice);
+            assert_parses(slice);
         }
 
         #[test]
@@ -476,7 +476,7 @@ mod attributes {
             "; "file level"
         )]
         fn allow_attribute_args(slice: &str) {
-            parse_for_ast(slice);
+            assert_parses(slice);
         }
 
         #[test_case(

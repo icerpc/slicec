@@ -57,7 +57,7 @@ fn preprocessor_consumes_comments() {
     let slice = "// This is a comment";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]
@@ -284,7 +284,7 @@ fn preprocessor_nested_expressions() {
     ; "conditional with elif and else"
 )]
 fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]

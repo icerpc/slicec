@@ -208,7 +208,7 @@ mod comments {
         ";
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test]

@@ -212,7 +212,7 @@ mod tags {
         );
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test_case(77757348128678234_i64 ; "Random large value")]

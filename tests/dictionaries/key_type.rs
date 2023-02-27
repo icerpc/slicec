@@ -44,7 +44,7 @@ fn allowed_primitive_types(key_type: &str) {
     );
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test_case("float32"; "float32")]
@@ -104,7 +104,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     );
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
@@ -170,7 +170,7 @@ fn compact_struct_with_allowed_members_is_allowed() {
     ";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]

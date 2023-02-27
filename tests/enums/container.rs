@@ -93,7 +93,7 @@ fn enumerator_values_can_be_out_of_order() {
         ";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]
@@ -138,7 +138,7 @@ fn validate_backing_type_bounds() {
     );
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test_case("string"; "string")]
@@ -429,7 +429,7 @@ mod slice2 {
         ";
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test]

@@ -71,7 +71,7 @@ fn cycles_are_allowed(cycle_string: &str) {
     );
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 /// Verifies that classes can be empty

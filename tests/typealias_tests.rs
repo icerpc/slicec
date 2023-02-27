@@ -49,7 +49,7 @@ mod typealias {
         ";
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test]
@@ -64,7 +64,7 @@ mod typealias {
         ";
 
         // Act/Assert
-        parse_for_ast(slice);
+        assert_parses(slice);
     }
 
     #[test]

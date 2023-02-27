@@ -38,7 +38,7 @@ fn can_have_self_referencing_operations() {
     ";
 
     // Act/Assert
-    parse_for_ast(slice);
+    assert_parses(slice);
 }
 
 #[test]
