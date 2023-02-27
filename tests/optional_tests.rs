@@ -16,11 +16,13 @@ mod optional {
         #[test_case("AnyClass")]
         fn optional_builtin_types_are_allowed(type_name: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 encoding = 1;
                 module Test;
                 typealias F = {type_name}?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
@@ -52,22 +54,31 @@ mod optional {
         #[ignore]
         fn optional_builtin_types_are_disallowed(type_name: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 encoding = 1;
                 module Test;
                 typealias Foo = bool;
                 typealias F = {type_name}?;
-            ");
+                "
+            );
 
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((5, 31).into(), (5, 31 + type_name.len() + 1).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new(
+                (5, 31).into(),
+                (5, 31 + type_name.len() + 1).into(),
+                "string-0",
+            ))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -76,12 +87,14 @@ mod optional {
         #[test_case("interface Foo {}"; "interface")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 encoding = 1;
                 module Test;
                 {definition}
                 typealias F = Foo?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
@@ -97,22 +110,27 @@ mod optional {
         #[ignore]
         fn optional_user_defined_types_are_disallowed(definition: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 encoding = 1;
                 module Test;
                 {definition}
                 typealias F = Foo?;
-            ");
+                "
+            );
 
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((5, 31).into(), (5, 35).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((5, 31).into(), (5, 35).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -131,11 +149,14 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((4, 40).into(), (4, 45).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((4, 40).into(), (4, 45).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -156,8 +177,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::KeyMustBeNonOptional)
-                .set_span(&Span::new((4, 42).into(), (4, 48).into(), "string-0"));
+            let span = Span::new((4, 42).into(), (4, 48).into(), "string-0");
+            let expected = Error::new(ErrorKind::KeyMustBeNonOptional).set_span(&span);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -176,11 +197,14 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((4, 50).into(), (4, 59).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((4, 50).into(), (4, 59).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -191,8 +215,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: bool?);
                 }
             ";
@@ -201,11 +224,14 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((6, 27).into(), (6, 32).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -219,8 +245,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: tag(1) float32?);
                 }
             ";
@@ -240,8 +265,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: stream string?);
                 }
             ";
@@ -251,12 +275,17 @@ mod optional {
 
             // Assert
             let expected = [
-                Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                    .set_span(&Span::new((6, 34).into(), (6, 41).into(), "string-0"))
-                    .add_note("file encoding was set to Slice1 here:", Some(
-                        &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                    )),
-                Error::new(ErrorKind::StreamedParametersNotSupported { encoding: Encoding::Slice1 }),
+                Error::new(ErrorKind::OptionalsNotSupported {
+                    encoding: Encoding::Slice1,
+                })
+                .set_span(&Span::new((5, 34).into(), (5, 41).into(), "string-0"))
+                .add_note(
+                    "file encoding was set to Slice1 here:",
+                    Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                ),
+                Error::new(ErrorKind::StreamedParametersNotSupported {
+                    encoding: Encoding::Slice1,
+                }),
             ];
 
             check_diagnostics(diagnostics, expected);
@@ -268,8 +297,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                interface I
-                {
+                interface I {
                     op() -> float64?;
                 }
             ";
@@ -278,11 +306,14 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((6, 29).into(), (6, 37).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((5, 29).into(), (5, 37).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -295,8 +326,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                compact struct S
-                {
+                compact struct S {
                     a: bool?,
                 }
             ";
@@ -305,11 +335,14 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::OptionalsNotSupported { encoding: Encoding::Slice1 })
-                .set_span(&Span::new((6, 24).into(), (6, 29).into(), "string-0"))
-                .add_note("file encoding was set to Slice1 here:", Some(
-                    &Span::new((2, 17).into(), (2, 29).into(), "string-0")
-                ));
+            let expected = Error::new(ErrorKind::OptionalsNotSupported {
+                encoding: Encoding::Slice1,
+            })
+            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"))
+            .add_note(
+                "file encoding was set to Slice1 here:",
+                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+            );
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -323,8 +356,7 @@ mod optional {
             let slice = "
                 encoding = 1;
                 module Test;
-                exception E
-                {
+                exception E {
                     a: tag(1) float32?,
                 }
             ";
@@ -347,10 +379,12 @@ mod optional {
         #[test]
         fn optional_primitives_are_parsed_correctly() {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 module Test;
                 typealias P = bool?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
@@ -365,11 +399,13 @@ mod optional {
         #[test_case("::Test::Foo"; "globally scoped")]
         fn optional_user_defined_types_are_parsed_correctly(type_name: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 module Test;
                 typealias Foo = bool;
                 typealias F = {type_name}?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
@@ -385,11 +421,13 @@ mod optional {
         #[test_case("custom Foo;"; "custom type")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 module Test;
                 {definition}
                 typealias F = Foo?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
@@ -469,8 +507,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::KeyMustBeNonOptional)
-                .set_span(&Span::new((3, 42).into(), (3, 48).into(), "string-0"));
+            let span = Span::new((3, 42).into(), (3, 48).into(), "string-0");
+            let expected = Error::new(ErrorKind::KeyMustBeNonOptional).set_span(&span);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -500,8 +538,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: bool?);
                 }
             ";
@@ -519,8 +556,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: tag(1) float32?);
                 }
             ";
@@ -539,8 +575,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: tag(1) float32);
                 }
             ";
@@ -549,8 +584,10 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional { member_identifier: "a".to_owned() })
-                .set_span(&Span::new((5, 24).into(), (5, 41).into(), "string-0"));
+            let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+                member_identifier: "a".to_owned(),
+            })
+            .set_span(&Span::new((4, 24).into(), (4, 41).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -560,8 +597,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: stream string?);
                 }
             ";
@@ -580,8 +616,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op(a: bool?, b: string, c: stream int32?) -> (x: float32, y: uint8?, z: stream int16);
                 }
             ";
@@ -622,8 +657,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                interface I
-                {
+                interface I {
                     op() -> float64?;
                 }
             ";
@@ -641,8 +675,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                struct S
-                {
+                struct S {
                     a: bool?,
                 }
             ";
@@ -660,8 +693,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                exception E
-                {
+                exception E {
                     a: tag(1) float32?,
                 }
             ";
@@ -680,8 +712,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                exception E
-                {
+                exception E {
                     a: tag(1) float32,
                 }
             ";
@@ -690,8 +721,10 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional { member_identifier: "a".to_owned() })
-                .set_span(&Span::new((5, 21).into(), (5, 38).into(), "string-0"));
+            let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+                member_identifier: "a".to_owned(),
+            })
+            .set_span(&Span::new((4, 21).into(), (4, 38).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -701,8 +734,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test;
-                struct S
-                {
+                struct S {
                     a: bool?,
                     b: string,
                     c: int32?,
@@ -727,11 +759,13 @@ mod optional {
         #[test_case("Foo"; "user defined")]
         fn optional_type_names_end_with_a_question_mark(type_name: &str) {
             // Arrange
-            let slice = format!("
+            let slice = format!(
+                "
                 module Test;
                 struct Foo {{}}
                 typealias T = {type_name}?;
-            ");
+                "
+            );
 
             // Act
             let ast = parse_for_ast(slice);
