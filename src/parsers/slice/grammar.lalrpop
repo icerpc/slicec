@@ -354,7 +354,7 @@ Prelude: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
 
 // Utility Rules
 
-// A list that contains at least one element, and is delimited by commas, with an optional trailing comma.
+// A comma separated list of 1 or more elements, with an optional trailing comma.
 NonEmptyCommaList<T>: Vec<T> = {
     <element: T> <mut vector: ("," <T>)*> ","? => {
         vector.insert(0, element);
@@ -362,14 +362,15 @@ NonEmptyCommaList<T>: Vec<T> = {
     }
 }
 
-// A list of 0 or more elements, that is delimited by commas, with an optional trailing comma.
+// A comma separated list of 0 or more elements, with an optional trailing comma.
 CommaList<T>: Vec<T> = {
     NonEmptyCommaList<T> => <>,
     => Vec::new(),
 }
 
-// A list of 0 or more elements, with optional comma delimiters; ie: commas can be placed after each element
-// (including trailing commas), but these are all optional and only for user-readability.
+// A list of 0 or more elements with no required separators.
+// A single comma can optionally be placed after each element (including a trailing comma),
+// but these are ignored by the compiler and only for user-readabilty.
 UndelimitedList<T>: Vec<T> = {
     (<T> ","?)* => <>
 }
