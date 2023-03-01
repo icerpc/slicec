@@ -91,7 +91,6 @@ pub enum TokenKind<'input> {
     Comma,        // ","
     Colon,        // ":"
     DoubleColon,  // "::"
-    Semicolon,    // ";"
     Equals,       // "="
     QuestionMark, // "?"
     Arrow,        // "->"
@@ -166,7 +165,6 @@ impl std::fmt::Display for TokenKind<'_> {
             TokenKind::Comma => ",",
             TokenKind::Colon => ":",
             TokenKind::DoubleColon => "::",
-            TokenKind::Semicolon => ";",
             TokenKind::Equals => "=",
             TokenKind::QuestionMark => "?",
             TokenKind::Arrow => "->",

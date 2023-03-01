@@ -86,7 +86,6 @@ extern {
         "," => TokenKind::Comma,
         ":" => TokenKind::Colon,
         "::" => TokenKind::DoubleColon,
-        ";" => TokenKind::Semicolon,
         "=" => TokenKind::Equals,
         "?" => TokenKind::QuestionMark,
         "->" => TokenKind::Arrow,
@@ -111,13 +110,13 @@ SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
 }
 
 FileEncoding: FileEncoding = {
-    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> ";"? => {
+    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> => {
         construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
 FileScopedModule: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> ";"? <ds: Definition*> => {
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> <ds: Definition*> => {
         construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
     }
 }
@@ -170,7 +169,7 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ";"? ContainerEnd => {
+    <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ContainerEnd => {
         construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
     }
 }
@@ -225,13 +224,13 @@ Enumerator: OwnedPtr<Enumerator> = {
 }
 
 CustomType: OwnedPtr<CustomType> = {
-    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> ";"? => {
+    <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> => {
         construct_custom_type(parser, p, i, Span::new(l, r, parser.file_name))
     }
 }
 
 TypeAlias: OwnedPtr<TypeAlias> = {
-    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> ";"? => {
+    <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> => {
         construct_type_alias(parser, p, i, tr, Span::new(l, r, parser.file_name))
     }
 }

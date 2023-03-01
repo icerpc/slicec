@@ -50,7 +50,7 @@ mod encodings {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '(', ')', ',', '::', ';', '>', '?', '[', ']', ']]', '{', '}', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'idempotent', 'identifier', 'interface', 'module', 'struct', 'throws', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '(', ')', ',', '::', '>', '?', '[', ']', ']]', '{', '}', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'idempotent', 'identifier', 'interface', 'module', 'struct', 'throws', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }

@@ -295,7 +295,6 @@ where
                     Some(Ok((start_location, TokenKind::Colon, self.cursor)))
                 }
             }
-            ';' => self.return_simple_token(TokenKind::Semicolon, start_location),
             '=' => self.return_simple_token(TokenKind::Equals, start_location),
             '?' => self.return_simple_token(TokenKind::QuestionMark, start_location),
             '-' => {
