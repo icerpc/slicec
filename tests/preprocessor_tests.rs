@@ -354,13 +354,9 @@ fn preprocessor_recovers_at_end_of_line() {
 
         #if Foo
             module Foo {}
-        #elif (Bar;)        // Error: ';' isn't allowed in preprocessor directives.
+        #elif (Bar          // Error: Missing a closing parenthesis.
             module Bar {}
         #endif
-
-        // This shouldn't trigger an error. The parser should die after preprocessing,
-        // and shouldn't continue on to Slice parsing.
-        module module
     ";
 
     // Act
@@ -372,7 +368,7 @@ fn preprocessor_recovers_at_end_of_line() {
             message: "expected one of directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
         }),
         Error::new(ErrorKind::Syntax {
-            message: "unknown symbol ';'".to_owned(),
+            message: r#"expected one of "&&", ")", or "||", but found 'DirectiveEnd'"#.to_owned(),
         }),
     ];
     check_diagnostics(diagnostics, expected);
