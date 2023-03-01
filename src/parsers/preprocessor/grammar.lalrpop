@@ -57,6 +57,10 @@ Main: Vec<SourceBlock<'input>> = {
     DefineDirective => Vec::new(),
     UndefineDirective => Vec::new(),
     ConditionalStatement => <>,
+
+    // If there was a syntax error in a preprocessor directive, we recover from it here
+    // by matching any syntax error, followed by a `DirectiveEnd` (newline or EOF).
+    <!> directive_end => recover_from_error(preprocessor, <>),
 }
 
 DefineDirective: () = {
