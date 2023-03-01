@@ -1,11 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-module Test;
+module Test
 
 interface I {
-    myOp();
+    myOp()
 }
 
-struct A {
-
-}
+struct A {}

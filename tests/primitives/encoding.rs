@@ -22,11 +22,11 @@ mod slice1 {
         // Test setup
         let slice = &format!(
             "
-                encoding = 1;
-                module Test;
+                encoding = 1
+                module Test
 
                 compact struct S {{
-                    v: {value},
+                    v: {value}
                 }}
             "
         );
@@ -60,11 +60,11 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             compact struct S {{
-                v: {value},
+                v: {value}
             }}
         "
         );
@@ -87,10 +87,10 @@ mod slice2 {
     fn unsupported_types_fail() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             compact struct S {
-                v: AnyClass,
+                v: AnyClass
             }
         ";
 
@@ -104,7 +104,7 @@ mod slice2 {
         })
         .add_note("file is using the Slice2 encoding by default", None)
         .add_note(
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'",
             None,
         );
 
@@ -134,10 +134,10 @@ mod slice2 {
         // Arrange
         let slice = format!(
             "
-            module Test;
+            module Test
 
             compact struct S {{
-                v: {value},
+                v: {value}
             }}"
         );
 
@@ -166,10 +166,10 @@ mod slice2 {
         // Arrange
         let slice = format!(
             "
-                module Test;
+                module Test
 
                 struct MyStruct {{
-                    myVar: {value},
+                    myVar: {value}
                 }}
             "
         );

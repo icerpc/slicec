@@ -12,8 +12,8 @@ mod slice1 {
     fn unsupported_fail() {
         // Arrange
         let slice = "
-            encoding = 1;
-            module Test;
+            encoding = 1
+            module Test
 
             struct A {}
         ";
@@ -46,10 +46,10 @@ mod slice2 {
     fn slice1_types_fail() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct A {
-                c: AnyClass,
+                c: AnyClass
             }
         ";
 
@@ -63,7 +63,7 @@ mod slice2 {
         })
         .add_note("file is using the Slice2 encoding by default", None)
         .add_note(
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1;'",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'",
             None,
         );
 
@@ -76,11 +76,11 @@ mod slice2 {
     fn slice2_types_succeed() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct A {
-                i: int32,
-                s: string?,
+                i: int32
+                s: string?
             }
         ";
 

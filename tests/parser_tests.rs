@@ -40,7 +40,7 @@ fn string_literals_cannot_contain_newlines() {
     let slice = r#"
         [foo("attribute
         test")]
-        module Test;
+        module Test
     "#;
 
     // Act

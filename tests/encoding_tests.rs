@@ -15,7 +15,7 @@ mod encodings {
         // Arrange
         let slice = format!(
             "
-                encoding = {value};
+                encoding = {value}
             "
         );
 
@@ -27,7 +27,7 @@ mod encodings {
     fn invalid_encodings_fail() {
         // Arrange
         let slice = "
-            encoding = 3;
+            encoding = 3
         ";
 
         // Act
@@ -42,15 +42,15 @@ mod encodings {
     fn encoding_must_be_first() {
         // Arrange
         let slice = "
-            module Test;
-            encoding = 2;
+            module Test
+            encoding = 2
         ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Error::new(ErrorKind::Syntax{message: "expected one of '(', ')', ',', '::', '>', '?', '[', ']', ']]', '{', '}', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'idempotent', 'identifier', 'interface', 'module', 'struct', 'throws', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }

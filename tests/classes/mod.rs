@@ -12,8 +12,8 @@ use slice::grammar::*;
 fn support_compact_type_id() {
     // Arrange
     let slice = "
-        encoding = 1;
-        module Test;
+        encoding = 1
+        module Test
 
         class C(42) {}
     ";

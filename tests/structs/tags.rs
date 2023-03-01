@@ -9,12 +9,12 @@ mod structs {
     fn can_contain_tags() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             struct S {
-                i: int32,
-                s: string,
-                b: tag(10) bool?,
+                i: int32
+                s: string
+                b: tag(10) bool?
             }
         ";
 
@@ -36,12 +36,12 @@ mod compact_structs {
     fn cannot_contain_tags() {
         // Arrange
         let slice = "
-            module Test;
+            module Test
 
             compact struct S {
-                i: int32,
-                s: string,
-                b: tag(10) bool?,
+                i: int32
+                s: string
+                b: tag(10) bool?
             }
         ";
 

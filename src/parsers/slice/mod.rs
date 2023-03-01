@@ -116,7 +116,6 @@ fn clean_message(expected: &[String]) -> String {
             "\",\"" => tokens::TokenKind::Comma.to_string(),
             "\":\"" => tokens::TokenKind::Colon.to_string(),
             "\"::\"" => tokens::TokenKind::DoubleColon.to_string(),
-            "\";\"" => tokens::TokenKind::Semicolon.to_string(),
             "\"=\"" => tokens::TokenKind::Equals.to_string(),
             "\"?\"" => tokens::TokenKind::QuestionMark.to_string(),
             "\"->\"" => tokens::TokenKind::Arrow.to_string(),

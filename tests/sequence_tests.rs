@@ -12,8 +12,8 @@ mod sequences {
     fn can_contain_primitive_types() {
         // Arrange
         let slice = "
-            module Test;
-            typealias Seq = sequence<int8>;
+            module Test
+            typealias Seq = sequence<int8>
         ";
 
         // Act
@@ -36,8 +36,8 @@ mod sequences {
     fn sequences_containing_dictionaries_get_validated() {
         // Arrange
         let slice = "
-            module Test;
-            typealias Seq = sequence<dictionary<int32, dictionary<float32, float32>>>;
+            module Test
+            typealias Seq = sequence<dictionary<int32, dictionary<float32, float32>>>
         ";
 
         // Act

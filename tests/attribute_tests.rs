@@ -17,11 +17,11 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                    module Test;
+                    module Test
 
                     interface I {{
                         [format({format})]
-                        op(s: string) -> string;
+                        op(s: string) -> string
                     }}
                 "
             );
@@ -38,10 +38,10 @@ mod attributes {
         fn not_specifying_format_uses_compact_as_default() {
             // Arrange
             let slice = "
-                    module Test;
+                    module Test
 
                     interface I {
-                        op(s: string) -> string;
+                        op(s: string) -> string
                     }
             ";
 
@@ -60,11 +60,11 @@ mod attributes {
             let args = arg.unwrap_or("");
             let slice = format!(
                 "
-                    module Test;
+                    module Test
 
                     interface I {{
                         [format{args}]
-                        op(s: string) -> string;
+                        op(s: string) -> string
                     }}
                 "
             );
@@ -83,11 +83,11 @@ mod attributes {
         fn format_with_invalid_argument_fails() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [format(Foo)]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -111,11 +111,11 @@ mod attributes {
         fn deprecated() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [deprecated]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -131,10 +131,10 @@ mod attributes {
         fn cannot_deprecate_parameters() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
-                    op([deprecated] s: string) -> string;
+                    op([deprecated] s: string) -> string
                 }
             ";
 
@@ -152,11 +152,11 @@ mod attributes {
         fn deprecated_can_contain_message() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [deprecated(\"Deprecation message here\")]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -175,15 +175,15 @@ mod attributes {
         fn deprecated_type_alias() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 struct Foo {}
 
                 [deprecated]
-                typealias Bar = Foo;
+                typealias Bar = Foo
 
                 interface I {
-                    op(s: Bar) -> string;
+                    op(s: Bar) -> string
                 }
             ";
 
@@ -209,7 +209,7 @@ mod attributes {
 
             module Test {
                 struct Baz {
-                    b: Foo::Bar,
+                    b: Foo::Bar
                 }
             }
             ";
@@ -229,13 +229,13 @@ mod attributes {
         fn cannot_use_deprecated_type() {
             // Arrange
             let slice = "
-                    module Test;
+                    module Test
 
                     [deprecated(\"Message here\")]
                     struct A {}
 
                     struct B {
-                        a: A,
+                        a: A
                     }
                 ";
 
@@ -254,7 +254,7 @@ mod attributes {
         fn cannot_inherit_from_deprecated_entity() {
             // Arrange
             let slice = "
-                    module Test;
+                    module Test
 
                     [deprecated]
                     interface A {}
@@ -277,11 +277,11 @@ mod attributes {
         fn compress() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [compress(Args, Return)]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -299,11 +299,11 @@ mod attributes {
         fn compress_with_invalid_arguments_fails() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [compress(Foo)]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -327,11 +327,11 @@ mod attributes {
         fn cannot_compress_structs() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 [compress()]
                 struct S {
-                    s: string,
+                    s: string
                 }
             ";
 
@@ -347,11 +347,11 @@ mod attributes {
         fn compress_with_no_arguments() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [compress()]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -367,13 +367,13 @@ mod attributes {
 
         #[test_case(
             "
-            module Test;
+            module Test
 
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 [allow]
-                op(s: string) -> string;
+                op(s: string) -> string
             }
             "; "simple"
         )]
@@ -382,7 +382,7 @@ mod attributes {
             [allow]
             module A {
                 struct A1 {
-                    b: B::B1,
+                    b: B::B1
                 }
             }
             module B {
@@ -396,7 +396,7 @@ mod attributes {
             [allow]
             module A {
                 struct A1 {
-                    b: sequence<B::B1>,
+                    b: sequence<B::B1>
                 }
             }
             module B {
@@ -410,7 +410,7 @@ mod attributes {
             [[allow]]
             module A {
                 struct A1 {
-                    b: B::B1,
+                    b: B::B1
                 }
             }
             module B {
@@ -426,11 +426,11 @@ mod attributes {
         fn allow_with_invalid_code() {
             // Arrange
             let slice = "
-            module Test;
+            module Test
 
             interface I {
                 [allow(W315, w001)]
-                op(s: string) -> string;
+                op(s: string) -> string
             }
             ";
 
@@ -451,27 +451,27 @@ mod attributes {
 
         #[test_case(
             "
-            module Test;
+            module Test
 
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
                 [allow(W002, W003)]
-                op(s: string) -> string;
+                op(s: string) -> string
             }
             "; "entity"
         )]
         #[test_case(
             "
             [[allow(W002, W003)]]
-            module Test;
+            module Test
 
             interface I {
                 // The below doc comment will generate a warning
                 /// A test operation. Similar to {@linked OtherOp}{}.
                 /// @param b: A test parameter.
-                op(s: string) -> string;
+                op(s: string) -> string
             }
             "; "file level"
         )]
@@ -481,26 +481,26 @@ mod attributes {
 
         #[test_case(
             "
-            module Test;
+            module Test
 
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
                 [allow(W004, W005)]
-                op(s: string);
+                op(s: string)
             }
             "; "entity"
         )]
         #[test_case(
             "
             [[allow(W004, W005)]]
-            module Test;
+            module Test
 
             interface I {
                 /// @param x: a parameter that should be used in ops
                 /// @returns: a result
                 [allow(W004, W005)]
-                op(s: string);
+                op(s: string)
             }
             "; "file level"
         )]
@@ -520,11 +520,12 @@ mod attributes {
         fn non_repeatable_attributes_error() {
             // Act
             let slice = "
-                module Test;
+                module Test
+
                 interface Foo {
                     [compress(Args)]
                     [compress(Return)]
-                    op();
+                    op()
                 }
             ";
 
@@ -549,11 +550,11 @@ mod attributes {
         fn foo_attribute() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [foo::bar]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -582,11 +583,11 @@ mod attributes {
         fn foo_attribute_with_arguments() {
             // Arrange
             let slice = "
-                module Test;
+                module Test
 
                 interface I {
                     [foo::bar(a, b, c)]
-                    op(s: string) -> string;
+                    op(s: string) -> string
                 }
             ";
 
@@ -619,10 +620,11 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                    module Test;
+                    module Test
+
                     interface I {{
                         [foo::bar({input})]
-                        op(s: string) -> string;
+                        op(s: string) -> string
                     }}
                 "
             );
@@ -650,10 +652,11 @@ mod attributes {
             // Arrange
             let slice = format!(
                 "
-                    module Test;
+                    module Test
+
                     interface I {{
                         [foo::bar({input})]
-                        op(s: string) -> string;
+                        op(s: string) -> string
                     }}
                 "
             );
@@ -670,7 +673,7 @@ mod attributes {
             // Arrange
             let slice = "
                 [custom]
-                module Test;
+                module Test
             ";
 
             // Act
@@ -696,7 +699,7 @@ mod attributes {
                         module C {
                             [attribute("I")]
                             interface I {
-                                op(s: string) -> string;
+                                op(s: string) -> string
                             }
                         }
                     }

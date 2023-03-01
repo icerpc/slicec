@@ -13,7 +13,7 @@ mod comments {
     fn single_line_doc_comment() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// This is a single line doc comment.
             interface MyInterface {}
@@ -45,7 +45,7 @@ mod comments {
     fn multi_line_doc_comment() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// This is a
             /// multiline doc comment.
@@ -82,11 +82,11 @@ mod comments {
     fn doc_comments_params() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @param testParam: My test param
-                testOp(testParam: string);
+                testOp(testParam: string)
             }
         ";
 
@@ -118,11 +118,11 @@ mod comments {
     fn doc_comments_returns() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @returns bool
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
             }
         ";
 
@@ -152,11 +152,11 @@ mod comments {
     fn operation_with_no_return_but_doc_comment_contains_return_fails() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @returns: This operation will return a bool.
-                testOp(testParam: string);
+                testOp(testParam: string)
             }
         ";
 
@@ -172,12 +172,12 @@ mod comments {
     fn operation_with_doc_comment_for_param_but_no_param_fails() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @param testParam1: A string param
                 /// @param testParam2: A bool param
-                testOp(testParam1: string);
+                testOp(testParam1: string)
             }
         ";
 
@@ -195,7 +195,7 @@ mod comments {
     fn operation_with_correct_doc_comments() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             exception MyException {}
 
@@ -203,7 +203,7 @@ mod comments {
                 /// @param testParam1: A string param
                 /// @returns bool
                 /// @throws MyException: Some message about why testOp throws
-                testOp(testParam1: string) -> bool throws MyException;
+                testOp(testParam1: string) -> bool throws MyException
             }
         ";
 
@@ -215,11 +215,11 @@ mod comments {
     fn doc_comment_throws() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @throws: Message about my thrown thing.
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
             }
         ";
 
@@ -248,13 +248,13 @@ mod comments {
     fn doc_comments_throws_specific_type() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             exception MyThrownThing {}
 
             interface TestInterface {
                 /// @throws MyThrownThing: Message about my thrown thing.
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
             }
         ";
 
@@ -286,11 +286,11 @@ mod comments {
     fn doc_comments_throws_invalid_type() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @throws FakeException: causes a warning.
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
             }
         ";
 
@@ -313,7 +313,7 @@ mod comments {
     fn doc_comments_non_operations_cannot_throw() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// @throws: Message about my thrown thing.
             struct S {}
@@ -334,11 +334,11 @@ mod comments {
     fn doc_comments_see() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             interface TestInterface {
                 /// @see MySee
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
             }
         ";
 
@@ -366,7 +366,7 @@ mod comments {
         // Arrange
         let slice = format!(
             "
-                module tests;
+                module tests
 
                 {comment}
                 interface MyInterface {{}}
@@ -387,7 +387,7 @@ mod comments {
     fn doc_comment_linked_identifiers() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// This comment is for {@link TestStruct}
             struct TestStruct {}
@@ -414,7 +414,7 @@ mod comments {
     fn missing_doc_comment_linked_identifiers() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// A test struct. Similar to {@link OtherStruct}.
             struct TestStruct {}
@@ -434,7 +434,7 @@ mod comments {
     fn doc_comment_links_to_invalid_element() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// A test struct, should probably use {@link bool}.
             struct TestStruct {}
@@ -454,7 +454,7 @@ mod comments {
     fn unknown_doc_comment_tag() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             /// A test struct. Similar to {@linked OtherStruct}{}.
             struct TestStruct {}
@@ -474,14 +474,14 @@ mod comments {
     fn doc_comment_throws_tag_invalid_type() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             exception E {}
             struct S {}
 
             interface I {
                 /// @throws S: Message about my thrown thing.
-                testOp(testParam: string) -> bool throws E ;
+                testOp(testParam: string) -> bool throws E
             }
         ";
 
@@ -499,16 +499,16 @@ mod comments {
     fn doc_comment_throw_tag_operation_throws_nothing() {
         // Arrange
         let slice = "
-            module tests;
+            module tests
 
             exception E {}
 
             interface I {
                 /// @throws E: Message about my thrown thing.
-                testOp(testParam: string) -> bool;
+                testOp(testParam: string) -> bool
 
                 /// @throws : Second message about my thrown thing.
-                testOpTwo(testParam: string) -> bool;
+                testOpTwo(testParam: string) -> bool
             }
         ";
 

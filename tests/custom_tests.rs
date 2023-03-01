@@ -14,9 +14,9 @@ mod custom {
         // Arrange
         let slice = format!(
             "
-                encoding = {encoding};
-                module Test;
-                custom ACustomType;
+                encoding = {encoding}
+                module Test
+                custom ACustomType
             "
         );
 

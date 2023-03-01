@@ -13,11 +13,11 @@ use test_case::test_case;
 fn command_line_defined_symbols() {
     // Arrange
     let slice = "
-        module Test;
+        module Test
 
         # if Foo
         interface I {
-            op();
+            op()
         }
         # endif
         ";
@@ -39,7 +39,7 @@ fn undefined_preprocessor_directive_blocks_are_consumed() {
     // Arrange
     let slice = "
             #if Foo
-            module Test;
+            module Test
             interface I {}
             #endif
         ";
@@ -67,7 +67,7 @@ fn preprocessor_define_symbol() {
         #define Foo
         #if Foo
         // Foo is defined
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -87,7 +87,7 @@ fn preprocessor_undefine_symbol() {
         #undef Foo
         #if Foo
         // Foo is defined
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -108,7 +108,7 @@ fn preprocessor_define_symbol_multiples_times() {
         #define Foo
         #if Foo
         // Foo is defined
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -131,25 +131,25 @@ fn preprocessor_conditional_compilation(define: &str, interface: &str) {
         #if Foo
 
         // Foo is defined
-        module Test;
+        module Test
         interface I {{}}
 
         # elif Bar
 
         // Bar is defined
-        module Test;
+        module Test
         interface J {{}}
 
         # elif Baz
 
         // Baz is defined
-        module Test;
+        module Test
         interface K {{}}
 
         # else
 
         // Fizz is defined
-        module Test;
+        module Test
         interface X {{}}
 
         #endif
@@ -171,7 +171,7 @@ fn preprocessor_not_expressions() {
     let slice = "
         #define Foo
         #if !Foo
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -190,7 +190,7 @@ fn preprocessor_and_expressions() {
         #define Foo
         #define Bar
         #if Foo && Bar
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -208,7 +208,7 @@ fn preprocessor_or_expressions() {
     let slice = "
         #define Foo
         #if Foo || Bar
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -226,7 +226,7 @@ fn preprocessor_grouped_expressions() {
     let slice = "
         #define Foo
         #if (Foo || Bar) && (Fizz || Buzz)
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -245,7 +245,7 @@ fn preprocessor_nested_expressions() {
         #define Bar
         #define Baz
         #if (Foo && (Bar || Baz))
-        module Test;
+        module Test
         interface I {}
         #endif
     ";
@@ -316,7 +316,7 @@ fn preprocessor_ignores_comments() {
     let slice = "
         #define Foo // define Bar
         #if Bar // This is a comment
-        module Test;
+        module Test
         interface I {}
         #endif // This is another comment
         // Hello
