@@ -68,7 +68,7 @@ fn type_aliases_cannot_be_optional(type_alias: &TypeAlias, diagnostic_reporter: 
                 Some(type_alias.underlying.span()),
             )
             .add_note(
-                "instead of defining an optional alias, try making it optional wherever you use it",
+                "instead of aliasing an optional type directly, try making it optional where you use it",
                 None,
             )
             .report(diagnostic_reporter)
