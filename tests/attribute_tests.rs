@@ -73,8 +73,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::CannotBeEmpty {
-                member_identifier: "format attribute".to_owned(),
+            let expected = Error::new(ErrorKind::MissingRequiredArgument {
+                argument: r#"format(<arguments>)"#.to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -96,8 +96,8 @@ mod attributes {
 
             // Assert
             let expected = Error::new(ErrorKind::ArgumentNotSupported {
-                argument_name: "Foo".to_owned(),
-                method_name: "format attribute".to_owned(),
+                argument: "Foo".to_owned(),
+                directive: "format".to_owned(),
             })
             .add_note(
                 "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
@@ -312,8 +312,8 @@ mod attributes {
 
             // Assert
             let expected = Error::new(ErrorKind::ArgumentNotSupported {
-                argument_name: "Foo".to_owned(),
-                method_name: "compress attribute".to_owned(),
+                argument: "Foo".to_owned(),
+                directive: "compress".to_owned(),
             })
             .add_note(
                 "The valid arguments for the compress attribute are 'Args' and 'Return'",

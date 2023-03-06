@@ -88,15 +88,6 @@ pub enum ErrorKind {
         kind: String,
     },
 
-    // ----------------  Argument Errors ---------------- //
-    /// The provided argument is not supported for the given method.
-    ArgumentNotSupported {
-        /// The name of the argument.
-        argument_name: String,
-        /// The name of the method.
-        method_name: String,
-    },
-
     // ---------------- Dictionary Errors ---------------- //
     /// Dictionaries cannot use optional types as keys.
     KeyMustBeNonOptional,
@@ -257,12 +248,6 @@ pub enum ErrorKind {
     /// A compact ID was not in the expected range, 0 .. i32::MAX.
     CompactIdOutOfBounds,
 
-    /// Used to indicate when a method must contain arguments.
-    CannotBeEmpty {
-        /// The name of the method.
-        member_identifier: String,
-    },
-
     /// Used to indicate when two concrete types should match, but do not.
     ConcreteTypeMismatch {
         /// The name of the expected kind.
@@ -341,6 +326,14 @@ pub enum ErrorKind {
     },
 
     // ----------------  Attribute Errors ---------------- //
+    /// An invalid argument was provided to an attribute directive.
+    ArgumentNotSupported {
+        /// The argument that was provided.
+        argument: String,
+        /// The directive it was provided to.
+        directive: String,
+    },
+
     // The following are errors that are needed to report cs attribute errors.
     MissingRequiredArgument {
         argument: String,
@@ -393,17 +386,11 @@ implement_diagnostic_functions!(
         kind
     ),
     (
-        "E003",
-        ErrorKind::CannotBeEmpty,
-        format!("{member_identifier} arguments cannot be empty"),
-        member_identifier
-    ),
-    (
         "E004",
         ErrorKind::ArgumentNotSupported,
-        format!("argument '{argument_name}' is not supported for '{method_name}'"),
-        argument_name,
-        method_name
+        format!("'{argument}' is not a legal argument for the '{directive}' attribute"),
+        argument,
+        directive
     ),
     (
         "E005",
