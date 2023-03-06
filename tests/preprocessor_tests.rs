@@ -353,9 +353,9 @@ fn preprocessor_recovers_at_end_of_line() {
         #define Foo Bar     // Error: can't define two things in one directive.
 
         #if Foo
-            module Foo {}
+            module bool {}  // Doesn't emit an error because parsing stops after preprocessing.
         #elif (Bar          // Error: Missing a closing parenthesis.
-            module Bar {}
+            module bool {}  // Doesn't emit an error because parsing stops after preprocessing.
         #endif
     ";
 
