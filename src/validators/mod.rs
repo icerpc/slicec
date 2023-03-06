@@ -46,6 +46,7 @@ pub enum Validator {
     Parameters(fn(&[&Parameter], &mut DiagnosticReporter)),
     Struct(fn(&Struct, &mut DiagnosticReporter)),
     Sequences(fn(&[&Sequence], &mut DiagnosticReporter)),
+    TypeAlias(fn(&TypeAlias, &mut DiagnosticReporter)),
 }
 
 pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
@@ -392,6 +393,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
                     function(&[sequence], diagnostic_reporter)
                 }
             }
+            Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
             _ => {}
         });
     }

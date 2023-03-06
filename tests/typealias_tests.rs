@@ -5,7 +5,9 @@ pub mod test_helpers;
 mod typealias {
 
     use crate::test_helpers::*;
+    use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
+    use slice::slice_file::Span;
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", 2 ; "structs")]
@@ -110,5 +112,31 @@ mod typealias {
             field.data_type.concrete_type(),
             Types::Primitive(Primitive::VarUInt32),
         ));
+    }
+
+    #[test]
+    fn cannot_be_optional() {
+        // Arrange
+        let slice = "
+            module Test
+            typealias Test = bool?
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::TypeAliasOfOptional)
+            .set_span(&Span::new((3, 13).into(), (3, 27).into(), "string-0"))
+            .add_note(
+                "try removing the trailing `?` modifier from its definition",
+                Some(&Span::new((3, 30).into(), (3, 35).into(), "string-0")),
+            )
+            .add_note(
+                "instead of aliasing an optional type directly, try making it optional where you use it",
+                None,
+            );
+
+        check_diagnostics(diagnostics, [expected]);
     }
 }
