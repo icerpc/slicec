@@ -5,9 +5,9 @@ use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
 
-/// Verifies that classes can contain data members.
+/// Verifies that classes can contain fields.
 #[test]
-fn can_contain_data_members() {
+fn can_contain_fields() {
     // Arrange
     let slice = "
         encoding = 1
@@ -23,22 +23,22 @@ fn can_contain_data_members() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let data_members = ast.find_element::<Class>("Test::C").unwrap().members();
+    let fields = ast.find_element::<Class>("Test::C").unwrap().fields();
 
-    assert_eq!(data_members.len(), 3);
-    assert!(matches!(data_members[0].identifier(), "i"));
-    assert!(matches!(data_members[1].identifier(), "s"));
-    assert!(matches!(data_members[2].identifier(), "b"));
+    assert_eq!(fields.len(), 3);
+    assert!(matches!(fields[0].identifier(), "i"));
+    assert!(matches!(fields[1].identifier(), "s"));
+    assert!(matches!(fields[2].identifier(), "b"));
     assert!(matches!(
-        data_members[0].data_type.concrete_type(),
+        fields[0].data_type.concrete_type(),
         Types::Primitive(Primitive::Int32),
     ));
     assert!(matches!(
-        data_members[1].data_type.concrete_type(),
+        fields[1].data_type.concrete_type(),
         Types::Primitive(Primitive::String),
     ));
     assert!(matches!(
-        data_members[2].data_type.concrete_type(),
+        fields[2].data_type.concrete_type(),
         Types::Primitive(Primitive::Bool),
     ));
 }
@@ -88,12 +88,12 @@ fn can_be_empty() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let data_members = ast.find_element::<Class>("Test::C").unwrap().members();
-    assert_eq!(data_members.len(), 0);
+    let fields = ast.find_element::<Class>("Test::C").unwrap().fields();
+    assert_eq!(fields.len(), 0);
 }
 
 #[test]
-fn cannot_redefine_data_members() {
+fn cannot_redefine_fields() {
     // Arrange
     let slice = "
         encoding = 1

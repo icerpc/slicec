@@ -8,7 +8,7 @@ use crate::utils::ptr_util::WeakPtr;
 #[derive(Debug)]
 pub struct Exception {
     pub identifier: Identifier,
-    pub members: Vec<WeakPtr<DataMember>>,
+    pub fields: Vec<WeakPtr<Field>>,
     pub base: Option<TypeRef<Exception>>,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,
@@ -19,25 +19,25 @@ pub struct Exception {
 }
 
 impl Exception {
-    pub fn members(&self) -> Vec<&DataMember> {
-        self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
+    pub fn fields(&self) -> Vec<&Field> {
+        self.fields.iter().map(|field_ptr| field_ptr.borrow()).collect()
     }
 
-    pub fn all_inherited_members(&self) -> Vec<&DataMember> {
+    pub fn all_inherited_fields(&self) -> Vec<&Field> {
         self.base_exception()
             .iter()
-            .flat_map(|base_exception| base_exception.members())
+            .flat_map(|base_exception| base_exception.fields())
             .collect::<Vec<_>>()
     }
 
-    pub fn all_members(&self) -> Vec<&DataMember> {
-        let mut members = vec![];
-        // Recursively add inherited data members from super-exceptions.
+    pub fn all_fields(&self) -> Vec<&Field> {
+        let mut fields = vec![];
+        // Recursively add inherited fields from super-exceptions.
         if let Some(base_exception) = self.base_exception() {
-            members.extend(base_exception.all_members());
+            fields.extend(base_exception.all_fields());
         }
-        members.extend(self.members());
-        members
+        fields.extend(self.fields());
+        fields
     }
 
     pub fn base_exception(&self) -> Option<&Exception> {
@@ -51,12 +51,12 @@ impl Type for Exception {
     }
 
     fn fixed_wire_size(&self) -> Option<u32> {
-        // Return `None` if any of the exception's members aren't of fixed size.
-        // Otherwise the fixed size of the exception is equal to the fixed size of it's members added together.
-        self.all_members()
+        // Return `None` if any of the exception's fields aren't of fixed size.
+        // Otherwise the fixed size of the exception is equal to the fixed size of its fields added together.
+        self.all_fields()
             .into_iter()
-            .map(|member| member.data_type.fixed_wire_size())
-            .collect::<Option<Vec<u32>>>() // ensure all members are of fixed size; will return none if any are not
+            .map(|field| field.data_type.fixed_wire_size())
+            .collect::<Option<Vec<u32>>>() // ensure all fields are of fixed size; will return none if any are not
             .map(|sizes| sizes.iter().sum())
     }
 
@@ -76,5 +76,5 @@ impl Type for Exception {
 
 implement_Element_for!(Exception, "exception");
 implement_Entity_for!(Exception);
-implement_Container_for!(Exception, WeakPtr<DataMember>, members);
+implement_Container_for!(Exception, WeakPtr<Field>, fields);
 implement_Contained_for!(Exception, Module);

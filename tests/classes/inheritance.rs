@@ -58,7 +58,7 @@ fn does_not_support_multiple_inheritance() {
 }
 
 #[test]
-fn data_member_shadowing_is_disallowed() {
+fn field_shadowing_is_disallowed() {
     // Arrange
     let slice = "
         encoding = 1
@@ -85,7 +85,7 @@ fn data_member_shadowing_is_disallowed() {
 }
 
 #[test]
-fn inherits_correct_data_members() {
+fn inherits_correct_fields() {
     // Arrange
     let slice = "
         encoding = 1
@@ -110,18 +110,18 @@ fn inherits_correct_data_members() {
     let class_b_def = ast.find_element::<Class>("Test::B").unwrap();
     let class_c_def = ast.find_element::<Class>("Test::C").unwrap();
 
-    assert_eq!(class_a_def.members().len(), 1);
-    assert_eq!(class_a_def.all_members().len(), 1);
-    assert_eq!(class_a_def.all_members()[0].identifier(), "a");
+    assert_eq!(class_a_def.fields().len(), 1);
+    assert_eq!(class_a_def.all_fields().len(), 1);
+    assert_eq!(class_a_def.all_fields()[0].identifier(), "a");
 
-    assert_eq!(class_b_def.members().len(), 1);
-    assert_eq!(class_b_def.all_members().len(), 2);
-    assert_eq!(class_b_def.all_members()[0].identifier(), "a");
-    assert_eq!(class_b_def.all_members()[1].identifier(), "b");
+    assert_eq!(class_b_def.fields().len(), 1);
+    assert_eq!(class_b_def.all_fields().len(), 2);
+    assert_eq!(class_b_def.all_fields()[0].identifier(), "a");
+    assert_eq!(class_b_def.all_fields()[1].identifier(), "b");
 
-    assert_eq!(class_c_def.members().len(), 1);
-    assert_eq!(class_c_def.all_members().len(), 3);
-    assert_eq!(class_c_def.all_members()[0].identifier(), "a");
-    assert_eq!(class_c_def.all_members()[1].identifier(), "b");
-    assert_eq!(class_c_def.all_members()[2].identifier(), "c");
+    assert_eq!(class_c_def.fields().len(), 1);
+    assert_eq!(class_c_def.all_fields().len(), 3);
+    assert_eq!(class_c_def.all_fields()[0].identifier(), "a");
+    assert_eq!(class_c_def.all_fields()[1].identifier(), "b");
+    assert_eq!(class_c_def.all_fields()[2].identifier(), "c");
 }

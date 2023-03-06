@@ -10,7 +10,7 @@ mod tags {
     use test_case::test_case;
 
     #[test]
-    fn tagged_data_members_must_be_optional() {
+    fn tagged_fields_must_be_optional() {
         // Arrange
         let slice = "
             encoding = 1
@@ -27,7 +27,7 @@ mod tags {
 
         // Assert
         let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
-            member_identifier: "b".to_owned(),
+            identifier: "b".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -48,7 +48,7 @@ mod tags {
 
         // Assert
         let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
-            member_identifier: "myParam".to_string(),
+            identifier: "myParam".to_string(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -121,7 +121,7 @@ mod tags {
 
         // Assert
         let expected = Error::new(ErrorKind::CannotTagClass {
-            member_identifier: "c".to_owned(),
+            identifier: "c".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -149,7 +149,7 @@ mod tags {
 
         // Assert
         let expected = Error::new(ErrorKind::CannotTagContainingClass {
-            member_identifier: "s".to_owned(),
+            identifier: "s".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -168,10 +168,10 @@ mod tags {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
+        let field = ast.find_element::<Field>("Test::S::a").unwrap();
 
-        assert_eq!(data_member.tag(), Some(1));
-        assert!(data_member.data_type.is_optional);
+        assert_eq!(field.tag(), Some(1));
+        assert!(field.data_type.is_optional);
     }
 
     #[test]
@@ -190,9 +190,9 @@ mod tags {
 
         // Assert
         let expected = Error::new(ErrorKind::CannotHaveDuplicateTag {
-            member_identifier: "b".to_owned(),
+            identifier: "b".to_owned(),
         })
-        .add_note("The data member 'a' has previous used the tag value '1'", None);
+        .add_note("The member 'a' has previous used the tag value '1'", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

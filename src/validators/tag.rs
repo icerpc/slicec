@@ -28,12 +28,12 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
             Error::new(ErrorKind::CannotHaveDuplicateTag {
-                member_identifier: window[1].identifier().to_owned(),
+                identifier: window[1].identifier().to_owned(),
             })
             .set_span(window[1].span())
             .add_note(
                 format!(
-                    "The data member '{}' has previous used the tag value '{}'",
+                    "The member '{}' has previous used the tag value '{}'",
                     &window[0].identifier(),
                     window[0].tag().unwrap(),
                 ),
@@ -67,12 +67,12 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
 /// Validate that tags cannot be used in compact structs.
 fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
     // Compact structs must be non-empty.
-    if struct_def.is_compact && !struct_def.members.is_empty() {
-        // Compact structs cannot have tagged data members.
-        for member in struct_def.members() {
-            if member.tag.is_some() {
-                Error::new(ErrorKind::CompactStructCannotContainTaggedMembers)
-                    .set_span(member.span())
+    if struct_def.is_compact && !struct_def.fields.is_empty() {
+        // Compact structs cannot have tagged fields.
+        for field in struct_def.fields() {
+            if field.tag.is_some() {
+                Error::new(ErrorKind::CompactStructCannotContainTaggedFields)
+                    .set_span(field.span())
                     .add_note(
                         format!("struct '{}' is declared compact here", struct_def.identifier()),
                         Some(struct_def.span()),
@@ -94,7 +94,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     for member in tagged_members {
         if !member.data_type().is_optional {
             Error::new(ErrorKind::TaggedMemberMustBeOptional {
-                member_identifier: member.identifier().to_owned(),
+                identifier: member.identifier().to_owned(),
             })
             .set_span(member.span())
             .report(diagnostic_reporter);
@@ -107,9 +107,9 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
     // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
     fn uses_classes(typeref: &TypeRef) -> bool {
         match typeref.definition().concrete_type() {
-            Types::Struct(struct_def) => struct_def.members().iter().any(|m| uses_classes(&m.data_type)),
+            Types::Struct(struct_def) => struct_def.fields().iter().any(|m| uses_classes(&m.data_type)),
             Types::Class(_) => true,
-            Types::Exception(exception_def) => exception_def.all_members().iter().any(|m| uses_classes(&m.data_type)),
+            Types::Exception(exception_def) => exception_def.all_fields().iter().any(|m| uses_classes(&m.data_type)),
             Types::Interface(_) => false,
             Types::Enum(_) => false,
             Types::CustomType(_) => false,
@@ -124,13 +124,9 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
         if member.is_tagged() && uses_classes(member.data_type()) {
             let identifier = member.identifier().to_owned();
             let error_kind = if member.data_type().is_class_type() {
-                ErrorKind::CannotTagClass {
-                    member_identifier: identifier,
-                }
+                ErrorKind::CannotTagClass { identifier }
             } else {
-                ErrorKind::CannotTagContainingClass {
-                    member_identifier: identifier,
-                }
+                ErrorKind::CannotTagContainingClass { identifier }
             };
             Error::new(error_kind)
                 .set_span(member.span())

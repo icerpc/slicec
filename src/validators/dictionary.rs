@@ -39,12 +39,12 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
                 return Some(Error::new(ErrorKind::StructKeyMustBeCompact).set_span(type_ref.span()));
             }
 
-            // Check that all the data members of the struct are also valid key types. We collect the invalid members
-            // so we can report them in the error message.
+            // Check that all the fields of the struct are also valid key types.
+            // We collect the invalid fields so we can report them in the error message.
             let errors = struct_def
-                .members()
+                .fields()
                 .into_iter()
-                .filter_map(|member| check_dictionary_key_type(member.data_type()))
+                .filter_map(|field| check_dictionary_key_type(field.data_type()))
                 .collect::<Vec<_>>();
             if !errors.is_empty() {
                 let mut error = Error::new(ErrorKind::StructKeyContainsDisallowedType {

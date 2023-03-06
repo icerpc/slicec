@@ -237,13 +237,13 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Dictionaries(function) => function(&container_dictionaries(class), diagnostic_reporter),
             Validator::DocComments(function) => function(class, ast, diagnostic_reporter),
             Validator::Entities(function) => function(class, diagnostic_reporter),
-            Validator::Identifiers(function) => function(class.members().get_identifiers(), diagnostic_reporter),
+            Validator::Identifiers(function) => function(class.fields().get_identifiers(), diagnostic_reporter),
             Validator::InheritedIdentifiers(function) => function(
-                class.members().get_identifiers(),
-                class.all_inherited_members().get_identifiers(),
+                class.fields().get_identifiers(),
+                class.all_inherited_fields().get_identifiers(),
                 diagnostic_reporter,
             ),
-            Validator::Members(function) => function(class.members().as_member_vec(), diagnostic_reporter),
+            Validator::Members(function) => function(class.fields().as_member_vec(), diagnostic_reporter),
             Validator::Sequences(function) => function(&container_sequences(class), diagnostic_reporter),
             _ => {}
         });
@@ -281,13 +281,13 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Dictionaries(function) => function(&container_dictionaries(exception), diagnostic_reporter),
             Validator::DocComments(function) => function(exception, ast, diagnostic_reporter),
             Validator::Entities(function) => function(exception, diagnostic_reporter),
-            Validator::Identifiers(function) => function(exception.members().get_identifiers(), diagnostic_reporter),
+            Validator::Identifiers(function) => function(exception.fields().get_identifiers(), diagnostic_reporter),
             Validator::InheritedIdentifiers(function) => function(
-                exception.members().get_identifiers(),
-                exception.all_inherited_members().get_identifiers(),
+                exception.fields().get_identifiers(),
+                exception.all_inherited_fields().get_identifiers(),
                 diagnostic_reporter,
             ),
-            Validator::Members(function) => function(exception.members().as_member_vec(), diagnostic_reporter),
+            Validator::Members(function) => function(exception.fields().as_member_vec(), diagnostic_reporter),
             Validator::Sequences(function) => function(&container_sequences(exception), diagnostic_reporter),
 
             _ => {}
@@ -361,18 +361,18 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Dictionaries(function) => function(&container_dictionaries(struct_def), diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
-            Validator::Identifiers(function) => function(struct_def.members().get_identifiers(), diagnostic_reporter),
-            Validator::Members(function) => function(struct_def.members().as_member_vec(), diagnostic_reporter),
+            Validator::Identifiers(function) => function(struct_def.fields().get_identifiers(), diagnostic_reporter),
+            Validator::Members(function) => function(struct_def.fields().as_member_vec(), diagnostic_reporter),
             Validator::Struct(function) => function(struct_def, diagnostic_reporter),
             Validator::Sequences(function) => function(&container_sequences(struct_def), diagnostic_reporter),
             _ => {}
         });
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember) {
+    fn visit_field(&mut self, field: &Field) {
         self.validate(|validator, _ast, diagnostic_reporter| {
             if let Validator::Attributes(function) = validator {
-                function(data_member, diagnostic_reporter)
+                function(field, diagnostic_reporter)
             }
         })
     }

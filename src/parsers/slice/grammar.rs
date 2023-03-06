@@ -36,14 +36,14 @@ macro_rules! set_children_for {
     }};
 }
 
-macro_rules! set_data_members_for {
+macro_rules! set_fields_for {
     ($parent_ptr:expr, $children:ident, $parser:expr) => {{
         // 1. Set the parent on each of the children.
         // 2. Move the children into the AST.
         // 3. Store pointers to the children in the parent.
         for mut child in $children {
             unsafe {
-                child.borrow_mut().parent = downgrade_as!($parent_ptr, dyn Container<WeakPtr<DataMember>>);
+                child.borrow_mut().parent = downgrade_as!($parent_ptr, dyn Container<WeakPtr<Field>>);
                 let weak_ptr = $parser.ast.add_named_element(child);
                 $parent_ptr.borrow_mut().$children.push(weak_ptr);
             }
@@ -179,13 +179,13 @@ fn construct_struct(
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     is_compact: bool,
     identifier: Identifier,
-    members: Vec<OwnedPtr<DataMember>>,
+    fields: Vec<OwnedPtr<Field>>,
     span: Span,
 ) -> OwnedPtr<Struct> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     let mut struct_ptr = OwnedPtr::new(Struct {
         identifier,
-        members: Vec::new(),
+        fields: Vec::new(),
         is_compact,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
@@ -195,8 +195,8 @@ fn construct_struct(
         supported_encodings: None, // Patched by the encoding patcher.
     });
 
-    // Add all the data members to the struct.
-    set_data_members_for!(struct_ptr, members, parser);
+    // Add all the fields to the struct.
+    set_fields_for!(struct_ptr, fields, parser);
 
     struct_ptr
 }
@@ -206,7 +206,7 @@ fn construct_exception(
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     base_type: Option<TypeRef>,
-    members: Vec<OwnedPtr<DataMember>>,
+    fields: Vec<OwnedPtr<Field>>,
     span: Span,
 ) -> OwnedPtr<Exception> {
     let base = base_type.map(|type_ref| type_ref.downcast::<Exception>().unwrap());
@@ -214,7 +214,7 @@ fn construct_exception(
 
     let mut exception_ptr = OwnedPtr::new(Exception {
         identifier,
-        members: Vec::new(),
+        fields: Vec::new(),
         base,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
@@ -224,8 +224,8 @@ fn construct_exception(
         supported_encodings: None, // Patched by the encoding patcher.
     });
 
-    // Add all the data members to the exception.
-    set_data_members_for!(exception_ptr, members, parser);
+    // Add all the fields to the exception.
+    set_fields_for!(exception_ptr, fields, parser);
 
     exception_ptr
 }
@@ -236,7 +236,7 @@ fn construct_class(
     identifier: Identifier,
     compact_id: Option<u32>,
     base_type: Option<TypeRef>,
-    members: Vec<OwnedPtr<DataMember>>,
+    fields: Vec<OwnedPtr<Field>>,
     span: Span,
 ) -> OwnedPtr<Class> {
     let base = base_type.map(|type_ref| type_ref.downcast::<Class>().unwrap());
@@ -244,7 +244,7 @@ fn construct_class(
 
     let mut class_ptr = OwnedPtr::new(Class {
         identifier,
-        members: Vec::new(),
+        fields: Vec::new(),
         compact_id,
         base,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
@@ -255,22 +255,22 @@ fn construct_class(
         supported_encodings: None, // Patched by the encoding patcher.
     });
 
-    // Add all the data members to the class.
-    set_data_members_for!(class_ptr, members, parser);
+    // Add all the fields to the class.
+    set_fields_for!(class_ptr, fields, parser);
 
     class_ptr
 }
 
-pub fn construct_data_member(
+pub fn construct_field(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
     tag: Option<u32>,
     data_type: TypeRef,
     span: Span,
-) -> OwnedPtr<DataMember> {
+) -> OwnedPtr<Field> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-    OwnedPtr::new(DataMember {
+    OwnedPtr::new(Field {
         identifier,
         data_type,
         tag,

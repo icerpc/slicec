@@ -52,7 +52,7 @@ impl<'a> Visitor for CycleDetector<'a> {
             return;
         }
 
-        // Push the struct's type-id on to the stack before its data members are visited.
+        // Push the struct's type-id on to the stack before its fields are visited.
         self.dependency_stack.push(type_id);
     }
 
@@ -68,7 +68,7 @@ impl<'a> Visitor for CycleDetector<'a> {
             return;
         }
 
-        // Push the exception's type-id on to the stack before its data members are visited.
+        // Push the exception's type-id on to the stack before its fields are visited.
         self.dependency_stack.push(type_id);
     }
 
@@ -76,8 +76,8 @@ impl<'a> Visitor for CycleDetector<'a> {
         self.dependency_stack.pop().unwrap();
     }
 
-    fn visit_data_member(&mut self, data_member: &DataMember) {
-        match data_member.data_type().concrete_type() {
+    fn visit_field(&mut self, field: &Field) {
+        match field.data_type().concrete_type() {
             // Only structs and exceptions can contain infinite cycles.
             // Classes are allowed to contain cycles since they use reference semantics.
             Types::Struct(struct_def) => struct_def.visit_with(self),

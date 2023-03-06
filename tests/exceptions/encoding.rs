@@ -7,9 +7,9 @@ mod slice1 {
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
-    /// exception that is a data member.
+    /// exception that is a field.
     #[test]
-    fn can_not_be_data_members() {
+    fn can_not_be_fields() {
         // Arrange
         let slice = "
             encoding = 1
@@ -74,9 +74,9 @@ mod slice2 {
     }
 
     /// Verifies that the slice parser with the Slice2 encoding does not emit errors when parsing
-    /// exceptions that are data members.
+    /// exceptions that are fields.
     #[test]
-    fn can_be_data_members() {
+    fn can_be_fields() {
         // Arrange
         let slice = "
             module Test

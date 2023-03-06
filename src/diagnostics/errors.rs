@@ -107,7 +107,7 @@ pub enum ErrorKind {
         kind: String,
     },
 
-    /// Struct contains a member that cannot be used as a dictionary key type.
+    /// Struct contains a field that cannot be used as a dictionary key type.
     StructKeyContainsDisallowedType {
         /// The identifier of the struct.
         struct_identifier: String,
@@ -222,35 +222,35 @@ pub enum ErrorKind {
     /// Compact structs cannot be empty.
     CompactStructCannotBeEmpty,
 
-    /// Compact structs cannot contain tagged data members.
-    CompactStructCannotContainTaggedMembers,
+    /// Compact structs cannot contain tagged fields.
+    CompactStructCannotContainTaggedFields,
 
     // ----------------  Tag Errors ---------------- //
     /// A duplicate tag value was found.
     CannotHaveDuplicateTag {
         /// The identifier of the tagged member.
-        member_identifier: String,
+        identifier: String,
     },
 
     /// Cannot tag a class.
     CannotTagClass {
         /// The identifier of the tagged member.
-        member_identifier: String,
+        identifier: String,
     },
 
     /// Cannot tag a member that contains a class.
     CannotTagContainingClass {
         /// The identifier of the tagged member.
-        member_identifier: String,
+        identifier: String,
     },
 
     /// A tag value was not in the expected range, 0 .. i32::MAX.
     TagValueOutOfBounds,
 
-    /// A tagged data member was not set to optional.
+    /// A tagged member was not set to optional.
     TaggedMemberMustBeOptional {
         /// The identifier of the tagged member.
-        member_identifier: String,
+        identifier: String,
     },
 
     // ----------------  General Errors ---------------- //
@@ -420,7 +420,7 @@ implement_diagnostic_functions!(
     (
         "E008",
         ErrorKind::StructKeyContainsDisallowedType,
-        format!("struct '{struct_identifier}' contains members that are not a valid dictionary key types"),
+        format!("struct '{struct_identifier}' contains fields that are not a valid dictionary key types"),
         struct_identifier
     ),
     (
@@ -457,8 +457,8 @@ implement_diagnostic_functions!(
     (
         "E014",
         ErrorKind::CannotHaveDuplicateTag,
-        format!("invalid tag on member '{member_identifier}': tags must be unique"),
-        member_identifier
+        format!("invalid tag on member '{identifier}': tags must be unique"),
+        identifier
     ),
     (
         "E015",
@@ -479,26 +479,26 @@ implement_diagnostic_functions!(
     ),
     (
         "E018",
-        ErrorKind::CompactStructCannotContainTaggedMembers,
-        "tagged data members are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
+        ErrorKind::CompactStructCannotContainTaggedFields,
+        "tagged fields are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
         "E019",
         ErrorKind::TaggedMemberMustBeOptional,
-        format!("invalid tag on member '{member_identifier}': tagged members must be optional"),
-        member_identifier
+        format!("invalid tag on member '{identifier}': tagged members must be optional"),
+        identifier
     ),
     (
         "E020",
         ErrorKind::CannotTagClass,
-        format!("invalid tag on member '{member_identifier}': tagged members cannot be classes"),
-        member_identifier
+        format!("invalid tag on member '{identifier}': tagged members cannot be classes"),
+        identifier
     ),
     (
         "E021",
         ErrorKind::CannotTagContainingClass,
-        format!("invalid tag on member '{member_identifier}': tagged members cannot contain classes"),
-        member_identifier
+        format!("invalid tag on member '{identifier}': tagged members cannot contain classes"),
+        identifier
     ),
     (
         "E022",

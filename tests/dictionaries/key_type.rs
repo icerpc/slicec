@@ -152,7 +152,7 @@ fn non_compact_structs_are_disallowed() {
 }
 
 #[test]
-fn compact_struct_with_allowed_members_is_allowed() {
+fn compact_struct_with_allowed_fields_is_allowed() {
     // Arrange
     let slice = "
         module Test
@@ -174,7 +174,7 @@ fn compact_struct_with_allowed_members_is_allowed() {
 }
 
 #[test]
-fn compact_struct_with_disallowed_members_is_disallowed() {
+fn compact_struct_with_disallowed_fields_is_disallowed() {
     // Arrange
     let slice = "
         module Test
@@ -202,7 +202,7 @@ fn compact_struct_with_disallowed_members_is_disallowed() {
     })
     .add_note("invalid dictionary key type: sequence", None)
     .add_note(
-        "struct 'Inner' contains members that are not a valid dictionary key types",
+        "struct 'Inner' contains fields that are not a valid dictionary key types",
         None,
     );
 

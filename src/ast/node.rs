@@ -72,7 +72,7 @@ macro_rules! generate_node_enum {
 
 // generate the `Node` enum with variants for every type allowed to be in the AST.
 generate_node_enum! {
-    Module, Struct, Class, Exception, DataMember, Interface, Operation, Parameter, Enum,
+    Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum,
     Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive
 }
 
@@ -116,7 +116,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
             Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
             Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Entity)),
             Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Entity)),
-            Node::DataMember(data_member_ptr) => Ok(downgrade_as!(data_member_ptr, dyn Entity)),
+            Node::Field(field_ptr) => Ok(downgrade_as!(field_ptr, dyn Entity)),
             Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Entity)),
             Node::Operation(operation_ptr) => Ok(downgrade_as!(operation_ptr, dyn Entity)),
             Node::Parameter(parameter_ptr) => Ok(downgrade_as!(parameter_ptr, dyn Entity)),
@@ -145,7 +145,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
             Node::Class(class_ptr) => Ok(class_ptr.borrow()),
             Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
-            Node::DataMember(data_member_ptr) => Ok(data_member_ptr.borrow()),
+            Node::Field(field_ptr) => Ok(field_ptr.borrow()),
             Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
             Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
             Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
@@ -180,7 +180,7 @@ impl_into_node_for!(Module);
 impl_into_node_for!(Struct);
 impl_into_node_for!(Class);
 impl_into_node_for!(Exception);
-impl_into_node_for!(DataMember);
+impl_into_node_for!(Field);
 impl_into_node_for!(Interface);
 impl_into_node_for!(Operation);
 impl_into_node_for!(Parameter);

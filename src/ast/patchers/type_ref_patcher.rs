@@ -43,9 +43,9 @@ impl TypeRefPatcher<'_> {
                     .as_ref()
                     .and_then(|type_ref| self.resolve_definition(type_ref, ast))
                     .map(PatchKind::BaseException),
-                Node::DataMember(data_member_ptr) => {
-                    let type_ref = &data_member_ptr.borrow().data_type;
-                    self.resolve_definition(type_ref, ast).map(PatchKind::DataMemberType)
+                Node::Field(field_ptr) => {
+                    let type_ref = &field_ptr.borrow().data_type;
+                    self.resolve_definition(type_ref, ast).map(PatchKind::FieldType)
                 }
                 Node::Interface(interface_ptr) => {
                     interface_ptr.borrow().bases.iter()
@@ -125,10 +125,10 @@ impl TypeRefPatcher<'_> {
                         base_interface_ref.patch(base_interface_ptr, attributes);
                     }
                 }
-                PatchKind::DataMemberType((data_member_type_ptr, attributes)) => {
-                    let data_member_ptr: &mut OwnedPtr<DataMember> = (&mut elements[i]).try_into().unwrap();
-                    let data_member_type_ref = &mut data_member_ptr.borrow_mut().data_type;
-                    data_member_type_ref.patch(data_member_type_ptr, attributes);
+                PatchKind::FieldType((field_type_ptr, attributes)) => {
+                    let field_ptr: &mut OwnedPtr<Field> = (&mut elements[i]).try_into().unwrap();
+                    let field_type_ref = &mut field_ptr.borrow_mut().data_type;
+                    field_type_ref.patch(field_type_ptr, attributes);
                 }
                 PatchKind::ParameterType((parameter_type_ptr, attributes)) => {
                     let parameter_ptr: &mut OwnedPtr<Parameter> = (&mut elements[i]).try_into().unwrap();
@@ -318,7 +318,7 @@ enum PatchKind {
     BaseClass(Patch<Class>),
     BaseException(Patch<Exception>),
     BaseInterfaces(Vec<Patch<Interface>>),
-    DataMemberType(Patch<dyn Type>),
+    FieldType(Patch<dyn Type>),
     ParameterType(Patch<dyn Type>),
     ThrowsType(Patch<Exception>),
     EnumUnderlyingType(Patch<Primitive>),

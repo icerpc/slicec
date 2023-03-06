@@ -21,7 +21,7 @@ use crate::slice_file::SliceFile;
 /// For example, calling `visit_with` on a module containing a single struct would invoke:
 /// - visit_module_start
 ///     - visit_struct_start
-///         - visit_data_member (called once per data member, in the order they're defined)
+///         - visit_field (called once per field, in the order they're defined)
 ///     - visit_struct_end
 /// - visit_module_end
 #[allow(unused_variables)] // Keep parameter names for doc generation, even if not used in the default implementations.
@@ -132,10 +132,10 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit a type alias, use `[TypeAlias::visit_with]`.
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {}
 
-    /// This function is called by the visitor when it visits a [DataMember],
+    /// This function is called by the visitor when it visits a [Field],
     ///
-    /// This shouldn't be called by users. To visit a data member, use `[DataMember::visit_with]`.
-    fn visit_data_member(&mut self, data_member: &DataMember) {}
+    /// This shouldn't be called by users. To visit a field, use `[Field::visit_with]`.
+    fn visit_field(&mut self, field: &Field) {}
 
     /// This function is called by the visitor when it visits a [Parameter],
     ///
@@ -192,8 +192,8 @@ impl Struct {
     /// the contents of the struct, and finally calls `visitor.visit_struct_end`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_struct_start(self);
-        for data_member in &self.members {
-            data_member.borrow().visit_with(visitor);
+        for field in &self.fields {
+            field.borrow().visit_with(visitor);
         }
         visitor.visit_struct_end(self);
     }
@@ -206,8 +206,8 @@ impl Class {
     /// the contents of the class, and finally calls `visitor.visit_class_end`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_class_start(self);
-        for data_member in &self.members {
-            data_member.borrow().visit_with(visitor);
+        for field in &self.fields {
+            field.borrow().visit_with(visitor);
         }
         visitor.visit_class_end(self);
     }
@@ -220,8 +220,8 @@ impl Exception {
     /// the contents of the exception, and finally calls `visitor.visit_exception_end`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_exception_start(self);
-        for data_member in &self.members {
-            data_member.borrow().visit_with(visitor);
+        for field in &self.fields {
+            field.borrow().visit_with(visitor);
         }
         visitor.visit_exception_end(self);
     }
@@ -286,12 +286,12 @@ impl TypeAlias {
     }
 }
 
-impl DataMember {
-    /// Visits the [DataMember] with the provided `visitor`.
+impl Field {
+    /// Visits the [Field] with the provided `visitor`.
     ///
-    /// This function delegates to `visitor.visit_data_member`.
+    /// This function delegates to `visitor.visit_field`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
-        visitor.visit_data_member(self);
+        visitor.visit_field(self);
     }
 }
 

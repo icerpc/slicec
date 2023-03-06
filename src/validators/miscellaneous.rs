@@ -51,7 +51,7 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostic_reporter: &mut Di
 
 fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
     // Compact structs must be non-empty.
-    if struct_def.is_compact && struct_def.members().is_empty() {
+    if struct_def.is_compact && struct_def.fields().is_empty() {
         Error::new(ErrorKind::CompactStructCannotBeEmpty)
             .set_span(struct_def.span())
             .report(diagnostic_reporter);

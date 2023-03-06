@@ -22,8 +22,8 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_member = ast.find_element::<DataMember>("Test::S::b").unwrap();
-        assert_eq!(data_member.tag(), Some(10));
+        let field = ast.find_element::<Field>("Test::S::b").unwrap();
+        assert_eq!(field.tag(), Some(10));
     }
 }
 
@@ -49,7 +49,7 @@ mod compact_structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CompactStructCannotContainTaggedMembers)
+        let expected = Error::new(ErrorKind::CompactStructCannotContainTaggedFields)
             .add_note("struct 'S' is declared compact here", None);
 
         check_diagnostics(diagnostics, [expected]);

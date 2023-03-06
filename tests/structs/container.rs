@@ -6,9 +6,9 @@ mod structs {
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
-    /// Verifies that structs can contain data members.
+    /// Verifies that structs can contain fields.
     #[test]
-    fn can_contain_data_members() {
+    fn can_contain_fields() {
         // Arrange
         let slice = "
             module Test
@@ -24,22 +24,22 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_members = ast.find_element::<Struct>("Test::S").unwrap().members();
+        let fields = ast.find_element::<Struct>("Test::S").unwrap().fields();
 
-        assert_eq!(data_members.len(), 3);
-        assert_eq!(data_members[0].identifier(), "i");
-        assert_eq!(data_members[1].identifier(), "s");
-        assert_eq!(data_members[2].identifier(), "b");
+        assert_eq!(fields.len(), 3);
+        assert_eq!(fields[0].identifier(), "i");
+        assert_eq!(fields[1].identifier(), "s");
+        assert_eq!(fields[2].identifier(), "b");
         assert!(matches!(
-            data_members[0].data_type.concrete_type(),
+            fields[0].data_type.concrete_type(),
             Types::Primitive(Primitive::Int32),
         ));
         assert!(matches!(
-            data_members[1].data_type.concrete_type(),
+            fields[1].data_type.concrete_type(),
             Types::Primitive(Primitive::String),
         ));
         assert!(matches!(
-            data_members[2].data_type.concrete_type(),
+            fields[2].data_type.concrete_type(),
             Types::Primitive(Primitive::Bool),
         ));
     }
@@ -58,12 +58,12 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_members = ast.find_element::<Struct>("Test::S").unwrap().members();
-        assert_eq!(data_members.len(), 0);
+        let fields = ast.find_element::<Struct>("Test::S").unwrap().fields();
+        assert_eq!(fields.len(), 0);
     }
 
     #[test]
-    fn cannot_redefine_data_members() {
+    fn cannot_redefine_fields() {
         // Arrange
         let slice = "
             module Test
@@ -91,7 +91,7 @@ mod compact_structs {
 
     use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
-    /// Verifies that compact structs must contain at least one data member.
+    /// Verifies that compact structs must contain at least one field.
     #[test]
     fn must_not_be_empty() {
         // Arrange

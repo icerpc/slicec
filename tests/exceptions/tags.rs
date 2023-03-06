@@ -19,6 +19,6 @@ fn can_contain_tags() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let data_member = ast.find_element::<DataMember>("Test::E::b").unwrap();
-    assert_eq!(data_member.tag(), Some(10));
+    let field = ast.find_element::<Field>("Test::E::b").unwrap();
+    assert_eq!(field.tag(), Some(10));
 }

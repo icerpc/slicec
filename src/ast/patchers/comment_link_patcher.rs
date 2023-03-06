@@ -27,7 +27,7 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
             Node::Struct(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
             Node::Class(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
             Node::Exception(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
-            Node::DataMember(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
+            Node::Field(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
             Node::Interface(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
             Node::Operation(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),
             Node::Parameter(ptr) => apply_patches(&mut ptr.borrow_mut().comment, patches),

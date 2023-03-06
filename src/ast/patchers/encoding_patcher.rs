@@ -258,12 +258,12 @@ impl ComputeSupportedEncodings for Struct {
         patcher
             .supported_encodings_cache
             .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
-        // Structs only support encodings that all its data members also support.
-        for member in self.members() {
+        // Structs only support encodings that all its fields also support.
+        for field in self.fields() {
             supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                member.data_type(),
+                field.data_type(),
                 file_encoding,
-                member.is_tagged(),
+                field.is_tagged(),
             ));
         }
 
@@ -291,13 +291,13 @@ impl ComputeSupportedEncodings for Exception {
         patcher
             .supported_encodings_cache
             .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
-        // Exceptions only support encodings that all its data members also support
+        // Exceptions only support encodings that all its fields also support
         // (including inherited ones).
-        for member in self.all_members() {
+        for field in self.all_fields() {
             supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                member.data_type(),
+                field.data_type(),
                 file_encoding,
-                member.is_tagged(),
+                field.is_tagged(),
             ));
         }
 
@@ -325,13 +325,13 @@ impl ComputeSupportedEncodings for Class {
         patcher
             .supported_encodings_cache
             .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
-        // Classes only support encodings that all its data members also support
+        // Classes only support encodings that all its fields also support
         // (including inherited ones).
-        for member in self.all_members() {
+        for field in self.all_fields() {
             supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                member.data_type(),
+                field.data_type(),
                 file_encoding,
-                member.is_tagged(),
+                field.is_tagged(),
             ));
         }
 

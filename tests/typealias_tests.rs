@@ -38,7 +38,7 @@ mod typealias {
     }
 
     #[test]
-    fn can_be_used_as_data_member() {
+    fn can_be_used_as_field() {
         // Arrange
         let slice = "
             module Test
@@ -103,11 +103,11 @@ mod typealias {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let data_member = ast.find_element::<DataMember>("Test::S::a").unwrap();
+        let field = ast.find_element::<Field>("Test::S::a").unwrap();
 
-        assert_eq!(data_member.identifier(), "a");
+        assert_eq!(field.identifier(), "a");
         assert!(matches!(
-            data_member.data_type.concrete_type(),
+            field.data_type.concrete_type(),
             Types::Primitive(Primitive::VarUInt32),
         ));
     }

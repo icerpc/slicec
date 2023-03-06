@@ -139,26 +139,26 @@ Definition: Node = {
 }
 
 Struct: OwnedPtr<Struct> = {
-    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Exception: OwnedPtr<Exception> = {
-    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
 Class: OwnedPtr<Class> = {
-    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<DataMember>> "}" ContainerEnd => {
+    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
     }
 }
 
-DataMember: OwnedPtr<DataMember> = {
+Field: OwnedPtr<Field> = {
     <p: Prelude> <l: @L> <i: Identifier> ":" <t: Tag?> <tr: TypeRef> <r: @R> => {
-        construct_data_member(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
+        construct_field(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
     }
 }
 

@@ -8,7 +8,7 @@ use crate::utils::ptr_util::WeakPtr;
 #[derive(Debug)]
 pub struct Class {
     pub identifier: Identifier,
-    pub members: Vec<WeakPtr<DataMember>>,
+    pub fields: Vec<WeakPtr<Field>>,
     pub compact_id: Option<u32>,
     pub base: Option<TypeRef<Class>>,
     pub parent: WeakPtr<Module>,
@@ -20,25 +20,25 @@ pub struct Class {
 }
 
 impl Class {
-    pub fn members(&self) -> Vec<&DataMember> {
-        self.members.iter().map(|member_ptr| member_ptr.borrow()).collect()
+    pub fn fields(&self) -> Vec<&Field> {
+        self.fields.iter().map(|field_ptr| field_ptr.borrow()).collect()
     }
 
-    pub fn all_inherited_members(&self) -> Vec<&DataMember> {
+    pub fn all_inherited_fields(&self) -> Vec<&Field> {
         self.base_class()
             .iter()
-            .flat_map(|base_class| base_class.members())
+            .flat_map(|base_class| base_class.fields())
             .collect::<Vec<_>>()
     }
 
-    pub fn all_members(&self) -> Vec<&DataMember> {
-        let mut members = vec![];
-        // Recursively add inherited data members from super-classes.
+    pub fn all_fields(&self) -> Vec<&Field> {
+        let mut fields = vec![];
+        // Recursively add inherited fields from super-classes.
         if let Some(base_class) = self.base_class() {
-            members.extend(base_class.all_members());
+            fields.extend(base_class.all_fields());
         }
-        members.extend(self.members());
-        members
+        fields.extend(self.fields());
+        fields
     }
 
     pub fn base_class(&self) -> Option<&Class> {
@@ -70,5 +70,5 @@ impl Type for Class {
 
 implement_Element_for!(Class, "class");
 implement_Entity_for!(Class);
-implement_Container_for!(Class, WeakPtr<DataMember>, members);
+implement_Container_for!(Class, WeakPtr<Field>, fields);
 implement_Contained_for!(Class, Module);
