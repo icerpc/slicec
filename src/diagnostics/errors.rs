@@ -364,7 +364,7 @@ pub enum ErrorKind {
 
     // ----------------  Type Alias Errors ---------------- //
     /// A type alias had an optional underlying type.
-    OptionalTypeAlias,
+    TypeAliasOfOptional,
 }
 
 implement_diagnostic_functions!(
