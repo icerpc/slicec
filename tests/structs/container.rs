@@ -2,7 +2,7 @@
 
 mod structs {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
@@ -89,7 +89,7 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     /// Verifies that compact structs must contain at least one data member.
     #[test]

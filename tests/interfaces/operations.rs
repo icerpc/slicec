@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::helpers::parsing_helpers::*;
+use crate::test_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
@@ -266,7 +266,7 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
 }
 
 mod streams {
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 

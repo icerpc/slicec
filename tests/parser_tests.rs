@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod helpers;
+pub mod test_helpers;
 
-use crate::helpers::parsing_helpers::*;
+use crate::test_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::slice_file::Span;
 

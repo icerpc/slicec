@@ -1,5 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod helpers;
+pub mod test_helpers;
 
 mod files;

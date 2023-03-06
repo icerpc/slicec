@@ -2,7 +2,7 @@
 
 mod slice1 {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::Encoding;
 
@@ -39,7 +39,7 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]

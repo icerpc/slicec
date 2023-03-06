@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod helpers;
+pub mod test_helpers;
 
 mod scope_resolution {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
     use slice::grammar::*;
 
