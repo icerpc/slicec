@@ -384,7 +384,7 @@ implement_diagnostic_functions!(
     (
         "E004",
         ErrorKind::ArgumentNotSupported,
-        format!("'{argument}' is not a legal argument for the '{directive}' directive"),
+        format!("'{argument}' is not a legal argument for the '{directive}' attribute"),
         argument,
         directive
     ),

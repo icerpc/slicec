@@ -186,8 +186,12 @@ impl AttributeKind {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
                     Error::new(ErrorKind::MissingRequiredArgument {
-                        argument: "format(<Sliced and/or Compact>)".to_owned(),
+                        argument: r#"format(<arguments>)"#.to_owned(),
                     })
+                    .add_note(
+                        "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
+                        None,
+                    )
                     .set_span(span)
                     .report(reporter);
                     return unmatched_attribute;
