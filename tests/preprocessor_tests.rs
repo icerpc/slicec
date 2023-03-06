@@ -345,3 +345,31 @@ fn preprocessor_single_backslash_suggestion() {
     });
     check_diagnostics(diagnostics, [expected]);
 }
+
+#[test]
+fn preprocessor_recovers_at_end_of_line() {
+    // Arrange
+    let slice = "
+        #define Foo Bar     // Error: can't define two things in one directive.
+
+        #if Foo
+            module bool {}  // Doesn't emit an error because parsing stops after preprocessing.
+        #elif (Bar          // Error: Missing a closing parenthesis.
+            module bool {}  // Doesn't emit an error because parsing stops after preprocessing.
+        #endif
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = [
+        Error::new(ErrorKind::Syntax {
+            message: "expected one of directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
+        }),
+        Error::new(ErrorKind::Syntax {
+            message: r#"expected one of "&&", ")", or "||", but found 'DirectiveEnd'"#.to_owned(),
+        }),
+    ];
+    check_diagnostics(diagnostics, expected);
+}

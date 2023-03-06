@@ -14,8 +14,17 @@ macro_rules! implement_parse_function {
             super::grammar::lalrpop::$underlying_parser::new()
                 .parse(self, input.into())
                 .map_err(|parse_error| {
+                    // Return any leftover errors that the parser didn't recover from.
                     let error = super::construct_error_from(parse_error, self.file_name);
-                    error.report(self.diagnostic_reporter);
+                    error.report(self.diagnostic_reporter)
+                })
+                .and_then(|parse_value| {
+                    // Return an error if any errors were reported during parsing.
+                    if self.diagnostic_reporter.has_errors() {
+                        Err(())
+                    } else {
+                        Ok(parse_value)
+                    }
                 })
         }
     };
