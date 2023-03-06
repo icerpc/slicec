@@ -51,16 +51,3 @@ pub fn check_for_shadowing(
             });
     });
 }
-
-trait EntityIdentifiersExtension {
-    fn get_identifiers(&self) -> Vec<&Identifier>;
-}
-
-impl<T> EntityIdentifiersExtension for Vec<&T>
-where
-    T: Entity,
-{
-    fn get_identifiers(&self) -> Vec<&Identifier> {
-        self.iter().map(|member| member.raw_identifier()).collect()
-    }
-}
