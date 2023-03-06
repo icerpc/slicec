@@ -361,6 +361,10 @@ pub enum ErrorKind {
     AttributeIsNotRepeatable {
         attribute: String,
     },
+
+    // ----------------  Type Alias Errors ---------------- //
+    /// A type alias had an optional underlying type.
+    OptionalTypeAlias,
 }
 
 implement_diagnostic_functions!(
@@ -678,5 +682,10 @@ implement_diagnostic_functions!(
         ErrorKind::AttributeIsNotRepeatable,
         format!("duplicate attribute '{attribute}'"),
         attribute
+    ),
+    (
+        "E051",
+        ErrorKind::OptionalTypeAlias,
+        "optional types cannot be aliased"
     )
 );
