@@ -61,7 +61,7 @@ fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostic_reporter: &
 
 fn type_aliases_cannot_be_optional(type_alias: &TypeAlias, diagnostic_reporter: &mut DiagnosticReporter) {
     if type_alias.underlying.is_optional {
-        Error::new(ErrorKind::OptionalTypeAlias)
+        Error::new(ErrorKind::TypeAliasOfOptional)
             .set_span(type_alias.span())
             .add_note(
                 "try removing the trailing `?` modifier from its definition",

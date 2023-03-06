@@ -685,7 +685,7 @@ implement_diagnostic_functions!(
     ),
     (
         "E051",
-        ErrorKind::OptionalTypeAlias,
+        ErrorKind::TypeAliasOfOptional,
         "optional types cannot be aliased"
     )
 );

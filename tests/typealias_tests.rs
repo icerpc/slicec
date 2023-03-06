@@ -126,14 +126,14 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::OptionalTypeAlias)
+        let expected = Error::new(ErrorKind::TypeAliasOfOptional)
             .set_span(&Span::new((3, 13).into(), (3, 27).into(), "string-0"))
             .add_note(
                 "try removing the trailing `?` modifier from its definition",
                 Some(&Span::new((3, 30).into(), (3, 35).into(), "string-0")),
             )
             .add_note(
-                "instead of defining an optional alias, try making it optional wherever you use it",
+                "instead of aliasing an optional type directly, try making it optional where you use it",
                 None,
             );
 
