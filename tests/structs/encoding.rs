@@ -27,7 +27,7 @@ mod slice1 {
             identifier: "A".to_owned(),
             encoding: Encoding::Slice1,
         })
-        .add_note("structs must be `compact` to be supported by the Slice1 encoding", None)
+        .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None)
         .add_note("file encoding was set to Slice1 here:", None);
 
         check_diagnostics(diagnostics, [expected]);

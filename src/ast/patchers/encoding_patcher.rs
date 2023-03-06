@@ -271,7 +271,7 @@ impl ComputeSupportedEncodings for Struct {
         if !self.is_compact {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                return Some("structs must be `compact` to be supported by the Slice1 encoding");
+                return Some("structs must be 'compact' to be supported by the Slice1 encoding");
             }
         }
         None

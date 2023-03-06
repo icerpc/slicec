@@ -180,7 +180,7 @@ pub enum ErrorKind {
     /// If the unknown symbol is similar to a valid symbol, or can be used validly in a different context, the parser
     /// will suggest the valid alternative.
     /// Ex: `$` isn't a valid symbol, and isn't similar to any valid symbols. No suggestion will be supplied.
-    /// Ex: `-` isn't a valid symbol, but "->" is a valid symbol. So the parser will suggest "->` to the user.
+    /// Ex: `-` isn't a valid symbol, but "->" is a valid symbol. So the parser will suggest "->" to the user.
     UnknownSymbol { symbol: String, suggestion: Option<String> },
 
     /// Returned when a string is missing its closing quotation mark. Note that strings cannot span multiple lines.
