@@ -74,7 +74,7 @@ mod attributes {
 
             // Assert
             let expected = Error::new(ErrorKind::MissingRequiredArgument {
-                argument: "format(<Sliced and/or Compact>)".to_owned(),
+                argument: r#"format(<arguments>)"#.to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
