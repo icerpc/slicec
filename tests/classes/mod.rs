@@ -5,7 +5,7 @@ mod encoding;
 mod inheritance;
 mod tags;
 
-use crate::helpers::parsing_helpers::parse_for_ast;
+use crate::test_helpers::parse_for_ast;
 use slice::grammar::*;
 
 #[test]

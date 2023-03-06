@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::helpers::parsing_helpers::*;
+use crate::test_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use test_case::test_case;
 

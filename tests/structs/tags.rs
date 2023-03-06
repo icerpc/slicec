@@ -2,7 +2,7 @@
 
 mod structs {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::grammar::*;
 
     #[test]
@@ -29,7 +29,7 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
 
     #[test]

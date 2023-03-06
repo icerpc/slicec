@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::helpers::parsing_helpers::*;
+use crate::test_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::Encoding;
 
@@ -54,7 +54,7 @@ fn any_exception_cannot_be_used_without_slice1() {
 }
 
 mod slice1 {
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::grammar::*;
 
     #[test]

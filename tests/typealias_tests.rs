@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod helpers;
+pub mod test_helpers;
 
 mod typealias {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::grammar::*;
     use test_case::test_case;
 

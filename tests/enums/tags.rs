@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::helpers::parsing_helpers::assert_parses;
+use crate::test_helpers::assert_parses;
 
 #[test]
 // TODO, should we? This is just a syntax error in my opinion. There isn't even a type to tag here.

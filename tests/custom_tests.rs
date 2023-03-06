@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod helpers;
+pub mod test_helpers;
 
 mod custom {
 
-    use crate::helpers::parsing_helpers::parse_for_ast;
+    use crate::test_helpers::parse_for_ast;
     use slice::grammar::*;
     use test_case::test_case;
 

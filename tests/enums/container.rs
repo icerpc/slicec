@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::helpers::parsing_helpers::*;
+use crate::test_helpers::*;
 use slice::diagnostics::{Error, ErrorKind};
 use slice::grammar::*;
 use test_case::test_case;
@@ -336,7 +336,7 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
 
 mod slice1 {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::diagnostics::{Error, ErrorKind};
 
     #[test]
@@ -412,7 +412,7 @@ mod slice1 {
 
 mod slice2 {
 
-    use crate::helpers::parsing_helpers::*;
+    use crate::test_helpers::*;
     use slice::grammar::*;
 
     #[test]
