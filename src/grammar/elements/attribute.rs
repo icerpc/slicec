@@ -26,10 +26,10 @@ impl Attribute {
 
     pub fn directive(&self) -> &str {
         match &self.kind {
-            AttributeKind::Deprecated { .. } => DEPRECATED,
-            AttributeKind::Compress { .. } => COMPRESS,
-            AttributeKind::ClassFormat { .. } => FORMAT,
             AttributeKind::Allow { .. } => ALLOW,
+            AttributeKind::ClassFormat { .. } => FORMAT,
+            AttributeKind::Compress { .. } => COMPRESS,
+            AttributeKind::Deprecated { .. } => DEPRECATED,
             AttributeKind::Oneway { .. } => ONEWAY,
             AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
@@ -118,6 +118,33 @@ impl AttributeKind {
         };
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
+            ALLOW => {
+                for arg in arguments {
+                    if !Warning::all_codes().contains(&arg.as_str()) {
+                        // No exact match was found, check if the casing did not match
+                        let uppercase = arg.to_uppercase();
+                        if Warning::all_codes().contains(&uppercase.as_str()) {
+                            // The casing did not match, report an error with a note
+                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
+                                .set_span(span)
+                                .add_note(
+                                    format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
+                                    Some(span),
+                                )
+                                .report(reporter);
+                        } else {
+                            // No exact match and no casing match, report an error
+                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
+                                .set_span(span)
+                                .report(reporter);
+                        }
+                    }
+                }
+                Some(AttributeKind::Allow {
+                    warning_codes: arguments.to_owned(),
+                })
+            }
+
             COMPRESS => {
                 if !arguments.is_empty() {
                     let invalid_arguments = arguments
@@ -152,19 +179,6 @@ impl AttributeKind {
                     })
                 }
             }
-
-            ONEWAY => match arguments {
-                [] => Some(AttributeKind::Oneway),
-                _ => {
-                    Error::new(ErrorKind::TooManyArguments {
-                        expected: ONEWAY.to_owned(),
-                    })
-                    .set_span(span)
-                    .add_note("The oneway attribute does not take any arguments", Some(span))
-                    .report(reporter);
-                    return unmatched_attribute;
-                }
-            },
 
             DEPRECATED => match arguments {
                 [] => Some(AttributeKind::Deprecated { reason: None }),
@@ -224,32 +238,18 @@ impl AttributeKind {
                 })
             }
 
-            ALLOW => {
-                for arg in arguments {
-                    if !Warning::all_codes().contains(&arg.as_str()) {
-                        // No exact match was found, check if the casing did not match
-                        let uppercase = arg.to_uppercase();
-                        if Warning::all_codes().contains(&uppercase.as_str()) {
-                            // The casing did not match, report an error with a note
-                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .add_note(
-                                    format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
-                                    Some(span),
-                                )
-                                .report(reporter);
-                        } else {
-                            // No exact match and no casing match, report an error
-                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .report(reporter);
-                        }
-                    }
+            ONEWAY => match arguments {
+                [] => Some(AttributeKind::Oneway),
+                _ => {
+                    Error::new(ErrorKind::TooManyArguments {
+                        expected: ONEWAY.to_owned(),
+                    })
+                    .set_span(span)
+                    .add_note("The oneway attribute does not take any arguments", Some(span))
+                    .report(reporter);
+                    return unmatched_attribute;
                 }
-                Some(AttributeKind::Allow {
-                    warning_codes: arguments.to_owned(),
-                })
-            }
+            },
 
             _ => None,
         };
@@ -260,11 +260,11 @@ impl AttributeKind {
 
     pub fn is_repeatable(&self) -> bool {
         match &self {
-            AttributeKind::Compress { .. } => false,
-            AttributeKind::Oneway => false,
-            AttributeKind::Deprecated { .. } => false,
-            AttributeKind::ClassFormat { .. } => false,
             AttributeKind::Allow { .. } => true,
+            AttributeKind::ClassFormat { .. } => false,
+            AttributeKind::Compress { .. } => false,
+            AttributeKind::Deprecated { .. } => false,
+            AttributeKind::Oneway => false,
             AttributeKind::LanguageKind { kind } => kind.is_repeatable(),
             AttributeKind::Other { .. } => true,
         }
