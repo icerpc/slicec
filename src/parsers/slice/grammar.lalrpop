@@ -318,10 +318,7 @@ Integer: Integer<i128> = {
 
 SignedInteger: Integer<i128> = {
     <i: Integer> => i,
-    "-" <i: Integer> => Integer {
-        value: -i.value,
-        span: i.span,
-    },
+    "-" <i: Integer> => Integer { value: -i.value, ..i },
 }
 
 Tag: Integer<u32> = {
