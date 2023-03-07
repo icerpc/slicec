@@ -90,13 +90,13 @@ fn handle_file_encoding(
     (Some(encoding), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: i128, span: Span) -> FileEncoding {
-    let version = match i {
+fn construct_file_encoding(parser: &mut Parser, i: Integer, span: Span) -> FileEncoding {
+    let version = match i.value {
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
         v => {
             Error::new(ErrorKind::InvalidEncodingVersion { encoding: v })
-                .set_span(&span)
+                .set_span(&i.span)
                 .add_note("must be '1' or '2'", None)
                 .report(parser.diagnostic_reporter);
             Encoding::default() // Dummy
@@ -234,7 +234,7 @@ fn construct_class(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    compact_id: Option<u32>,
+    compact_id: Option<Integer<u32>>,
     base_type: Option<TypeRef>,
     fields: Vec<OwnedPtr<Field>>,
     span: Span,
@@ -265,7 +265,7 @@ pub fn construct_field(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    tag: Option<u32>,
+    tag: Option<Integer<u32>>,
     data_type: TypeRef,
     span: Span,
 ) -> OwnedPtr<Field> {
@@ -366,7 +366,7 @@ fn construct_parameter(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    (is_streamed, tag): (bool, Option<u32>),
+    (is_streamed, tag): (bool, Option<Integer<u32>>),
     data_type: TypeRef,
     span: Span,
 ) -> OwnedPtr<Parameter> {
@@ -387,7 +387,7 @@ fn construct_parameter(
 
 fn construct_single_return_type(
     parser: &Parser,
-    (is_streamed, tag): (bool, Option<u32>),
+    (is_streamed, tag): (bool, Option<Integer<u32>>),
     data_type: TypeRef,
     span: Span,
 ) -> Vec<OwnedPtr<Parameter>> {
@@ -573,7 +573,7 @@ fn try_construct_attribute(
     )
 }
 
-fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
+fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer {
     // Check the literal for a base prefix. If present, remove it and set the base.
     // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
     let (literal, base) = match s {
@@ -582,7 +582,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
         _ => (s, 10),
     };
 
-    match i128::from_str_radix(literal, base) {
+    let value = match i128::from_str_radix(literal, base) {
         Ok(x) => x,
         Err(err) => {
             let error = match err.kind() {
@@ -592,25 +592,37 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> i128 {
             Error::new(error).set_span(&span).report(parser.diagnostic_reporter);
             0 // Dummy value
         }
-    }
+    };
+
+    Integer { value, span }
 }
 
-fn parse_tag_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
+fn parse_tag_value(parser: &mut Parser, i: Integer, span: Span) -> Integer<u32> {
+    // Verify that the provided integer is a valid tag id.
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Error::new(ErrorKind::TagValueOutOfBounds)
             .set_span(&span)
             .report(parser.diagnostic_reporter)
     }
-    i as u32
+
+    // Cast the integer to a `u32` since it most closely matches the allowed range of tags.
+    // It's fine if the value doesn't fit, the cast will just give us a dummy value.
+    let value = i.value as u32;
+    Integer { value, span: i.span }
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: i128, span: Span) -> u32 {
-    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i) {
+fn parse_compact_id_value(parser: &mut Parser, i: Integer, span: Span) -> Integer<u32> {
+    // Verify that the provided integer is a valid compact id.
+    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Error::new(ErrorKind::CompactIdOutOfBounds)
             .set_span(&span)
             .report(parser.diagnostic_reporter)
     }
-    i as u32
+
+    // Cast the integer to a `u32` since it most closely matches the allowed range of compact ids.
+    // It's fine if the value doesn't fit, the cast will just give us a dummy value.
+    let value = i.value as u32;
+    Integer { value, span: i.span }
 }
 
 fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocComment) -> Option<DocComment> {

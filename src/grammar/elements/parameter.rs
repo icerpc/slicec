@@ -8,7 +8,7 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Parameter {
     pub identifier: Identifier,
     pub data_type: TypeRef,
-    pub tag: Option<u32>,
+    pub tag: Option<Integer<u32>>,
     pub is_streamed: bool,
     pub is_returned: bool,
     pub parent: WeakPtr<Operation>,

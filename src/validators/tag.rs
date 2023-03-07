@@ -20,9 +20,8 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
     let mut tagged_members = members
-        .iter()
-        .filter(|member| member.is_tagged())
-        .cloned()
+        .into_iter()
+        .filter(|&member| member.is_tagged())
         .collect::<Vec<_>>();
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
@@ -86,8 +85,8 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
 /// Validate that the data type of the tagged member is optional.
 fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members
-        .iter()
-        .filter(|member| member.tag().is_some())
+        .into_iter()
+        .filter(|member| member.is_tagged())
         .collect::<Vec<_>>();
 
     // Validate that tagged members are optional.

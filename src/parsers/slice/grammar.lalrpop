@@ -198,7 +198,7 @@ ExceptionSpecification: Throws = {
     throws_keyword any_exception_keyword => Throws::AnyException,
 }
 
-ParameterModifier: (bool, Option<u32>) = {
+ParameterModifier: (bool, Option<Integer<u32>>) = {
     => (false, None),
     stream_keyword => (true, None),
     Tag => (false, Some(<>)),
@@ -210,16 +210,9 @@ Enum: OwnedPtr<Enum> = {
     }
 }
 
-EnumeratorValue: Integer = {
-    <l: @L> <value: SignedInteger> <r: @R> => {
-        let span = Span::new(l, r, parser.file_name);
-        Integer { value, span }
-    },
-}
-
 Enumerator: OwnedPtr<Enumerator> = {
-    <p: Prelude> <l: @L> <i: Identifier> <v: ("=" <EnumeratorValue>)?> <r: @R> => {
-        construct_enumerator(parser, p, i, v, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <i: Identifier> <si: ("=" <SignedInteger>)?> <r: @R> => {
+        construct_enumerator(parser, p, i, si, Span::new(l, r, parser.file_name))
     }
 }
 
@@ -317,24 +310,27 @@ GloballyScopedIdentifier: Identifier = {
     }
 }
 
-Integer: i128 = {
+Integer: Integer = {
     <l: @L> <i: integer_literal> <r: @R> => {
         try_parse_integer(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
-SignedInteger: i128 = {
+SignedInteger: Integer = {
     <i: Integer> => i,
-    "-" <i: Integer> => -i,
+    "-" <i: Integer> => Integer {
+        value: -i.value,
+        span: i.span,
+    },
 }
 
-Tag: u32 = {
+Tag: Integer<u32> = {
     tag_keyword "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
         parse_tag_value(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
-CompactId: u32 = {
+CompactId: Integer<u32> = {
     "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
         parse_compact_id_value(parser, i, Span::new(l, r, parser.file_name))
     }
