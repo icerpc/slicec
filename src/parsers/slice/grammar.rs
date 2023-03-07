@@ -90,7 +90,7 @@ fn handle_file_encoding(
     (Some(encoding), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: Integer, span: Span) -> FileEncoding {
+fn construct_file_encoding(parser: &mut Parser, i: Integer<i128>, span: Span) -> FileEncoding {
     let version = match i.value {
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
@@ -457,7 +457,7 @@ fn construct_enumerator(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    enumerator_value: Option<Integer>,
+    enumerator_value: Option<Integer<i128>>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
@@ -573,7 +573,7 @@ fn try_construct_attribute(
     )
 }
 
-fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer {
+fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {
     // Check the literal for a base prefix. If present, remove it and set the base.
     // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
     let (literal, base) = match s {
@@ -597,7 +597,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer {
     Integer { value, span }
 }
 
-fn parse_tag_value(parser: &mut Parser, i: Integer, span: Span) -> Integer<u32> {
+fn parse_tag_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
     // Verify that the provided integer is a valid tag id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Error::new(ErrorKind::TagValueOutOfBounds)
@@ -611,7 +611,7 @@ fn parse_tag_value(parser: &mut Parser, i: Integer, span: Span) -> Integer<u32> 
     Integer { value, span: i.span }
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: Integer, span: Span) -> Integer<u32> {
+fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
     // Verify that the provided integer is a valid compact id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Error::new(ErrorKind::CompactIdOutOfBounds)

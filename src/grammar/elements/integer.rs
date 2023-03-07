@@ -5,7 +5,7 @@ use crate::slice_file::Span;
 use std::fmt::Debug;
 
 #[derive(Debug)]
-pub struct Integer<T: Debug = i128> {
+pub struct Integer<T: Debug> {
     pub value: T,
     pub span: Span,
 }

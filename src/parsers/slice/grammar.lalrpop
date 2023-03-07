@@ -310,13 +310,13 @@ GloballyScopedIdentifier: Identifier = {
     }
 }
 
-Integer: Integer = {
+Integer: Integer<i128> = {
     <l: @L> <i: integer_literal> <r: @R> => {
         try_parse_integer(parser, i, Span::new(l, r, parser.file_name))
     }
 }
 
-SignedInteger: Integer = {
+SignedInteger: Integer<i128> = {
     <i: Integer> => i,
     "-" <i: Integer> => Integer {
         value: -i.value,
