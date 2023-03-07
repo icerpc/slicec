@@ -56,6 +56,15 @@ macro_rules! generate_node_enum {
             }
         }
 
+        impl<'a> From<&'a Node> for &'a dyn Element {
+            /// Unwraps a node to a dynamically typed reference of a Slice [Element].
+            fn from(node: &'a Node) -> &'a dyn Element {
+                match node {
+                    $(Node::$variant(ptr) => ptr.borrow(),)*
+                }
+            }
+        }
+
         // Generate methods for unwrapping nodes to `&OwnedPtr`s.
         $(generate_try_from_node_impl!($variant, &'a Node, &'a OwnedPtr<$variant>, std::convert::identity);)*
 
@@ -74,6 +83,33 @@ macro_rules! generate_node_enum {
 generate_node_enum! {
     Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum,
     Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive
+}
+
+impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
+    type Error = Error;
+
+    /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Type].
+    ///
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a pointer to the entity,
+    /// otherwise this fails and returns an error message.
+    fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Type>, Self::Error> {
+        match node {
+            Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Type)),
+            Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Type)),
+            Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Type)),
+            Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Type)),
+            Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Type)),
+            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
+            Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
+            Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
+            Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
+            Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
+            _ => Err(Error::new(ErrorKind::TypeMismatch {
+                expected: "Type".to_owned(),
+                actual: node.to_string().to_case(Case::Lower),
+            })),
+        }
+    }
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Type {
