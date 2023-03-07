@@ -14,6 +14,7 @@ pub struct TypeAlias {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
     pub span: Span,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl AsTypes for TypeAlias {
@@ -44,7 +45,7 @@ impl Type for TypeAlias {
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
-        self.underlying.supported_encodings()
+        self.supported_encodings.clone().unwrap()
     }
 }
 

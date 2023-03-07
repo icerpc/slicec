@@ -53,10 +53,12 @@ fn allowed_primitive_types(key_type: &str) {
 #[test_case("AnyClass"; "AnyClass")]
 fn disallowed_primitive_types(key_type: &str) {
     // Arrange
+    let file_encoding = if key_type == "AnyClass" { "1" } else { "2" };
     let slice = format!(
         "
+            encoding = {file_encoding}
             module Test
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = dictionary<{key_type}, uint8>
         "
     );
 
@@ -118,7 +120,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
             encoding = {file_encoding}
             module Test
             {key_type_def}
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = dictionary<{key_type}, uint8>
         "
     );
 

@@ -139,4 +139,51 @@ mod typealias {
 
         check_diagnostics(diagnostics, [expected]);
     }
+
+    #[test_case(1, "uint32"; "slice1")]
+    #[test_case(2, "AnyClass"; "slice2")]
+    fn reject_unsupported_underlying_type_encoding(encoding_version: u8, underlying_type: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            encoding = {encoding_version}
+            module Test
+            typealias Foo = {underlying_type}
+            "
+        );
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::UnsupportedType {
+            kind: underlying_type.to_owned(),
+            encoding: match encoding_version {
+                1 => Encoding::Slice1,
+                2 => Encoding::Slice2,
+                _ => panic!(),
+            },
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test_case(1, "AnyClass"; "slice1")]
+    #[test_case(2, "uint32"; "slice2")]
+    fn allow_supported_underlying_type_encoding(encoding_version: u8, underlying_type: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            encoding = {encoding_version}
+            module Test
+            typealias Foo = {underlying_type}
+            "
+        );
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let type_alias = ast.find_element::<TypeAlias>("Test::Foo").unwrap();
+        assert_eq!(type_alias.underlying.type_string(), underlying_type);
+    }
 }

@@ -518,6 +518,7 @@ fn construct_type_alias(
         attributes,
         comment,
         span,
+        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 
