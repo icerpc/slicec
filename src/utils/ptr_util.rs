@@ -288,7 +288,7 @@ mod tests {
         let (raw_pointer, type_id) = weak_ptr.into_inner();
         let casted_pointer = raw_pointer.map(|ptr| ptr as *const bool);
         // Re-assemble the weak pointer with the casted type.
-        // This is safe and legal to do in Rust, but borrowing this pointer in any way would panic.
+        // This is safe and legal to do in Rust, but borrowing from this pointer in any way would be unsafe.
         let casted_weak_ptr: WeakPtr<bool> = WeakPtr::from_inner((casted_pointer, type_id));
 
         // Act/Assert: asserting that they're equal is the 'act'.
