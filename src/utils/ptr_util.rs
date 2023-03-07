@@ -171,6 +171,16 @@ macro_rules! upcast_weak_as {
 }
 
 impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for OwnedPtr<U> {
+    /// Returns true if this pointer and the provided reference both point to the same memory address.
+    ///
+    /// Note that this may return true in some unintuitive/exotic cases:
+    /// - If you have 2 references to the same piece of data, with different types, this will return true. For example,
+    ///   comparing `String` to `dyn Display` is valid, and will return true if they're actually the same.
+    /// - If one or both of the types are zero-sized: since it's address may overlap with another piece of data.
+    /// - Comparing the address of a struct to the address of its first field: these are conceptually different things,
+    ///   but both live at the same address, since structs are stored as a list of it's fields.
+    ///
+    /// See <https://doc.rust-lang.org/std/ptr/fn.eq.html> for more information. This function uses the same semantics.
     fn eq(&self, other: &&'a T) -> bool {
         // Convert this pointer's box and the other borrow to raw pointers, then strip their typing, and convert any
         // DST fat pointers to thin pointers to avoid checking their v-tables (which can be transient).
@@ -182,6 +192,16 @@ impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for OwnedPtr<U> {
 }
 
 impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for WeakPtr<U> {
+    /// Returns true if this pointer and the provided reference both point to the same memory address.
+    ///
+    /// Note that this may return true in some unintuitive/exotic cases:
+    /// - If you have 2 references to the same piece of data, with different types, this will return true. For example,
+    ///   comparing `String` to `dyn Display` is valid, and will return true if they're actually the same.
+    /// - If one or both of the types are zero-sized: since it's address may overlap with another piece of data.
+    /// - Comparing the address of a struct to the address of its first field: these are conceptually different things,
+    ///   but both live at the same address, since structs are stored as a list of it's fields.
+    ///
+    /// See <https://doc.rust-lang.org/std/ptr/fn.eq.html> for more information. This function uses the same semantics.
     fn eq(&self, other: &&'a T) -> bool {
         // Convert the other borrow to a raw pointer, then strip it and this pointer's typing, and convert any
         // DST fat pointers to thin pointers to avoid checking their v-tables (which can be transient).
@@ -189,5 +209,102 @@ impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for WeakPtr<U> {
         let other_ptr = (*other as *const T).cast::<()>();
         // Check if the data pointers point to the same location in memory.
         std::ptr::eq(self_ptr.cast::<()>(), other_ptr)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Ensure that it's valid to have multiple immutable borrows to a piece a data through
+    // the pointer that owns it, and any weak pointers created from it.
+    #[test]
+    fn multiple_immutable_borrows_is_legal() {
+        // Arrange
+        let owned_ptr = OwnedPtr::new(79_u32);
+        let weak_ptr1 = owned_ptr.downgrade();
+        let weak_ptr2 = owned_ptr.downgrade();
+
+        let borrow0 = owned_ptr.borrow();
+        let borrow1 = weak_ptr1.borrow();
+        let borrow2 = weak_ptr2.borrow();
+
+        // Act
+        // Use all the borrowed values to prevent the compiler from dropping them pre-maturely.
+        let dummy = borrow0 + borrow1 + borrow2;
+
+        // Assert
+        assert_eq!(dummy, 3 * 79);
+    }
+
+    // Ensure that accessing an uninitialized pointer causes a panic.
+    // It's impossible to construct an uninitialized `OwnedPtr`, so we only check `WeakPtr`.
+    #[test]
+    #[should_panic]
+    fn accessing_uninitialized_pointer_causes_panic() {
+        // Arrange
+        let weak_ptr: WeakPtr<String> = WeakPtr::create_uninitialized();
+
+        // Act
+        weak_ptr.borrow();
+
+        // Assert
+        // This function should panic in the 'act' section. This is 'asserted' by the 'should_panic' attribute on it.
+    }
+
+    #[test]
+    fn pointer_equality_is_reflexive() {
+        // Arrange
+        let owned_ptr = OwnedPtr::new("test".to_owned());
+        let weak_ptr = owned_ptr.downgrade();
+
+        // Act/Assert: asserting that they're equal is the 'act'.
+        assert_eq!(owned_ptr, owned_ptr.borrow());
+        assert_eq!(owned_ptr, weak_ptr.borrow());
+        assert_eq!(weak_ptr, owned_ptr.borrow());
+        assert_eq!(weak_ptr, weak_ptr.borrow());
+    }
+
+    // Ensure that two pointers that point to the same memory location are equal, even if they hold different types.
+    #[test]
+    fn pointer_equality_is_type_independent() {
+        // Arrange
+        let owned_ptr: OwnedPtr<String> = OwnedPtr::new("test".to_owned());
+
+        // Create a weak pointer to the string.
+        let weak_ptr: WeakPtr<String> = owned_ptr.downgrade();
+        // Rip it apart and manually cast the pointer from a `String` to `bool`.
+        let (raw_pointer, type_id) = weak_ptr.into_inner();
+        let casted_pointer = raw_pointer.map(|ptr| ptr as *const bool);
+        // Re-assemble the weak pointer with the casted type.
+        // This is safe and legal to do in Rust, but borrowing this pointer in any way would panic.
+        let casted_weak_ptr: WeakPtr<bool> = WeakPtr::from_inner((casted_pointer, type_id));
+
+        // Act/Assert: asserting that they're equal is the 'act'.
+        assert_eq!(casted_weak_ptr, owned_ptr.borrow());
+    }
+
+    // Ensure that two pointers that point to different memory locations are unequal, even if they point to equal data.
+    #[test]
+    fn different_pointers_are_not_equal() {
+        // Arrange
+        let owned_ptr1 = OwnedPtr::new(79_i32);
+        let weak_ptr1 = owned_ptr1.downgrade();
+
+        let owned_ptr2 = OwnedPtr::new(79_i32);
+        let weak_ptr2 = owned_ptr2.downgrade();
+
+        // Act/Assert: asserting that they're not equal is the 'act'.
+        assert_ne!(owned_ptr1, owned_ptr2.borrow());
+        assert_ne!(owned_ptr1, weak_ptr2.borrow());
+
+        assert_ne!(weak_ptr1, owned_ptr2.borrow());
+        assert_ne!(weak_ptr1, weak_ptr2.borrow());
+
+        assert_ne!(owned_ptr2, owned_ptr1.borrow());
+        assert_ne!(owned_ptr2, weak_ptr1.borrow());
+
+        assert_ne!(weak_ptr2, owned_ptr1.borrow());
+        assert_ne!(weak_ptr2, weak_ptr1.borrow());
     }
 }
