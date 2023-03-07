@@ -2,6 +2,11 @@
 
 use std::any::TypeId;
 
+/// Represents a pointer that owns the data it's pointing to.
+/// When this pointer is dropped, it ensures the pointed to data is dropped as well.
+///
+/// This can be used in conjunction with [`WeakPtr`] to form complex (and sometimes cyclic) data structures while still
+/// adhering to Rust's ownership rules, and avoiding un-droppable memory cycles.
 #[derive(Debug)]
 pub struct OwnedPtr<T: ?Sized> {
     data: Box<T>,
@@ -74,6 +79,12 @@ impl<T: ?Sized> OwnedPtr<T> {
     }
 }
 
+/// Represents a pointer that only references the data it's pointing to.
+/// Unlike [`OwnedPtr`], dropping this pointer has no effect on the underlying data, this pointer can only immutably
+/// access the underlying data, and care must be taken to prevent this pointer from dangling.
+///
+/// This can be used in conjunction with [`OwnedPtr`] to form complex (and sometimes cyclic) data structures while
+/// still adhering to Rust's ownership rules, and avoiding un-droppable memory cycles.
 #[derive(Debug)]
 pub struct WeakPtr<T: ?Sized> {
     data: Option<*const T>,
