@@ -378,9 +378,9 @@ pub enum LookupError {
 
     /// An AST node with the provided identifier exists, but the element stored in it wasn't of the specified type.
     TypeMismatch {
-        /// The type that the caller was expecting to find in the AST.
+        /// The type that the caller was expecting to find.
         expected: String,
-        /// The actual type stored in the found AST node.
+        /// The type that was actually stored in the AST node.
         actual: String,
         /// Whether the expected type was concrete or a trait.
         /// This is used to change the wording of the error message we emit.
