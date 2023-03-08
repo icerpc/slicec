@@ -3,7 +3,7 @@
 pub mod test_helpers;
 
 use crate::test_helpers::parse_for_ast;
-use slice::grammar::{Enum, Exception, Interface, Struct};
+use slice::grammar::{CustomType, Exception, Interface, Struct};
 
 #[test]
 fn escaped_keywords() {
@@ -13,7 +13,7 @@ fn escaped_keywords() {
         interface \interface {}
         exception \exception {}
         struct \struct {}
-        enum \enum {}
+        custom \custom
     "#;
 
     // Act
@@ -23,7 +23,7 @@ fn escaped_keywords() {
     assert!(ast.find_element::<Interface>("module::interface").is_ok());
     assert!(ast.find_element::<Exception>("module::exception").is_ok());
     assert!(ast.find_element::<Struct>("module::struct").is_ok());
-    assert!(ast.find_element::<Enum>("module::enum").is_ok());
+    assert!(ast.find_element::<CustomType>("module::custom").is_ok());
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn escaped_identifiers() {
         interface \MyInterface {}
         exception \MyException {}
         struct \MyStruct {}
-        enum \MyEnum {}
+        custom \MyCustom
     "#;
 
     // Act
@@ -44,7 +44,7 @@ fn escaped_identifiers() {
     assert!(ast.find_element::<Interface>("MyModule::MyInterface").is_ok());
     assert!(ast.find_element::<Exception>("MyModule::MyException").is_ok());
     assert!(ast.find_element::<Struct>("MyModule::MyStruct").is_ok());
-    assert!(ast.find_element::<Enum>("MyModule::MyEnum").is_ok());
+    assert!(ast.find_element::<CustomType>("MyModule::MyCustom").is_ok());
 }
 
 #[test]

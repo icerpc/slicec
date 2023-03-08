@@ -183,6 +183,9 @@ pub enum ErrorKind {
         kind: String,
     },
 
+    /// Underlying types are required for enums defined in a file using the Slice2 encoding.
+    EnumMissingUnderlyingType,
+
     // ----------------  Exception Errors ---------------- //
     /// Exceptions cannot be used as a data type with the specified encoding.
     ExceptionNotSupported {
@@ -674,5 +677,10 @@ implement_diagnostic_functions!(
         "E051",
         ErrorKind::TypeAliasOfOptional,
         "optional types cannot be aliased"
+    ),
+    (
+        "E052",
+        ErrorKind::EnumMissingUnderlyingType,
+        "enums must have an explicit underlying type to be supported by the Slice2 encoding"
     )
 );

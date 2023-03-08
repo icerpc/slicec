@@ -14,7 +14,7 @@ mod typealias {
     #[test_case("exception E { }", "E", 2; "exceptions")]
     #[test_case("class C {}", "C", 1; "classes")]
     #[test_case("interface I {}", "I", 2; "interfaces")]
-    #[test_case("enum E { Foo }", "E", 2; "enums")]
+    #[test_case("enum E { Foo }", "E", 1; "enums")]
     #[test_case("custom C", "C", 2; "custom types")]
     #[test_case("", "bool", 2; "primitives")]
     #[test_case("", "sequence<bool>", 2; "sequences")]

@@ -3,8 +3,7 @@
 pub mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::compile_from_strings;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error, ErrorKind};
 use slice::grammar::Encoding;
 
 #[test]
@@ -43,10 +42,11 @@ fn valid_mixed_encoding_works() {
     ";
 
     // Act
-    let parser_result = compile_from_strings(&[encoding2_slice, encoding1_slice], None);
+    let diagnostics = parse_multiple_for_diagnostics(&[encoding2_slice, encoding1_slice]);
 
     // Assert
-    assert!(parser_result.ok().is_some());
+    let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
+    check_diagnostics(diagnostics, expected);
 }
 
 #[test]
