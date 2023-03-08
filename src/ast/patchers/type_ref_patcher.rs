@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::{Ast, Node};
+use crate::ast::{Ast, LookupError, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
 use crate::diagnostics::*;
 use crate::grammar::*;
@@ -24,7 +24,6 @@ struct TypeRefPatcher<'a> {
     diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
-#[allow(clippy::result_large_err)]
 impl TypeRefPatcher<'_> {
     fn compute_patches(&mut self, ast: &Ast) {
         for node in ast.as_slice() {
@@ -176,7 +175,7 @@ impl TypeRefPatcher<'_> {
     fn resolve_definition<'a, T>(&mut self, type_ref: &TypeRef<T>, ast: &'a Ast) -> Option<Patch<T>>
     where
         T: Element + ?Sized,
-        &'a Node: TryInto<WeakPtr<T>, Error = Error>,
+        &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
     {
         // If the definition is already patched, we skip the function and return `None` immediately.
         // Otherwise we retrieve the type string and try to resolve it in the ast.
@@ -186,7 +185,7 @@ impl TypeRefPatcher<'_> {
         // First, lookup the type as a node in the AST.
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
-        let lookup_result: Result<Patch<T>, Error> = ast
+        let lookup_result = ast
             .find_node_with_scope(type_string, type_ref.module_scope())
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
@@ -204,7 +203,8 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(err) => {
-                err.set_span(type_ref.span()).report(self.diagnostic_reporter);
+                let mapped_error: Error = err.into();
+                mapped_error.set_span(type_ref.span()).report(self.diagnostic_reporter);
                 None
             }
         }
@@ -232,10 +232,10 @@ impl TypeRefPatcher<'_> {
         }
     }
 
-    fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, Error>
+    fn resolve_type_alias<'a, T>(&mut self, type_alias: &'a TypeAlias, ast: &'a Ast) -> Result<Patch<T>, LookupError>
     where
         T: Element + ?Sized,
-        &'a Node: TryInto<WeakPtr<T>, Error = Error>,
+        &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
     {
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
@@ -299,10 +299,13 @@ impl TypeRefPatcher<'_> {
                     identifier: current_type_alias.module_scoped_identifier(),
                 })
                 .set_span(current_type_alias.span())
+                .add_note("failed to resolve type due to a cycle in its definition", None)
                 .add_notes(notes)
                 .report(self.diagnostic_reporter);
 
-                return Err(Error::new(ErrorKind::CannotResolveDueToCycles));
+                return Err(LookupError::DoesNotExist {
+                    identifier: current_type_alias.module_scoped_identifier(),
+                });
             }
         }
     }
@@ -326,10 +329,20 @@ enum PatchKind {
     DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
 }
 
-#[allow(clippy::result_large_err)]
-fn try_into_patch<'a, T: ?Sized>(node: &'a Node, attributes: Vec<Attribute>) -> Result<Patch<T>, Error>
+fn try_into_patch<'a, T: ?Sized>(node: &'a Node, attributes: Vec<Attribute>) -> Result<Patch<T>, LookupError>
 where
-    &'a Node: TryInto<WeakPtr<T>, Error = Error>,
+    &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
 {
     node.try_into().map(|ptr| (ptr, attributes))
+}
+
+impl From<LookupError> for Error {
+    fn from(error: LookupError) -> Self {
+        Error::new(match error {
+            LookupError::DoesNotExist { identifier } => ErrorKind::DoesNotExist { identifier },
+            LookupError::TypeMismatch { expected, actual, is_concrete } => {
+                ErrorKind::TypeMismatch { expected, actual, is_concrete }
+            }
+        })
+    }
 }

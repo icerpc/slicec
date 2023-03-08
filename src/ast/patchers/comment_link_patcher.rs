@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::{Ast, Node};
+use crate::ast::{Ast, LookupError, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, ErrorKind, Warning, WarningKind};
+use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
 use crate::grammar::{DocComment, Entity, LinkDefinition, Message, MessageComponent, Symbol};
 use crate::utils::ptr_util::WeakPtr;
 
@@ -56,14 +56,13 @@ macro_rules! resolve_link {
         $self.link_patches.push(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
-                let warning_kind = match error.kind() {
-                    ErrorKind::DoesNotExist { identifier } => WarningKind::CouldNotResolveLink {
+                let warning_kind = match error {
+                    LookupError::DoesNotExist { identifier } => WarningKind::CouldNotResolveLink {
                         identifier: identifier.to_owned(),
                     },
-                    ErrorKind::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement {
+                    LookupError::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement {
                         kind: actual.to_owned(),
                     },
-                    _ => unreachable!(), // No other types of errors can be returned from `find_element_with_scope`
                 };
                 Warning::new(warning_kind)
                     .set_span($tag.span())
@@ -89,7 +88,6 @@ struct CommentLinkPatcher<'a> {
     diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
-#[allow(clippy::result_large_err)] // TODO Adding a new result type for AST lookup would solve this.
 impl CommentLinkPatcher<'_> {
     fn compute_patches_for(&mut self, entity: &dyn Entity, ast: &Ast) {
         if let Some(comment) = entity.comment() {

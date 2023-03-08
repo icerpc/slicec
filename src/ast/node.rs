@@ -2,7 +2,7 @@
 
 //! TODO write a doc comment for the module.
 
-use crate::diagnostics::{Error, ErrorKind};
+use super::LookupError;
 use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
@@ -14,7 +14,7 @@ use std::fmt;
 macro_rules! generate_try_from_node_impl {
     ($variant:ident, $from_type:ty, $to_type:ty, $convert:path) => {
         impl<'a> TryFrom<$from_type> for $to_type {
-            type Error = Error;
+            type Error = LookupError;
 
             /// Attempts to unwrap a node to the specified concrete type.
             ///
@@ -24,10 +24,11 @@ macro_rules! generate_try_from_node_impl {
                 if let Node::$variant(x) = node {
                     Ok($convert(x))
                 } else {
-                    Err(Error::new(ErrorKind::ConcreteTypeMismatch {
+                    Err(LookupError::TypeMismatch {
                         expected: stringify!($variant).to_case(Case::Lower),
-                        kind: node.to_string().to_case(Case::Lower),
-                    }))
+                        actual: node.to_string().to_case(Case::Lower),
+                        is_concrete: true,
+                    })
                 }
             }
         }
@@ -86,7 +87,7 @@ generate_node_enum! {
 }
 
 impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
-    type Error = Error;
+    type Error = LookupError;
 
     /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Type].
     ///
@@ -104,16 +105,17 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
             Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
-            _ => Err(Error::new(ErrorKind::TypeMismatch {
+            _ => Err(LookupError::TypeMismatch {
                 expected: "Type".to_owned(),
                 actual: node.to_string().to_case(Case::Lower),
-            })),
+                is_concrete: false,
+            }),
         }
     }
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Type {
-    type Error = Error;
+    type Error = LookupError;
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Type].
     ///
@@ -131,16 +133,17 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
             Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
-            _ => Err(Error::new(ErrorKind::TypeMismatch {
+            _ => Err(LookupError::TypeMismatch {
                 expected: "Type".to_owned(),
                 actual: node.to_string().to_case(Case::Lower),
-            })),
+                is_concrete: false,
+            }),
         }
     }
 }
 
 impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
-    type Error = Error;
+    type Error = LookupError;
 
     /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Entity].
     ///
@@ -160,16 +163,17 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
             Node::Enumerator(enumerator_ptr) => Ok(downgrade_as!(enumerator_ptr, dyn Entity)),
             Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Entity)),
             Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Entity)),
-            _ => Err(Error::new(ErrorKind::TypeMismatch {
+            _ => Err(LookupError::TypeMismatch {
                 expected: "Entity".to_owned(),
                 actual: node.to_string().to_case(Case::Lower),
-            })),
+                is_concrete: false,
+            }),
         }
     }
 }
 
 impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
-    type Error = Error;
+    type Error = LookupError;
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Entity].
     ///
@@ -189,10 +193,11 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            _ => Err(Error::new(ErrorKind::TypeMismatch {
+            _ => Err(LookupError::TypeMismatch {
                 expected: "Entity".to_owned(),
                 actual: node.to_string().to_case(Case::Lower),
-            })),
+                is_concrete: false,
+            }),
         }
     }
 }

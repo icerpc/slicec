@@ -22,7 +22,6 @@ impl TryFrom<&String> for FilePath {
     type Error = io::Error;
 
     /// Creates a new [FilePath] from the given path. If the path does not exist, an [Error] is returned.
-    #[allow(clippy::result_large_err)]
     fn try_from(path: &String) -> Result<Self, Self::Error> {
         PathBuf::from(&path).canonicalize().map(|canonicalized_path| Self {
             path: path.clone(),

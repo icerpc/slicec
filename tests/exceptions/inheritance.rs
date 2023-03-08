@@ -67,9 +67,10 @@ fn must_inherit_from_exception() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ConcreteTypeMismatch {
+    let expected = Error::new(ErrorKind::TypeMismatch {
         expected: "exception".to_owned(),
-        kind: "class".to_owned(),
+        actual: "class".to_owned(),
+        is_concrete: true,
     });
     check_diagnostics(diagnostics, [expected]);
 }

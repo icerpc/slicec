@@ -22,12 +22,6 @@ impl Error {
         }
     }
 
-    // TODO only used by consumers of `find_element` and `find_node`,
-    // we should add a more specific error type for those functions to use.
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
-    }
-
     pub fn span(&self) -> Option<&Span> {
         self.span.as_ref()
     }
@@ -248,14 +242,6 @@ pub enum ErrorKind {
     /// A compact ID was not in the expected range, 0 .. i32::MAX.
     CompactIdOutOfBounds,
 
-    /// Used to indicate when two concrete types should match, but do not.
-    ConcreteTypeMismatch {
-        /// The name of the expected kind.
-        expected: String,
-        /// The name of the found kind.
-        kind: String,
-    },
-
     /// An identifier was redefined.
     Redefinition {
         /// The identifier that was redefined.
@@ -280,6 +266,8 @@ pub enum ErrorKind {
         expected: String,
         /// The name of the found kind.
         actual: String,
+        /// Whether the expected type was a concrete type (true) or a trait type (false).
+        is_concrete: bool,
     },
 
     /// An integer literal was outside the parsable range of 0..i128::MAX.
@@ -315,9 +303,6 @@ pub enum ErrorKind {
         /// The cycle that was found.
         cycle: String,
     },
-
-    /// Failed to resolve a type due to a cycle in its definition.
-    CannotResolveDueToCycles,
 
     /// No element with the specified identifier was found.
     DoesNotExist {
@@ -495,22 +480,18 @@ implement_diagnostic_functions!(
         "E022",
         ErrorKind::TypeMismatch,
         format!(
-            "type mismatch: expected {} '{expected}' but found a {actual} (which doesn't implement '{expected}')",
-            in_definite::get_a_or_an(expected)
-        ),
-        expected,
-        actual
-    ),
-    (
-        "E023",
-        ErrorKind::ConcreteTypeMismatch,
-        format!(
-            "type mismatch: expected {} '{expected}' but found {} '{kind}'",
+            "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
             in_definite::get_a_or_an(expected),
-            in_definite::get_a_or_an(kind)
+            in_definite::get_a_or_an(actual),
+            if *is_concrete {
+                "".to_owned()
+            } else {
+                format!(" (which isn't {} '{expected}')", in_definite::get_a_or_an(expected))
+            }
         ),
         expected,
-        kind
+        actual,
+        is_concrete
     ),
     (
         "E024",
@@ -652,11 +633,6 @@ implement_diagnostic_functions!(
         ErrorKind::InfiniteSizeCycle,
         format!("self-referential type {type_id} has infinite size.\n{cycle}"),
         type_id, cycle
-    ),
-    (
-        "E048",
-        ErrorKind::CannotResolveDueToCycles,
-        "failed to resolve type due to a cycle in its definition".to_owned()
     ),
     (
         "E049",

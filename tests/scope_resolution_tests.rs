@@ -235,6 +235,7 @@ mod scope_resolution {
         let expected = Error::new(ErrorKind::TypeMismatch {
             expected: "Type".to_string(),
             actual: "module".to_string(),
+            is_concrete: false,
         });
         check_diagnostics(diagnostics, [expected]);
     }
