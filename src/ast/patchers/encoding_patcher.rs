@@ -429,10 +429,14 @@ impl ComputeSupportedEncodings for Enum {
         } else {
             // Enums defined in a file using Slice2 must have an explicit underlying type.
             if *file_encoding == Encoding::Slice2 {
-                Error::new(ErrorKind::EnumMissingUnderlyingType)
-                    .set_span(self.span())
-                    .add_notes(patcher.get_file_encoding_mismatch_notes(self))
-                    .report(patcher.diagnostic_reporter)
+                // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
+                Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+                    enum_identifier: self.identifier().to_owned(),
+                    kind: "None".to_owned(),
+                })
+                .set_span(self.span())
+                .add_notes(patcher.get_file_encoding_mismatch_notes(self))
+                .report(patcher.diagnostic_reporter)
             }
         }
         None
