@@ -47,6 +47,10 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
                 let encodings = patcher.get_supported_encodings_for(custom_type_ptr.borrow());
                 custom_type_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
+            Node::TypeAlias(type_alias_ptr) => {
+                let encodings = patcher.get_supported_encodings_for(type_alias_ptr.borrow());
+                type_alias_ptr.borrow_mut().supported_encodings = Some(encodings);
+            }
             _ => {}
         }
     }
@@ -458,6 +462,23 @@ impl ComputeSupportedEncodings for CustomType {
         _: &Encoding,
     ) -> Option<&'static str> {
         // Custom types are supported by all encodings.
+        None
+    }
+}
+
+impl ComputeSupportedEncodings for TypeAlias {
+    fn compute_supported_encodings(
+        &self,
+        patcher: &mut EncodingPatcher,
+        supported_encodings: &mut SupportedEncodings,
+        file_encoding: &Encoding,
+    ) -> Option<&'static str> {
+        // Type aliases only support encodings that its underlying type also supports.
+        supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+            &self.underlying,
+            file_encoding,
+            false,
+        ));
         None
     }
 }

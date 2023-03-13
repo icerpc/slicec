@@ -47,16 +47,17 @@ fn allowed_primitive_types(key_type: &str) {
     assert_parses(slice);
 }
 
-#[test_case("float32"; "float32")]
-#[test_case("float64"; "float64")]
-#[test_case("ServiceAddress"; "ServiceAddress")]
-#[test_case("AnyClass"; "AnyClass")]
-fn disallowed_primitive_types(key_type: &str) {
+#[test_case("float32", 2; "float32")]
+#[test_case("float64", 2; "float64")]
+#[test_case("ServiceAddress", 2; "ServiceAddress")]
+#[test_case("AnyClass", 1; "AnyClass")]
+fn disallowed_primitive_types(key_type: &str, encoding_version: u8) {
     // Arrange
     let slice = format!(
         "
+            encoding = {encoding_version}
             module Test
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = dictionary<{key_type}, uint8>
         "
     );
 
@@ -118,7 +119,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
             encoding = {file_encoding}
             module Test
             {key_type_def}
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = dictionary<{key_type}, uint8>
         "
     );
 
