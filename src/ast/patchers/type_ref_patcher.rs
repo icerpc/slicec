@@ -340,9 +340,15 @@ impl From<LookupError> for Error {
     fn from(error: LookupError) -> Self {
         Error::new(match error {
             LookupError::DoesNotExist { identifier } => ErrorKind::DoesNotExist { identifier },
-            LookupError::TypeMismatch { expected, actual, is_concrete } => {
-                ErrorKind::TypeMismatch { expected, actual, is_concrete }
-            }
+            LookupError::TypeMismatch {
+                expected,
+                actual,
+                is_concrete,
+            } => ErrorKind::TypeMismatch {
+                expected,
+                actual,
+                is_concrete,
+            },
         })
     }
 }
