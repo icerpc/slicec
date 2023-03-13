@@ -17,7 +17,7 @@ mod output {
             op()
         }
 
-        enum E {}
+        enum E: int8 {}
         "#;
 
         // Set the output format to JSON.
@@ -59,7 +59,7 @@ mod output {
             )
         }
 
-        enum E {}
+        enum E: int8 {}
         "#;
 
         // Disable ANSI codes.
@@ -97,7 +97,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:14:9
    |
-14 |         enum E {}
+14 |         enum E: int8 {}
    |         ------
    |
 ";

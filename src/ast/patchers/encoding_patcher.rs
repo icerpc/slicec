@@ -412,6 +412,7 @@ impl ComputeSupportedEncodings for Enum {
         supported_encodings: &mut SupportedEncodings,
         file_encoding: &Encoding,
     ) -> Option<&'static str> {
+        // TODO: rework all of this when we add enums with associated types.
         if let Some(underlying_type) = &self.underlying {
             // Enums only support encodings that its underlying type also supports.
             supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
@@ -424,6 +425,25 @@ impl ComputeSupportedEncodings for Enum {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
                 return Some("enums with underlying types are not supported by the Slice1 encoding");
+            }
+        } else {
+            // Enums defined in a file using Slice2 must have an explicit underlying type.
+            if *file_encoding == Encoding::Slice2 {
+                // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
+                Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+                    enum_identifier: self.identifier().to_owned(),
+                    kind: "None".to_owned(),
+                })
+                .set_span(self.span())
+                .add_notes(patcher.get_file_encoding_mismatch_notes(self))
+                .add_note(
+                    format!(
+                        "try adding a backing type to your enum: 'enum {}: varint32'",
+                        self.identifier(),
+                    ),
+                    None,
+                )
+                .report(patcher.diagnostic_reporter)
             }
         }
         None

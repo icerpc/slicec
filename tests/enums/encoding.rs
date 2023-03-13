@@ -40,6 +40,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
+    use slice::diagnostics::{Error, ErrorKind};
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]
@@ -63,5 +64,26 @@ mod slice2 {
 
         // Act/Assert
         assert_parses(slice);
+    }
+
+    #[test]
+    fn underlying_type_is_required() {
+        // Arrange
+        let slice = "
+            module Test
+            enum E {
+                A
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+            enum_identifier: "E".to_owned(),
+            kind: "None".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 }
