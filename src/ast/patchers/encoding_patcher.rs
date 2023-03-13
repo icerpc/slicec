@@ -436,6 +436,13 @@ impl ComputeSupportedEncodings for Enum {
                 })
                 .set_span(self.span())
                 .add_notes(patcher.get_file_encoding_mismatch_notes(self))
+                .add_note(
+                    format!(
+                        "try adding a backing type to your enum: 'enum {}: varint32'",
+                        self.identifier(),
+                    ),
+                    None,
+                )
                 .report(patcher.diagnostic_reporter)
             }
         }
