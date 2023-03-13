@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::comments::DocComment;
-use super::elements::{Attribute, Identifier, TypeRef};
+use super::elements::{Attribute, Identifier, Integer, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
@@ -92,10 +92,14 @@ pub trait Contained<T: Entity + ?Sized>: Entity {
 
 pub trait Member: Entity {
     fn data_type(&self) -> &TypeRef;
-    fn tag(&self) -> Option<u32>;
+    fn raw_tag(&self) -> Option<&Integer<u32>>;
+
+    fn tag(&self) -> Option<u32> {
+        self.raw_tag().map(|tag| tag.value)
+    }
 
     fn is_tagged(&self) -> bool {
-        self.tag().is_some()
+        self.raw_tag().is_some()
     }
 }
 
@@ -236,8 +240,8 @@ macro_rules! implement_Member_for {
                 &self.data_type
             }
 
-            fn tag(&self) -> Option<u32> {
-                self.tag // Return by copy
+            fn raw_tag(&self) -> Option<&Integer<u32>> {
+                self.tag.as_ref()
             }
         }
     };

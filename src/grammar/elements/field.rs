@@ -8,7 +8,7 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Field {
     pub identifier: Identifier,
     pub data_type: TypeRef,
-    pub tag: Option<u32>,
+    pub tag: Option<Integer<u32>>,
     pub parent: WeakPtr<dyn Container<WeakPtr<Field>>>,
     pub scope: Scope,
     pub attributes: Vec<Attribute>,

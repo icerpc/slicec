@@ -23,5 +23,6 @@ fn support_compact_type_id() {
 
     // Assert
     let class_def = ast.find_element::<Class>("Test::C").unwrap();
-    assert_eq!(class_def.compact_id, Some(42));
+    let compact_id = class_def.compact_id.as_ref().unwrap();
+    assert_eq!(compact_id.value, 42);
 }

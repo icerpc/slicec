@@ -9,7 +9,7 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Class {
     pub identifier: Identifier,
     pub fields: Vec<WeakPtr<Field>>,
-    pub compact_id: Option<u32>,
+    pub compact_id: Option<Integer<u32>>,
     pub base: Option<TypeRef<Class>>,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,

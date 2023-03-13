@@ -27,7 +27,7 @@ impl Enumerator {
 #[derive(Debug)]
 pub enum EnumeratorValue {
     Implicit(i128),
-    Explicit(Integer),
+    Explicit(Integer<i128>),
 }
 
 implement_Element_for!(Enumerator, "enumerator");
