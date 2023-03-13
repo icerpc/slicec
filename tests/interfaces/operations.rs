@@ -236,9 +236,10 @@ fn operations_can_only_throw_exceptions() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ConcreteTypeMismatch {
+    let expected = Error::new(ErrorKind::TypeMismatch {
         expected: "exception".to_owned(),
-        kind: "struct".to_owned(),
+        actual: "struct".to_owned(),
+        is_concrete: true,
     });
     check_diagnostics(diagnostics, [expected]);
 }

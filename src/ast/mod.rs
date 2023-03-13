@@ -7,7 +7,6 @@ mod patchers;
 
 use self::node::Node;
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{Error, ErrorKind};
 use crate::grammar::{Element, NamedSymbol, Primitive};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
@@ -58,7 +57,6 @@ pub struct Ast {
     lookup_table: HashMap<String, usize>,
 }
 
-#[allow(clippy::result_large_err)]
 impl Ast {
     /// Creates an Ast that contains only the [primitive](Primitive) types.
     ///
@@ -150,14 +148,12 @@ impl Ast {
     /// let fake_node = ast.find_node("foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, Error> {
+    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, LookupError> {
         self.lookup_table
             .get(identifier)
             .map(|i| &self.elements[*i])
-            .ok_or_else(|| {
-                Error::new(ErrorKind::DoesNotExist {
-                    identifier: identifier.to_owned(),
-                })
+            .ok_or_else(|| LookupError::DoesNotExist {
+                identifier: identifier.to_owned(),
             })
     }
 
@@ -199,7 +195,7 @@ impl Ast {
     /// let fake_node = ast.find_node_with_scope("hello", "foo::bar");
     /// assert!(fake_node.is_err());
     /// ```
-    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, Error> {
+    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, LookupError> {
         // If the identifier is globally scoped (starts with '::'), find the node without scoping.
         if let Some(unprefixed_identifier) = identifier.strip_prefix("::") {
             return self.find_node(unprefixed_identifier);
@@ -261,9 +257,9 @@ impl Ast {
     /// let wrong_type = ast.find_element::<Exception>("bool");
     /// assert!(fake_element.is_err());
     /// ```
-    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, Error>
+    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, LookupError>
     where
-        &'a T: TryFrom<&'a Node, Error = Error>,
+        &'a T: TryFrom<&'a Node, Error = LookupError>,
     {
         self.find_node(identifier).and_then(|x| x.try_into())
     }
@@ -306,9 +302,9 @@ impl Ast {
         &'a self,
         identifier: &str,
         scope: &str,
-    ) -> Result<&'a T, Error>
+    ) -> Result<&'a T, LookupError>
     where
-        &'a T: TryFrom<&'a Node, Error = Error>,
+        &'a T: TryFrom<&'a Node, Error = LookupError>,
     {
         self.find_node_with_scope(identifier, scope).and_then(|x| x.try_into())
     }
@@ -369,4 +365,25 @@ impl Ast {
         // Add the element to this AST.
         self.add_element(element)
     }
+}
+
+/// The error type for lookup operations on the AST.
+#[derive(Debug)]
+pub enum LookupError {
+    /// No AST node exists that corresponds to the provided identifier.
+    DoesNotExist {
+        /// The (possibly scoped) identifier that was looked up.
+        identifier: String,
+    },
+
+    /// An AST node with the provided identifier exists, but the element stored in it wasn't of the specified type.
+    TypeMismatch {
+        /// The type that the caller was expecting to find.
+        expected: String,
+        /// The type that was actually stored in the AST node.
+        actual: String,
+        /// Whether the expected type was concrete or a trait.
+        /// This is used to change the wording of the error message we emit.
+        is_concrete: bool,
+    },
 }
