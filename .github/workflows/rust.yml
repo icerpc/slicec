@@ -33,7 +33,7 @@ jobs:
       - name: 🦇 Echo env variable
         run: echo $CARGO_REGISTRIES_CRATES_IO_PROTOCOL
       - name: 🔨 Build
-        run: cargo build
+        run: cargo build -Z sparse-registry
       - name: 🧪 Test
         run: cargo test
       - name: 🔎 Lint
