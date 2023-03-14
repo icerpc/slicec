@@ -30,8 +30,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
-      - name: 🦇 Echo env variable
-        run: echo $CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+      - name: Rust version
+        run: rustc --version
       - name: 🔨 Build
         run: cargo build -Z sparse-registry
       - name: 🧪 Test
