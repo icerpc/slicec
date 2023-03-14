@@ -2,9 +2,9 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,30 +15,32 @@ jobs:
     timeout-minutes: 7
 
     steps:
-    - uses: actions/checkout@v3
-    - name: 📦 Cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          target/
-          Cargo.lock
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-
-    - name: 🔨 Build
-      run: cargo build
-    - name: 🧪 Test
-      run: cargo test
-    - name: 🔎 Lint
-      run: cargo clippy --no-deps
-    - name: 📚 Generate Documentation
-      run: cargo doc --no-deps --document-private-items
-      env:
-        RUSTDOCFLAGS: '-D warnings'
+      - uses: actions/checkout@v3
+      - name: 📦 Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+            Cargo.lock
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: 🦇 Echo env variable
+        run: echo $CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+      - name: 🔨 Build
+        run: cargo build
+      - name: 🧪 Test
+        run: cargo test
+      - name: 🔎 Lint
+        run: cargo clippy --no-deps
+      - name: 📚 Generate Documentation
+        run: cargo doc --no-deps --document-private-items
+        env:
+          RUSTDOCFLAGS: "-D warnings"
 
   format:
     runs-on: ubuntu-latest
