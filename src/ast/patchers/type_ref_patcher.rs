@@ -203,7 +203,19 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(err) => {
-                Diagnostic::from(err)
+                let error = match err {
+                    LookupError::DoesNotExist { identifier } => Error::DoesNotExist { identifier },
+                    LookupError::TypeMismatch {
+                        expected,
+                        actual,
+                        is_concrete,
+                    } => Error::TypeMismatch {
+                        expected,
+                        actual,
+                        is_concrete,
+                    },
+                };
+                Diagnostic::new(error)
                     .set_span(type_ref.span())
                     .report(self.diagnostic_reporter);
                 None
@@ -335,21 +347,4 @@ where
     &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
 {
     node.try_into().map(|ptr| (ptr, attributes))
-}
-
-impl From<LookupError> for Diagnostic {
-    fn from(error: LookupError) -> Self {
-        Diagnostic::new(match error {
-            LookupError::DoesNotExist { identifier } => Error::DoesNotExist { identifier },
-            LookupError::TypeMismatch {
-                expected,
-                actual,
-                is_concrete,
-            } => Error::TypeMismatch {
-                expected,
-                actual,
-                is_concrete,
-            },
-        })
-    }
 }

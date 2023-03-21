@@ -99,14 +99,14 @@ impl DiagnosticReporter {
                 }
 
                 // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
-                if let Some(span) = &diagnostic.span() {
+                if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
                     is_allowed |= is_warning_allowed_by_attributes(&warning_code, file.attributes(false));
                 }
 
                 // If the warning has a scope, check if it's allowed by an `allow` attribute in that
                 // scope.
-                if let Some(scope) = &diagnostic.scope() {
+                if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
                     is_allowed |= is_warning_allowed_by_attributes(&warning_code, entity.attributes(true));
                 }
