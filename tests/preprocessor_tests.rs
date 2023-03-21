@@ -5,7 +5,7 @@ pub mod test_helpers;
 use crate::test_helpers::*;
 use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -340,7 +340,7 @@ fn preprocessor_single_backslash_suggestion() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax {
+    let expected = Diagnostic::new(Error::Syntax {
         message: "unknown symbol '/', try using '//' instead".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -364,10 +364,10 @@ fn preprocessor_recovers_at_end_of_line() {
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::Syntax {
+        Diagnostic::new(Error::Syntax {
             message: "expected one of directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
         }),
-        Error::new(ErrorKind::Syntax {
+        Diagnostic::new(Error::Syntax {
             message: r#"expected one of "&&", ")", or "||", but found 'DirectiveEnd'"#.to_owned(),
         }),
     ];

@@ -2,7 +2,7 @@
 
 use super::parser::Parser;
 use crate::ast::node::Node;
-use crate::diagnostics::{Error, ErrorKind};
+use crate::diagnostics::{Diagnostic, Error};
 use crate::grammar::*;
 use crate::parsers::CommentParser;
 use crate::slice_file::Span;
@@ -81,7 +81,7 @@ fn handle_file_encoding(
     // The file encoding can only be set once.
     if let Some(old_file_encoding) = old_encoding {
         let old_span = old_file_encoding.span();
-        Error::new(ErrorKind::MultipleEncodingVersions)
+        Diagnostic::new(Error::MultipleEncodingVersions)
             .set_span(old_span)
             .add_note("file encoding was previously specified here", Some(old_span))
             .report(parser.diagnostic_reporter);
@@ -95,7 +95,7 @@ fn construct_file_encoding(parser: &mut Parser, i: Integer<i128>, span: Span) ->
         1 => Encoding::Slice1,
         2 => Encoding::Slice2,
         v => {
-            Error::new(ErrorKind::InvalidEncodingVersion { encoding: v })
+            Diagnostic::new(Error::InvalidEncodingVersion { encoding: v })
                 .set_span(&i.span)
                 .add_note("must be '1' or '2'", None)
                 .report(parser.diagnostic_reporter);
@@ -413,7 +413,7 @@ fn construct_single_return_type(
 
 fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter>>, span: Span) {
     if return_tuple.len() < 2 {
-        Error::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements)
+        Diagnostic::new(Error::ReturnTuplesMustContainAtLeastTwoElements)
             .set_span(&span)
             .report(parser.diagnostic_reporter)
     }
@@ -586,11 +586,11 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
     let value = match i128::from_str_radix(literal, base) {
         Ok(x) => x,
         Err(err) => {
-            let error = match err.kind() {
-                IntErrorKind::InvalidDigit => ErrorKind::InvalidIntegerLiteral { base },
-                _ => ErrorKind::IntegerLiteralOverflows,
+            let e = match err.kind() {
+                IntErrorKind::InvalidDigit => Error::InvalidIntegerLiteral { base },
+                _ => Error::IntegerLiteralOverflows,
             };
-            Error::new(error).set_span(&span).report(parser.diagnostic_reporter);
+            Diagnostic::new(e).set_span(&span).report(parser.diagnostic_reporter);
             0 // Dummy value
         }
     };
@@ -601,7 +601,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
 fn parse_tag_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
     // Verify that the provided integer is a valid tag id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
-        Error::new(ErrorKind::TagValueOutOfBounds)
+        Diagnostic::new(Error::TagValueOutOfBounds)
             .set_span(&span)
             .report(parser.diagnostic_reporter)
     }
@@ -615,7 +615,7 @@ fn parse_tag_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer
 fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
     // Verify that the provided integer is a valid compact id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
-        Error::new(ErrorKind::CompactIdOutOfBounds)
+        Diagnostic::new(Error::CompactIdOutOfBounds)
             .set_span(&span)
             .report(parser.diagnostic_reporter)
     }

@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod typealias {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
     use slice::slice_file::Span;
     use test_case::test_case;
@@ -126,7 +126,7 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TypeAliasOfOptional)
+        let expected = Diagnostic::new(Error::TypeAliasOfOptional)
             .set_span(&Span::new((3, 13).into(), (3, 27).into(), "string-0"))
             .add_note(
                 "try removing the trailing `?` modifier from its definition",
@@ -156,7 +156,7 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
             encoding: match encoding_version {
                 1 => Encoding::Slice1,

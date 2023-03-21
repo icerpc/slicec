@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 
 #[test]
 fn invalid_dictionary_values_produce_error() {
@@ -19,10 +19,10 @@ fn invalid_dictionary_values_produce_error() {
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::KeyTypeNotSupported {
+        Diagnostic::new(Error::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         }),
-        Error::new(ErrorKind::KeyTypeNotSupported {
+        Diagnostic::new(Error::KeyTypeNotSupported {
             kind: "float64".to_owned(),
         }),
     ];

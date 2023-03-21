@@ -3,7 +3,7 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
@@ -26,7 +26,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::ExceptionNotSupported {
+        let expected = Diagnostic::new(Error::ExceptionNotSupported {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
@@ -38,7 +38,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
@@ -58,7 +58,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
             kind: "exception".to_owned(),
             identifier: "B".to_owned(),
             encoding: Encoding::Slice2,
@@ -117,7 +117,7 @@ mod slice2 {
         let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
             encoding: Encoding::Slice2,
         });
@@ -139,7 +139,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
+        let expected = Diagnostic::new(Error::AnyExceptionNotSupported);
         check_diagnostics(diagnostics, [expected]);
     }
 }

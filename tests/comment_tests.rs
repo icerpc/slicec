@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod comments {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Warning, WarningKind};
+    use slice::diagnostics::{Diagnostic, Warning};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -164,7 +164,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::ExtraReturnValueInDocComment);
+        let expected = Diagnostic::new(Warning::ExtraReturnValueInDocComment);
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -185,7 +185,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::ExtraParameterInDocComment {
+        let expected = Diagnostic::new(Warning::ExtraParameterInDocComment {
             identifier: "testParam2".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -299,10 +299,10 @@ mod comments {
 
         // Assert
         let expected = [
-            Warning::new(WarningKind::CouldNotResolveLink {
+            Diagnostic::new(Warning::CouldNotResolveLink {
                 identifier: "FakeException".to_owned(),
             }),
-            Warning::new(WarningKind::OperationDoesNotThrow {
+            Diagnostic::new(Warning::OperationDoesNotThrow {
                 identifier: "testOp".to_owned(),
             }),
         ];
@@ -323,7 +323,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::ExtraThrowInDocComment {
+        let expected = Diagnostic::new(Warning::ExtraThrowInDocComment {
             kind: "struct".to_owned(),
             identifier: "S".to_owned(),
         });
@@ -424,7 +424,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::CouldNotResolveLink {
+        let expected = Diagnostic::new(Warning::CouldNotResolveLink {
             identifier: "OtherStruct".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -444,7 +444,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::LinkToInvalidElement {
+        let expected = Diagnostic::new(Warning::LinkToInvalidElement {
             kind: "primitive".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -464,7 +464,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::DocCommentSyntax {
+        let expected = Diagnostic::new(Warning::DocCommentSyntax {
             message: "doc comment tag 'linked' is invalid".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -489,7 +489,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Warning::new(WarningKind::InvalidThrowInDocComment {
+        let expected = Diagnostic::new(Warning::InvalidThrowInDocComment {
             identifier: "S".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -517,10 +517,10 @@ mod comments {
 
         // Assert
         let expected = [
-            Warning::new(WarningKind::OperationDoesNotThrow {
+            Diagnostic::new(Warning::OperationDoesNotThrow {
                 identifier: "testOp".to_owned(),
             }),
-            Warning::new(WarningKind::OperationDoesNotThrow {
+            Diagnostic::new(Warning::OperationDoesNotThrow {
                 identifier: "testOpTwo".to_owned(),
             }),
         ];
