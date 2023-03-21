@@ -52,7 +52,7 @@ fn throws_nothing() {
 #[test]
 fn throws_any_exception() {
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         interface I {

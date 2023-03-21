@@ -343,7 +343,7 @@ mod slice1 {
     fn enumerators_cannot_contain_negative_values() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             enum E {
@@ -387,7 +387,7 @@ mod slice1 {
         let value = i32::MAX as i128 + 1;
         let slice = format!(
             "
-                encoding = 1
+                encoding = Slice1
                 module Test
 
                 enum E {{

@@ -8,13 +8,13 @@ use slice::grammar::Encoding;
 fn operation_members_are_compatible_with_encoding() {
     // Arrange
     let slice1 = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         class C {}
     ";
     let slice2 = "
-        encoding = 2
+        encoding = Slice2
         module Test
 
         interface I {
@@ -60,7 +60,7 @@ mod slice1 {
     #[test]
     fn operations_can_throw_any_exception() {
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             interface I {

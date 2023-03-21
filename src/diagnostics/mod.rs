@@ -82,8 +82,8 @@ impl From<Warning> for Diagnostic {
     }
 }
 
-/// Additional information about a diagnostic. For example, indicating where the encoding of a Slice1 encoded Slice file
-/// was defined.
+/// Additional information about a diagnostic.
+/// For example, indicating where the encoding of a Slice1 encoded Slice file was defined.
 #[derive(Serialize, Debug, Clone)]
 pub struct Note {
     pub message: String,

@@ -107,7 +107,7 @@ impl SliceFile {
     ///
     /// If no encoding was explicitly declared, it returns the default encoding.
     ///
-    /// See [Encoding::default()](crate::grammar::Encoding::default())
+    /// See [Encoding::default()](crate::grammar::Encoding::default)
     pub fn encoding(&self) -> Encoding {
         self.encoding
             .as_ref()

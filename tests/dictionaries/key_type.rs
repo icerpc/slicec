@@ -51,11 +51,11 @@ fn allowed_primitive_types(key_type: &str) {
 #[test_case("float64", 2; "float64")]
 #[test_case("ServiceAddress", 2; "ServiceAddress")]
 #[test_case("AnyClass", 1; "AnyClass")]
-fn disallowed_primitive_types(key_type: &str, encoding_version: u8) {
+fn disallowed_primitive_types(key_type: &str, encoding: u8) {
     // Arrange
     let slice = format!(
         "
-            encoding = {encoding_version}
+            encoding = Slice{encoding}
             module Test
             typealias Dict = dictionary<{key_type}, uint8>
         "
@@ -108,17 +108,17 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     assert_parses(slice);
 }
 
-#[test_case("MyClass", "class MyClass {}", "class" ; "classes")]
-#[test_case("MyException", "exception MyException {}", "exception" ; "exceptions")]
-#[test_case("MyInterface", "interface MyInterface {}", "interface" ; "interfaces")]
-fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str) {
+#[test_case("MyClass", "class", 1; "classes")]
+#[test_case("MyException", "exception", 2; "exceptions")]
+#[test_case("MyInterface", "interface", 2; "interfaces")]
+fn disallowed_constructed_types(key_type: &str, key_kind: &str, encoding: u8) {
     // Arrange
-    let file_encoding = if key_kind == "class" { "1" } else { "2" };
     let slice = format!(
         "
-            encoding = {file_encoding}
+            encoding = Slice{encoding}
             module Test
-            {key_type_def}
+
+            {key_kind} {key_type} {{}}
             typealias Dict = dictionary<{key_type}, uint8>
         "
     );

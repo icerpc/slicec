@@ -69,10 +69,10 @@ pub enum Encoding {
 
 impl fmt::Display for Encoding {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Self::Slice1 => write!(f, "Slice1"),
-            Self::Slice2 => write!(f, "Slice2"),
-        }
+        f.write_str(match self {
+            Self::Slice1 => "Slice1",
+            Self::Slice2 => "Slice2",
+        })
     }
 }
 

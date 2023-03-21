@@ -13,7 +13,7 @@ mod tags {
     fn tagged_fields_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             class C {
                 i: int32
@@ -36,7 +36,7 @@ mod tags {
     fn tagged_parameters_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 op(myParam: tag(10) int32)
@@ -57,7 +57,7 @@ mod tags {
     fn non_tagged_optional_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 myOp(a: int32?)
@@ -80,7 +80,7 @@ mod tags {
     fn tagged_parameters_must_be_after_required_parameters() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?)
@@ -106,7 +106,7 @@ mod tags {
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             class C {}
@@ -130,7 +130,7 @@ mod tags {
     fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             class C {}

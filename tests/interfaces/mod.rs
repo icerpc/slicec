@@ -85,7 +85,7 @@ fn can_have_multiple_operation() {
 fn cannot_redefine_operations() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         interface I {

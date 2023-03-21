@@ -45,7 +45,7 @@ fn parse_file(
 
     // Parse the preprocessed text.
     let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
-    let Ok((encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
+    let Ok((file_encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return };
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
     let top_level_modules = modules
@@ -54,7 +54,7 @@ fn parse_file(
         .collect::<Vec<_>>();
 
     // Store the parsed data in the `SliceFile` it was parsed from.
-    file.encoding = encoding;
+    file.encoding = file_encoding;
     file.attributes = attributes;
     file.contents = top_level_modules;
 }

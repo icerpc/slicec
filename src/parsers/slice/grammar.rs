@@ -90,14 +90,14 @@ fn handle_file_encoding(
     (Some(encoding), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: Integer<i128>, span: Span) -> FileEncoding {
-    let version = match i.value {
-        1 => Encoding::Slice1,
-        2 => Encoding::Slice2,
-        v => {
-            Error::new(ErrorKind::InvalidEncodingVersion { encoding: v })
+fn construct_file_encoding(parser: &mut Parser, i: Identifier, span: Span) -> FileEncoding {
+    let version = match i.value.as_str() {
+        "Slice1" => Encoding::Slice1,
+        "Slice2" => Encoding::Slice2,
+        _ => {
+            Error::new(ErrorKind::InvalidEncodingVersion { encoding: i.value })
                 .set_span(&i.span)
-                .add_note("must be '1' or '2'", None)
+                .add_note("must be 'Slice1' or 'Slice2'", None)
                 .report(parser.diagnostic_reporter);
             Encoding::default() // Dummy
         }

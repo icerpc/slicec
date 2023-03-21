@@ -12,7 +12,7 @@ pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic
         diagnostic_reporter,
     };
 
-    // First, visit everything immutably to check for cycles and compute the supported encodings.
+    // First, visit everything immutably to check for cycles.
     for slice_file in slice_files.values() {
         slice_file.visit_with(&mut cycle_detector);
     }
