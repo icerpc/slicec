@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::slice_file::Span;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
@@ -7,11 +8,9 @@ mod diagnostic_reporter;
 mod errors;
 mod warnings;
 
-use crate::slice_file::Span;
-
-pub use self::diagnostic_reporter::DiagnosticReporter;
-pub use self::errors::Error;
-pub use self::warnings::Warning;
+pub use diagnostic_reporter::DiagnosticReporter;
+pub use errors::Error;
+pub use warnings::Warning;
 
 /// A diagnostic is a message that is reported to the user during compilation.
 /// It can either hold an [Error] or a [Warning].
@@ -54,12 +53,12 @@ impl Diagnostic {
         self.span.as_ref()
     }
 
-    /// Returns the [Scope] of this diagnostic if it has one.
+    /// Returns the [Scope](crate::grammar::Scope) of this diagnostic if it has one.
     pub fn scope(&self) -> Option<&String> {
         self.scope.as_ref()
     }
 
-    /// Returns any [Notes] associated with this diagnostic.
+    /// Returns any [Notes](Note) associated with this diagnostic.
     pub fn notes(&self) -> &[Note] {
         &self.notes
     }
