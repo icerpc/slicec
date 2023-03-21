@@ -92,12 +92,6 @@ impl Diagnostic {
     }
 }
 
-impl std::fmt::Display for Diagnostic {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.write_str(&self.message())
-    }
-}
-
 impl Serialize for Diagnostic {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("Diagnostic", 4)?;

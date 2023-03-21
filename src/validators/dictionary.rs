@@ -54,7 +54,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 
                 // Convert each error into a note and add it to the struct key error.
                 for e in errors {
-                    error = error.add_note(e.to_string(), e.span());
+                    error = error.add_note(e.message(), e.span());
                 }
                 return Some(error);
             }
