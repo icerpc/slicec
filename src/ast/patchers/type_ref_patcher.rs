@@ -179,14 +179,14 @@ impl TypeRefPatcher<'_> {
     {
         // If the definition is already patched, we skip the function and return `None` immediately.
         // Otherwise we retrieve the type string and try to resolve it in the ast.
-        let TypeRefDefinition::Unpatched(type_string) = &type_ref.definition else { return None; };
+        let TypeRefDefinition::Unpatched(identifier) = &type_ref.definition else { return None; };
 
         // There are 3 steps to type resolution.
         // First, lookup the type as a node in the AST.
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result = ast
-            .find_node_with_scope(type_string, type_ref.module_scope())
+            .find_node_with_scope(&identifier.value, type_ref.module_scope())
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
                 // which are resolved and erased after TypeRef patching is completed.
@@ -204,7 +204,9 @@ impl TypeRefPatcher<'_> {
             Ok(definition) => Some(definition),
             Err(err) => {
                 let mapped_error: Error = err.into();
-                mapped_error.set_span(type_ref.span()).report(self.diagnostic_reporter);
+                mapped_error
+                    .set_span(identifier.span())
+                    .report(self.diagnostic_reporter);
                 None
             }
         }
@@ -256,7 +258,7 @@ impl TypeRefPatcher<'_> {
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.
             // Otherwise we retrieve the alias' type string and try to resolve it in the ast.
-            let type_string = match &underlying_type.definition {
+            let identifier = match &underlying_type.definition {
                 TypeRefDefinition::Patched(ptr) => {
                     // Lookup the node that is being aliased in the AST, and convert it into a patch.
                     // TODO: when `T = dyn Type` we can skip this, and use `ptr.clone()` directly.
@@ -264,11 +266,11 @@ impl TypeRefPatcher<'_> {
                     let node = nodes.iter().find(|node| ptr == &<&dyn Element>::from(*node));
                     return try_into_patch(node.unwrap(), attributes);
                 }
-                TypeRefDefinition::Unpatched(s) => s,
+                TypeRefDefinition::Unpatched(identifier) => identifier,
             };
 
             // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
-            let node = ast.find_node_with_scope(type_string, underlying_type.module_scope())?;
+            let node = ast.find_node_with_scope(&identifier.value, underlying_type.module_scope())?;
             // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();

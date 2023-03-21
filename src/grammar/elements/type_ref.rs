@@ -35,7 +35,7 @@ impl<T: Element + ?Sized> TypeRef<T> {
                 Ok(new_ptr) => TypeRefDefinition::Patched(new_ptr),
                 Err(_) => return Err(()),
             },
-            TypeRefDefinition::Unpatched(s) => TypeRefDefinition::Unpatched(s.clone()),
+            TypeRefDefinition::Unpatched(identifier) => TypeRefDefinition::Unpatched(identifier.clone()),
         };
 
         Ok(TypeRef {
@@ -94,5 +94,5 @@ implement_Scoped_Symbol_for!(TypeRef<T>, Element + ?Sized);
 #[derive(Debug)]
 pub enum TypeRefDefinition<T: Element + ?Sized = dyn Type> {
     Patched(WeakPtr<T>),
-    Unpatched(String),
+    Unpatched(Identifier),
 }

@@ -557,7 +557,7 @@ where
 fn construct_unpatched_type_ref_definition(mut identifier: Identifier) -> TypeRefDefinition {
     // Remove any whitespace from the identifier so it can be looked up in the AST.
     identifier.value.retain(|c| !c.is_whitespace());
-    TypeRefDefinition::Unpatched(identifier.value)
+    TypeRefDefinition::Unpatched(identifier)
 }
 
 fn try_construct_attribute(
