@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -236,7 +236,7 @@ fn operations_can_only_throw_exceptions() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::TypeMismatch {
+    let expected = Diagnostic::new(Error::TypeMismatch {
         expected: "exception".to_owned(),
         actual: "struct".to_owned(),
         is_concrete: true,
@@ -262,13 +262,13 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::ReturnTuplesMustContainAtLeastTwoElements);
+    let expected = Diagnostic::new(Error::ReturnTuplesMustContainAtLeastTwoElements);
     check_diagnostics(diagnostics, [expected]);
 }
 
 mod streams {
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
 
     #[test]
@@ -310,10 +310,10 @@ mod streams {
 
         // Assert
         let expected = [
-            Error::new(ErrorKind::StreamedMembersMustBeLast {
+            Diagnostic::new(Error::StreamedMembersMustBeLast {
                 parameter_identifier: "s".to_owned(),
             }),
-            Error::new(ErrorKind::MultipleStreamedMembers),
+            Diagnostic::new(Error::MultipleStreamedMembers),
         ];
         check_diagnostics(diagnostics, expected);
     }
@@ -333,7 +333,7 @@ mod streams {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::StreamedMembersMustBeLast {
+        let expected = Diagnostic::new(Error::StreamedMembersMustBeLast {
             parameter_identifier: "s".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

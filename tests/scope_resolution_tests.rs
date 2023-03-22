@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod scope_resolution {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
 
     #[test]
@@ -20,7 +20,7 @@ mod scope_resolution {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+        let expected = Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
             identifier: "T".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -203,7 +203,7 @@ mod scope_resolution {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Redefinition {
+        let expected = Diagnostic::new(Error::Redefinition {
             identifier: "B".to_string(),
         })
         .add_note("'B' was previously defined here", None);
@@ -232,7 +232,7 @@ mod scope_resolution {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TypeMismatch {
+        let expected = Diagnostic::new(Error::TypeMismatch {
             expected: "Type".to_string(),
             actual: "module".to_string(),
             is_concrete: false,
@@ -255,7 +255,7 @@ mod scope_resolution {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::DoesNotExist {
+        let expected = Diagnostic::new(Error::DoesNotExist {
             identifier: "Nested::C".to_string(),
         });
         check_diagnostics(diagnostics, [expected]);

@@ -3,9 +3,8 @@
 pub mod test_helpers;
 
 mod module {
-
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -84,7 +83,7 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax {
+        let expected = Diagnostic::new(Error::Syntax {
             message: "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -106,10 +105,10 @@ mod module {
 
         // Assert
         let expected = [
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+            Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
                 identifier: "A".to_owned(),
             }),
-            Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+            Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
                 identifier: "A".to_owned(),
             }),
         ];
@@ -129,7 +128,7 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [Error::new(ErrorKind::FileScopedModuleCannotContainSubModules {
+        let expected = [Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
             identifier: "D".to_owned(),
         })];
         check_diagnostics(diagnostics, expected);
@@ -152,7 +151,7 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Redefinition {
+        let expected = Diagnostic::new(Error::Redefinition {
             identifier: "Bar".to_owned(),
         })
         .add_note("'Bar' was previously defined here", None);

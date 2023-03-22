@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -26,7 +26,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     tagged_members.sort_by_key(|member| member.tag().unwrap());
     tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            Error::new(ErrorKind::CannotHaveDuplicateTag {
+            Diagnostic::new(Error::CannotHaveDuplicateTag {
                 identifier: window[1].identifier().to_owned(),
             })
             .set_span(window[1].span())
@@ -51,12 +51,11 @@ fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut Diagnost
     parameters.iter().fold(false, |seen, parameter| match parameter.tag {
         Some(_) => true,
         None if seen => {
-            let error = ErrorKind::RequiredMustPrecedeOptional {
+            Diagnostic::new(Error::RequiredMustPrecedeOptional {
                 parameter_identifier: parameter.identifier().to_owned(),
-            };
-            Error::new(error)
-                .set_span(parameter.data_type.span())
-                .report(diagnostic_reporter);
+            })
+            .set_span(parameter.data_type.span())
+            .report(diagnostic_reporter);
             true
         }
         None => false,
@@ -70,7 +69,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
         // Compact structs cannot have tagged fields.
         for field in struct_def.fields() {
             if field.tag.is_some() {
-                Error::new(ErrorKind::CompactStructCannotContainTaggedFields)
+                Diagnostic::new(Error::CompactStructCannotContainTaggedFields)
                     .set_span(field.span())
                     .add_note(
                         format!("struct '{}' is declared compact here", struct_def.identifier()),
@@ -92,7 +91,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            Error::new(ErrorKind::TaggedMemberMustBeOptional {
+            Diagnostic::new(Error::TaggedMemberMustBeOptional {
                 identifier: member.identifier().to_owned(),
             })
             .set_span(member.span())
@@ -122,12 +121,12 @@ fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_repor
     for member in members {
         if member.is_tagged() && uses_classes(member.data_type()) {
             let identifier = member.identifier().to_owned();
-            let error_kind = if member.data_type().is_class_type() {
-                ErrorKind::CannotTagClass { identifier }
+            let error = if member.data_type().is_class_type() {
+                Error::CannotTagClass { identifier }
             } else {
-                ErrorKind::CannotTagContainingClass { identifier }
+                Error::CannotTagContainingClass { identifier }
             };
-            Error::new(error_kind)
+            Diagnostic::new(error)
                 .set_span(member.span())
                 .report(diagnostic_reporter);
         }

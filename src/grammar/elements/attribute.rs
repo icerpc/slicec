@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -125,7 +125,7 @@ impl AttributeKind {
                         let uppercase = arg.to_uppercase();
                         if Warning::all_codes().contains(&uppercase.as_str()) {
                             // The casing did not match, report an error with a note
-                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
+                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
                                 .set_span(span)
                                 .add_note(
                                     format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
@@ -134,7 +134,7 @@ impl AttributeKind {
                                 .report(reporter);
                         } else {
                             // No exact match and no casing match, report an error
-                            Error::new(ErrorKind::InvalidWarningCode { code: arg.to_owned() })
+                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
                                 .set_span(span)
                                 .report(reporter);
                         }
@@ -158,7 +158,7 @@ impl AttributeKind {
                         }),
                         _ => {
                             for arg in invalid_arguments.iter() {
-                                Error::new(ErrorKind::ArgumentNotSupported {
+                                Diagnostic::new(Error::ArgumentNotSupported {
                                     argument: arg.to_string(),
                                     directive: "compress".to_owned(),
                                 })
@@ -186,7 +186,7 @@ impl AttributeKind {
                     reason: Some(reason.to_owned()),
                 }),
                 [..] => {
-                    Error::new(ErrorKind::TooManyArguments {
+                    Diagnostic::new(Error::TooManyArguments {
                         expected: DEPRECATED.to_owned(),
                     })
                     .set_span(span)
@@ -199,7 +199,7 @@ impl AttributeKind {
             FORMAT => {
                 // Check that the format attribute has arguments
                 if arguments.is_empty() {
-                    Error::new(ErrorKind::MissingRequiredArgument {
+                    Diagnostic::new(Error::MissingRequiredArgument {
                         argument: r#"format(<arguments>)"#.to_owned(),
                     })
                     .add_note(
@@ -217,7 +217,7 @@ impl AttributeKind {
                     .filter(|arg| ClassFormat::from_str(arg).is_err())
                     .collect::<Vec<&String>>();
                 invalid_args.iter().for_each(|arg| {
-                    Error::new(ErrorKind::ArgumentNotSupported {
+                    Diagnostic::new(Error::ArgumentNotSupported {
                         argument: arg.to_string(),
                         directive: "format".to_owned(),
                     })
@@ -241,7 +241,7 @@ impl AttributeKind {
             ONEWAY => match arguments {
                 [] => Some(AttributeKind::Oneway),
                 _ => {
-                    Error::new(ErrorKind::TooManyArguments {
+                    Diagnostic::new(Error::TooManyArguments {
                         expected: ONEWAY.to_owned(),
                     })
                     .set_span(span)

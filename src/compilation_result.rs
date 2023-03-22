@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::*;
+use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
 use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
 use std::collections::HashMap;
@@ -72,9 +72,9 @@ impl CompilationData {
             let error_code = diagnostic
                 .error_code()
                 .map_or_else(String::new, |code| format!(" [{code}]"));
-            let prefix = match diagnostic {
-                Diagnostic::Error(_) => style("error".to_owned() + &error_code).red().bold(),
-                Diagnostic::Warning(_) => style("warning".to_owned() + &error_code).yellow().bold(),
+            let prefix = match &diagnostic.kind {
+                DiagnosticKind::Error(_) => style("error".to_owned() + &error_code).red().bold(),
+                DiagnosticKind::Warning(_) => style("warning".to_owned() + &error_code).yellow().bold(),
             };
             let mut message = vec![];
 

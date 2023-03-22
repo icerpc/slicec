@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use slice::slice_file::Span;
 
@@ -49,7 +49,7 @@ fn does_not_support_multiple_inheritance() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax {
+    let expected = Diagnostic::new(Error::Syntax {
         message: "expected one of '{', but found ','".to_owned(),
     })
     .set_span(&Span::new((9, 20).into(), (9, 21).into(), "string-0"));
@@ -76,7 +76,7 @@ fn field_shadowing_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Shadows {
+    let expected = Diagnostic::new(Error::Shadows {
         identifier: "i".to_owned(),
     })
     .add_note("'i' was previously defined here", None);

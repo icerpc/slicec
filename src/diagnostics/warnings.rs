@@ -1,62 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::{DiagnosticReporter, Note};
 use crate::implement_diagnostic_functions;
-use crate::slice_file::Span;
 
 #[derive(Debug)]
-pub struct Warning {
-    pub(super) kind: WarningKind,
-    pub(super) span: Option<Span>,
-    pub(super) scope: Option<String>,
-    pub(super) notes: Vec<Note>,
-}
-
-impl Warning {
-    pub fn new(kind: WarningKind) -> Self {
-        Warning {
-            kind,
-            span: None,
-            scope: None,
-            notes: Vec::new(),
-        }
-    }
-
-    pub fn set_span(mut self, span: &Span) -> Self {
-        self.span = Some(span.to_owned());
-        self
-    }
-
-    pub fn set_scope(mut self, scope: impl Into<String>) -> Self {
-        self.scope = Some(scope.into());
-        self
-    }
-
-    pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
-        self.notes.push(Note {
-            message: message.into(),
-            span: span.cloned(),
-        });
-        self
-    }
-
-    pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
-        diagnostic_reporter.report(self);
-    }
-
-    pub fn error_code(&self) -> &str {
-        self.kind.error_code()
-    }
-}
-
-impl std::fmt::Display for Warning {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.kind.message())
-    }
-}
-
-#[derive(Debug)]
-pub enum WarningKind {
+pub enum Warning {
     /// The user supplied either a reference or source file more than once.
     DuplicateFile {
         /// The path of the file that was supplied more than once.
@@ -128,67 +75,67 @@ pub enum WarningKind {
 }
 
 implement_diagnostic_functions!(
-    WarningKind,
+    Warning,
     (
         "W001",
-        WarningKind::DuplicateFile,
+        DuplicateFile,
         format!("slice file was provided more than once: '{path}'"),
         path
     ),
-    ("W002", WarningKind::DocCommentSyntax, message, message),
+    ("W002", DocCommentSyntax, message, message),
     (
         "W003",
-        WarningKind::ExtraParameterInDocComment,
+        ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
         "W004",
-        WarningKind::ExtraReturnValueInDocComment,
+        ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
         "W005",
-        WarningKind::ExtraThrowInDocComment,
+        ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
         "W006",
-        WarningKind::CouldNotResolveLink,
+        CouldNotResolveLink,
         format!("no element with identifier '{identifier}' can be found from this scope"),
         identifier
     ),
     (
         "W007",
-        WarningKind::LinkToInvalidElement,
+        LinkToInvalidElement,
         format!("elements of the type '{kind}' cannot be referenced in doc comments"),
         kind
     ),
     (
         "W008",
-        WarningKind::UseOfDeprecatedEntity,
+        UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
         "W009",
-        WarningKind::InconsequentialUseOfAttribute,
+        InconsequentialUseOfAttribute,
         format!("'{attribute}' does not have any effect on {kind}"),
         attribute,
         kind
     ),
     (
         "W010",
-        WarningKind::InvalidThrowInDocComment,
+        InvalidThrowInDocComment,
         format!("'{identifier}' is not a throwable type"),
         identifier
     ),
     (
         "W011",
-        WarningKind::OperationDoesNotThrow,
+        OperationDoesNotThrow,
         format!("operation '{identifier}' does not throw anything"),
         identifier
     )

@@ -13,7 +13,7 @@ mod tag;
 use crate::ast::node::Node;
 use crate::ast::Ast;
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use crate::visitor::Visitor;
@@ -103,7 +103,7 @@ fn validate_module_contents(data: &mut CompilationData) {
             if identifier_0.value == identifier_1.value
                 && !(matches!(window[0], Definition::Module(_)) && matches!(window[1], Definition::Module(_)))
             {
-                Error::new(ErrorKind::Redefinition {
+                Diagnostic::new(Error::Redefinition {
                     identifier: identifier_1.value.clone(),
                 })
                 .set_span(identifier_1.span())

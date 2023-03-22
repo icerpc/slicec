@@ -5,7 +5,7 @@ mod inheritance;
 mod operations;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 
 #[test]
@@ -98,7 +98,7 @@ fn cannot_redefine_operations() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Redefinition {
+    let expected = Diagnostic::new(Error::Redefinition {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);

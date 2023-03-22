@@ -6,7 +6,7 @@ pub mod parser;
 pub mod tokens;
 
 use self::tokens::{Error, ErrorKind, TokenKind};
-use crate::diagnostics::{Warning, WarningKind};
+use crate::diagnostics::{Diagnostic, Warning};
 use crate::slice_file::{Location, Span};
 
 type ParseError<'a> = lalrpop_util::ParseError<Location, TokenKind<'a>, Error<'a>>;
@@ -15,33 +15,33 @@ type ParseError<'a> = lalrpop_util::ParseError<Location, TokenKind<'a>, Error<'a
 
 /// Converts an [error](Error) that was emitted from the parser/lexer into a [warning](Warning) that
 /// can be handled by the [`DiagnosticReporter`](crate::diagnostics::DiagnosticReporter).
-fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
+fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Diagnostic {
     match parse_error {
         // A custom error we emitted; See `ErrorKind`.
         ParseError::User {
             error: (start, parse_error_kind, end),
         } => {
-            let warning_kind = match parse_error_kind {
-                ErrorKind::UnknownSymbol { symbol } => WarningKind::DocCommentSyntax {
+            let warning = match parse_error_kind {
+                ErrorKind::UnknownSymbol { symbol } => Warning::DocCommentSyntax {
                     message: format!("unknown symbol '{symbol}'"),
                 },
-                ErrorKind::UnknownTag { tag } => WarningKind::DocCommentSyntax {
+                ErrorKind::UnknownTag { tag } => Warning::DocCommentSyntax {
                     message: format!("doc comment tag '{tag}' is invalid"),
                 },
-                ErrorKind::MissingTag => WarningKind::DocCommentSyntax {
+                ErrorKind::MissingTag => Warning::DocCommentSyntax {
                     message: "missing doc comment tag".to_owned(),
                 },
-                ErrorKind::UnterminatedInlineTag => WarningKind::DocCommentSyntax {
+                ErrorKind::UnterminatedInlineTag => Warning::DocCommentSyntax {
                     message: "missing a closing '}' on an inline doc comment tag".to_owned(),
                 },
-                ErrorKind::IncorrectContextForTag { tag, is_inline } => WarningKind::DocCommentSyntax {
+                ErrorKind::IncorrectContextForTag { tag, is_inline } => Warning::DocCommentSyntax {
                     message: format!(
                         "doc comment tag '{tag}' cannot be used {}",
                         if is_inline { "inline" } else { "to start a block" },
                     ),
                 },
             };
-            Warning::new(warning_kind).set_span(&Span::new(start, end, file_name))
+            Diagnostic::new(warning).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser encountered a token that didn't fit any grammar rule.
@@ -54,13 +54,13 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Warning {
                 "expected one of {}, but found '{token_kind:?}'",
                 clean_message(&expected),
             );
-            Warning::new(WarningKind::DocCommentSyntax { message }).set_span(&Span::new(start, end, file_name))
+            Diagnostic::new(Warning::DocCommentSyntax { message }).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
-            Warning::new(WarningKind::DocCommentSyntax { message }).set_span(&Span::new(location, location, file_name))
+            Diagnostic::new(Warning::DocCommentSyntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
         _ => unreachable!("impossible error encountered in comment parser: {parse_error:?}"),

@@ -2,7 +2,7 @@
 
 use crate::ast::{Ast, LookupError, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::{DocComment, Entity, LinkDefinition, Message, MessageComponent, Symbol};
 use crate::utils::ptr_util::WeakPtr;
 
@@ -56,15 +56,15 @@ macro_rules! resolve_link {
         $self.link_patches.push(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
-                let warning_kind = match error {
-                    LookupError::DoesNotExist { identifier } => WarningKind::CouldNotResolveLink {
+                let warning = match error {
+                    LookupError::DoesNotExist { identifier } => Warning::CouldNotResolveLink {
                         identifier: identifier.to_owned(),
                     },
-                    LookupError::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement {
+                    LookupError::TypeMismatch { actual, .. } => Warning::LinkToInvalidElement {
                         kind: actual.to_owned(),
                     },
                 };
-                Warning::new(warning_kind)
+                Diagnostic::new(warning)
                     .set_span($tag.span())
                     .set_scope($entity.parser_scoped_identifier())
                     .report($self.diagnostic_reporter);

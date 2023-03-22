@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod sequences {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
 
     #[test]
@@ -44,7 +44,7 @@ mod sequences {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::KeyTypeNotSupported {
+        let expected = Diagnostic::new(Error::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

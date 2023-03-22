@@ -3,7 +3,7 @@
 pub mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::Encoding;
 
 #[test]
@@ -76,12 +76,12 @@ fn invalid_mixed_encoding_fails() {
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::UnsupportedType {
+        Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None),
-        Error::new(ErrorKind::UnsupportedType {
+        Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
             encoding: Encoding::Slice1,
         })
