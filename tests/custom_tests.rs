@@ -14,7 +14,7 @@ mod custom {
         // Arrange
         let slice = format!(
             "
-                encoding = {encoding}
+                encoding = Slice{encoding}
                 module Test
                 custom ACustomType
             "

@@ -231,8 +231,9 @@ impl EncodingPatcher<'_> {
                     span: None,
                 },
                 Note {
-                    message: "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'"
-                        .to_owned(),
+                    message:
+                        "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = Slice1'"
+                            .to_owned(),
                     span: None,
                 },
             ]

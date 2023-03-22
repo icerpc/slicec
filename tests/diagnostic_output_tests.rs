@@ -176,7 +176,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     fn notes_with_same_span_as_diagnostic_suppressed() {
         // Arrange
         let slice = "\
-            encoding = 2
+            encoding = Slice2
             module Foo
         ";
 
@@ -210,8 +210,8 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let expected = "\
 error: foo
  --> string-0:1:1\n  |
-1 | encoding = 2
-  | ------------
+1 | encoding = Slice2
+  | -----------------
 2 |             module Foo
   | -
   |

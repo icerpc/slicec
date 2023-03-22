@@ -110,7 +110,7 @@ SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
 }
 
 FileEncoding: FileEncoding = {
-    <l: @L> encoding_keyword "=" <i: Integer> <r: @R> => {
+    <l: @L> encoding_keyword "=" <i: Identifier> <r: @R> => {
         construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
     }
 }

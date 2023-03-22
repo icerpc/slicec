@@ -48,7 +48,7 @@ impl SupportedEncodings {
     /// Creates a dummy version of this struct that supports all encodings.
     /// This is used internally by the compiler to avoid emitting redundant error messages.
     ///
-    /// For example, if a class is declared in an 'encoding = 2' file, we emit an error for it,
+    /// For example, if a class is declared in an 'encoding = Slice2' file, we emit an error for it,
     /// then set its supported encodings to this dummy value. Otherwise, it wouldn't have any
     /// supported encodings, causing any types that use it to also have no supported encodings.
     /// This would lead to a cascade of spurious error messages about unsupportable types.

@@ -227,7 +227,7 @@ pub enum Error {
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion {
         /// The encoding version that was used.
-        encoding: i128,
+        encoding: String,
     },
 
     /// A file scoped module contained submodules.
