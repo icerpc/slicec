@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -23,7 +23,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
         for enumerator in enum_def.enumerators() {
             let value = enumerator.value();
             if value < 0 || value > i32::MAX as i128 {
-                Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+                Diagnostic::new(Error::EnumeratorValueOutOfBounds {
                     enumerator_identifier: enumerator.identifier().to_owned(),
                     value,
                     min: 0,
@@ -43,13 +43,13 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
                 .iter()
                 .filter(|enumerator| enumerator.value() < min || enumerator.value() > max)
                 .for_each(|enumerator| {
-                    let error = ErrorKind::EnumeratorValueOutOfBounds {
+                    let error = Error::EnumeratorValueOutOfBounds {
                         enumerator_identifier: enumerator.identifier().to_owned(),
                         value: enumerator.value(),
                         min,
                         max,
                     };
-                    Error::new(error)
+                    Diagnostic::new(error)
                         .set_span(enumerator.span())
                         .report(diagnostic_reporter);
                 });
@@ -76,7 +76,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+                Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
                     enum_identifier: enum_def.identifier().to_owned(),
                     kind: underlying_type.definition().kind().to_owned(),
                 })
@@ -95,7 +95,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and emit an error. Otherwise add the enumerator and its value to the map.
         if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value()) {
-            Error::new(ErrorKind::DuplicateEnumeratorValue {
+            Diagnostic::new(Error::DuplicateEnumeratorValue {
                 enumerator_value: enumerator.value(),
             })
             .set_span(enumerator.span())
@@ -114,7 +114,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostic_reporter: &mut Diagn
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            Error::new(ErrorKind::CannotUseOptionalUnderlyingType {
+            Diagnostic::new(Error::CannotUseOptionalUnderlyingType {
                 enum_identifier: enum_def.identifier().to_owned(),
             })
             .set_span(enum_def.span())
@@ -126,7 +126,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostic_reporter: &mut
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        Error::new(ErrorKind::MustContainEnumerators {
+        Diagnostic::new(Error::MustContainEnumerators {
             enum_identifier: enum_def.identifier().to_owned(),
         })
         .set_span(enum_def.span())

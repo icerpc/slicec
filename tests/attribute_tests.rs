@@ -7,7 +7,7 @@ mod attributes {
     mod slice_api {
 
         use crate::test_helpers::*;
-        use slice::diagnostics::{Error, ErrorKind, Warning, WarningKind};
+        use slice::diagnostics::{Diagnostic, Error, Warning};
         use slice::grammar::*;
         use test_case::test_case;
 
@@ -73,7 +73,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::MissingRequiredArgument {
+            let expected = Diagnostic::new(Error::MissingRequiredArgument {
                 argument: r#"format(<arguments>)"#.to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
@@ -95,7 +95,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::ArgumentNotSupported {
+            let expected = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: "Foo".to_owned(),
                 directive: "format".to_owned(),
             })
@@ -142,7 +142,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
+            let expected = Diagnostic::new(Error::DeprecatedAttributeCannotBeApplied {
                 kind: "parameter(s)".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
@@ -191,7 +191,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -218,7 +218,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
                 identifier: "Bar".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -243,7 +243,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: ": Message here".to_owned(),
             });
@@ -266,7 +266,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
                 identifier: "A".to_owned(),
                 deprecation_reason: "".to_owned(),
             });
@@ -311,7 +311,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::ArgumentNotSupported {
+            let expected = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: "Foo".to_owned(),
                 directive: "compress".to_owned(),
             })
@@ -339,7 +339,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::CompressAttributeCannotBeApplied);
+            let expected = Diagnostic::new(Error::CompressAttributeCannotBeApplied);
             check_diagnostics(diagnostics, [expected]);
         }
 
@@ -439,10 +439,10 @@ mod attributes {
 
             // Assert
             let expected = [
-                Error::new(ErrorKind::InvalidWarningCode {
+                Diagnostic::new(Error::InvalidWarningCode {
                     code: "W315".to_owned(),
                 }),
-                Error::new(ErrorKind::InvalidWarningCode {
+                Diagnostic::new(Error::InvalidWarningCode {
                     code: "w001".to_owned(),
                 }),
             ];
@@ -510,7 +510,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Warning::new(WarningKind::ExtraParameterInDocComment {
+            let expected = Diagnostic::new(Warning::ExtraParameterInDocComment {
                 identifier: "x".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
@@ -532,7 +532,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Error::new(ErrorKind::AttributeIsNotRepeatable {
+            let expected = Diagnostic::new(Error::AttributeIsNotRepeatable {
                 attribute: "compress".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);

@@ -4,7 +4,7 @@ mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::slice_file::Span;
 
     #[test]
@@ -196,7 +196,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             file: "string-0".to_owned(),
         };
 
-        Error::new(ErrorKind::Syntax {
+        Diagnostic::new(Error::Syntax {
             message: "foo".to_owned(),
         })
         .set_span(&span)

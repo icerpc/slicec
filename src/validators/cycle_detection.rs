@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
@@ -30,7 +30,7 @@ impl<'a> CycleDetector<'a> {
         // the dependency chain we're currently checking.
         if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {
             let cycle_string = self.dependency_stack[i..].join(" -> ");
-            Error::new(ErrorKind::InfiniteSizeCycle {
+            Diagnostic::new(Error::InfiniteSizeCycle {
                 type_id: type_id.to_string(),
                 cycle: cycle_string,
             })

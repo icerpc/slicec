@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::grammar::{Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
 
@@ -18,6 +18,7 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
+    // TODO write a real doc comment for this. Will probably change when we add warning categories.
     // The list of warnings to allow from the 'allow-warnings' flag.
     // Some([]) means allow all warnings.
     // Some([...]) means allow the specified warnings.
@@ -89,7 +90,7 @@ impl DiagnosticReporter {
         self.diagnostics.into_iter().filter(move |diagnostic| {
             let mut is_allowed = false;
 
-            if let Diagnostic::Warning(warning) = &diagnostic {
+            if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
                 let warning_code = warning.error_code().to_owned();
 
                 // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.
@@ -98,14 +99,14 @@ impl DiagnosticReporter {
                 }
 
                 // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
-                if let Some(span) = &warning.span {
+                if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
                     is_allowed |= is_warning_allowed_by_attributes(&warning_code, file.attributes(false));
                 }
 
                 // If the warning has a scope, check if it's allowed by an `allow` attribute in that
                 // scope.
-                if let Some(scope) = &warning.scope {
+                if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
                     is_allowed |= is_warning_allowed_by_attributes(&warning_code, entity.attributes(true));
                 }
@@ -114,11 +115,10 @@ impl DiagnosticReporter {
         })
     }
 
-    pub(super) fn report(&mut self, diagnostic: impl Into<Diagnostic>) {
-        let diagnostic = diagnostic.into();
-        match &diagnostic {
-            Diagnostic::Error(_) => self.error_count += 1,
-            Diagnostic::Warning(_) => self.warning_count += 1,
+    pub(super) fn report(&mut self, diagnostic: Diagnostic) {
+        match &diagnostic.kind {
+            DiagnosticKind::Error(_) => self.error_count += 1,
+            DiagnosticKind::Warning(_) => self.warning_count += 1,
         }
         self.diagnostics.push(diagnostic);
     }

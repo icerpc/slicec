@@ -3,7 +3,7 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -35,7 +35,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: value.to_owned(),
             encoding: Encoding::Slice1,
         })
@@ -77,7 +77,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
     use test_case::test_case;
 
@@ -98,7 +98,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
             encoding: Encoding::Slice2,
         })

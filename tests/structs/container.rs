@@ -3,7 +3,7 @@
 mod structs {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
 
     /// Verifies that structs can contain fields.
@@ -78,7 +78,7 @@ mod structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Redefinition {
+        let expected = Diagnostic::new(Error::Redefinition {
             identifier: "a".to_owned(),
         })
         .add_note("'a' was previously defined here", None);
@@ -90,7 +90,7 @@ mod structs {
 mod compact_structs {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     /// Verifies that compact structs must contain at least one field.
     #[test]
     fn must_not_be_empty() {
@@ -105,7 +105,7 @@ mod compact_structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CompactStructCannotBeEmpty);
+        let expected = Diagnostic::new(Error::CompactStructCannotBeEmpty);
         check_diagnostics(diagnostics, [expected]);
     }
 }
