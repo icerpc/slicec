@@ -9,7 +9,7 @@ use std::collections::VecDeque;
 
 macro_rules! patch_link {
     ($self:ident, $tag:expr) => {
-        // Get the next patch out of the iterator and set the tag's definition to it.
+        // Get the next patch out of the queue and apply it to the tag.
         if let Some(patch) = $self.link_patches.pop_front().unwrap() {
             $tag.link = TypeRefDefinition::Patched(patch);
         }
@@ -17,9 +17,9 @@ macro_rules! patch_link {
 }
 
 macro_rules! patch_entity {
-    ($patcher:expr, $entity_ptr:expr) => {{
+    ($entity_ptr:expr, $patcher:expr) => {{
         let entity_ref = $entity_ptr.borrow_mut();
-        $patcher.apply_patches_to(&entity_ref.parser_scoped_identifier(), &mut entity_ref.comment);
+        $patcher.apply_patches(&entity_ref.parser_scoped_identifier(), &mut entity_ref.comment);
     }};
 }
 
@@ -39,18 +39,18 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
     // Mutably iterate through the AST and apply all the patches in the same oder they were computed.
     for node in compilation_data.ast.as_mut_slice() {
         match node {
-            Node::Module(ptr) => patch_entity!(patcher, ptr),
-            Node::Struct(ptr) => patch_entity!(patcher, ptr),
-            Node::Class(ptr) => patch_entity!(patcher, ptr),
-            Node::Exception(ptr) => patch_entity!(patcher, ptr),
-            Node::Field(ptr) => patch_entity!(patcher, ptr),
-            Node::Interface(ptr) => patch_entity!(patcher, ptr),
-            Node::Operation(ptr) => patch_entity!(patcher, ptr),
-            Node::Parameter(ptr) => patch_entity!(patcher, ptr),
-            Node::Enum(ptr) => patch_entity!(patcher, ptr),
-            Node::Enumerator(ptr) => patch_entity!(patcher, ptr),
-            Node::CustomType(ptr) => patch_entity!(patcher, ptr),
-            Node::TypeAlias(ptr) => patch_entity!(patcher, ptr),
+            Node::Module(ptr) => patch_entity!(ptr, patcher),
+            Node::Struct(ptr) => patch_entity!(ptr, patcher),
+            Node::Class(ptr) => patch_entity!(ptr, patcher),
+            Node::Exception(ptr) => patch_entity!(ptr, patcher),
+            Node::Field(ptr) => patch_entity!(ptr, patcher),
+            Node::Interface(ptr) => patch_entity!(ptr, patcher),
+            Node::Operation(ptr) => patch_entity!(ptr, patcher),
+            Node::Parameter(ptr) => patch_entity!(ptr, patcher),
+            Node::Enum(ptr) => patch_entity!(ptr, patcher),
+            Node::Enumerator(ptr) => patch_entity!(ptr, patcher),
+            Node::CustomType(ptr) => patch_entity!(ptr, patcher),
+            Node::TypeAlias(ptr) => patch_entity!(ptr, patcher),
             _ => {} // Skip any non-entity types.
         }
     }
@@ -124,7 +124,7 @@ impl CommentLinkPatcher<'_> {
         });
     }
 
-    fn apply_patches_to(&mut self, scope: &str, comment: &mut Option<DocComment>) {
+    fn apply_patches(&mut self, scope: &str, comment: &mut Option<DocComment>) {
         if let Some(comment) = comment {
             if let Some(overview) = &mut comment.overview {
                 self.patch_links_in(&mut overview.message);
