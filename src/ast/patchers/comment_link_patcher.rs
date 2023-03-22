@@ -102,7 +102,7 @@ impl CommentLinkPatcher<'_> {
             panic!("encountered comment link that was already patched");
         };
 
-        // Look up the linked to entity in the AST.
+        // Look up the linked-to entity in the AST.
         let result = ast
             .find_node_with_scope(&identifier.value, &entity.parser_scoped_identifier())
             .and_then(<WeakPtr<dyn Entity>>::try_from);
@@ -156,15 +156,16 @@ impl CommentLinkPatcher<'_> {
     }
 
     fn patch_thrown_type(&mut self, scope: &str, tag: &mut ThrowsTag) {
-        // Get the next patch out of the iterator and set the tag's definition to it.
+        // Get the next patch out of the queue and apply it to the tag.
         if let Some(patch) = self.link_patches.pop_front().unwrap() {
+            // If the linked-to type isn't an exception report a warning and leave the link unpatched.
             match patch.downcast::<Exception>() {
                 Ok(converted_patch) => {
                     tag.thrown_type = Some(TypeRefDefinition::Patched(converted_patch));
                 }
                 Err(original_patch) => {
                     let entity = original_patch.borrow();
-                    Warning::new(WarningKind::InvalidThrowInDocComment {
+                    Diagnostic::new(Warning::InvalidThrowInDocComment {
                         identifier: entity.identifier().to_owned(),
                     })
                     .add_note(

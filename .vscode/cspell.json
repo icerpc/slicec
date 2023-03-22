@@ -6,6 +6,7 @@
     "canonicalized",
     "codepoints",
     "Commentable",
+    "deque",
     "downcasted",
     "downcasting",
     "encodable",
