@@ -79,7 +79,7 @@ ReturnsBlock: ReturnsTag = {
 ThrowsBlock: ThrowsTag = {
     <l: @L> throws_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
-        let thrown_type = identifier.map(|ident| TypeRefDefinition::Unpatched(ident));
+        let thrown_type = identifier.map(TypeRefDefinition::Unpatched);
         ThrowsTag { thrown_type, message, span }
     },
 }
