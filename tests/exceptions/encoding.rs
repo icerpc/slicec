@@ -3,7 +3,7 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
@@ -12,7 +12,7 @@ mod slice1 {
     fn can_not_be_fields() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             exception E {}
@@ -26,7 +26,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::ExceptionNotSupported {
+        let expected = Diagnostic::new(Error::ExceptionNotSupported {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
@@ -38,7 +38,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
@@ -58,7 +58,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
             kind: "exception".to_owned(),
             identifier: "B".to_owned(),
             encoding: Encoding::Slice2,
@@ -66,7 +66,7 @@ mod slice2 {
         .add_note("exception inheritance is only supported by the Slice1 encoding", None)
         .add_note("file is using the Slice2 encoding by default", None)
         .add_note(
-            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = 1'",
+            "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = Slice1'",
             None,
         );
 
@@ -97,7 +97,7 @@ mod slice2 {
     fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
         // Arrange
         let slice1 = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             exception E {
@@ -117,7 +117,7 @@ mod slice2 {
         let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
             encoding: Encoding::Slice2,
         });
@@ -139,7 +139,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
+        let expected = Diagnostic::new(Error::AnyExceptionNotSupported);
         check_diagnostics(diagnostics, [expected]);
     }
 }

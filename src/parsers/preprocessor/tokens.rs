@@ -3,7 +3,6 @@
 //! This module defines all the tokens and errors that the preprocessor [Lexer](super::lexer::Lexer) can return.
 
 use super::super::common::SourceBlock;
-use crate::diagnostics;
 use crate::slice_file::Location;
 
 pub type Token<'a> = (Location, TokenKind<'a>, Location);
@@ -56,24 +55,4 @@ pub enum ErrorKind {
     /// Ex: `#if (foo + bar)`, '+' isn't a valid operator. No suggestion will be supplied.
     /// Ex: `#if (foo & bar)`, '&' isn't valid, but '&&' is valid. The preprocessor will suggest '&&' to the user.
     UnknownSymbol { symbol: String, suggestion: Option<String> },
-}
-
-impl From<ErrorKind> for diagnostics::Error {
-    fn from(kind: ErrorKind) -> diagnostics::Error {
-        let kind = match kind {
-            ErrorKind::MissingDirective => diagnostics::ErrorKind::Syntax {
-                message: "missing preprocessor directive".to_owned(),
-            },
-            ErrorKind::UnknownDirective { keyword } => diagnostics::ErrorKind::Syntax {
-                message: format!("unknown preprocessor directive: '{keyword}'"),
-            },
-            ErrorKind::UnknownSymbol { symbol, suggestion } => diagnostics::ErrorKind::Syntax {
-                message: match suggestion {
-                    Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                    None => format!("unknown symbol '{symbol}'"),
-                },
-            },
-        };
-        diagnostics::Error::new(kind)
-    }
 }

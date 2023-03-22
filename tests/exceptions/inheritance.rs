@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use slice::slice_file::Span;
 
@@ -9,7 +9,7 @@ use slice::slice_file::Span;
 fn supports_single_inheritance() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         exception E1 {}
@@ -29,7 +29,7 @@ fn supports_single_inheritance() {
 fn does_not_support_multiple_inheritance() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         exception E1 {}
@@ -43,7 +43,7 @@ fn does_not_support_multiple_inheritance() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax {
+    let expected = Diagnostic::new(Error::Syntax {
         message: "expected one of '{', but found ','".to_owned(),
     })
     .set_span(&Span::new((9, 26).into(), (9, 27).into(), "string-0"));
@@ -55,7 +55,7 @@ fn does_not_support_multiple_inheritance() {
 fn must_inherit_from_exception() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         class C {}
@@ -67,7 +67,7 @@ fn must_inherit_from_exception() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::TypeMismatch {
+    let expected = Diagnostic::new(Error::TypeMismatch {
         expected: "exception".to_owned(),
         actual: "class".to_owned(),
         is_concrete: true,
@@ -79,7 +79,7 @@ fn must_inherit_from_exception() {
 fn field_shadowing_is_disallowed() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         exception I {
@@ -95,7 +95,7 @@ fn field_shadowing_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Shadows {
+    let expected = Diagnostic::new(Error::Shadows {
         identifier: "i".to_owned(),
     })
     .add_note("'i' was previously defined here", None);
@@ -107,7 +107,7 @@ fn field_shadowing_is_disallowed() {
 fn inherits_correct_fields() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         exception A {

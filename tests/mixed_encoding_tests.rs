@@ -3,14 +3,14 @@
 pub mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::Encoding;
 
 #[test]
 fn valid_mixed_encoding_works() {
     // Arrange
-    let encoding1_slice = "
-        encoding = 1
+    let slice1 = "
+        encoding = Slice1
         module Test
 
         compact struct ACompactStruct {
@@ -30,8 +30,8 @@ fn valid_mixed_encoding_works() {
             message: string
         }
     ";
-    let encoding2_slice = "
-        encoding = 2
+    let slice2 = "
+        encoding = Slice2
         module Test
         struct AStruct {
             e: AnEnum
@@ -42,7 +42,7 @@ fn valid_mixed_encoding_works() {
     ";
 
     // Act
-    let diagnostics = parse_multiple_for_diagnostics(&[encoding2_slice, encoding1_slice]);
+    let diagnostics = parse_multiple_for_diagnostics(&[slice2, slice1]);
 
     // Assert
     let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
@@ -52,8 +52,8 @@ fn valid_mixed_encoding_works() {
 #[test]
 fn invalid_mixed_encoding_fails() {
     // Arrange
-    let encoding2_slice = "
-        encoding = 2
+    let slice2 = "
+        encoding = Slice2
         module Test
 
         custom ACustomType
@@ -62,8 +62,8 @@ fn invalid_mixed_encoding_fails() {
             data: int32?
         }
     ";
-    let encoding1_slice = "
-        encoding = 1
+    let slice1 = "
+        encoding = Slice1
         module Test
         compact struct AStruct {
             c: ACustomType
@@ -72,16 +72,16 @@ fn invalid_mixed_encoding_fails() {
     ";
 
     // Act
-    let diagnostics = parse_multiple_for_diagnostics(&[encoding1_slice, encoding2_slice]);
+    let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::UnsupportedType {
+        Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None),
-        Error::new(ErrorKind::UnsupportedType {
+        Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
             encoding: Encoding::Slice1,
         })

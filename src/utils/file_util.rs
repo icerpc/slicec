@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::command_line::SliceOptions;
-use crate::diagnostics::{DiagnosticReporter, Error, ErrorKind, Warning, WarningKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -54,7 +54,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     for reference_file in reference_files {
         let path = reference_file.path.clone();
         if file_paths.insert(reference_file, false).is_some() {
-            Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter);
+            Diagnostic::new(Warning::DuplicateFile { path }).report(diagnostic_reporter);
         }
     }
 
@@ -69,7 +69,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         if let Some(is_source) = file_paths.insert(source_file, true) {
             // Only report an error if the file was previously a source file.
             if is_source {
-                Warning::new(WarningKind::DuplicateFile { path }).report(diagnostic_reporter);
+                Diagnostic::new(Warning::DuplicateFile { path }).report(diagnostic_reporter);
             }
         }
     }
@@ -80,7 +80,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
     for (file_path, is_source) in file_paths {
         match fs::read_to_string(&file_path.path) {
             Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, is_source)),
-            Err(error) => Error::new(ErrorKind::IO {
+            Err(error) => Diagnostic::new(Error::IO {
                 action: "read",
                 path: file_path.path,
                 error,
@@ -104,7 +104,7 @@ fn find_slice_files(
         // If the path does not exist, report an error and continue to the next path.
         if !path_buf.exists() {
             // If the path does not exist, report an error and continue.
-            Error::new(ErrorKind::IO {
+            Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io::ErrorKind::NotFound.into(),
@@ -118,7 +118,7 @@ fn find_slice_files(
             // If the path is a file, check if it is a slice file.
             // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
             let io_error = io::Error::new(io::ErrorKind::Other, "Slice files must end with a '.slice' extension");
-            Error::new(ErrorKind::IO {
+            Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io_error,
@@ -132,7 +132,7 @@ fn find_slice_files(
             // If the path is a file, check if it is a slice file.
             // TODO: It would be better to use `io::ErrorKind::InvalidFilename`, however it is an unstable feature.
             let io_error = io::Error::new(io::ErrorKind::Other, "Excepted a Slice file but found a directory.");
-            Error::new(ErrorKind::IO {
+            Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io_error,
@@ -150,7 +150,7 @@ fn find_slice_files(
         .filter_map(|path| match FilePath::try_from(&path) {
             Ok(file_path) => Some(file_path),
             Err(error) => {
-                Error::new(ErrorKind::IO {
+                Diagnostic::new(Error::IO {
                     action: "read",
                     path,
                     error,
@@ -168,7 +168,7 @@ fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticR
         // Recurse into the directory.
         match find_slice_files_in_directory(&path, diagnostic_reporter) {
             Ok(child_paths) => paths.extend(child_paths),
-            Err(error) => Error::new(ErrorKind::IO {
+            Err(error) => Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.display().to_string(),
                 error,
@@ -197,7 +197,7 @@ fn find_slice_files_in_directory(
             Ok(child) => paths.extend(find_slice_files_in_path(child.path(), diagnostic_reporter)),
             Err(error) => {
                 // If we cannot read the directory entry, report an error and continue.
-                Error::new(ErrorKind::IO {
+                Diagnostic::new(Error::IO {
                     action: "read",
                     path: path.display().to_string(),
                     error,

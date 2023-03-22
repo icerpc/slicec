@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod typealias {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
     use slice::slice_file::Span;
     use test_case::test_case;
@@ -20,11 +20,11 @@ mod typealias {
     #[test_case("", "sequence<bool>", 2; "sequences")]
     #[test_case("", "dictionary<bool, bool>", 2; "dictionaries")]
     #[test_case("typealias T = bool", "T", 2; "type aliases")]
-    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: i32) {
+    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: u8) {
         // Arrange
         let slice = format!(
             "
-                encoding = {encoding}
+                encoding = Slice{encoding}
                 module Test
                 {definition}
                 typealias Alias = {identifier}
@@ -126,7 +126,7 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TypeAliasOfOptional)
+        let expected = Diagnostic::new(Error::TypeAliasOfOptional)
             .set_span(&Span::new((3, 13).into(), (3, 27).into(), "string-0"))
             .add_note(
                 "try removing the trailing `?` modifier from its definition",
@@ -140,13 +140,13 @@ mod typealias {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case(1, "uint32"; "slice1")]
-    #[test_case(2, "AnyClass"; "slice2")]
-    fn reject_unsupported_underlying_type_encoding(encoding_version: u8, underlying_type: &str) {
+    #[test_case(1, "uint32"; "Slice1")]
+    #[test_case(2, "AnyClass"; "Slice2")]
+    fn reject_unsupported_underlying_type_encoding(encoding: u8, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
-            encoding = {encoding_version}
+            encoding = Slice{encoding}
             module Test
             typealias Foo = {underlying_type}
             "
@@ -156,9 +156,9 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnsupportedType {
+        let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
-            encoding: match encoding_version {
+            encoding: match encoding {
                 1 => Encoding::Slice1,
                 2 => Encoding::Slice2,
                 _ => panic!(),
@@ -167,13 +167,13 @@ mod typealias {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case(1, "AnyClass"; "slice1")]
-    #[test_case(2, "uint32"; "slice2")]
-    fn allow_supported_underlying_type_encoding(encoding_version: u8, underlying_type: &str) {
+    #[test_case(1, "AnyClass"; "Slice1")]
+    #[test_case(2, "uint32"; "Slice2")]
+    fn allow_supported_underlying_type_encoding(encoding: u8, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
-            encoding = {encoding_version}
+            encoding = Slice{encoding}
             module Test
             typealias Foo = {underlying_type}
             "

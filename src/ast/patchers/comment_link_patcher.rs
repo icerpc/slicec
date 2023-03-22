@@ -2,7 +2,7 @@
 
 use crate::ast::{Ast, LookupError, Node};
 use crate::compilation_result::{CompilationData, CompilationResult};
-use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use std::collections::VecDeque;
@@ -111,11 +111,11 @@ impl CommentLinkPatcher<'_> {
         self.link_patches.push_back(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
-                let warning_kind = match error {
-                    LookupError::DoesNotExist { identifier } => WarningKind::CouldNotResolveLink { identifier },
-                    LookupError::TypeMismatch { actual, .. } => WarningKind::LinkToInvalidElement { kind: actual },
+                let warning = match error {
+                    LookupError::DoesNotExist { identifier } => Warning::CouldNotResolveLink { identifier },
+                    LookupError::TypeMismatch { actual, .. } => Warning::LinkToInvalidElement { kind: actual },
                 };
-                Warning::new(warning_kind)
+                Diagnostic::new(warning)
                     .set_span(identifier.span())
                     .set_scope(entity.parser_scoped_identifier())
                     .report(self.diagnostic_reporter);

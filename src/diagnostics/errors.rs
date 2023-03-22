@@ -1,66 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::{DiagnosticReporter, Note};
 use crate::grammar::Encoding;
 use crate::implement_diagnostic_functions;
-use crate::slice_file::Span;
 use in_definite;
 
 #[derive(Debug)]
-pub struct Error {
-    pub(super) kind: ErrorKind,
-    pub(super) span: Option<Span>,
-    pub(super) notes: Vec<Note>,
-}
-
-impl Error {
-    pub fn new(kind: ErrorKind) -> Self {
-        Error {
-            kind,
-            span: None,
-            notes: Vec::new(),
-        }
-    }
-
-    pub fn span(&self) -> Option<&Span> {
-        self.span.as_ref()
-    }
-
-    pub fn set_span(mut self, span: &Span) -> Self {
-        self.span = Some(span.to_owned());
-        self
-    }
-
-    pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
-        self.notes.push(Note {
-            message: message.into(),
-            span: span.cloned(),
-        });
-        self
-    }
-
-    pub fn add_notes(mut self, notes: Vec<Note>) -> Self {
-        self.notes.extend(notes);
-        self
-    }
-
-    pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
-        diagnostic_reporter.report(self);
-    }
-
-    pub fn error_code(&self) -> Option<&str> {
-        self.kind.error_code()
-    }
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.kind.message())
-    }
-}
-
-#[derive(Debug)]
-pub enum ErrorKind {
+pub enum Error {
     // ----------------  Generic Errors ---------------- //
     IO {
         action: &'static str,
@@ -282,7 +227,7 @@ pub enum ErrorKind {
     /// An invalid Slice encoding was used.
     InvalidEncodingVersion {
         /// The encoding version that was used.
-        encoding: i128,
+        encoding: String,
     },
 
     /// A file scoped module contained submodules.
@@ -346,139 +291,139 @@ pub enum ErrorKind {
 }
 
 implement_diagnostic_functions!(
-    ErrorKind,
+    Error,
     (
-        ErrorKind::IO,
+        IO,
         format!("failed to {action} '{path}': {error}"),
         action,
         path,
         error
     ),
     (
-        ErrorKind::Syntax,
+        Syntax,
         format!("{message}"),
         message
     ),
     (
         "E001",
-        ErrorKind::CompressAttributeCannotBeApplied,
+        CompressAttributeCannotBeApplied,
         "the compress attribute can only be applied to interfaces and operations"
     ),
     (
         "E002",
-        ErrorKind::DeprecatedAttributeCannotBeApplied,
+        DeprecatedAttributeCannotBeApplied,
         format!("the deprecated attribute cannot be applied to {kind}"),
         kind
     ),
     (
         "E004",
-        ErrorKind::ArgumentNotSupported,
+        ArgumentNotSupported,
         format!("'{argument}' is not a legal argument for the '{directive}' attribute"),
         argument,
         directive
     ),
     (
         "E005",
-        ErrorKind::KeyMustBeNonOptional,
+        KeyMustBeNonOptional,
         "optional types are not valid dictionary key types"
     ),
     (
         "E006",
-        ErrorKind::StructKeyMustBeCompact,
+        StructKeyMustBeCompact,
         "structs must be compact to be used as a dictionary key type"
     ),
     (
         "E007",
-        ErrorKind::KeyTypeNotSupported,
+        KeyTypeNotSupported,
         format!("invalid dictionary key type: {kind}"),
         kind
     ),
     (
         "E008",
-        ErrorKind::StructKeyContainsDisallowedType,
+        StructKeyContainsDisallowedType,
         format!("struct '{struct_identifier}' contains fields that are not a valid dictionary key types"),
         struct_identifier
     ),
     (
         "E009",
-        ErrorKind::CannotUseOptionalUnderlyingType,
+        CannotUseOptionalUnderlyingType,
         format!("invalid enum '{enum_identifier}': enums cannot have optional underlying types"),
         enum_identifier
     ),
     (
         "E010",
-        ErrorKind::MustContainEnumerators,
+        MustContainEnumerators,
         format!("invalid enum '{enum_identifier}': enums must contain at least one enumerator"),
         enum_identifier
     ),
     (
         "E011",
-        ErrorKind::UnderlyingTypeMustBeIntegral,
+        UnderlyingTypeMustBeIntegral,
         format!("invalid enum '{enum_identifier}': underlying type '{kind}' is not supported for enums"),
         enum_identifier,
         kind
     ),
     (
         "E012",
-        ErrorKind::Redefinition,
+        Redefinition,
         format!("redefinition of '{identifier}'"),
         identifier
     ),
     (
         "E013",
-        ErrorKind::Shadows,
+        Shadows,
         format!("'{identifier}' shadows another symbol"),
         identifier
     ),
     (
         "E014",
-        ErrorKind::CannotHaveDuplicateTag,
+        CannotHaveDuplicateTag,
         format!("invalid tag on member '{identifier}': tags must be unique"),
         identifier
     ),
     (
         "E015",
-        ErrorKind::RequiredMustPrecedeOptional,
+        RequiredMustPrecedeOptional,
         format!("invalid parameter '{parameter_identifier}': required parameters must precede tagged parameters"),
         parameter_identifier
     ),
     (
         "E016",
-        ErrorKind::StreamedMembersMustBeLast,
+        StreamedMembersMustBeLast,
         format!("invalid parameter '{parameter_identifier}': only the last parameter in an operation can use the stream modifier"),
         parameter_identifier
     ),
     (
         "E017",
-        ErrorKind::ReturnTuplesMustContainAtLeastTwoElements,
+        ReturnTuplesMustContainAtLeastTwoElements,
         "return tuples must have at least 2 elements"
     ),
     (
         "E018",
-        ErrorKind::CompactStructCannotContainTaggedFields,
+        CompactStructCannotContainTaggedFields,
         "tagged fields are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
     ),
     (
         "E019",
-        ErrorKind::TaggedMemberMustBeOptional,
+        TaggedMemberMustBeOptional,
         format!("invalid tag on member '{identifier}': tagged members must be optional"),
         identifier
     ),
     (
         "E020",
-        ErrorKind::CannotTagClass,
+        CannotTagClass,
         format!("invalid tag on member '{identifier}': tagged members cannot be classes"),
         identifier
     ),
     (
         "E021",
-        ErrorKind::CannotTagContainingClass,
+        CannotTagContainingClass,
         format!("invalid tag on member '{identifier}': tagged members cannot contain classes"),
         identifier
     ),
     (
         "E022",
-        ErrorKind::TypeMismatch,
+        TypeMismatch,
         format!(
             "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
             in_definite::get_a_or_an(expected),
@@ -495,18 +440,18 @@ implement_diagnostic_functions!(
     ),
     (
         "E024",
-        ErrorKind::CompactStructCannotBeEmpty,
+        CompactStructCannotBeEmpty,
         "compact structs must be non-empty"
     ),
     (
         "E025",
-        ErrorKind::SelfReferentialTypeAliasNeedsConcreteType,
+        SelfReferentialTypeAliasNeedsConcreteType,
         format!("self-referential type alias '{identifier}' has no concrete type"),
         identifier
     ),
     (
         "E026",
-        ErrorKind::EnumeratorValueOutOfBounds,
+        EnumeratorValueOutOfBounds,
         format!(
             "invalid enumerator '{enumerator_identifier}': enumerator value '{value}' is out of bounds. The value must be between '{min}..{max}', inclusive",
         ),
@@ -514,141 +459,141 @@ implement_diagnostic_functions!(
     ),
     (
         "E027",
-        ErrorKind::TagValueOutOfBounds,
+        TagValueOutOfBounds,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
         "E028",
-        ErrorKind::DuplicateEnumeratorValue,
+        DuplicateEnumeratorValue,
         format!("enumerator values must be unique; the value '{enumerator_value}' is already in use"),
         enumerator_value
     ),
     (
         "E029",
-        ErrorKind::NotSupportedWithEncoding,
+        NotSupportedWithEncoding,
         format!("{kind} '{identifier}' is not supported by the {encoding} encoding"),
         kind, identifier, encoding
     ),
     (
         "E030",
-        ErrorKind::UnsupportedType,
+        UnsupportedType,
         format!("the type '{kind}' is not supported by the {encoding} encoding"),
         kind,
         encoding
     ),
     (
         "E031",
-        ErrorKind::ExceptionNotSupported,
+        ExceptionNotSupported,
         format!("exceptions cannot be used as a data type with the {encoding} encoding"),
         encoding
     ),
     (
         "E032",
-        ErrorKind::OptionalsNotSupported,
+        OptionalsNotSupported,
         format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
         encoding
     ),
     (
         "E033",
-        ErrorKind::StreamedParametersNotSupported,
+        StreamedParametersNotSupported,
         format!("streamed parameters are not supported by the {encoding} encoding"),
         encoding
     ),
     (
         "E034",
-        ErrorKind::UnexpectedAttribute,
+        UnexpectedAttribute,
         format!("unexpected attribute '{attribute}'"),
         attribute
     ),
     (
         "E035",
-        ErrorKind::MissingRequiredArgument,
+        MissingRequiredArgument,
         format!("missing required argument '{argument}'"),
         argument
     ),
     (
         "E036",
-        ErrorKind::TooManyArguments,
+        TooManyArguments,
         format!("too many arguments, expected '{expected}'"),
         expected
     ),
     (
         "E037",
-        ErrorKind::MissingRequiredAttribute,
+        MissingRequiredAttribute,
         format!("missing required attribute '{attribute}'"),
         attribute
     ),
     (
         "E038",
-        ErrorKind::MultipleStreamedMembers,
+        MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
         "E039",
-        ErrorKind::CompactIdOutOfBounds,
+        CompactIdOutOfBounds,
         "compact IDs must be within the range 0 <= ID <= 2147483647"
     ),
     (
         "E040",
-        ErrorKind::IntegerLiteralOverflows,
+        IntegerLiteralOverflows,
         "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
         "E041",
-        ErrorKind::InvalidIntegerLiteral,
+        InvalidIntegerLiteral,
         format!("integer literal contains illegal characters for base-{base}"),
         base
     ),
     (
         "E042",
-        ErrorKind::InvalidEncodingVersion,
+        InvalidEncodingVersion,
         format!("'{encoding}' is not a valid Slice encoding version"),
         encoding
     ),
     (
         "E043",
-        ErrorKind::MultipleEncodingVersions,
+        MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
     ),
     (
         "E044",
-        ErrorKind::FileScopedModuleCannotContainSubModules,
+        FileScopedModuleCannotContainSubModules,
         format!("file scoped module '{identifier}' cannot contain sub modules"),
         identifier
     ),
     (
         "E045",
-        ErrorKind::AnyExceptionNotSupported,
+        AnyExceptionNotSupported,
         format!("operations that throw AnyException are only supported by the Slice1 encoding")
 
     ),
     (
         "E046",
-        ErrorKind::InvalidWarningCode,
+        InvalidWarningCode,
         format!("the warning code '{code}' is not valid"),
         code
     ),
     (
         "E047",
-        ErrorKind::InfiniteSizeCycle,
+        InfiniteSizeCycle,
         format!("self-referential type {type_id} has infinite size.\n{cycle}"),
         type_id, cycle
     ),
     (
         "E049",
-        ErrorKind::DoesNotExist,
+        DoesNotExist,
         format!("no element with identifier '{identifier}' exists"),
         identifier
     ),
     (
         "E050",
-        ErrorKind::AttributeIsNotRepeatable,
+        AttributeIsNotRepeatable,
         format!("duplicate attribute '{attribute}'"),
         attribute
     ),
     (
         "E051",
-        ErrorKind::TypeAliasOfOptional,
+        TypeAliasOfOptional,
         "optional types cannot be aliased"
     )
 );

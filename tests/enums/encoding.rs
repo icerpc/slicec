@@ -3,7 +3,7 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
@@ -12,7 +12,7 @@ mod slice1 {
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             unchecked enum E : int32 {}
@@ -22,7 +22,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
             kind: "enum".to_owned(),
             identifier: "E".to_owned(),
             encoding: Encoding::Slice1,
@@ -40,7 +40,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]
@@ -80,7 +80,7 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+        let expected = Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
             enum_identifier: "E".to_owned(),
             kind: "None".to_owned(),
         });

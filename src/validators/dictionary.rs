@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -25,10 +25,10 @@ pub fn has_allowed_value_type(dictionaries: &[&Dictionary], diagnostic_reporter:
     }
 }
 
-fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
+fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        return Some(Error::new(ErrorKind::KeyMustBeNonOptional).set_span(type_ref.span()));
+        return Some(Diagnostic::new(Error::KeyMustBeNonOptional).set_span(type_ref.span()));
     }
 
     let definition = type_ref.definition();
@@ -36,7 +36,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                return Some(Error::new(ErrorKind::StructKeyMustBeCompact).set_span(type_ref.span()));
+                return Some(Diagnostic::new(Error::StructKeyMustBeCompact).set_span(type_ref.span()));
             }
 
             // Check that all the fields of the struct are also valid key types.
@@ -47,14 +47,14 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
                 .filter_map(|field| check_dictionary_key_type(field.data_type()))
                 .collect::<Vec<_>>();
             if !errors.is_empty() {
-                let mut error = Error::new(ErrorKind::StructKeyContainsDisallowedType {
+                let mut error = Diagnostic::new(Error::StructKeyContainsDisallowedType {
                     struct_identifier: struct_def.identifier().to_owned(),
                 })
                 .set_span(type_ref.span());
 
                 // Convert each error into a note and add it to the struct key error.
                 for e in errors {
-                    error = error.add_note(e.to_string(), e.span());
+                    error = error.add_note(e.message(), e.span());
                 }
                 return Some(error);
             }
@@ -74,7 +74,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Error> {
 
     if !is_valid {
         return Some(
-            Error::new(ErrorKind::KeyTypeNotSupported {
+            Diagnostic::new(Error::KeyTypeNotSupported {
                 kind: formatted_kind(definition),
             })
             .set_span(type_ref.span()),

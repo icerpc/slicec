@@ -12,7 +12,7 @@ use slice::grammar::*;
 fn support_compact_type_id() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         class C(42) {}

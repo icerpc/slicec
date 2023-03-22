@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 use std::collections::hash_map::Entry::{Occupied, Vacant};
@@ -29,7 +29,7 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
 
         match first_attribute_occurrence.entry(directive) {
             Occupied(entry) => {
-                Error::new(ErrorKind::AttributeIsNotRepeatable {
+                Diagnostic::new(Error::AttributeIsNotRepeatable {
                     attribute: directive.to_owned(),
                 })
                 .set_span(span)
@@ -50,7 +50,7 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
             .iter()
             .any(|a| matches!(a.kind, AttributeKind::Deprecated { .. }))
         {
-            Error::new(ErrorKind::DeprecatedAttributeCannotBeApplied {
+            Diagnostic::new(Error::DeprecatedAttributeCannotBeApplied {
                 kind: m.kind().to_owned() + "(s)",
             })
             .set_span(m.span())
@@ -73,7 +73,7 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
             .into_iter()
             .find(|a| matches!(a.kind, AttributeKind::Compress { .. }))
         {
-            Error::new(ErrorKind::CompressAttributeCannotBeApplied)
+            Diagnostic::new(Error::CompressAttributeCannotBeApplied)
                 .set_span(attribute.span())
                 .report(diagnostic_reporter);
         }

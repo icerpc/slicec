@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::*;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -16,7 +16,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
-            Error::new(ErrorKind::Redefinition {
+            Diagnostic::new(Error::Redefinition {
                 identifier: window[1].value.clone(),
             })
             .set_span(window[1].span())
@@ -39,7 +39,7 @@ pub fn check_for_shadowing(
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {
-                Error::new(ErrorKind::Shadows {
+                Diagnostic::new(Error::Shadows {
                     identifier: identifier.value.clone(),
                 })
                 .set_span(identifier.span())

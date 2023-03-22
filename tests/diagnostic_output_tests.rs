@@ -4,7 +4,7 @@ mod output {
 
     use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::slice_file::Span;
 
     #[test]
@@ -176,7 +176,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     fn notes_with_same_span_as_diagnostic_suppressed() {
         // Arrange
         let slice = "\
-            encoding = 2
+            encoding = Slice2
             module Foo
         ";
 
@@ -196,7 +196,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             file: "string-0".to_owned(),
         };
 
-        Error::new(ErrorKind::Syntax {
+        Diagnostic::new(Error::Syntax {
             message: "foo".to_owned(),
         })
         .set_span(&span)
@@ -210,8 +210,8 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let expected = "\
 error: foo
  --> string-0:1:1\n  |
-1 | encoding = 2
-  | ------------
+1 | encoding = Slice2
+  | -----------------
 2 |             module Foo
   | -
   |

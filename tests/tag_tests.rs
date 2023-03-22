@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod tags {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -13,7 +13,7 @@ mod tags {
     fn tagged_fields_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             class C {
                 i: int32
@@ -26,7 +26,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+        let expected = Diagnostic::new(Error::TaggedMemberMustBeOptional {
             identifier: "b".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -36,7 +36,7 @@ mod tags {
     fn tagged_parameters_must_be_optional() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 op(myParam: tag(10) int32)
@@ -47,7 +47,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TaggedMemberMustBeOptional {
+        let expected = Diagnostic::new(Error::TaggedMemberMustBeOptional {
             identifier: "myParam".to_string(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -57,7 +57,7 @@ mod tags {
     fn non_tagged_optional_types_fail() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 myOp(a: int32?)
@@ -68,7 +68,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::OptionalsNotSupported {
+        let expected = Diagnostic::new(Error::OptionalsNotSupported {
             encoding: Encoding::Slice1,
         })
         .add_note("file encoding was set to Slice1 here:", None);
@@ -80,7 +80,7 @@ mod tags {
     fn tagged_parameters_must_be_after_required_parameters() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
             interface I {
                 op(p1: int32, p2: tag(10) int32?, p3: int32, p4: int32, p5: tag(20) int32?)
@@ -92,10 +92,10 @@ mod tags {
 
         // Assert
         let expected = [
-            Error::new(ErrorKind::RequiredMustPrecedeOptional {
+            Diagnostic::new(Error::RequiredMustPrecedeOptional {
                 parameter_identifier: "p3".to_owned(),
             }),
-            Error::new(ErrorKind::RequiredMustPrecedeOptional {
+            Diagnostic::new(Error::RequiredMustPrecedeOptional {
                 parameter_identifier: "p4".to_owned(),
             }),
         ];
@@ -106,7 +106,7 @@ mod tags {
     fn cannot_tag_a_class() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             class C {}
@@ -120,7 +120,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagClass {
+        let expected = Diagnostic::new(Error::CannotTagClass {
             identifier: "c".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -130,7 +130,7 @@ mod tags {
     fn cannot_tag_a_container_that_contains_a_class() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             class C {}
@@ -148,7 +148,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotTagContainingClass {
+        let expected = Diagnostic::new(Error::CannotTagContainingClass {
             identifier: "s".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -189,7 +189,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::CannotHaveDuplicateTag {
+        let expected = Diagnostic::new(Error::CannotHaveDuplicateTag {
             identifier: "b".to_owned(),
         })
         .add_note("The member 'a' has previous used the tag value '1'", None);
@@ -232,7 +232,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TagValueOutOfBounds);
+        let expected = Diagnostic::new(Error::TagValueOutOfBounds);
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -250,7 +250,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::TagValueOutOfBounds);
+        let expected = Diagnostic::new(Error::TagValueOutOfBounds);
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -268,7 +268,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::Syntax {
+        let expected = Diagnostic::new(Error::Syntax {
             message: "expected one of '-' or 'integer literal', but found 'test string'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

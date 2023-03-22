@@ -54,7 +54,7 @@ impl<T: ?Sized> OwnedPtr<T> {
 
     pub fn downcast<U: 'static>(self) -> Result<OwnedPtr<U>, OwnedPtr<T>> {
         // Make sure that the original concrete type of this `OwnedPtr` matches the requested type.
-        // If it doesn't return an error holding the uncasted `OwnedPtr`.
+        // If it doesn't, return an error holding the uncasted `OwnedPtr`.
         if self.concrete_type_id == TypeId::of::<U>() {
             // Convert the underlying box into a raw pointer so we can forcibly cast it.
             let inner = Box::into_raw(self.data);
@@ -118,7 +118,7 @@ impl<T: ?Sized> WeakPtr<T> {
 
     pub fn downcast<U: 'static>(self) -> Result<WeakPtr<U>, WeakPtr<T>> {
         // Make sure that the original concrete type of this `WeakPtr` matches the requested type.
-        // If it doesn't return an error holding the uncasted `WeakPtr`.
+        // If it doesn't, return an error holding the uncasted `WeakPtr`.
         if self.concrete_type_id == TypeId::of::<U>() {
             // Forcibly downcast the underlying pointer to the original concrete type.
             let converted = self.data.map(|ptr| ptr as *const U);

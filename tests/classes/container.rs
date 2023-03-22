@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -10,7 +10,7 @@ use test_case::test_case;
 fn can_contain_fields() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
         class C {
             i: int32
@@ -64,7 +64,7 @@ fn cycles_are_allowed(cycle_string: &str) {
     // Arrange
     let slice = format!(
         "
-            encoding = 1
+            encoding = Slice1
             module Test
             {cycle_string}
         "
@@ -79,7 +79,7 @@ fn cycles_are_allowed(cycle_string: &str) {
 fn can_be_empty() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
         class C {}
     ";
@@ -96,7 +96,7 @@ fn can_be_empty() {
 fn cannot_redefine_fields() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
         class C {
             a: int32
@@ -108,7 +108,7 @@ fn cannot_redefine_fields() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Redefinition {
+    let expected = Diagnostic::new(Error::Redefinition {
         identifier: "a".to_string(),
     })
     .add_note("'a' was previously defined here", None);

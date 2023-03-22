@@ -203,8 +203,19 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(err) => {
-                let mapped_error: Error = err.into();
-                mapped_error
+                let mapped_error = match err {
+                    LookupError::DoesNotExist { identifier } => Error::DoesNotExist { identifier },
+                    LookupError::TypeMismatch {
+                        expected,
+                        actual,
+                        is_concrete,
+                    } => Error::TypeMismatch {
+                        expected,
+                        actual,
+                        is_concrete,
+                    },
+                };
+                Diagnostic::new(mapped_error)
                     .set_span(identifier.span())
                     .report(self.diagnostic_reporter);
                 None
@@ -219,7 +230,7 @@ impl TypeRefPatcher<'_> {
             if let Some(argument) = entity.get_deprecation(true) {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                Warning::new(WarningKind::UseOfDeprecatedEntity {
+                Diagnostic::new(Warning::UseOfDeprecatedEntity {
                     identifier: entity.identifier().to_owned(),
                     deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
                 })
@@ -297,7 +308,7 @@ impl TypeRefPatcher<'_> {
                     })
                     .collect::<Vec<Note>>();
 
-                Error::new(ErrorKind::SelfReferentialTypeAliasNeedsConcreteType {
+                Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
                     identifier: current_type_alias.module_scoped_identifier(),
                 })
                 .set_span(current_type_alias.span())
@@ -336,21 +347,4 @@ where
     &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
 {
     node.try_into().map(|ptr| (ptr, attributes))
-}
-
-impl From<LookupError> for Error {
-    fn from(error: LookupError) -> Self {
-        Error::new(match error {
-            LookupError::DoesNotExist { identifier } => ErrorKind::DoesNotExist { identifier },
-            LookupError::TypeMismatch {
-                expected,
-                actual,
-                is_concrete,
-            } => ErrorKind::TypeMismatch {
-                expected,
-                actual,
-                is_concrete,
-            },
-        })
-    }
 }

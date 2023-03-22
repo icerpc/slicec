@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{DiagnosticReporter, Warning, WarningKind};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
@@ -20,7 +20,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
         // example: @return A description of the return value.
         if !comment.returns.is_empty() && operation.return_members().is_empty() {
             for returns_tag in &comment.returns {
-                Warning::new(WarningKind::ExtraReturnValueInDocComment)
+                Diagnostic::new(Warning::ExtraReturnValueInDocComment)
                     .set_span(returns_tag.span())
                     .set_scope(operation.parser_scoped_identifier())
                     .report(diagnostic_reporter);
@@ -37,7 +37,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
                 .iter()
                 .any(|param_def| param_def.identifier() == param_tag.identifier.value)
             {
-                Warning::new(WarningKind::ExtraParameterInDocComment {
+                Diagnostic::new(Warning::ExtraParameterInDocComment {
                     identifier: param_tag.identifier.value.clone(),
                 })
                 .set_span(param_tag.span())
@@ -51,7 +51,7 @@ fn missing_parameter_comment(operation: &Operation, diagnostic_reporter: &mut Di
 fn operation_missing_throws(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         if !&comment.throws.is_empty() && matches!(operation.throws, Throws::None) {
-            Warning::new(WarningKind::OperationDoesNotThrow {
+            Diagnostic::new(Warning::OperationDoesNotThrow {
                 identifier: operation.identifier().to_owned(),
             })
             .set_span(operation.span())
@@ -66,7 +66,7 @@ fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut Diag
     if let Some(comment) = entity.comment() {
         if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
             for throws_tag in &comment.throws {
-                Warning::new(WarningKind::ExtraThrowInDocComment {
+                Diagnostic::new(Warning::ExtraThrowInDocComment {
                     kind: entity.kind().to_owned(),
                     identifier: entity.identifier().to_owned(),
                 })

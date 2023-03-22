@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use test_case::test_case;
 
@@ -65,13 +65,13 @@ fn implicit_enumerator_values_overflow_cleanly() {
 
     // Assert
     let expected = [
-        Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+        Diagnostic::new(Error::EnumeratorValueOutOfBounds {
             enumerator_identifier: "B".to_owned(),
             value: i128::MAX,
             min: -2147483648,
             max: 2147483647,
         }),
-        Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+        Diagnostic::new(Error::EnumeratorValueOutOfBounds {
             enumerator_identifier: "C".to_owned(),
             value: i128::MIN,
             min: -2147483648,
@@ -113,7 +113,7 @@ fn validate_backing_type_out_of_bounds() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+    let expected = Diagnostic::new(Error::EnumeratorValueOutOfBounds {
         enumerator_identifier: "A".to_owned(),
         value: out_of_bounds_value,
         min: -32768_i128,
@@ -159,7 +159,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::UnderlyingTypeMustBeIntegral {
+    let expected = Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
         enum_identifier: "E".to_owned(),
         kind: underlying_type.to_owned(),
     });
@@ -183,7 +183,7 @@ fn enumerator_invalid_identifiers(identifier: &str, expected_message: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Syntax {
+    let expected = Diagnostic::new(Error::Syntax {
         message: expected_message.to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -204,7 +204,7 @@ fn optional_underlying_types_fail() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::CannotUseOptionalUnderlyingType {
+    let expected = Diagnostic::new(Error::CannotUseOptionalUnderlyingType {
         enum_identifier: "E".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -226,7 +226,7 @@ fn enumerators_must_be_unique() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 1 })
+    let expected = Diagnostic::new(Error::DuplicateEnumeratorValue { enumerator_value: 1 })
         .add_note("the value was previously used by 'A' here:", None);
 
     check_diagnostics(diagnostics, [expected]);
@@ -267,7 +267,7 @@ fn checked_enums_can_not_be_empty() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::MustContainEnumerators {
+    let expected = Diagnostic::new(Error::MustContainEnumerators {
         enum_identifier: "E".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -330,20 +330,20 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::DuplicateEnumeratorValue { enumerator_value: 79 });
+    let expected = Diagnostic::new(Error::DuplicateEnumeratorValue { enumerator_value: 79 });
     check_diagnostics(diagnostics, [expected]);
 }
 
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Error, ErrorKind};
+    use slice::diagnostics::{Diagnostic, Error};
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
         // Arrange
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             enum E {
@@ -359,19 +359,19 @@ mod slice1 {
         // Assert
         const MAX_VALUE: i128 = i32::MAX as i128;
         let expected = [
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "A".to_owned(),
                 value: -1,
                 min: 0,
                 max: MAX_VALUE,
             }),
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "B".to_owned(),
                 value: -2,
                 min: 0,
                 max: MAX_VALUE,
             }),
-            Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "C".to_owned(),
                 value: -3,
                 min: 0,
@@ -387,7 +387,7 @@ mod slice1 {
         let value = i32::MAX as i128 + 1;
         let slice = format!(
             "
-                encoding = 1
+                encoding = Slice1
                 module Test
 
                 enum E {{
@@ -400,7 +400,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Error::new(ErrorKind::EnumeratorValueOutOfBounds {
+        let expected = Diagnostic::new(Error::EnumeratorValueOutOfBounds {
             enumerator_identifier: "A".to_owned(),
             value,
             min: 0,

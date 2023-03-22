@@ -1,20 +1,20 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::Encoding;
 
 #[test]
 fn operation_members_are_compatible_with_encoding() {
     // Arrange
     let slice1 = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         class C {}
     ";
     let slice2 = "
-        encoding = 2
+        encoding = Slice2
         module Test
 
         interface I {
@@ -26,7 +26,7 @@ fn operation_members_are_compatible_with_encoding() {
     let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
     // Assert
-    let expected = Error::new(ErrorKind::UnsupportedType {
+    let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
         encoding: Encoding::Slice2,
     })
@@ -49,7 +49,7 @@ fn any_exception_cannot_be_used_without_slice1() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::AnyExceptionNotSupported);
+    let expected = Diagnostic::new(Error::AnyExceptionNotSupported);
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -60,7 +60,7 @@ mod slice1 {
     #[test]
     fn operations_can_throw_any_exception() {
         let slice = "
-            encoding = 1
+            encoding = Slice1
             module Test
 
             interface I {

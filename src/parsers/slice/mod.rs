@@ -5,21 +5,38 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
-use crate::diagnostics;
+use self::tokens::{ErrorKind, TokenKind};
+use crate::diagnostics::{Diagnostic, Error};
 use crate::slice_file::{Location, Span};
 
-type ParseError<'a> = lalrpop_util::ParseError<Location, tokens::TokenKind<'a>, tokens::Error>;
+type ParseError<'a> = lalrpop_util::ParseError<Location, TokenKind<'a>, tokens::Error>;
 
 // TODO add more specific error messages for common cases.
 
-/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [error](diagnostics::Error)
-/// that can be handled by the [`DiagnosticReporter`](diagnostics::DiagnosticReporter).
-fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics::Error {
+/// Converts an [error](tokens::Error) that was emitted from the parser/lexer into an [error](Error)
+/// that can be handled by the [`DiagnosticReporter`](crate::diagnostics::DiagnosticReporter).
+fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic {
     match parse_error {
-        // A custom error we emitted; See `tokens::ErrorKind`.
+        // A custom error we emitted; See `ErrorKind`.
         ParseError::User {
             error: (start, parse_error_kind, end),
-        } => diagnostics::Error::from(parse_error_kind).set_span(&Span::new(start, end, file_name)),
+        } => {
+            let converted = match parse_error_kind {
+                ErrorKind::UnknownSymbol { symbol, suggestion } => Error::Syntax {
+                    message: match suggestion {
+                        Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
+                        None => format!("unknown symbol '{symbol}'"),
+                    },
+                },
+                ErrorKind::UnterminatedStringLiteral => Error::Syntax {
+                    message: "unterminated string literal".to_owned(),
+                },
+                ErrorKind::UnterminatedBlockComment => Error::Syntax {
+                    message: "unterminated block comment".to_owned(),
+                },
+            };
+            Diagnostic::new(converted).set_span(&Span::new(start, end, file_name))
+        }
 
         // The parser encountered a token that didn't fit any grammar rule.
         ParseError::UnrecognizedToken {
@@ -27,15 +44,13 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> diagnostics
             expected,
         } => {
             let message = format!("expected one of {}, but found '{token_kind}'", clean_message(&expected));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
-                .set_span(&Span::new(start, end, file_name))
+            Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
-            diagnostics::Error::new(diagnostics::ErrorKind::Syntax { message })
-                .set_span(&Span::new(location, location, file_name))
+            Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.

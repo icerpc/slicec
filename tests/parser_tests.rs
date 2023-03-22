@@ -3,7 +3,7 @@
 pub mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::slice_file::Span;
 
 #[test]
@@ -48,7 +48,7 @@ fn string_literals_cannot_contain_newlines() {
 
     // Assert
     let span = Span::new((2, 14).into(), (2, 24).into(), "string-0");
-    let expected = Error::new(ErrorKind::Syntax {
+    let expected = Diagnostic::new(Error::Syntax {
         message: "unterminated string literal".to_owned(),
     })
     .set_span(&span);

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Error, ErrorKind};
+use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 
 #[test]
@@ -70,7 +70,7 @@ fn supports_multiple_inheritance() {
 fn must_inherit_from_interface() {
     // Arrange
     let slice = "
-        encoding = 1
+        encoding = Slice1
         module Test
 
         class C {}
@@ -82,7 +82,7 @@ fn must_inherit_from_interface() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::TypeMismatch {
+    let expected = Diagnostic::new(Error::TypeMismatch {
         expected: "interface".to_owned(),
         actual: "class".to_owned(),
         is_concrete: true,
@@ -109,7 +109,7 @@ fn operation_shadowing_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Error::new(ErrorKind::Shadows {
+    let expected = Diagnostic::new(Error::Shadows {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);
