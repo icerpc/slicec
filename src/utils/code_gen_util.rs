@@ -57,8 +57,8 @@ pub fn format_message(message: &Message, link_formatter: impl Fn(&dyn Entity) ->
         MessageComponent::Text(text) => s + text,
         MessageComponent::Link(link_tag) => match link_tag.linked_entity() {
             // If the link is to a valid entity, run the link formatter. Otherwise just use the link's raw text.
-            Some(entity) => s + &link_formatter(entity),
-            None => s + &link_tag.link.value,
+            Ok(entity) => s + &link_formatter(entity),
+            Err(identifier) => s + &identifier.value,
         },
     })
 }

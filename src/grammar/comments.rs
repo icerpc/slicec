@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Element_for, implement_Symbol_for, Element, Entity, Identifier, Symbol};
+use crate::grammar::*;
 use crate::slice_file::Span;
-use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
 pub struct DocComment {
@@ -36,57 +35,48 @@ pub struct ReturnsTag {
 
 #[derive(Debug)]
 pub struct ThrowsTag {
-    pub identifier: Option<Identifier>,
-    pub definition: LinkDefinition,
+    pub thrown_type: Option<TypeRefDefinition<Exception>>,
     pub message: Message,
     pub span: Span,
 }
 
 impl ThrowsTag {
-    pub fn thrown_type(&self) -> Option<&dyn Entity> {
-        match &self.definition {
-            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
-            LinkDefinition::Unpatched => None,
-        }
+    pub fn thrown_type(&self) -> Option<Result<&Exception, &Identifier>> {
+        self.thrown_type.as_ref().map(|link| match link {
+            TypeRefDefinition::Patched(ptr) => Ok(ptr.borrow()),
+            TypeRefDefinition::Unpatched(identifier) => Err(identifier),
+        })
     }
 }
 
 #[derive(Debug)]
 pub struct SeeTag {
-    pub link: Identifier,
-    pub definition: LinkDefinition,
+    pub link: TypeRefDefinition<dyn Entity>,
     pub span: Span,
 }
 
 impl SeeTag {
-    pub fn linked_entity(&self) -> Option<&dyn Entity> {
-        match &self.definition {
-            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
-            LinkDefinition::Unpatched => None,
+    pub fn linked_entity(&self) -> Result<&dyn Entity, &Identifier> {
+        match &self.link {
+            TypeRefDefinition::Patched(ptr) => Ok(ptr.borrow()),
+            TypeRefDefinition::Unpatched(identifier) => Err(identifier),
         }
     }
 }
 
 #[derive(Debug)]
 pub struct LinkTag {
-    pub link: Identifier,
-    pub definition: LinkDefinition,
+    pub link: TypeRefDefinition<dyn Entity>,
     pub span: Span,
 }
 
 impl LinkTag {
-    pub fn linked_entity(&self) -> Option<&dyn Entity> {
-        match &self.definition {
-            LinkDefinition::Patched(ptr) => Some(ptr.borrow()),
-            LinkDefinition::Unpatched => None,
+    pub fn linked_entity(&self) -> Result<&dyn Entity, &Identifier> {
+        match &self.link {
+            TypeRefDefinition::Patched(ptr) => Ok(ptr.borrow()),
+            TypeRefDefinition::Unpatched(identifier) => Err(identifier),
         }
     }
-}
-
-#[derive(Debug)]
-pub enum LinkDefinition {
-    Patched(WeakPtr<dyn Entity>),
-    Unpatched,
 }
 
 #[derive(Debug)]
