@@ -10,7 +10,7 @@ use std::any::TypeId;
 #[derive(Debug)]
 pub struct OwnedPtr<T: ?Sized> {
     data: Box<T>,
-    concrete_type_id: TypeId, // TODO: For downcasting support
+    concrete_type_id: TypeId,
 }
 
 impl<T: Sized + 'static> OwnedPtr<T> {
@@ -88,7 +88,7 @@ impl<T: ?Sized> OwnedPtr<T> {
 #[derive(Debug)]
 pub struct WeakPtr<T: ?Sized> {
     data: Option<*const T>,
-    concrete_type_id: TypeId, // TODO for downcasting support
+    concrete_type_id: TypeId,
 }
 
 impl<T: ?Sized + 'static> WeakPtr<T> {
