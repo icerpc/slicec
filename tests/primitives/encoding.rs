@@ -54,7 +54,6 @@ mod slice1 {
     #[test_case("float32"; "float32")]
     #[test_case("float64"; "float64")]
     #[test_case("string"; "string")]
-    #[test_case("ServiceAddress"; "ServiceAddress")]
     #[test_case("AnyClass"; "AnyClass")]
     fn supported_types_succeed(value: &str) {
         // Arrange

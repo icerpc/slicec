@@ -49,7 +49,6 @@ fn allowed_primitive_types(key_type: &str) {
 
 #[test_case("float32", 2; "float32")]
 #[test_case("float64", 2; "float64")]
-#[test_case("ServiceAddress", 2; "ServiceAddress")]
 #[test_case("AnyClass", 1; "AnyClass")]
 fn disallowed_primitive_types(key_type: &str, encoding: u8) {
     // Arrange

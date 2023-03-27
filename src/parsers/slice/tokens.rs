@@ -60,7 +60,6 @@ pub enum TokenKind<'input> {
     Float32Keyword,        // "float32"
     Float64Keyword,        // "float64"
     StringKeyword,         // "string"
-    ServiceAddressKeyword, // "ServiceAddress"
     AnyClassKeyword,       // "AnyClass"
 
     // Other keywords
@@ -134,7 +133,6 @@ impl fmt::Display for TokenKind<'_> {
             TokenKind::Float32Keyword => "float32",
             TokenKind::Float64Keyword => "float64",
             TokenKind::StringKeyword => "string",
-            TokenKind::ServiceAddressKeyword => "ServiceAddress",
             TokenKind::AnyClassKeyword => "AnyClass",
 
             // Other keywords
