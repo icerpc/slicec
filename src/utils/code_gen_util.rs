@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-// TODO this entire file needs to be looked over again.
-
 use crate::grammar::{Encoding, Entity, Member, Message, MessageComponent};
 
 /// The context that a type is being used in while generating code. This is used primarily by the
@@ -35,19 +33,9 @@ pub fn get_bit_sequence_size<T: Member>(encoding: Encoding, members: &[&T]) -> u
 /// Takes a slice of Member references and returns two vectors. One containing the required members
 /// and the other containing the tagged members. The tagged vector is sorted by its tags.
 pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
-    let required_members = members
-        .iter()
-        .filter(|member| !member.is_tagged())
-        .cloned()
-        .collect::<Vec<_>>();
-    let mut tagged_members = members
-        .iter()
-        .filter(|member| member.is_tagged())
-        .cloned()
-        .collect::<Vec<_>>();
-    tagged_members.sort_by_key(|member| member.tag().unwrap());
-
-    (required_members, tagged_members)
+    let (mut tagged, required): (Vec<&T>, Vec<&T>) = members.iter().partition(|member| member.is_tagged());
+    tagged.sort_by_key(|member| member.tag().unwrap());
+    (required, tagged)
 }
 
 pub fn format_message(message: &Message, link_formatter: impl Fn(&dyn Entity) -> String) -> String {
