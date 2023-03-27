@@ -224,7 +224,6 @@ where
             "float32" => TokenKind::Float32Keyword,
             "float64" => TokenKind::Float64Keyword,
             "string" => TokenKind::StringKeyword,
-            "ServiceAddress" => TokenKind::ServiceAddressKeyword,
             "AnyClass" => TokenKind::AnyClassKeyword,
             "AnyException" => TokenKind::AnyExceptionKeyword,
             "compact" => TokenKind::CompactKeyword,

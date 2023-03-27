@@ -57,7 +57,6 @@ extern {
         float32_keyword => TokenKind::Float32Keyword,
         float64_keyword => TokenKind::Float64Keyword,
         string_keyword => TokenKind::StringKeyword,
-        service_address_keyword => TokenKind::ServiceAddressKeyword,
         any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
@@ -257,7 +256,6 @@ Primitive: Primitive = {
     float32_keyword => Primitive::Float32,
     float64_keyword => Primitive::Float64,
     string_keyword => Primitive::String,
-    service_address_keyword => Primitive::ServiceAddress,
     any_class_keyword => Primitive::AnyClass,
 }
 

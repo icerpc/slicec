@@ -102,7 +102,6 @@ fn clean_message(expected: &[String]) -> String {
             "float32_keyword" => tokens::TokenKind::Float32Keyword.to_string(),
             "float64_keyword" => tokens::TokenKind::Float64Keyword.to_string(),
             "string_keyword" => tokens::TokenKind::StringKeyword.to_string(),
-            "service_address_keyword" => tokens::TokenKind::ServiceAddressKeyword.to_string(),
             "any_class_keyword" => tokens::TokenKind::AnyClassKeyword.to_string(),
 
             // Other keywords

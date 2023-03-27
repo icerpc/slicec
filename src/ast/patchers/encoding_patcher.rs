@@ -153,7 +153,10 @@ impl EncodingPatcher<'_> {
                 self.get_supported_encodings_for(interface_def)
             }
             Types::Enum(enum_def) => self.get_supported_encodings_for(enum_def),
-            Types::CustomType(custom_type) => self.get_supported_encodings_for(custom_type),
+            Types::CustomType(custom_type) => {
+                allow_nullable_with_slice_1 = true;
+                self.get_supported_encodings_for(custom_type)
+            }
             Types::Sequence(sequence) => {
                 // Sequences are supported by any encoding that supports their elements.
                 self.get_supported_encodings_for_type_ref(&sequence.element_type, file_encoding, false)
@@ -170,7 +173,7 @@ impl EncodingPatcher<'_> {
                 supported_encodings
             }
             Types::Primitive(primitive) => {
-                if matches!(primitive, Primitive::ServiceAddress | Primitive::AnyClass) {
+                if *primitive == Primitive::AnyClass {
                     allow_nullable_with_slice_1 = true;
                 }
                 primitive.supported_encodings()

@@ -64,7 +64,7 @@ impl Ast {
     /// ```
     /// # use slice::ast::Ast;
     /// let ast = Ast::create();
-    /// assert_eq!(ast.as_slice().len(), 18); // Only the 18 primitives are defined.
+    /// assert_eq!(ast.as_slice().len(), 17); // Only the 17 primitives are defined.
     /// ```
     pub fn create() -> Ast {
         // Primitive types are built in to the compiler. Since they aren't defined in Slice, we 'define' them here,
@@ -87,7 +87,6 @@ impl Ast {
             Node::Primitive(OwnedPtr::new(Primitive::Float32)),
             Node::Primitive(OwnedPtr::new(Primitive::Float64)),
             Node::Primitive(OwnedPtr::new(Primitive::String)),
-            Node::Primitive(OwnedPtr::new(Primitive::ServiceAddress)),
             Node::Primitive(OwnedPtr::new(Primitive::AnyClass)),
         ];
 
@@ -108,8 +107,7 @@ impl Ast {
             ("float32".to_owned(), 13),
             ("float64".to_owned(), 14),
             ("string".to_owned(), 15),
-            ("ServiceAddress".to_owned(), 16),
-            ("AnyClass".to_owned(), 17),
+            ("AnyClass".to_owned(), 16),
         ]);
 
         Ast { elements, lookup_table }
