@@ -236,7 +236,7 @@ mod comments {
         assert_eq!(throws_tag.span.start, (5, 21).into());
         assert_eq!(throws_tag.span.end, (5, 60).into());
 
-        assert!(throws_tag.identifier.as_ref().is_none());
+        assert!(throws_tag.thrown_type().is_none());
 
         let message = &throws_tag.message;
         assert_eq!(message.len(), 2);
@@ -271,10 +271,8 @@ mod comments {
         assert_eq!(throws_tag.span.start, (7, 21).into());
         assert_eq!(throws_tag.span.end, (7, 74).into());
 
-        let identifier = throws_tag.identifier.as_ref().unwrap();
-        assert_eq!(identifier.value, "MyThrownThing");
-        assert_eq!(identifier.span.start, (7, 29).into());
-        assert_eq!(identifier.span.end, (7, 42).into());
+        let thrown_type = throws_tag.thrown_type().unwrap().unwrap();
+        assert_eq!(thrown_type.module_scoped_identifier(), "tests::MyThrownThing");
 
         let message = &throws_tag.message;
         assert_eq!(message.len(), 2);
@@ -354,9 +352,11 @@ mod comments {
         let see_tag = &see_tags[0];
         assert_eq!(see_tag.span.start, (5, 21).into());
         assert_eq!(see_tag.span.end, (5, 31).into());
-        assert_eq!(see_tag.link.value, "MySee");
-        assert_eq!(see_tag.link.span.start, (5, 26).into());
-        assert_eq!(see_tag.link.span.end, (5, 31).into());
+
+        let Err(link_identifier) = see_tag.linked_entity() else { panic!() };
+        assert_eq!(link_identifier.value, "MySee");
+        assert_eq!(link_identifier.span.start, (5, 26).into());
+        assert_eq!(link_identifier.span.end, (5, 31).into());
     }
 
     #[test_case("/* This is a block comment. */"; "block comment")]
@@ -405,7 +405,7 @@ mod comments {
         let MessageComponent::Text(text) = &message[0] else { panic!() };
         assert_eq!(text, "This comment is for ");
         let MessageComponent::Link(link) = &message[1] else { panic!() };
-        assert_eq!(link.link.value, "TestStruct");
+        assert_eq!(link.linked_entity().unwrap().identifier(), "TestStruct");
         let MessageComponent::Text(newline) = &message[2] else { panic!() };
         assert_eq!(newline, "\n");
     }

@@ -79,21 +79,22 @@ ReturnsBlock: ReturnsTag = {
 ThrowsBlock: ThrowsTag = {
     <l: @L> throws_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
-        ThrowsTag { identifier, definition: LinkDefinition::Unpatched, message, span }
+        let thrown_type = identifier.map(TypeRefDefinition::Unpatched);
+        ThrowsTag { thrown_type, message, span }
     },
 }
 
 SeeBlock: SeeTag = {
     <l: @L> see_keyword <identifier: ScopedIdentifier> <r: @R> newline => {
         let span = Span::new(l, r, comment_parser.file_name);
-        SeeTag { link: identifier, definition: LinkDefinition::Unpatched, span }
+        SeeTag { link: TypeRefDefinition::Unpatched(identifier), span }
     },
 }
 
 InlineLink: LinkTag = {
     <l: @L> link_keyword <identifier: ScopedIdentifier> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
-        LinkTag { link: identifier, definition: LinkDefinition::Unpatched, span }
+        LinkTag { link: TypeRefDefinition::Unpatched(identifier), span }
     },
 }
 
