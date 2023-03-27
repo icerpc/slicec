@@ -3,7 +3,7 @@
 use super::super::*;
 use crate::supported_encodings::SupportedEncodings;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Primitive {
     Bool,
     Int8,
