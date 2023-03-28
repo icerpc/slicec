@@ -64,7 +64,7 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
     }
 
     // Check that the emitted diagnostics match what was expected.
-    for (expect, diagnostic) in expected.into_iter().zip(diagnostics.into_iter()) {
+    for (expect, diagnostic) in expected.into_iter().zip(diagnostics) {
         let expect = expect.into();
         let mut failed = false;
 
@@ -103,7 +103,7 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
                 }
                 failed = true;
             } else {
-                for (expected_note, emitted_note) in expected_notes.iter().zip(emitted_notes.iter()) {
+                for (expected_note, emitted_note) in expected_notes.into_iter().zip(emitted_notes) {
                     // Check that the messages match.
                     if expected_note.message != emitted_note.message {
                         eprintln!("note messages didn't match:");

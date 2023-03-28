@@ -20,7 +20,7 @@ pub struct Struct {
 
 impl Struct {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(|field_ptr| field_ptr.borrow()).collect()
+        self.fields.iter().map(WeakPtr::borrow).collect()
     }
 }
 

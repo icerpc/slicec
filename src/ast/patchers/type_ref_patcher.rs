@@ -98,20 +98,20 @@ impl TypeRefPatcher<'_> {
         //
         // Each match arm is broken into 2 steps, separated by a comment. First we navigate to the TypeRefs that needs
         // patching, then we patch in its definition and any attributes it might of picked up from type aliases.
-        for (i, patch) in self.type_ref_patches.into_iter().enumerate() {
+        for (patch, element) in self.type_ref_patches.into_iter().zip(elements) {
             match patch {
                 PatchKind::BaseClass((base_class_ptr, attributes)) => {
-                    let class_ptr: &mut OwnedPtr<Class> = (&mut elements[i]).try_into().unwrap();
+                    let class_ptr: &mut OwnedPtr<Class> = element.try_into().unwrap();
                     let base_class_ref = class_ptr.borrow_mut().base.as_mut().unwrap();
                     base_class_ref.patch(base_class_ptr, attributes);
                 }
                 PatchKind::BaseException((base_exception_ptr, attributes)) => {
-                    let exception_ptr: &mut OwnedPtr<Exception> = (&mut elements[i]).try_into().unwrap();
+                    let exception_ptr: &mut OwnedPtr<Exception> = element.try_into().unwrap();
                     let base_exception_ref = exception_ptr.borrow_mut().base.as_mut().unwrap();
                     base_exception_ref.patch(base_exception_ptr, attributes);
                 }
                 PatchKind::BaseInterfaces(base_interface_patches) => {
-                    let interface_ptr: &mut OwnedPtr<Interface> = (&mut elements[i]).try_into().unwrap();
+                    let interface_ptr: &mut OwnedPtr<Interface> = element.try_into().unwrap();
                     // Ensure the number of patches is equal to the number of base interfaces.
                     debug_assert_eq!(interface_ptr.borrow().bases.len(), base_interface_patches.len());
 
@@ -123,17 +123,17 @@ impl TypeRefPatcher<'_> {
                     }
                 }
                 PatchKind::FieldType((field_type_ptr, attributes)) => {
-                    let field_ptr: &mut OwnedPtr<Field> = (&mut elements[i]).try_into().unwrap();
+                    let field_ptr: &mut OwnedPtr<Field> = element.try_into().unwrap();
                     let field_type_ref = &mut field_ptr.borrow_mut().data_type;
                     field_type_ref.patch(field_type_ptr, attributes);
                 }
                 PatchKind::ParameterType((parameter_type_ptr, attributes)) => {
-                    let parameter_ptr: &mut OwnedPtr<Parameter> = (&mut elements[i]).try_into().unwrap();
+                    let parameter_ptr: &mut OwnedPtr<Parameter> = element.try_into().unwrap();
                     let parameter_type_ref = &mut parameter_ptr.borrow_mut().data_type;
                     parameter_type_ref.patch(parameter_type_ptr, attributes);
                 }
                 PatchKind::ThrowsType((exception_type_ptr, attributes)) => {
-                    let operation_ptr: &mut OwnedPtr<Operation> = (&mut elements[i]).try_into().unwrap();
+                    let operation_ptr: &mut OwnedPtr<Operation> = element.try_into().unwrap();
                     if let Throws::Specific(throws_type_ref) = &mut operation_ptr.borrow_mut().throws {
                         throws_type_ref.patch(exception_type_ptr, attributes);
                     } else {
@@ -141,22 +141,22 @@ impl TypeRefPatcher<'_> {
                     }
                 }
                 PatchKind::EnumUnderlyingType((enum_underlying_type_ptr, attributes)) => {
-                    let enum_ptr: &mut OwnedPtr<Enum> = (&mut elements[i]).try_into().unwrap();
+                    let enum_ptr: &mut OwnedPtr<Enum> = element.try_into().unwrap();
                     let enum_underlying_type_ref = enum_ptr.borrow_mut().underlying.as_mut().unwrap();
                     enum_underlying_type_ref.patch(enum_underlying_type_ptr, attributes);
                 }
                 PatchKind::TypeAliasUnderlyingType((type_alias_underlying_type_ptr, attributes)) => {
-                    let type_alias_ptr: &mut OwnedPtr<TypeAlias> = (&mut elements[i]).try_into().unwrap();
+                    let type_alias_ptr: &mut OwnedPtr<TypeAlias> = element.try_into().unwrap();
                     let type_alias_underlying_type_ref = &mut type_alias_ptr.borrow_mut().underlying;
                     type_alias_underlying_type_ref.patch(type_alias_underlying_type_ptr, attributes);
                 }
                 PatchKind::SequenceType((element_type_ptr, attributes)) => {
-                    let sequence_ptr: &mut OwnedPtr<Sequence> = (&mut elements[i]).try_into().unwrap();
+                    let sequence_ptr: &mut OwnedPtr<Sequence> = element.try_into().unwrap();
                     let element_type_ref = &mut sequence_ptr.borrow_mut().element_type;
                     element_type_ref.patch(element_type_ptr, attributes);
                 }
                 PatchKind::DictionaryTypes(key_patch, value_patch) => {
-                    let dictionary_ptr: &mut OwnedPtr<Dictionary> = (&mut elements[i]).try_into().unwrap();
+                    let dictionary_ptr: &mut OwnedPtr<Dictionary> = element.try_into().unwrap();
                     if let Some((key_type_ptr, key_attributes)) = key_patch {
                         dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, key_attributes);
                     }
@@ -258,13 +258,7 @@ impl TypeRefPatcher<'_> {
         let mut current_type_alias = type_alias;
         loop {
             type_alias_chain.push(current_type_alias);
-            attributes.extend(
-                current_type_alias
-                    .attributes(false)
-                    .into_iter()
-                    .cloned()
-                    .collect::<Vec<Attribute>>(),
-            );
+            attributes.extend(current_type_alias.attributes.clone());
             let underlying_type = &current_type_alias.underlying;
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.

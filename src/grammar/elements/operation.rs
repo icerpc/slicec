@@ -21,27 +21,18 @@ pub struct Operation {
 
 impl Operation {
     pub fn parameters(&self) -> Vec<&Parameter> {
-        self.parameters
-            .iter()
-            .map(|parameter_ptr| parameter_ptr.borrow())
-            .collect()
+        self.parameters.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn return_members(&self) -> Vec<&Parameter> {
-        self.return_type
-            .iter()
-            .map(|parameter_ptr| parameter_ptr.borrow())
-            .collect()
+        self.return_type.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn parameters_and_return_members(&self) -> Vec<&Parameter> {
         let parameters = self.parameters.iter();
         let return_members = self.return_type.iter();
 
-        parameters
-            .chain(return_members)
-            .map(|parameter_ptr| parameter_ptr.borrow())
-            .collect()
+        parameters.chain(return_members).map(WeakPtr::borrow).collect()
     }
 
     pub fn has_non_streamed_parameters(&self) -> bool {
@@ -67,17 +58,15 @@ impl Operation {
 
     pub fn non_streamed_parameters(&self) -> Vec<&Parameter> {
         self.parameters()
-            .iter()
+            .into_iter()
             .filter(|parameter| !parameter.is_streamed)
-            .cloned()
             .collect()
     }
 
     pub fn non_streamed_return_members(&self) -> Vec<&Parameter> {
         self.return_members()
-            .iter()
-            .filter(|parameter| !parameter.is_streamed)
-            .cloned()
+            .into_iter()
+            .filter(|return_member| !return_member.is_streamed)
             .collect()
     }
 

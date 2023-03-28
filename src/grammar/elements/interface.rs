@@ -20,17 +20,14 @@ pub struct Interface {
 
 impl Interface {
     pub fn operations(&self) -> Vec<&Operation> {
-        self.operations
-            .iter()
-            .map(|operation_ptr| operation_ptr.borrow())
-            .collect()
+        self.operations.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn all_inherited_operations(&self) -> Vec<&Operation> {
         let mut operations = self
             .all_base_interfaces()
             .into_iter()
-            .flat_map(|base_interface| base_interface.operations())
+            .flat_map(Interface::operations)
             .collect::<Vec<_>>();
 
         // Filter duplicates created by diamond inheritance in-place.
@@ -52,23 +49,18 @@ impl Interface {
     }
 
     pub fn base_interfaces(&self) -> Vec<&Interface> {
-        self.bases.iter().map(|type_ref| type_ref.definition()).collect()
+        self.bases.iter().map(TypeRef::definition).collect()
     }
 
     pub fn all_base_interfaces(&self) -> Vec<&Interface> {
-        let mut bases = self.base_interfaces();
-        bases.extend(
-            self.bases
-                .iter()
-                .flat_map(|type_ref| type_ref.all_base_interfaces())
-                .collect::<Vec<_>>(),
-        );
+        let mut all_bases = self.base_interfaces();
+        all_bases.extend(self.bases.iter().flat_map(|type_ref| type_ref.all_base_interfaces()));
 
         // Filter duplicates created by diamond inheritance in-place.
         let mut seen_identifiers = std::collections::HashSet::new();
-        bases.retain(|base| seen_identifiers.insert(base.parser_scoped_identifier()));
+        all_bases.retain(|base| seen_identifiers.insert(base.parser_scoped_identifier()));
 
-        bases
+        all_bases
     }
 }
 

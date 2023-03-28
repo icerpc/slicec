@@ -37,7 +37,7 @@ impl Module {
 
 impl Contained<Module> for Module {
     fn parent(&self) -> Option<&Module> {
-        self.parent.as_ref().map(|ptr| ptr.borrow())
+        self.parent.as_ref().map(WeakPtr::borrow)
     }
 }
 

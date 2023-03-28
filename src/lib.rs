@@ -58,7 +58,7 @@ fn compile_files(files: Vec<SliceFile>, mut data: CompilationData, options: &Sli
     data.files = files.into_iter().map(|f| (f.relative_path.clone(), f)).collect();
 
     // Retrieve any preprocessor symbols defined by the compiler itself, or by the user on the command line.
-    let defined_symbols = HashSet::from_iter(options.definitions.iter().cloned());
+    let defined_symbols = HashSet::from_iter(options.definitions.clone());
 
     // There are 3 phases of compilation handled by `slicec`:
     // 1) Parse the files passed in by the user.

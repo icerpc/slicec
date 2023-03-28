@@ -262,8 +262,12 @@ impl Operation {
     /// the contents of the operation, and finally calls `visitor.visit_operation_end`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_operation_start(self);
-        self.parameters.iter().for_each(|p| p.borrow().visit_with(visitor));
-        self.return_type.iter().for_each(|m| m.borrow().visit_with(visitor));
+        for parameter in &self.parameters {
+            parameter.borrow().visit_with(visitor)
+        }
+        for return_member in &self.return_type {
+            return_member.borrow().visit_with(visitor)
+        }
         visitor.visit_operation_end(self);
     }
 }

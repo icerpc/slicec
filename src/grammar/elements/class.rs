@@ -21,14 +21,11 @@ pub struct Class {
 
 impl Class {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(|field_ptr| field_ptr.borrow()).collect()
+        self.fields.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn all_inherited_fields(&self) -> Vec<&Field> {
-        self.base_class()
-            .iter()
-            .flat_map(|base_class| base_class.fields())
-            .collect::<Vec<_>>()
+        self.base_class().map(Class::fields).unwrap_or_default()
     }
 
     pub fn all_fields(&self) -> Vec<&Field> {
