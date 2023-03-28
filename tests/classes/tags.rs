@@ -13,7 +13,7 @@ fn can_contain_tags() {
         class C {
             i: int32
             s: string
-            b: tag(10) bool?
+            tag(10) b: bool?
         }
     ";
 

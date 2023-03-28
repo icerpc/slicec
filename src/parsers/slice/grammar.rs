@@ -366,7 +366,8 @@ fn construct_parameter(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
     identifier: Identifier,
-    (is_streamed, tag): (bool, Option<Integer<u32>>),
+    tag: Option<Integer<u32>>,
+    is_streamed: bool,
     data_type: TypeRef,
     span: Span,
 ) -> OwnedPtr<Parameter> {
@@ -387,7 +388,8 @@ fn construct_parameter(
 
 fn construct_single_return_type(
     parser: &Parser,
-    (is_streamed, tag): (bool, Option<Integer<u32>>),
+    tag: Option<Integer<u32>>,
+    is_streamed: bool,
     data_type: TypeRef,
     span: Span,
 ) -> Vec<OwnedPtr<Parameter>> {

@@ -50,7 +50,7 @@ fn can_contain_tags() {
         module Test
 
         interface I {
-            op(a: tag(1) int32?)
+            op(tag(1) a: int32?)
         }
     ";
 
@@ -70,7 +70,7 @@ fn parameter_and_return_can_have_the_same_tag() {
         module Test
 
         interface I {
-            op(a: tag(1) int32?) -> tag(1) string?
+            op(tag(1) a: int32?) -> tag(1) string?
         }
     ";
 
