@@ -20,14 +20,11 @@ pub struct Exception {
 
 impl Exception {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(|field_ptr| field_ptr.borrow()).collect()
+        self.fields.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn all_inherited_fields(&self) -> Vec<&Field> {
-        self.base_exception()
-            .iter()
-            .flat_map(|base_exception| base_exception.fields())
-            .collect::<Vec<_>>()
+        self.base_exception().map(Exception::fields).unwrap_or_default()
     }
 
     pub fn all_fields(&self) -> Vec<&Field> {
@@ -41,7 +38,7 @@ impl Exception {
     }
 
     pub fn base_exception(&self) -> Option<&Exception> {
-        self.base.as_ref().map(|type_ref| type_ref.definition())
+        self.base.as_ref().map(TypeRef::definition)
     }
 }
 

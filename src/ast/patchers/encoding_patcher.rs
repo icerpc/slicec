@@ -203,12 +203,12 @@ impl EncodingPatcher<'_> {
                 errors.push(error);
             }
 
-            errors.into_iter().for_each(|error| {
+            for error in errors {
                 Diagnostic::new(error)
                     .set_span(type_ref.span())
                     .add_notes(self.get_file_encoding_mismatch_notes(type_ref))
                     .report(self.diagnostic_reporter);
-            });
+            }
 
             // Return a dummy value that supports all encodings, instead of the real result.
             // Otherwise everything that uses this type will also not be supported by the file's

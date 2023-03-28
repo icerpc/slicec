@@ -87,7 +87,7 @@ impl CompilationData {
             }
 
             // If the diagnostic contains notes, display them.
-            diagnostic.notes().iter().for_each(|note| {
+            for note in diagnostic.notes() {
                 message.push(format!(
                     "    {} {}: {:}",
                     style("=").blue().bold(),
@@ -100,7 +100,7 @@ impl CompilationData {
                         Self::append_snippet(&mut message, span, &self.files)
                     }
                 }
-            });
+            }
             writeln!(writer, "{}", message.join("\n"))?;
         }
         Self::output_counts(counts)

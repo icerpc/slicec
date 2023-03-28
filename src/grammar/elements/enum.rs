@@ -21,10 +21,7 @@ pub struct Enum {
 
 impl Enum {
     pub fn enumerators(&self) -> Vec<&Enumerator> {
-        self.enumerators
-            .iter()
-            .map(|enumerator_ptr| enumerator_ptr.borrow())
-            .collect()
+        self.enumerators.iter().map(WeakPtr::borrow).collect()
     }
 
     pub fn get_min_max_values(&self) -> Option<(i128, i128)> {
@@ -46,9 +43,7 @@ impl Type for Enum {
     }
 
     fn fixed_wire_size(&self) -> Option<u32> {
-        self.underlying
-            .as_ref()
-            .and_then(|underlying| underlying.fixed_wire_size())
+        self.underlying.as_ref().and_then(TypeRef::fixed_wire_size)
     }
 
     fn is_class_type(&self) -> bool {

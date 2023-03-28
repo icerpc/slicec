@@ -51,7 +51,7 @@ fn parse_file(
     let top_level_modules = modules
         .into_iter()
         .map(|module| ast.add_named_element(module))
-        .collect::<Vec<_>>();
+        .collect();
 
     // Store the parsed data in the `SliceFile` it was parsed from.
     file.encoding = file_encoding;
