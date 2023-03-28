@@ -156,7 +156,7 @@ Class: OwnedPtr<Class> = {
 }
 
 Field: OwnedPtr<Field> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <t: Tag?> <tr: TypeRef> <r: @R> => {
+    <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <tr: TypeRef> <r: @R> => {
         construct_field(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
     }
 }
@@ -174,14 +174,14 @@ Operation: OwnedPtr<Operation> = {
 }
 
 Parameter: OwnedPtr<Parameter> = {
-    <p: Prelude> <l: @L> <i: Identifier> ":" <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
-        construct_parameter(parser, p, i, pm, tr, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
+        construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name))
     }
 }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {
-    <l: @L> <pm: ParameterModifier> <tr: TypeRef> <r: @R> => {
-        construct_single_return_type(parser, pm, tr, Span::new(l, r, parser.file_name))
+    <l: @L> <t: Tag?> <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
+        construct_single_return_type(parser, t, s.is_some(), tr, Span::new(l, r, parser.file_name))
     },
     <l: @L> "(" <ps: UndelimitedList<Parameter>> ")" <r: @R> => {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
@@ -195,12 +195,6 @@ ExceptionSpecification: Throws = {
         Throws::Specific(exception)
     },
     throws_keyword any_exception_keyword => Throws::AnyException,
-}
-
-ParameterModifier: (bool, Option<Integer<u32>>) = {
-    => (false, None),
-    stream_keyword => (true, None),
-    Tag => (false, Some(<>)),
 }
 
 Enum: OwnedPtr<Enum> = {

@@ -14,7 +14,7 @@ mod structs {
             struct S {
                 i: int32
                 s: string
-                b: tag(10) bool?
+                tag(10) b: bool?
             }
         ";
 
@@ -41,7 +41,7 @@ mod compact_structs {
             compact struct S {
                 i: int32
                 s: string
-                b: tag(10) bool?
+                tag(10) b: bool?
             }
         ";
 

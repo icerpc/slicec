@@ -53,9 +53,9 @@ mod output {
             /// @param x: this is an x
             op1()
 
-            op2(x:
-    tag(1)
-                    int32, y: tag(2) bool?,
+            op2(tag(1)
+    x:
+                    int32, tag(2) y: bool?,
             )
         }
 
@@ -87,11 +87,11 @@ warning [W003]: doc comment has a param tag for 'x', but there is no parameter b
 error [E019]: invalid tag on member 'x': tagged members must be optional
  --> string-0:8:17
    |
-8  |             op2(x:
-   |                 --
-9  |     tag(1)
-   | ----------
-10 |                     int32, y: tag(2) bool?,
+8  |             op2(tag(1)
+   |                 ------
+9  |     x:
+   | ------
+10 |                     int32, tag(2) y: bool?,
    | -------------------------
    |
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
