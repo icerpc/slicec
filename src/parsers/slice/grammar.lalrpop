@@ -94,12 +94,12 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>) = {
+pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Vec<OwnedPtr<Module>>) = {
     <sfp: SliceFilePrelude> <flm: FileScopedModule> => (sfp.0, sfp.1, vec![flm]),
     <sfp: SliceFilePrelude> <ms: Module*> => (sfp.0, sfp.1, ms),
 }
 
-SliceFilePrelude: (Option<FileEncoding>, Vec<Attribute>) = {
+SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
     => (None, Vec::new()),
     <sfp: SliceFilePrelude> <fe: FileEncoding> => handle_file_encoding(parser, sfp, fe),
     <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
@@ -271,7 +271,7 @@ FileAttribute = "[[" <Attribute> "]]";
 
 LocalAttribute = "[" <Attribute> "]";
 
-Attribute: Attribute = {
+Attribute: WeakPtr<Attribute> = {
     <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
         try_construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
     }
@@ -325,7 +325,7 @@ CompactId: Integer<u32> = {
     }
 }
 
-Prelude: (Vec<(&'input str, Span)>, Vec<Attribute>) = {
+Prelude: (Vec<(&'input str, Span)>, Vec<WeakPtr<Attribute>>) = {
     => (Vec::new(), Vec::new()),
     <mut prelude: Prelude> <l: @L> <comment: doc_comment> <r: @R> => {
         prelude.0.push((comment, Span::new(l, r, parser.file_name)));

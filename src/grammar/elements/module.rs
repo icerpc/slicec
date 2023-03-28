@@ -11,7 +11,7 @@ pub struct Module {
     pub is_file_scoped: bool,
     pub parent: Option<WeakPtr<Module>>,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
 }

@@ -75,9 +75,9 @@ type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 fn handle_file_encoding(
     parser: &mut Parser,
-    (old_encoding, attributes): (Option<FileEncoding>, Vec<Attribute>),
+    (old_encoding, attributes): (Option<FileEncoding>, Vec<WeakPtr<Attribute>>),
     encoding: FileEncoding,
-) -> (Option<FileEncoding>, Vec<Attribute>) {
+) -> (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) {
     // The file encoding can only be set once.
     if let Some(old_file_encoding) = old_encoding {
         let old_span = old_file_encoding.span();
@@ -107,7 +107,7 @@ fn construct_file_encoding(parser: &mut Parser, i: Identifier, span: Span) -> Fi
 
 fn construct_module(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     definitions: Vec<Node>,
     is_file_scoped: bool,
@@ -176,7 +176,7 @@ fn construct_module(
 
 fn construct_struct(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     is_compact: bool,
     identifier: Identifier,
     fields: Vec<OwnedPtr<Field>>,
@@ -203,7 +203,7 @@ fn construct_struct(
 
 fn construct_exception(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     base_type: Option<TypeRef>,
     fields: Vec<OwnedPtr<Field>>,
@@ -232,7 +232,7 @@ fn construct_exception(
 
 fn construct_class(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     compact_id: Option<Integer<u32>>,
     base_type: Option<TypeRef>,
@@ -263,7 +263,7 @@ fn construct_class(
 
 pub fn construct_field(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     tag: Option<Integer<u32>>,
     data_type: TypeRef,
@@ -284,7 +284,7 @@ pub fn construct_field(
 
 fn construct_interface(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     bases: Option<Vec<TypeRef>>,
     operations: Vec<OwnedPtr<Operation>>,
@@ -318,7 +318,7 @@ fn construct_interface(
 #[allow(clippy::too_many_arguments)]
 fn construct_operation(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     is_idempotent: bool,
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
@@ -364,7 +364,7 @@ fn construct_operation(
 
 fn construct_parameter(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     tag: Option<Integer<u32>>,
     is_streamed: bool,
@@ -423,7 +423,7 @@ fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter
 
 fn construct_enum(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     is_unchecked: bool,
     identifier: Identifier,
     underlying_type: Option<TypeRef>,
@@ -457,7 +457,7 @@ fn construct_enum(
 
 fn construct_enumerator(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     enumerator_value: Option<Integer<i128>>,
     span: Span,
@@ -488,7 +488,7 @@ fn construct_enumerator(
 
 fn construct_custom_type(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     span: Span,
 ) -> OwnedPtr<CustomType> {
@@ -506,7 +506,7 @@ fn construct_custom_type(
 
 fn construct_type_alias(
     parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
+    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     underlying: TypeRef,
     span: Span,
@@ -526,7 +526,7 @@ fn construct_type_alias(
 
 fn construct_type_ref(
     parser: &Parser,
-    attributes: Vec<Attribute>,
+    attributes: Vec<WeakPtr<Attribute>>,
     definition: TypeRefDefinition,
     is_optional: bool,
     span: Span,
@@ -567,13 +567,13 @@ fn try_construct_attribute(
     directive: Identifier,
     arguments: Option<Vec<String>>,
     span: Span,
-) -> Attribute {
-    Attribute::new(
+) -> WeakPtr<Attribute> {
+    parser.ast.add_element(OwnedPtr::new(Attribute::new(
         parser.diagnostic_reporter,
         &directive.value,
         arguments.unwrap_or_default(),
         span,
-    )
+    )))
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {

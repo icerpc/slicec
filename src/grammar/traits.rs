@@ -167,7 +167,7 @@ macro_rules! implement_Attributable_for {
     ($type:ty) => {
         impl Attributable for $type {
             fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
-                let mut attributes = self.attributes.iter().collect::<Vec<_>>();
+                let mut attributes = self.attributes.iter().map(WeakPtr::borrow).collect::<Vec<_>>();
 
                 if include_parent {
                     if let Some(parent) = self.parent() {

@@ -5,7 +5,7 @@ use super::lexer::Lexer;
 use crate::ast::Ast;
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
-use crate::utils::ptr_util::OwnedPtr;
+use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 
 /// Helper macro for generating parsing functions.
 macro_rules! implement_parse_function {
@@ -38,7 +38,7 @@ impl<'a> Parser<'a> {
     implement_parse_function!(
         parse_slice_file,
         SliceFileParser,
-        (Option<FileEncoding>, Vec<Attribute>, Vec<OwnedPtr<Module>>),
+        (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Vec<OwnedPtr<Module>>),
     );
 
     pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {

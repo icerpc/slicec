@@ -14,7 +14,7 @@ pub struct Operation {
     pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
 }
