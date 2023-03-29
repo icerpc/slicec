@@ -117,8 +117,8 @@ impl Ast {
     /// The identifier must be globally scoped, since this method performs no scope resolution.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. While it is possible to look up modules, it is
-    /// unreliable and shouldn't be done, since module identifiers aren't necessarily unique.
+    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
@@ -168,8 +168,8 @@ impl Ast {
     /// specified identifier, it is shadowed, and will not be returned.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. While it is possible to look up modules, it is
-    /// unreliable and shouldn't be done, since module identifiers aren't necessarily unique.
+    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
@@ -221,8 +221,8 @@ impl Ast {
     /// The identifier must be globally scoped, since this method performs no scope resolution.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. While it is possible to look up modules, it is
-    /// unreliable and shouldn't be done, since module identifiers aren't necessarily unique.
+    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
     /// # Returns
     ///
@@ -275,8 +275,8 @@ impl Ast {
     /// the specified identifier, it is shadowed, and will not be returned.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. While it is possible to look up modules, it is
-    /// unreliable and shouldn't be done, since module identifiers aren't necessarily unique.
+    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
     /// # Returns
     ///
