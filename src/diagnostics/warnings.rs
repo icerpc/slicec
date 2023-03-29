@@ -53,14 +53,6 @@ pub enum Warning {
         deprecation_reason: String,
     },
 
-    /// The user applied an attribute on a type that will result in no changes.
-    InconsequentialUseOfAttribute {
-        /// The attribute that was applied.
-        attribute: String,
-        /// The entity the user applied the attribute to.
-        kind: String,
-    },
-
     /// The doc comment indicated that the operation should throw an invalid type.
     InvalidThrowInDocComment {
         /// The identifier of the type that was indicated to throw.
@@ -119,13 +111,6 @@ implement_diagnostic_functions!(
         format!("'{identifier}' is deprecated {deprecation_reason}"),
         identifier,
         deprecation_reason
-    ),
-    (
-        "W009",
-        InconsequentialUseOfAttribute,
-        format!("'{attribute}' does not have any effect on {kind}"),
-        attribute,
-        kind
     ),
     (
         "W010",

@@ -45,18 +45,20 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
 
 /// Validates that the `deprecated` attribute cannot be applied to parameters.
 fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
-    parameters.iter().for_each(|m| {
-        if m.attributes(false)
-            .iter()
-            .any(|a| matches!(a.kind, AttributeKind::Deprecated { .. }))
-        {
-            Diagnostic::new(Error::DeprecatedAttributeCannotBeApplied {
-                kind: m.kind().to_owned() + "(s)",
+    for parameter in parameters {
+        let deprecated = parameter
+            .attributes(false)
+            .into_iter()
+            .find(|a| matches!(a.kind, AttributeKind::Deprecated { .. }));
+        if let Some(attribute) = deprecated {
+            Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "deprecated".to_owned(),
             })
-            .set_span(m.span())
+            .set_span(attribute.span())
+            .add_note("individual parameters cannot be deprecated", None)
             .report(diagnostic_reporter)
-        };
-    });
+        }
+    }
 }
 
 /// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
@@ -73,9 +75,15 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
             .into_iter()
             .find(|a| matches!(a.kind, AttributeKind::Compress { .. }))
         {
-            Diagnostic::new(Error::CompressAttributeCannotBeApplied)
-                .set_span(attribute.span())
-                .report(diagnostic_reporter);
+            Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "compress".to_owned(),
+            })
+            .set_span(attribute.span())
+            .add_note(
+                "the compress attribute can only be applied to interfaces and operations",
+                None,
+            )
+            .report(diagnostic_reporter);
         }
     }
 }
