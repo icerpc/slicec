@@ -17,16 +17,6 @@ pub enum Error {
         message: String,
     },
 
-    // ----------------  Attribute Errors ---------------- //
-    /// Used to indicate when the compress attribute cannot be applied.
-    CompressAttributeCannotBeApplied,
-
-    /// Used to indicate when the deprecated attribute cannot be applied.
-    DeprecatedAttributeCannotBeApplied {
-        /// The kind which the deprecated attribute was applied to.
-        kind: String,
-    },
-
     // ---------------- Dictionary Errors ---------------- //
     /// Dictionaries cannot use optional types as keys.
     KeyMustBeNonOptional,
@@ -303,17 +293,6 @@ implement_diagnostic_functions!(
         Syntax,
         format!("{message}"),
         message
-    ),
-    (
-        "E001",
-        CompressAttributeCannotBeApplied,
-        "the compress attribute can only be applied to interfaces and operations"
-    ),
-    (
-        "E002",
-        DeprecatedAttributeCannotBeApplied,
-        format!("the deprecated attribute cannot be applied to {kind}"),
-        kind
     ),
     (
         "E004",

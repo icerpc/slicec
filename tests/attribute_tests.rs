@@ -9,6 +9,7 @@ mod attributes {
         use crate::test_helpers::*;
         use slice::diagnostics::{Diagnostic, Error, Warning};
         use slice::grammar::*;
+        use slice::slice_file::Span;
         use test_case::test_case;
 
         #[test_case("Compact", ClassFormat::Compact ; "Compact")]
@@ -142,9 +143,12 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::DeprecatedAttributeCannotBeApplied {
-                kind: "parameter(s)".to_owned(),
-            });
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "deprecated".to_owned(),
+            })
+            .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
+            .add_note("individual parameters cannot be deprecated", None);
+
             check_diagnostics(diagnostics, [expected]);
         }
 
@@ -339,7 +343,15 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::CompressAttributeCannotBeApplied);
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "compress".to_owned(),
+            })
+            .set_span(&Span::new((4, 18).into(), (4, 28).into(), "string-0"))
+            .add_note(
+                "the compress attribute can only be applied to interfaces and operations",
+                None,
+            );
+
             check_diagnostics(diagnostics, [expected]);
         }
 
