@@ -245,6 +245,12 @@ pub enum Error {
         identifier: String,
     },
 
+    /// A doc comment was written on a element that does not support doc comments.
+    DocCommentNotSupported {
+        /// The kind of element the doc comment was applied to.
+        kind: String,
+    },
+
     // ----------------  Attribute Errors ---------------- //
     /// An invalid argument was provided to an attribute directive.
     ArgumentNotSupported {
@@ -574,5 +580,11 @@ implement_diagnostic_functions!(
         "E051",
         TypeAliasOfOptional,
         "optional types cannot be aliased"
+    ),
+    (
+        "E052",
+        DocCommentNotSupported,
+        format!("doc comments are not supported on '{kind}'(s)"),
+        kind
     )
 );

@@ -175,15 +175,21 @@ Operation: OwnedPtr<Operation> = {
 
 Parameter: OwnedPtr<Parameter> = {
     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
-        construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name))
+        construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), false)
     }
 }
+
+ReturnMember: OwnedPtr<Parameter> = {
+     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
+         construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), true)
+     }
+ }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {
     <l: @L> <t: Tag?> <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
         construct_single_return_type(parser, t, s.is_some(), tr, Span::new(l, r, parser.file_name))
     },
-    <l: @L> "(" <ps: UndelimitedList<Parameter>> ")" <r: @R> => {
+    <l: @L> "(" <ps: UndelimitedList<ReturnMember>> ")" <r: @R> => {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
         ps
     },
@@ -355,7 +361,7 @@ CommaList<T>: Vec<T> = {
 
 // A list of 0 or more elements with no required separators.
 // A single comma can optionally be placed after each element (including a trailing comma),
-// but these are ignored by the compiler and only for user-readabilty.
+// but these are ignored by the compiler and only for user-readability.
 UndelimitedList<T>: Vec<T> = {
     (<T> ","?)* => <>
 }

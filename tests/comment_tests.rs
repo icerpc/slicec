@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod comments {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Warning};
+    use slice::diagnostics::{Diagnostic, Error, Warning};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -146,6 +146,58 @@ mod comments {
 
         let message = &returns_tag.message;
         assert!(message.is_empty());
+    }
+
+    #[test]
+    fn doc_comments_not_supported_on_modules() {
+        // Arrange
+        let slice = "
+             /// This is a module comment.
+             module tests
+         ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::DocCommentNotSupported {
+            kind: "module".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn doc_comment_not_supported_on_params_and_returns() {
+        // Arrange
+        let slice = "
+                module tests
+
+                interface I {
+                    testOp(
+                        /// comment on param
+                        testParam: string,
+                    )
+                    testOpTwo() -> (
+                        /// comment on return
+                        foo: string,
+                        bar: string,
+                    )
+                }
+            ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Error::DocCommentNotSupported {
+                kind: "parameter".to_owned(),
+            }),
+            Diagnostic::new(Error::DocCommentNotSupported {
+                kind: "return element".to_owned(),
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]

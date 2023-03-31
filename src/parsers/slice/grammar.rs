@@ -121,6 +121,15 @@ fn construct_module(
     // We use `rsplit` to iterate in reverse order (right to left) to construct them in child-to-parent order.
     // Ex: `Foo::Bar::Baz`: first create `Baz` to add the definitions in, then `Bar` to add `Baz` to it, etc...
     let mut modules = identifier.value.rsplit("::").map(|i| {
+        // Validate that no doc comments are attached to the module.
+        if comment.is_some() {
+            Diagnostic::new(Error::DocCommentNotSupported {
+                kind: "module".to_owned(),
+            })
+            .set_span(&span)
+            .report(parser.diagnostic_reporter);
+        }
+
         // Pop the module's scope off the scope stack and construct it (otherwise it would be in its own scope).
         parser.current_scope.pop_scope();
         OwnedPtr::new(Module {
@@ -148,7 +157,7 @@ fn construct_module(
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
         current_module.borrow_mut().is_file_scoped = is_file_scoped;
         current_module.borrow_mut().attributes = attributes;
-        current_module.borrow_mut().comment = comment;
+        current_module.borrow_mut().comment = None;
         for definition in definitions {
             match definition {
                 Node::Module(mut x) => add_definition_to_module!(x, Module, current_module, parser),
@@ -327,7 +336,7 @@ fn construct_operation(
     span: Span,
 ) -> OwnedPtr<Operation> {
     // If no return type was provided set the return type to an empty Vec.
-    let mut return_type = return_type.unwrap_or_default();
+    let return_type = return_type.unwrap_or_default();
 
     // If no throws clause was present, set the exception specification to `None`.
     let throws = exception_specification.unwrap_or(Throws::None);
@@ -348,13 +357,6 @@ fn construct_operation(
         span,
     });
 
-    // Fix the return members to have `is_returned` set to true.
-    for parameter in &mut return_type {
-        unsafe {
-            parameter.borrow_mut().is_returned = true;
-        }
-    }
-
     // Add all the parameters and return members to the operation.
     set_children_for!(operation_ptr, parameters, parser);
     set_children_for!(operation_ptr, return_type, parser);
@@ -362,6 +364,7 @@ fn construct_operation(
     operation_ptr
 }
 
+#[allow(clippy::too_many_arguments)]
 fn construct_parameter(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<Attribute>),
@@ -370,20 +373,32 @@ fn construct_parameter(
     is_streamed: bool,
     data_type: TypeRef,
     span: Span,
+    is_returned: bool,
 ) -> OwnedPtr<Parameter> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-    OwnedPtr::new(Parameter {
+    let parameter = OwnedPtr::new(Parameter {
         identifier,
         data_type,
         tag,
         is_streamed,
-        is_returned: false,                      // Patched by its operation.
+        is_returned,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
-        comment,
-        span,
-    })
+        comment: None,
+        span: span.clone(),
+    });
+
+    // Validate that no doc comments are attached to the parameter
+    if comment.is_some() {
+        Diagnostic::new(Error::DocCommentNotSupported {
+            kind: parameter.borrow().kind().to_string(),
+        })
+        .set_span(&span)
+        .report(parser.diagnostic_reporter);
+    };
+
+    parameter
 }
 
 fn construct_single_return_type(
@@ -404,7 +419,7 @@ fn construct_single_return_type(
         data_type,
         tag,
         is_streamed,
-        is_returned: false,                      // Patched by its operation.
+        is_returned: true,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes: Vec::new(),
