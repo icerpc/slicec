@@ -154,16 +154,32 @@ mod comments {
         let slice = "
              /// This is a module comment.
              module tests
+
+             /// This is a module comment.
+             module Foo {
+
+                /// This is a module comment.
+                module Bar {}
+             }
          ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::DocCommentNotSupported {
-            kind: "module".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
+        let expected = [
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+        ];
+
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -190,11 +206,11 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::DocCommentNotSupported {
-                kind: "parameter".to_owned(),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'parameter'(s)".to_owned(),
             }),
-            Diagnostic::new(Error::DocCommentNotSupported {
-                kind: "return element".to_owned(),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'return element'(s)".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);

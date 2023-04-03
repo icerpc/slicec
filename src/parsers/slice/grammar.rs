@@ -123,8 +123,8 @@ fn construct_module(
     let mut modules = identifier.value.rsplit("::").map(|i| {
         // Validate that no doc comments are attached to the module.
         if comment.is_some() {
-            Diagnostic::new(Error::DocCommentNotSupported {
-                kind: "module".to_owned(),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
             })
             .set_span(&span)
             .report(parser.diagnostic_reporter);
@@ -391,8 +391,9 @@ fn construct_parameter(
 
     // Validate that no doc comments are attached to the parameter
     if comment.is_some() {
-        Diagnostic::new(Error::DocCommentNotSupported {
-            kind: parameter.borrow().kind().to_string(),
+        let kind = parameter.borrow().kind().to_string();
+        Diagnostic::new(Error::Syntax {
+            message: format!("doc comments are not supported on '{kind}'(s)"),
         })
         .set_span(&span)
         .report(parser.diagnostic_reporter);
