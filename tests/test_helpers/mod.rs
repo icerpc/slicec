@@ -65,7 +65,7 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
 
     // Check that the emitted diagnostics match what was expected.
     for (expect, diagnostic) in expected.into_iter().zip(diagnostics) {
-        let expect = expect.into();
+        let expect: Diagnostic = expect.into();
         let mut failed = false;
 
         // Check that the error codes match.

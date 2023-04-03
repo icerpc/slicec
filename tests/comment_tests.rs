@@ -5,7 +5,7 @@ pub mod test_helpers;
 mod comments {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Warning};
+    use slice::diagnostics::{Diagnostic, Error, Warning};
     use slice::grammar::*;
     use test_case::test_case;
 
@@ -146,6 +146,74 @@ mod comments {
 
         let message = &returns_tag.message;
         assert!(message.is_empty());
+    }
+
+    #[test]
+    fn doc_comments_not_supported_on_modules() {
+        // Arrange
+        let slice = "
+             /// This is a module comment.
+             module tests
+
+             /// This is a module comment.
+             module Foo {
+
+                /// This is a module comment.
+                module Bar {}
+             }
+         ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'module'(s)".to_owned(),
+            }),
+        ];
+
+        check_diagnostics(diagnostics, expected);
+    }
+
+    #[test]
+    fn doc_comment_not_supported_on_params_and_returns() {
+        // Arrange
+        let slice = "
+                module tests
+
+                interface I {
+                    testOp(
+                        /// comment on param
+                        testParam: string,
+                    )
+                    testOpTwo() -> (
+                        /// comment on return
+                        foo: string,
+                        bar: string,
+                    )
+                }
+            ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'parameter'(s)".to_owned(),
+            }),
+            Diagnostic::new(Error::Syntax {
+                message: "doc comments are not supported on 'return element'(s)".to_owned(),
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
