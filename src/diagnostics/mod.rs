@@ -93,7 +93,7 @@ impl Diagnostic {
 
 impl Serialize for Diagnostic {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("Diagnostic", 4)?;
+        let mut state = serializer.serialize_struct("Diagnostic", 5)?;
         let severity = match &self.kind {
             DiagnosticKind::Error(_) => "error",
             DiagnosticKind::Warning(_) => "warning",
