@@ -9,7 +9,7 @@ pub struct TypeRef<T: Element + ?Sized = dyn Type> {
     pub definition: TypeRefDefinition<T>,
     pub is_optional: bool,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub span: Span,
 }
 
@@ -21,7 +21,7 @@ impl<T: Element + ?Sized> TypeRef<T> {
         }
     }
 
-    pub(crate) fn patch(&mut self, ptr: WeakPtr<T>, additional_attributes: Vec<Attribute>) {
+    pub(crate) fn patch(&mut self, ptr: WeakPtr<T>, additional_attributes: Vec<WeakPtr<Attribute>>) {
         // Assert that the typeref hasn't already been patched.
         debug_assert!(matches!(&self.definition, TypeRefDefinition::Unpatched(_)));
 
@@ -71,7 +71,7 @@ impl<T: Type + ?Sized> TypeRef<T> {
 impl<T: Element + ?Sized> Attributable for TypeRef<T> {
     fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
         assert!(!include_parent);
-        self.attributes.iter().collect()
+        self.attributes.iter().map(WeakPtr::borrow).collect()
     }
 
     fn all_attributes(&self) -> Vec<Vec<&Attribute>> {

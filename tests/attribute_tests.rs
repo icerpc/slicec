@@ -647,7 +647,7 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            match &operation.attributes[0].kind {
+            match &operation.attributes[0].borrow().kind {
                 AttributeKind::Other { arguments, .. } => {
                     for (i, v) in arguments.iter().enumerate() {
                         assert_eq!(v, expected.get(i).unwrap().to_owned());
@@ -695,7 +695,7 @@ mod attributes {
             let module = ast.find_element::<Module>("Test").unwrap();
             assert_eq!(module.attributes.len(), 1);
             assert!(matches!(
-                &module.attributes[0].kind,
+                &module.attributes[0].borrow().kind,
                 AttributeKind::Other { directive, .. } if directive == "custom",
             ));
         }

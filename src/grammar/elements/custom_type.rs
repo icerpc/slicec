@@ -10,7 +10,7 @@ pub struct CustomType {
     pub identifier: Identifier,
     pub parent: WeakPtr<Module>,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
     pub(crate) supported_encodings: Option<SupportedEncodings>,

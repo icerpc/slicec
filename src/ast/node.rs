@@ -83,7 +83,7 @@ macro_rules! generate_node_enum {
 // generate the `Node` enum with variants for every type allowed to be in the AST.
 generate_node_enum! {
     Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum,
-    Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive
+    Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive, Attribute
 }
 
 impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
@@ -233,3 +233,4 @@ impl_into_node_for!(Sequence);
 impl_into_node_for!(Dictionary);
 // We don't implement it on `Primitive`, because primitive types are baked into the compiler, so we don't need
 // conversion methods for wrapping them into `Node`s.
+impl_into_node_for!(Attribute);

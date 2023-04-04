@@ -50,7 +50,7 @@ pub struct SliceFile {
     pub relative_path: String,
     pub raw_text: String,
     pub contents: Vec<WeakPtr<Module>>,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub encoding: Option<FileEncoding>,
     pub is_source: bool,
     line_positions: Vec<usize>,
@@ -183,7 +183,7 @@ impl SliceFile {
 impl Attributable for SliceFile {
     fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
         assert!(!include_parent);
-        self.attributes.iter().collect()
+        self.attributes.iter().map(WeakPtr::borrow).collect()
     }
 
     fn all_attributes(&self) -> Vec<Vec<&Attribute>> {

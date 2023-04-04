@@ -10,7 +10,7 @@ pub struct Enumerator {
     pub value: EnumeratorValue,
     pub parent: WeakPtr<Enum>,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
 }

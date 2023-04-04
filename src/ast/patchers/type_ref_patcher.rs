@@ -254,7 +254,7 @@ impl TypeRefPatcher<'_> {
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
         let mut type_alias_chain = Vec::new();
 
-        let mut attributes: Vec<Attribute> = Vec::new();
+        let mut attributes: Vec<WeakPtr<Attribute>> = Vec::new();
         let mut current_type_alias = type_alias;
         loop {
             type_alias_chain.push(current_type_alias);
@@ -318,7 +318,7 @@ impl TypeRefPatcher<'_> {
     }
 }
 
-type Patch<T> = (WeakPtr<T>, Vec<Attribute>);
+type Patch<T> = (WeakPtr<T>, Vec<WeakPtr<Attribute>>);
 
 #[derive(Default)]
 enum PatchKind {
@@ -336,7 +336,7 @@ enum PatchKind {
     DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
 }
 
-fn try_into_patch<'a, T: ?Sized>(node: &'a Node, attributes: Vec<Attribute>) -> Result<Patch<T>, LookupError>
+fn try_into_patch<'a, T: ?Sized>(node: &'a Node, attributes: Vec<WeakPtr<Attribute>>) -> Result<Patch<T>, LookupError>
 where
     &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
 {

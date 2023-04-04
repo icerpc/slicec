@@ -12,7 +12,7 @@ const DEPRECATED: &str = "deprecated";
 const FORMAT: &str = "format";
 const ONEWAY: &str = "oneway";
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Attribute {
     pub kind: AttributeKind,
     pub span: Span,
@@ -75,7 +75,7 @@ impl Attribute {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum AttributeKind {
     Allow { warning_codes: Vec<String> },
     ClassFormat { format: ClassFormat },
@@ -89,24 +89,10 @@ pub enum AttributeKind {
     Other { directive: String, arguments: Vec<String> },
 }
 
-pub trait LanguageKind {
+pub trait LanguageKind: std::fmt::Debug {
     fn directive(&self) -> &str;
     fn as_any(&self) -> &dyn std::any::Any;
-    fn clone_kind(&self) -> Box<dyn LanguageKind>;
-    fn debug_kind(&self) -> &str;
     fn is_repeatable(&self) -> bool;
-}
-
-impl Clone for Box<dyn LanguageKind> {
-    fn clone(&self) -> Self {
-        self.clone_kind()
-    }
-}
-
-impl std::fmt::Debug for Box<dyn LanguageKind> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "{}", self.debug_kind())
-    }
 }
 
 impl AttributeKind {

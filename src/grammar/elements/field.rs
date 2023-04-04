@@ -11,7 +11,7 @@ pub struct Field {
     pub tag: Option<Integer<u32>>,
     pub parent: WeakPtr<dyn Container<WeakPtr<Field>>>,
     pub scope: Scope,
-    pub attributes: Vec<Attribute>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
 }
