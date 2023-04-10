@@ -18,6 +18,8 @@ use crate::grammar::*;
 use crate::visitor::Visitor;
 use std::collections::HashMap;
 
+pub use attribute::validate_repeated_attributes;
+
 pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
