@@ -1,6 +1,6 @@
 # Slice Compiler Library (slicec)
 
-[![.github/workflows/rust.yml](https://github.com/icerpc/icerpc/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/icerpc/actions?query=branch:main)
+[![.github/workflows/rust.yml](https://github.com/icerpc/slicec/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
 
 - [Build Requirements](#build-requirements)
 - [Usage](#usage)
