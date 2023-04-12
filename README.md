@@ -51,14 +51,6 @@ application that compiles Slice definitions:
 
 ```rust
 // main.rs
-use slice::clap;
-use slice::clap::Parser;
-use slice::command_line::SliceOptions;
-
-/// This struct is responsible for parsing the command line options.
-/// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Debug, Parser)]
-#[command(author, version, about, rename_all = "kebab-case")]
 pub fn main() {
     let options = SliceOptions::parse();
     let slice_options = &options.slice_options;
