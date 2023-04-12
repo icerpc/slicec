@@ -59,14 +59,8 @@ use slice::command_line::SliceOptions;
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
 #[derive(Debug, Parser)]
 #[command(author, version, about, rename_all = "kebab-case")]
-pub struct ExampleOptions {
-    // Import the options common to all slice compilers.
-    #[command(flatten)]
-    pub slice_options: SliceOptions,
-}
-
 pub fn main() {
-    let options = ExampleOptions::parse();
+    let options = SliceOptions::parse();
     let slice_options = &options.slice_options;
     let compilation_result = slice::compile_from_options(slice_options);
 }
