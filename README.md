@@ -3,7 +3,7 @@
 [![.github/workflows/rust.yml](https://github.com/icerpc/slicec/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
 
 - [Build Requirements](#build-requirements)
-- [Usage](#usage)
+- [Overview](#overview)
   - [Compile from strings](#compile-from-strings)
   - [Compile from options](#compile-from-options)
 - [Testing](#testing)
@@ -11,13 +11,17 @@
 
 ## Build Requirements
 
-To build the slicec library you need to have Rust and Cargo installed. The recommended method to install Rust is by using [rustup](https://rustup.rs).
+To build the slicec library you need to have Rust and Cargo installed. The recommended method to install Rust is by
+using [rustup](https://rustup.rs).
 
-## Usage
+## Overview
+
+The slicec library is a Rust library that can be used to compile Slice definitions into a `CompilationResult` struct.
+The `CompilationResult` struct contains the AST and any diagnostics that were emitted during compilation.
 
 ### Compile from strings
 
-The simplest way to compile a slice definition is by using the `compile_from_strings` function:
+The simplest way to compile a Slice definition is by using the `compile_from_strings` function:
 
 ```rust
 pub fn main() {
@@ -38,11 +42,12 @@ pub fn main() {
 }
 ```
 
-This function takes an array of strings containing a Slice definition and an optional set of compilation options. It returns a `CompilationResult` struct containing the compiled code and any errors or warnings that occurred during compilation.
+This function takes an array of strings containing Slice definitions and an optional set of compilation options.
 
 ### Compile from options
 
-Alternatively, you can create `SliceOptions` and invoke the compiler from the command line:
+Alternatively, you can create `SliceOptions` and use the `compile_from_options` function to create a command line
+application that compiles Slice definitions:
 
 ```rust
 // main.rs
@@ -63,7 +68,7 @@ pub struct ExampleOptions {
 pub fn main() {
     let options = ExampleOptions::parse();
     let slice_options = &options.slice_options;
-    let compilation_data = slice::compile_from_options(slice_options);
+    let compilation_result = slice::compile_from_options(slice_options);
 }
 ```
 
