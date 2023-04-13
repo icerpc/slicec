@@ -3,15 +3,14 @@
 set -e
 
 # Ensure that necessary dependencies are installed.
-FILE=~/.cargo/bin/cargo-llvm-cov
-if [ ! -f "$FILE" ]; then
+if ! cargo llvm-cov -V &> /dev/null; then
     echo "cargo-llvm-cov is missing"
     echo "run 'cargo install cargo-llvm-cov' to install"
     exit 1
 fi
 
 # Generate the html report.
-cargo llvm-cov --open
+cargo llvm-cov --html
 
 FILE=target/llvm-cov/html/index.html
 if [ -f "$FILE" ]; then
