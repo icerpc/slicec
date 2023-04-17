@@ -30,8 +30,7 @@ impl Type for CustomType {
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
-        // Custom types are only supported with Slice2, which doesn't use tag formats.
-        None
+        Some(TagFormat::FSize)
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
