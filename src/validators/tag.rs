@@ -10,7 +10,6 @@ pub fn tag_validators() -> ValidationChain {
         Validator::Members(tagged_members_cannot_use_classes),
         Validator::Members(tags_are_unique),
         Validator::Struct(compact_structs_cannot_contain_tags),
-        Validator::Parameters(parameter_order),
     ]
 }
 
@@ -40,25 +39,6 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
             )
             .report(diagnostic_reporter);
         };
-    });
-}
-
-/// Validate that tagged parameters must follow the required parameters.
-fn parameter_order(parameters: &[&Parameter], diagnostic_reporter: &mut DiagnosticReporter) {
-    // Folding is used to have an accumulator called `seen` that is set to true once a tagged
-    // parameter is found. If `seen` is true on a successive iteration and the parameter has
-    // no tag then we have a required parameter after a tagged parameter.
-    parameters.iter().fold(false, |seen, parameter| match parameter.tag {
-        Some(_) => true,
-        None if seen => {
-            Diagnostic::new(Error::RequiredMustPrecedeOptional {
-                parameter_identifier: parameter.identifier().to_owned(),
-            })
-            .set_span(parameter.data_type.span())
-            .report(diagnostic_reporter);
-            true
-        }
-        None => false,
     });
 }
 
