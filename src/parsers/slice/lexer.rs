@@ -75,9 +75,9 @@ where
         if let Some((_, c)) = self.buffer.next() {
             if c == '\n' {
                 self.cursor.row += 1;
-                self.cursor.col = 1;
+                self.cursor.column = 1;
             } else {
-                self.cursor.col += 1;
+                self.cursor.column += 1;
             }
         }
     }
@@ -451,7 +451,7 @@ impl<'input> From<&'input str> for Lexer<'input, std::iter::Once<SourceBlock<'in
             start: Location::default(),
             end: Location {
                 row: newlines.len() + 1,
-                col: chars_in_last_line,
+                column: chars_in_last_line,
             },
         };
         Lexer::new(std::iter::once(source_block))

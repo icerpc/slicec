@@ -76,7 +76,7 @@ impl<'input> Lexer<'input> {
     fn advance_buffer(&mut self) {
         if self.buffer.next().is_some() {
             self.position += 1;
-            self.cursor.col += 1;
+            self.cursor.column += 1;
         }
     }
 

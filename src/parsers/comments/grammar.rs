@@ -34,7 +34,7 @@ fn create_doc_comment(overview: Option<Overview>, start: Location, file: &str) -
     // We subtract 3 from the start of the comment to account for the leading "///" that is always present.
     // This span is automatically extended as more constructs are parsed.
     let mut span = Span::new(start, start, file);
-    span.start.col -= 3;
+    span.start.column -= 3;
 
     // If an overview is present, extend the comment's span to include the overview.
     if let Some(overview_field) = &overview {

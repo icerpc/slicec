@@ -36,9 +36,9 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"column":17},"end":{"row":5,"column":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
-            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
+            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"column":9},"end":{"row":9,"column":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -166,7 +166,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Assert
         // Only one of the two warnings should be allowed.
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"column":17},"end":{"row":5,"column":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());

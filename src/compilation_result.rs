@@ -128,7 +128,7 @@ impl CompilationData {
 
     fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
         // Display the file name and line row and column where the error began.
-        let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
+        let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.column);
         let path = std::path::Path::new(&file_location);
         message.push(format!(" {} {}", style("-->").blue().bold(), path.display()));
 

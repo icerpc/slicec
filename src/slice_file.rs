@@ -12,21 +12,21 @@ use std::fmt::{Display, Write};
 #[derive(Serialize, Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Location {
     pub row: usize,
-    pub col: usize,
+    pub column: usize,
 }
 
 impl From<(usize, usize)> for Location {
     /// Creates a [Location] from a pair of indices, where the first element represents the line number,
     /// and the second element represents the column number.
     fn from(x: (usize, usize)) -> Self {
-        Location { row: x.0, col: x.1 }
+        Location { row: x.0, column: x.1 }
     }
 }
 
 impl Default for Location {
     /// Returns a [Location] representing the start of a file: (1,1).
     fn default() -> Self {
-        Location { row: 1, col: 1 }
+        Location { row: 1, column: 1 }
     }
 }
 
@@ -138,8 +138,8 @@ impl SliceFile {
         // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
         let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row] - 1];
         // Convert the provided locations into string indexes (in the raw text).
-        let start_pos = self.line_positions[start.row - 1] + (start.col - 1);
-        let end_pos = self.line_positions[end.row - 1] + (end.col - 1);
+        let start_pos = self.line_positions[start.row - 1] + (start.column - 1);
+        let end_pos = self.line_positions[end.row - 1] + (end.column - 1);
 
         let mut formatted_snippet = line_number_prefix(None) + "\n";
         // Iterate through each line of raw text, and add it (and its line number) into the formatted snippet.

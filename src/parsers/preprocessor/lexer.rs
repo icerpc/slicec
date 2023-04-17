@@ -52,9 +52,9 @@ impl<'input> Lexer<'input> {
             self.position += 1;
             if c == '\n' {
                 self.cursor.row += 1;
-                self.cursor.col = 1;
+                self.cursor.column = 1;
             } else {
-                self.cursor.col += 1;
+                self.cursor.column += 1;
             }
         }
     }
