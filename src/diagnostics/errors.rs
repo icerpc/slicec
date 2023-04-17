@@ -126,12 +126,6 @@ pub enum Error {
         parameter_identifier: String,
     },
 
-    /// The required parameters of an operation did not precede the optional parameters.
-    RequiredMustPrecedeOptional {
-        /// The identifier of the parameter that caused the error.
-        parameter_identifier: String,
-    },
-
     /// Return tuples for an operation must contain at least two element.
     ReturnTuplesMustContainAtLeastTwoElements,
 
@@ -359,12 +353,6 @@ implement_diagnostic_functions!(
         CannotHaveDuplicateTag,
         format!("invalid tag on member '{identifier}': tags must be unique"),
         identifier
-    ),
-    (
-        "E015",
-        RequiredMustPrecedeOptional,
-        format!("invalid parameter '{parameter_identifier}': required parameters must precede tagged parameters"),
-        parameter_identifier
     ),
     (
         "E016",

@@ -77,7 +77,7 @@ mod tags {
     }
 
     #[test]
-    fn tagged_parameters_must_be_after_required_parameters() {
+    fn tagged_parameters_can_be_in_any_order() {
         // Arrange
         let slice = "
             encoding = Slice1
@@ -87,19 +87,8 @@ mod tags {
             }
         ";
 
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = [
-            Diagnostic::new(Error::RequiredMustPrecedeOptional {
-                parameter_identifier: "p3".to_owned(),
-            }),
-            Diagnostic::new(Error::RequiredMustPrecedeOptional {
-                parameter_identifier: "p4".to_owned(),
-            }),
-        ];
-        check_diagnostics(diagnostics, expected);
+        // Act/Assert
+        assert_parses(slice);
     }
 
     #[test]
