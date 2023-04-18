@@ -41,10 +41,10 @@ impl Diagnostic {
     }
 
     /// Returns the error code of this diagnostic if it has one.
-    pub fn error_code(&self) -> Option<&str> {
+    pub fn error_code(&self) -> &str {
         match &self.kind {
             DiagnosticKind::Error(error) => error.error_code(),
-            DiagnosticKind::Warning(warning) => Some(warning.error_code()),
+            DiagnosticKind::Warning(warning) => warning.error_code(),
         }
     }
 
@@ -163,12 +163,12 @@ macro_rules! implement_diagnostic_functions {
         }
     };
 
-    (Error, $(($($code:literal,)? $kind:ident, $message:expr $(, $variant:ident)* )),*) => {
+    (Error, $(($code:literal, $kind:ident, $message:expr $(, $variant:ident)* )),*) => {
         impl Error {
-            pub fn error_code(&self) -> Option<&str> {
+            pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_diagnostic_functions!(@error Error::$kind, $($variant),*) => implement_diagnostic_functions!(@code $($code)?),
+                        implement_diagnostic_functions!(@error Error::$kind, $($variant),*) => $code,
                     )*
                 }
             }
@@ -181,14 +181,6 @@ macro_rules! implement_diagnostic_functions {
                 }
             }
         }
-    };
-
-    (@code $code:literal) => {
-        Some($code)
-    };
-
-    (@code) => {
-        None
     };
 
     (@error $kind:path,) => {
