@@ -8,7 +8,7 @@ mod diagnostic_reporter;
 mod errors;
 mod warnings;
 
-pub use diagnostic_reporter::DiagnosticReporter;
+pub use diagnostic_reporter::{DiagnosticReporter, SuppressWarnings};
 pub use errors::Error;
 pub use warnings::Warning;
 

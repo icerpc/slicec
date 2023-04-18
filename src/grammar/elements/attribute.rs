@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, SuppressWarnings};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -60,9 +60,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_allow_warnings(attribute: &Attribute) -> Option<Vec<String>> {
+    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<SuppressWarnings>> {
         match &attribute.kind {
-            AttributeKind::Allow { warning_codes } => Some(warning_codes.clone()),
+            AttributeKind::Allow { suppressed_warnings } => Some(suppressed_warnings),
             _ => None,
         }
     }
@@ -77,7 +77,7 @@ impl Attribute {
 
 #[derive(Debug)]
 pub enum AttributeKind {
-    Allow { warning_codes: Vec<String> },
+    Allow { suppressed_warnings: Vec<SuppressWarnings> },
     ClassFormat { format: ClassFormat },
     Compress { compress_args: bool, compress_return: bool },
     Deprecated { reason: Option<String> },
@@ -105,30 +105,28 @@ impl AttributeKind {
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
             ALLOW => {
-                for arg in arguments {
-                    if !Warning::all_codes().contains(&arg.as_str()) {
-                        // No exact match was found, check if the casing did not match
-                        let uppercase = arg.to_uppercase();
-                        if Warning::all_codes().contains(&uppercase.as_str()) {
-                            // The casing did not match, report an error with a note
-                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .add_note(
-                                    format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
-                                    Some(span),
-                                )
-                                .report(reporter);
-                        } else {
-                            // No exact match and no casing match, report an error
-                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .report(reporter);
-                        }
-                    }
+                // Check that the `allow` attribute has arguments.
+                if arguments.is_empty() {
+                    Diagnostic::new(Error::MissingRequiredArgument {
+                        argument: r#"allow(<arguments>)"#.to_owned(),
+                    })
+                    .set_span(span)
+                    .report(reporter);
                 }
-                Some(AttributeKind::Allow {
-                    warning_codes: arguments.to_owned(),
-                })
+
+                // Parse the strings into `SuppressWarnings` structs.
+                let suppressed_warnings = arguments
+                    .iter()
+                    .filter_map(|arg| match SuppressWarnings::from_str(arg) {
+                        Ok(suppress_warnings) => Some(suppress_warnings),
+                        Err(error) => {
+                            error.report(reporter);
+                            None
+                        }
+                    })
+                    .collect();
+
+                Some(AttributeKind::Allow { suppressed_warnings })
             }
 
             COMPRESS => {

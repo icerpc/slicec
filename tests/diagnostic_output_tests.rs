@@ -106,7 +106,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_warnings_flag_with_no_args() {
+    fn allow_all_warnings_flag() {
         let slice = r#"
         module  Foo
 
@@ -116,11 +116,10 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         }
 
         "#;
-        // allow: Some([]),
-        // Set the output format to JSON.
+
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: Some(vec![]),
+            allow_warnings: vec!["All".to_owned()],
             ..Default::default()
         };
 
@@ -137,7 +136,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_warnings_flag_with_args() {
+    fn allow_specific_warning_flag() {
         let slice = r#"
         module  Foo
 
@@ -148,10 +147,11 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         }
 
         "#;
+
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: Some(vec!["W004".to_string()]),
+            allow_warnings: vec!["W004".to_owned()],
             ..Default::default()
         };
 

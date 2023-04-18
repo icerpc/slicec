@@ -108,7 +108,7 @@ implement_diagnostic_functions!(
     (
         "W008",
         UseOfDeprecatedEntity,
-        format!("'{identifier}' is deprecated {deprecation_reason}"),
+        format!("'{identifier}' is deprecated{deprecation_reason}"),
         identifier,
         deprecation_reason
     ),

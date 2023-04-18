@@ -28,10 +28,16 @@ pub struct SliceOptions {
     #[arg(short, long)]
     pub warn_as_error: bool,
 
-    /// Instructs the compiler to allow warnings. Specify a list of warnings to allow, or leave empty to allow all
-    /// warnings.
-    #[arg(long)]
-    pub allow_warnings: Option<Vec<String>>,
+    /// Instructs the compiler to suppress certain warnings.
+    ///
+    /// Arguments can either be one of the following categories:
+    /// - 'All': ignore all warnings
+    /// - 'Deprecated': ignore deprecation warnings
+    /// - 'Attributes': ignore warnings caused by unknown or malformed attributes
+    /// - 'Comments': ignore warnings caused by malformed comments
+    /// Or a warning code of the form 'W###' (for a list of warning codes see: <!TODO LINK!>).
+    #[arg(short, long)]
+    pub allow_warnings: Vec<String>,
 
     /// Validates input files without generating code for them.
     #[arg(long)]

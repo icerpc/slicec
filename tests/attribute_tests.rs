@@ -3,6 +3,185 @@
 pub mod test_helpers;
 
 mod attributes {
+    use crate::test_helpers::*;
+    use slice::diagnostics::{Diagnostic, Error, Warning};
+
+    mod allow {
+        use super::*;
+        use slice::diagnostics::SuppressWarnings;
+        use slice::grammar::{Attribute, AttributeKind};
+        use test_case::test_case;
+
+        #[test]
+        fn local_allow_attribute_parses() {
+            // Arrange
+            let slice = "
+                module Test
+
+                [allow(All)]
+                struct S {}
+            ";
+
+            // Act/Assert
+            assert_parses(slice);
+        }
+
+        #[test]
+        fn file_level_allow_attribute_parses() {
+            // Arrange
+            let slice = "[[allow(All)]]";
+
+            // Act/Assert
+            assert_parses(slice);
+        }
+
+        #[test]
+        fn allow_with_invalid_argument() {
+            // Arrange
+            let slice = "[[allow(Fake)]]";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::ArgumentNotSupported {
+                argument: "Fake".to_owned(),
+                directive: "allow".to_owned(),
+            });
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("All", SuppressWarnings::All; "All")]
+        #[test_case("Deprecated", SuppressWarnings::Deprecated; "Deprecated")]
+        #[test_case("Attributes", SuppressWarnings::Attributes; "Attributes")]
+        #[test_case("Comments", SuppressWarnings::Comments; "Comments")]
+        #[test_case("W002", SuppressWarnings::Single("W002".to_owned()); "W002")]
+        fn allow_argument_args(argument: &str, expected: SuppressWarnings) {
+            // Arrange
+            let slice = format!("[[allow({argument})]]");
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let attribute_ptr: &Attribute = (&ast.as_slice()[17]).try_into().unwrap();
+            let AttributeKind::Allow { suppressed_warnings } = &attribute_ptr.kind else { panic!(); };
+            assert_eq!(*suppressed_warnings, [expected]);
+        }
+
+        #[test]
+        fn ensure_allow_can_take_multiple_arguments() {
+            // Arrange
+            let slice = "[[allow(All, Deprecated, W001)]]";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let attribute_ptr: &Attribute = (&ast.as_slice()[17]).try_into().unwrap();
+            let AttributeKind::Allow { suppressed_warnings } = &attribute_ptr.kind else { panic!(); };
+
+            let expected = [
+                SuppressWarnings::All,
+                SuppressWarnings::Deprecated,
+                SuppressWarnings::Single("W001".to_owned()),
+            ];
+            assert_eq!(*suppressed_warnings, expected);
+        }
+
+        #[test]
+        fn ensure_allow_requires_arguments() {
+            // Arrange
+            let slice = "[[allow]]";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::MissingRequiredArgument {
+                argument: "allow(<arguments>)".to_owned(),
+            });
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn allow_only_affects_relevant_scope() {
+            // Arrange
+            let slice = "
+                [allow(Comments)]
+                module Allowed {
+                    /// {@link fake}
+                    struct S {}
+                }
+
+                module Normal {
+                    /// {@link fake}
+                    struct S {}
+                }
+            ";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert: that only the not-ignored warning was emitted.
+            let expected = Diagnostic::new(Warning::CouldNotResolveLink {
+                identifier: "fake".to_owned(),
+            });
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        // TODO add test case for attribute warnings once they become warnings.
+        #[test_case("All", []; "All")]
+        #[test_case("Deprecated", [1, 2]; "Deprecated")]
+        #[test_case("Comments", [0]; "Comments")]
+        #[test_case("W005", [1, 0]; "W005")]
+        fn allow_only_specified_warnings<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
+            // Arrange
+            let slice = format!(
+                "
+                [[allow({arguments})]]
+                module Test
+
+                /// {{@link fake}}
+                /// @throws
+                [deprecated(\"test\")]
+                struct S {{}}
+
+                struct UseS {{
+                    s: S
+                }}
+                "
+            );
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Arrange
+            let mut all_warnings = vec![
+                Diagnostic::new(Warning::UseOfDeprecatedEntity {
+                    identifier: "S".to_owned(),
+                    deprecation_reason: ": test".to_owned(),
+                }),
+                Diagnostic::new(Warning::CouldNotResolveLink {
+                    identifier: "fake".to_owned(),
+                }),
+                Diagnostic::new(Warning::ExtraThrowInDocComment {
+                    kind: "struct".to_owned(),
+                    identifier: "S".to_owned(),
+                }),
+            ];
+            // Filter out any warning that should be ignored by the supplied test arguments.
+            let mut index = 0;
+            all_warnings.retain(|_| {
+                index += 1;
+                expected_indexes.contains(&(index - 1))
+            });
+            let expected: [Diagnostic; L] = all_warnings.try_into().unwrap();
+
+            // Check that only the correct warnings were emitted.
+            check_diagnostics(diagnostics, expected);
+        }
+    }
 
     mod slice_api {
 
@@ -375,157 +554,6 @@ mod attributes {
 
             assert!(!operation.compress_arguments());
             assert!(!operation.compress_return());
-        }
-
-        #[test_case(
-            "
-            module Test
-
-            interface I {
-                // The below doc comment will generate a warning
-                /// A test operation. Similar to {@linked OtherOp}{}.
-                [allow]
-                op(s: string) -> string
-            }
-            "; "simple"
-        )]
-        #[test_case(
-            "
-            [allow]
-            module A {
-                struct A1 {
-                    b: B::B1
-                }
-            }
-            module B {
-                [deprecated]
-                struct B1 {}
-            }
-            "; "complex"
-        )]
-        #[test_case(
-            "
-            [allow]
-            module A {
-                struct A1 {
-                    b: sequence<B::B1>
-                }
-            }
-            module B {
-                [deprecated]
-                struct B1 {}
-            }
-            "; "complex with anonymous type"
-        )]
-        #[test_case(
-            "
-            [[allow]]
-            module A {
-                struct A1 {
-                    b: B::B1
-                }
-            }
-            module B {
-                struct B1 {}
-            }
-            "; "file level"
-        )]
-        fn allow_attribute(slice: &str) {
-            assert_parses(slice);
-        }
-
-        #[test]
-        fn allow_with_invalid_code() {
-            // Arrange
-            let slice = "
-            module Test
-
-            interface I {
-                [allow(W315, w001)]
-                op(s: string) -> string
-            }
-            ";
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected = [
-                Diagnostic::new(Error::InvalidWarningCode {
-                    code: "W315".to_owned(),
-                }),
-                Diagnostic::new(Error::InvalidWarningCode {
-                    code: "w001".to_owned(),
-                }),
-            ];
-            check_diagnostics(diagnostics, expected);
-        }
-
-        #[test_case(
-            "
-            module Test
-
-            interface I {
-                // The below doc comment will generate a warning
-                /// A test operation. Similar to {@linked OtherOp}{}.
-                /// @param b: A test parameter.
-                [allow(W002, W003)]
-                op(s: string) -> string
-            }
-            "; "entity"
-        )]
-        #[test_case(
-            "
-            [[allow(W002, W003)]]
-            module Test
-
-            interface I {
-                // The below doc comment will generate a warning
-                /// A test operation. Similar to {@linked OtherOp}{}.
-                /// @param b: A test parameter.
-                op(s: string) -> string
-            }
-            "; "file level"
-        )]
-        fn allow_attribute_args(slice: &str) {
-            assert_parses(slice);
-        }
-
-        #[test_case(
-            "
-            module Test
-
-            interface I {
-                /// @param x: a parameter that should be used in ops
-                /// @returns: a result
-                [allow(W004, W005)]
-                op(s: string)
-            }
-            "; "entity"
-        )]
-        #[test_case(
-            "
-            [[allow(W004, W005)]]
-            module Test
-
-            interface I {
-                /// @param x: a parameter that should be used in ops
-                /// @returns: a result
-                [allow(W004, W005)]
-                op(s: string)
-            }
-            "; "file level"
-        )]
-        // Test that if args are passed to allow, that only those warnings are allowed
-        fn allow_attribute_with_args_will_not_allow_all_warnings(slice: &str) {
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected = Diagnostic::new(Warning::ExtraParameterInDocComment {
-                identifier: "x".to_owned(),
-            });
-            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
