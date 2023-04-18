@@ -71,8 +71,8 @@ impl CompilationData {
             // to the previously emitted diagnostic.
             let code = diagnostic.error_code();
             let prefix = match &diagnostic.kind {
-                DiagnosticKind::Error(_) => style(format!("error [{}]", code)).red().bold(),
-                DiagnosticKind::Warning(_) => style(format!("warning [{}]", code)).yellow().bold(),
+                DiagnosticKind::Error(_) => style(format!("error [{code}]")).red().bold(),
+                DiagnosticKind::Warning(_) => style(format!("warning [{code}]")).yellow().bold(),
             };
 
             let mut message = vec![];
