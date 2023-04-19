@@ -25,17 +25,17 @@ pub struct SliceOptions {
     pub definitions: Vec<String>,
 
     /// Instructs the compiler to treat warnings as errors.
-    #[arg(short, long)]
+    #[arg(short = 'W', long)]
     pub warn_as_error: bool,
 
     /// Instructs the compiler to suppress certain warnings.
     ///
     /// Arguments can either be one of the following categories:
-    /// - 'All': ignore all warnings
-    /// - 'Deprecated': ignore deprecation warnings
-    /// - 'Comments': ignore warnings caused by malformed comments
+    /// - 'All': suppress all warnings
+    /// - 'Deprecated': suppress deprecation warnings
+    /// - 'Comments': suppress warnings caused by malformed comments
     /// Or a warning code of the form 'W###' (for a list of warning codes see: <!TODO LINK!>).
-    #[arg(short, long)]
+    #[arg(short = 'A', long)]
     pub allow_warnings: Vec<String>,
 
     /// Validates input files without generating code for them.

@@ -18,11 +18,11 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
-    // A vector of all the warnings that should be suppressed by the diagnostic reporter.
+    /// Lists all the kinds of warnings that should be suppressed by this reporter.
     pub allowed_warnings: Vec<SuppressWarnings>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    // If true, diagnostic output will not be styled.
+    /// If true, diagnostic output will not be styled.
     pub disable_color: bool,
 }
 
@@ -38,6 +38,8 @@ impl DiagnosticReporter {
             allowed_warnings: Vec::new(),
         };
 
+        // Parse any arguments for `--allow-warnings` that were passed into the command line.
+        // If an error occurs while parsing them, report it with the newly constructed diagnostic reporter.
         for allow_warning in &slice_options.allow_warnings {
             match SuppressWarnings::from_str(allow_warning) {
                 Ok(suppress_warning) => diagnostic_reporter.allowed_warnings.push(suppress_warning),
@@ -158,9 +160,9 @@ impl std::str::FromStr for SuppressWarnings {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
+            "All" => Ok(SuppressWarnings::All),
             "Deprecated" => Ok(SuppressWarnings::Deprecated),
             "Comments" => Ok(SuppressWarnings::Comments),
-            "All" => Ok(SuppressWarnings::All),
             code => {
                 if Warning::all_codes().contains(&code) {
                     Ok(SuppressWarnings::Single(code.to_owned()))
