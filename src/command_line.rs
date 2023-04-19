@@ -21,8 +21,8 @@ pub struct SliceOptions {
     #[arg(short = 'R', long, num_args = 1, action = Append)]
     pub references: Vec<String>,
 
-    /// Define a preprocessor definition. Preprocessor definitions are defined or undefined and do not have
-    /// an associated value. Multiple values can be specified by using multiple `-D` options or by using a comma.
+    /// Define a preprocessor definition. Preprocessor definitions do not have an associated value.
+    /// Multiple values can be specified by using multiple `-D|--definition` options or by using a comma.
     #[arg(short = 'D', long, num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
