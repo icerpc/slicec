@@ -250,6 +250,9 @@ impl TypeRefPatcher<'_> {
         T: Element + ?Sized,
         &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
     {
+        // TODO this function is run once per type-alias usage, so we will emit multiple errors for cyclic aliases,
+        // once for each use. It would be better to only emit a single error per cyclic alias.
+
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
         let mut type_alias_chain = Vec::new();
@@ -257,7 +260,34 @@ impl TypeRefPatcher<'_> {
         let mut attributes: Vec<WeakPtr<Attribute>> = Vec::new();
         let mut current_type_alias = type_alias;
         loop {
-            type_alias_chain.push(current_type_alias);
+            let type_alias_id = current_type_alias.module_scoped_identifier();
+
+            // If we've already seen the current type alias, it must have a cycle in it's definition.
+            // So we return a `DoesNotExist` error, since there's no way to resolve the original type alias.
+            if type_alias_chain.contains(&type_alias_id) {
+                // If the current type alias is the one we started with, we know it's the cause of a cycle, so we report
+                // an error for it. This check makes sure we don't report errors for type aliases that aren't cyclic,
+                // but use another type-alias which is. In this case, the chain contains it, but it won't be the first.
+                if type_alias_chain.first() == Some(&type_alias_id) {
+                    Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+                        identifier: current_type_alias.module_scoped_identifier(),
+                    })
+                    .set_span(current_type_alias.span())
+                    .add_note("failed to resolve type due to a cycle in its definition", None)
+                    .add_note(
+                        format!("cycle: {} -> {}", type_alias_chain.join(" -> "), type_alias_id),
+                        None,
+                    )
+                    .report(self.diagnostic_reporter);
+                }
+                return Err(LookupError::DoesNotExist {
+                    identifier: current_type_alias.module_scoped_identifier(),
+                });
+            }
+
+            // If we reach this point, we haven't hit a cycle in the type aliases yet.
+
+            type_alias_chain.push(current_type_alias.module_scoped_identifier());
             attributes.extend(current_type_alias.attributes.clone());
             let underlying_type = &current_type_alias.underlying;
 
@@ -267,52 +297,19 @@ impl TypeRefPatcher<'_> {
                 TypeRefDefinition::Patched(ptr) => {
                     // Lookup the node that is being aliased in the AST, and convert it into a patch.
                     // TODO: when `T = dyn Type` we can skip this, and use `ptr.clone()` directly.
-                    let nodes = ast.as_slice();
-                    let node = nodes.iter().find(|node| ptr == &<&dyn Element>::from(*node));
+                    let node = ast.as_slice().iter().find(|node| ptr == &<&dyn Element>::from(*node));
                     return try_into_patch(node.unwrap(), attributes);
                 }
                 TypeRefDefinition::Unpatched(identifier) => identifier,
             };
 
-            // TODO this will lead to duplicate errors, if there's a broken type alias and multiple things use it!
+            // We hit another unpatched alias; try to resolve its underlying type's identifier in the AST.
             let node = ast.find_node_with_scope(&identifier.value, underlying_type.module_scope())?;
-            // If the node is another type alias, push it onto the chain and continue iterating, otherwise return it.
+            // If the resolved node is another type alias, push it onto the chain and loop again, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();
             } else {
                 return try_into_patch(node, attributes);
-            }
-
-            // Check if we've already seen the next type alias before continuing the loop; if so, it's cyclic and we
-            // emit a detailed error message showing each chain in the cycle before returning with an error.
-            let lookup_result = type_alias_chain
-                .iter()
-                .position(|&other| std::ptr::eq(other, current_type_alias));
-            if let Some(i) = lookup_result {
-                type_alias_chain.push(current_type_alias);
-                let notes = type_alias_chain[i..]
-                    .windows(2)
-                    .map(|window| {
-                        let identifier = window[0].identifier();
-                        let identifier_original = window[1].identifier();
-                        Note {
-                            message: format!("type alias '{identifier}' uses type alias '{identifier_original}' here:"),
-                            span: Some(window[0].underlying.span().clone()),
-                        }
-                    })
-                    .collect::<Vec<Note>>();
-
-                Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
-                    identifier: current_type_alias.module_scoped_identifier(),
-                })
-                .set_span(current_type_alias.span())
-                .add_note("failed to resolve type due to a cycle in its definition", None)
-                .add_notes(notes)
-                .report(self.diagnostic_reporter);
-
-                return Err(LookupError::DoesNotExist {
-                    identifier: current_type_alias.module_scoped_identifier(),
-                });
             }
         }
     }

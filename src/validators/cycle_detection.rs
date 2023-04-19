@@ -1,88 +1,70 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::ast::node::Node;
+use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
-use crate::grammar::*;
-use crate::slice_file::SliceFile;
-use crate::visitor::Visitor;
-use std::collections::HashMap;
+use crate::grammar::{Container, Field, Member, Types};
+use crate::utils::ptr_util::WeakPtr;
 
-pub(super) fn detect_cycles(slice_files: &HashMap<String, SliceFile>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn detect_cycles(ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
     let mut cycle_detector = CycleDetector {
         dependency_stack: Vec::new(),
         diagnostic_reporter,
     };
 
-    // First, visit everything immutably to check for cycles.
-    for slice_file in slice_files.values() {
-        slice_file.visit_with(&mut cycle_detector);
+    for node in ast.as_slice() {
+        cycle_detector.dependency_stack.clear(); // Make sure the detector is cleared between checks.
+        match node {
+            // We only check structs and exceptions since these are the only types that can cause infinite cycles.
+            // Classes can safely contain cycles since they use reference semantics.
+            Node::Struct(struct_def) => cycle_detector.check_for_cycles(struct_def.borrow()),
+            Node::Exception(exception_def) => cycle_detector.check_for_cycles(exception_def.borrow()),
+            _ => false,
+        };
     }
 }
 
 struct CycleDetector<'a> {
-    // Stack of all the types we've seen in the dependency chain we're currently checking.
+    /// A stack containing all of the types we've seen in the dependency tree we're currently traversing through.
     dependency_stack: Vec<String>,
+
+    /// Reference to a diagnostic reporter for reporting `InfiniteSizeCycle` errors.
     diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
-impl<'a> CycleDetector<'a> {
-    fn check_for_cycle<T: Entity + Type>(&mut self, type_def: &T, type_id: &str) -> bool {
-        // Check if the type is self-referential by whether we've already seen it's type-id in
-        // the dependency chain we're currently checking.
-        if let Some(i) = self.dependency_stack.iter().position(|x| x == type_id) {
-            let cycle_string = self.dependency_stack[i..].join(" -> ");
-            Diagnostic::new(Error::InfiniteSizeCycle {
-                type_id: type_id.to_string(),
-                cycle: cycle_string,
-            })
-            .set_span(type_def.span())
-            .report(self.diagnostic_reporter);
-            true
+impl CycleDetector<'_> {
+    fn check_for_cycles(&mut self, container: &impl Container<WeakPtr<Field>>) -> bool {
+        let type_id = container.module_scoped_identifier();
+
+        if self.dependency_stack.first() == Some(&type_id) {
+            // If this container's identifier is equal to the first element in the stack, then its definition is cyclic.
+            // We report an error, then return `true` to signal to parent functions they should stop checking.
+            let cycle = self.dependency_stack.join(" -> ") + " -> " + &type_id;
+            Diagnostic::new(Error::InfiniteSizeCycle { type_id, cycle })
+                .set_span(container.span())
+                .report(self.diagnostic_reporter);
+            return true;
+        } else if self.dependency_stack.contains(&type_id) {
+            // If this container's identifier is in the stack, but isn't the first element, this means it uses a cyclic
+            // type, but isn't cyclic itself. We don't check its fields (that would cause an infinite cycle), but don't
+            // want to report an error since this container isn't the 'real' problem. We just do nothing.
         } else {
-            false
+            // If this container's identifier isn't in the stack, we check its fields for cycles.
+            self.dependency_stack.push(type_id);
+            for field in container.contents() {
+                let cycle_was_found = match field.borrow().data_type().concrete_type() {
+                    Types::Struct(struct_def) => self.check_for_cycles(struct_def),
+                    Types::Exception(exception_def) => self.check_for_cycles(exception_def),
+                    _ => false,
+                };
+
+                // If a cycle was found, stop searching and return immediately.
+                if cycle_was_found {
+                    return true;
+                }
+            }
+            self.dependency_stack.pop();
         }
-    }
-}
-
-impl<'a> Visitor for CycleDetector<'a> {
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
-        let type_id = struct_def.module_scoped_identifier();
-        if self.check_for_cycle(struct_def, &type_id) {
-            // If the type is cyclic, return early to avoid an infinite loop.
-            // `check_for_cycle` will already have reported an error message.
-            return;
-        }
-
-        // Push the struct's type-id on to the stack before its fields are visited.
-        self.dependency_stack.push(type_id);
-    }
-
-    fn visit_struct_end(&mut self, _: &Struct) {
-        self.dependency_stack.pop().unwrap();
-    }
-
-    fn visit_exception_start(&mut self, exception_def: &Exception) {
-        let type_id = exception_def.module_scoped_identifier();
-        if self.check_for_cycle(exception_def, &type_id) {
-            // If the type is cyclic, return early to avoid an infinite loop.
-            // `check_for_cycle` will already have reported an error message.
-            return;
-        }
-
-        // Push the exception's type-id on to the stack before its fields are visited.
-        self.dependency_stack.push(type_id);
-    }
-
-    fn visit_exception_end(&mut self, _: &Exception) {
-        self.dependency_stack.pop().unwrap();
-    }
-
-    fn visit_field(&mut self, field: &Field) {
-        match field.data_type().concrete_type() {
-            // Only structs and exceptions can contain infinite cycles.
-            // Classes are allowed to contain cycles since they use reference semantics.
-            Types::Struct(struct_def) => struct_def.visit_with(self),
-            Types::Exception(exception_def) => exception_def.visit_with(self),
-            _ => {}
-        }
+        false
     }
 }

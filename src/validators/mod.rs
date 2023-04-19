@@ -41,7 +41,7 @@ pub(crate) fn validate_compilation_data(mut data: CompilationData) -> Compilatio
     let diagnostic_reporter = &mut data.diagnostic_reporter;
 
     // Check for any cyclic data structures. If any exist, exit early to avoid infinite loops during validation.
-    cycle_detection::detect_cycles(&data.files, diagnostic_reporter);
+    cycle_detection::detect_cycles(&data.ast, diagnostic_reporter);
     if diagnostic_reporter.has_errors() {
         return data.into();
     }
