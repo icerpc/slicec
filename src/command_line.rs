@@ -12,15 +12,17 @@ use serde::Serialize;
 #[derive(Debug, Default, Parser)]
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
-    /// List of slice files to compile.
+    /// List of Slice files to compile.
     #[arg(required = true)]
     pub sources: Vec<String>,
 
-    /// Files that are needed for referencing, but that no code should be generated for.
+    /// Reference Slice files or directories containing Slice files. Reference files are used to resolve definitions in
+    /// the Slice sources being compiled. Directories are searched recursively.
     #[arg(short = 'R', long, num_args = 1, action = Append)]
     pub references: Vec<String>,
 
-    /// Preprocessor Symbols defined on the command line.
+    /// Define a preprocessor definition. Preprocessor definitions are defined or undefined and do not have
+    /// an associated value. Multiple values can be specified by using multiple `-D` options or by using a comma.
     #[arg(short = 'D', long, num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
@@ -28,10 +30,10 @@ pub struct SliceOptions {
     #[arg(short, long)]
     pub warn_as_error: bool,
 
-    /// Instructs the compiler to allow warnings. Specify a list of warnings to allow, or leave empty to allow all
-    /// warnings.
-    #[arg(long)]
-    pub allow_warnings: Option<Vec<String>>,
+    /// Instructs the compiler to allow the specified warning(s). An allowed warning will not be emitted as a
+    /// diagnostic. Multiple values can be specified by using multiple `-A|--allow` options or by using a comma.
+    #[arg(short = 'D', long)]
+    pub allow: Option<Vec<String>>,
 
     /// Validates input files without generating code for them.
     #[arg(long)]

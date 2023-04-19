@@ -120,7 +120,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: Some(vec![]),
+            allow: Some(vec![]),
             ..Default::default()
         };
 
@@ -151,7 +151,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: Some(vec!["W004".to_string()]),
+            allow: Some(vec!["W004".to_string()]),
             ..Default::default()
         };
 
