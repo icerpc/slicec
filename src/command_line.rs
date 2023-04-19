@@ -22,7 +22,7 @@ pub struct SliceOptions {
     pub references: Vec<String>,
 
     /// Define a preprocessor definition. Preprocessor definitions do not have an associated value.
-    /// Multiple values can be specified by using multiple `-D|--definition` options or by using a comma.
+    /// This option can be repeated.
     #[arg(short = 'D', long, num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
@@ -30,8 +30,8 @@ pub struct SliceOptions {
     #[arg(short, long)]
     pub warn_as_error: bool,
 
-    /// Instructs the compiler to allow the specified warning(s). An allowed warning will not be emitted as a
-    /// diagnostic. Multiple values can be specified by using multiple `-A|--allow` options or by using a comma.
+    /// Instructs the compiler to allow the specified warning. An allowed warning will not be emitted as a
+    /// diagnostic. This option can be repeated.
     #[arg(short = 'A', long)]
     pub allow: Option<Vec<String>>,
 
