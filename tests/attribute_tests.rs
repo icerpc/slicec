@@ -53,7 +53,6 @@ mod attributes {
 
         #[test_case("All", SuppressWarnings::All; "All")]
         #[test_case("Deprecated", SuppressWarnings::Deprecated; "Deprecated")]
-        #[test_case("Attributes", SuppressWarnings::Attributes; "Attributes")]
         #[test_case("Comments", SuppressWarnings::Comments; "Comments")]
         #[test_case("W002", SuppressWarnings::Single("W002".to_owned()); "W002")]
         fn allow_argument_args(argument: &str, expected: SuppressWarnings) {
@@ -130,7 +129,6 @@ mod attributes {
             check_diagnostics(diagnostics, [expected]);
         }
 
-        // TODO add test case for attribute warnings once they become warnings.
         #[test_case("All", []; "All")]
         #[test_case("Deprecated", [1, 2]; "Deprecated")]
         #[test_case("Comments", [0]; "Comments")]

@@ -33,7 +33,6 @@ pub struct SliceOptions {
     /// Arguments can either be one of the following categories:
     /// - 'All': ignore all warnings
     /// - 'Deprecated': ignore deprecation warnings
-    /// - 'Attributes': ignore warnings caused by unknown or malformed attributes
     /// - 'Comments': ignore warnings caused by malformed comments
     /// Or a warning code of the form 'W###' (for a list of warning codes see: <!TODO LINK!>).
     #[arg(short, long)]

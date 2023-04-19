@@ -69,8 +69,8 @@ impl DiagnosticReporter {
         i32::from(self.has_errors() || (self.treat_warnings_as_errors && self.has_diagnostics()))
     }
 
-    /// Consumes the diagnostic reporter and returns an iterator over all its diagnostics, but with any that should
-    /// be allowed filtered out (due to `allow` attributes, or the `--allow-warnings` command line option).
+    /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
+    /// filtered out (due to either `allow` attributes, or the `--allow-warnings` command line option).
     pub fn into_diagnostics<'a>(
         self,
         ast: &'a Ast,
@@ -129,7 +129,6 @@ pub enum SuppressWarnings {
     Single(String),
     All,
     Deprecated,
-    Attributes,
     Comments,
 }
 
@@ -137,13 +136,8 @@ impl SuppressWarnings {
     pub fn does_suppress(&self, warning: &Warning) -> bool {
         match self {
             Self::Single(code) => warning.error_code() == code,
-
             Self::All => true,
-
             Self::Deprecated => matches!(warning, Warning::UseOfDeprecatedEntity { .. }),
-
-            Self::Attributes => false, // TODO: attributes need to be turned into warnings.
-
             Self::Comments => matches!(
                 warning,
                 Warning::DocCommentSyntax { .. }
@@ -165,7 +159,6 @@ impl std::str::FromStr for SuppressWarnings {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "Deprecated" => Ok(SuppressWarnings::Deprecated),
-            "Attributes" => Ok(SuppressWarnings::Attributes),
             "Comments" => Ok(SuppressWarnings::Comments),
             "All" => Ok(SuppressWarnings::All),
             code => {
@@ -180,10 +173,7 @@ impl std::str::FromStr for SuppressWarnings {
                         "warnings can be specified as a category or a code of the form 'W###'.",
                         None,
                     )
-                    .add_note(
-                        "valid categories are: 'Deprecated', 'Attributes', 'Comments', and 'All'",
-                        None,
-                    );
+                    .add_note("valid categories are: 'Deprecated', 'Comments', and 'All'", None);
                     Err(error)
                 }
             }
