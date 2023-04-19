@@ -32,7 +32,7 @@ pub struct SliceOptions {
 
     /// Instructs the compiler to allow the specified warning(s). An allowed warning will not be emitted as a
     /// diagnostic. Multiple values can be specified by using multiple `-A|--allow` options or by using a comma.
-    #[arg(short = 'D', long)]
+    #[arg(short = 'A', long)]
     pub allow: Option<Vec<String>>,
 
     /// Validates input files without generating code for them.
