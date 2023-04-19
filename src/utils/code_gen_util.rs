@@ -32,7 +32,7 @@ pub fn get_bit_sequence_size<T: Member>(encoding: Encoding, members: &[&T]) -> u
 
 /// Takes a slice of Member references and returns two vectors. One containing the required members
 /// and the other containing the tagged members. The tagged vector is sorted by its tags.
-pub fn get_sorted_members<'a, T: Member>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
+pub fn get_sorted_members<'a, T: Member + ?Sized>(members: &[&'a T]) -> (Vec<&'a T>, Vec<&'a T>) {
     let (mut tagged, required): (Vec<&T>, Vec<&T>) = members.iter().partition(|member| member.is_tagged());
     tagged.sort_by_key(|member| member.tag().unwrap());
     (required, tagged)

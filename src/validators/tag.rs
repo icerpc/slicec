@@ -18,12 +18,8 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
-    let mut tagged_members = members
-        .into_iter()
-        .filter(|&member| member.is_tagged())
-        .collect::<Vec<_>>();
-    tagged_members.sort_by_key(|member| member.tag().unwrap());
-    tagged_members.windows(2).for_each(|window| {
+    let (_, sorted_tagged_members) = crate::utils::code_gen_util::get_sorted_members(&members);
+    sorted_tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
             Diagnostic::new(Error::CannotHaveDuplicateTag {
                 identifier: window[1].identifier().to_owned(),
@@ -31,9 +27,9 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
             .set_span(window[1].span())
             .add_note(
                 format!(
-                    "The member '{}' has previous used the tag value '{}'",
-                    &window[0].identifier(),
+                    "The tag '{}' is already being used by member '{}'",
                     window[0].tag().unwrap(),
+                    &window[0].identifier(),
                 ),
                 Some(window[0].span()),
             )
@@ -44,11 +40,9 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
 
 /// Validate that tags cannot be used in compact structs.
 fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
-    // Compact structs must be non-empty.
-    if struct_def.is_compact && !struct_def.fields.is_empty() {
-        // Compact structs cannot have tagged fields.
+    if struct_def.is_compact {
         for field in struct_def.fields() {
-            if field.tag.is_some() {
+            if field.is_tagged() {
                 Diagnostic::new(Error::CompactStructCannotContainTaggedFields)
                     .set_span(field.span())
                     .add_note(
@@ -63,10 +57,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter:
 
 /// Validate that the data type of the tagged member is optional.
 fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    let tagged_members = members
-        .into_iter()
-        .filter(|member| member.is_tagged())
-        .collect::<Vec<_>>();
+    let tagged_members = members.into_iter().filter(|member| member.is_tagged());
 
     // Validate that tagged members are optional.
     for member in tagged_members {

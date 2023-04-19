@@ -616,11 +616,11 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
     Integer { value, span }
 }
 
-fn parse_tag_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
+fn parse_tag_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     // Verify that the provided integer is a valid tag id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Diagnostic::new(Error::TagValueOutOfBounds)
-            .set_span(&span)
+            .set_span(&i.span)
             .report(parser.diagnostic_reporter)
     }
 
@@ -630,11 +630,11 @@ fn parse_tag_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer
     Integer { value, span: i.span }
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>, span: Span) -> Integer<u32> {
+fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     // Verify that the provided integer is a valid compact id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         Diagnostic::new(Error::CompactIdOutOfBounds)
-            .set_span(&span)
+            .set_span(&i.span)
             .report(parser.diagnostic_reporter)
     }
 
