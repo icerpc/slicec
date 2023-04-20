@@ -39,7 +39,7 @@ impl DiagnosticReporter {
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
-            allowed_warnings: slice_options.allow.clone(),
+            allowed_warnings: slice_options.allowed_warnings.clone(),
         }
     }
 

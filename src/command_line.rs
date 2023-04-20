@@ -16,30 +16,30 @@ pub struct SliceOptions {
     #[arg(required = true)]
     pub sources: Vec<String>,
 
-    /// Reference Slice files or directories containing Slice files. Reference files are used to resolve definitions in
-    /// the Slice sources being compiled. Directories are searched recursively.
-    #[arg(short = 'R', long, num_args = 1, action = Append)]
+    /// Reference Slice file or directory containing Slice files. Reference files are used to resolve definitions in
+    /// the Slice sources being compiled. Directories are searched recursively. This option can be repeated.
+    #[arg(short = 'R', long = "reference", num_args = 1, action = Append)]
     pub references: Vec<String>,
 
     /// Define a preprocessor definition. Preprocessor definitions do not have an associated value.
     /// This option can be repeated.
-    #[arg(short = 'D', long, num_args = 1, action = Append)]
+    #[arg(short = 'D', long = "define", num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
-    /// Instructs the compiler to treat warnings as errors.
+    /// Instruct the compiler to treat warnings as errors.
     #[arg(short, long)]
     pub warn_as_error: bool,
 
-    /// Instructs the compiler to allow the specified warning. An allowed warning will not be emitted as a
+    /// Instruct the compiler to allow the specified warning. An allowed warning will not be emitted as a
     /// diagnostic. This option can be repeated.
-    #[arg(short = 'A', long)]
-    pub allow: Option<Vec<String>>,
+    #[arg(short = 'A', long = "allow")]
+    pub allowed_warnings: Option<Vec<String>>,
 
-    /// Validates input files without generating code for them.
+    /// Validate input files without generating code for them.
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Output directory for generated code, defaults to the current working directory.
+    /// Set the output directory for the generated code, defaults to the current working directory.
     #[arg(long)]
     pub output_dir: Option<String>,
 
@@ -47,7 +47,7 @@ pub struct SliceOptions {
     #[arg(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
-    /// Disables ANSI escape code for diagnostic output.
+    /// Disable ANSI escape code for diagnostic output.
     #[arg(long)]
     pub disable_color: bool,
 }
