@@ -16,13 +16,11 @@ pub struct SliceOptions {
     #[arg(required = true)]
     pub sources: Vec<String>,
 
-    /// Add a directory or Slice file to the list of references. Reference files are used to resolve definitions in
-    /// Slice files. Directories are searched recursively. This option can be repeated.
+    /// Add a directory or Slice file to the list of references.
     #[arg(short = 'R', value_name="REFERENCE", num_args = 1, action = Append)]
     pub references: Vec<String>,
 
-    /// Define a preprocessor definition. Preprocessor definitions do not have associated values.
-    /// This option can be repeated.
+    /// Define a preprocessor definition.
     #[arg(short = 'D', value_name="DEFINITION", num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
@@ -30,8 +28,7 @@ pub struct SliceOptions {
     #[arg(short = 'W')]
     pub warn_as_error: bool,
 
-    /// Instruct the compiler to allow the specified warning. Warnings of the allowed type will not be emitted.
-    /// This option can be repeated.
+    /// Instruct the compiler to allow (not emit) the specified warning.
     #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
     pub allowed_warnings: Option<Vec<String>>,
 
