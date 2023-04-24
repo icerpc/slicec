@@ -43,7 +43,7 @@ pub struct SliceOptions {
     #[arg(short = 'O', long)]
     pub output_dir: Option<String>,
 
-    /// Output format for emitted errors.
+    /// Set the output format for emitted errors.
     #[arg(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
