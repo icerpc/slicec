@@ -16,8 +16,8 @@ pub struct SliceOptions {
     #[arg(required = true)]
     pub sources: Vec<String>,
 
-    /// Reference Slice file or directory containing Slice files. Reference files are used to resolve definitions in
-    /// the Slice sources being compiled. Directories are searched recursively. This option can be repeated.
+    /// Add a directory or Slice file to the list of references. Reference files are used to resolve definitions in
+    /// Slice files. Directories are searched recursively. This option can be repeated.
     #[arg(short = 'R', value_name="REFERENCE", num_args = 1, action = Append)]
     pub references: Vec<String>,
 
