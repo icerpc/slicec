@@ -30,8 +30,8 @@ pub struct SliceOptions {
     #[arg(short = 'W')]
     pub warn_as_error: bool,
 
-    /// Instruct the compiler to allow the specified warning. An allowed warning will not be emitted as a
-    /// diagnostic. This option can be repeated.
+    /// Instruct the compiler to allow the specified warning. Warnings of the allowed type will not be emitted.
+    /// This option can be repeated.
     #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
     pub allowed_warnings: Option<Vec<String>>,
 
