@@ -117,17 +117,15 @@ mod container {
     #[test]
     fn only_one_error_is_emitted_per_cycle() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module Test
 
-            struct Container {{
+            struct Container {
                 c1: Container
                 c2: Container
                 c3: Container
-            }}
-            "
-        );
+            }
+        ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
