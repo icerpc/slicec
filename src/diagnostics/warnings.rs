@@ -69,57 +69,48 @@ pub enum Warning {
 implement_diagnostic_functions!(
     Warning,
     (
-        "W001",
         DuplicateFile,
         format!("slice file was provided more than once: '{path}'"),
         path
     ),
-    ("W002", DocCommentSyntax, message, message),
+    (DocCommentSyntax, message, message),
     (
-        "W003",
         ExtraParameterInDocComment,
         format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
         identifier
     ),
     (
-        "W004",
         ExtraReturnValueInDocComment,
         "void operation must not contain doc comment return tag"
     ),
     (
-        "W005",
         ExtraThrowInDocComment,
         format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
         kind,
         identifier
     ),
     (
-        "W006",
         CouldNotResolveLink,
         format!("no element with identifier '{identifier}' can be found from this scope"),
         identifier
     ),
     (
-        "W007",
         LinkToInvalidElement,
         format!("elements of the type '{kind}' cannot be referenced in doc comments"),
         kind
     ),
     (
-        "W008",
         UseOfDeprecatedEntity,
         format!("'{identifier}' is deprecated{deprecation_reason}"),
         identifier,
         deprecation_reason
     ),
     (
-        "W010",
         InvalidThrowInDocComment,
         format!("'{identifier}' is not a throwable type"),
         identifier
     ),
     (
-        "W011",
         OperationDoesNotThrow,
         format!("operation '{identifier}' does not throw anything"),
         identifier
