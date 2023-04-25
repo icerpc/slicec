@@ -38,7 +38,7 @@ impl DiagnosticReporter {
         };
 
         // Validate any arguments for `--allowed-warnings` that were passed into the command line.
-        validate_allow_arguments(&slice_options.allowed_warnings, &mut diagnostic_reporter);
+        validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostic_reporter);
 
         diagnostic_reporter
     }

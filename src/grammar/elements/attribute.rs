@@ -113,7 +113,7 @@ impl AttributeKind {
                     .set_span(span)
                     .report(reporter);
                 }
-                validate_allow_arguments(arguments, reporter);
+                validate_allow_arguments(arguments, Some(span), reporter);
 
                 Some(AttributeKind::Allow {
                     allowed_warnings: arguments.to_owned(),
@@ -250,6 +250,23 @@ implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
 
 // This is a standalone function because it's used by both the `allow` attribute, and the `--allow-warning` CLI option.
-pub fn validate_allow_arguments(arguments: &[String], diagnostic_reporter: &mut DiagnosticReporter) {
-    todo!()
+pub fn validate_allow_arguments(
+    arguments: &[String],
+    span: Option<&Span>,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) {
+    for argument in arguments {
+        // Ensure that each argument is either "All", or the name of a warning.
+        if argument != "All" && !Warning::all_codes().contains(&argument.as_str()) {
+            // TODO we should emit a link to the warnings page when we write it!
+            let mut error = Diagnostic::new(Error::ArgumentNotSupported {
+                argument: argument.to_owned(),
+                directive: "allow".to_owned(),
+            });
+            if let Some(unwrapped_span) = span {
+                error = error.set_span(unwrapped_span);
+            }
+            error.report(diagnostic_reporter);
+        }
+    }
 }
