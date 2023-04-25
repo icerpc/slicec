@@ -84,25 +84,25 @@ impl DiagnosticReporter {
 
         // Filter out any diagnostics that should be suppressed.
         self.diagnostics.into_iter().filter(move |diagnostic| {
-            let mut should_emit = true;
+            let mut is_suppressed = true;
 
             if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
                 // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.
-                should_emit &= is_warning_suppressed_by(self.allowed_warnings.iter(), warning);
+                is_suppressed |= is_warning_suppressed_by(self.allowed_warnings.iter(), warning);
 
                 // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    should_emit &= is_warning_suppressed_by_attributes(file.attributes(false), warning);
+                    is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(false), warning);
                 }
 
                 // If the warning has a scope, check if it's allowed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    should_emit &= is_warning_suppressed_by_attributes(entity.attributes(true), warning);
+                    is_suppressed |= is_warning_suppressed_by_attributes(entity.attributes(true), warning);
                 }
             }
-            should_emit
+            !is_suppressed
         })
     }
 
