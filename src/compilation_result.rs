@@ -69,13 +69,12 @@ impl CompilationData {
         for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
-            let error_code = diagnostic
-                .error_code()
-                .map_or_else(String::new, |code| format!(" [{code}]"));
+            let code = diagnostic.error_code();
             let prefix = match &diagnostic.kind {
-                DiagnosticKind::Error(_) => style("error".to_owned() + &error_code).red().bold(),
-                DiagnosticKind::Warning(_) => style("warning".to_owned() + &error_code).yellow().bold(),
+                DiagnosticKind::Error(_) => style(format!("error [{code}]")).red().bold(),
+                DiagnosticKind::Warning(_) => style(format!("warning [{code}]")).yellow().bold(),
             };
+
             let mut message = vec![];
 
             // Emit the message with the prefix.

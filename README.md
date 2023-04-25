@@ -2,12 +2,13 @@
 
 [![.github/workflows/rust.yml](https://github.com/icerpc/slicec/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
 
-- [Build Requirements](#build-requirements)
-- [Overview](#overview)
-  - [Compile from strings](#compile-from-strings)
-  - [Compile from options](#compile-from-options)
-- [Testing](#testing)
-- [Code Coverage Report](#code-coverage-report)
+- [Slice Compiler Library (slicec)](#slice-compiler-library-slicec)
+  - [Build Requirements](#build-requirements)
+  - [Overview](#overview)
+    - [Compile from strings](#compile-from-strings)
+    - [Compile from options](#compile-from-options)
+  - [Testing](#testing)
+  - [Code coverage report](#code-coverage-report)
 
 ## Build Requirements
 
@@ -91,7 +92,8 @@ command prompt, using the following command
 For Linux and macOS:
 
 ```shell
-./generate-coverage-report.sh
+cargo install cargo-llvm-cov
+cargo llvm-cov --html
 ```
 
 The output html is in the `target/llvm-cov/html/` directory.

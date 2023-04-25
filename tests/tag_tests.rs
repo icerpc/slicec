@@ -181,7 +181,7 @@ mod tags {
         let expected = Diagnostic::new(Error::CannotHaveDuplicateTag {
             identifier: "b".to_owned(),
         })
-        .add_note("The member 'a' has previous used the tag value '1'", None);
+        .add_note("The tag '1' is already being used by member 'a'", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

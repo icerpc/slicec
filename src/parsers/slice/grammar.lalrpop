@@ -316,18 +316,21 @@ Integer: Integer<i128> = {
 
 SignedInteger: Integer<i128> = {
     <i: Integer> => i,
-    "-" <i: Integer> => Integer { value: -i.value, ..i },
+    <l: @L> "-" <mut i: Integer> => Integer {
+        value: -i.value,
+        span: Span { start: l, ..i.span },
+    }
 }
 
 Tag: Integer<u32> = {
-    tag_keyword "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
-        parse_tag_value(parser, i, Span::new(l, r, parser.file_name))
+    tag_keyword "(" <i: SignedInteger> ")" => {
+        parse_tag_value(parser, i)
     }
 }
 
 CompactId: Integer<u32> = {
-    "(" <l: @L> <i: SignedInteger> <r: @R> ")" => {
-        parse_compact_id_value(parser, i, Span::new(l, r, parser.file_name))
+    "(" <i: SignedInteger> ")" => {
+        parse_compact_id_value(parser, i)
     }
 }
 

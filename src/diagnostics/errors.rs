@@ -271,6 +271,7 @@ pub enum Error {
 implement_diagnostic_functions!(
     Error,
     (
+        "E001",
         IO,
         format!("failed to {action} '{path}': {error}"),
         action,
@@ -278,6 +279,7 @@ implement_diagnostic_functions!(
         error
     ),
     (
+        "E002",
         Syntax,
         format!("{message}"),
         message

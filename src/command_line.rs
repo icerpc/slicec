@@ -12,45 +12,39 @@ use serde::Serialize;
 #[derive(Debug, Default, Parser)]
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
-    /// List of slice files to compile.
+    /// List of Slice files to compile.
     #[arg(required = true)]
     pub sources: Vec<String>,
 
-    /// Files that are needed for referencing, but that no code should be generated for.
-    #[arg(short = 'R', long, num_args = 1, action = Append)]
+    /// Add a directory or Slice file to the list of references.
+    #[arg(short = 'R', value_name="REFERENCE", num_args = 1, action = Append)]
     pub references: Vec<String>,
 
-    /// Preprocessor Symbols defined on the command line.
-    #[arg(short = 'D', long, num_args = 1, action = Append)]
+    /// Define a preprocessor definition.
+    #[arg(short = 'D', value_name="DEFINITION", num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
-    /// Instructs the compiler to treat warnings as errors.
+    /// Instruct the compiler to treat warnings as errors.
     #[arg(short = 'W', long)]
     pub warn_as_error: bool,
 
-    /// Instructs the compiler to suppress certain warnings.
-    ///
-    /// Arguments can either be one of the following categories:
-    /// - 'All': suppress all warnings
-    /// - 'Deprecated': suppress deprecation warnings
-    /// - 'Comments': suppress warnings caused by malformed comments
-    /// Or a warning code of the form 'W###' (for a list of warning codes see: <!TODO LINK!>).
-    #[arg(short = 'A', long)]
-    pub allow_warnings: Vec<String>,
+    /// Instruct the compiler to allow (not emit) the specified warning.
+    #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
+    pub allowed_warnings: <Vec<String>,
 
-    /// Validates input files without generating code for them.
+    /// Validate input files without generating code for them.
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Output directory for generated code, defaults to the current working directory.
-    #[arg(long)]
+    /// Set the output directory for the generated code. Defaults to the current working directory.
+    #[arg(short = 'O', long)]
     pub output_dir: Option<String>,
 
-    /// Output format for emitted errors.
+    /// Set the output format for emitted errors.
     #[arg(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
-    /// Disables ANSI escape code for diagnostic output.
+    /// Disable ANSI color codes in diagnostic output.
     #[arg(long)]
     pub disable_color: bool,
 }

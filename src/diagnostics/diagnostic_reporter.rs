@@ -35,16 +35,7 @@ impl DiagnosticReporter {
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
-            allowed_warnings: Vec::new(),
-        };
-
-        // Parse any arguments for `--allow-warnings` that were passed into the command line.
-        // If an error occurs while parsing them, report it with the newly constructed diagnostic reporter.
-        for allow_warning in &slice_options.allow_warnings {
-            match SuppressWarnings::from_str(allow_warning) {
-                Ok(suppress_warning) => diagnostic_reporter.allowed_warnings.push(suppress_warning),
-                Err(error) => diagnostic_reporter.diagnostics.push(error),
-            }
+            allowed_warnings: slice_options.allowed_warnings.clone(),
         }
 
         diagnostic_reporter
