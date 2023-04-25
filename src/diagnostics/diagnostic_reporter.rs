@@ -2,11 +2,10 @@
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::{Diagnostic, DiagnosticKind, Error, Warning};
-use crate::grammar::{Attributable, Attribute, Entity};
+use crate::diagnostics::{Diagnostic, DiagnosticKind, Warning};
+use crate::grammar::{validate_allow_arguments, Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
 use std::collections::HashMap;
-use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct DiagnosticReporter {
@@ -18,8 +17,8 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
-    /// Lists all the kinds of warnings that should be suppressed by this reporter.
-    pub allowed_warnings: Vec<SuppressWarnings>,
+    /// Lists all the warnings that should be suppressed by this reporter.
+    pub allowed_warnings: Vec<String>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
     /// If true, diagnostic output will not be styled.
@@ -36,7 +35,10 @@ impl DiagnosticReporter {
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
             allowed_warnings: slice_options.allowed_warnings.clone(),
-        }
+        };
+
+        // Validate any arguments for `--allowed-warnings` that were passed into the command line.
+        validate_allow_arguments(&slice_options.allowed_warnings, &mut diagnostic_reporter);
 
         diagnostic_reporter
     }
@@ -63,48 +65,44 @@ impl DiagnosticReporter {
     }
 
     /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
-    /// filtered out (due to either `allow` attributes, or the `--allow-warnings` command line option).
+    /// filtered out (ie: any warnings specified by `allow` attributes, or the `--allow-warnings` command line option).
     pub fn into_diagnostics<'a>(
         self,
         ast: &'a Ast,
         files: &'a HashMap<String, SliceFile>,
     ) -> impl Iterator<Item = Diagnostic> + 'a {
-        // Helper function that checks whether a warning should be allowed according to the provided attributes.
-        fn is_warning_allowed_by_attributes(warning: &Warning, attributes: Vec<&Attribute>) -> bool {
-            attributes
-                .into_iter()
-                .filter_map(Attribute::match_allow_warnings)
-                .any(|allowed_warnings| {
-                    allowed_warnings
-                        .iter()
-                        .any(|allowed_warning| allowed_warning.does_suppress(warning))
-                })
+        // Helper function that checks whether a warning should be suppressed according to the provided identifiers.
+        fn is_warning_suppressed_by<'b>(mut identifiers: impl Iterator<Item = &'b String>, warning: &Warning) -> bool {
+            identifiers.any(|identifier| identifier == "All" || identifier == warning.error_code())
         }
 
-        // Filter out any warnings that should be allowed.
+        // Helper function that checks whether a warning should be suppressed according to the provided attributes.
+        fn is_warning_suppressed_by_attributes(attributes: Vec<&Attribute>, warning: &Warning) -> bool {
+            let mut allowed_warnings = attributes.into_iter().filter_map(Attribute::match_allow_warnings);
+            allowed_warnings.any(|allowed| is_warning_suppressed_by(allowed.iter(), warning))
+        }
+
+        // Filter out any diagnostics that should be suppressed.
         self.diagnostics.into_iter().filter(move |diagnostic| {
-            let mut is_allowed = false;
+            let mut should_emit = true;
 
             if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
                 // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.
-                for allowed_warning in &self.allowed_warnings {
-                    is_allowed |= allowed_warning.does_suppress(warning);
-                }
+                should_emit &= is_warning_suppressed_by(self.allowed_warnings.iter(), warning);
 
                 // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    is_allowed |= is_warning_allowed_by_attributes(warning, file.attributes(false));
+                    should_emit &= is_warning_suppressed_by_attributes(file.attributes(false), warning);
                 }
 
-                // If the warning has a scope, check if it's allowed by an `allow` attribute in that
-                // scope.
+                // If the warning has a scope, check if it's allowed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    is_allowed |= is_warning_allowed_by_attributes(warning, entity.attributes(true));
+                    should_emit &= is_warning_suppressed_by_attributes(entity.attributes(true), warning);
                 }
             }
-            !is_allowed
+            should_emit
         })
     }
 
@@ -114,62 +112,5 @@ impl DiagnosticReporter {
             DiagnosticKind::Warning(_) => self.warning_count += 1,
         }
         self.diagnostics.push(diagnostic);
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum SuppressWarnings {
-    Single(String),
-    All,
-    Deprecated,
-    Comments,
-}
-
-impl SuppressWarnings {
-    pub fn does_suppress(&self, warning: &Warning) -> bool {
-        match self {
-            Self::Single(code) => warning.error_code() == code,
-            Self::All => true,
-            Self::Deprecated => matches!(warning, Warning::UseOfDeprecatedEntity { .. }),
-            Self::Comments => matches!(
-                warning,
-                Warning::DocCommentSyntax { .. }
-                    | Warning::ExtraParameterInDocComment { .. }
-                    | Warning::ExtraReturnValueInDocComment
-                    | Warning::ExtraThrowInDocComment { .. }
-                    | Warning::CouldNotResolveLink { .. }
-                    | Warning::LinkToInvalidElement { .. }
-                    | Warning::InvalidThrowInDocComment { .. }
-                    | Warning::OperationDoesNotThrow { .. }
-            ),
-        }
-    }
-}
-
-impl std::str::FromStr for SuppressWarnings {
-    type Err = Diagnostic;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "All" => Ok(SuppressWarnings::All),
-            "Deprecated" => Ok(SuppressWarnings::Deprecated),
-            "Comments" => Ok(SuppressWarnings::Comments),
-            code => {
-                if Warning::all_codes().contains(&code) {
-                    Ok(SuppressWarnings::Single(code.to_owned()))
-                } else {
-                    let error = Diagnostic::new(Error::ArgumentNotSupported {
-                        argument: code.to_owned(),
-                        directive: "allow".to_owned(),
-                    })
-                    .add_note(
-                        "warnings can be specified as a category or a code of the form 'W###'.",
-                        None,
-                    )
-                    .add_note("valid categories are: 'Deprecated', 'Comments', and 'All'", None);
-                    Err(error)
-                }
-            }
-        }
     }
 }

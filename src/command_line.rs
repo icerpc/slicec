@@ -30,7 +30,7 @@ pub struct SliceOptions {
 
     /// Instruct the compiler to allow (not emit) the specified warning.
     #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
-    pub allowed_warnings: <Vec<String>,
+    pub allowed_warnings: Vec<String>,
 
     /// Validate input files without generating code for them.
     #[arg(long)]

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, SuppressWarnings};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::Span;
 use std::str::FromStr;
 
@@ -60,9 +60,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<SuppressWarnings>> {
+    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<String>> {
         match &attribute.kind {
-            AttributeKind::Allow { suppressed_warnings } => Some(suppressed_warnings),
+            AttributeKind::Allow { allowed_warnings } => Some(allowed_warnings),
             _ => None,
         }
     }
@@ -77,7 +77,7 @@ impl Attribute {
 
 #[derive(Debug)]
 pub enum AttributeKind {
-    Allow { suppressed_warnings: Vec<SuppressWarnings> },
+    Allow { allowed_warnings: Vec<String> },
     ClassFormat { format: ClassFormat },
     Compress { compress_args: bool, compress_return: bool },
     Deprecated { reason: Option<String> },
@@ -113,20 +113,11 @@ impl AttributeKind {
                     .set_span(span)
                     .report(reporter);
                 }
+                validate_allow_arguments(arguments, reporter);
 
-                // Parse the strings into `SuppressWarnings` structs.
-                let suppressed_warnings = arguments
-                    .iter()
-                    .filter_map(|arg| match SuppressWarnings::from_str(arg) {
-                        Ok(suppress_warnings) => Some(suppress_warnings),
-                        Err(error) => {
-                            error.report(reporter);
-                            None
-                        }
-                    })
-                    .collect();
-
-                Some(AttributeKind::Allow { suppressed_warnings })
+                Some(AttributeKind::Allow {
+                    allowed_warnings: arguments.to_owned(),
+                })
             }
 
             COMPRESS => {
@@ -257,3 +248,8 @@ impl AttributeKind {
 
 implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
+
+// This is a standalone function because it's used by both the `allow` attribute, and the `--allow-warning` CLI option.
+pub fn validate_allow_arguments(arguments: &[String], diagnostic_reporter: &mut DiagnosticReporter) {
+    todo!()
+}
