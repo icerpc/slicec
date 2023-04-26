@@ -257,7 +257,15 @@ pub fn validate_allow_arguments(
 ) {
     for argument in arguments {
         // Ensure that each argument is either "All", or the name of a warning.
-        if argument != "All" && !Warning::all_codes().contains(&argument.as_str()) {
+        let mut is_valid = argument != "All" && !Warning::all_warnings().contains(&argument.as_str());
+
+        // We don't allow `DuplicateFile` to be suppressed by attributes, because it's a command-line specific warning.
+        if argument == "DuplicateFile" && span.is_some() {
+            is_valid = false;
+        }
+
+        // Emit an error if the argument wasn't valid.
+        if is_valid {
             // TODO we should emit a link to the warnings page when we write it!
             let mut error = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: argument.to_owned(),

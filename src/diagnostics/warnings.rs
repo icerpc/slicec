@@ -4,66 +4,35 @@ use crate::implement_diagnostic_functions;
 
 #[derive(Debug)]
 pub enum Warning {
-    /// The user supplied either a reference or source file more than once.
+    /// An input filename/directory was provided multiple times.
+    /// Note: it's valid to specify the same path as a source and reference file (ex: `slicec foo.slice -Rfoo.slice`).
+    /// This is only triggered by specifying it multiple times in the same context: (ex: `slicec foo.slice foo.slice`).
     DuplicateFile {
-        /// The path of the file that was supplied more than once.
+        /// The path of the file that supplied more than once.
         path: String,
     },
 
-    /// The user made a syntactical mistake in a doc comment.
-    DocCommentSyntax {
-        /// Message explaining the mistake to the user.
-        message: String,
-    },
-
-    /// The user-supplied doc comment indicated that the operation should contain a parameter that it does not have.
-    ExtraParameterInDocComment {
-        /// The name of the parameter from the user-supplied doc comment.
+    /// A deprecated Slice element was used.
+    Deprecated {
+        /// The identifier of the element.
         identifier: String,
+
+        /// The reason the element was deprecated (if specified).
+        reason: Option<String>,
     },
 
-    /// The user-supplied doc comment indicated that the operation should return a value, but the operation does not.
-    ExtraReturnValueInDocComment,
+    /// A syntactical mistake in a doc-comment.
+    MalformedDocComment { message: String },
 
-    /// The user-supplied doc comment indicated that the entity should throw, but the entity does not support throwing.
-    ExtraThrowInDocComment {
-        /// The kind of the entity that was indicated to throw.
-        kind: String,
-        /// The identifier of the entity that was indicated to throw.
-        identifier: String,
-    },
+    /// A link in a doc-comment couldn't be resolved because either:
+    /// - The link pointed to an un-linkable element, ie. a primitive, sequence, or dictionary.
+    /// - The link pointed to a non-existent element.
+    BrokenLink { message: String },
 
-    /// A doc comment link referenced an element that does not exist.
-    CouldNotResolveLink {
-        /// The identifier that the link referenced.
-        identifier: String,
-    },
-
-    /// A doc comment link referenced a type that cannot be referenced: primitive, sequence, or dictionary.
-    LinkToInvalidElement {
-        /// The kind of element the link references.
-        kind: String,
-    },
-
-    /// The code references a Slice entity that is deprecated.
-    UseOfDeprecatedEntity {
-        /// The identifier of the deprecated entity.
-        identifier: String,
-        /// The reason why the slice entity was deprecated. If not supplied, it defaults to an empty string.
-        deprecation_reason: String,
-    },
-
-    /// The doc comment indicated that the operation should throw an invalid type.
-    InvalidThrowInDocComment {
-        /// The identifier of the type that was indicated to throw.
-        identifier: String,
-    },
-
-    /// The operation is marked with the throws doc comment tag, but the operation does not throw anything.
-    OperationDoesNotThrow {
-        /// The identifier of the operation.
-        identifier: String,
-    },
+    /// A doc comment contains an incorrect tag. Either:
+    /// - The tag itself is incorrect. Ex: using `@throws` on an element that can't or doesn't throw an exception.
+    /// - The tag describes something incorrect. Ex: specifying `@param foo` when no parameter named "foo" exists.
+    IncorrectDocComment { message: String },
 }
 
 implement_diagnostic_functions!(
@@ -73,46 +42,17 @@ implement_diagnostic_functions!(
         format!("slice file was provided more than once: '{path}'"),
         path
     ),
-    (DocCommentSyntax, message, message),
     (
-        ExtraParameterInDocComment,
-        format!("doc comment has a param tag for '{identifier}', but there is no parameter by that name"),
-        identifier
-    ),
-    (
-        ExtraReturnValueInDocComment,
-        "void operation must not contain doc comment return tag"
-    ),
-    (
-        ExtraThrowInDocComment,
-        format!("doc comment indicates that {kind} '{identifier}' throws, however, only operations can throw"),
-        kind,
-        identifier
-    ),
-    (
-        CouldNotResolveLink,
-        format!("no element with identifier '{identifier}' can be found from this scope"),
-        identifier
-    ),
-    (
-        LinkToInvalidElement,
-        format!("elements of the type '{kind}' cannot be referenced in doc comments"),
-        kind
-    ),
-    (
-        UseOfDeprecatedEntity,
-        format!("'{identifier}' is deprecated{deprecation_reason}"),
+        Deprecated,
+        if let Some(reason) = reason {
+            format!("'{identifier}' is deprecated: {reason}")
+        } else {
+            format!("'{identifier}' is deprecated")
+        },
         identifier,
-        deprecation_reason
+        reason
     ),
-    (
-        InvalidThrowInDocComment,
-        format!("'{identifier}' is not a throwable type"),
-        identifier
-    ),
-    (
-        OperationDoesNotThrow,
-        format!("operation '{identifier}' does not throw anything"),
-        identifier
-    )
+    (MalformedDocComment, message, message),
+    (BrokenLink, message, message),
+    (IncorrectDocComment, message, message)
 );

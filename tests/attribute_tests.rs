@@ -8,8 +8,6 @@ mod attributes {
 
     mod allow {
         use super::*;
-        use slice::diagnostics::SuppressWarnings;
-        use slice::grammar::{Attribute, AttributeKind};
         use test_case::test_case;
 
         #[test]
@@ -51,41 +49,23 @@ mod attributes {
             check_diagnostics(diagnostics, [expected]);
         }
 
-        #[test_case("All", SuppressWarnings::All; "All")]
-        #[test_case("Deprecated", SuppressWarnings::Deprecated; "Deprecated")]
-        #[test_case("Comments", SuppressWarnings::Comments; "Comments")]
-        #[test_case("W002", SuppressWarnings::Single("W002".to_owned()); "W002")]
-        fn allow_argument_args(argument: &str, expected: SuppressWarnings) {
+        #[test_case("All"; "all")]
+        #[test_case("IncorrectDocComment"; "specific")]
+        fn allow_with_valid_arguments(argument: &str) {
             // Arrange
             let slice = format!("[[allow({argument})]]");
 
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let attribute_ptr: &Attribute = (&ast.as_slice()[17]).try_into().unwrap();
-            let AttributeKind::Allow { suppressed_warnings } = &attribute_ptr.kind else { panic!(); };
-            assert_eq!(*suppressed_warnings, [expected]);
+            // Act/Assert
+            assert_parses(slice);
         }
 
         #[test]
         fn ensure_allow_can_take_multiple_arguments() {
             // Arrange
-            let slice = "[[allow(All, Deprecated, W001)]]";
+            let slice = "[[allow(BrokenLink, Deprecated)]]";
 
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let attribute_ptr: &Attribute = (&ast.as_slice()[17]).try_into().unwrap();
-            let AttributeKind::Allow { suppressed_warnings } = &attribute_ptr.kind else { panic!(); };
-
-            let expected = [
-                SuppressWarnings::All,
-                SuppressWarnings::Deprecated,
-                SuppressWarnings::Single("W001".to_owned()),
-            ];
-            assert_eq!(*suppressed_warnings, expected);
+            // Act/Assert
+            assert_parses(slice);
         }
 
         #[test]
@@ -107,7 +87,7 @@ mod attributes {
         fn allow_only_affects_relevant_scope() {
             // Arrange
             let slice = "
-                [allow(Comments)]
+                [allow(BrokenLink)]
                 module Allowed {
                     /// {@link fake}
                     struct S {}
@@ -123,16 +103,16 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert: that only the not-ignored warning was emitted.
-            let expected = Diagnostic::new(Warning::CouldNotResolveLink {
-                identifier: "fake".to_owned(),
+            let expected = Diagnostic::new(Warning::BrokenLink {
+                message: "no element named 'fake' exists in scope".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
 
-        #[test_case("All", []; "All")]
-        #[test_case("Deprecated", [1, 2]; "Deprecated")]
-        #[test_case("Comments", [0]; "Comments")]
-        #[test_case("W005", [1, 0]; "W005")]
+        #[test_case("All", []; "all")]
+        #[test_case("Deprecated", [1, 2]; "deprecated")]
+        #[test_case("BrokenLink", [0, 2]; "broken_link")]
+        #[test_case("IncorrectDocComment", [0, 1]; "incorrect_doc_comment")]
         fn allow_only_specified_warnings<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
             // Arrange
             let slice = format!(
@@ -156,16 +136,16 @@ mod attributes {
 
             // Arrange
             let mut all_warnings = vec![
-                Diagnostic::new(Warning::UseOfDeprecatedEntity {
+                Diagnostic::new(Warning::Deprecated {
                     identifier: "S".to_owned(),
-                    deprecation_reason: ": test".to_owned(),
+                    reason: Some("test".to_owned()),
                 }),
-                Diagnostic::new(Warning::CouldNotResolveLink {
-                    identifier: "fake".to_owned(),
+                Diagnostic::new(Warning::BrokenLink {
+                    message: "no element named 'fake' exists in scope".to_owned(),
                 }),
-                Diagnostic::new(Warning::ExtraThrowInDocComment {
-                    kind: "struct".to_owned(),
-                    identifier: "S".to_owned(),
+                Diagnostic::new(Warning::IncorrectDocComment {
+                    message: "doc comment indicates that struct 'S' throws, however, only operations can throw"
+                        .to_owned(),
                 }),
             ];
             // Filter out any warning that should be ignored by the supplied test arguments.
@@ -372,9 +352,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::Deprecated {
                 identifier: "Bar".to_owned(),
-                deprecation_reason: "".to_owned(),
+                reason: None,
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -399,9 +379,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::Deprecated {
                 identifier: "Bar".to_owned(),
-                deprecation_reason: "".to_owned(),
+                reason: None,
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -424,9 +404,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::Deprecated {
                 identifier: "A".to_owned(),
-                deprecation_reason: ": Message here".to_owned(),
+                reason: Some("Message here".to_owned()),
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -447,9 +427,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::UseOfDeprecatedEntity {
+            let expected = Diagnostic::new(Warning::Deprecated {
                 identifier: "A".to_owned(),
-                deprecation_reason: "".to_owned(),
+                reason: None,
             });
             check_diagnostics(diagnostics, [expected]);
         }

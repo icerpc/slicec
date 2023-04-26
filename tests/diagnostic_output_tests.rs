@@ -10,7 +10,7 @@ mod output {
     #[test]
     fn output_to_json() {
         let slice = r#"
-        module  Foo
+        module Foo
 
         interface I {
             /// @param x: this is an x
@@ -36,7 +36,7 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
             r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
@@ -47,7 +47,7 @@ mod output {
     #[test]
     fn output_to_console() {
         let slice = r#"
-        module  Foo
+        module Foo
 
         interface I {
             /// @param x: this is an x
@@ -62,7 +62,7 @@ mod output {
         enum E: int8 {}
         "#;
 
-        // Disable ANSI codes.
+        // Disable ANSI color codes.
         let options = SliceOptions {
             disable_color: true,
             ..Default::default()
@@ -78,7 +78,7 @@ mod output {
 
         // Assert
         let expected = "\
-warning [W003]: doc comment has a param tag for 'x', but there is no parameter by that name
+warning [IncorrectDocComment]: doc comment has a param tag for 'x', but there is no parameter by that name
  --> string-0:5:17
   |
 5 |             /// @param x: this is an x
@@ -107,19 +107,19 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
     #[test]
     fn allow_all_warnings_flag() {
-        let slice = r#"
-        module  Foo
+        let slice = "
+            module Foo
 
-        interface I {
-            /// @param x: this is an x
-            op()
-        }
-
-        "#;
+            interface I {
+                /// {@link Fake}
+                /// @param x: this is an x
+                op()
+            }
+        ";
 
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: vec!["All".to_owned()],
+            allowed_warnings: vec!["All".to_owned()],
             ..Default::default()
         };
 
@@ -132,26 +132,25 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         compilation_data.emit_diagnostics(&mut output);
 
         // Assert
-        assert_eq!(String::new(), String::from_utf8(output).unwrap());
+        assert_eq!("", String::from_utf8(output).unwrap());
     }
 
     #[test]
     fn allow_specific_warning_flag() {
-        let slice = r#"
-        module  Foo
+        let slice = "
+            module Foo
 
-        interface I {
-            /// @param x: this is an x
-            /// @returns: this is a return
-            op()
-        }
-
-        "#;
+            interface I {
+                /// {@link Fake}
+                /// @param x: this is an x
+                op()
+            }
+        ";
 
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allow_warnings: vec!["W004".to_owned()],
+            allowed_warnings: vec!["BrokenLink".to_owned()],
             ..Default::default()
         };
 
@@ -163,10 +162,9 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Act
         compilation_data.emit_diagnostics(&mut output);
 
-        // Assert
-        // Only one of the two warnings should be allowed.
+        // Assert: Only one of the two warnings should be allowed.
         let expected = concat!(
-            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"W003"}"#,
+            r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -175,12 +173,12 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     #[test]
     fn notes_with_same_span_as_diagnostic_suppressed() {
         // Arrange
-        let slice = "\
+        let slice = "
             encoding = Slice2
             module Foo
         ";
 
-        // Disable ANSI codes.
+        // Disable ANSI color codes.
         let options = SliceOptions {
             disable_color: true,
             ..Default::default()
@@ -191,8 +189,8 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
         // Report a diagnostic with a note that has the same span as the diagnostic.
         let span = Span {
-            start: (1, 1).into(),
-            end: (2, 2).into(),
+            start: (2, 13).into(),
+            end: (2, 39).into(),
             file: "string-0".to_owned(),
         };
 
@@ -209,11 +207,10 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Assert
         let expected = "\
 error [E002]: foo
- --> string-0:1:1\n  |
-1 | encoding = Slice2
-  | -----------------
-2 |             module Foo
-  | -
+ --> string-0:2:13
+  |
+2 |             encoding = Slice2
+  |             -----------------
   |
     = note: bar
 ";

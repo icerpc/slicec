@@ -84,7 +84,7 @@ impl DiagnosticReporter {
 
         // Filter out any diagnostics that should be suppressed.
         self.diagnostics.into_iter().filter(move |diagnostic| {
-            let mut is_suppressed = true;
+            let mut is_suppressed = false;
 
             if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
                 // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.

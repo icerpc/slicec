@@ -138,8 +138,10 @@ pub struct Note {
 macro_rules! implement_diagnostic_functions {
     (Warning, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
 
+        // TODO: this should probably generate a const array instead of an
+        // associated function that allocates a vector every time it's called.
         impl $crate::diagnostics::Warning {
-            pub fn all_codes() -> Vec<&'static str> {
+            pub fn all_warnings() -> Vec<&'static str> {
                 vec![$(stringify!($kind)),*]
             }
         }
