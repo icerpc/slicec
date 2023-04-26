@@ -5,7 +5,7 @@ use crate::implement_diagnostic_functions;
 #[derive(Debug)]
 pub enum Warning {
     /// An input filename/directory was provided multiple times.
-    /// Note: it's valid to specify the same path as a source and reference file (ex: `slicec foo.slice -Rfoo.slice`).
+    /// Note: it's valid to specify the same path as a source and reference file (ex: `slicec foo.slice -R foo.slice`).
     /// This is only triggered by specifying it multiple times in the same context: (ex: `slicec foo.slice foo.slice`).
     DuplicateFile {
         /// The path of the file that supplied more than once.
