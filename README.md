@@ -2,13 +2,12 @@
 
 [![.github/workflows/rust.yml](https://github.com/icerpc/slicec/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
 
-- [Slice Compiler Library (slicec)](#slice-compiler-library-slicec)
-  - [Build Requirements](#build-requirements)
-  - [Overview](#overview)
-    - [Compile from strings](#compile-from-strings)
-    - [Compile from options](#compile-from-options)
-  - [Testing](#testing)
-  - [Code coverage report](#code-coverage-report)
+- [Build Requirements](#build-requirements)
+- [Overview](#overview)
+  - [Compile from strings](#compile-from-strings)
+  - [Compile from options](#compile-from-options)
+- [Testing](#testing)
+- [Code coverage report](#code-coverage-report)
 
 ## Build Requirements
 
