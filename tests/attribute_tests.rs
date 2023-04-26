@@ -1,15 +1,13 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod test_helpers;
-
 mod attributes {
 
     mod slice_api {
 
-        use crate::test_helpers::*;
         use slice::diagnostics::{Diagnostic, Error, Warning};
         use slice::grammar::*;
         use slice::slice_file::Span;
+        use slice::test_helpers::*;
         use test_case::test_case;
 
         #[test_case("Compact", ClassFormat::Compact ; "Compact")]
@@ -553,9 +551,9 @@ mod attributes {
 
     mod generalized_api {
 
-        use crate::test_helpers::parse_for_ast;
         use slice::compile_from_strings;
         use slice::grammar::*;
+        use slice::test_helpers::parse_for_ast;
         use test_case::test_case;
 
         #[test]

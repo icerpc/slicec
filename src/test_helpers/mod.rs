@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use slice::ast::Ast;
-use slice::compile_from_strings;
-use slice::diagnostics::Diagnostic;
+use crate::ast::Ast;
+use crate::compile_from_strings;
+use crate::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
 #[must_use]

@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::Encoding;
+use slice::test_helpers::*;
 
 #[test]
 fn operation_members_are_compatible_with_encoding() {
@@ -54,8 +54,8 @@ fn any_exception_cannot_be_used_without_slice1() {
 }
 
 mod slice1 {
-    use crate::test_helpers::*;
     use slice::grammar::*;
+    use slice::test_helpers::*;
 
     #[test]
     fn operations_can_throw_any_exception() {

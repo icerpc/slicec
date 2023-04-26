@@ -2,8 +2,8 @@
 
 mod structs {
 
-    use crate::test_helpers::*;
     use slice::grammar::*;
+    use slice::test_helpers::*;
 
     #[test]
     fn can_contain_tags() {
@@ -29,8 +29,8 @@ mod structs {
 
 mod compact_structs {
 
-    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
+    use slice::test_helpers::*;
 
     #[test]
     fn cannot_contain_tags() {

@@ -2,8 +2,8 @@
 
 mod encoding;
 
-use crate::test_helpers::parse_for_ast;
 use slice::grammar::*;
+use slice::test_helpers::parse_for_ast;
 use test_case::test_case;
 
 #[test_case("bool", Primitive::Bool, 2; "bool")]

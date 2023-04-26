@@ -1,13 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod test_helpers;
-
 mod typealias {
 
-    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
     use slice::slice_file::Span;
+    use slice::test_helpers::*;
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", 2 ; "structs")]

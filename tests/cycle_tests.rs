@@ -1,9 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod test_helpers;
-
-use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
+use slice::test_helpers::*;
 
 mod container {
     use super::*;
@@ -175,7 +173,7 @@ mod type_aliases {
         // Arrange
         let slice = "
             module Test
-    
+
             typealias Foo = Bar
             typealias Bar = Foo
         ";

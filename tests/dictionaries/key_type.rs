@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
+use slice::test_helpers::*;
 use test_case::test_case;
 
 #[test]
