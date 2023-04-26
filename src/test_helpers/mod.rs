@@ -6,6 +6,7 @@ use crate::compile_from_strings;
 use crate::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
+#[must_use]
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     match compile_from_strings(&[&slice.into()], None) {
         Ok(data) => data.ast,
@@ -14,11 +15,13 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 }
 
 /// This function is used to parse a Slice file and return any Diagnostics that were emitted.
+#[must_use]
 pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
     parse_multiple_for_diagnostics(&[&slice.into()])
 }
 
 /// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
+#[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
     diagnostics_from_compilation_result(compile_from_strings(slice, None))
 }
@@ -31,6 +34,7 @@ pub fn assert_parses(slice: impl Into<String>) {
 }
 
 /// This function is used to get the Diagnostics from a CompilationResult.
+#[must_use]
 pub fn diagnostics_from_compilation_result(result: CompilationResult) -> Vec<Diagnostic> {
     let compilation_data = match result {
         Ok(compilation_data) => compilation_data,
