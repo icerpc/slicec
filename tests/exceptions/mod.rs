@@ -5,8 +5,8 @@ mod encoding;
 mod inheritance;
 mod tags;
 
-use crate::test_helpers::parse_for_ast;
 use slice::grammar::{Exception, NamedSymbol, Operation, Throws};
+use slice::test_helpers::parse_for_ast;
 
 #[test]
 fn throws_specific_exception() {

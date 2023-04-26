@@ -4,9 +4,9 @@ mod encoding;
 mod inheritance;
 mod operations;
 
-use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
+use slice::test_helpers::*;
 
 #[test]
 fn can_have_no_operations() {

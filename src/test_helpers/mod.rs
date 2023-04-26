@@ -1,8 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-use slice::ast::Ast;
-use slice::compile_from_strings;
-use slice::diagnostics::Diagnostic;
+use crate::ast::Ast;
+use crate::compilation_result::CompilationResult;
+use crate::compile_from_strings;
+use crate::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
 #[must_use]
@@ -22,13 +23,7 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 /// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    let data = match compile_from_strings(slice, None) {
-        Ok(data) => data,
-        Err(data) => data,
-    };
-    data.diagnostic_reporter
-        .into_diagnostics(&data.ast, &data.files)
-        .collect()
+    diagnostics_from_compilation_result(compile_from_strings(slice, None))
 }
 
 /// Asserts that the provided slice parses okay, producing no errors.
@@ -36,6 +31,20 @@ pub fn assert_parses(slice: impl Into<String>) {
     let diagnostics = parse_for_diagnostics(slice);
     let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
     check_diagnostics(diagnostics, expected);
+}
+
+/// This function is used to get the Diagnostics from a CompilationResult.
+#[must_use]
+pub fn diagnostics_from_compilation_result(result: CompilationResult) -> Vec<Diagnostic> {
+    let compilation_data = match result {
+        Ok(compilation_data) => compilation_data,
+        Err(compilation_data) => compilation_data,
+    };
+
+    compilation_data
+        .diagnostic_reporter
+        .into_diagnostics(&compilation_data.ast, &compilation_data.files)
+        .collect()
 }
 
 /// Compares diagnostics emitted by the compiler to an array of expected diagnostics.
