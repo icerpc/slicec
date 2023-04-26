@@ -146,4 +146,13 @@ impl From<CompilationData> for CompilationResult {
     }
 }
 
+impl From<CompilationResult> for CompilationData {
+    fn from(compilation_result: CompilationResult) -> Self {
+        match compilation_result {
+            Ok(compilation_data) => compilation_data,
+            Err(compilation_data) => compilation_data,
+        }
+    }
+}
+
 pub type CompilationResult = Result<CompilationData, CompilationData>;
