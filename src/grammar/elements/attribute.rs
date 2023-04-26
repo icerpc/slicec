@@ -249,7 +249,7 @@ impl AttributeKind {
 implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
 
-// This is a standalone function because it's used by both the `allow` attribute, and the `--allow-warning` CLI option.
+// This is a standalone function because it's used by both the `allow` attribute, and the `--allow` CLI option.
 pub fn validate_allow_arguments(
     arguments: &[String],
     span: Option<&Span>,

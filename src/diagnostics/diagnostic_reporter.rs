@@ -65,7 +65,7 @@ impl DiagnosticReporter {
     }
 
     /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
-    /// filtered out (ie: any warnings specified by `allow` attributes, or the `--allow-warnings` command line option).
+    /// filtered out (ie: any warnings specified by `allow` attributes, or the `--allow` command line option).
     pub fn into_diagnostics<'a>(
         self,
         ast: &'a Ast,
