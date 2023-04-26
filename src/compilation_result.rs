@@ -24,10 +24,6 @@ impl CompilationData {
         }
     }
 
-    pub fn source_files(&self) -> impl Iterator<Item = &SliceFile> {
-        self.files.values().filter(|file| file.is_source)
-    }
-
     pub fn into_exit_code(self) -> i32 {
         // If there are any errors, return a non-zero exit code.
         let exit_code = self.diagnostic_reporter.get_exit_code();
