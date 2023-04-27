@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::{Ast, LookupError, Node};
-use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
@@ -23,21 +23,21 @@ macro_rules! patch_entity {
     }};
 }
 
-pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
+pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let mut patcher = CommentLinkPatcher {
         link_patches: VecDeque::new(),
-        diagnostic_reporter: &mut compilation_data.diagnostic_reporter,
+        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
     };
 
     // Immutably iterate through the AST and compute patches for all the doc comments stored in it.
-    for node in compilation_data.ast.as_slice() {
+    for node in compilation_state.ast.as_slice() {
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            patcher.compute_patches_for(entity, &compilation_data.ast);
+            patcher.compute_patches_for(entity, &compilation_state.ast);
         }
     }
 
     // Mutably iterate through the AST and apply all the patches in the same oder they were computed.
-    for node in compilation_data.ast.as_mut_slice() {
+    for node in compilation_state.ast.as_mut_slice() {
         match node {
             Node::Module(ptr) => patch_entity!(ptr, patcher),
             Node::Struct(ptr) => patch_entity!(ptr, patcher),
@@ -55,8 +55,6 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
         }
     }
     debug_assert!(patcher.link_patches.is_empty());
-
-    compilation_data.into()
 }
 
 struct CommentLinkPatcher<'a> {

@@ -234,7 +234,7 @@ fn enumerators_must_be_unique() {
 
 #[test_case("unchecked enum", true ; "unchecked")]
 #[test_case("enum", false ; "checked")]
-fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
+fn can_be_unchecked(enum_definition: &str, expected: bool) {
     // Arrange
     let slice = format!(
         "
@@ -251,7 +251,7 @@ fn can_be_unchecked(enum_definition: &str, expected_result: bool) {
 
     // Assert
     let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
-    assert_eq!(enum_def.is_unchecked, expected_result);
+    assert_eq!(enum_def.is_unchecked, expected);
 }
 
 #[test]

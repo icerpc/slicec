@@ -26,10 +26,10 @@ fn command_line_defined_symbols() {
     };
 
     // Act
-    let compilation_data = compile_from_strings(&[slice], Some(options)).unwrap();
+    let compilation_state = compile_from_strings(&[slice], Some(options));
 
     // Assert
-    assert!(compilation_data.ast.find_element::<Operation>("Test::I::op").is_ok());
+    assert!(compilation_state.ast.find_element::<Operation>("Test::I::op").is_ok());
 }
 
 #[test]

@@ -9,18 +9,30 @@ use std::collections::HashMap;
 use std::io::Write;
 
 #[derive(Debug)]
-pub struct CompilationData {
+pub struct CompilationState {
     pub ast: Ast,
     pub diagnostic_reporter: DiagnosticReporter,
     pub files: HashMap<String, SliceFile>,
 }
 
-impl CompilationData {
+impl CompilationState {
     pub fn create(options: &SliceOptions) -> Self {
-        CompilationData {
+        CompilationState {
             ast: Ast::create(),
             diagnostic_reporter: DiagnosticReporter::new(options),
             files: HashMap::new(),
+        }
+    }
+
+    pub fn and_then(&mut self, function: fn(&mut Self)) {
+        if !self.diagnostic_reporter.has_errors() {
+            function(self);
+        }
+    }
+
+    pub unsafe fn and_then_unsafe(&mut self, function: unsafe fn(&mut Self)) {
+        if !self.diagnostic_reporter.has_errors() {
+            function(self);
         }
     }
 
@@ -136,23 +148,3 @@ impl CompilationData {
         message.push(snippet);
     }
 }
-
-impl From<CompilationData> for CompilationResult {
-    fn from(compilation_data: CompilationData) -> Self {
-        match compilation_data.diagnostic_reporter.has_errors() {
-            false => Ok(compilation_data),
-            true => Err(compilation_data),
-        }
-    }
-}
-
-impl From<CompilationResult> for CompilationData {
-    fn from(compilation_result: CompilationResult) -> Self {
-        match compilation_result {
-            Ok(compilation_data) => compilation_data,
-            Err(compilation_data) => compilation_data,
-        }
-    }
-}
-
-pub type CompilationResult = Result<CompilationData, CompilationData>;
