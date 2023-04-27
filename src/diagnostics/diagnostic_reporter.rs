@@ -21,7 +21,7 @@ pub struct DiagnosticReporter {
     pub allowed_warnings: Vec<String>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    /// If true, diagnostic output will not be styled.
+    /// If true, diagnostic output will not be styled with colors.
     pub disable_color: bool,
 }
 
@@ -37,7 +37,7 @@ impl DiagnosticReporter {
             allowed_warnings: slice_options.allowed_warnings.clone(),
         };
 
-        // Validate any arguments for `--allowed-warnings` that were passed into the command line.
+        // Validate any arguments passed to `--allow` on the command line.
         validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostic_reporter);
 
         diagnostic_reporter
@@ -65,7 +65,7 @@ impl DiagnosticReporter {
     }
 
     /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
-    /// filtered out (ie: any warnings specified by `allow` attributes, or the `--allow` command line option).
+    /// filtered out. (ie: any warnings covered by an `allow` attribute or a `--allow` command line flag).
     pub fn into_diagnostics<'a>(
         self,
         ast: &'a Ast,
@@ -87,16 +87,16 @@ impl DiagnosticReporter {
             let mut is_suppressed = false;
 
             if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
-                // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.
+                // Check if the warning is suppressed by an `--allow` flag passed on the command line.
                 is_suppressed |= is_warning_suppressed_by(self.allowed_warnings.iter(), warning);
 
-                // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
+                // If the warning has a span, check if it's suppressed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
                     is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(false), warning);
                 }
 
-                // If the warning has a scope, check if it's allowed by an `allow` attribute in that scope.
+                // If the warning has a scope, check if it's suppressed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
                     is_suppressed |= is_warning_suppressed_by_attributes(entity.attributes(true), warning);

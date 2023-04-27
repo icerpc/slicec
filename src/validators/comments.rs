@@ -13,11 +13,6 @@ pub fn comments_validators() -> ValidationChain {
     ]
 }
 
-// TODO should we relax this restriction? What about something like this:
-// ```
-// /// @returns: When a database session is ready for use.
-// block_until_initialized()
-// ```
 fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(comment) = operation.comment() {
         // Return doc comment exists but operation has no return members.
