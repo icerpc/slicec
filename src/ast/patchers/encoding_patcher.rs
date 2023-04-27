@@ -67,7 +67,7 @@ struct EncodingPatcher<'a> {
 impl EncodingPatcher<'_> {
     fn get_supported_encodings_for<T>(&mut self, entity_def: &T) -> SupportedEncodings
     where
-        T: Entity + ComputeSupportedEncodings,
+        T: Entity + Type + ComputeSupportedEncodings,
     {
         // Check if the entity's supported encodings have already been computed.
         let type_id = entity_def.parser_scoped_identifier();

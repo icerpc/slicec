@@ -91,7 +91,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
 
     /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Type].
     ///
-    /// If the Slice element held by the node implements [Type], this succeeds and returns a pointer to the entity,
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a pointer to the type,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Type>, Self::Error> {
         match node {
