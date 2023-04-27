@@ -367,7 +367,7 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Warning::BrokenLink {
+            Diagnostic::new(Warning::BrokenDocLink {
                 message: "no element named 'FakeException' exists in scope".to_owned(),
             }),
             Diagnostic::new(Warning::IncorrectDocComment {
@@ -493,7 +493,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::BrokenLink {
+        let expected = Diagnostic::new(Warning::BrokenDocLink {
             message: "no element named 'OtherStruct' exists in scope".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -513,7 +513,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::BrokenLink {
+        let expected = Diagnostic::new(Warning::BrokenDocLink {
             message: "primitives cannot be linked to".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

@@ -27,7 +27,7 @@ pub enum Warning {
     /// A link in a doc-comment couldn't be resolved because either:
     /// - The link pointed to an un-linkable element, ie. a primitive, sequence, or dictionary.
     /// - The link pointed to a non-existent element.
-    BrokenLink { message: String },
+    BrokenDocLink { message: String },
 
     /// A doc comment contains an incorrect tag. Either:
     /// - The tag itself is incorrect. Ex: using `@throws` on an element that can't or doesn't throw an exception.
@@ -53,6 +53,6 @@ implement_diagnostic_functions!(
         reason
     ),
     (MalformedDocComment, message, message),
-    (BrokenLink, message, message),
+    (BrokenDocLink, message, message),
     (IncorrectDocComment, message, message)
 );

@@ -62,7 +62,7 @@ mod attributes {
         #[test]
         fn ensure_allow_can_take_multiple_arguments() {
             // Arrange
-            let slice = "[[allow(BrokenLink, Deprecated)]]";
+            let slice = "[[allow(BrokenDocLink, Deprecated)]]";
 
             // Act/Assert
             assert_parses(slice);
@@ -87,7 +87,7 @@ mod attributes {
         fn allow_only_affects_relevant_scope() {
             // Arrange
             let slice = "
-                [allow(BrokenLink)]
+                [allow(BrokenDocLink)]
                 module Allowed {
                     /// {@link fake1}
                     struct S {}
@@ -103,7 +103,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert: that only the not-ignored warning was emitted.
-            let expected = Diagnostic::new(Warning::BrokenLink {
+            let expected = Diagnostic::new(Warning::BrokenDocLink {
                 message: "no element named 'fake2' exists in scope".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
@@ -111,7 +111,7 @@ mod attributes {
 
         #[test_case("All", []; "all")]
         #[test_case("Deprecated", [1, 2]; "deprecated")]
-        #[test_case("BrokenLink", [0, 2]; "broken_link")]
+        #[test_case("BrokenDocLink", [0, 2]; "broken_link")]
         #[test_case("IncorrectDocComment", [0, 1]; "incorrect_doc_comment")]
         fn allow_only_specified_warnings<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
             // Arrange
@@ -140,7 +140,7 @@ mod attributes {
                     identifier: "S".to_owned(),
                     reason: Some("test".to_owned()),
                 }),
-                Diagnostic::new(Warning::BrokenLink {
+                Diagnostic::new(Warning::BrokenDocLink {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
                 Diagnostic::new(Warning::IncorrectDocComment {

@@ -120,7 +120,7 @@ impl CommentLinkPatcher<'_> {
                         format!("{actual}s cannot be linked to")
                     }
                 };
-                Diagnostic::new(Warning::BrokenLink { message })
+                Diagnostic::new(Warning::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(entity.parser_scoped_identifier())
                     .report(self.diagnostic_reporter);

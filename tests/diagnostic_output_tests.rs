@@ -150,7 +150,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allowed_warnings: vec!["BrokenLink".to_owned()],
+            allowed_warnings: vec!["BrokenDocLink".to_owned()],
             ..Default::default()
         };
 
