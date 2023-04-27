@@ -134,7 +134,7 @@ mod attributes {
             // Act
             let diagnostics = parse_for_diagnostics(slice);
 
-            // Arrange
+            // Assert
             let mut all_warnings = vec![
                 Diagnostic::new(Warning::Deprecated {
                     identifier: "S".to_owned(),
