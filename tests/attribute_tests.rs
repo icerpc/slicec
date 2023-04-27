@@ -89,12 +89,12 @@ mod attributes {
             let slice = "
                 [allow(BrokenLink)]
                 module Allowed {
-                    /// {@link fake}
+                    /// {@link fake1}
                     struct S {}
                 }
 
                 module Normal {
-                    /// {@link fake}
+                    /// {@link fake2}
                     struct S {}
                 }
             ";
@@ -104,7 +104,7 @@ mod attributes {
 
             // Assert: that only the not-ignored warning was emitted.
             let expected = Diagnostic::new(Warning::BrokenLink {
-                message: "no element named 'fake' exists in scope".to_owned(),
+                message: "no element named 'fake2' exists in scope".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
