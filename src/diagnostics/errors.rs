@@ -279,7 +279,7 @@ implement_diagnostic_functions!(
     (
         "E001",
         IO,
-        format!("failed to {action} '{path}': {error}"),
+        format!("failed to {action} '{path}': {}", io_error_message(error)),
         action,
         path,
         error
@@ -566,3 +566,10 @@ implement_diagnostic_functions!(
         "optional types cannot be aliased"
     )
 );
+
+fn io_error_message(error: &std::io::Error) -> String {
+    match error.kind() {
+        std::io::ErrorKind::NotFound => "No such file or directory".to_owned(),
+        _ => error.to_string(),
+    }
+}
