@@ -279,7 +279,7 @@ implement_diagnostic_functions!(
     (
         "E001",
         IO,
-        format!("failed to {action} '{path}': {}", io_error_message(error)),
+        format!("unable to {action} '{path}': {}", io_error_message(error)),
         action,
         path,
         error
