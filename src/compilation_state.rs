@@ -24,12 +24,21 @@ impl CompilationState {
         }
     }
 
+    /// Calls the provided function on this `CompilationState` if and only if no errors have been emitted so far.
+    /// If errors have been reported through this `CompilationState`'s [`DiagnosticReporter`], this is no-op.
     pub fn and_then(&mut self, function: fn(&mut Self)) {
         if !self.diagnostic_reporter.has_errors() {
             function(self);
         }
     }
 
+    /// Calls the provided function on this `CompilationState` if and only if no errors have been emitted so far.
+    /// If errors have been reported through this `CompilationState`'s [`DiagnosticReporter`], this is no-op.
+    ///
+    /// # Safety
+    ///
+    /// The caller of this function must ensure that no (`WeakPtr`s)[crate::utils::ptr_util::WeakPtr] exist that point
+    /// to the contents of this `CompilationState`. Even if they're not being actively used, their existence causes UB.
     pub unsafe fn and_then_unsafe(&mut self, function: unsafe fn(&mut Self)) {
         if !self.diagnostic_reporter.has_errors() {
             function(self);
