@@ -55,11 +55,14 @@ pub fn diagnostics_from_compilation_data(compilation_data: impl Into<Compilation
 ///
 /// If the expected diagnostics don't include spans or notes, this function doesn't check them.
 /// This is useful for the majority of tests that aren't explicitly testing spans or notes.
-#[rustfmt::skip]
 pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected: [impl Into<Diagnostic>; L]) {
     // Check that the correct number of diagnostics were emitted.
     if expected.len() != diagnostics.len() {
-        eprintln!("Expected {} diagnostics, but got {}.", expected.len(), diagnostics.len());
+        eprintln!(
+            "Expected {} diagnostics, but got {}.",
+            expected.len(),
+            diagnostics.len()
+        );
         eprintln!("The emitted diagnostics were:");
         for diagnostic in diagnostics {
             eprintln!("\t{diagnostic:?}");
@@ -76,7 +79,11 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
         // Check that the error codes match.
         if expect.error_code() != diagnostic.error_code() {
             eprintln!("diagnostic codes didn't match:");
-            eprintln!("\texpected '{:?}', but got '{:?}'", expect.error_code(), diagnostic.error_code());
+            eprintln!(
+                "\texpected '{:?}', but got '{:?}'",
+                expect.error_code(),
+                diagnostic.error_code()
+            );
             failed = true;
         }
 
@@ -101,7 +108,11 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
             let expected_notes = expect.notes();
             let emitted_notes = diagnostic.notes();
             if expected_notes.len() != emitted_notes.len() {
-                eprintln!("Expected {} notes, but got {}.", expected_notes.len(), emitted_notes.len());
+                eprintln!(
+                    "Expected {} notes, but got {}.",
+                    expected_notes.len(),
+                    emitted_notes.len()
+                );
                 eprintln!("The emitted notes were:");
                 for note in emitted_notes {
                     eprintln!("\t{note:?}");
