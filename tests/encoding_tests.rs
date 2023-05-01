@@ -44,7 +44,7 @@ mod encodings {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '::', '[', '{', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '(', ')', ',', '::', '>', '?', '[', ']', ']]', '{', '}', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'idempotent', 'identifier', 'interface', 'module', 'struct', 'tag', 'throws', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }
