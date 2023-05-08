@@ -106,9 +106,7 @@ impl Operation {
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.attributes(false)
-            .iter()
-            .any(|a| matches!(&a.kind, AttributeKind::Oneway))
+        self.has_attribute(false, Attribute::match_oneway)
     }
 }
 
