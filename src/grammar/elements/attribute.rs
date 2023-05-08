@@ -257,7 +257,7 @@ pub fn validate_allow_arguments(
 ) {
     for argument in arguments {
         // Ensure that each argument is either "All", or the name of a warning.
-        let mut is_valid = argument != "All" && !Warning::all_warnings().contains(&argument.as_str());
+        let mut is_valid = argument != "All" && !Warning::WARNING_IDENTIFIERS.contains(&argument.as_str());
 
         // We don't allow `DuplicateFile` to be suppressed by attributes, because it's a command-line specific warning.
         if argument == "DuplicateFile" && span.is_some() {

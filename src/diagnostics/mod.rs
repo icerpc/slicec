@@ -137,14 +137,12 @@ pub struct Note {
 #[macro_export]
 macro_rules! implement_diagnostic_functions {
     (Warning, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
-
-        impl $crate::diagnostics::Warning {
-            pub fn all_warnings() -> Vec<&'static str> {
-                vec![$(stringify!($kind)),*]
-            }
-        }
-
         impl Warning {
+            /// This array contains the identifiers of all warnings slicec can emit.
+            pub const WARNING_IDENTIFIERS: [&'static str; 5] = [
+                $(stringify!($kind)),*
+            ];
+
             pub fn error_code(&self) -> &str {
                 match self {
                     $(
