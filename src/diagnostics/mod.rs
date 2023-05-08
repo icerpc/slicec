@@ -136,11 +136,11 @@ pub struct Note {
 /// A macro that implements the `error_code` and `message` functions for [Warning] and [Error] enums.
 #[macro_export]
 macro_rules! implement_diagnostic_functions {
-    (Warning, $(($code:expr, $kind:ident, $message:expr $(, $variant:ident)* )),*) => {
+    (Warning, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
 
         impl $crate::diagnostics::Warning {
-            pub fn all_codes() -> Vec<&'static str> {
-                vec![$($code),*]
+            pub fn all_warnings() -> Vec<&'static str> {
+                vec![$(stringify!($kind)),*]
             }
         }
 
@@ -148,7 +148,7 @@ macro_rules! implement_diagnostic_functions {
             pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_diagnostic_functions!(@error Warning::$kind, $($variant),*) => $code,
+                        implement_diagnostic_functions!(@error Warning::$kind, $($variant),*) => stringify!($kind),
                     )*
                 }
             }

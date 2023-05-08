@@ -60,9 +60,9 @@ impl Attribute {
         }
     }
 
-    pub fn match_allow_warnings(attribute: &Attribute) -> Option<Vec<String>> {
+    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<String>> {
         match &attribute.kind {
-            AttributeKind::Allow { warning_codes } => Some(warning_codes.clone()),
+            AttributeKind::Allow { allowed_warnings } => Some(allowed_warnings),
             _ => None,
         }
     }
@@ -77,7 +77,7 @@ impl Attribute {
 
 #[derive(Debug)]
 pub enum AttributeKind {
-    Allow { warning_codes: Vec<String> },
+    Allow { allowed_warnings: Vec<String> },
     ClassFormat { format: ClassFormat },
     Compress { compress_args: bool, compress_return: bool },
     Deprecated { reason: Option<String> },
@@ -105,29 +105,18 @@ impl AttributeKind {
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
             ALLOW => {
-                for arg in arguments {
-                    if !Warning::all_codes().contains(&arg.as_str()) {
-                        // No exact match was found, check if the casing did not match
-                        let uppercase = arg.to_uppercase();
-                        if Warning::all_codes().contains(&uppercase.as_str()) {
-                            // The casing did not match, report an error with a note
-                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .add_note(
-                                    format!("The warning code is case sensitive, did you mean to use '{uppercase}'?"),
-                                    Some(span),
-                                )
-                                .report(reporter);
-                        } else {
-                            // No exact match and no casing match, report an error
-                            Diagnostic::new(Error::InvalidWarningCode { code: arg.to_owned() })
-                                .set_span(span)
-                                .report(reporter);
-                        }
-                    }
+                // Check that the `allow` attribute has arguments.
+                if arguments.is_empty() {
+                    Diagnostic::new(Error::MissingRequiredArgument {
+                        argument: r#"allow(<arguments>)"#.to_owned(),
+                    })
+                    .set_span(span)
+                    .report(reporter);
                 }
+                validate_allow_arguments(arguments, Some(span), reporter);
+
                 Some(AttributeKind::Allow {
-                    warning_codes: arguments.to_owned(),
+                    allowed_warnings: arguments.to_owned(),
                 })
             }
 
@@ -259,3 +248,33 @@ impl AttributeKind {
 
 implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
+
+// This is a standalone function because it's used by both the `allow` attribute, and the `--allow` CLI option.
+pub fn validate_allow_arguments(
+    arguments: &[String],
+    span: Option<&Span>,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) {
+    for argument in arguments {
+        // Ensure that each argument is either "All", or the name of a warning.
+        let mut is_valid = argument != "All" && !Warning::all_warnings().contains(&argument.as_str());
+
+        // We don't allow `DuplicateFile` to be suppressed by attributes, because it's a command-line specific warning.
+        if argument == "DuplicateFile" && span.is_some() {
+            is_valid = false;
+        }
+
+        // Emit an error if the argument wasn't valid.
+        if is_valid {
+            // TODO we should emit a link to the warnings page when we write it!
+            let mut error = Diagnostic::new(Error::ArgumentNotSupported {
+                argument: argument.to_owned(),
+                directive: "allow".to_owned(),
+            });
+            if let Some(unwrapped_span) = span {
+                error = error.set_span(unwrapped_span);
+            }
+            error.report(diagnostic_reporter);
+        }
+    }
+}

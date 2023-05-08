@@ -219,12 +219,6 @@ pub enum Error {
         identifier: String,
     },
 
-    /// A malformed or invalid Warning code was supplied to the ignore warnings attribute.
-    InvalidWarningCode {
-        /// The invalid warning code.
-        code: String,
-    },
-
     /// An self-referential type had an infinite size cycle.
     InfiniteSizeCycle {
         /// The type id of the type that caused the error.
@@ -535,12 +529,6 @@ implement_diagnostic_functions!(
         AnyExceptionNotSupported,
         format!("operations that throw AnyException are only supported by the Slice1 encoding")
 
-    ),
-    (
-        "E046",
-        InvalidWarningCode,
-        format!("the warning code '{code}' is not valid"),
-        code
     ),
     (
         "E047",

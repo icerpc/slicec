@@ -227,20 +227,18 @@ impl TypeRefPatcher<'_> {
         // Check if the type is an entity, and if so, check if it has the `deprecated` attribute.
         // Only entities can be deprecated, so this check is sufficient.
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            if let Some(argument) = entity.get_deprecation(true) {
+            if let Some(reason) = entity.get_deprecation(true) {
                 // Compute the warning message. The `deprecated` attribute can have either 0 or 1 arguments, so we
                 // only check the first argument. If it's present, we attach it to the warning message we emit.
-                Diagnostic::new(Warning::UseOfDeprecatedEntity {
-                    identifier: entity.identifier().to_owned(),
-                    deprecation_reason: argument.map_or_else(String::new, |arg| ": ".to_owned() + &arg),
-                })
-                .set_span(type_ref.span())
-                .set_scope(type_ref.parser_scope())
-                .add_note(
-                    format!("{} was deprecated here:", entity.identifier()),
-                    Some(entity.span()),
-                )
-                .report(self.diagnostic_reporter);
+                let identifier = entity.identifier().to_owned();
+                Diagnostic::new(Warning::Deprecated { identifier, reason })
+                    .set_span(type_ref.span())
+                    .set_scope(type_ref.parser_scope())
+                    .add_note(
+                        format!("{} was deprecated here:", entity.identifier()),
+                        Some(entity.span()),
+                    )
+                    .report(self.diagnostic_reporter);
             }
         }
     }

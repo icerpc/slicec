@@ -22,19 +22,19 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Diagnosti
             error: (start, parse_error_kind, end),
         } => {
             let warning = match parse_error_kind {
-                ErrorKind::UnknownSymbol { symbol } => Warning::DocCommentSyntax {
+                ErrorKind::UnknownSymbol { symbol } => Warning::MalformedDocComment {
                     message: format!("unknown symbol '{symbol}'"),
                 },
-                ErrorKind::UnknownTag { tag } => Warning::DocCommentSyntax {
+                ErrorKind::UnknownTag { tag } => Warning::MalformedDocComment {
                     message: format!("doc comment tag '{tag}' is invalid"),
                 },
-                ErrorKind::MissingTag => Warning::DocCommentSyntax {
+                ErrorKind::MissingTag => Warning::MalformedDocComment {
                     message: "missing doc comment tag".to_owned(),
                 },
-                ErrorKind::UnterminatedInlineTag => Warning::DocCommentSyntax {
+                ErrorKind::UnterminatedInlineTag => Warning::MalformedDocComment {
                     message: "missing a closing '}' on an inline doc comment tag".to_owned(),
                 },
-                ErrorKind::IncorrectContextForTag { tag, is_inline } => Warning::DocCommentSyntax {
+                ErrorKind::IncorrectContextForTag { tag, is_inline } => Warning::MalformedDocComment {
                     message: format!(
                         "doc comment tag '{tag}' cannot be used {}",
                         if is_inline { "inline" } else { "to start a block" },
@@ -54,13 +54,14 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Diagnosti
                 "expected one of {}, but found '{token_kind:?}'",
                 clean_message(&expected),
             );
-            Diagnostic::new(Warning::DocCommentSyntax { message }).set_span(&Span::new(start, end, file_name))
+            Diagnostic::new(Warning::MalformedDocComment { message }).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEOF { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
-            Diagnostic::new(Warning::DocCommentSyntax { message }).set_span(&Span::new(location, location, file_name))
+            Diagnostic::new(Warning::MalformedDocComment { message })
+                .set_span(&Span::new(location, location, file_name))
         }
 
         _ => unreachable!("impossible error encountered in comment parser: {parse_error:?}"),

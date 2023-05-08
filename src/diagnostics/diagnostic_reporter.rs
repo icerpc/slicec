@@ -2,10 +2,9 @@
 
 use crate::ast::Ast;
 use crate::command_line::{DiagnosticFormat, SliceOptions};
-use crate::diagnostics::{Diagnostic, DiagnosticKind};
-use crate::grammar::{Attributable, Attribute, Entity};
+use crate::diagnostics::{Diagnostic, DiagnosticKind, Warning};
+use crate::grammar::{validate_allow_arguments, Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
-
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -18,21 +17,17 @@ pub struct DiagnosticReporter {
     warning_count: usize,
     /// If true, compilation will fail on warnings in addition to errors.
     treat_warnings_as_errors: bool,
-    // TODO write a real doc comment for this. Will probably change when we add warning categories.
-    // The list of warnings to allow from the 'allow-warnings' flag.
-    // Some([]) means allow all warnings.
-    // Some([...]) means allow the specified warnings.
-    // None means don't allow any warnings.
-    pub allowed_warnings: Option<Vec<String>>,
+    /// Lists all the warnings that should be suppressed by this reporter.
+    pub allowed_warnings: Vec<String>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
     pub diagnostic_format: DiagnosticFormat,
-    // If true, diagnostic output will not be styled.
+    /// If true, diagnostic output will not be styled with colors.
     pub disable_color: bool,
 }
 
 impl DiagnosticReporter {
     pub fn new(slice_options: &SliceOptions) -> Self {
-        DiagnosticReporter {
+        let mut diagnostic_reporter = DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
@@ -40,7 +35,12 @@ impl DiagnosticReporter {
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
             allowed_warnings: slice_options.allowed_warnings.clone(),
-        }
+        };
+
+        // Validate any arguments passed to `--allow` on the command line.
+        validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostic_reporter);
+
+        diagnostic_reporter
     }
 
     /// Checks if any errors have been reported during compilation.
@@ -64,54 +64,45 @@ impl DiagnosticReporter {
         i32::from(self.has_errors() || (self.treat_warnings_as_errors && self.has_diagnostics()))
     }
 
-    /// Consumes the diagnostic reporter and returns an iterator over all its diagnostics, but with any that should
-    /// be allowed filtered out (due to `allow` attributes, or the `--allow-warnings` command line
-    /// option).
+    /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
+    /// filtered out. (ie: any warnings covered by an `allow` attribute or a `--allow` command line flag).
     pub fn into_diagnostics<'a>(
         self,
         ast: &'a Ast,
         files: &'a HashMap<String, SliceFile>,
     ) -> impl Iterator<Item = Diagnostic> + 'a {
-        // Helper function that returns true if a warning should be allowed according to the provided list.
-        // This happens if the list exists and is empty (allows everything), or if the code is contained within it.
-        fn is_warning_allowed_by(code: &String, allowed_codes: &Vec<String>) -> bool {
-            allowed_codes.is_empty() || allowed_codes.contains(code)
+        // Helper function that checks whether a warning should be suppressed according to the provided identifiers.
+        fn is_warning_suppressed_by<'b>(mut identifiers: impl Iterator<Item = &'b String>, warning: &Warning) -> bool {
+            identifiers.any(|identifier| identifier == "All" || identifier == warning.error_code())
         }
 
-        // Helper function that checks whether a warning should be allowed according to the provided attributes.
-        fn is_warning_allowed_by_attributes(code: &String, attributes: Vec<&Attribute>) -> bool {
-            attributes
-                .into_iter()
-                .filter_map(Attribute::match_allow_warnings)
-                .any(|allowed_codes| is_warning_allowed_by(code, &allowed_codes))
+        // Helper function that checks whether a warning should be suppressed according to the provided attributes.
+        fn is_warning_suppressed_by_attributes(attributes: Vec<&Attribute>, warning: &Warning) -> bool {
+            let mut allowed_warnings = attributes.into_iter().filter_map(Attribute::match_allow_warnings);
+            allowed_warnings.any(|allowed| is_warning_suppressed_by(allowed.iter(), warning))
         }
 
-        // Filter out any warnings that should be allowed.
+        // Filter out any diagnostics that should be suppressed.
         self.diagnostics.into_iter().filter(move |diagnostic| {
-            let mut is_allowed = false;
+            let mut is_suppressed = false;
 
             if let DiagnosticKind::Warning(warning) = &diagnostic.kind {
-                let warning_code = warning.error_code().to_owned();
+                // Check if the warning is suppressed by an `--allow` flag passed on the command line.
+                is_suppressed |= is_warning_suppressed_by(self.allowed_warnings.iter(), warning);
 
-                // Check if the warning is allowed by an `allowed-warnings` flag passed on the command line.
-                if let Some(allowed_codes) = &self.allowed_warnings {
-                    is_allowed |= is_warning_allowed_by(&warning_code, allowed_codes)
-                }
-
-                // If the warning has a span, check if it's allowed by an `allow` attribute on its file.
+                // If the warning has a span, check if it's suppressed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    is_allowed |= is_warning_allowed_by_attributes(&warning_code, file.attributes(false));
+                    is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(false), warning);
                 }
 
-                // If the warning has a scope, check if it's allowed by an `allow` attribute in that
-                // scope.
+                // If the warning has a scope, check if it's suppressed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    is_allowed |= is_warning_allowed_by_attributes(&warning_code, entity.attributes(true));
+                    is_suppressed |= is_warning_suppressed_by_attributes(entity.attributes(true), warning);
                 }
             }
-            !is_allowed
+            !is_suppressed
         })
     }
 

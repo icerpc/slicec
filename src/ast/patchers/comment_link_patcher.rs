@@ -111,11 +111,16 @@ impl CommentLinkPatcher<'_> {
         self.link_patches.push_back(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
-                let warning = match error {
-                    LookupError::DoesNotExist { identifier } => Warning::CouldNotResolveLink { identifier },
-                    LookupError::TypeMismatch { actual, .. } => Warning::LinkToInvalidElement { kind: actual },
+                let message = match error {
+                    LookupError::DoesNotExist { identifier } => {
+                        format!("no element named '{identifier}' exists in scope")
+                    }
+                    LookupError::TypeMismatch { actual, .. } => {
+                        debug_assert_eq!(actual, "primitive"); // Only primitives are un-linkable and named.
+                        format!("{actual}s cannot be linked to")
+                    }
                 };
-                Diagnostic::new(warning)
+                Diagnostic::new(Warning::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(entity.parser_scoped_identifier())
                     .report(self.diagnostic_reporter);
@@ -165,8 +170,8 @@ impl CommentLinkPatcher<'_> {
                 }
                 Err(original_patch) => {
                     let entity = original_patch.borrow();
-                    Diagnostic::new(Warning::InvalidThrowInDocComment {
-                        identifier: entity.identifier().to_owned(),
+                    Diagnostic::new(Warning::IncorrectDocComment {
+                        message: format!("'{}' is not a throwable type", entity.identifier()),
                     })
                     .add_note(
                         format!(

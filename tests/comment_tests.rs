@@ -230,7 +230,9 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::ExtraReturnValueInDocComment);
+        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+            message: "void operation must not contain doc comment return tag".to_owned(),
+        });
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -251,8 +253,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::ExtraParameterInDocComment {
-            identifier: "testParam2".to_owned(),
+        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+            message: "doc comment has a param tag for 'testParam2', but there is no parameter by that name".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -363,11 +365,11 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Warning::CouldNotResolveLink {
-                identifier: "FakeException".to_owned(),
+            Diagnostic::new(Warning::BrokenDocLink {
+                message: "no element named 'FakeException' exists in scope".to_owned(),
             }),
-            Diagnostic::new(Warning::OperationDoesNotThrow {
-                identifier: "testOp".to_owned(),
+            Diagnostic::new(Warning::IncorrectDocComment {
+                message: "operation 'testOp' does not throw anything".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);
@@ -387,9 +389,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::ExtraThrowInDocComment {
-            kind: "struct".to_owned(),
-            identifier: "S".to_owned(),
+        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+            message: "doc comment indicates that struct 'S' throws, however, only operations can throw".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -490,8 +491,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::CouldNotResolveLink {
-            identifier: "OtherStruct".to_owned(),
+        let expected = Diagnostic::new(Warning::BrokenDocLink {
+            message: "no element named 'OtherStruct' exists in scope".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -510,8 +511,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::LinkToInvalidElement {
-            kind: "primitive".to_owned(),
+        let expected = Diagnostic::new(Warning::BrokenDocLink {
+            message: "primitives cannot be linked to".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -530,7 +531,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::DocCommentSyntax {
+        let expected = Diagnostic::new(Warning::MalformedDocComment {
             message: "doc comment tag 'linked' is invalid".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -555,8 +556,8 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::InvalidThrowInDocComment {
-            identifier: "S".to_owned(),
+        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+            message: "'S' is not a throwable type".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -573,7 +574,7 @@ mod comments {
                 /// @throws E: Message about my thrown thing.
                 testOp(testParam: string) -> bool
 
-                /// @throws : Second message about my thrown thing.
+                /// @throws: Second message about my thrown thing.
                 testOpTwo(testParam: string) -> bool
             }
         ";
@@ -583,11 +584,11 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Warning::OperationDoesNotThrow {
-                identifier: "testOp".to_owned(),
+            Diagnostic::new(Warning::IncorrectDocComment {
+                message: "operation 'testOp' does not throw anything".to_owned(),
             }),
-            Diagnostic::new(Warning::OperationDoesNotThrow {
-                identifier: "testOpTwo".to_owned(),
+            Diagnostic::new(Warning::IncorrectDocComment {
+                message: "operation 'testOpTwo' does not throw anything".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);
