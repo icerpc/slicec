@@ -302,7 +302,7 @@ mod attributes {
                 attribute: "deprecated".to_owned(),
             })
             .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
-            .add_note("individual parameters cannot be deprecated", None);
+            .add_note("parameters can not be individually deprecated", None);
 
             check_diagnostics(diagnostics, [expected]);
         }

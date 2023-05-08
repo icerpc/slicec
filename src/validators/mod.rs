@@ -194,6 +194,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::DocComments(function) => function(enum_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(enum_def, diagnostic_reporter),
             Validator::Enums(function) => function(enum_def, diagnostic_reporter),
+            Validator::Identifiers(function) => function(enum_def.enumerators().get_identifiers(), diagnostic_reporter),
             _ => {}
         });
     }
@@ -261,6 +262,10 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             Validator::Attributes(function) => function(operation, diagnostic_reporter),
             Validator::DocComments(function) => function(operation, ast, diagnostic_reporter),
             Validator::Entities(function) => function(operation, diagnostic_reporter),
+            Validator::Identifiers(function) => {
+                function(operation.parameters().get_identifiers(), diagnostic_reporter);
+                function(operation.return_members().get_identifiers(), diagnostic_reporter);
+            }
             Validator::Members(function) => {
                 function(operation.parameters().as_member_vec(), diagnostic_reporter);
                 function(operation.return_members().as_member_vec(), diagnostic_reporter);

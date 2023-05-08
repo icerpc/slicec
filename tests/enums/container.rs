@@ -334,6 +334,29 @@ fn duplicate_enumerators_are_disallowed_across_different_bases() {
     check_diagnostics(diagnostics, [expected]);
 }
 
+#[test]
+fn cannot_redefine_enumerators() {
+    // Arrange
+    let slice = "
+        module Test
+
+        enum E: uint32 {
+            A, A
+        }
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Redefinition {
+        identifier: "A".to_string(),
+    })
+    .add_note("'A' was previously defined here", None);
+
+    check_diagnostics(diagnostics, [expected]);
+}
+
 mod slice1 {
 
     use slice::diagnostics::{Diagnostic, Error};

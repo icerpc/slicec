@@ -55,7 +55,7 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
                 attribute: "deprecated".to_owned(),
             })
             .set_span(attribute.span())
-            .add_note("individual parameters cannot be deprecated", None)
+            .add_note("parameters can not be individually deprecated", None)
             .report(diagnostic_reporter)
         }
     }

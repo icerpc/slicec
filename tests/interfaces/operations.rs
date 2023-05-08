@@ -179,6 +179,52 @@ fn can_have_return_tuple() {
 }
 
 #[test]
+fn cannot_redefine_parameters() {
+    // Arrange
+    let slice = "
+        module Test
+
+        interface I {
+            op(a: bool, a: int32)
+        }
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Redefinition {
+        identifier: "a".to_string(),
+    })
+    .add_note("'a' was previously defined here", None);
+
+    check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
+fn cannot_redefine_return_members() {
+    // Arrange
+    let slice = "
+        module Test
+
+        interface I {
+            op() -> (a: string, a: int8)
+        }
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Redefinition {
+        identifier: "a".to_string(),
+    })
+    .add_note("'a' was previously defined here", None);
+
+    check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
 fn operations_can_omit_throws_clause() {
     let slice = "
         module Test
