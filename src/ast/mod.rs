@@ -21,9 +21,9 @@ use std::collections::HashMap;
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
-    compilation_state.and_then_unsafe(patchers::type_ref_patcher::patch_ast);
-    compilation_state.and_then_unsafe(patchers::encoding_patcher::patch_ast);
-    compilation_state.and_then_unsafe(patchers::comment_link_patcher::patch_ast);
+    compilation_state.then_apply_unsafe(patchers::type_ref_patcher::patch_ast);
+    compilation_state.then_apply_unsafe(patchers::encoding_patcher::patch_ast);
+    compilation_state.then_apply_unsafe(patchers::comment_link_patcher::patch_ast);
 }
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the slice elements defined and used by
