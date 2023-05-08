@@ -1,11 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod test_helpers;
-
 mod module {
-    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
+    use slice::test_helpers::*;
     use test_case::test_case;
 
     #[test_case("{}", false; "normal")]

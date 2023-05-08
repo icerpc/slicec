@@ -1,9 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod test_helpers;
-
-use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
+use slice::test_helpers::*;
 
 mod container {
     use super::*;
@@ -139,7 +137,6 @@ mod container {
     }
 }
 
-#[rustfmt::skip]
 mod type_aliases {
     use super::*;
 
@@ -161,7 +158,6 @@ mod type_aliases {
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-
             Diagnostic::new(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
@@ -175,7 +171,7 @@ mod type_aliases {
         // Arrange
         let slice = "
             module Test
-    
+
             typealias Foo = Bar
             typealias Bar = Foo
         ";
@@ -190,17 +186,14 @@ mod type_aliases {
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Bar -> Test::Foo -> Test::Bar".to_owned(), None),
-
             Diagnostic::new(Error::DoesNotExist {
                 identifier: "Test::Bar".to_owned(),
             }),
-
             Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Bar -> Test::Foo".to_owned(), None),
-
             Diagnostic::new(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
@@ -228,17 +221,14 @@ mod type_aliases {
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-
             Diagnostic::new(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
-
             Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-
             Diagnostic::new(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),

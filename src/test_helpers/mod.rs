@@ -1,8 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-use slice::ast::Ast;
-use slice::compile_from_strings;
-use slice::diagnostics::Diagnostic;
+use crate::ast::Ast;
+use crate::compilation_result::CompilationData;
+use crate::compile_from_strings;
+use crate::diagnostics::Diagnostic;
 
 /// This function is used to parse a Slice file and return the AST.
 #[must_use]
@@ -22,13 +23,7 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 /// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    let data = match compile_from_strings(slice, None) {
-        Ok(data) => data,
-        Err(data) => data,
-    };
-    data.diagnostic_reporter
-        .into_diagnostics(&data.ast, &data.files)
-        .collect()
+    diagnostics_from_compilation_data(compile_from_strings(slice, None))
 }
 
 /// Asserts that the provided slice parses okay, producing no errors.
@@ -36,6 +31,16 @@ pub fn assert_parses(slice: impl Into<String>) {
     let diagnostics = parse_for_diagnostics(slice);
     let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
     check_diagnostics(diagnostics, expected);
+}
+
+/// This function is used to get the Diagnostics from a CompilationResult.
+#[must_use]
+pub fn diagnostics_from_compilation_data(compilation_data: impl Into<CompilationData>) -> Vec<Diagnostic> {
+    let compilation_data = compilation_data.into();
+    compilation_data
+        .diagnostic_reporter
+        .into_diagnostics(&compilation_data.ast, &compilation_data.files)
+        .collect()
 }
 
 /// Compares diagnostics emitted by the compiler to an array of expected diagnostics.
@@ -50,11 +55,14 @@ pub fn assert_parses(slice: impl Into<String>) {
 ///
 /// If the expected diagnostics don't include spans or notes, this function doesn't check them.
 /// This is useful for the majority of tests that aren't explicitly testing spans or notes.
-#[rustfmt::skip]
 pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected: [impl Into<Diagnostic>; L]) {
     // Check that the correct number of diagnostics were emitted.
     if expected.len() != diagnostics.len() {
-        eprintln!("Expected {} diagnostics, but got {}.", expected.len(), diagnostics.len());
+        eprintln!(
+            "Expected {} diagnostics, but got {}.",
+            expected.len(),
+            diagnostics.len()
+        );
         eprintln!("The emitted diagnostics were:");
         for diagnostic in diagnostics {
             eprintln!("\t{diagnostic:?}");
@@ -71,7 +79,11 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
         // Check that the error codes match.
         if expect.error_code() != diagnostic.error_code() {
             eprintln!("diagnostic codes didn't match:");
-            eprintln!("\texpected '{:?}', but got '{:?}'", expect.error_code(), diagnostic.error_code());
+            eprintln!(
+                "\texpected '{:?}', but got '{:?}'",
+                expect.error_code(),
+                diagnostic.error_code()
+            );
             failed = true;
         }
 
@@ -96,7 +108,11 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
             let expected_notes = expect.notes();
             let emitted_notes = diagnostic.notes();
             if expected_notes.len() != emitted_notes.len() {
-                eprintln!("Expected {} notes, but got {}.", expected_notes.len(), emitted_notes.len());
+                eprintln!(
+                    "Expected {} notes, but got {}.",
+                    expected_notes.len(),
+                    emitted_notes.len()
+                );
                 eprintln!("The emitted notes were:");
                 for note in emitted_notes {
                     eprintln!("\t{note:?}");
