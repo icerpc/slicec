@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 mod attributes {
-    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error, Warning};
+    use slice::test_helpers::*;
 
     mod allow {
         use super::*;
