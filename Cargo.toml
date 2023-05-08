@@ -15,14 +15,14 @@ clap = { version = "4.2.1", features = ["derive"] }
 console = "0.15.5"
 convert_case = "0.6.0"
 in_definite = "0.2.5"
-lalrpop-util = "0.19.9"
+lalrpop-util = "0.20.0"
 # derive feature allows structs to derive Serialize automatically
 serde = { version="1.0.159", features = ["derive"] }
 serde_json = "1.0.95"
 
 [build-dependencies]
 # The default features enable a built-in lexer. We supply our own lexer so we don't need these.
-lalrpop = { version = "0.19.9", default-features = false }
+lalrpop = { version = "0.20.0", default-features = false }
 
 [dev-dependencies]
 test-case = "3.0.0"

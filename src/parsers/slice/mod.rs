@@ -48,7 +48,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
         }
 
         // The parser hit EOF in the middle of a grammar rule.
-        ParseError::UnrecognizedEOF { location, expected } => {
+        ParseError::UnrecognizedEof { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
             Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
         }
