@@ -678,10 +678,10 @@ mod attributes {
             );
 
             // Act
-            let errors = compile_from_strings(&[&slice], None).err();
+            let compilation_state = compile_from_strings(&[&slice], None);
 
             // Assert
-            assert!(errors.is_some());
+            assert!(compilation_state.diagnostic_reporter.has_errors());
         }
 
         #[test]

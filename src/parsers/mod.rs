@@ -13,16 +13,15 @@ mod preprocessor;
 mod slice;
 
 use crate::ast::Ast;
-use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::compilation_state::CompilationState;
 use crate::diagnostics::DiagnosticReporter;
 use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
-pub fn parse_files(mut data: CompilationData, symbols: &HashSet<String>) -> CompilationResult {
-    for file in data.files.values_mut() {
-        parse_file(file, &mut data.ast, &mut data.diagnostic_reporter, symbols.clone());
+pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
+    for file in state.files.values_mut() {
+        parse_file(file, &mut state.ast, &mut state.diagnostic_reporter, symbols.clone());
     }
-    data.into()
 }
 
 fn parse_file(

@@ -12,7 +12,7 @@ mod tag;
 
 use crate::ast::node::Node;
 use crate::ast::Ast;
-use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 use crate::visitor::Visitor;
@@ -37,34 +37,30 @@ pub enum Validator {
     TypeAlias(fn(&TypeAlias, &mut DiagnosticReporter)),
 }
 
-pub(crate) fn validate_compilation_data(mut data: CompilationData) -> CompilationResult {
-    let diagnostic_reporter = &mut data.diagnostic_reporter;
+pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
+    let diagnostic_reporter = &mut compilation_state.diagnostic_reporter;
 
     // Check for any cyclic data structures. If any exist, exit early to avoid infinite loops during validation.
-    cycle_detection::detect_cycles(&data.ast, diagnostic_reporter);
+    cycle_detection::detect_cycles(&compilation_state.ast, diagnostic_reporter);
     if diagnostic_reporter.has_errors() {
-        return data.into();
+        return;
     }
 
-    let mut validator = ValidatorVisitor::new(&data.ast, diagnostic_reporter);
-    for slice_file in data.files.values() {
+    let mut validator = ValidatorVisitor::new(&compilation_state.ast, diagnostic_reporter);
+    for slice_file in compilation_state.files.values() {
         slice_file.visit_with(&mut validator);
     }
 
-    validate_module_contents(&mut data);
-
-    // We always return `Ok` here to ensure the language mapping's validation logic is run,
-    // instead of terminating early if this validator found any errors.
-    Ok(data)
+    validate_module_contents(compilation_state);
 }
 
 /// Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
 /// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
 ///
 /// So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
-fn validate_module_contents(data: &mut CompilationData) {
+fn validate_module_contents(compilation_state: &mut CompilationState) {
     let mut merged_module_contents: HashMap<String, Vec<&Definition>> = HashMap::new();
-    for node in data.ast.as_slice() {
+    for node in compilation_state.ast.as_slice() {
         if let Node::Module(module_ptr) = node {
             // Borrow the module's pointer and store its fully scoped identifier.
             let module = module_ptr.borrow();
@@ -99,7 +95,7 @@ fn validate_module_contents(data: &mut CompilationData) {
                     format!("'{}' was previously defined here", identifier_0.value),
                     Some(identifier_0.span()),
                 )
-                .report(&mut data.diagnostic_reporter);
+                .report(&mut compilation_state.diagnostic_reporter);
             }
         });
     }

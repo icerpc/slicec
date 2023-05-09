@@ -1,22 +1,20 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::{Ast, LookupError, Node};
-use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::compilation_state::CompilationState;
 use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 
-pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
+pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
-        diagnostic_reporter: &mut compilation_data.diagnostic_reporter,
+        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
     };
 
     // TODO why explain we split this logic so that we can for sure have an immutable AST.
-    patcher.compute_patches(&compilation_data.ast);
-    patcher.apply_patches(&mut compilation_data.ast);
-
-    compilation_data.into()
+    patcher.compute_patches(&compilation_state.ast);
+    patcher.apply_patches(&mut compilation_state.ast);
 }
 
 struct TypeRefPatcher<'a> {

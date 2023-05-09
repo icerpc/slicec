@@ -1,19 +1,19 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::Node;
-use crate::compilation_result::{CompilationData, CompilationResult};
+use crate::compilation_state::CompilationState;
 use crate::diagnostics::*;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::supported_encodings::SupportedEncodings;
 use std::collections::HashMap;
 
-pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationResult {
+pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     // Create a new encoding patcher.
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
-        slice_files: &mut compilation_data.files,
-        diagnostic_reporter: &mut compilation_data.diagnostic_reporter,
+        slice_files: &mut compilation_state.files,
+        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
     };
 
     // Iterate through each node in the AST and patch any `supported_encodings` fields.
@@ -21,7 +21,7 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
     //
     // For types where it's trivial to compute their encodings (primitives, sequences, etc.) we compute them on the fly
     // but other types that are computationally intensive (like containers) we compute it once (here) and cache it.
-    for node in compilation_data.ast.as_mut_slice() {
+    for node in compilation_state.ast.as_mut_slice() {
         match node {
             Node::Struct(struct_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(struct_ptr.borrow());
@@ -54,8 +54,6 @@ pub unsafe fn patch_ast(mut compilation_data: CompilationData) -> CompilationRes
             _ => {}
         }
     }
-
-    compilation_data.into()
 }
 
 struct EncodingPatcher<'a> {
@@ -67,7 +65,7 @@ struct EncodingPatcher<'a> {
 impl EncodingPatcher<'_> {
     fn get_supported_encodings_for<T>(&mut self, entity_def: &T) -> SupportedEncodings
     where
-        T: Entity + ComputeSupportedEncodings,
+        T: Entity + Type + ComputeSupportedEncodings,
     {
         // Check if the entity's supported encodings have already been computed.
         let type_id = entity_def.parser_scoped_identifier();

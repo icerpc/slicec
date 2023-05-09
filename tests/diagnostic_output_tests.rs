@@ -27,12 +27,12 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let compilation_state = compile_from_strings(&[slice], Some(options));
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_data.emit_diagnostics(&mut output);
+        compilation_state.emit_diagnostics(&mut output);
 
         // Assert
         let expected = concat!(
@@ -69,12 +69,12 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let compilation_state = compile_from_strings(&[slice], Some(options));
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_data.emit_diagnostics(&mut output);
+        compilation_state.emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
@@ -124,12 +124,12 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let compilation_state = compile_from_strings(&[slice], Some(options));
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_data.emit_diagnostics(&mut output);
+        compilation_state.emit_diagnostics(&mut output);
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -155,12 +155,12 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let compilation_state = compile_from_strings(&[slice], Some(options));
 
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_data.emit_diagnostics(&mut output);
+        compilation_state.emit_diagnostics(&mut output);
 
         // Assert: Only one of the two warnings should be allowed.
         let expected = concat!(
@@ -184,7 +184,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             ..Default::default()
         };
 
-        let mut compilation_data = compile_from_strings(&[slice], Some(options)).expect("Expected errors");
+        let mut compilation_state = compile_from_strings(&[slice], Some(options));
         let mut output: Vec<u8> = Vec::new();
 
         // Report a diagnostic with a note that has the same span as the diagnostic.
@@ -199,10 +199,10 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         })
         .set_span(&span)
         .add_note("bar", Some(&span))
-        .report(&mut compilation_data.diagnostic_reporter);
+        .report(&mut compilation_state.diagnostic_reporter);
 
         // Act
-        compilation_data.emit_diagnostics(&mut output);
+        compilation_state.emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\

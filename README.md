@@ -16,8 +16,8 @@ using [rustup](https://rustup.rs).
 
 ## Overview
 
-The slicec library is a Rust library that can be used to compile Slice definitions into a `CompilationResult` struct.
-The `CompilationResult` struct contains the AST and any diagnostics that were emitted during compilation.
+The slicec library is a Rust library that can be used to compile Slice definitions into a `CompilationState` struct.
+The `CompilationState` struct contains the AST and any diagnostics that were emitted during compilation.
 
 ### Compile from strings
 
@@ -38,7 +38,7 @@ pub fn main() {
     }
     ";
 
-    let compilation_result = slice::compile_from_strings(&[slice], None);
+    let compilation_state = slice::compile_from_strings(&[slice], None);
 }
 ```
 
@@ -54,7 +54,7 @@ application that compiles Slice definitions:
 pub fn main() {
     let options = SliceOptions::parse();
     let slice_options = &options.slice_options;
-    let compilation_result = slice::compile_from_options(slice_options);
+    let compilation_state = slice::compile_from_options(slice_options);
 }
 ```
 
