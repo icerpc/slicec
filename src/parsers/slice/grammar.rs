@@ -586,7 +586,7 @@ fn try_construct_attribute(
 ) -> WeakPtr<Attribute> {
     parser.ast.add_element(OwnedPtr::new(Attribute::new(
         parser.diagnostic_reporter,
-        &directive.value,
+        directive.value,
         arguments.unwrap_or_default(),
         span,
     )))

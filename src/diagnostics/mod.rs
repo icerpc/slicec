@@ -138,8 +138,10 @@ pub struct Note {
 macro_rules! implement_diagnostic_functions {
     (Warning, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
         impl Warning {
-            /// This array contains the identifiers of all warnings slicec can emit.
-            pub const WARNING_IDENTIFIERS: [&'static str; 5] = [
+            // TODO maybe we should move this somewhere other than `Warning`? Like in `Attribute` maybe?
+            /// This array contains all the valid arguments for the 'allow' attribute.
+            pub const ALLOWABLE_WARNING_IDENTIFIERS: [&str; 6] = [
+                "All",
                 $(stringify!($kind)),*
             ];
 

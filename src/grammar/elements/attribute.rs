@@ -19,8 +19,8 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: Vec<String>, span: Span) -> Self {
-        let kind = AttributeKind::new(reporter, directive, &arguments, &span);
+    pub fn new(reporter: &mut DiagnosticReporter, directive: String, arguments: Vec<String>, span: Span) -> Self {
+        let kind = AttributeKind::new(reporter, directive, arguments, &span);
         Self { kind, span }
     }
 
@@ -96,11 +96,11 @@ pub trait LanguageKind: std::fmt::Debug {
 }
 
 impl AttributeKind {
-    pub fn new(reporter: &mut DiagnosticReporter, directive: &String, arguments: &[String], span: &Span) -> Self {
+    pub fn new(reporter: &mut DiagnosticReporter, directive: String, arguments: Vec<String>, span: &Span) -> Self {
         // Check for known attributes, if a parsing error occurs return an unknown attribute.
         let unmatched_attribute = AttributeKind::Other {
-            directive: directive.to_owned(),
-            arguments: arguments.to_owned(),
+            directive: directive.clone(),
+            arguments: arguments.clone(),
         };
 
         let attribute_kind: Option<AttributeKind> = match directive.as_str() {
@@ -113,7 +113,7 @@ impl AttributeKind {
                     .set_span(span)
                     .report(reporter);
                 }
-                validate_allow_arguments(arguments, Some(span), reporter);
+                validate_allow_arguments(&arguments, Some(span), reporter);
 
                 Some(AttributeKind::Allow {
                     allowed_warnings: arguments.to_owned(),
@@ -144,7 +144,7 @@ impl AttributeKind {
                                 )
                                 .report(reporter)
                             }
-                            return unmatched_attribute;
+                            None
                         }
                     }
                 } else {
@@ -155,7 +155,7 @@ impl AttributeKind {
                 }
             }
 
-            DEPRECATED => match arguments {
+            DEPRECATED => match &arguments[..] {
                 [] => Some(AttributeKind::Deprecated { reason: None }),
                 [reason] => Some(AttributeKind::Deprecated {
                     reason: Some(reason.to_owned()),
@@ -167,7 +167,7 @@ impl AttributeKind {
                     .set_span(span)
                     .add_note("The deprecated attribute takes at most one argument", Some(span))
                     .report(reporter);
-                    return unmatched_attribute;
+                    None
                 }
             },
 
@@ -213,18 +213,19 @@ impl AttributeKind {
                 })
             }
 
-            ONEWAY => match arguments {
-                [] => Some(AttributeKind::Oneway),
-                _ => {
+            ONEWAY => {
+                if arguments.is_empty() {
+                    Some(AttributeKind::Oneway)
+                } else {
                     Diagnostic::new(Error::TooManyArguments {
                         expected: ONEWAY.to_owned(),
                     })
                     .set_span(span)
                     .add_note("The oneway attribute does not take any arguments", Some(span))
                     .report(reporter);
-                    return unmatched_attribute;
+                    None
                 }
-            },
+            }
 
             _ => None,
         };
@@ -256,24 +257,36 @@ pub fn validate_allow_arguments(
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
     for argument in arguments {
-        // Ensure that each argument is either "All", or the name of a warning.
-        let mut is_valid = argument != "All" && !Warning::WARNING_IDENTIFIERS.contains(&argument.as_str());
+        let argument_str = &argument.as_str();
+        let mut is_valid = Warning::ALLOWABLE_WARNING_IDENTIFIERS.contains(argument_str);
 
         // We don't allow `DuplicateFile` to be suppressed by attributes, because it's a command-line specific warning.
+        // This check works because `span` is `None` for command line flags.
         if argument == "DuplicateFile" && span.is_some() {
             is_valid = false;
         }
 
         // Emit an error if the argument wasn't valid.
-        if is_valid {
+        if !is_valid {
             // TODO we should emit a link to the warnings page when we write it!
             let mut error = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: argument.to_owned(),
                 directive: "allow".to_owned(),
             });
+
             if let Some(unwrapped_span) = span {
                 error = error.set_span(unwrapped_span);
             }
+
+            // Check if the argument only differs in case from a valid one.
+            let suggestion = Warning::ALLOWABLE_WARNING_IDENTIFIERS
+                .iter()
+                .find(|identifier| identifier.eq_ignore_ascii_case(argument_str));
+            if let Some(identifier) = suggestion {
+                let message = format!("attribute arguments are case sensitive, perhaps you meant '{identifier}'?");
+                error = error.add_note(message, None);
+            }
+
             error.report(diagnostic_reporter);
         }
     }
