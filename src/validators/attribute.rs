@@ -100,7 +100,7 @@ fn is_enable_class_sliceable(element: &dyn Entity, diagnostic_reporter: &mut Dia
             })
             .set_span(attribute.span())
             .add_note(
-                "the enableClassSlicing attribute can only be applied to interfaces and operations",
+                "the enableClassSlicing attribute can only be applied to operations",
                 None,
             )
             .report(diagnostic_reporter);

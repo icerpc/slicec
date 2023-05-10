@@ -234,7 +234,7 @@ mod attributes {
             })
             .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
             .add_note(
-                "the enableClassSlicing attribute can only be applied to interfaces and operations",
+                "the enableClassSlicing attribute can only be applied to operations",
                 None,
             );
 
