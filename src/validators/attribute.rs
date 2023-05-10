@@ -63,11 +63,8 @@ fn cannot_be_deprecated(parameters: &[&Parameter], diagnostic_reporter: &mut Dia
     }
 }
 
-/// Validates that the `compress` attribute is not on an disallowed Attributable Elements and
-/// verifies that the user did not provide invalid arguments.
+/// Validate that the `compress` attribute is only applied to interfaces and operations.
 fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
-    // Validates that the `compress` attribute cannot be applied to anything other than
-    // interfaces and operations.
     let supported_on = ["interface", "operation"];
     let kind = element.kind();
 
@@ -90,15 +87,9 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
     }
 }
 
-/// Validates that the `enableClassSlicing` attribute is not on an disallowed Attributable Elements and
-/// verifies that the user did not provide invalid arguments.
+/// Validate that the `enableClassSlicing` attribute is only applied to operations.
 fn is_enable_class_sliceable(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
-    // Validates that the `enableClassSlicing` attribute cannot be applied to anything other than
-    // interfaces and operations.
-    let supported_on = ["interface", "operation"];
-    let kind = element.kind();
-
-    if !supported_on.contains(&kind) {
+    if element.kind() != "operation" {
         if let Some(attribute) = element
             .attributes(false)
             .into_iter()
