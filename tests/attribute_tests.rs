@@ -165,40 +165,17 @@ mod attributes {
         use slice::grammar::*;
         use slice::slice_file::Span;
         use slice::test_helpers::*;
-        use test_case::test_case;
-
-        #[test_case("Compact", ClassFormat::Compact ; "Compact")]
-        #[test_case("Sliced", ClassFormat::Sliced; "Sliced")]
-        fn format(format: &str, expected: ClassFormat) {
-            // Arrange
-            let slice = format!(
-                "
-                    module Test
-
-                    interface I {{
-                        [format({format})]
-                        op(s: string) -> string
-                    }}
-                "
-            );
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert_eq!(operation.class_format(), expected);
-        }
 
         #[test]
-        fn not_specifying_format_uses_compact_as_default() {
+        fn enable_class_slicing() {
             // Arrange
             let slice = "
-                    module Test
+                module Test
 
-                    interface I {
-                        op(s: string) -> string
-                    }
+                interface I {
+                    [enableClassSlicing(Args, Return)]
+                    op(s: string) -> string
+                }
             ";
 
             // Act
@@ -206,43 +183,19 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert_eq!(operation.class_format(), ClassFormat::Compact);
-        }
 
-        #[test_case(Some("()") ; "empty parenthesis")]
-        #[test_case(None; "No parenthesis or arguments")]
-        fn format_with_no_argument_fails(arg: Option<&str>) {
-            // Arrange
-            let args = arg.unwrap_or("");
-            let slice = format!(
-                "
-                    module Test
-
-                    interface I {{
-                        [format{args}]
-                        op(s: string) -> string
-                    }}
-                "
-            );
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: r#"format(<arguments>)"#.to_owned(),
-            });
-            check_diagnostics(diagnostics, [expected]);
+            assert!(operation.slice_classes_in_arguments());
+            assert!(operation.slice_classes_in_return());
         }
 
         #[test]
-        fn format_with_invalid_argument_fails() {
+        fn enable_class_slicing_with_invalid_arguments_fails() {
             // Arrange
             let slice = "
                 module Test
 
                 interface I {
-                    [format(Foo)]
+                    [enableClassSlicing(Foo)]
                     op(s: string) -> string
                 }
             ";
@@ -253,14 +206,64 @@ mod attributes {
             // Assert
             let expected = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: "Foo".to_owned(),
-                directive: "format".to_owned(),
+                directive: "enableClassSlicing".to_owned(),
             })
             .add_note(
-                "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
+                "'Args' and 'Return' are the only valid arguments",
                 None,
             );
 
             check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn cannot_enable_class_slicing_structs() {
+            // Arrange
+            let slice = "
+                module Test
+
+                [enableClassSlicing]
+                struct S {
+                    s: string
+                }
+            ";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "enableClassSlicing".to_owned(),
+            })
+            .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
+            .add_note(
+                "the enableClassSlicing attribute can only be applied to interfaces and operations",
+                None,
+            );
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn enable_class_slicing_with_no_arguments() {
+            // Arrange
+            let slice = "
+                module Test
+
+                interface I {
+                    [enableClassSlicing]
+                    op(s: string) -> string
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+
+            assert!(!operation.slice_classes_in_arguments());
+            assert!(!operation.slice_classes_in_return());
         }
 
         #[test]
@@ -475,7 +478,7 @@ mod attributes {
                 directive: "compress".to_owned(),
             })
             .add_note(
-                "The valid arguments for the compress attribute are 'Args' and 'Return'",
+                "'Args' and 'Return' are the only valid arguments",
                 None,
             );
 

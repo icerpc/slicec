@@ -8,7 +8,9 @@ use std::collections::HashMap;
 
 pub fn attribute_validators() -> ValidationChain {
     vec![
+        // TODO improve this system of checking attribute applicability.
         Validator::Attributes(is_compressible),
+        Validator::Attributes(is_enable_class_sliceable),
         Validator::Attributes(is_repeated),
         Validator::Parameters(cannot_be_deprecated),
     ]
@@ -81,6 +83,33 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
             .set_span(attribute.span())
             .add_note(
                 "the compress attribute can only be applied to interfaces and operations",
+                None,
+            )
+            .report(diagnostic_reporter);
+        }
+    }
+}
+
+/// Validates that the `enableClassSlicing` attribute is not on an disallowed Attributable Elements and
+/// verifies that the user did not provide invalid arguments.
+fn is_enable_class_sliceable(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
+    // Validates that the `enableClassSlicing` attribute cannot be applied to anything other than
+    // interfaces and operations.
+    let supported_on = ["interface", "operation"];
+    let kind = element.kind();
+
+    if !supported_on.contains(&kind) {
+        if let Some(attribute) = element
+            .attributes(false)
+            .into_iter()
+            .find(|a| matches!(a.kind, AttributeKind::EnableClassSlicing { .. }))
+        {
+            Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "enableClassSlicing".to_owned(),
+            })
+            .set_span(attribute.span())
+            .add_note(
+                "the enableClassSlicing attribute can only be applied to interfaces and operations",
                 None,
             )
             .report(diagnostic_reporter);

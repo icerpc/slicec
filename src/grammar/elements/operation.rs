@@ -100,9 +100,18 @@ impl Operation {
         }
     }
 
-    pub fn class_format(&self) -> ClassFormat {
-        self.find_attribute(true, Attribute::match_class_format)
-            .unwrap_or(ClassFormat::Compact)
+    pub fn slice_classes_in_arguments(&self) -> bool {
+        match self.find_attribute(false, Attribute::match_enable_class_slicing) {
+            Some((slice_args, ..)) => slice_args,
+            None => false,
+        }
+    }
+
+    pub fn slice_classes_in_return(&self) -> bool {
+        match self.find_attribute(false, Attribute::match_enable_class_slicing) {
+            Some((.., slice_return)) => slice_return,
+            None => false,
+        }
     }
 
     pub fn is_oneway(&self) -> bool {
