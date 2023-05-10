@@ -208,10 +208,7 @@ mod attributes {
                 argument: "Foo".to_owned(),
                 directive: "enableClassSlicing".to_owned(),
             })
-            .add_note(
-                "'Args' and 'Return' are the only valid arguments",
-                None,
-            );
+            .add_note("'Args' and 'Return' are the only valid arguments", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -477,10 +474,7 @@ mod attributes {
                 argument: "Foo".to_owned(),
                 directive: "compress".to_owned(),
             })
-            .add_note(
-                "'Args' and 'Return' are the only valid arguments",
-                None,
-            );
+            .add_note("'Args' and 'Return' are the only valid arguments", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
