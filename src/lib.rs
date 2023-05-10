@@ -14,11 +14,6 @@ pub mod utils;
 pub mod validators;
 pub mod visitor;
 
-// Re-export the `clap`, `convert_case`, and `in_definite` dependencies.
-pub extern crate clap;
-pub extern crate convert_case;
-pub extern crate in_definite;
-
 use command_line::SliceOptions;
 use compilation_state::CompilationState;
 use slice_file::SliceFile;
