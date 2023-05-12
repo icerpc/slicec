@@ -206,7 +206,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
         // Assert
         let expected = "\
-error [E002]: foo
+error [E002]: invalid syntax: foo
  --> string-0:2:13
   |
 2 |             encoding = Slice2
