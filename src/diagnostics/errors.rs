@@ -281,7 +281,7 @@ implement_diagnostic_functions!(
     (
         "E002",
         Syntax,
-        format!("{message}"),
+        format!("invalid syntax: {message}"),
         message
     ),
     (
