@@ -80,10 +80,9 @@ impl fmt::Display for CodeBlock {
     }
 }
 
-/// Converts an iterator of std::string::String into a CodeBlock. Each string is separated by a
-/// single newline.
-impl std::iter::FromIterator<std::string::String> for CodeBlock {
-    fn from_iter<T: IntoIterator<Item = std::string::String>>(iter: T) -> Self {
+/// Converts an iterator of strings into a CodeBlock. Each string is separated by a single newline.
+impl FromIterator<String> for CodeBlock {
+    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
         let mut code = CodeBlock::default();
         for i in iter {
             code.writeln(&i);
@@ -92,9 +91,9 @@ impl std::iter::FromIterator<std::string::String> for CodeBlock {
     }
 }
 
-/// Converts an iterator of CodeBlocks into a single CodeBlock. Each of the individual CodeBlocks is
-/// is stringified and spaced with an empty line between them.
-impl std::iter::FromIterator<CodeBlock> for CodeBlock {
+/// Converts an iterator of CodeBlocks into a single CodeBlock. Each of the individual CodeBlocks
+/// are stringified and spaced with an empty line between them.
+impl FromIterator<CodeBlock> for CodeBlock {
     fn from_iter<T: IntoIterator<Item = CodeBlock>>(iter: T) -> Self {
         let mut code = CodeBlock::default();
         for i in iter {
@@ -122,13 +121,6 @@ impl From<&str> for CodeBlock {
 
 impl From<CodeBlock> for String {
     fn from(code: CodeBlock) -> Self {
-        // Do not return `code.content` here as we want the the format function to be applied first
-        code.to_string()
-    }
-}
-
-impl From<&mut CodeBlock> for String {
-    fn from(code: &mut CodeBlock) -> Self {
         // Do not return `code.content` here as we want the the format function to be applied first
         code.to_string()
     }
