@@ -112,7 +112,9 @@ impl AttributeKind {
                 // Check that each of the arguments are valid.
                 validate_allow_arguments(&arguments, Some(span), reporter);
 
-                AttributeKind::Allow { allowed_warnings: arguments }
+                AttributeKind::Allow {
+                    allowed_warnings: arguments,
+                }
             }
 
             COMPRESS => {
@@ -139,13 +141,16 @@ impl AttributeKind {
                     }
                 }
 
-                AttributeKind::Compress { compress_args, compress_return }
+                AttributeKind::Compress {
+                    compress_args,
+                    compress_return,
+                }
             }
 
             DEPRECATED => {
                 if arguments.len() > 1 {
                     Diagnostic::new(Error::TooManyArguments {
-                        expected: DEPRECATED.to_owned(), // TODO: why is this expected?
+                        expected: DEPRECATED.to_owned(),
                     })
                     .set_span(span)
                     .add_note("The deprecated attribute takes at most one argument", Some(span))
@@ -181,7 +186,10 @@ impl AttributeKind {
                     }
                 }
 
-                AttributeKind::SlicedFormat { sliced_args, sliced_return }
+                AttributeKind::SlicedFormat {
+                    sliced_args,
+                    sliced_return,
+                }
             }
 
             ONEWAY => {
