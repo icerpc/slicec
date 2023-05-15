@@ -62,7 +62,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = 1
+                encoding = Slice1
                 module Test
                 exception E {{
                     a: {type_name}?
@@ -98,7 +98,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = 1
+                encoding = Slice1
                 module Test
                 exception E {{
                     a: {type_name}?
@@ -114,13 +114,13 @@ mod optional {
                 encoding: Encoding::Slice1,
             })
             .set_span(&Span::new(
-                (7, 24).into(),
-                (7, 24 + type_name.len() + 1).into(),
+                (5, 24).into(),
+                (5, 24 + type_name.len() + 1).into(),
                 "string-0",
             ))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
             check_diagnostics(diagnostics, [expected]);
         }
@@ -171,7 +171,7 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((7, 24).into(), (7, 28).into(), "string-0"))
+            .set_span(&Span::new((6, 24).into(), (6, 28).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
                 Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
@@ -198,10 +198,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 33).into(), (6, 38).into(), "string-0"))
+            .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -228,10 +228,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 35).into(), (6, 41).into(), "string-0"))
+            .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -255,10 +255,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 43).into(), (6, 49).into(), "string-0"))
+            .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -282,10 +282,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 27).into(), (6, 32).into(), "string-0"))
+            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -301,7 +301,7 @@ mod optional {
                 encoding = Slice1
                 module Test
                 interface I {
-                    op(a: tag(1) float32?)
+                    op(tag(1) a: float32?)
                 }
             ";
 
@@ -334,10 +334,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 29).into(), (6, 37).into(), "string-0"))
+            .set_span(&Span::new((5, 29).into(), (5, 37).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -361,10 +361,10 @@ mod optional {
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
             })
-            .set_span(&Span::new((6, 24).into(), (6, 29).into(), "string-0"))
+            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"))
             .add_note(
                 "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 29).into(), "string-0")),
+                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
             );
 
             check_diagnostics(diagnostics, [expected]);
@@ -380,7 +380,7 @@ mod optional {
                 encoding = Slice1
                 module Test
                 exception E {
-                    a: tag(1) float32?
+                    tag(1) a: float32?
                 }
             ";
 
@@ -414,7 +414,6 @@ mod optional {
         #[test_case("float32")]
         #[test_case("float64")]
         #[test_case("string")]
-        #[test_case("AnyClass")]
         fn optional_builtin_types_are_allowed(type_name: &str) {
             // Arrange
             let slice = format!(
@@ -436,7 +435,7 @@ mod optional {
 
         #[test_case("struct Foo {}"; "r#struct")]
         #[test_case("exception Foo {}"; "class")]
-        #[test_case("unchecked enum Foo {}"; "r#enum")]
+        #[test_case("unchecked enum Foo: uint8 {}"; "r#enum")]
         #[test_case("interface Foo {}"; "interface")]
         #[test_case("custom Foo"; "custom type")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
@@ -476,7 +475,7 @@ mod optional {
             let field = ast.find_element::<Field>("Test::E::a").unwrap();
             assert!(field.data_type.is_optional);
 
-            let Types::Sequence(sequence) = field.data_type.definition().concrete_type() else { panic!() };
+            let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
             assert!(!sequence.element_type.is_optional);
         }
 
@@ -497,7 +496,7 @@ mod optional {
             let field = ast.find_element::<Field>("Test::E::a").unwrap();
             assert!(!field.data_type.is_optional);
 
-            let Types::Sequence(sequence) = field.data_type.definition().concrete_type() else { panic!() };
+            let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
             assert!(sequence.element_type.is_optional);
         }
 
@@ -506,17 +505,19 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                typealias D = dictionary<varuint62, string>?
+                exception E {
+                    a: dictionary<varuint62, string>?
+                }
             ";
 
             // Act
             let ast = parse_for_ast(slice);
 
             // Assert
-            let type_alias = ast.find_element::<TypeAlias>("Test::D").unwrap();
-            assert!(type_alias.underlying.is_optional);
+            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            assert!(field.data_type.is_optional);
 
-            let Types::Dictionary(dictionary) = type_alias.underlying.definition().concrete_type() else { panic!() };
+            let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
             assert!(!dictionary.key_type.is_optional);
             assert!(!dictionary.value_type.is_optional);
         }
@@ -527,17 +528,19 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                typealias D = dictionary<varuint62?, string>
+                exception E {
+                    a: dictionary<varuint62?, string>
+                }
             ";
 
             // Act
             let ast = slice::compile_from_strings(&[slice], None).ast; // Use `compile_from_strings` to ignore errors.
 
             // Assert
-            let type_alias = ast.find_element::<TypeAlias>("Test::D").unwrap();
-            assert!(!type_alias.underlying.is_optional);
+            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            assert!(!field.data_type.is_optional);
 
-            let Types::Dictionary(dictionary) = type_alias.underlying.definition().concrete_type() else { panic!() };
+            let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
             assert!(dictionary.key_type.is_optional);
             assert!(!dictionary.value_type.is_optional);
         }
@@ -547,17 +550,19 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                typealias D = dictionary<varuint62, string?>
+                exception E {
+                    a: dictionary<varuint62, string?>
+                }
             ";
 
             // Act
             let ast = parse_for_ast(slice);
 
             // Assert
-            let type_alias = ast.find_element::<TypeAlias>("Test::D").unwrap();
-            assert!(!type_alias.underlying.is_optional);
+            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            assert!(!field.data_type.is_optional);
 
-            let Types::Dictionary(dictionary) = type_alias.underlying.definition().concrete_type() else { panic!() };
+            let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
             assert!(!dictionary.key_type.is_optional);
             assert!(dictionary.value_type.is_optional);
         }
