@@ -4,9 +4,7 @@ use crate::grammar::*;
 use crate::slice_file::SliceFile;
 
 /// The `Visitor` trait is used to recursively visit through a tree of slice elements.
-///
-/// It automatically traverses through the tree, calling the various `visit_x` methods as
-/// applicable.
+/// It automatically traverses through the tree, calling the various `visit_x` methods as applicable.
 ///
 /// These methods are default implemented as no-ops, so implementors are free to only implement the
 /// methods they need. Implementors also don't need to implement the tree traversal or recursive
