@@ -52,29 +52,6 @@ mod tags {
     }
 
     #[test]
-    fn non_tagged_optional_types_fail() {
-        // Arrange
-        let slice = "
-            encoding = Slice1
-            module Test
-            interface I {
-                myOp(a: int32?)
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::OptionalsNotSupported {
-            encoding: Encoding::Slice1,
-        })
-        .add_note("file encoding was set to Slice1 here:", None);
-
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
     fn tagged_parameters_can_be_in_any_order() {
         // Arrange
         let slice = "

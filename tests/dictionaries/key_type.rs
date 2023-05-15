@@ -5,7 +5,7 @@ use slice::test_helpers::*;
 use test_case::test_case;
 
 #[test]
-fn optionals_are_disallowed() {
+fn optional_keys_are_disallowed() {
     // Arrange
     let slice = "
         module Test

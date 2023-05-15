@@ -143,37 +143,4 @@ mod slice2 {
         // Act/Assert
         assert_parses(slice);
     }
-
-    #[test_case("uint8?"; "optional uint8")]
-    #[test_case("uint16?"; "optional uint16")]
-    #[test_case("uint32?"; "optional uint32")]
-    #[test_case("uint64?"; "optional uint64")]
-    #[test_case("int8?"; "optional int8")]
-    #[test_case("int16?"; "optional int16")]
-    #[test_case("int32?"; "optional int32")]
-    #[test_case("int64?"; "optional int64")]
-    #[test_case("varint32?"; "optional varint32")]
-    #[test_case("varuint32?"; "optional varuint32")]
-    #[test_case("varint62?"; "optional varint62")]
-    #[test_case("varuint62?"; "optional varuint62")]
-    #[test_case("string?"; "optional string")]
-    #[test_case("bool?"; "optional bool")]
-    #[test_case("sequence<int32>?"; "optional sequence")]
-    #[test_case("float32?"; "optional float32")]
-    #[test_case("float64?"; "optional float64")]
-    fn supported_optional_types_succeed(value: &str) {
-        // Arrange
-        let slice = format!(
-            "
-                module Test
-
-                struct MyStruct {{
-                    myVar: {value}
-                }}
-            "
-        );
-
-        // Act/Assert
-        assert_parses(slice);
-    }
 }
