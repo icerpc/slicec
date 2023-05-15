@@ -168,6 +168,10 @@ impl<T: Member> AsMemberVecExt for Vec<&T> {
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
+    fn visit_file(&mut self, _: &crate::slice_file::SliceFile) {
+        // TODO: Validate file attributes
+    }
+
     fn visit_class(&mut self, class: &Class) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(class, diagnostic_reporter),

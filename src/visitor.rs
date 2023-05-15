@@ -6,9 +6,7 @@ use crate::slice_file::SliceFile;
 /// The `Visitor` trait is used to recursively visit through a tree of slice elements.
 /// It automatically traverses through the tree, calling the various `visit_x` methods as applicable.
 ///
-/// These methods are default implemented as no-ops, so implementors are free to only implement the
-/// methods they need. Implementors also don't need to implement the tree traversal or recursive
-/// visitation. This is handled automatically.
+/// Implementors don't need to implement the tree traversal or recursive visitation. This is handled automatically.
 ///
 /// These methods are purely for the visitor's use, and shouldn't be called directly.
 /// To actually visit an element, call `visit_with` on the element.
@@ -19,80 +17,80 @@ use crate::slice_file::SliceFile;
 /// - visit_module
 ///     - visit_struct
 ///         - visit_field (called once per field, in the order they're defined)
-#[allow(unused_variables)] // Keep parameter names for doc generation, even if not used in the default implementations.
+#[allow(unused_variables)] // Keep parameter names for doc generation
 pub trait Visitor {
     /// This function is called by the visitor when it begins visiting a slice file,
     /// before it visits through the file's contents.
     ///
     /// This shouldn't be called by users. To visit a slice file, use `[SliceFile::visit_with]`.
-    fn visit_file(&mut self, slice_file: &SliceFile) {}
+    fn visit_file(&mut self, slice_file: &SliceFile);
 
     /// This function is called by the visitor when it begins visiting a [Module],
     /// before it visits through the module's contents.
     ///
     /// This shouldn't be called by users. To visit a module, use `[Module::visit_with]`.
-    fn visit_module(&mut self, module_def: &Module) {}
+    fn visit_module(&mut self, module_def: &Module);
 
     /// This function is called by the visitor when it begins visiting a [Struct],
     /// before it visits through the struct's contents.
     ///
     /// This shouldn't be called by users. To visit a struct, use `[Struct::visit_with]`.
-    fn visit_struct(&mut self, struct_def: &Struct) {}
+    fn visit_struct(&mut self, struct_def: &Struct);
 
     /// This function is called by the visitor when it begins visiting a [Class],
     /// before it visits through the class' contents.
     ///
     /// This shouldn't be called by users. To visit a class, use `[Class::visit_with]`.
-    fn visit_class(&mut self, class_def: &Class) {}
+    fn visit_class(&mut self, class_def: &Class);
 
     /// This function is called by the visitor when it begins visiting an [Exception],
     /// before it visits through the exception's contents.
     ///
     /// This shouldn't be called by users. To visit an exception, use `[Exception::visit_with]`.
-    fn visit_exception(&mut self, exception_def: &Exception) {}
+    fn visit_exception(&mut self, exception_def: &Exception);
 
     /// This function is called by the visitor when it begins visiting an [Interface],
     /// before it visits through the interface's contents.
     ///
     /// This shouldn't be called by users. To visit an interface, use `[Interface::visit_with]`.
-    fn visit_interface(&mut self, interface_def: &Interface) {}
+    fn visit_interface(&mut self, interface_def: &Interface);
 
     /// This function is called by the visitor when it begins visiting an [Enum],
     /// before it visits through the enum's contents.
     ///
     /// This shouldn't be called by users. To visit an enum, use `[Enum::visit_with]`.
-    fn visit_enum(&mut self, enum_def: &Enum) {}
+    fn visit_enum(&mut self, enum_def: &Enum);
 
     /// This function is called by the visitor when it begins visiting an [Operation],
     /// before it visits through the operation's contents.
     ///
     /// This shouldn't be called by users. To visit an operation, use `[Operation::visit_with]`.
-    fn visit_operation(&mut self, operation: &Operation) {}
+    fn visit_operation(&mut self, operation: &Operation);
 
     /// This function is called by the visitor when it visits a [CustomType],
     ///
     /// This shouldn't be called by users. To visit a custom type, use `[CustomType::visit_with]`.
-    fn visit_custom_type(&mut self, custom_type: &CustomType) {}
+    fn visit_custom_type(&mut self, custom_type: &CustomType);
 
     /// This function is called by the visitor when it visits a [TypeAlias],
     ///
     /// This shouldn't be called by users. To visit a type alias, use `[TypeAlias::visit_with]`.
-    fn visit_type_alias(&mut self, type_alias: &TypeAlias) {}
+    fn visit_type_alias(&mut self, type_alias: &TypeAlias);
 
     /// This function is called by the visitor when it visits a [Field],
     ///
     /// This shouldn't be called by users. To visit a field, use `[Field::visit_with]`.
-    fn visit_field(&mut self, field: &Field) {}
+    fn visit_field(&mut self, field: &Field);
 
     /// This function is called by the visitor when it visits a [Parameter],
     ///
     /// This shouldn't be called by users. To visit a parameter, use `[Parameter::visit_with]`.
-    fn visit_parameter(&mut self, parameter: &Parameter) {}
+    fn visit_parameter(&mut self, parameter: &Parameter);
 
     /// This function is called by the visitor when it visits a [Enumerator],
     ///
     /// This shouldn't be called by users. To visit an enumerator, use `[Enumerator::visit_with]`.
-    fn visit_enumerator(&mut self, enumerator: &Enumerator) {}
+    fn visit_enumerator(&mut self, enumerator: &Enumerator);
 }
 
 impl SliceFile {
