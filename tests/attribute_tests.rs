@@ -167,13 +167,13 @@ mod attributes {
         use slice::test_helpers::*;
 
         #[test]
-        fn enable_class_slicing() {
+        fn sliced_format() {
             // Arrange
             let slice = "
                 module Test
 
                 interface I {
-                    [enableClassSlicing(Args, Return)]
+                    [slicedFormat(Args, Return)]
                     op(s: string) -> string
                 }
             ";
@@ -189,13 +189,13 @@ mod attributes {
         }
 
         #[test]
-        fn enable_class_slicing_with_invalid_arguments_fails() {
+        fn sliced_format_with_invalid_arguments_fails() {
             // Arrange
             let slice = "
                 module Test
 
                 interface I {
-                    [enableClassSlicing(Foo)]
+                    [slicedFormat(Foo)]
                     op(s: string) -> string
                 }
             ";
@@ -206,7 +206,7 @@ mod attributes {
             // Assert
             let expected = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: "Foo".to_owned(),
-                directive: "enableClassSlicing".to_owned(),
+                directive: "slicedFormat".to_owned(),
             })
             .add_note("'Args' and 'Return' are the only valid arguments", None);
 
@@ -214,12 +214,12 @@ mod attributes {
         }
 
         #[test]
-        fn cannot_enable_class_slicing_structs() {
+        fn sliced_format_only_works_on_operations() {
             // Arrange
             let slice = "
                 module Test
 
-                [enableClassSlicing]
+                [slicedFormat]
                 struct S {
                     s: string
                 }
@@ -230,25 +230,22 @@ mod attributes {
 
             // Assert
             let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "enableClassSlicing".to_owned(),
+                attribute: "slicedFormat".to_owned(),
             })
-            .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
-            .add_note(
-                "the enableClassSlicing attribute can only be applied to operations",
-                None,
-            );
+            .set_span(&Span::new((4, 18).into(), (4, 30).into(), "string-0"))
+            .add_note("the slicedFormat attribute can only be applied to operations", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
-        fn enable_class_slicing_with_no_arguments() {
+        fn sliced_format_with_no_arguments() {
             // Arrange
             let slice = "
                 module Test
 
                 interface I {
-                    [enableClassSlicing]
+                    [slicedFormat]
                     op(s: string) -> string
                 }
             ";

@@ -7,7 +7,7 @@ use crate::slice_file::Span;
 const ALLOW: &str = "allow";
 const COMPRESS: &str = "compress";
 const DEPRECATED: &str = "deprecated";
-const ENABLE_CLASS_SLICING: &str = "enableClassSlicing";
+const SLICED_FORMAT: &str = "slicedFormat";
 const ONEWAY: &str = "oneway";
 
 #[derive(Debug)]
@@ -27,7 +27,7 @@ impl Attribute {
             AttributeKind::Allow { .. } => ALLOW,
             AttributeKind::Compress { .. } => COMPRESS,
             AttributeKind::Deprecated { .. } => DEPRECATED,
-            AttributeKind::EnableClassSlicing { .. } => ENABLE_CLASS_SLICING,
+            AttributeKind::SlicedFormat { .. } => SLICED_FORMAT,
             AttributeKind::Oneway { .. } => ONEWAY,
             AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
@@ -58,12 +58,12 @@ impl Attribute {
         }
     }
 
-    pub fn match_enable_class_slicing(attribute: &Attribute) -> Option<(bool, bool)> {
+    pub fn match_sliced_format(attribute: &Attribute) -> Option<(bool, bool)> {
         match &attribute.kind {
-            AttributeKind::EnableClassSlicing {
-                slice_args,
-                slice_return,
-            } => Some((*slice_args, *slice_return)),
+            AttributeKind::SlicedFormat {
+                sliced_args,
+                sliced_return,
+            } => Some((*sliced_args, *sliced_return)),
             _ => None,
         }
     }
@@ -81,8 +81,8 @@ pub enum AttributeKind {
     Allow { allowed_warnings: Vec<String> },
     Compress { compress_args: bool, compress_return: bool },
     Deprecated { reason: Option<String> },
-    EnableClassSlicing { slice_args: bool, slice_return: bool },
     Oneway,
+    SlicedFormat { sliced_args: bool, sliced_return: bool },
 
     // The following are used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
@@ -157,22 +157,22 @@ impl AttributeKind {
                 }
             }
 
-            ENABLE_CLASS_SLICING => {
-                let (mut slice_args, mut slice_return) = (false, false);
+            SLICED_FORMAT => {
+                let (mut sliced_args, mut sliced_return) = (false, false);
                 for arg in arguments {
                     match arg.as_str() {
                         "Args" => {
                             // TODO should we report a warning/error for duplicates?
-                            slice_args = true;
+                            sliced_args = true;
                         }
                         "Return" => {
                             // TODO should we report a warning/error for duplicates?
-                            slice_return = true;
+                            sliced_return = true;
                         }
                         _ => {
                             Diagnostic::new(Error::ArgumentNotSupported {
                                 argument: arg,
-                                directive: "enableClassSlicing".to_owned(),
+                                directive: "slicedFormat".to_owned(),
                             })
                             .set_span(span)
                             .add_note("'Args' and 'Return' are the only valid arguments", None)
@@ -181,7 +181,7 @@ impl AttributeKind {
                     }
                 }
 
-                AttributeKind::EnableClassSlicing { slice_args, slice_return }
+                AttributeKind::SlicedFormat { sliced_args, sliced_return }
             }
 
             ONEWAY => {
@@ -207,7 +207,7 @@ impl AttributeKind {
             AttributeKind::Allow { .. } => true,
             AttributeKind::Compress { .. } => false,
             AttributeKind::Deprecated { .. } => false,
-            AttributeKind::EnableClassSlicing { .. } => false,
+            AttributeKind::SlicedFormat { .. } => false,
             AttributeKind::Oneway => false,
             AttributeKind::LanguageKind { kind } => kind.is_repeatable(),
             AttributeKind::Other { .. } => true,

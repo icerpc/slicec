@@ -10,7 +10,7 @@ pub fn attribute_validators() -> ValidationChain {
     vec![
         // TODO improve this system of checking attribute applicability.
         Validator::Attributes(is_compressible),
-        Validator::Attributes(is_enable_class_sliceable),
+        Validator::Attributes(check_sliced_format),
         Validator::Attributes(is_repeated),
         Validator::Parameters(cannot_be_deprecated),
     ]
@@ -87,22 +87,19 @@ fn is_compressible(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticRep
     }
 }
 
-/// Validate that the `enableClassSlicing` attribute is only applied to operations.
-fn is_enable_class_sliceable(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
+/// Validate that the `slicedFormat` attribute is only applied to operations.
+fn check_sliced_format(element: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
     if element.kind() != "operation" {
         if let Some(attribute) = element
             .attributes(false)
             .into_iter()
-            .find(|a| matches!(a.kind, AttributeKind::EnableClassSlicing { .. }))
+            .find(|a| matches!(a.kind, AttributeKind::SlicedFormat { .. }))
         {
             Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "enableClassSlicing".to_owned(),
+                attribute: "slicedFormat".to_owned(),
             })
             .set_span(attribute.span())
-            .add_note(
-                "the enableClassSlicing attribute can only be applied to operations",
-                None,
-            )
+            .add_note("the slicedFormat attribute can only be applied to operations", None)
             .report(diagnostic_reporter);
         }
     }

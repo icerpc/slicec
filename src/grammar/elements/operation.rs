@@ -101,15 +101,15 @@ impl Operation {
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_enable_class_slicing) {
-            Some((slice_args, ..)) => slice_args,
+        match self.find_attribute(false, Attribute::match_sliced_format) {
+            Some((sliced_args, ..)) => sliced_args,
             None => false,
         }
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_enable_class_slicing) {
-            Some((.., slice_return)) => slice_return,
+        match self.find_attribute(false, Attribute::match_sliced_format) {
+            Some((.., sliced_return)) => sliced_return,
             None => false,
         }
     }
