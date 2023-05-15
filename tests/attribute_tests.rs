@@ -165,40 +165,17 @@ mod attributes {
         use slice::grammar::*;
         use slice::slice_file::Span;
         use slice::test_helpers::*;
-        use test_case::test_case;
-
-        #[test_case("Compact", ClassFormat::Compact ; "Compact")]
-        #[test_case("Sliced", ClassFormat::Sliced; "Sliced")]
-        fn format(format: &str, expected: ClassFormat) {
-            // Arrange
-            let slice = format!(
-                "
-                    module Test
-
-                    interface I {{
-                        [format({format})]
-                        op(s: string) -> string
-                    }}
-                "
-            );
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert_eq!(operation.class_format(), expected);
-        }
 
         #[test]
-        fn not_specifying_format_uses_compact_as_default() {
+        fn sliced_format() {
             // Arrange
             let slice = "
-                    module Test
+                module Test
 
-                    interface I {
-                        op(s: string) -> string
-                    }
+                interface I {
+                    [slicedFormat(Args, Return)]
+                    op(s: string) -> string
+                }
             ";
 
             // Act
@@ -206,43 +183,19 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert_eq!(operation.class_format(), ClassFormat::Compact);
-        }
 
-        #[test_case(Some("()") ; "empty parenthesis")]
-        #[test_case(None; "No parenthesis or arguments")]
-        fn format_with_no_argument_fails(arg: Option<&str>) {
-            // Arrange
-            let args = arg.unwrap_or("");
-            let slice = format!(
-                "
-                    module Test
-
-                    interface I {{
-                        [format{args}]
-                        op(s: string) -> string
-                    }}
-                "
-            );
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: r#"format(<arguments>)"#.to_owned(),
-            });
-            check_diagnostics(diagnostics, [expected]);
+            assert!(operation.slice_classes_in_arguments());
+            assert!(operation.slice_classes_in_return());
         }
 
         #[test]
-        fn format_with_invalid_argument_fails() {
+        fn sliced_format_with_invalid_arguments_fails() {
             // Arrange
             let slice = "
                 module Test
 
                 interface I {
-                    [format(Foo)]
+                    [slicedFormat(Foo)]
                     op(s: string) -> string
                 }
             ";
@@ -253,14 +206,58 @@ mod attributes {
             // Assert
             let expected = Diagnostic::new(Error::ArgumentNotSupported {
                 argument: "Foo".to_owned(),
-                directive: "format".to_owned(),
+                directive: "slicedFormat".to_owned(),
             })
-            .add_note(
-                "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
-                None,
-            );
+            .add_note("'Args' and 'Return' are the only valid arguments", None);
 
             check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn sliced_format_only_works_on_operations() {
+            // Arrange
+            let slice = "
+                module Test
+
+                [slicedFormat]
+                struct S {
+                    s: string
+                }
+            ";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "slicedFormat".to_owned(),
+            })
+            .set_span(&Span::new((4, 18).into(), (4, 30).into(), "string-0"))
+            .add_note("the slicedFormat attribute can only be applied to operations", None);
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn sliced_format_with_no_arguments() {
+            // Arrange
+            let slice = "
+                module Test
+
+                interface I {
+                    [slicedFormat]
+                    op(s: string) -> string
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+
+            assert!(!operation.slice_classes_in_arguments());
+            assert!(!operation.slice_classes_in_return());
         }
 
         #[test]
@@ -474,10 +471,7 @@ mod attributes {
                 argument: "Foo".to_owned(),
                 directive: "compress".to_owned(),
             })
-            .add_note(
-                "The valid arguments for the compress attribute are 'Args' and 'Return'",
-                None,
-            );
+            .add_note("'Args' and 'Return' are the only valid arguments", None);
 
             check_diagnostics(diagnostics, [expected]);
         }

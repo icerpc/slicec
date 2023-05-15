@@ -3,13 +3,11 @@
 use super::super::*;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::Span;
-use std::str::FromStr;
 
 const ALLOW: &str = "allow";
 const COMPRESS: &str = "compress";
-const COMPRESS_ARGS: [&str; 2] = ["Args", "Return"]; // The valid arguments for the `compress` attribute.
 const DEPRECATED: &str = "deprecated";
-const FORMAT: &str = "format";
+const SLICED_FORMAT: &str = "slicedFormat";
 const ONEWAY: &str = "oneway";
 
 #[derive(Debug)]
@@ -27,18 +25,18 @@ impl Attribute {
     pub fn directive(&self) -> &str {
         match &self.kind {
             AttributeKind::Allow { .. } => ALLOW,
-            AttributeKind::ClassFormat { .. } => FORMAT,
             AttributeKind::Compress { .. } => COMPRESS,
             AttributeKind::Deprecated { .. } => DEPRECATED,
+            AttributeKind::SlicedFormat { .. } => SLICED_FORMAT,
             AttributeKind::Oneway { .. } => ONEWAY,
             AttributeKind::LanguageKind { kind } => kind.directive(),
             AttributeKind::Other { directive, .. } => directive,
         }
     }
 
-    pub fn match_deprecated(attribute: &Attribute) -> Option<Option<String>> {
+    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<String>> {
         match &attribute.kind {
-            AttributeKind::Deprecated { reason } => Some(reason.clone()),
+            AttributeKind::Allow { allowed_warnings } => Some(allowed_warnings),
             _ => None,
         }
     }
@@ -53,16 +51,19 @@ impl Attribute {
         }
     }
 
-    pub fn match_class_format(attribute: &Attribute) -> Option<ClassFormat> {
+    pub fn match_deprecated(attribute: &Attribute) -> Option<Option<String>> {
         match &attribute.kind {
-            AttributeKind::ClassFormat { format } => Some(format.clone()),
+            AttributeKind::Deprecated { reason } => Some(reason.clone()),
             _ => None,
         }
     }
 
-    pub fn match_allow_warnings(attribute: &Attribute) -> Option<&Vec<String>> {
+    pub fn match_sliced_format(attribute: &Attribute) -> Option<(bool, bool)> {
         match &attribute.kind {
-            AttributeKind::Allow { allowed_warnings } => Some(allowed_warnings),
+            AttributeKind::SlicedFormat {
+                sliced_args,
+                sliced_return,
+            } => Some((*sliced_args, *sliced_return)),
             _ => None,
         }
     }
@@ -78,10 +79,10 @@ impl Attribute {
 #[derive(Debug)]
 pub enum AttributeKind {
     Allow { allowed_warnings: Vec<String> },
-    ClassFormat { format: ClassFormat },
     Compress { compress_args: bool, compress_return: bool },
     Deprecated { reason: Option<String> },
     Oneway,
+    SlicedFormat { sliced_args: bool, sliced_return: bool },
 
     // The following are used for attributes that are not recognized by the compiler. They may be language mapping
     // specific attributes that will be handled by the respective language mapping.
@@ -97,15 +98,9 @@ pub trait LanguageKind: std::fmt::Debug {
 
 impl AttributeKind {
     pub fn new(reporter: &mut DiagnosticReporter, directive: String, arguments: Vec<String>, span: &Span) -> Self {
-        // Check for known attributes, if a parsing error occurs return an unknown attribute.
-        let unmatched_attribute = AttributeKind::Other {
-            directive: directive.clone(),
-            arguments: arguments.clone(),
-        };
-
-        let attribute_kind: Option<AttributeKind> = match directive.as_str() {
+        match directive.as_str() {
             ALLOW => {
-                // Check that the `allow` attribute has arguments.
+                // Check that the attribute has arguments.
                 if arguments.is_empty() {
                     Diagnostic::new(Error::MissingRequiredArgument {
                         argument: r#"allow(<arguments>)"#.to_owned(),
@@ -113,133 +108,114 @@ impl AttributeKind {
                     .set_span(span)
                     .report(reporter);
                 }
+
+                // Check that each of the arguments are valid.
                 validate_allow_arguments(&arguments, Some(span), reporter);
 
-                Some(AttributeKind::Allow {
-                    allowed_warnings: arguments.to_owned(),
-                })
-            }
-
-            COMPRESS => {
-                if !arguments.is_empty() {
-                    let invalid_arguments = arguments
-                        .iter()
-                        .filter(|arg| !COMPRESS_ARGS.contains(&arg.as_str()))
-                        .collect::<Vec<&String>>();
-                    match invalid_arguments[..] {
-                        [] => Some(AttributeKind::Compress {
-                            compress_args: arguments.contains(&"Args".to_owned()),
-                            compress_return: arguments.contains(&"Return".to_owned()),
-                        }),
-                        _ => {
-                            for arg in invalid_arguments.iter() {
-                                Diagnostic::new(Error::ArgumentNotSupported {
-                                    argument: arg.to_string(),
-                                    directive: "compress".to_owned(),
-                                })
-                                .set_span(span)
-                                .add_note(
-                                    "The valid arguments for the compress attribute are 'Args' and 'Return'",
-                                    Some(span),
-                                )
-                                .report(reporter)
-                            }
-                            None
-                        }
-                    }
-                } else {
-                    Some(AttributeKind::Compress {
-                        compress_args: false,
-                        compress_return: false,
-                    })
+                AttributeKind::Allow {
+                    allowed_warnings: arguments,
                 }
             }
 
-            DEPRECATED => match &arguments[..] {
-                [] => Some(AttributeKind::Deprecated { reason: None }),
-                [reason] => Some(AttributeKind::Deprecated {
-                    reason: Some(reason.to_owned()),
-                }),
-                [..] => {
+            COMPRESS => {
+                let (mut compress_args, mut compress_return) = (false, false);
+                for arg in arguments {
+                    match arg.as_str() {
+                        "Args" => {
+                            // TODO should we report a warning/error for duplicates?
+                            compress_args = true;
+                        }
+                        "Return" => {
+                            // TODO should we report a warning/error for duplicates?
+                            compress_return = true;
+                        }
+                        _ => {
+                            Diagnostic::new(Error::ArgumentNotSupported {
+                                argument: arg,
+                                directive: "compress".to_owned(),
+                            })
+                            .set_span(span)
+                            .add_note("'Args' and 'Return' are the only valid arguments", None)
+                            .report(reporter);
+                        }
+                    }
+                }
+
+                AttributeKind::Compress {
+                    compress_args,
+                    compress_return,
+                }
+            }
+
+            DEPRECATED => {
+                if arguments.len() > 1 {
                     Diagnostic::new(Error::TooManyArguments {
                         expected: DEPRECATED.to_owned(),
                     })
                     .set_span(span)
                     .add_note("The deprecated attribute takes at most one argument", Some(span))
                     .report(reporter);
-                    None
-                }
-            },
-
-            FORMAT => {
-                // Check that the format attribute has arguments
-                if arguments.is_empty() {
-                    Diagnostic::new(Error::MissingRequiredArgument {
-                        argument: r#"format(<arguments>)"#.to_owned(),
-                    })
-                    .add_note(
-                        "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
-                        None,
-                    )
-                    .set_span(span)
-                    .report(reporter);
-                    return unmatched_attribute;
                 }
 
-                // Check if the arguments are valid
-                let invalid_args = arguments
-                    .iter()
-                    .filter(|arg| ClassFormat::from_str(arg).is_err())
-                    .collect::<Vec<&String>>();
-                invalid_args.iter().for_each(|arg| {
-                    Diagnostic::new(Error::ArgumentNotSupported {
-                        argument: arg.to_string(),
-                        directive: "format".to_owned(),
-                    })
-                    .set_span(span)
-                    .add_note(
-                        "The valid arguments for the format attribute are 'Compact' and 'Sliced'",
-                        Some(span),
-                    )
-                    .report(reporter);
-                });
-                if !invalid_args.is_empty() {
-                    return unmatched_attribute;
-                };
+                AttributeKind::Deprecated {
+                    reason: arguments.into_iter().next(),
+                }
+            }
 
-                // Safe unwrap since args.len() > 0 and we checked that all the arguments are valid
-                Some(AttributeKind::ClassFormat {
-                    format: ClassFormat::from_str(&arguments[0]).unwrap(),
-                })
+            SLICED_FORMAT => {
+                let (mut sliced_args, mut sliced_return) = (false, false);
+                for arg in arguments {
+                    match arg.as_str() {
+                        "Args" => {
+                            // TODO should we report a warning/error for duplicates?
+                            sliced_args = true;
+                        }
+                        "Return" => {
+                            // TODO should we report a warning/error for duplicates?
+                            sliced_return = true;
+                        }
+                        _ => {
+                            Diagnostic::new(Error::ArgumentNotSupported {
+                                argument: arg,
+                                directive: "slicedFormat".to_owned(),
+                            })
+                            .set_span(span)
+                            .add_note("'Args' and 'Return' are the only valid arguments", None)
+                            .report(reporter);
+                        }
+                    }
+                }
+
+                AttributeKind::SlicedFormat {
+                    sliced_args,
+                    sliced_return,
+                }
             }
 
             ONEWAY => {
-                if arguments.is_empty() {
-                    Some(AttributeKind::Oneway)
-                } else {
+                // Check that no arguments were provided to the attribute.
+                if !arguments.is_empty() {
                     Diagnostic::new(Error::TooManyArguments {
                         expected: ONEWAY.to_owned(),
                     })
                     .set_span(span)
-                    .add_note("The oneway attribute does not take any arguments", Some(span))
+                    .add_note("The oneway attribute does not take any arguments", None)
                     .report(reporter);
-                    None
                 }
+
+                AttributeKind::Oneway
             }
 
-            _ => None,
-        };
-
-        // If the attribute is not known, return check if it is a single or multiple arguments
-        attribute_kind.unwrap_or(unmatched_attribute)
+            _ => AttributeKind::Other { directive, arguments },
+        }
     }
 
     pub fn is_repeatable(&self) -> bool {
         match &self {
             AttributeKind::Allow { .. } => true,
-            AttributeKind::ClassFormat { .. } => false,
             AttributeKind::Compress { .. } => false,
             AttributeKind::Deprecated { .. } => false,
+            AttributeKind::SlicedFormat { .. } => false,
             AttributeKind::Oneway => false,
             AttributeKind::LanguageKind { kind } => kind.is_repeatable(),
             AttributeKind::Other { .. } => true,
