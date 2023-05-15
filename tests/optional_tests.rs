@@ -105,10 +105,10 @@ mod optional {
                 }}
                 "
             );
-    
+
             // Act
             let diagnostics = parse_for_diagnostics(slice);
-    
+
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 encoding: Encoding::Slice1,
