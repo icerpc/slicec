@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 mod attribute;
+mod attribute_usage;
 mod comments;
 mod cycle_detection;
 mod dictionary;
@@ -46,9 +47,13 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
         return;
     }
 
+    let mut attribute_usage_validator = attribute_usage::AttributeUsageValidator { diagnostic_reporter };
+
     let mut validator = ValidatorVisitor::new(&compilation_state.ast, diagnostic_reporter);
+
     for slice_file in compilation_state.files.values() {
         slice_file.visit_with(&mut validator);
+        // slice_file.visit_with(&mut attribute_usage_validator);
     }
 
     validate_module_contents(compilation_state);
