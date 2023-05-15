@@ -168,7 +168,7 @@ impl<T: Member> AsMemberVecExt for Vec<&T> {
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
-    fn visit_class_start(&mut self, class: &Class) {
+    fn visit_class(&mut self, class: &Class) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(class, diagnostic_reporter),
             Validator::DocComments(function) => function(class, ast, diagnostic_reporter),
@@ -184,7 +184,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_enum_start(&mut self, enum_def: &Enum) {
+    fn visit_enum(&mut self, enum_def: &Enum) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(enum_def, diagnostic_reporter),
             Validator::DocComments(function) => function(enum_def, ast, diagnostic_reporter),
@@ -211,7 +211,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_exception_start(&mut self, exception: &Exception) {
+    fn visit_exception(&mut self, exception: &Exception) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(exception, diagnostic_reporter),
             Validator::DocComments(function) => function(exception, ast, diagnostic_reporter),
@@ -227,7 +227,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_interface_start(&mut self, interface: &Interface) {
+    fn visit_interface(&mut self, interface: &Interface) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(interface, diagnostic_reporter),
             Validator::DocComments(function) => function(interface, ast, diagnostic_reporter),
@@ -242,7 +242,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_module_start(&mut self, module_def: &Module) {
+    fn visit_module(&mut self, module_def: &Module) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(module_def, diagnostic_reporter),
             Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
@@ -253,7 +253,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         });
     }
 
-    fn visit_operation_start(&mut self, operation: &Operation) {
+    fn visit_operation(&mut self, operation: &Operation) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(operation, diagnostic_reporter),
             Validator::DocComments(function) => function(operation, ast, diagnostic_reporter),
@@ -284,7 +284,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         })
     }
 
-    fn visit_struct_start(&mut self, struct_def: &Struct) {
+    fn visit_struct(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
