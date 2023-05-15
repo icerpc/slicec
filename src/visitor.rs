@@ -17,7 +17,6 @@ use crate::slice_file::SliceFile;
 /// - visit_module
 ///     - visit_struct
 ///         - visit_field (called once per field, in the order they're defined)
-#[allow(unused_variables)] // Keep parameter names for doc generation
 pub trait Visitor {
     /// This function is called by the visitor when it begins visiting a slice file,
     /// before it visits through the file's contents.
