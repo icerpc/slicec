@@ -165,6 +165,7 @@ mod attributes {
         use slice::grammar::*;
         use slice::slice_file::Span;
         use slice::test_helpers::*;
+        use test_case::test_case;
 
         #[test]
         fn sliced_format() {
@@ -547,6 +548,65 @@ mod attributes {
             });
             check_diagnostics(diagnostics, [expected]);
         }
+
+        #[test]
+        fn type_ref_attributes_error() {
+            let slice = "
+                module Test
+
+                struct Foo {
+                    a: [oneway] string
+                }";
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "oneway".to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("[deprecated] string"; "non nested")]
+        #[test_case("sequence<[deprecated] string>"; "nested")]
+        fn attributes_on_anonymous_types_are_rejected(alias_type: &str) {
+            let slice = format!(
+                "
+                module Test
+
+                typealias AnAlias = {alias_type}
+            "
+            );
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "deprecated".to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("oneway", "struct Foo {}"; "oneway on struct")]
+        #[test_case("slicedFormat", "exception Foo {}"; "slicedFormat on exception")]
+        fn non_common_attributes_rejected(attribute: &str, slice_type: &str) {
+            let slice = format!(
+                "
+                module Test
+
+                [{attribute}]
+                {slice_type}
+            "
+            );
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: attribute.to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
     }
 
     mod generalized_api {
@@ -734,25 +794,6 @@ mod attributes {
             assert_eq!(parent_attributes[0], ("attribute", &vec!["I".to_owned()]));
             assert_eq!(parent_attributes[1], ("attribute", &vec!["B".to_owned()]));
             assert_eq!(parent_attributes[2], ("attribute", &vec!["A".to_owned()]));
-        }
-    }
-
-    mod location {
-        use slice::test_helpers::parse_for_diagnostics;
-
-        #[test]
-        fn bad_location() {
-            let slice = "
-                module Test
-
-                [oneway]
-                struct Foo {
-                    a: string
-                }";
-
-            let diagnostics = parse_for_diagnostics(slice);
-
-            println!("{:#?}", diagnostics);
         }
     }
 }
