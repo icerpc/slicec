@@ -283,7 +283,7 @@ impl TypeRefPatcher<'_> {
 
             // If we reach this point, we haven't hit a cycle in the type aliases yet.
 
-            type_alias_chain.push(current_type_alias.module_scoped_identifier();
+            type_alias_chain.push(current_type_alias.module_scoped_identifier());
             let underlying_type = &current_type_alias.underlying;
             attributes.extend(underlying_type.attributes.clone());
 
