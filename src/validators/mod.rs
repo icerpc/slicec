@@ -24,7 +24,7 @@ pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
     Attributes(fn(&dyn Entity, &mut DiagnosticReporter)),
-    DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
+    DocComments(fn(&dyn Commentable, &Ast, &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
     Entities(fn(&dyn Entity, &mut DiagnosticReporter)),
     Members(fn(Vec<&dyn Member>, &mut DiagnosticReporter)),
@@ -54,7 +54,7 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
     validate_module_contents(compilation_state);
 }
 
-/// Since modules can be re-opened, but each module is a distinct entity in the AST, our normal redefinition check
+/// Since modules can be re-opened, but each module is a distinct element in the AST, our normal redefinition check
 /// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
 ///
 /// So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
@@ -247,9 +247,8 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_module(&mut self, module_def: &Module) {
-        self.validate(|validator, ast, diagnostic_reporter| match validator {
+        self.validate(|validator, _ast, diagnostic_reporter| match validator {
             Validator::Attributes(function) => function(module_def, diagnostic_reporter),
-            Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(module_def, diagnostic_reporter),
             Validator::Module(function) => function(module_def, diagnostic_reporter),
             // Checking for redefinition errors is done in `validate_parsed_data` to handle reopened modules.
