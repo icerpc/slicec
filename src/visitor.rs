@@ -90,6 +90,12 @@ pub trait Visitor {
     ///
     /// This shouldn't be called by users. To visit an enumerator, use `[Enumerator::visit_with]`.
     fn visit_enumerator(&mut self, enumerator: &Enumerator);
+
+    /// TODO: This can probably be improved after splitting `TypeRef`. See https://github.com/icerpc/slicec/issues/452.
+    /// This function is called by the visitor when it visits a [TypeRef].
+    ///
+    /// This shouldn't be called by users. To visit a type reference, use `[TypeRef::visit_with]`.
+    fn visit_type_ref(&mut self, type_ref: &TypeRef);
 }
 
 impl SliceFile {
@@ -223,6 +229,7 @@ impl TypeAlias {
     /// This function delegates to `visitor.visit_type_alias`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_type_alias(self);
+        self.underlying.visit_with(visitor);
     }
 }
 
@@ -232,6 +239,7 @@ impl Field {
     /// This function delegates to `visitor.visit_field`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_field(self);
+        self.data_type.visit_with(visitor);
     }
 }
 
@@ -241,6 +249,7 @@ impl Parameter {
     /// This function delegates to `visitor.visit_parameter`
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_parameter(self);
+        self.data_type.visit_with(visitor);
     }
 }
 
@@ -250,5 +259,23 @@ impl Enumerator {
     /// This function delegates to `visitor.visit_enumerator`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_enumerator(self);
+    }
+}
+
+impl TypeRef {
+    /// Visits the [TypeRef] with the provided `visitor`.
+    ///
+    /// This function first calls `visitor.visit_type_ref`, then if the type being referenced is a sequence or
+    /// dictionary, it recursively calls itself on their underlying element, key, and value types.
+    pub fn visit_with(&self, visitor: &mut impl Visitor) {
+        visitor.visit_type_ref(self);
+        match self.concrete_type() {
+            Types::Sequence(sequence_ref) => sequence_ref.element_type.visit_with(visitor),
+            Types::Dictionary(dictionary_ref) => {
+                dictionary_ref.key_type.visit_with(visitor);
+                dictionary_ref.value_type.visit_with(visitor);
+            }
+            _ => {}
+        }
     }
 }

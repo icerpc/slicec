@@ -319,4 +319,9 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
             _ => {}
         });
     }
+
+    fn visit_type_ref(&mut self, _: &TypeRef) {
+        // TO Joe,
+        // FROM Austin.
+    }
 }
