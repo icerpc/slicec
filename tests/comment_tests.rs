@@ -167,13 +167,13 @@ mod comments {
         // Assert
         let expected = [
             Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'module'(s)".to_owned(),
+                message: "doc comments cannot be applied to modules".to_owned(),
             }),
             Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'module'(s)".to_owned(),
+                message: "doc comments cannot be applied to modules".to_owned(),
             }),
             Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'module'(s)".to_owned(),
+                message: "doc comments cannot be applied to modules".to_owned(),
             }),
         ];
 
@@ -205,10 +205,10 @@ mod comments {
         // Assert
         let expected = [
             Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'parameter'(s)".to_owned(),
+                message: "doc comments cannot be applied to parameters".to_owned(),
             }),
             Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'return element'(s)".to_owned(),
+                message: "doc comments cannot be applied to return members".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);
