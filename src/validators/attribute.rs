@@ -209,7 +209,7 @@ fn validate_common_attributes(attribute: &Attribute, diagnostic_reporter: &mut D
     match attribute.kind {
         AttributeKind::Allow { .. } => {}
         AttributeKind::Deprecated { .. } => {}
-        AttributeKind::LanguageKind { .. } => {} // Validated by the language code generator
+        AttributeKind::LanguageKind { .. } => {} // Validated by the language code generator.
         AttributeKind::Other { .. } => {}        // Allow unknown attributes through.
         _ => report_unexpected_attribute(attribute, diagnostic_reporter),
     }
