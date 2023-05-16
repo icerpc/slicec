@@ -21,10 +21,6 @@ impl AsTypes for TypeAlias {
     fn concrete_type(&self) -> Types {
         self.underlying.concrete_type()
     }
-
-    fn concrete_type_mut(&mut self) -> TypesMut {
-        panic!("This has always been broken apparently");
-    }
 }
 
 impl Type for TypeAlias {
