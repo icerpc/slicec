@@ -163,7 +163,10 @@ impl SliceFile {
             } else {
                 // If the provided range is between 2 locations, underline everything between them.
                 let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
-                let underline_end = line.len() - (self.line_positions[line_number] - 1).saturating_sub(end_pos);
+                let underline_end = match (self.line_positions[line_number] - 1).checked_sub(end_pos) {
+                    Some(pos) => line.len() - pos, // If the end position is on this line.
+                    None => line.trim_end().len(), // If the end position is past the end of this line.
+                };
                 let underline_length = underline_end - underline_start;
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
                 writeln!(
