@@ -1,25 +1,25 @@
 // Copyright (c) ZeroC, Inc.
 
-pub mod attribute;
-pub mod class;
-pub mod custom_type;
-pub mod dictionary;
-pub mod r#enum;
-pub mod enumerator;
-pub mod exception;
-pub mod field;
-pub mod file_encoding;
-pub mod identifier;
-pub mod integer;
-pub mod interface;
-pub mod module;
-pub mod operation;
-pub mod parameter;
-pub mod primitive;
-pub mod sequence;
-pub mod r#struct;
-pub mod type_alias;
-pub mod type_ref;
+mod attribute;
+mod class;
+mod custom_type;
+mod dictionary;
+mod r#enum;
+mod enumerator;
+mod exception;
+mod field;
+mod file_encoding;
+mod identifier;
+mod integer;
+mod interface;
+mod module;
+mod operation;
+mod parameter;
+mod primitive;
+mod sequence;
+mod r#struct;
+mod type_alias;
+mod type_ref;
 
 // Re-export the contents of the grammar submodules directly into the grammar module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
