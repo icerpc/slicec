@@ -17,7 +17,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = slice_file.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -25,7 +25,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = module_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -33,7 +33,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = struct_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -41,7 +41,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = class_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -49,7 +49,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = exception_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -68,7 +68,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = enum_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -89,7 +89,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = custom_type.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -97,7 +97,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = type_alias.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -105,7 +105,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = field.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
@@ -132,7 +132,7 @@ impl Visitor for AttributeValidator<'_> {
         let attributes = enumerator.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in &attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter)
+            validate_common_attributes(attribute, self.diagnostic_reporter);
         }
     }
 
