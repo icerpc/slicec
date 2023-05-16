@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
-use crate::grammar::{Attributable, Attribute, AttributeKind, Exception, Module, Struct, Symbol, TypeRef};
+use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
@@ -37,7 +37,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_class(&mut self, class_def: &crate::grammar::class::Class) {
+    fn visit_class(&mut self, class_def: &Class) {
         let attributes = class_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -53,7 +53,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_interface(&mut self, interface_def: &crate::grammar::interface::Interface) {
+    fn visit_interface(&mut self, interface_def: &Interface) {
         let attributes = interface_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -64,7 +64,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_enum(&mut self, enum_def: &crate::grammar::r#enum::Enum) {
+    fn visit_enum(&mut self, enum_def: &Enum) {
         let attributes = enum_def.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -72,7 +72,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_operation(&mut self, operation: &crate::grammar::operation::Operation) {
+    fn visit_operation(&mut self, operation: &Operation) {
         let attributes = operation.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -85,7 +85,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_custom_type(&mut self, custom_type: &crate::grammar::custom_type::CustomType) {
+    fn visit_custom_type(&mut self, custom_type: &CustomType) {
         let attributes = custom_type.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -93,7 +93,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_type_alias(&mut self, type_alias: &crate::grammar::type_alias::TypeAlias) {
+    fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         let attributes = type_alias.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -101,7 +101,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_field(&mut self, field: &crate::grammar::field::Field) {
+    fn visit_field(&mut self, field: &Field) {
         let attributes = field.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -109,7 +109,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_parameter(&mut self, parameter: &crate::grammar::parameter::Parameter) {
+    fn visit_parameter(&mut self, parameter: &Parameter) {
         let attributes = parameter.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
@@ -128,7 +128,7 @@ impl Visitor for AttributeValidator<'_> {
         }
     }
 
-    fn visit_enumerator(&mut self, enumerator: &crate::grammar::enumerator::Enumerator) {
+    fn visit_enumerator(&mut self, enumerator: &Enumerator) {
         let attributes = enumerator.attributes(false);
         validate_repeated_attributes(&attributes, self.diagnostic_reporter);
         for attribute in attributes {
