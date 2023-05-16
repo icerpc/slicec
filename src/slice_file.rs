@@ -144,8 +144,9 @@ impl SliceFile {
         let mut formatted_snippet = line_number_prefix(None) + "\n";
         // Iterate through each line of raw text, and add it (and its line number) into the formatted snippet.
         // Add pointers and underlining on the line below it, as specified by the provided range.
+        // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
-        for line in raw_snippet.lines() {
+        for line in raw_snippet.split('\n') {
             writeln!(formatted_snippet, "{} {line}", line_number_prefix(Some(line_number)));
             if start_pos == end_pos {
                 // If the provided range is a single location, point to that location.
@@ -162,7 +163,10 @@ impl SliceFile {
             } else {
                 // If the provided range is between 2 locations, underline everything between them.
                 let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
-                let underline_end = line.len() - (self.line_positions[line_number] - 1).saturating_sub(end_pos);
+                let underline_end = match (self.line_positions[line_number] - 1).checked_sub(end_pos) {
+                    Some(pos) => line.len() - pos, // If the end position is on this line.
+                    None => line.trim_end().len(), // If the end position is past the end of this line.
+                };
                 let underline_length = underline_end - underline_start;
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
                 writeln!(

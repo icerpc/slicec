@@ -46,21 +46,21 @@ mod output {
 
     #[test]
     fn output_to_console() {
-        let slice = r#"
+        let slice = "
         module Foo
 
         interface I {
             /// @param x: this is an x
-            op1()
+            op1()\r
 
             op2(tag(1)
-    x:
+    x:\r
                     int32, tag(2) y: bool?,
             )
         }
-
-        enum E: int8 {}
-        "#;
+\r
+        enum E: int8 {}\r
+        ";
 
         // Disable ANSI color codes.
         let options = SliceOptions {
@@ -89,7 +89,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
    |
 8  |             op2(tag(1)
    |                 ------
-9  |     x:
+9  |     x:\r
    | ------
 10 |                     int32, tag(2) y: bool?,
    | -------------------------
@@ -97,7 +97,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:14:9
    |
-14 |         enum E: int8 {}
+14 |         enum E: int8 {}\r
    |         ------
    |
 ";
