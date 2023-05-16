@@ -16,10 +16,10 @@ macro_rules! patch_link {
     };
 }
 
-macro_rules! patch_entity {
-    ($entity_ptr:expr, $patcher:expr) => {{
-        let entity_ref = $entity_ptr.borrow_mut();
-        $patcher.apply_patches(&entity_ref.parser_scoped_identifier(), &mut entity_ref.comment);
+macro_rules! patch_element {
+    ($element_ptr:expr, $patcher:expr) => {{
+        let element_ref = $element_ptr.borrow_mut();
+        $patcher.apply_patches(&element_ref.parser_scoped_identifier(), &mut element_ref.comment);
     }};
 }
 
@@ -31,27 +31,35 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 
     // Immutably iterate through the AST and compute patches for all the doc comments stored in it.
     for node in compilation_state.ast.as_slice() {
-        if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            patcher.compute_patches_for(entity, &compilation_state.ast);
+        match node {
+            Node::Struct(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Class(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Exception(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Field(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Interface(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Operation(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Enum(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::Enumerator(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::CustomType(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            Node::TypeAlias(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
+            _ => {} // Skip any elements that don't implement `Commentable`.
         }
     }
 
     // Mutably iterate through the AST and apply all the patches in the same oder they were computed.
     for node in compilation_state.ast.as_mut_slice() {
         match node {
-            Node::Module(ptr) => patch_entity!(ptr, patcher),
-            Node::Struct(ptr) => patch_entity!(ptr, patcher),
-            Node::Class(ptr) => patch_entity!(ptr, patcher),
-            Node::Exception(ptr) => patch_entity!(ptr, patcher),
-            Node::Field(ptr) => patch_entity!(ptr, patcher),
-            Node::Interface(ptr) => patch_entity!(ptr, patcher),
-            Node::Operation(ptr) => patch_entity!(ptr, patcher),
-            Node::Parameter(ptr) => patch_entity!(ptr, patcher),
-            Node::Enum(ptr) => patch_entity!(ptr, patcher),
-            Node::Enumerator(ptr) => patch_entity!(ptr, patcher),
-            Node::CustomType(ptr) => patch_entity!(ptr, patcher),
-            Node::TypeAlias(ptr) => patch_entity!(ptr, patcher),
-            _ => {} // Skip any non-entity types.
+            Node::Struct(ptr) => patch_element!(ptr, patcher),
+            Node::Class(ptr) => patch_element!(ptr, patcher),
+            Node::Exception(ptr) => patch_element!(ptr, patcher),
+            Node::Field(ptr) => patch_element!(ptr, patcher),
+            Node::Interface(ptr) => patch_element!(ptr, patcher),
+            Node::Operation(ptr) => patch_element!(ptr, patcher),
+            Node::Enum(ptr) => patch_element!(ptr, patcher),
+            Node::Enumerator(ptr) => patch_element!(ptr, patcher),
+            Node::CustomType(ptr) => patch_element!(ptr, patcher),
+            Node::TypeAlias(ptr) => patch_element!(ptr, patcher),
+            _ => {} // Skip any elements that don't implement `Commentable`.
         }
     }
     debug_assert!(patcher.link_patches.is_empty());
@@ -63,38 +71,41 @@ struct CommentLinkPatcher<'a> {
 }
 
 impl CommentLinkPatcher<'_> {
-    fn compute_patches_for(&mut self, entity: &dyn Entity, ast: &Ast) {
-        if let Some(comment) = entity.comment() {
+    fn compute_patches_for(&mut self, commentable: &impl Commentable, ast: &Ast) {
+        if let Some(comment) = commentable.comment() {
             if let Some(overview) = &comment.overview {
-                self.resolve_links_in(&overview.message, entity, ast);
+                self.resolve_links_in(&overview.message, commentable, ast);
             }
             for param_tag in &comment.params {
-                self.resolve_links_in(&param_tag.message, entity, ast);
+                self.resolve_links_in(&param_tag.message, commentable, ast);
             }
             for returns_tag in &comment.returns {
-                self.resolve_links_in(&returns_tag.message, entity, ast);
+                self.resolve_links_in(&returns_tag.message, commentable, ast);
             }
             for throws_tag in &comment.throws {
                 if let Some(thrown_type) = &throws_tag.thrown_type {
-                    self.resolve_link(thrown_type, entity, ast);
+                    self.resolve_link(thrown_type, commentable, ast);
                 }
-                self.resolve_links_in(&throws_tag.message, entity, ast);
+                self.resolve_links_in(&throws_tag.message, commentable, ast);
             }
             for see_tag in &comment.see {
-                self.resolve_link(&see_tag.link, entity, ast);
+                self.resolve_link(&see_tag.link, commentable, ast);
             }
         }
     }
 
-    fn resolve_links_in(&mut self, message: &Message, entity: &dyn Entity, ast: &Ast) {
+    fn resolve_links_in(&mut self, message: &Message, commentable: &impl Commentable, ast: &Ast) {
         for component in message {
             if let MessageComponent::Link(link_tag) = component {
-                self.resolve_link(&link_tag.link, entity, ast);
+                self.resolve_link(&link_tag.link, commentable, ast);
             }
         }
     }
 
-    fn resolve_link<T: Element + ?Sized>(&mut self, link: &TypeRefDefinition<T>, entity: &dyn Entity, ast: &Ast) {
+    fn resolve_link<T>(&mut self, link: &TypeRefDefinition<T>, commentable: &impl Commentable, ast: &Ast)
+    where
+        T: Element + ?Sized,
+    {
         // All links should be unpatched at this point.
         let TypeRefDefinition::Unpatched(identifier) = link else {
             panic!("encountered comment link that was already patched");
@@ -102,7 +113,7 @@ impl CommentLinkPatcher<'_> {
 
         // Look up the linked-to entity in the AST.
         let result = ast
-            .find_node_with_scope(&identifier.value, &entity.parser_scoped_identifier())
+            .find_node_with_scope(&identifier.value, &commentable.parser_scoped_identifier())
             .and_then(<WeakPtr<dyn Entity>>::try_from);
 
         // If the lookup succeeded, store the result, otherwise report a warning and store `None` as a placeholder.
@@ -120,7 +131,7 @@ impl CommentLinkPatcher<'_> {
                 };
                 Diagnostic::new(Warning::BrokenDocLink { message })
                     .set_span(identifier.span())
-                    .set_scope(entity.parser_scoped_identifier())
+                    .set_scope(commentable.parser_scoped_identifier())
                     .report(self.diagnostic_reporter);
                 None
             }

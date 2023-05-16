@@ -21,10 +21,6 @@ impl AsTypes for TypeAlias {
     fn concrete_type(&self) -> Types {
         self.underlying.concrete_type()
     }
-
-    fn concrete_type_mut(&mut self) -> TypesMut {
-        panic!("This has always been broken apparently");
-    }
 }
 
 impl Type for TypeAlias {
@@ -51,4 +47,5 @@ impl Type for TypeAlias {
 
 implement_Element_for!(TypeAlias, "type alias");
 implement_Entity_for!(TypeAlias);
+implement_Commentable_for!(TypeAlias);
 implement_Contained_for!(TypeAlias, Module);
