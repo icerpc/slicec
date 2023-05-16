@@ -9,7 +9,13 @@ use std::collections::HashMap;
 
 /// Validates that attributes are used on the correct Slice types.
 pub struct AttributeValidator<'a> {
-    pub diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostic_reporter: &'a mut DiagnosticReporter,
+}
+
+impl<'a> AttributeValidator<'a> {
+    pub fn new(diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
+        Self { diagnostic_reporter }
+    }
 }
 
 impl Visitor for AttributeValidator<'_> {
