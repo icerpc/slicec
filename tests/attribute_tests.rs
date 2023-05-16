@@ -529,7 +529,7 @@ mod attributes {
 
         #[test]
         fn non_repeatable_attributes_error() {
-            // Act
+            // Arrange
             let slice = "
                 module Test
 
@@ -540,6 +540,7 @@ mod attributes {
                 }
             ";
 
+            // Act
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
@@ -551,6 +552,7 @@ mod attributes {
 
         #[test]
         fn type_ref_attributes_error() {
+            // Arrange
             let slice = "
                 module Test
 
@@ -558,8 +560,10 @@ mod attributes {
                     a: [oneway] string
                 }";
 
+            // Act
             let diagnostics = parse_for_diagnostics(slice);
 
+            // Assert
             let expected = Diagnostic::new(Error::UnexpectedAttribute {
                 attribute: "oneway".to_owned(),
             });
