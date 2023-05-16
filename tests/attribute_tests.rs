@@ -736,4 +736,23 @@ mod attributes {
             assert_eq!(parent_attributes[2], ("attribute", &vec!["A".to_owned()]));
         }
     }
+
+    mod location {
+        use slice::test_helpers::parse_for_diagnostics;
+
+        #[test]
+        fn bad_location() {
+            let slice = "
+                module Test
+
+                [oneway]
+                struct Foo {
+                    a: string
+                }";
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            println!("{:#?}", diagnostics);
+        }
+    }
 }

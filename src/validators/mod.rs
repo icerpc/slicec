@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 mod attribute;
-mod attribute_usage;
 mod comments;
 mod cycle_detection;
 mod dictionary;
@@ -24,7 +23,6 @@ pub use attribute::validate_repeated_attributes;
 pub type ValidationChain = Vec<Validator>;
 
 pub enum Validator {
-    Attributes(fn(&dyn Entity, &mut DiagnosticReporter)),
     DocComments(fn(&dyn Entity, &Ast, &mut DiagnosticReporter)),
     Enums(fn(&Enum, &mut DiagnosticReporter)),
     Entities(fn(&dyn Entity, &mut DiagnosticReporter)),
@@ -47,13 +45,14 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
         return;
     }
 
-    let mut attribute_usage_validator = attribute_usage::AttributeUsageValidator { diagnostic_reporter };
-
     let mut validator = ValidatorVisitor::new(&compilation_state.ast, diagnostic_reporter);
-
     for slice_file in compilation_state.files.values() {
         slice_file.visit_with(&mut validator);
-        // slice_file.visit_with(&mut attribute_usage_validator);
+    }
+
+    let mut attribute_validator = attribute::AttributeValidator { diagnostic_reporter };
+    for slice_file in compilation_state.files.values() {
+        slice_file.visit_with(&mut attribute_validator);
     }
 
     validate_module_contents(compilation_state);
@@ -123,7 +122,6 @@ struct ValidatorVisitor<'a> {
 impl<'a> ValidatorVisitor<'a> {
     pub fn new(ast: &'a Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
         let validation_functions = [
-            attribute::attribute_validators(),
             comments::comments_validators(),
             enums::enum_validators(),
             identifiers::identifier_validators(),
@@ -173,13 +171,10 @@ impl<T: Member> AsMemberVecExt for Vec<&T> {
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
-    fn visit_file(&mut self, _: &crate::slice_file::SliceFile) {
-        // TODO: Validate file attributes
-    }
+    fn visit_file(&mut self, _: &crate::slice_file::SliceFile) {}
 
     fn visit_class(&mut self, class: &Class) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(class, diagnostic_reporter),
             Validator::DocComments(function) => function(class, ast, diagnostic_reporter),
             Validator::Entities(function) => function(class, diagnostic_reporter),
             Validator::Identifiers(function) => function(class.fields().get_identifiers(), diagnostic_reporter),
@@ -195,7 +190,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_enum(&mut self, enum_def: &Enum) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(enum_def, diagnostic_reporter),
             Validator::DocComments(function) => function(enum_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(enum_def, diagnostic_reporter),
             Validator::Enums(function) => function(enum_def, diagnostic_reporter),
@@ -205,24 +199,23 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_custom_type(&mut self, custom_type: &CustomType) {
-        self.validate(|validator, _ast, diagnostic_reporter| {
-            if let Validator::Attributes(function) = validator {
-                function(custom_type, diagnostic_reporter)
+        self.validate(|validator, ast, diagnostic_reporter| {
+            if let Validator::DocComments(function) = validator {
+                function(custom_type, ast, diagnostic_reporter)
             }
         });
     }
 
     fn visit_enumerator(&mut self, enumerator: &Enumerator) {
-        self.validate(|validator, _ast, diagnostic_reporter| {
-            if let Validator::Attributes(function) = validator {
-                function(enumerator, diagnostic_reporter)
+        self.validate(|validator, ast, diagnostic_reporter| {
+            if let Validator::DocComments(function) = validator {
+                function(enumerator, ast, diagnostic_reporter)
             }
         });
     }
 
     fn visit_exception(&mut self, exception: &Exception) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(exception, diagnostic_reporter),
             Validator::DocComments(function) => function(exception, ast, diagnostic_reporter),
             Validator::Entities(function) => function(exception, diagnostic_reporter),
             Validator::Identifiers(function) => function(exception.fields().get_identifiers(), diagnostic_reporter),
@@ -238,7 +231,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_interface(&mut self, interface: &Interface) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(interface, diagnostic_reporter),
             Validator::DocComments(function) => function(interface, ast, diagnostic_reporter),
             Validator::Entities(function) => function(interface, diagnostic_reporter),
             Validator::Identifiers(function) => function(interface.operations().get_identifiers(), diagnostic_reporter),
@@ -253,7 +245,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_module(&mut self, module_def: &Module) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(module_def, diagnostic_reporter),
             Validator::DocComments(function) => function(module_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(module_def, diagnostic_reporter),
             Validator::Module(function) => function(module_def, diagnostic_reporter),
@@ -264,7 +255,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_operation(&mut self, operation: &Operation) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(operation, diagnostic_reporter),
             Validator::DocComments(function) => function(operation, ast, diagnostic_reporter),
             Validator::Entities(function) => function(operation, diagnostic_reporter),
             Validator::Identifiers(function) => {
@@ -286,16 +276,10 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
         validate_type_ref(&parameter.data_type, self.diagnostic_reporter);
-        self.validate(|validator, _ast, diagnostic_reporter| {
-            if let Validator::Attributes(function) = validator {
-                function(parameter, diagnostic_reporter)
-            }
-        })
     }
 
     fn visit_struct(&mut self, struct_def: &Struct) {
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(struct_def, diagnostic_reporter),
             Validator::DocComments(function) => function(struct_def, ast, diagnostic_reporter),
             Validator::Entities(function) => function(struct_def, diagnostic_reporter),
             Validator::Identifiers(function) => function(struct_def.fields().get_identifiers(), diagnostic_reporter),
@@ -307,17 +291,11 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_field(&mut self, field: &Field) {
         validate_type_ref(&field.data_type, self.diagnostic_reporter);
-        self.validate(|validator, _ast, diagnostic_reporter| {
-            if let Validator::Attributes(function) = validator {
-                function(field, diagnostic_reporter)
-            }
-        })
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         validate_type_ref(&type_alias.underlying, self.diagnostic_reporter);
         self.validate(|validator, ast, diagnostic_reporter| match validator {
-            Validator::Attributes(function) => function(type_alias, diagnostic_reporter),
             Validator::DocComments(function) => function(type_alias, ast, diagnostic_reporter),
             Validator::Entities(function) => function(type_alias, diagnostic_reporter),
             Validator::TypeAlias(function) => function(type_alias, diagnostic_reporter),
