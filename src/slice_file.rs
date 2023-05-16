@@ -144,6 +144,7 @@ impl SliceFile {
         let mut formatted_snippet = line_number_prefix(None) + "\n";
         // Iterate through each line of raw text, and add it (and its line number) into the formatted snippet.
         // Add pointers and underlining on the line below it, as specified by the provided range.
+        // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
         for line in raw_snippet.split('\n') {
             writeln!(formatted_snippet, "{} {line}", line_number_prefix(Some(line_number)));
