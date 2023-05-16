@@ -73,5 +73,6 @@ impl Type for Exception {
 
 implement_Element_for!(Exception, "exception");
 implement_Entity_for!(Exception);
+implement_Commentable_for!(Exception);
 implement_Container_for!(Exception, WeakPtr<Field>, fields);
 implement_Contained_for!(Exception, Module);

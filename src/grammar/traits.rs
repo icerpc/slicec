@@ -70,11 +70,7 @@ pub trait Attributable {
     }
 }
 
-pub trait Commentable {
-    fn comment(&self) -> Option<&DocComment>;
-}
-
-pub trait Entity: NamedSymbol + Attributable + Commentable + AsEntities {
+pub trait Entity: NamedSymbol + Attributable + AsEntities {
     fn get_deprecation(&self, check_parent: bool) -> Option<Option<String>> {
         self.attributes(check_parent)
             .into_iter()
@@ -101,6 +97,10 @@ pub trait Member: Entity {
     fn is_tagged(&self) -> bool {
         self.raw_tag().is_some()
     }
+}
+
+pub trait Commentable: Entity {
+    fn comment(&self) -> Option<&DocComment>;
 }
 
 pub trait Type: Element + AsTypes {
@@ -207,7 +207,6 @@ macro_rules! implement_Entity_for {
         implement_Named_Symbol_for!($type);
         implement_Scoped_Symbol_for!($type);
         implement_Attributable_for!($type);
-        implement_Commentable_for!($type);
 
         impl Entity for $type {}
     };
