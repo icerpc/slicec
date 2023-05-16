@@ -2,21 +2,21 @@
 
 pub mod ast;
 pub mod code_block;
-pub mod command_line;
 pub mod compilation_state;
 pub mod diagnostics;
 pub mod grammar;
 pub mod parsers;
 pub mod slice_file;
+pub mod slice_options;
 pub mod supported_encodings;
 pub mod test_helpers;
 pub mod utils;
 pub mod validators;
 pub mod visitor;
 
-use command_line::SliceOptions;
 use compilation_state::CompilationState;
 use slice_file::SliceFile;
+use slice_options::SliceOptions;
 use std::collections::HashSet;
 use utils::file_util;
 
@@ -63,5 +63,10 @@ fn compile_files(files: Vec<SliceFile>, state: &mut CompilationState, options: &
     // 3) Check the user's Slice definitions for language-mapping agnostic errors.
     parsers::parse_files(state, &defined_symbols);
     unsafe { state.apply_unsafe(ast::patch_ast) };
+
+    if let Some(patcher) = options.state_patcher {
+        unsafe { patcher(state) };
+    }
+
     state.apply(validators::validate_ast);
 }

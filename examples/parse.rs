@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use clap::Parser;
-use slice::command_line::SliceOptions;
+use slice::slice_options::SliceOptions;
 use std::process::exit;
 
 pub fn main() {

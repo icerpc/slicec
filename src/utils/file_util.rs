@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::command_line::SliceOptions;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::SliceFile;
+use crate::slice_options::SliceOptions;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};

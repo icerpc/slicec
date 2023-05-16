@@ -4,12 +4,14 @@ use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 
+use crate::compilation_state::CompilationStatePatcher;
+
 // Note: clap uses the doc-comments of fields to populate the '--help' output of slice-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Debug, Default, Parser)]
+#[derive(Default, Parser)]
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of Slice files to compile.
@@ -47,6 +49,9 @@ pub struct SliceOptions {
     /// Disable ANSI color codes in diagnostic output.
     #[arg(long)]
     pub disable_color: bool,
+
+    #[arg(skip)]
+    pub state_patcher: Option<CompilationStatePatcher>,
 }
 
 /// This enum is used to specify the format for emitted diagnostics.

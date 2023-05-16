@@ -1,12 +1,14 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
+use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
 use std::collections::HashMap;
 use std::io::Write;
+
+pub type CompilationStatePatcher = unsafe fn(&mut CompilationState);
 
 #[derive(Debug)]
 pub struct CompilationState {

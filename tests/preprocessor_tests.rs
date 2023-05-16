@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-use slice::command_line::SliceOptions;
 use slice::compile_from_strings;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
+use slice::slice_options::SliceOptions;
 use slice::test_helpers::*;
 use test_case::test_case;
 

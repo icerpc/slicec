@@ -2,10 +2,10 @@
 
 mod output {
 
-    use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::slice_file::Span;
+    use slice::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
     fn output_to_json() {
