@@ -189,6 +189,7 @@ fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut 
             Some("the compress attribute can only be applied to interfaces and operations")
         }
         AttributeKind::SlicedFormat { .. } => Some("the slicedFormat attribute can only be applied to operations"),
+        AttributeKind::Oneway { .. } => Some("the oneway attribute can only be applied to operations"),
         _ => None,
     };
 
