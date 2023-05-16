@@ -4,7 +4,7 @@ use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 
-use crate::compilation_state::CompilationStatePatcher;
+use crate::compilation_state::{CompilationStatePatcher, CompilationStateValidator};
 
 // Note: clap uses the doc-comments of fields to populate the '--help' output of slice-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
@@ -52,6 +52,9 @@ pub struct SliceOptions {
 
     #[arg(skip)]
     pub state_patcher: Option<CompilationStatePatcher>,
+
+    #[arg(skip)]
+    pub state_validator: Option<CompilationStateValidator>,
 }
 
 /// This enum is used to specify the format for emitted diagnostics.
