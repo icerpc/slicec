@@ -91,7 +91,7 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit an enumerator, use `[Enumerator::visit_with]`.
     fn visit_enumerator(&mut self, enumerator: &Enumerator);
 
-    /// TODO: This can probably be improved after splitting `TypeRef`. See https://github.com/icerpc/slicec/issues/452.
+    // TODO: This can probably be improved after splitting `TypeRef`. See https://github.com/icerpc/slicec/issues/452.
     /// This function is called by the visitor when it visits a [TypeRef].
     ///
     /// This shouldn't be called by users. To visit a type reference, use `[TypeRef::visit_with]`.
