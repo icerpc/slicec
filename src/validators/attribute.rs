@@ -7,7 +7,7 @@ use crate::visitor::Visitor;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
-/// Validates that attributes are used on the correct Slice types
+/// Validates that attributes are used on the correct Slice types.
 pub struct AttributeValidator<'a> {
     pub diagnostic_reporter: &'a mut DiagnosticReporter,
 }
