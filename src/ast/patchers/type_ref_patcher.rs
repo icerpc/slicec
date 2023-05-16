@@ -283,9 +283,9 @@ impl TypeRefPatcher<'_> {
 
             // If we reach this point, we haven't hit a cycle in the type aliases yet.
 
-            type_alias_chain.push(current_type_alias.module_scoped_identifier());
-            attributes.extend(current_type_alias.attributes.clone());
+            type_alias_chain.push(current_type_alias.module_scoped_identifier();
             let underlying_type = &current_type_alias.underlying;
+            attributes.extend(underlying_type.attributes.clone());
 
             // If we hit a type alias that is already patched, we immediately return its underlying type.
             // Otherwise we retrieve the alias' type string and try to resolve it in the ast.
