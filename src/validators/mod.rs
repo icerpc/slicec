@@ -128,6 +128,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_operation(&mut self, operation: &Operation) {
+        validate_common_doc_comments(operation, self.diagnostic_reporter);
         validate_operation(operation, self.diagnostic_reporter);
 
         validate_members(operation.parameters().as_member_vec(), self.diagnostic_reporter);
