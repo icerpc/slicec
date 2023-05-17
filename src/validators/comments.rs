@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
@@ -67,7 +66,7 @@ fn operation_missing_throws(operation: &Operation, diagnostic_reporter: &mut Dia
     }
 }
 
-fn only_operations_can_throw(commentable: &dyn Commentable, _: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
+fn only_operations_can_throw(commentable: &dyn Commentable, diagnostic_reporter: &mut DiagnosticReporter) {
     let supported_on = ["operation"];
     if let Some(comment) = commentable.comment() {
         if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
