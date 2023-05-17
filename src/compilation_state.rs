@@ -12,7 +12,7 @@ use std::io::Write;
 pub type CompilationStatePatcher = unsafe fn(&mut CompilationState);
 
 /// A function that validates the [`CompilationState`].
-pub type CompilationStateValidator = fn(&mut CompilationState);
+pub type CompilationStateValidator = fn(&CompilationState);
 
 #[derive(Debug)]
 pub struct CompilationState {
