@@ -181,6 +181,26 @@ mod optional {
         }
 
         #[test]
+        fn sequences_of_optionals_are_allowed() {
+            // Arrange
+            let slice = "
+                encoding = Slice1
+                module Test
+                exception E {
+                    a: sequence<AnyClass?>
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
+            assert!(sequence.element_type.is_optional);
+        }
+
+        #[test]
         fn sequences_of_optionals_are_disallowed() {
             // Arrange
             let slice = "
@@ -262,6 +282,27 @@ mod optional {
             );
 
             check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn dictionaries_with_optional_values_are_allowed() {
+            // Arrange
+            let slice = "
+                encoding = Slice1
+                module Test
+                exception E {
+                    a: dictionary<string, AnyClass?>
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
+            assert!(!dictionary.key_type.is_optional);
+            assert!(dictionary.value_type.is_optional);
         }
 
         #[test]
