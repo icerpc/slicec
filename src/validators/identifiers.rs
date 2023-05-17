@@ -3,20 +3,25 @@
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 
-pub fn validate_identifiers(identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
-    check_for_redefinition(identifiers, diagnostic_reporter);
+pub fn validate_identifiers(named_symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: &mut DiagnosticReporter) {
+    check_for_redefinition(named_symbols, diagnostic_reporter);
 }
 
 pub fn validate_inherited_identifiers(
-    identifiers: Vec<&Identifier>,
-    inherited_symbols: Vec<&Identifier>,
+    symbols: Vec<&impl NamedSymbol>,
+    inherited_symbols: Vec<&impl NamedSymbol>,
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
-    check_for_shadowing(identifiers, inherited_symbols, diagnostic_reporter);
+    check_for_shadowing(symbols, inherited_symbols, diagnostic_reporter);
 }
 
-fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn check_for_redefinition(mut symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: &mut DiagnosticReporter) {
     // Sort first so that we can use windows to search for duplicates.
+    let mut identifiers = symbols
+        .drain(..)
+        .map(|symbol| symbol.raw_identifier())
+        .collect::<Vec<_>>();
+
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
         if window[0].value == window[1].value {
@@ -34,12 +39,22 @@ fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter
 }
 
 fn check_for_shadowing(
-    identifiers: Vec<&Identifier>,
-    inherited_symbols: Vec<&Identifier>,
+    mut symbols: Vec<&impl NamedSymbol>,
+    mut inherited_symbols: Vec<&impl NamedSymbol>,
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
-    identifiers.iter().for_each(|identifier| {
-        inherited_symbols
+    let identifiers = symbols
+        .drain(..)
+        .map(|symbol| symbol.raw_identifier())
+        .collect::<Vec<_>>();
+
+    let inherited_identifiers = inherited_symbols
+        .drain(..)
+        .map(|symbol| symbol.raw_identifier())
+        .collect::<Vec<_>>();
+
+    identifiers.into_iter().for_each(|identifier| {
+        inherited_identifiers
             .iter()
             .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
             .for_each(|inherited_identifier| {

@@ -78,20 +78,16 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_class(&mut self, class: &Class) {
         validate_common_doc_comments(class, self.diagnostic_reporter);
-        validate_members(class.fields().as_member_vec(), self.diagnostic_reporter);
+        validate_members(class.fields(), self.diagnostic_reporter);
 
-        validate_identifiers(class.fields().get_identifiers(), self.diagnostic_reporter);
-        validate_inherited_identifiers(
-            class.fields().get_identifiers(),
-            class.all_inherited_fields().get_identifiers(),
-            self.diagnostic_reporter,
-        );
+        validate_identifiers(class.fields(), self.diagnostic_reporter);
+        validate_inherited_identifiers(class.fields(), class.all_inherited_fields(), self.diagnostic_reporter);
     }
 
     fn visit_enum(&mut self, enum_def: &Enum) {
         validate_enum(enum_def, self.diagnostic_reporter);
         validate_common_doc_comments(enum_def, self.diagnostic_reporter);
-        validate_identifiers(enum_def.enumerators().get_identifiers(), self.diagnostic_reporter);
+        validate_identifiers(enum_def.enumerators(), self.diagnostic_reporter);
     }
 
     fn visit_custom_type(&mut self, custom_type: &CustomType) {
@@ -104,12 +100,12 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_exception(&mut self, exception: &Exception) {
         validate_common_doc_comments(exception, self.diagnostic_reporter);
-        validate_members(exception.fields().as_member_vec(), self.diagnostic_reporter);
+        validate_members(exception.fields(), self.diagnostic_reporter);
 
-        validate_identifiers(exception.fields().get_identifiers(), self.diagnostic_reporter);
+        validate_identifiers(exception.fields(), self.diagnostic_reporter);
         validate_inherited_identifiers(
-            exception.fields().get_identifiers(),
-            exception.all_inherited_fields().get_identifiers(),
+            exception.fields(),
+            exception.all_inherited_fields(),
             self.diagnostic_reporter,
         );
     }
@@ -117,10 +113,10 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_interface(&mut self, interface: &Interface) {
         validate_common_doc_comments(interface, self.diagnostic_reporter);
 
-        validate_identifiers(interface.operations().get_identifiers(), self.diagnostic_reporter);
+        validate_identifiers(interface.operations(), self.diagnostic_reporter);
         validate_inherited_identifiers(
-            interface.operations().get_identifiers(),
-            interface.all_inherited_operations().get_identifiers(),
+            interface.operations(),
+            interface.all_inherited_operations(),
             self.diagnostic_reporter,
         );
     }
@@ -129,14 +125,14 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_common_doc_comments(operation, self.diagnostic_reporter);
         validate_operation(operation, self.diagnostic_reporter);
 
-        validate_members(operation.parameters().as_member_vec(), self.diagnostic_reporter);
-        validate_members(operation.return_members().as_member_vec(), self.diagnostic_reporter);
+        validate_members(operation.parameters(), self.diagnostic_reporter);
+        validate_members(operation.return_members(), self.diagnostic_reporter);
 
         validate_parameters(&operation.parameters(), self.diagnostic_reporter);
         validate_parameters(&operation.return_members(), self.diagnostic_reporter);
 
-        validate_identifiers(operation.parameters().get_identifiers(), self.diagnostic_reporter);
-        validate_identifiers(operation.return_members().get_identifiers(), self.diagnostic_reporter);
+        validate_identifiers(operation.parameters(), self.diagnostic_reporter);
+        validate_identifiers(operation.return_members(), self.diagnostic_reporter);
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
@@ -148,8 +144,8 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         validate_struct(struct_def, self.diagnostic_reporter);
 
-        validate_members(struct_def.fields().as_member_vec(), self.diagnostic_reporter);
-        validate_identifiers(struct_def.fields().get_identifiers(), self.diagnostic_reporter);
+        validate_members(struct_def.fields(), self.diagnostic_reporter);
+        validate_identifiers(struct_def.fields(), self.diagnostic_reporter);
     }
 
     fn visit_field(&mut self, field: &Field) {
@@ -166,31 +162,5 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_type_ref(&mut self, _: &TypeRef) {
         // TO Joe,
         // FROM Austin.
-    }
-}
-
-// Helper extensions to make validation easier.
-trait EntityIdentifiersExtension {
-    fn get_identifiers(&self) -> Vec<&Identifier>;
-}
-
-impl<T> EntityIdentifiersExtension for Vec<&T>
-where
-    T: Entity,
-{
-    fn get_identifiers(&self) -> Vec<&Identifier> {
-        self.iter().map(|member| member.raw_identifier()).collect()
-    }
-}
-
-trait AsMemberVecExt {
-    fn as_member_vec(&self) -> Vec<&dyn Member>;
-}
-
-impl<T: Member> AsMemberVecExt for Vec<&T> {
-    fn as_member_vec(&self) -> Vec<&dyn Member> {
-        let mut v: Vec<&dyn Member> = Vec::new();
-        self.iter().for_each(|m| v.push(*m));
-        v
     }
 }
