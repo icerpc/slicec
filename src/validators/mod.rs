@@ -10,7 +10,6 @@ mod members;
 mod modules;
 mod operations;
 mod parameters;
-mod sequence;
 mod structs;
 mod type_aliases;
 
@@ -20,6 +19,7 @@ use crate::grammar::*;
 use crate::visitor::Visitor;
 
 use comments::validate_common_doc_comments;
+use dictionary::validate_dictionary;
 use enums::validate_enum;
 use identifiers::{validate_identifiers, validate_inherited_identifiers};
 use members::validate_members;
@@ -49,14 +49,6 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
     }
 
     validate_module_contents(compilation_state);
-}
-
-fn validate_type_ref(type_ref: &TypeRef, diagnostic_reporter: &mut DiagnosticReporter) {
-    match type_ref.concrete_type() {
-        Types::Dictionary(dictionary) => dictionary::validate(dictionary, diagnostic_reporter),
-        Types::Sequence(sequence) => sequence::validate(sequence, diagnostic_reporter),
-        _ => {}
-    }
 }
 
 struct ValidatorVisitor<'a> {
@@ -139,9 +131,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_identifiers(operation.return_members().get_identifiers(), self.diagnostic_reporter);
     }
 
-    fn visit_parameter(&mut self, parameter: &Parameter) {
-        validate_type_ref(&parameter.data_type, self.diagnostic_reporter);
-    }
+    fn visit_parameter(&mut self, _: &Parameter) {}
 
     fn visit_struct(&mut self, struct_def: &Struct) {
         validate_common_doc_comments(struct_def, self.diagnostic_reporter);
@@ -154,18 +144,17 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_field(&mut self, field: &Field) {
         validate_common_doc_comments(field, self.diagnostic_reporter);
-        validate_type_ref(&field.data_type, self.diagnostic_reporter);
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         validate_common_doc_comments(type_alias, self.diagnostic_reporter);
-        validate_type_ref(&type_alias.underlying, self.diagnostic_reporter);
         validate_type_alias(type_alias, self.diagnostic_reporter);
     }
 
-    fn visit_type_ref(&mut self, _: &TypeRef) {
-        // TO Joe,
-        // FROM Austin.
+    fn visit_type_ref(&mut self, type_ref: &TypeRef) {
+        if let Types::Dictionary(dictionary) = type_ref.concrete_type() {
+            validate_dictionary(dictionary, self.diagnostic_reporter);
+        }
     }
 }
 
