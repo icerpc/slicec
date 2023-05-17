@@ -2,15 +2,11 @@
 
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
 
-pub fn tag_validators() -> ValidationChain {
-    vec![
-        Validator::Members(tags_have_optional_types),
-        Validator::Members(tagged_members_cannot_use_classes),
-        Validator::Members(tags_are_unique),
-        Validator::Struct(compact_structs_cannot_contain_tags),
-    ]
+pub fn validate_members(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+    tags_have_optional_types(members.clone(), diagnostic_reporter);
+    tagged_members_cannot_use_classes(members.clone(), diagnostic_reporter);
+    tags_are_unique(members.clone(), diagnostic_reporter);
 }
 
 /// Validates that the tags are unique.
@@ -36,23 +32,6 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
             .report(diagnostic_reporter);
         };
     });
-}
-
-/// Validate that tags cannot be used in compact structs.
-fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostic_reporter: &mut DiagnosticReporter) {
-    if struct_def.is_compact {
-        for field in struct_def.fields() {
-            if field.is_tagged() {
-                Diagnostic::new(Error::CompactStructCannotContainTaggedFields)
-                    .set_span(field.span())
-                    .add_note(
-                        format!("struct '{}' is declared compact here", struct_def.identifier()),
-                        Some(struct_def.span()),
-                    )
-                    .report(diagnostic_reporter);
-            }
-        }
-    }
 }
 
 /// Validate that the data type of the tagged member is optional.

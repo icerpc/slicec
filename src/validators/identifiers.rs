@@ -2,16 +2,20 @@
 
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
 
-pub fn identifier_validators() -> ValidationChain {
-    vec![
-        Validator::Identifiers(check_for_redefinition),
-        Validator::InheritedIdentifiers(check_for_shadowing),
-    ]
+pub fn validate_identifiers(identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
+    check_for_redefinition(identifiers, diagnostic_reporter);
 }
 
-pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_inherited_identifiers(
+    identifiers: Vec<&Identifier>,
+    inherited_symbols: Vec<&Identifier>,
+    diagnostic_reporter: &mut DiagnosticReporter,
+) {
+    check_for_shadowing(identifiers, inherited_symbols, diagnostic_reporter);
+}
+
+fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_reporter: &mut DiagnosticReporter) {
     // Sort first so that we can use windows to search for duplicates.
     identifiers.sort_by_key(|identifier| identifier.value.to_owned());
     identifiers.windows(2).for_each(|window| {
@@ -29,7 +33,7 @@ pub fn check_for_redefinition(mut identifiers: Vec<&Identifier>, diagnostic_repo
     });
 }
 
-pub fn check_for_shadowing(
+fn check_for_shadowing(
     identifiers: Vec<&Identifier>,
     inherited_symbols: Vec<&Identifier>,
     diagnostic_reporter: &mut DiagnosticReporter,
