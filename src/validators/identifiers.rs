@@ -39,8 +39,8 @@ fn check_for_redefinition(symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: 
 }
 
 fn check_for_shadowing(
-    mut symbols: Vec<&impl NamedSymbol>,
-    mut inherited_symbols: Vec<&impl NamedSymbol>,
+    symbols: Vec<&impl NamedSymbol>,
+    inherited_symbols: Vec<&impl NamedSymbol>,
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
     let identifiers = symbols.into_iter().map(NamedSymbol::raw_identifier);
