@@ -3,14 +3,14 @@
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 
-pub fn validate_members(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_members(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     tags_have_optional_types(members.clone(), diagnostic_reporter);
     tagged_members_cannot_use_classes(members.clone(), diagnostic_reporter);
     tags_are_unique(members.clone(), diagnostic_reporter);
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tags_are_unique(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -35,7 +35,7 @@ fn tags_are_unique(members: Vec<&dyn Member>, diagnostic_reporter: &mut Diagnost
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tags_have_optional_types(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     let tagged_members = members.into_iter().filter(|member| member.is_tagged());
 
     // Validate that tagged members are optional.
@@ -50,7 +50,7 @@ fn tags_have_optional_types(members: Vec<&dyn Member>, diagnostic_reporter: &mut
     }
 }
 
-fn tagged_members_cannot_use_classes(members: Vec<&dyn Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
     // Helper function that recursively checks if a type is a class, or contains classes.
     // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
     fn uses_classes(typeref: &TypeRef) -> bool {
