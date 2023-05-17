@@ -3,8 +3,8 @@
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 
-pub fn validate_identifiers(named_symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: &mut DiagnosticReporter) {
-    check_for_redefinition(named_symbols, diagnostic_reporter);
+pub fn validate_identifiers(symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: &mut DiagnosticReporter) {
+    check_for_redefinition(symbols, diagnostic_reporter);
 }
 
 pub fn validate_inherited_identifiers(
