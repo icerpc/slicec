@@ -4,8 +4,8 @@ mod test_helpers;
 
 mod module {
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::*;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::*;
     use test_case::test_case;
 
     #[test_case("{}", false; "normal")]

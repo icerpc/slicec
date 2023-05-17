@@ -4,9 +4,9 @@ mod test_helpers;
 
 mod optional {
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::*;
-    use slice::slice_file::Span;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::*;
+    use slicec::slice_file::Span;
     use test_case::test_case;
 
     #[test_case("bool"; "primitive")]

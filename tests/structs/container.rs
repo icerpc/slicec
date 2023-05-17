@@ -3,8 +3,8 @@
 mod structs {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::*;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::*;
 
     /// Verifies that structs can contain fields.
     #[test]
@@ -90,7 +90,7 @@ mod structs {
 mod compact_structs {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
+    use slicec::diagnostics::{Diagnostic, Error};
 
     /// Verifies that compact structs must contain at least one field.
     #[test]

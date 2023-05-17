@@ -5,9 +5,9 @@ mod test_helpers;
 mod output {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::slice_file::Span;
-    use slice::slice_options::{DiagnosticFormat, SliceOptions};
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::slice_file::Span;
+    use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
     fn output_to_json() {

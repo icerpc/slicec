@@ -6,14 +6,14 @@
 // It's fine if a test doesn't need all of these functions.
 #![allow(dead_code)]
 
-use slice::ast::Ast;
-use slice::compilation_state::CompilationState;
-use slice::compile_from_strings;
-use slice::diagnostics::Diagnostic;
-use slice::slice_options::SliceOptions;
+use slicec::ast::Ast;
+use slicec::compilation_state::CompilationState;
+use slicec::compile_from_strings;
+use slicec::diagnostics::Diagnostic;
+use slicec::slice_options::SliceOptions;
 
 // Re-export the general purpose test helpers to make it easier for tests to use them.
-pub use slice::test_helpers::*;
+pub use slicec::test_helpers::*;
 
 /// This function parses the provided Slice file.
 /// It is the lowest level test helper function, returning a full [`CompilationState`] instead of only part of it.

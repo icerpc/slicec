@@ -1,9 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
-use slice::grammar::*;
-use slice::slice_file::Span;
+use slicec::diagnostics::{Diagnostic, Error};
+use slicec::grammar::*;
+use slicec::slice_file::Span;
 
 #[test]
 fn supports_single_inheritance() {

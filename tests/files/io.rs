@@ -2,9 +2,9 @@
 
 use std::path::{PathBuf, MAIN_SEPARATOR};
 
-use slice::diagnostics::DiagnosticReporter;
-use slice::slice_options::SliceOptions;
-use slice::utils::file_util::resolve_files_from;
+use slicec::diagnostics::DiagnosticReporter;
+use slicec::slice_options::SliceOptions;
+use slicec::utils::file_util::resolve_files_from;
 
 #[test]
 fn duplicate_reference_files_ignored() {

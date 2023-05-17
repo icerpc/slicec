@@ -16,6 +16,7 @@ mod type_aliases;
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
+use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 
 use comments::validate_common_doc_comments;
@@ -62,7 +63,7 @@ impl<'a> ValidatorVisitor<'a> {
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
-    fn visit_file(&mut self, _: &crate::slice_file::SliceFile) {}
+    fn visit_file(&mut self, _: &SliceFile) {}
 
     fn visit_module(&mut self, module_def: &Module) {
         validate_module(module_def, self.diagnostic_reporter);

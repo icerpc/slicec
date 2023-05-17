@@ -3,7 +3,7 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::grammar::{CustomType, Exception, Interface, Struct};
+use slicec::grammar::{CustomType, Exception, Interface, Struct};
 
 #[test]
 fn escaped_keywords() {

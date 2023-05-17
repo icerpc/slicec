@@ -28,5 +28,5 @@ lalrpop = { version = "0.20.0", default-features = false }
 test-case = "3.0.0"
 
 [lib]
-name = "slice"
+name = "slicec"
 path = "src/lib.rs"

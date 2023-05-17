@@ -3,8 +3,8 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::Encoding;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
     /// non-compact structs.
@@ -37,8 +37,8 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::Encoding;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::Encoding;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
     /// structs that contain Slice1 types.

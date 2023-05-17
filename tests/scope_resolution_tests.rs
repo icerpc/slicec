@@ -5,8 +5,8 @@ mod test_helpers;
 mod scope_resolution {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::*;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::*;
 
     #[test]
     fn file_scoped_modules_can_not_contain_sub_modules() {
