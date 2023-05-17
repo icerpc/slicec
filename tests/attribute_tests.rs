@@ -736,7 +736,7 @@ mod attributes {
             );
 
             // Act
-            let compilation_state = compile_from_strings(&[&slice], None);
+            let compilation_state = compile_from_strings(&[&slice], None, |_| {}, |_| {});
 
             // Assert
             assert!(compilation_state.diagnostic_reporter.has_errors());

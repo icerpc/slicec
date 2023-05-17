@@ -8,12 +8,6 @@ use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
 use std::collections::HashMap;
 use std::io::Write;
 
-/// A function that patches the [`CompilationState`].
-pub type CompilationStatePatcher = unsafe fn(&mut CompilationState);
-
-/// A function that validates the [`CompilationState`].
-pub type CompilationStateValidator = fn(&CompilationState);
-
 #[derive(Debug)]
 pub struct CompilationState {
     pub ast: Ast,

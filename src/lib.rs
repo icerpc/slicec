@@ -20,7 +20,11 @@ use slice_options::SliceOptions;
 use std::collections::HashSet;
 use utils::file_util;
 
-pub fn compile_from_options(options: &SliceOptions) -> CompilationState {
+pub fn compile_from_options(
+    options: &SliceOptions,
+    patcher: unsafe fn(&mut CompilationState),
+    validator: fn(&mut CompilationState),
+) -> CompilationState {
     // Create an instance of `CompilationState` for holding all the compiler's state.
     let mut state = CompilationState::create(options);
 
@@ -29,12 +33,17 @@ pub fn compile_from_options(options: &SliceOptions) -> CompilationState {
 
     // If any files were unreadable, return without parsing. Otherwise, parse the files normally.
     if !state.diagnostic_reporter.has_errors() {
-        compile_files(files, &mut state, options);
+        compile_files(files, &mut state, options, patcher, validator);
     }
     state
 }
 
-pub fn compile_from_strings(inputs: &[&str], options: Option<SliceOptions>) -> CompilationState {
+pub fn compile_from_strings(
+    inputs: &[&str],
+    options: Option<SliceOptions>,
+    patcher: unsafe fn(&mut CompilationState),
+    validator: fn(&mut CompilationState),
+) -> CompilationState {
     let slice_options = options.unwrap_or_default();
 
     // Create an instance of `CompilationState` for holding all the compiler's state.
@@ -46,11 +55,17 @@ pub fn compile_from_strings(inputs: &[&str], options: Option<SliceOptions>) -> C
         files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
     }
 
-    compile_files(files, &mut state, &slice_options);
+    compile_files(files, &mut state, &slice_options, patcher, validator);
     state
 }
 
-fn compile_files(files: Vec<SliceFile>, state: &mut CompilationState, options: &SliceOptions) {
+fn compile_files(
+    files: Vec<SliceFile>,
+    state: &mut CompilationState,
+    options: &SliceOptions,
+    patcher: unsafe fn(&mut CompilationState),
+    validator: fn(&mut CompilationState),
+) {
     // Convert the `Vec<SliceFile>` into a `HashMap<absolute_path, SliceFile>` for easier lookup, and store it.
     state.files = files.into_iter().map(|f| (f.relative_path.clone(), f)).collect();
 
@@ -64,15 +79,10 @@ fn compile_files(files: Vec<SliceFile>, state: &mut CompilationState, options: &
     // 4) Check the user's Slice definitions for language-mapping agnostic errors.
     // 5) Run the optional slice options validator if set.
     parsers::parse_files(state, &defined_symbols);
-    unsafe { state.apply_unsafe(ast::patch_ast) };
 
-    if let Some(patcher) = options.state_patcher {
-        unsafe { patcher(state) };
-    }
+    unsafe { state.apply_unsafe(ast::patch_ast) };
+    unsafe { state.apply_unsafe(patcher) };
 
     state.apply(validators::validate_ast);
-
-    if let Some(validator) = options.state_validator {
-        validator(state);
-    }
+    state.apply(validator);
 }

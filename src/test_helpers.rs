@@ -8,7 +8,7 @@ use crate::diagnostics::Diagnostic;
 /// This function is used to parse a Slice file and return the AST.
 #[must_use]
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
-    let compilation_state = compile_from_strings(&[&slice.into()], None);
+    let compilation_state = compile_from_strings(&[&slice.into()], None, |_| {}, |_| {});
     if compilation_state.diagnostic_reporter.has_errors() {
         panic!("{:?}", compilation_state.diagnostic_reporter);
     }
@@ -24,7 +24,7 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 /// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    diagnostics_from_compilation_state(compile_from_strings(slice, None))
+    diagnostics_from_compilation_state(compile_from_strings(slice, None, |_| {}, |_| {}))
 }
 
 /// Asserts that the provided slice parses okay, producing no errors.

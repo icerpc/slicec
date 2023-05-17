@@ -26,7 +26,7 @@ fn command_line_defined_symbols() {
     };
 
     // Act
-    let compilation_state = compile_from_strings(&[slice], Some(options));
+    let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
 
     // Assert
     assert!(compilation_state.ast.find_element::<Operation>("Test::I::op").is_ok());
