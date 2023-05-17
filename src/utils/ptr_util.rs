@@ -284,7 +284,7 @@ mod tests {
 
         // Create a weak pointer to the string.
         let weak_ptr: WeakPtr<String> = owned_ptr.downgrade();
-        // Rip it apart and manually cast the pointer from a `String` to `bool`.
+        // Rip it apart and manually cast the pointer from `String` to `bool`.
         let (raw_pointer, type_id) = weak_ptr.into_inner();
         let casted_pointer = raw_pointer.map(|ptr| ptr as *const bool);
         // Re-assemble the weak pointer with the casted type.
