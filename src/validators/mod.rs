@@ -23,13 +23,11 @@ use comments::validate_common_doc_comments;
 use enums::validate_enum;
 use identifiers::{validate_identifiers, validate_inherited_identifiers};
 use members::validate_members;
-use modules::validate_module;
+use modules::{validate_module, validate_module_contents};
 use operations::validate_operation;
 use parameters::validate_parameters;
 use structs::validate_struct;
 use type_aliases::validate_type_alias;
-
-use self::modules::validate_module_contents;
 
 pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
     let diagnostic_reporter = &mut compilation_state.diagnostic_reporter;
@@ -134,8 +132,8 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_members(operation.parameters().as_member_vec(), self.diagnostic_reporter);
         validate_members(operation.return_members().as_member_vec(), self.diagnostic_reporter);
 
-        validate_parameters(operation.parameters().as_slice(), self.diagnostic_reporter);
-        validate_parameters(operation.return_members().as_slice(), self.diagnostic_reporter);
+        validate_parameters(&operation.parameters(), self.diagnostic_reporter);
+        validate_parameters(&operation.return_members(), self.diagnostic_reporter);
 
         validate_identifiers(operation.parameters().get_identifiers(), self.diagnostic_reporter);
         validate_identifiers(operation.return_members().get_identifiers(), self.diagnostic_reporter);
