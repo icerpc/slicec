@@ -2,18 +2,15 @@
 
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
-use crate::validators::{ValidationChain, Validator};
 
 use std::collections::HashMap;
 
-pub fn enum_validators() -> ValidationChain {
-    vec![
-        Validator::Enums(backing_type_bounds),
-        Validator::Enums(allowed_underlying_types),
-        Validator::Enums(enumerator_values_are_unique),
-        Validator::Enums(underlying_type_cannot_be_optional),
-        Validator::Enums(nonempty_if_checked),
-    ]
+pub fn validate_enum(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
+    backing_type_bounds(enum_def, diagnostic_reporter);
+    allowed_underlying_types(enum_def, diagnostic_reporter);
+    enumerator_values_are_unique(enum_def, diagnostic_reporter);
+    underlying_type_cannot_be_optional(enum_def, diagnostic_reporter);
+    nonempty_if_checked(enum_def, diagnostic_reporter);
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
