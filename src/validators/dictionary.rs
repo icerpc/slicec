@@ -3,13 +3,11 @@
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
 
-pub fn validate(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_dictionary(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
     has_allowed_key_type(dictionary, diagnostic_reporter);
-    super::validate_type_ref(&dictionary.key_type, diagnostic_reporter);
-    super::validate_type_ref(&dictionary.value_type, diagnostic_reporter);
 }
 
-pub fn has_allowed_key_type(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
+fn has_allowed_key_type(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
     if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
         e.report(diagnostic_reporter)
     }
