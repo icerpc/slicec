@@ -43,15 +43,8 @@ fn check_for_shadowing(
     mut inherited_symbols: Vec<&impl NamedSymbol>,
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
-    let identifiers = symbols
-        .drain(..)
-        .map(|symbol| symbol.raw_identifier())
-        .collect::<Vec<_>>();
-
-    let inherited_identifiers = inherited_symbols
-        .drain(..)
-        .map(|symbol| symbol.raw_identifier())
-        .collect::<Vec<_>>();
+    let identifiers = symbols.into_iter().map(NamedSymbol::raw_identifier);
+    let inherited_identifiers = inherited_symbols.into_iter().map(NamedSymbol::raw_identifier);
 
     identifiers.into_iter().for_each(|identifier| {
         inherited_identifiers
