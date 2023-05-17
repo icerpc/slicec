@@ -44,13 +44,14 @@ fn check_for_shadowing(
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
     let identifiers = symbols.into_iter().map(NamedSymbol::raw_identifier);
-    let inherited_identifiers = inherited_symbols.into_iter().map(NamedSymbol::raw_identifier);
+    let inherited_identifiers = inherited_symbols
+        .into_iter()
+        .map(NamedSymbol::raw_identifier)
+        .collect::<Vec<_>>();
 
-    identifiers.into_iter().for_each(|identifier| {
-        inherited_identifiers
-            .iter()
-            .filter(|inherited_identifier| inherited_identifier.value == identifier.value)
-            .for_each(|inherited_identifier| {
+    for identifier in identifiers {
+        for inherited_identifier in &inherited_identifiers {
+            if identifier.value == inherited_identifier.value {
                 Diagnostic::new(Error::Shadows {
                     identifier: identifier.value.clone(),
                 })
@@ -60,6 +61,7 @@ fn check_for_shadowing(
                     Some(inherited_identifier.span()),
                 )
                 .report(diagnostic_reporter);
-            });
-    });
+            }
+        }
+    }
 }
