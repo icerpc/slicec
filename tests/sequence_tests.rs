@@ -1,10 +1,12 @@
 // Copyright (c) ZeroC, Inc.
 
+mod test_helpers;
+
 mod sequences {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
-    use slice::test_helpers::*;
 
     #[test]
     fn can_contain_primitive_types() {

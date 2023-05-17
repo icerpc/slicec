@@ -1,11 +1,13 @@
 // Copyright (c) ZeroC, Inc.
 
+mod test_helpers;
+
 mod output {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::slice_file::Span;
     use slice::slice_options::{DiagnosticFormat, SliceOptions};
-    use slice::test_helpers::parse;
 
     #[test]
     fn output_to_json() {

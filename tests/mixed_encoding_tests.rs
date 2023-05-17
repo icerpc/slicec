@@ -1,8 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
+pub mod test_helpers;
+
+use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::Encoding;
-use slice::test_helpers::*;
 
 #[test]
 fn valid_mixed_encoding_works() {

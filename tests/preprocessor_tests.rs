@@ -1,9 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
+pub mod test_helpers;
+
+use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use slice::slice_options::SliceOptions;
-use slice::test_helpers::*;
 use test_case::test_case;
 
 #[test]

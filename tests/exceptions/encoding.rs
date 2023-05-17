@@ -2,9 +2,9 @@
 
 mod slice1 {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
-    use slice::test_helpers::*;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
     /// exception that is a field.
@@ -37,9 +37,9 @@ mod slice1 {
 
 mod slice2 {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
-    use slice::test_helpers::*;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
     /// exception that inherits from another exception.

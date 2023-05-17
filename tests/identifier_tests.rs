@@ -1,7 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
+mod test_helpers;
+
+use crate::test_helpers::*;
 use slice::grammar::{CustomType, Exception, Interface, Struct};
-use slice::test_helpers::parse_for_ast;
 
 #[test]
 fn escaped_keywords() {

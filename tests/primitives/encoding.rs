@@ -2,9 +2,9 @@
 
 mod slice1 {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
-    use slice::test_helpers::*;
     use test_case::test_case;
 
     /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -75,9 +75,9 @@ mod slice1 {
 
 mod slice2 {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::Encoding;
-    use slice::test_helpers::*;
     use test_case::test_case;
 
     /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
