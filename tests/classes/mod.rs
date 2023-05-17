@@ -5,8 +5,8 @@ mod encoding;
 mod inheritance;
 mod tags;
 
+use crate::test_helpers::*;
 use slice::grammar::*;
-use slice::test_helpers::parse_for_ast;
 
 #[test]
 fn support_compact_type_id() {

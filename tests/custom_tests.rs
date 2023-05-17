@@ -1,9 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
+mod test_helpers;
+
 mod custom {
 
+    use crate::test_helpers::*;
     use slice::grammar::*;
-    use slice::test_helpers::parse_for_ast;
     use test_case::test_case;
 
     #[test_case(1; "Slice1")]

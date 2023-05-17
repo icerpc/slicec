@@ -1,38 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::Ast;
+//! This module contains helper functions that are useful for testing both slicec and the compilers that use it.
+//! For the test helpers that are specific to slicec (and hence not exported, see: 'tests/slicec_test_helpers.rs').
+
 use crate::compilation_state::CompilationState;
-use crate::compile_from_strings;
 use crate::diagnostics::Diagnostic;
-
-/// This function is used to parse a Slice file and return the AST.
-#[must_use]
-pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
-    let compilation_state = compile_from_strings(&[&slice.into()], None, |_| {}, |_| {});
-    if compilation_state.diagnostic_reporter.has_errors() {
-        panic!("{:?}", compilation_state.diagnostic_reporter);
-    }
-    compilation_state.ast
-}
-
-/// This function is used to parse a Slice file and return any Diagnostics that were emitted.
-#[must_use]
-pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
-    parse_multiple_for_diagnostics(&[&slice.into()])
-}
-
-/// This function is used to parse multiple Slice files and return any Diagnostics that were emitted.
-#[must_use]
-pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    diagnostics_from_compilation_state(compile_from_strings(slice, None, |_| {}, |_| {}))
-}
-
-/// Asserts that the provided slice parses okay, producing no errors.
-pub fn assert_parses(slice: impl Into<String>) {
-    let diagnostics = parse_for_diagnostics(slice);
-    let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
-    check_diagnostics(diagnostics, expected);
-}
 
 /// This function is used to get the Diagnostics from a `CompilationState`.
 #[must_use]

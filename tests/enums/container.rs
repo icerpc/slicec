@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
-use slice::test_helpers::*;
 use test_case::test_case;
 
 #[test]
@@ -359,8 +359,8 @@ fn cannot_redefine_enumerators() {
 
 mod slice1 {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
-    use slice::test_helpers::*;
 
     #[test]
     fn enumerators_cannot_contain_negative_values() {
@@ -435,8 +435,8 @@ mod slice1 {
 
 mod slice2 {
 
+    use crate::test_helpers::*;
     use slice::grammar::*;
-    use slice::test_helpers::*;
 
     #[test]
     fn enumerators_can_contain_negative_values() {

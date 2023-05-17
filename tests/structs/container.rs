@@ -2,9 +2,9 @@
 
 mod structs {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::grammar::*;
-    use slice::test_helpers::*;
 
     /// Verifies that structs can contain fields.
     #[test]
@@ -89,8 +89,9 @@ mod structs {
 
 mod compact_structs {
 
+    use crate::test_helpers::*;
     use slice::diagnostics::{Diagnostic, Error};
-    use slice::test_helpers::*;
+
     /// Verifies that compact structs must contain at least one field.
     #[test]
     fn must_not_be_empty() {

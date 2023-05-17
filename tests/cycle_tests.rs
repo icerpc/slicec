@@ -1,7 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
+mod test_helpers;
+
+use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
-use slice::test_helpers::*;
 
 mod container {
     use super::*;

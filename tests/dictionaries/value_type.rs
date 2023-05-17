@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::test_helpers::*;
 use slice::diagnostics::{Diagnostic, Error};
-use slice::test_helpers::*;
 
 #[test]
 fn invalid_dictionary_values_produce_error() {
