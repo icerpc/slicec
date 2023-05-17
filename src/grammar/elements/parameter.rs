@@ -14,7 +14,6 @@ pub struct Parameter {
     pub parent: WeakPtr<Operation>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
-    pub comment: Option<DocComment>,
     pub span: Span,
 }
 

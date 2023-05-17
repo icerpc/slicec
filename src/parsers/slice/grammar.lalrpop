@@ -180,9 +180,9 @@ Parameter: OwnedPtr<Parameter> = {
 }
 
 ReturnMember: OwnedPtr<Parameter> = {
-     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
-         construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), true)
-     }
+    <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
+        construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), true)
+    }
  }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {

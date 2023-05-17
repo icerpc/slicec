@@ -32,4 +32,5 @@ pub enum EnumeratorValue {
 
 implement_Element_for!(Enumerator, "enumerator");
 implement_Entity_for!(Enumerator);
+implement_Commentable_for!(Enumerator);
 implement_Contained_for!(Enumerator, Enum);

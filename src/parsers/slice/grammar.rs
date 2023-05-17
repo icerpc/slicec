@@ -113,23 +113,18 @@ fn construct_module(
     is_file_scoped: bool,
     span: Span,
 ) -> OwnedPtr<Module> {
-    // If nested module syntax is being used, get the last module's identifier, otherwise use the whole identifier.
-    let last_identifier = identifier.value.rsplit("::").next().unwrap_or(&identifier.value);
-    let comment = parse_doc_comment(parser, last_identifier, raw_comment);
+    if !raw_comment.is_empty() {
+        Diagnostic::new(Error::Syntax {
+            message: "doc comments cannot be applied to modules".to_owned(),
+        })
+        .set_span(&span)
+        .report(parser.diagnostic_reporter);
+    }
 
     // In case nested module syntax was used, we split the identifier on '::' and construct a module for each segment.
     // We use `rsplit` to iterate in reverse order (right to left) to construct them in child-to-parent order.
     // Ex: `Foo::Bar::Baz`: first create `Baz` to add the definitions in, then `Bar` to add `Baz` to it, etc...
     let mut modules = identifier.value.rsplit("::").map(|i| {
-        // Validate that no doc comments are attached to the module.
-        if comment.is_some() {
-            Diagnostic::new(Error::Syntax {
-                message: "doc comments are not supported on 'module'(s)".to_owned(),
-            })
-            .set_span(&span)
-            .report(parser.diagnostic_reporter);
-        }
-
         // Pop the module's scope off the scope stack and construct it (otherwise it would be in its own scope).
         parser.current_scope.pop_scope();
         OwnedPtr::new(Module {
@@ -142,7 +137,6 @@ fn construct_module(
             parent: None,
             scope: parser.current_scope.clone(),
             attributes: Vec::new(),
-            comment: None,
             span: span.clone(),
         })
     });
@@ -157,7 +151,6 @@ fn construct_module(
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
         current_module.borrow_mut().is_file_scoped = is_file_scoped;
         current_module.borrow_mut().attributes = attributes;
-        current_module.borrow_mut().comment = None;
         for definition in definitions {
             match definition {
                 Node::Module(mut x) => add_definition_to_module!(x, Module, current_module, parser),
@@ -375,8 +368,21 @@ fn construct_parameter(
     span: Span,
     is_returned: bool,
 ) -> OwnedPtr<Parameter> {
-    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-    let parameter = OwnedPtr::new(Parameter {
+    if !raw_comment.is_empty() {
+        let kind = match is_returned {
+            true => "return member",
+            false => "parameter",
+        };
+        Diagnostic::new(Error::Syntax {
+            message: format!("doc comments cannot be applied to {kind}s"),
+        })
+        .set_span(&span)
+        .add_note("try using an '@param' tag on the operation it belongs to instead", None)
+        .add_note(format!("Ex: @param {}: {}", &identifier.value, raw_comment[0].0), None)
+        .report(parser.diagnostic_reporter);
+    }
+
+    OwnedPtr::new(Parameter {
         identifier,
         data_type,
         tag,
@@ -385,21 +391,8 @@ fn construct_parameter(
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
-        comment: None,
-        span: span.clone(),
-    });
-
-    // Validate that no doc comments are attached to the parameter
-    if comment.is_some() {
-        let kind = parameter.borrow().kind().to_string();
-        Diagnostic::new(Error::Syntax {
-            message: format!("doc comments are not supported on '{kind}'(s)"),
-        })
-        .set_span(&span)
-        .report(parser.diagnostic_reporter);
-    };
-
-    parameter
+        span,
+    })
 }
 
 fn construct_single_return_type(
@@ -424,7 +417,6 @@ fn construct_single_return_type(
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes: Vec::new(),
-        comment: None,
         span,
     })]
 }

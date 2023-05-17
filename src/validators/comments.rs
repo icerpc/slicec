@@ -1,12 +1,13 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
 use crate::grammar::*;
 use crate::validators::{ValidationChain, Validator};
 
 pub fn comments_validators() -> ValidationChain {
     vec![
-        Validator::Entities(only_operations_can_throw),
+        Validator::DocComments(only_operations_can_throw),
         Validator::Operations(missing_parameter_comment),
         Validator::Operations(operation_missing_throws),
         Validator::Operations(non_empty_return_comment),
@@ -66,20 +67,20 @@ fn operation_missing_throws(operation: &Operation, diagnostic_reporter: &mut Dia
     }
 }
 
-fn only_operations_can_throw(entity: &dyn Entity, diagnostic_reporter: &mut DiagnosticReporter) {
+fn only_operations_can_throw(commentable: &dyn Commentable, _: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
     let supported_on = ["operation"];
-    if let Some(comment) = entity.comment() {
-        if !supported_on.contains(&entity.kind()) && !comment.throws.is_empty() {
+    if let Some(comment) = commentable.comment() {
+        if !supported_on.contains(&commentable.kind()) && !comment.throws.is_empty() {
             for throws_tag in &comment.throws {
                 Diagnostic::new(Warning::IncorrectDocComment {
                     message: format!(
                         "doc comment indicates that {} '{}' throws, however, only operations can throw",
-                        entity.kind(),
-                        entity.identifier(),
+                        commentable.kind(),
+                        commentable.identifier(),
                     ),
                 })
                 .set_span(throws_tag.span())
-                .set_scope(entity.parser_scoped_identifier())
+                .set_scope(commentable.parser_scoped_identifier())
                 .report(diagnostic_reporter);
             }
         }

@@ -56,19 +56,10 @@ macro_rules! generate_types_wrapper {
             $($variant(&'a $variant),)*
         }
 
-        #[derive(Debug)]
-        pub enum TypesMut<'a> {
-            $($variant(&'a mut $variant),)*
-        }
-
         $(
         impl AsTypes for $variant {
             fn concrete_type(&self) -> Types {
                 Types::$variant(self)
-            }
-
-            fn concrete_type_mut(&mut self) -> TypesMut {
-                TypesMut::$variant(self)
             }
         }
         )*
@@ -92,7 +83,6 @@ macro_rules! generate_types_wrapper {
 
 pub trait AsTypes {
     fn concrete_type(&self) -> Types;
-    fn concrete_type_mut(&mut self) -> TypesMut;
 }
 
 generate_types_wrapper!(Struct, Class, Exception, Interface, Enum, CustomType, Sequence, Dictionary, Primitive);

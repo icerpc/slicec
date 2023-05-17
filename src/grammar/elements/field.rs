@@ -18,5 +18,6 @@ pub struct Field {
 
 implement_Element_for!(Field, "field");
 implement_Entity_for!(Field);
+implement_Commentable_for!(Field);
 implement_Contained_for!(Field, dyn Container<WeakPtr<Field>> + 'static);
 implement_Member_for!(Field);

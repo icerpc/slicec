@@ -68,7 +68,7 @@ mod typealias {
     }
 
     #[test]
-    fn is_resolvable_as_an_entity() {
+    fn is_resolvable() {
         // Arrange
         let slice = "
             module Test

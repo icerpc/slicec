@@ -165,6 +165,7 @@ mod attributes {
         use slice::grammar::*;
         use slice::slice_file::Span;
         use slice::test_helpers::*;
+        use test_case::test_case;
 
         #[test]
         fn sliced_format() {
@@ -528,7 +529,7 @@ mod attributes {
 
         #[test]
         fn non_repeatable_attributes_error() {
-            // Act
+            // Arrange
             let slice = "
                 module Test
 
@@ -539,12 +540,75 @@ mod attributes {
                 }
             ";
 
+            // Act
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
             let expected = Diagnostic::new(Error::AttributeIsNotRepeatable {
                 attribute: "compress".to_owned(),
             });
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test]
+        fn type_ref_attributes_error() {
+            // Arrange
+            let slice = "
+                module Test
+
+                struct Foo {
+                    a: [oneway] string
+                }";
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "oneway".to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("[deprecated] string"; "non nested")]
+        #[test_case("sequence<[deprecated] string>"; "nested")]
+        fn attributes_on_anonymous_types_are_rejected(alias_type: &str) {
+            let slice = format!(
+                "
+                module Test
+
+                typealias AnAlias = {alias_type}
+            "
+            );
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "deprecated".to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("oneway", "struct Foo {}"; "oneway on struct")]
+        #[test_case("slicedFormat", "exception Foo {}"; "slicedFormat on exception")]
+        fn non_common_attributes_rejected(attribute: &str, slice_type: &str) {
+            let slice = format!(
+                "
+                module Test
+
+                [{attribute}]
+                {slice_type}
+            "
+            );
+
+            let diagnostics = parse_for_diagnostics(slice);
+
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: attribute.to_owned(),
+            });
+
             check_diagnostics(diagnostics, [expected]);
         }
     }
