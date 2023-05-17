@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use slice::compile_from_strings;
 use slice::diagnostics::{Diagnostic, Error};
 use slice::grammar::*;
 use slice::slice_options::SliceOptions;
@@ -26,7 +25,7 @@ fn command_line_defined_symbols() {
     };
 
     // Act
-    let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
+    let compilation_state = parse(slice, Some(options));
 
     // Assert
     assert!(compilation_state.ast.find_element::<Operation>("Test::I::op").is_ok());

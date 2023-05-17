@@ -4,11 +4,17 @@ use crate::ast::Ast;
 use crate::compilation_state::CompilationState;
 use crate::compile_from_strings;
 use crate::diagnostics::Diagnostic;
+use crate::slice_options::SliceOptions;
+
+#[must_use]
+pub fn parse(slice: impl Into<String>, options: Option<SliceOptions>) -> CompilationState {
+    compile_from_strings(&[&slice.into()], options, |_| {}, |_| {})
+}
 
 /// This function is used to parse a Slice file and return the AST.
 #[must_use]
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
-    let compilation_state = compile_from_strings(&[&slice.into()], None, |_| {}, |_| {});
+    let compilation_state = parse(slice, None);
     if compilation_state.diagnostic_reporter.has_errors() {
         panic!("{:?}", compilation_state.diagnostic_reporter);
     }

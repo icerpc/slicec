@@ -615,9 +615,8 @@ mod attributes {
 
     mod generalized_api {
 
-        use slice::compile_from_strings;
         use slice::grammar::*;
-        use slice::test_helpers::parse_for_ast;
+        use slice::test_helpers::{parse, parse_for_ast};
         use test_case::test_case;
 
         #[test]
@@ -736,7 +735,7 @@ mod attributes {
             );
 
             // Act
-            let compilation_state = compile_from_strings(&[&slice], None, |_| {}, |_| {});
+            let compilation_state = parse(slice, None);
 
             // Assert
             assert!(compilation_state.diagnostic_reporter.has_errors());

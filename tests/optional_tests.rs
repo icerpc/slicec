@@ -575,7 +575,7 @@ mod optional {
             ";
 
             // Act
-            let ast = slice::compile_from_strings(&[slice], None, |_| {}, |_| {}).ast; // Use `compile_from_strings` to ignore errors.
+            let ast = parse(slice, None).ast; // use `parse` to ignore errors.
 
             // Assert
             let field = ast.find_element::<Field>("Test::E::a").unwrap();
