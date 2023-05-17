@@ -2,8 +2,8 @@
 
 use std::path::{PathBuf, MAIN_SEPARATOR};
 
-use slice::command_line::SliceOptions;
 use slice::diagnostics::DiagnosticReporter;
+use slice::slice_options::SliceOptions;
 use slice::utils::file_util::resolve_files_from;
 
 #[test]

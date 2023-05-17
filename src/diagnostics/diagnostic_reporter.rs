@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::command_line::{DiagnosticFormat, SliceOptions};
 use crate::diagnostics::{Diagnostic, DiagnosticKind, Warning};
 use crate::grammar::{validate_allow_arguments, Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
+use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use std::collections::HashMap;
 
 #[derive(Debug)]

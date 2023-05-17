@@ -2,10 +2,10 @@
 
 mod output {
 
-    use slice::command_line::{DiagnosticFormat, SliceOptions};
     use slice::compile_from_strings;
     use slice::diagnostics::{Diagnostic, Error};
     use slice::slice_file::Span;
+    use slice::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
     fn output_to_json() {
@@ -27,7 +27,7 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_state = compile_from_strings(&[slice], Some(options));
+        let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -69,7 +69,7 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_state = compile_from_strings(&[slice], Some(options));
+        let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -124,7 +124,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_state = compile_from_strings(&[slice], Some(options));
+        let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -155,7 +155,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_state = compile_from_strings(&[slice], Some(options));
+        let compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
 
         let mut output: Vec<u8> = Vec::new();
 
@@ -184,7 +184,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             ..Default::default()
         };
 
-        let mut compilation_state = compile_from_strings(&[slice], Some(options));
+        let mut compilation_state = compile_from_strings(&[slice], Some(options), |_| {}, |_| {});
         let mut output: Vec<u8> = Vec::new();
 
         // Report a diagnostic with a note that has the same span as the diagnostic.
