@@ -18,7 +18,7 @@ pub fn validate_inherited_identifiers(
 fn check_for_redefinition(mut symbols: Vec<&impl NamedSymbol>, diagnostic_reporter: &mut DiagnosticReporter) {
     // Sort first so that we can use windows to search for duplicates.
     let mut identifiers = symbols
-        .drain(..)
+        .into_iter()
         .map(|symbol| symbol.raw_identifier())
         .collect::<Vec<_>>();
 
