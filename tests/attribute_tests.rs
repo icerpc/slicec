@@ -807,7 +807,7 @@ mod attributes {
         #[test_case("::", "::"; "colon_colon")]
         #[test_case("::foo", "::"; "leading_colon_colon")]
         #[test_case("foo::", "]"; "trailing_colon_colon")]
-        fn attribute_with_bogus_identifier_is_rejected(directive: &str, found: &str) {
+        fn attribute_with_bogus_directive_is_rejected(directive: &str, found: &str) {
             // Arrange
             let slice = format!(
                 "
