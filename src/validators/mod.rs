@@ -64,7 +64,7 @@ impl<'a> ValidatorVisitor<'a> {
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_file(&mut self, slice_file: &SliceFile) {
-        validate_attributes!(slice_file, self.diagnostic_reporter);
+        validate_attributes_excluding!(slice_file, self.diagnostic_reporter, Deprecated, None);
     }
 
     fn visit_module(&mut self, module_def: &Module) {
