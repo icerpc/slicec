@@ -332,7 +332,7 @@ mod attributes {
         }
 
         #[test]
-        fn deprecation_is_not_allowed_on_modules() {
+        fn deprecated_is_not_allowed_on_modules() {
             // Arrange
             let slice = "
             [deprecated]
