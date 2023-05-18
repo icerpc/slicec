@@ -3,8 +3,8 @@
 mod slice1 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::Encoding;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -40,7 +40,7 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
+    use slicec::diagnostics::{Diagnostic, Error};
     use test_case::test_case;
 
     #[test_case("uint8"; "uint8")]

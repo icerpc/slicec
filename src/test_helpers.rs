@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 //! This module contains helper functions that are useful for testing both slicec and the compilers that use it.
-//! For the test helpers that are specific to slicec (and hence not exported, see: 'tests/slicec_test_helpers.rs').
+//! For the test helpers that are specific to slicec (and hence not exported, see: 'tests/test_helpers.rs').
 
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::Diagnostic;

@@ -5,8 +5,8 @@ mod test_helpers;
 mod comments {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error, Warning};
-    use slice::grammar::*;
+    use slicec::diagnostics::{Diagnostic, Error, Warning};
+    use slicec::grammar::*;
     use test_case::test_case;
 
     #[test]

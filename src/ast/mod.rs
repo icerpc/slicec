@@ -60,7 +60,7 @@ impl Ast {
     ///
     /// # Examples
     /// ```
-    /// # use slice::ast::Ast;
+    /// # use slicec::ast::Ast;
     /// let ast = Ast::create();
     /// assert_eq!(ast.as_slice().len(), 17); // Only the 17 primitives are defined.
     /// ```
@@ -130,8 +130,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
-    /// # use slice::grammar::*;
+    /// # use slicec::ast::Ast;
+    /// # use slicec::grammar::*;
     /// let ast = Ast::create();
     ///
     /// // Lookup a primitive type.
@@ -181,8 +181,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
-    /// # use slice::grammar::*;
+    /// # use slicec::ast::Ast;
+    /// # use slicec::grammar::*;
     /// let ast = Ast::create();
     ///
     /// // TODO add more examples once parsing is easier.
@@ -230,8 +230,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
-    /// # use slice::grammar::*;
+    /// # use slicec::ast::Ast;
+    /// # use slicec::grammar::*;
     /// let ast = Ast::create();
     ///
     /// // Look up a primitive type.
@@ -284,8 +284,8 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
-    /// # use slice::grammar::*;
+    /// # use slicec::ast::Ast;
+    /// # use slicec::grammar::*;
     /// let ast = Ast::create();
     ///
     /// // TODO add more examples once parsing is easier.
@@ -310,7 +310,7 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
+    /// # use slicec::ast::Ast;
     /// let ast = Ast::create();
     ///
     /// // Iterate through the contents of the AST.
@@ -326,7 +326,7 @@ impl Ast {
     /// # Examples
     ///
     /// ```
-    /// # use slice::ast::Ast;
+    /// # use slicec::ast::Ast;
     /// let mut ast = Ast::create();
     ///
     /// // Iterate through the contents of the AST.

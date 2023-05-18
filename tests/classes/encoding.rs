@@ -3,8 +3,8 @@
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::Encoding;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::Encoding;
 
     #[test]
     fn unsupported_error() {

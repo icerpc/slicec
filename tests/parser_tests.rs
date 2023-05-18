@@ -3,8 +3,8 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
-use slice::slice_file::Span;
+use slicec::diagnostics::{Diagnostic, Error};
+use slicec::slice_file::Span;
 
 #[test]
 fn parse_empty_string() {

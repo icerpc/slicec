@@ -3,7 +3,7 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
+use slicec::diagnostics::{Diagnostic, Error};
 
 mod container {
     use super::*;

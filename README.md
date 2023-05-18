@@ -11,8 +11,8 @@
 
 ## Build Requirements
 
-To build the slicec library you need to have Rust and Cargo installed. The recommended method to install Rust is by
-using [rustup](https://rustup.rs).
+To build the slicec library you need to have Rust and Cargo installed.
+The recommended method to install Rust is by using [rustup](https://rustup.rs).
 
 ## Overview
 

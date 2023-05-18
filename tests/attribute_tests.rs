@@ -4,7 +4,7 @@ mod test_helpers;
 
 mod attributes {
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error, Warning};
+    use slicec::diagnostics::{Diagnostic, Error, Warning};
 
     mod allow {
         use super::*;
@@ -164,9 +164,9 @@ mod attributes {
     mod slice_api {
 
         use crate::test_helpers::*;
-        use slice::diagnostics::{Diagnostic, Error, Warning};
-        use slice::grammar::*;
-        use slice::slice_file::Span;
+        use slicec::diagnostics::{Diagnostic, Error, Warning};
+        use slicec::grammar::*;
+        use slicec::slice_file::Span;
         use test_case::test_case;
 
         #[test]
@@ -618,7 +618,7 @@ mod attributes {
     mod generalized_api {
 
         use crate::test_helpers::*;
-        use slice::grammar::*;
+        use slicec::grammar::*;
         use test_case::test_case;
 
         #[test]

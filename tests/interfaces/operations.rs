@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
-use slice::grammar::*;
+use slicec::diagnostics::{Diagnostic, Error};
+use slicec::grammar::*;
 use test_case::test_case;
 
 #[test]
@@ -314,8 +314,8 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
 
 mod streams {
     use crate::test_helpers::*;
-    use slice::diagnostics::{Diagnostic, Error};
-    use slice::grammar::*;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::*;
 
     #[test]
     fn can_have_streamed_parameter_and_return() {

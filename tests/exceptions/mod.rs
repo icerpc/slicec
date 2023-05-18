@@ -6,7 +6,7 @@ mod inheritance;
 mod tags;
 
 use crate::test_helpers::*;
-use slice::grammar::{Exception, NamedSymbol, Operation, Throws};
+use slicec::grammar::{Exception, NamedSymbol, Operation, Throws};
 
 #[test]
 fn throws_specific_exception() {

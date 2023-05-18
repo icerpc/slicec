@@ -6,7 +6,7 @@ mod inheritance;
 mod tags;
 
 use crate::test_helpers::*;
-use slice::grammar::*;
+use slicec::grammar::*;
 
 #[test]
 fn support_compact_type_id() {

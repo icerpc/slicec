@@ -5,7 +5,7 @@ mod test_helpers;
 mod custom {
 
     use crate::test_helpers::*;
-    use slice::grammar::*;
+    use slicec::grammar::*;
     use test_case::test_case;
 
     #[test_case(1; "Slice1")]

@@ -4,7 +4,7 @@ use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 
-// Note: clap uses the doc-comments of fields to populate the '--help' output of slice-xxx.
+// Note: clap uses the doc-comments of fields to populate the '--help' output of slicec-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.

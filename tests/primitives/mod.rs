@@ -3,7 +3,7 @@
 mod encoding;
 
 use crate::test_helpers::*;
-use slice::grammar::*;
+use slicec::grammar::*;
 use test_case::test_case;
 
 #[test_case("bool", Primitive::Bool, 2; "bool")]

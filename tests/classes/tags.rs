@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::grammar::*;
+use slicec::grammar::*;
 
 #[test]
 fn can_contain_tags() {

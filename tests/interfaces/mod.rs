@@ -5,8 +5,8 @@ mod inheritance;
 mod operations;
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
-use slice::grammar::*;
+use slicec::diagnostics::{Diagnostic, Error};
+use slicec::grammar::*;
 
 #[test]
 fn can_have_no_operations() {

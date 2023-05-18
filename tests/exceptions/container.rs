@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::test_helpers::*;
-use slice::diagnostics::{Diagnostic, Error};
-use slice::grammar::*;
+use slicec::diagnostics::{Diagnostic, Error};
+use slicec::grammar::*;
 
 /// Verifies that exceptions can contain fields.
 #[test]
