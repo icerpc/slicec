@@ -9,7 +9,7 @@ macro_rules! validate_attributes {
     // Validate the common attributes that almost every type can have (for exceptions see @allow_common_except).
     ($attributable:ident, $diagnostic_reporter:expr $(, $allowed_attribute:ident)* ) => {
         let attributes = $attributable.attributes(false);
-        validate_repeated_attributes($attributable, $diagnostic_reporter);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
                 $(
@@ -23,7 +23,7 @@ macro_rules! validate_attributes {
     // Validate the common attributes with the exception of the specified attributes (with an additional note).
     (@allow_common_except $attributable:ident, $diagnostic_reporter:expr $(, $allowed_attribute:ident, $note:expr)+ ) => {
         let attributes = $attributable.attributes(false);
-        validate_repeated_attributes($attributable, $diagnostic_reporter);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
                 $(
@@ -44,7 +44,7 @@ macro_rules! validate_attributes {
     // Deny all attributes except the specified ones.
     (@deny_all_except $attributable:ident, $diagnostic_reporter:expr $(, $allowed_attribute:ident)+ ) => {
         let attributes = $attributable.attributes(false);
-        validate_repeated_attributes($attributable, $diagnostic_reporter);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
                 $(
@@ -65,9 +65,7 @@ macro_rules! validate_attributes {
 pub(crate) use validate_attributes;
 
 /// Validates a list of attributes to ensure attributes which are not allowed to be repeated are not repeated.
-pub fn validate_repeated_attributes(attributable: &impl Attributable, diagnostic_reporter: &mut DiagnosticReporter) {
-    let attributes = attributable.attributes(false);
-
+pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_reporter: &mut DiagnosticReporter) {
     let mut first_attribute_occurrence = HashMap::new();
 
     for attribute in attributes {
