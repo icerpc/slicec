@@ -14,12 +14,16 @@ mod structs;
 mod type_aliases;
 
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::DiagnosticReporter;
 use crate::grammar::*;
 use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 
-use attribute::{validate_attributes, validate_common_attribute, validate_repeated_attributes};
+use attribute::{
+    reject_attributes, reject_known_attribute, report_unexpected_attribute, validate_attributes,
+    validate_attributes_excluding, validate_attributes_including, validate_common_attribute,
+    validate_repeated_attributes,
+};
 use comments::validate_common_doc_comments;
 use dictionary::validate_dictionary;
 use enums::validate_enum;
@@ -114,7 +118,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_interface(&mut self, interface: &Interface) {
         validate_common_doc_comments(interface, self.diagnostic_reporter);
-        validate_attributes!(interface, self.diagnostic_reporter, Compress);
+        validate_attributes_including!(interface, self.diagnostic_reporter, Compress);
 
         validate_identifiers(interface.operations(), self.diagnostic_reporter);
         validate_inherited_identifiers(
@@ -127,7 +131,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_operation(&mut self, operation: &Operation) {
         validate_common_doc_comments(operation, self.diagnostic_reporter);
 
-        validate_attributes!(operation, self.diagnostic_reporter, Compress, Oneway, SlicedFormat);
+        validate_attributes_including!(operation, self.diagnostic_reporter, Compress, Oneway, SlicedFormat);
 
         validate_operation(operation, self.diagnostic_reporter);
 
@@ -142,9 +146,12 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
-        validate_attributes!(@allow_common_except parameter,
-                self.diagnostic_reporter,
-                Deprecated, "parameters can not be individually deprecated");
+        validate_attributes_excluding!(
+            parameter,
+            self.diagnostic_reporter,
+            Deprecated,
+            Some("parameters can not be individually deprecated")
+        );
     }
 
     fn visit_struct(&mut self, struct_def: &Struct) {
@@ -170,7 +177,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_type_ref(&mut self, type_ref: &TypeRef) {
-        validate_attributes!(@deny_all_except type_ref, self.diagnostic_reporter, LanguageKind, Other);
+        reject_attributes!(type_ref, self.diagnostic_reporter);
 
         if let Types::Dictionary(dictionary) = type_ref.concrete_type() {
             validate_dictionary(dictionary, self.diagnostic_reporter);
