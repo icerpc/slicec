@@ -14,10 +14,12 @@ mod structs;
 mod type_aliases;
 
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
+use crate::slice_file::SliceFile;
 use crate::visitor::Visitor;
 
+use attribute::{validate_attributes, validate_common_attribute, validate_repeated_attributes};
 use comments::validate_common_doc_comments;
 use dictionary::validate_dictionary;
 use enums::validate_enum;
@@ -43,11 +45,6 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
         slice_file.visit_with(&mut validator);
     }
 
-    let mut attribute_validator = attribute::AttributeValidator::new(diagnostic_reporter);
-    for slice_file in compilation_state.files.values() {
-        slice_file.visit_with(&mut attribute_validator);
-    }
-
     validate_module_contents(compilation_state);
 }
 
@@ -62,14 +59,20 @@ impl<'a> ValidatorVisitor<'a> {
 }
 
 impl<'a> Visitor for ValidatorVisitor<'a> {
-    fn visit_file(&mut self, _: &crate::slice_file::SliceFile) {}
+    fn visit_file(&mut self, slice_file: &SliceFile) {
+        validate_attributes!(slice_file, self.diagnostic_reporter);
+    }
 
     fn visit_module(&mut self, module_def: &Module) {
+        validate_attributes!(module_def, self.diagnostic_reporter);
+
         validate_module(module_def, self.diagnostic_reporter);
     }
 
     fn visit_class(&mut self, class: &Class) {
         validate_common_doc_comments(class, self.diagnostic_reporter);
+        validate_attributes!(class, self.diagnostic_reporter);
+
         validate_members(class.fields(), self.diagnostic_reporter);
 
         validate_identifiers(class.fields(), self.diagnostic_reporter);
@@ -77,21 +80,28 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_enum(&mut self, enum_def: &Enum) {
-        validate_enum(enum_def, self.diagnostic_reporter);
         validate_common_doc_comments(enum_def, self.diagnostic_reporter);
+        validate_attributes!(enum_def, self.diagnostic_reporter);
+
+        validate_enum(enum_def, self.diagnostic_reporter);
+
         validate_identifiers(enum_def.enumerators(), self.diagnostic_reporter);
     }
 
     fn visit_custom_type(&mut self, custom_type: &CustomType) {
         validate_common_doc_comments(custom_type, self.diagnostic_reporter);
+        validate_attributes!(custom_type, self.diagnostic_reporter);
     }
 
     fn visit_enumerator(&mut self, enumerator: &Enumerator) {
         validate_common_doc_comments(enumerator, self.diagnostic_reporter);
+        validate_attributes!(enumerator, self.diagnostic_reporter);
     }
 
     fn visit_exception(&mut self, exception: &Exception) {
         validate_common_doc_comments(exception, self.diagnostic_reporter);
+        validate_attributes!(exception, self.diagnostic_reporter);
+
         validate_members(exception.fields(), self.diagnostic_reporter);
 
         validate_identifiers(exception.fields(), self.diagnostic_reporter);
@@ -104,6 +114,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_interface(&mut self, interface: &Interface) {
         validate_common_doc_comments(interface, self.diagnostic_reporter);
+        validate_attributes!(interface, self.diagnostic_reporter, Compress);
 
         validate_identifiers(interface.operations(), self.diagnostic_reporter);
         validate_inherited_identifiers(
@@ -115,6 +126,9 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_operation(&mut self, operation: &Operation) {
         validate_common_doc_comments(operation, self.diagnostic_reporter);
+
+        validate_attributes!(operation, self.diagnostic_reporter, Compress, Oneway, SlicedFormat);
+
         validate_operation(operation, self.diagnostic_reporter);
 
         validate_members(operation.parameters(), self.diagnostic_reporter);
@@ -127,10 +141,15 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_identifiers(operation.return_members(), self.diagnostic_reporter);
     }
 
-    fn visit_parameter(&mut self, _: &Parameter) {}
+    fn visit_parameter(&mut self, parameter: &Parameter) {
+        validate_attributes!(@allow_common_except parameter,
+                self.diagnostic_reporter,
+                Deprecated, "parameters can not be individually deprecated");
+    }
 
     fn visit_struct(&mut self, struct_def: &Struct) {
         validate_common_doc_comments(struct_def, self.diagnostic_reporter);
+        validate_attributes!(struct_def, self.diagnostic_reporter);
 
         validate_struct(struct_def, self.diagnostic_reporter);
 
@@ -140,14 +159,19 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_field(&mut self, field: &Field) {
         validate_common_doc_comments(field, self.diagnostic_reporter);
+        validate_attributes!(field, self.diagnostic_reporter);
     }
 
     fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
         validate_common_doc_comments(type_alias, self.diagnostic_reporter);
+        validate_attributes!(type_alias, self.diagnostic_reporter);
+
         validate_type_alias(type_alias, self.diagnostic_reporter);
     }
 
     fn visit_type_ref(&mut self, type_ref: &TypeRef) {
+        validate_attributes!(@deny_all_except type_ref, self.diagnostic_reporter, LanguageKind, Other);
+
         if let Types::Dictionary(dictionary) = type_ref.concrete_type() {
             validate_dictionary(dictionary, self.diagnostic_reporter);
         }
