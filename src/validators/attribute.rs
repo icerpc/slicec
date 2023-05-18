@@ -2,163 +2,69 @@
 
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::*;
-use crate::slice_file::SliceFile;
-use crate::visitor::Visitor;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
-/// Validates that attributes are used on the correct Slice types.
-pub struct AttributeValidator<'a> {
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+// Validate the common attributes that almost every type can have.
+macro_rules! validate_attributes {
+    ($attributable:ident, $diagnostic_reporter:expr) => {
+        let attributes = $attributable.attributes(false);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
+        for attribute in attributes {
+            match attribute.kind {
+                _ => validate_common_attribute(attribute, $diagnostic_reporter),
+            }
+        }
+    };
 }
 
-impl<'a> AttributeValidator<'a> {
-    pub fn new(diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
-        Self { diagnostic_reporter }
-    }
+// Validate the common attributes plus the specified attributes.
+macro_rules! validate_attributes_including {
+    ($attributable:ident, $diagnostic_reporter:expr $(, $attribute:ident)+ ) => {
+        let attributes = $attributable.attributes(false);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
+        for attribute in attributes {
+            match attribute.kind {
+                $(
+                    AttributeKind::$attribute { .. } => {}
+                )*
+                _ => validate_common_attribute(attribute, $diagnostic_reporter),
+            }
+        }
+    };
 }
 
-impl Visitor for AttributeValidator<'_> {
-    fn visit_file(&mut self, slice_file: &SliceFile) {
-        let attributes = slice_file.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_module(&mut self, module_def: &Module) {
-        let attributes = module_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_struct(&mut self, struct_def: &Struct) {
-        let attributes = struct_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_class(&mut self, class_def: &Class) {
-        let attributes = class_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_exception(&mut self, exception_def: &Exception) {
-        let attributes = exception_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_interface(&mut self, interface_def: &Interface) {
-        let attributes = interface_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
+// Validate the common attributes with the exception of the specified attributes (with an additional note).
+macro_rules! validate_attributes_excluding {
+    ($attributable:ident, $diagnostic_reporter:expr $(, $attribute:ident, $note:expr)+ ) => {
+        let attributes = $attributable.attributes(false);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
-                AttributeKind::Compress { .. } => {}
-                _ => validate_common_attributes(attribute, self.diagnostic_reporter),
+                $(
+                     AttributeKind::$attribute { .. } =>
+                        report_unexpected_attribute(attribute, $diagnostic_reporter, $note),
+                )+
+                _ => validate_common_attribute(attribute, $diagnostic_reporter),
             }
         }
-    }
-
-    fn visit_enum(&mut self, enum_def: &Enum) {
-        let attributes = enum_def.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_operation(&mut self, operation: &Operation) {
-        let attributes = operation.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            match attribute.kind {
-                AttributeKind::Compress { .. } => {}
-                AttributeKind::Oneway { .. } => {}
-                AttributeKind::SlicedFormat { .. } => {}
-                _ => validate_common_attributes(attribute, self.diagnostic_reporter),
-            }
-        }
-    }
-
-    fn visit_custom_type(&mut self, custom_type: &CustomType) {
-        let attributes = custom_type.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_type_alias(&mut self, type_alias: &TypeAlias) {
-        let attributes = type_alias.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_field(&mut self, field: &Field) {
-        let attributes = field.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_parameter(&mut self, parameter: &Parameter) {
-        let attributes = parameter.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            match attribute.kind {
-                // Issue an error here since deprecated is allowed everywhere else
-                AttributeKind::Deprecated { .. } => {
-                    Diagnostic::new(Error::UnexpectedAttribute {
-                        attribute: attribute.directive().to_owned(),
-                    })
-                    .set_span(attribute.span())
-                    .add_note("parameters can not be individually deprecated", None)
-                    .report(self.diagnostic_reporter);
-                }
-                _ => validate_common_attributes(attribute, self.diagnostic_reporter),
-            }
-        }
-    }
-
-    fn visit_enumerator(&mut self, enumerator: &Enumerator) {
-        let attributes = enumerator.attributes(false);
-        validate_repeated_attributes(&attributes, self.diagnostic_reporter);
-        for attribute in attributes {
-            validate_common_attributes(attribute, self.diagnostic_reporter);
-        }
-    }
-
-    fn visit_type_ref(&mut self, type_ref: &TypeRef) {
-        let attributes = type_ref.attributes(false);
-        for attribute in attributes {
-            match attribute.kind {
-                AttributeKind::LanguageKind { .. } => {}
-                AttributeKind::Other { .. } => {}
-                _ => {
-                    Diagnostic::new(Error::UnexpectedAttribute {
-                        attribute: attribute.directive().to_owned(),
-                    })
-                    .set_span(attribute.span())
-                    .report(self.diagnostic_reporter);
-                }
-            }
-        }
-    }
+    };
 }
+
+/// Rejects all "known" attributes.
+macro_rules! reject_attributes {
+    ($attributable:ident, $diagnostic_reporter:expr) => {
+        let attributes = $attributable.attributes(false);
+        validate_repeated_attributes(&attributes, $diagnostic_reporter);
+        for attribute in attributes {
+            match attribute.kind {
+                _ => reject_known_attribute(attribute, $diagnostic_reporter),
+            }
+        }
+    };
+}
+
+pub(crate) use {reject_attributes, validate_attributes, validate_attributes_excluding, validate_attributes_including};
 
 /// Validates a list of attributes to ensure attributes which are not allowed to be repeated are not repeated.
 pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_reporter: &mut DiagnosticReporter) {
@@ -189,15 +95,19 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
     }
 }
 
-fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
-    let note = match attribute.kind {
+pub fn report_unexpected_attribute(
+    attribute: &Attribute,
+    diagnostic_reporter: &mut DiagnosticReporter,
+    unexpected_note: Option<&str>,
+) {
+    let note = unexpected_note.or(match attribute.kind {
         AttributeKind::Compress { .. } => {
             Some("the compress attribute can only be applied to interfaces and operations")
         }
         AttributeKind::SlicedFormat { .. } => Some("the slicedFormat attribute can only be applied to operations"),
         AttributeKind::Oneway { .. } => Some("the oneway attribute can only be applied to operations"),
         _ => None,
-    };
+    });
 
     let mut diagnostic = Diagnostic::new(Error::UnexpectedAttribute {
         attribute: attribute.directive().to_owned(),
@@ -211,7 +121,7 @@ fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut 
     diagnostic.report(diagnostic_reporter);
 }
 
-fn validate_common_attributes(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_common_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
     match &attribute.kind {
         AttributeKind::Allow { .. } => {}
         AttributeKind::Deprecated { .. } => {}
@@ -220,6 +130,18 @@ fn validate_common_attributes(attribute: &Attribute, diagnostic_reporter: &mut D
         // Allow other language attributes (directives that contain "::" ) through.
         // This is a sufficient check since the compiler rejects `::`, `x::`, and `::x` as invalid identifiers.
         AttributeKind::Other { directive, .. } if directive.contains("::") => {}
-        _ => report_unexpected_attribute(attribute, diagnostic_reporter),
+        _ => report_unexpected_attribute(attribute, diagnostic_reporter, None),
+    }
+}
+
+/// Rejects all "known" attributes. For the purposes LanguageKind and Other are "unknown".
+pub fn reject_known_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
+    match &attribute.kind {
+        // Validated by the language code generator.
+        AttributeKind::LanguageKind { .. } => {}
+        // Allow other language attributes (directives that contain "::" ) through.
+        // This is a sufficient check since the compiler rejects `::`, `x::`, and `::x` as invalid identifiers.
+        AttributeKind::Other { directive, .. } if directive.contains("::") => {}
+        _ => report_unexpected_attribute(attribute, diagnostic_reporter, None),
     }
 }
