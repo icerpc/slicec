@@ -8,7 +8,7 @@ use std::collections::HashMap;
 // Validate the common attributes that almost every type can have.
 macro_rules! validate_attributes {
     ($attributable:ident, $diagnostic_reporter:expr) => {
-        let attributes = $attributable.attributes(false);
+        let attributes = $attributable.attributes();
         validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
@@ -21,7 +21,7 @@ macro_rules! validate_attributes {
 // Validate the common attributes plus the specified attributes.
 macro_rules! validate_attributes_including {
     ($attributable:ident, $diagnostic_reporter:expr $(, $attribute:ident)+ ) => {
-        let attributes = $attributable.attributes(false);
+        let attributes = $attributable.attributes();
         validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
@@ -37,7 +37,7 @@ macro_rules! validate_attributes_including {
 // Validate the common attributes with the exception of the specified attributes (with an additional note).
 macro_rules! validate_attributes_excluding {
     ($attributable:ident, $diagnostic_reporter:expr $(, $attribute:ident, $note:expr)+ ) => {
-        let attributes = $attributable.attributes(false);
+        let attributes = $attributable.attributes();
         validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {
@@ -54,7 +54,7 @@ macro_rules! validate_attributes_excluding {
 /// Rejects all "known" attributes.
 macro_rules! reject_attributes {
     ($attributable:ident, $diagnostic_reporter:expr) => {
-        let attributes = $attributable.attributes(false);
+        let attributes = $attributable.attributes();
         validate_repeated_attributes(&attributes, $diagnostic_reporter);
         for attribute in attributes {
             match attribute.kind {

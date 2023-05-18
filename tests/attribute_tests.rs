@@ -83,32 +83,6 @@ mod attributes {
             check_diagnostics(diagnostics, [expected]);
         }
 
-        #[test]
-        fn allow_only_affects_relevant_scope() {
-            // Arrange
-            let slice = "
-                [allow(BrokenDocLink)]
-                module Allowed {
-                    /// {@link fake1}
-                    struct S {}
-                }
-
-                module Normal {
-                    /// {@link fake2}
-                    struct S {}
-                }
-            ";
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert: that only the not-ignored warning was emitted.
-            let expected = Diagnostic::new(Warning::BrokenDocLink {
-                message: "no element named 'fake2' exists in scope".to_owned(),
-            });
-            check_diagnostics(diagnostics, [expected]);
-        }
-
         #[test_case("All", []; "all")]
         #[test_case("Deprecated", [1, 2]; "deprecated")]
         #[test_case("BrokenDocLink", [0, 2]; "broken_link")]
@@ -280,7 +254,7 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert!(operation.get_deprecation(false).is_some());
+            assert!(operation.get_deprecation().is_some());
         }
 
         #[test]
@@ -325,7 +299,7 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
             assert_eq!(
-                operation.get_deprecation(false).unwrap().unwrap(),
+                operation.get_deprecation().unwrap().unwrap(),
                 "Deprecation message here",
             );
         }
@@ -358,7 +332,7 @@ mod attributes {
         }
 
         #[test]
-        fn deprecated_inheritance() {
+        fn deprecation_is_not_allowed_on_modules() {
             // Arrange
             let slice = "
             [deprecated]
@@ -377,10 +351,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::Deprecated {
-                identifier: "Bar".to_owned(),
-                reason: None,
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: "deprecated".to_owned(),
             });
+
             check_diagnostics(diagnostics, [expected]);
         }
 
@@ -641,7 +615,7 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             let (directive, arguments) = operation
-                .attributes(false)
+                .attributes()
                 .iter()
                 .find_map(|a| match &a.kind {
                     AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
@@ -674,7 +648,7 @@ mod attributes {
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
             let (directive, arguments) = operation
-                .attributes(false)
+                .attributes()
                 .iter()
                 .find_map(|a| match &a.kind {
                     AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
@@ -768,7 +742,8 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("A::B::C::I::op").unwrap();
             let parent_attributes = operation
-                .attributes(true)
+                .all_attributes()
+                .concat()
                 .into_iter()
                 .map(|a| match &a.kind {
                     AttributeKind::Other { directive, arguments } => (directive.as_str(), arguments),

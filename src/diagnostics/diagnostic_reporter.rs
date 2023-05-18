@@ -93,13 +93,13 @@ impl DiagnosticReporter {
                 // If the warning has a span, check if it's suppressed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(false), warning);
+                    is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(), warning);
                 }
 
                 // If the warning has a scope, check if it's suppressed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    is_suppressed |= is_warning_suppressed_by_attributes(entity.attributes(true), warning);
+                    is_suppressed |= is_warning_suppressed_by_attributes(entity.all_attributes().concat(), warning);
                 }
             }
             !is_suppressed

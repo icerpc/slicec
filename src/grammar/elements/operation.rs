@@ -87,35 +87,35 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_compress) {
+        match self.find_attribute(Attribute::match_compress) {
             Some((compress_args, ..)) => compress_args,
             None => false,
         }
     }
 
     pub fn compress_return(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_compress) {
+        match self.find_attribute(Attribute::match_compress) {
             Some((.., compress_return)) => compress_return,
             None => false,
         }
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_sliced_format) {
+        match self.find_attribute(Attribute::match_sliced_format) {
             Some((sliced_args, ..)) => sliced_args,
             None => false,
         }
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        match self.find_attribute(false, Attribute::match_sliced_format) {
+        match self.find_attribute(Attribute::match_sliced_format) {
             Some((.., sliced_return)) => sliced_return,
             None => false,
         }
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.has_attribute(false, Attribute::match_oneway)
+        self.has_attribute(Attribute::match_oneway)
     }
 }
 

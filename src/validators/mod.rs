@@ -68,7 +68,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     }
 
     fn visit_module(&mut self, module_def: &Module) {
-        validate_attributes!(module_def, self.diagnostic_reporter);
+        reject_attributes!(module_def, self.diagnostic_reporter);
 
         validate_module(module_def, self.diagnostic_reporter);
     }

@@ -69,13 +69,12 @@ impl<T: Type + ?Sized> TypeRef<T> {
 }
 
 impl<T: Element + ?Sized> Attributable for TypeRef<T> {
-    fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
-        assert!(!include_parent);
+    fn attributes(&self) -> Vec<&Attribute> {
         self.attributes.iter().map(WeakPtr::borrow).collect()
     }
 
     fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-        vec![self.attributes(false)]
+        vec![self.attributes()]
     }
 }
 
