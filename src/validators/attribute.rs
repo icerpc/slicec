@@ -93,16 +93,6 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
     }
 }
 
-pub fn validate_common_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
-    match attribute.kind {
-        AttributeKind::Allow { .. } => {}
-        AttributeKind::Deprecated { .. } => {}
-        AttributeKind::LanguageKind { .. } => {} // Validated by the language code generator.
-        AttributeKind::Other { .. } => {}        // Allow unknown attributes through.
-        _ => report_unexpected_attribute(attribute, diagnostic_reporter),
-    }
-}
-
 fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
     let note = match attribute.kind {
         AttributeKind::Compress { .. } => {
@@ -123,4 +113,17 @@ fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut 
     }
 
     diagnostic.report(diagnostic_reporter);
+}
+
+pub fn validate_common_attribute(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
+    match &attribute.kind {
+        AttributeKind::Allow { .. } => {}
+        AttributeKind::Deprecated { .. } => {}
+        // Validated by the language code generator.
+        AttributeKind::LanguageKind { .. } => {}
+        // Allow other language attributes (directives that contain "::" ) through.
+        // This is a sufficient check since the compiler rejects `::`, `x::`, and `::x` as invalid identifiers.
+        AttributeKind::Other { directive, .. } if directive.contains("::") => {}
+        _ => report_unexpected_attribute(attribute, diagnostic_reporter),
+    }
 }
