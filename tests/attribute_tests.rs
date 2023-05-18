@@ -618,6 +618,7 @@ mod attributes {
     mod generalized_api {
 
         use crate::test_helpers::*;
+        use slicec::diagnostics::{Diagnostic, Error};
         use slicec::grammar::*;
         use test_case::test_case;
 
@@ -744,35 +745,15 @@ mod attributes {
         }
 
         #[test]
-        fn attribute_directives_can_be_slice_keywords() {
-            // Arrange
-            let slice = "
-                [custom]
-                module Test
-            ";
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let module = ast.find_element::<Module>("Test").unwrap();
-            assert_eq!(module.attributes.len(), 1);
-            assert!(matches!(
-                &module.attributes[0].borrow().kind,
-                AttributeKind::Other { directive, .. } if directive == "custom",
-            ));
-        }
-
-        #[test]
         fn parent_attributes() {
             // Arrange
             let slice = r#"
-                [attribute("A")]
+                [test::attribute("A")]
                 module A {
-                    [attribute("B")]
+                    [test::attribute("B")]
                     module B {
                         module C {
-                            [attribute("I")]
+                            [test::attribute("I")]
                             interface I {
                                 op(s: string) -> string
                             }
@@ -796,9 +777,77 @@ mod attributes {
                 .collect::<Vec<_>>();
 
             assert_eq!(parent_attributes.len(), 3);
-            assert_eq!(parent_attributes[0], ("attribute", &vec!["I".to_owned()]));
-            assert_eq!(parent_attributes[1], ("attribute", &vec!["B".to_owned()]));
-            assert_eq!(parent_attributes[2], ("attribute", &vec!["A".to_owned()]));
+            assert_eq!(parent_attributes[0], ("test::attribute", &vec!["I".to_owned()]));
+            assert_eq!(parent_attributes[1], ("test::attribute", &vec!["B".to_owned()]));
+            assert_eq!(parent_attributes[2], ("test::attribute", &vec!["A".to_owned()]));
+        }
+
+        #[test_case("foo"; "plain_attribute")]
+        #[test_case("custom"; "slice_keyword")]
+        fn unknown_attributes_are_rejected(directive: &str) {
+            // Arrange
+            let slice = format!(
+                "
+                    [{directive}]
+                    module Test
+                "
+            );
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::UnexpectedAttribute {
+                attribute: directive.to_owned(),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("::", "::"; "colon_colon")]
+        #[test_case("::foo", "::"; "leading_colon_colon")]
+        #[test_case("foo::", "]"; "trailing_colon_colon")]
+        fn attribute_with_bogus_identifier_is_rejected(directive: &str, found: &str) {
+            // Arrange
+            let slice = format!(
+                "
+                    [{directive}]
+                    module Test
+                "
+            );
+
+            // Act
+            let diagnostics = parse_for_diagnostics(slice);
+
+            // Assert
+            let expected = Diagnostic::new(Error::Syntax {
+                message: format!("expected one of 'identifier', but found '{found}'"),
+            });
+
+            check_diagnostics(diagnostics, [expected]);
+        }
+
+        #[test_case("cs::custom"; "cs")]
+        #[test_case("foo::custom"; "foo")]
+        fn unknown_language_attributes_are_not_rejected(attribute: &str) {
+            // Arrange
+            let slice = format!(
+                "
+                    [{attribute}]
+                    module Test
+                "
+            );
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let module = ast.find_element::<Module>("Test").unwrap();
+            assert_eq!(module.attributes.len(), 1);
+            assert!(matches!(
+                &module.attributes[0].borrow().kind,
+                AttributeKind::Other { directive, .. } if directive == attribute,
+            ));
         }
     }
 }

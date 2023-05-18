@@ -212,11 +212,14 @@ fn report_unexpected_attribute(attribute: &Attribute, diagnostic_reporter: &mut 
 }
 
 fn validate_common_attributes(attribute: &Attribute, diagnostic_reporter: &mut DiagnosticReporter) {
-    match attribute.kind {
+    match &attribute.kind {
         AttributeKind::Allow { .. } => {}
         AttributeKind::Deprecated { .. } => {}
-        AttributeKind::LanguageKind { .. } => {} // Validated by the language code generator.
-        AttributeKind::Other { .. } => {}        // Allow unknown attributes through.
+        // Validated by the language code generator.
+        AttributeKind::LanguageKind { .. } => {}
+        // Allow other language attributes (directives that contain "::" ) through.
+        // This is a sufficient check since the compiler rejects `::`, `x::`, and `::x` as invalid identifiers.
+        AttributeKind::Other { directive, .. } if directive.contains("::") => {}
         _ => report_unexpected_attribute(attribute, diagnostic_reporter),
     }
 }
