@@ -46,35 +46,33 @@ pub trait NamedSymbol: ScopedSymbol {
 
 pub trait Attributable {
     /// Returns the attributes of the element.
-    fn attributes(&self, include_parent: bool) -> Vec<&Attribute>;
+    fn attributes(&self) -> Vec<&Attribute>;
 
     /// Returns all the attributes of the element and its parents.
     fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
 
     /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<P, T>(&self, include_parent: bool, predicate: P) -> bool
+    fn has_attribute<P, T>(&self, predicate: P) -> bool
     where
         Self: Sized,
         P: FnMut(&Attribute) -> Option<T>,
     {
-        self.find_attribute(include_parent, predicate).is_some()
+        self.find_attribute(predicate).is_some()
     }
 
     /// Returns the first attribute that matches the predicate.
-    fn find_attribute<P, T>(&self, include_parent: bool, predicate: P) -> Option<T>
+    fn find_attribute<P, T>(&self, predicate: P) -> Option<T>
     where
         Self: Sized,
         P: FnMut(&Attribute) -> Option<T>,
     {
-        self.attributes(include_parent).into_iter().find_map(predicate)
+        self.attributes().into_iter().find_map(predicate)
     }
 }
 
 pub trait Entity: NamedSymbol + Attributable + AsEntities {
-    fn get_deprecation(&self, check_parent: bool) -> Option<Option<String>> {
-        self.attributes(check_parent)
-            .into_iter()
-            .find_map(Attribute::match_deprecated)
+    fn get_deprecation(&self) -> Option<Option<String>> {
+        self.attributes().into_iter().find_map(Attribute::match_deprecated)
     }
 }
 
@@ -166,20 +164,12 @@ macro_rules! implement_Named_Symbol_for {
 macro_rules! implement_Attributable_for {
     ($type:ty) => {
         impl Attributable for $type {
-            fn attributes(&self, include_parent: bool) -> Vec<&Attribute> {
-                let mut attributes = self.attributes.iter().map(WeakPtr::borrow).collect::<Vec<_>>();
-
-                if include_parent {
-                    if let Some(parent) = self.parent() {
-                        attributes.extend(parent.attributes(true));
-                    }
-                }
-
-                attributes
+            fn attributes(&self) -> Vec<&Attribute> {
+                self.attributes.iter().map(WeakPtr::borrow).collect::<Vec<_>>()
             }
 
             fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-                let mut attributes_list = vec![self.attributes(false)];
+                let mut attributes_list = vec![self.attributes()];
 
                 if let Some(parent) = self.parent() {
                     attributes_list.extend(parent.all_attributes());
