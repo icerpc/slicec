@@ -332,7 +332,7 @@ implement_diagnostic_functions!(
             if let Some(kind) = kind {
                 format!("invalid enum '{enum_identifier}': underlying type '{kind}' is not supported", )
             } else {
-                format!("invalid enum '{enum_identifier}': an underlying type is required")
+                format!("invalid enum '{enum_identifier}': missing required underlying type")
             }
         },
         enum_identifier,
