@@ -80,9 +80,9 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
+        let expected = Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
             enum_identifier: "E".to_owned(),
-            kind: "None".to_owned(),
+            kind: None,
         });
         check_diagnostics(diagnostics, [expected]);
     }

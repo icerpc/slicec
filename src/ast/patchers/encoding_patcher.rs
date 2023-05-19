@@ -233,7 +233,7 @@ impl EncodingPatcher<'_> {
                 },
                 Note {
                     message:
-                        "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = Slice1'"
+                        "to use a different encoding, specify it at the top of the slice file, e.g. 'encoding = Slice1'"
                             .to_owned(),
                     span: None,
                 },
@@ -436,15 +436,14 @@ impl ComputeSupportedEncodings for Enum {
             // Enums defined in a file using Slice2 must have an explicit underlying type.
             if *file_encoding == Encoding::Slice2 {
                 // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
-                Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
+                Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
                     enum_identifier: self.identifier().to_owned(),
-                    kind: "None".to_owned(),
+                    kind: None,
                 })
                 .set_span(self.span())
-                .add_notes(patcher.get_file_encoding_mismatch_notes(self))
                 .add_note(
                     format!(
-                        "try adding a backing type to your enum: 'enum {}: varint32'",
+                        "Slice2 enums must have an underlying type. e.g. 'enum {} : uint8'",
                         self.identifier(),
                     ),
                     None,

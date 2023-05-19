@@ -105,11 +105,11 @@ pub enum Error {
     },
 
     /// Enum underlying types must be integral types.
-    UnderlyingTypeMustBeIntegral {
+    EnumUnderlyingTypeNotSupported {
         /// The identifier of the enum.
         enum_identifier: String,
         /// The name of the non-integral type that was used as the underlying type of the enum.
-        kind: String,
+        kind: Option<String>,
     },
 
     // ----------------  Exception Errors ---------------- //
@@ -327,8 +327,14 @@ implement_diagnostic_functions!(
     ),
     (
         "E011",
-        UnderlyingTypeMustBeIntegral,
-        format!("invalid enum '{enum_identifier}': underlying type '{kind}' is not supported for enums"),
+        EnumUnderlyingTypeNotSupported,
+        {
+            if let Some(kind) = kind {
+                format!("invalid enum '{enum_identifier}': underlying type '{kind}' is not supported", )
+            } else {
+                format!("invalid enum '{enum_identifier}': missing required underlying type")
+            }
+        },
         enum_identifier,
         kind
     ),
