@@ -233,7 +233,7 @@ impl EncodingPatcher<'_> {
                 },
                 Note {
                     message:
-                        "to use a different encoding, specify it at the top of the slice file\nex: 'encoding = Slice1'"
+                        "to use a different encoding, specify it at the top of the slice file. e.g. 'encoding = Slice1'"
                             .to_owned(),
                     span: None,
                 },
@@ -441,14 +441,14 @@ impl ComputeSupportedEncodings for Enum {
                     kind: "None".to_owned(),
                 })
                 .set_span(self.span())
-                .add_notes(patcher.get_file_encoding_mismatch_notes(self))
                 .add_note(
                     format!(
-                        "try adding a backing type to your enum: 'enum {}: varint32'",
+                        "Slice2 enums must have an underlying type. e.g. 'enum {} : uint8'",
                         self.identifier(),
                     ),
                     None,
                 )
+                .add_notes(patcher.get_file_encoding_mismatch_notes(self))
                 .report(patcher.diagnostic_reporter)
             }
         }
