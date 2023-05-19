@@ -73,9 +73,9 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut Diagnosti
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {
-                Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
+                Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
                     enum_identifier: enum_def.identifier().to_owned(),
-                    kind: underlying_type.definition().kind().to_owned(),
+                    kind: Some(underlying_type.definition().kind().to_owned()),
                 })
                 .set_span(enum_def.span())
                 .report(diagnostic_reporter);

@@ -159,9 +159,9 @@ fn invalid_underlying_type(underlying_type: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::UnderlyingTypeMustBeIntegral {
+    let expected = Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
         enum_identifier: "E".to_owned(),
-        kind: underlying_type.to_owned(),
+        kind: Some(underlying_type.to_owned()),
     });
     check_diagnostics(diagnostics, [expected]);
 }
