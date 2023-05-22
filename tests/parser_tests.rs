@@ -71,12 +71,13 @@ fn files_are_parsed_independently() {
     let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
     // Assert
+    let expected_message = "expected one of '::', '[', '{', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found '-'";
     let expected = [
         Diagnostic::new(Error::Syntax {
-            message: "expected one of '::', '[', '{', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found '-'".to_owned(),
+            message: expected_message.to_owned(),
         }),
         Diagnostic::new(Error::Syntax {
-            message: "expected one of '::', '[', '{', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found '-'".to_owned(),
+            message: expected_message.to_owned(),
         }),
     ];
     check_diagnostics(diagnostics, expected);
