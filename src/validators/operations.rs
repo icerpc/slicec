@@ -13,7 +13,7 @@ fn non_empty_return_comment(operation: &Operation, diagnostic_reporter: &mut Dia
     if let Some(comment) = operation.comment() {
         // Return doc comment exists but operation has no return members.
         // `DocComment.return_members` contains a list of descriptions of the return members.
-        // example: @return A description of the return value.
+        // example: "@returns: A description of the return value."
         if !comment.returns.is_empty() && operation.return_members().is_empty() {
             for returns_tag in &comment.returns {
                 Diagnostic::new(Warning::IncorrectDocComment {
