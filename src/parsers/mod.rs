@@ -14,7 +14,7 @@ mod slice;
 
 use crate::ast::Ast;
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::{Diagnostic, DiagnosticReporter};
 use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
@@ -28,23 +28,39 @@ fn parse_file(
     file: &mut SliceFile,
     ast: &mut Ast,
     diagnostic_reporter: &mut DiagnosticReporter,
-    mut symbols: HashSet<String>,
+    symbols: HashSet<String>,
 ) {
+    // Attempt to parse the file.
+    let mut diagnostics = Vec::new();
+    let _ = try_parse_file(file, ast, &mut diagnostics, symbols);
+
+    // Forward any diagnostics that were emitted during parsing to the diagnostic reporter.
+    for diagnostic in diagnostics {
+        diagnostic.report(diagnostic_reporter);
+    }
+}
+
+fn try_parse_file(
+    file: &mut SliceFile,
+    ast: &mut Ast,
+    diagnostics: &mut Vec<Diagnostic>,
+    mut symbols: HashSet<String>,
+) -> common::ParserResult<()> {
     // Pre-process the file's raw text.
-    let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
-    let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
+    let preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostics);
+    let preprocessed_text = preprocessor.parse_slice_file(file.raw_text.as_str())?;
 
     // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
     // To check the length of the preprocessed text without consuming the iterator we convert it to a peekable iterator,
     // then check the peek value.
     let mut peekable_preprocessed_text = preprocessed_text.peekable();
     if peekable_preprocessed_text.peek().is_none() {
-        return;
+        return Err(());
     }
 
     // Parse the preprocessed text.
-    let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
-    let Ok((file_encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return };
+    let parser = Parser::new(&file.relative_path, ast, diagnostics);
+    let (file_encoding, attributes, modules) = parser.parse_slice_file(peekable_preprocessed_text)?;
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
     let top_level_modules = modules
@@ -56,4 +72,5 @@ fn parse_file(
     file.encoding = file_encoding;
     file.attributes = attributes;
     file.contents = top_level_modules;
+    Ok(())
 }

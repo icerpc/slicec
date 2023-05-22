@@ -12,6 +12,7 @@ use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 grammar<'input, 'a>(parser: &mut Parser<'a>);
 
 extern {
+    // Specify the types that the parser should use for location tracking and error emission.
     type Location = crate::slice_file::Location;
     type Error = crate::parsers::slice::tokens::Error;
 
@@ -111,19 +112,19 @@ SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
 FileEncoding: FileEncoding = {
     <l: @L> encoding_keyword "=" <i: Identifier> <r: @R> => {
         construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 FileScopedModule: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> <ds: Definition*> => {
         construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Module: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" <ds: Definition*> "}" => {
         construct_module(parser, p, i, ds, false, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Definition: Node = {
@@ -140,49 +141,49 @@ Definition: Node = {
 Struct: OwnedPtr<Struct> = {
     <p: Prelude> <l: @L> <ck: compact_keyword?> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Exception: OwnedPtr<Exception> = {
     <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Class: OwnedPtr<Class> = {
     <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <ci: CompactId?> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Field: OwnedPtr<Field> = {
     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <tr: TypeRef> <r: @R> => {
         construct_field(parser, p, i, t, tr, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Interface: OwnedPtr<Interface> = {
     <p: Prelude> <l: @L> interface_keyword <i: ContainerIdentifier> <r: @R> <trs: (":" <NonEmptyCommaList<TypeRef>>)?> "{" <os: Operation*> "}" ContainerEnd => {
         construct_interface(parser, p, i, trs, os, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Operation: OwnedPtr<Operation> = {
     <p: Prelude> <l: @L> <ik: idempotent_keyword?> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ("->" <ReturnType>)?> <es: ExceptionSpecification?> <r: @R> ContainerEnd => {
         construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Parameter: OwnedPtr<Parameter> = {
     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
         construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), false)
-    }
+    },
 }
 
 ReturnMember: OwnedPtr<Parameter> = {
     <p: Prelude> <l: @L> <t: Tag?> <i: Identifier> ":" <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
         construct_parameter(parser, p, i, t, s.is_some(), tr, Span::new(l, r, parser.file_name), true)
-    }
+    },
  }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {
@@ -206,37 +207,37 @@ ExceptionSpecification: Throws = {
 Enum: OwnedPtr<Enum> = {
     <p: Prelude> <l: @L> <uk: unchecked_keyword?> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: UndelimitedList<Enumerator>> "}" ContainerEnd => {
         construct_enum(parser, p, uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Enumerator: OwnedPtr<Enumerator> = {
     <p: Prelude> <l: @L> <i: Identifier> <si: ("=" <SignedInteger>)?> <r: @R> => {
         construct_enumerator(parser, p, i, si, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 CustomType: OwnedPtr<CustomType> = {
     <p: Prelude> <l: @L> custom_keyword <i: Identifier> <r: @R> => {
         construct_custom_type(parser, p, i, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 TypeAlias: OwnedPtr<TypeAlias> = {
     <p: Prelude> <l: @L> type_alias_keyword <i: Identifier> <r: @R> "=" <tr: TypeRef> => {
         construct_type_alias(parser, p, i, tr, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 Sequence: OwnedPtr<Sequence> = {
     sequence_keyword "<" <element_type: TypeRef> ">" => {
         OwnedPtr::new(Sequence { element_type })
-    }
+    },
 }
 
 Dictionary: OwnedPtr<Dictionary> = {
     dictionary_keyword "<" <key_type: TypeRef> "," <value_type: TypeRef> ">" => {
         OwnedPtr::new(Dictionary { key_type, value_type })
-    }
+    },
 }
 
 Primitive: Primitive = {
@@ -262,7 +263,7 @@ Primitive: Primitive = {
 TypeRef: TypeRef = {
     <l: @L> <las: LocalAttribute*> <trd: TypeRefDefinition> <o: "?"?> <r: @R> => {
         construct_type_ref(parser, las, trd, o.is_some(), Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 TypeRefDefinition: TypeRefDefinition = {
@@ -280,7 +281,7 @@ LocalAttribute = "[" <Attribute> "]";
 Attribute: WeakPtr<Attribute> = {
     <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
         try_construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 AttributeArgument: String = {
@@ -291,27 +292,27 @@ AttributeArgument: String = {
 Identifier: Identifier = {
     <l: @L> <i: identifier> <r: @R> => {
         Identifier { value: i.to_owned(), span: Span::new(l, r, parser.file_name) }
-    }
+    },
 }
 
 RelativelyScopedIdentifier: Identifier = {
     <l: @L> <i: identifier> <mut v: ("::" <identifier>)*> <r: @R> => {
         v.insert(0, i);
         Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
-    }
+    },
 }
 
 GloballyScopedIdentifier: Identifier = {
     <l: @L> <mut v: ("::" <identifier>)+> <r: @R> => {
         v.insert(0, ""); // Gives a leading "::" when we `join`.
         Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
-    }
+    },
 }
 
 Integer: Integer<i128> = {
     <l: @L> <i: integer_literal> <r: @R> => {
         try_parse_integer(parser, i, Span::new(l, r, parser.file_name))
-    }
+    },
 }
 
 SignedInteger: Integer<i128> = {
@@ -319,19 +320,19 @@ SignedInteger: Integer<i128> = {
     <l: @L> "-" <mut i: Integer> => Integer {
         value: -i.value,
         span: Span { start: l, ..i.span },
-    }
+    },
 }
 
 Tag: Integer<u32> = {
     tag_keyword "(" <i: SignedInteger> ")" => {
         parse_tag_value(parser, i)
-    }
+    },
 }
 
 CompactId: Integer<u32> = {
     "(" <i: SignedInteger> ")" => {
         parse_compact_id_value(parser, i)
-    }
+    },
 }
 
 Prelude: (Vec<(&'input str, Span)>, Vec<WeakPtr<Attribute>>) = {
@@ -343,7 +344,7 @@ Prelude: (Vec<(&'input str, Span)>, Vec<WeakPtr<Attribute>>) = {
     <mut prelude: Prelude> <attribute: LocalAttribute> => {
         prelude.1.push(attribute);
         prelude
-    }
+    },
 }
 
 // Utility Rules
@@ -353,7 +354,7 @@ NonEmptyCommaList<T>: Vec<T> = {
     <element: T> <mut vector: ("," <T>)*> ","? => {
         vector.insert(0, element);
         vector
-    }
+    },
 }
 
 // A comma separated list of 0 or more elements, with an optional trailing comma.
@@ -366,7 +367,7 @@ CommaList<T>: Vec<T> = {
 // A single comma can optionally be placed after each element (including a trailing comma),
 // but these are ignored by the compiler and only for user-readability.
 UndelimitedList<T>: Vec<T> = {
-    (<T> ","?)* => <>
+    (<T> ","?)* => <>,
 }
 
 ModuleIdentifier: Identifier = {
@@ -375,7 +376,7 @@ ModuleIdentifier: Identifier = {
             parser.current_scope.push_scope(scope, true);
         }
         <>
-    }
+    },
 }
 
 ContainerIdentifier: Identifier = {

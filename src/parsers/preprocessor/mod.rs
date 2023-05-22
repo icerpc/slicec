@@ -5,7 +5,7 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
-use self::tokens::{ErrorKind, TokenKind};
+use self::tokens::TokenKind;
 use crate::diagnostics::{Diagnostic, Error};
 use crate::slice_file::{Location, Span};
 
@@ -21,19 +21,8 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
         ParseError::User {
             error: (start, parse_error_kind, end),
         } => {
-            let converted = match parse_error_kind {
-                ErrorKind::MissingDirective => Error::Syntax {
-                    message: "missing preprocessor directive".to_owned(),
-                },
-                ErrorKind::UnknownDirective { keyword } => Error::Syntax {
-                    message: format!("unknown preprocessor directive: '{keyword}'"),
-                },
-                ErrorKind::UnknownSymbol { symbol, suggestion } => Error::Syntax {
-                    message: match suggestion {
-                        Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                        None => format!("unknown symbol '{symbol}'"),
-                    },
-                },
+            let converted = Error::Syntax {
+                message: parse_error_kind.to_string(),
             };
             Diagnostic::new(converted).set_span(&Span::new(start, end, file_name))
         }

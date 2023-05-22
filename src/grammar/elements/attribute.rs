@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
+use crate::diagnostics::{Diagnostic, Error, Warning};
 use crate::slice_file::Span;
 
 const ALLOW: &str = "allow";
@@ -17,8 +17,8 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    pub fn new(reporter: &mut DiagnosticReporter, directive: String, arguments: Vec<String>, span: Span) -> Self {
-        let kind = AttributeKind::new(reporter, directive, arguments, &span);
+    pub fn new(diagnostics: &mut Vec<Diagnostic>, directive: String, arguments: Vec<String>, span: Span) -> Self {
+        let kind = AttributeKind::new(diagnostics, directive, arguments, &span);
         Self { kind, span }
     }
 
@@ -97,20 +97,20 @@ pub trait LanguageKind: std::fmt::Debug {
 }
 
 impl AttributeKind {
-    pub fn new(reporter: &mut DiagnosticReporter, directive: String, arguments: Vec<String>, span: &Span) -> Self {
+    pub fn new(diagnostics: &mut Vec<Diagnostic>, directive: String, arguments: Vec<String>, span: &Span) -> Self {
         match directive.as_str() {
             ALLOW => {
                 // Check that the attribute has arguments.
                 if arguments.is_empty() {
-                    Diagnostic::new(Error::MissingRequiredArgument {
+                    let diagnostic = Diagnostic::new(Error::MissingRequiredArgument {
                         argument: r#"allow(<arguments>)"#.to_owned(),
                     })
-                    .set_span(span)
-                    .report(reporter);
+                    .set_span(span);
+                    diagnostics.push(diagnostic);
                 }
 
                 // Check that each of the arguments are valid.
-                validate_allow_arguments(&arguments, Some(span), reporter);
+                validate_allow_arguments(&arguments, Some(span), diagnostics);
 
                 AttributeKind::Allow {
                     allowed_warnings: arguments,
@@ -130,13 +130,13 @@ impl AttributeKind {
                             compress_return = true;
                         }
                         _ => {
-                            Diagnostic::new(Error::ArgumentNotSupported {
+                            let diagnostic = Diagnostic::new(Error::ArgumentNotSupported {
                                 argument: arg,
                                 directive: "compress".to_owned(),
                             })
                             .set_span(span)
-                            .add_note("'Args' and 'Return' are the only valid arguments", None)
-                            .report(reporter);
+                            .add_note("'Args' and 'Return' are the only valid arguments", None);
+                            diagnostics.push(diagnostic);
                         }
                     }
                 }
@@ -149,12 +149,12 @@ impl AttributeKind {
 
             DEPRECATED => {
                 if arguments.len() > 1 {
-                    Diagnostic::new(Error::TooManyArguments {
+                    let diagnostic = Diagnostic::new(Error::TooManyArguments {
                         expected: DEPRECATED.to_owned(),
                     })
                     .set_span(span)
-                    .add_note("The deprecated attribute takes at most one argument", Some(span))
-                    .report(reporter);
+                    .add_note("The deprecated attribute takes at most one argument", Some(span));
+                    diagnostics.push(diagnostic);
                 }
 
                 AttributeKind::Deprecated {
@@ -175,13 +175,13 @@ impl AttributeKind {
                             sliced_return = true;
                         }
                         _ => {
-                            Diagnostic::new(Error::ArgumentNotSupported {
+                            let diagnostic = Diagnostic::new(Error::ArgumentNotSupported {
                                 argument: arg,
                                 directive: "slicedFormat".to_owned(),
                             })
                             .set_span(span)
-                            .add_note("'Args' and 'Return' are the only valid arguments", None)
-                            .report(reporter);
+                            .add_note("'Args' and 'Return' are the only valid arguments", None);
+                            diagnostics.push(diagnostic);
                         }
                     }
                 }
@@ -195,12 +195,12 @@ impl AttributeKind {
             ONEWAY => {
                 // Check that no arguments were provided to the attribute.
                 if !arguments.is_empty() {
-                    Diagnostic::new(Error::TooManyArguments {
+                    let diagnostic = Diagnostic::new(Error::TooManyArguments {
                         expected: ONEWAY.to_owned(),
                     })
                     .set_span(span)
-                    .add_note("The oneway attribute does not take any arguments", None)
-                    .report(reporter);
+                    .add_note("The oneway attribute does not take any arguments", None);
+                    diagnostics.push(diagnostic);
                 }
 
                 AttributeKind::Oneway
@@ -227,11 +227,7 @@ implement_Element_for!(Attribute, "attribute");
 implement_Symbol_for!(Attribute);
 
 // This is a standalone function because it's used by both the `allow` attribute, and the `--allow` CLI option.
-pub fn validate_allow_arguments(
-    arguments: &[String],
-    span: Option<&Span>,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) {
+pub fn validate_allow_arguments(arguments: &[String], span: Option<&Span>, diagnostics: &mut Vec<Diagnostic>) {
     for argument in arguments {
         let argument_str = &argument.as_str();
         let mut is_valid = Warning::ALLOWABLE_WARNING_IDENTIFIERS.contains(argument_str);
@@ -263,7 +259,7 @@ pub fn validate_allow_arguments(
                 error = error.add_note(message, None);
             }
 
-            error.report(diagnostic_reporter);
+            diagnostics.push(error);
         }
     }
 }

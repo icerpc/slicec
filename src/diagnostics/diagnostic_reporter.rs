@@ -27,20 +27,19 @@ pub struct DiagnosticReporter {
 
 impl DiagnosticReporter {
     pub fn new(slice_options: &SliceOptions) -> Self {
-        let mut diagnostic_reporter = DiagnosticReporter {
-            diagnostics: Vec::new(),
+        // Validate any arguments passed to `--allow` on the command line.
+        let mut diagnostics = Vec::new();
+        validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostics);
+
+        DiagnosticReporter {
+            diagnostics,
             error_count: 0,
             warning_count: 0,
             treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
             allowed_warnings: slice_options.allowed_warnings.clone(),
-        };
-
-        // Validate any arguments passed to `--allow` on the command line.
-        validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostic_reporter);
-
-        diagnostic_reporter
+        }
     }
 
     /// Checks if any errors have been reported during compilation.

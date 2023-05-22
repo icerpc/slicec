@@ -95,77 +95,69 @@ pub enum TokenKind<'input> {
 }
 
 impl fmt::Display for TokenKind<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match &self {
-            TokenKind::Identifier(input) => input,     // "[_a-zA-Z][_a-zA-Z0-9]*"
-            TokenKind::IntegerLiteral(input) => input, // "[0-9][a-zA-Z0-9]*"
-            TokenKind::StringLiteral(input) => input,
-            TokenKind::DocComment(input) => input,
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            Self::Identifier(identifier) => write!(f, "identifier"),
+            Self::IntegerLiteral(i) => write!(f, "{i}"),
+            Self::StringLiteral(s) => write!(f, "{s}"),
+            Self::DocComment(_) => f.write_str("doc comment"),
 
-            // Definition keywords
-            TokenKind::ModuleKeyword => "module",
-            TokenKind::StructKeyword => "struct",
-            TokenKind::ExceptionKeyword => "exception",
-            TokenKind::ClassKeyword => "class",
-            TokenKind::InterfaceKeyword => "interface",
-            TokenKind::EnumKeyword => "enum",
-            TokenKind::CustomKeyword => "custom",
-            TokenKind::TypeAliasKeyword => "typealias",
-
-            // Collection keywords
-            TokenKind::SequenceKeyword => "sequence",
-            TokenKind::DictionaryKeyword => "dictionary",
-
-            // Primitive type keywords
-            TokenKind::BoolKeyword => "bool",
-            TokenKind::Int8Keyword => "int8",
-            TokenKind::UInt8Keyword => "uint8",
-            TokenKind::Int16Keyword => "int16",
-            TokenKind::UInt16Keyword => "uint16",
-            TokenKind::Int32Keyword => "int32",
-            TokenKind::UInt32Keyword => "uint32",
-            TokenKind::VarInt32Keyword => "varint32",
-            TokenKind::VarUInt32Keyword => "varuint32",
-            TokenKind::Int64Keyword => "int64",
-            TokenKind::UInt64Keyword => "uint64",
-            TokenKind::VarInt62Keyword => "varint62",
-            TokenKind::VarUInt62Keyword => "varuint62",
-            TokenKind::Float32Keyword => "float32",
-            TokenKind::Float64Keyword => "float64",
-            TokenKind::StringKeyword => "string",
-            TokenKind::AnyClassKeyword => "AnyClass",
-
-            // Other keywords
-            TokenKind::AnyExceptionKeyword => "AnyException",
-            TokenKind::CompactKeyword => "compact",
-            TokenKind::EncodingKeyword => "encoding",
-            TokenKind::IdempotentKeyword => "idempotent",
-            TokenKind::StreamKeyword => "stream",
-            TokenKind::TagKeyword => "tag",
-            TokenKind::ThrowsKeyword => "throws",
-            TokenKind::UncheckedKeyword => "unchecked",
-
-            // Brackets
-            TokenKind::LeftParenthesis => "(",
-            TokenKind::RightParenthesis => ")",
-            TokenKind::LeftBracket => "[",
-            TokenKind::RightBracket => "]",
-            TokenKind::DoubleLeftBracket => "[[",
-            TokenKind::DoubleRightBracket => "]]",
-            TokenKind::LeftBrace => "{",
-            TokenKind::RightBrace => "}",
-            TokenKind::LeftChevron => "<",
-            TokenKind::RightChevron => ">",
+            // Keywords
+            Self::ModuleKeyword => f.write_str("module"),
+            Self::StructKeyword => f.write_str("struct"),
+            Self::ExceptionKeyword => f.write_str("exception"),
+            Self::ClassKeyword => f.write_str("class"),
+            Self::InterfaceKeyword => f.write_str("interface"),
+            Self::EnumKeyword => f.write_str("enum"),
+            Self::CustomKeyword => f.write_str("custom"),
+            Self::TypeAliasKeyword => f.write_str("typealias"),
+            Self::SequenceKeyword => f.write_str("sequence"),
+            Self::DictionaryKeyword => f.write_str("dictionary"),
+            Self::BoolKeyword => f.write_str("bool"),
+            Self::Int8Keyword => f.write_str("int8"),
+            Self::UInt8Keyword => f.write_str("uint8"),
+            Self::Int16Keyword => f.write_str("int16"),
+            Self::UInt16Keyword => f.write_str("uint16"),
+            Self::Int32Keyword => f.write_str("int32"),
+            Self::UInt32Keyword => f.write_str("uint32"),
+            Self::VarInt32Keyword => f.write_str("varint32"),
+            Self::VarUInt32Keyword => f.write_str("varuint32"),
+            Self::Int64Keyword => f.write_str("int64"),
+            Self::UInt64Keyword => f.write_str("uint64"),
+            Self::VarInt62Keyword => f.write_str("varint62"),
+            Self::VarUInt62Keyword => f.write_str("varuint62"),
+            Self::Float32Keyword => f.write_str("float32"),
+            Self::Float64Keyword => f.write_str("float64"),
+            Self::StringKeyword => f.write_str("string"),
+            Self::AnyClassKeyword => f.write_str("AnyClass"),
+            Self::AnyExceptionKeyword => f.write_str("AnyException"),
+            Self::CompactKeyword => f.write_str("compact"),
+            Self::EncodingKeyword => f.write_str("encoding"),
+            Self::IdempotentKeyword => f.write_str("idempotent"),
+            Self::StreamKeyword => f.write_str("stream"),
+            Self::TagKeyword => f.write_str("tag"),
+            Self::ThrowsKeyword => f.write_str("throws"),
+            Self::UncheckedKeyword => f.write_str("unchecked"),
 
             // Symbols
-            TokenKind::Comma => ",",
-            TokenKind::Colon => ":",
-            TokenKind::DoubleColon => "::",
-            TokenKind::Equals => "=",
-            TokenKind::QuestionMark => "?",
-            TokenKind::Arrow => "->",
-            TokenKind::Minus => "-",
-        })
+            Self::LeftParenthesis => f.write_str("("),
+            Self::RightParenthesis => f.write_str(")"),
+            Self::LeftBracket => f.write_str("["),
+            Self::RightBracket => f.write_str("]"),
+            Self::DoubleLeftBracket => f.write_str("[["),
+            Self::DoubleRightBracket => f.write_str("]]"),
+            Self::LeftBrace => f.write_str("{"),
+            Self::RightBrace => f.write_str("}"),
+            Self::LeftChevron => f.write_str("<"),
+            Self::RightChevron => f.write_str(">"),
+            Self::Comma => f.write_str(","),
+            Self::Colon => f.write_str(":"),
+            Self::DoubleColon => f.write_str("::"),
+            Self::Equals => f.write_str("="),
+            Self::QuestionMark => f.write_str("?"),
+            Self::Arrow => f.write_str("->"),
+            Self::Minus => f.write_str("-"),
+        }
     }
 }
 
@@ -186,4 +178,17 @@ pub enum ErrorKind {
     /// Returned when a block comment is missing its closing "*/".
     /// Ex: `/* this is a bad comment`, there's no closing "*/" before EOF.
     UnterminatedBlockComment,
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        match self {
+            Self::UnknownSymbol { symbol, suggestion } => match suggestion {
+                Some(s) => write!(f, "unknown symbol '{symbol}', try using '{s}' instead"),
+                None => write!(f, "unknown symbol '{symbol}'"),
+            },
+            Self::UnterminatedStringLiteral => f.write_str("unterminated string literal"),
+            Self::UnterminatedBlockComment => f.write_str("unterminated block comment"),
+        }
+    }
 }

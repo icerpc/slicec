@@ -5,7 +5,7 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
-use self::tokens::{ErrorKind, TokenKind};
+use self::tokens::TokenKind;
 use crate::diagnostics::{Diagnostic, Error};
 use crate::slice_file::{Location, Span};
 
@@ -21,19 +21,8 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
         ParseError::User {
             error: (start, parse_error_kind, end),
         } => {
-            let converted = match parse_error_kind {
-                ErrorKind::UnknownSymbol { symbol, suggestion } => Error::Syntax {
-                    message: match suggestion {
-                        Some(s) => format!("unknown symbol '{symbol}', try using '{s}' instead"),
-                        None => format!("unknown symbol '{symbol}'"),
-                    },
-                },
-                ErrorKind::UnterminatedStringLiteral => Error::Syntax {
-                    message: "unterminated string literal".to_owned(),
-                },
-                ErrorKind::UnterminatedBlockComment => Error::Syntax {
-                    message: "unterminated block comment".to_owned(),
-                },
+            let converted = Error::Syntax {
+                message: parse_error_kind.to_string(),
             };
             Diagnostic::new(converted).set_span(&Span::new(start, end, file_name))
         }
@@ -53,15 +42,11 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
             Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
-        // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.
-        ParseError::InvalidToken { .. } => panic!("impossible 'InvalidToken' encountered in preprocessor"),
-
-        // Only rules that explicitly match 'EOF' or only match a finite number of tokens can emit this error.
-        // None of our rules do, so this is impossible (there's no limit to the length of a slice file's contents).
-        ParseError::ExtraToken { .. } => panic!("impossible 'ExtraToken' encountered in preprocessor"),
+        _ => unreachable!("impossible error encountered in Slice parser: '{parse_error:?}'"),
     }
 }
 
+// TODO: simplify this or merge the match statements in this function and tokens.rs together.
 fn clean_message(expected: &[String]) -> String {
     let keyword = expected
         .iter()
