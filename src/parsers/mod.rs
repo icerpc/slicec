@@ -14,24 +14,26 @@ mod slice;
 
 use crate::ast::Ast;
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::Diagnostic;
 use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
 pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
     for file in state.files.values_mut() {
-        parse_file(file, &mut state.ast, &mut state.diagnostic_reporter, symbols.clone());
+        // Attempt to parse the file.
+        let mut diagnostics = Vec::new();
+        parse_file(file, &mut state.ast, &mut diagnostics, symbols.clone());
+
+        // Forward any diagnostics that were emitted during parsing to the diagnostic reporter.
+        for diagnostic in diagnostics {
+            diagnostic.report(&mut state.diagnostic_reporter);
+        }
     }
 }
 
-fn parse_file(
-    file: &mut SliceFile,
-    ast: &mut Ast,
-    diagnostic_reporter: &mut DiagnosticReporter,
-    mut symbols: HashSet<String>,
-) {
+fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnostic>, mut symbols: HashSet<String>) {
     // Pre-process the file's raw text.
-    let mut preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostic_reporter);
+    let preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostics);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
 
     // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
@@ -43,8 +45,8 @@ fn parse_file(
     }
 
     // Parse the preprocessed text.
-    let mut parser = Parser::new(&file.relative_path, ast, diagnostic_reporter);
-    let Ok((file_encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return };
+    let parser = Parser::new(&file.relative_path, ast, diagnostics);
+    let Ok((file_encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
 
     // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
     let top_level_modules = modules

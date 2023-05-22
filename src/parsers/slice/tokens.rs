@@ -96,75 +96,67 @@ pub enum TokenKind<'input> {
 
 impl fmt::Display for TokenKind<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match &self {
-            TokenKind::Identifier(input) => input,     // "[_a-zA-Z][_a-zA-Z0-9]*"
-            TokenKind::IntegerLiteral(input) => input, // "[0-9][a-zA-Z0-9]*"
-            TokenKind::StringLiteral(input) => input,
-            TokenKind::DocComment(input) => input,
+        f.write_str(match self {
+            Self::Identifier(input) => input,
+            Self::IntegerLiteral(input) => input,
+            Self::StringLiteral(input) => input,
+            Self::DocComment(input) => input,
 
-            // Definition keywords
-            TokenKind::ModuleKeyword => "module",
-            TokenKind::StructKeyword => "struct",
-            TokenKind::ExceptionKeyword => "exception",
-            TokenKind::ClassKeyword => "class",
-            TokenKind::InterfaceKeyword => "interface",
-            TokenKind::EnumKeyword => "enum",
-            TokenKind::CustomKeyword => "custom",
-            TokenKind::TypeAliasKeyword => "typealias",
-
-            // Collection keywords
-            TokenKind::SequenceKeyword => "sequence",
-            TokenKind::DictionaryKeyword => "dictionary",
-
-            // Primitive type keywords
-            TokenKind::BoolKeyword => "bool",
-            TokenKind::Int8Keyword => "int8",
-            TokenKind::UInt8Keyword => "uint8",
-            TokenKind::Int16Keyword => "int16",
-            TokenKind::UInt16Keyword => "uint16",
-            TokenKind::Int32Keyword => "int32",
-            TokenKind::UInt32Keyword => "uint32",
-            TokenKind::VarInt32Keyword => "varint32",
-            TokenKind::VarUInt32Keyword => "varuint32",
-            TokenKind::Int64Keyword => "int64",
-            TokenKind::UInt64Keyword => "uint64",
-            TokenKind::VarInt62Keyword => "varint62",
-            TokenKind::VarUInt62Keyword => "varuint62",
-            TokenKind::Float32Keyword => "float32",
-            TokenKind::Float64Keyword => "float64",
-            TokenKind::StringKeyword => "string",
-            TokenKind::AnyClassKeyword => "AnyClass",
-
-            // Other keywords
-            TokenKind::AnyExceptionKeyword => "AnyException",
-            TokenKind::CompactKeyword => "compact",
-            TokenKind::EncodingKeyword => "encoding",
-            TokenKind::IdempotentKeyword => "idempotent",
-            TokenKind::StreamKeyword => "stream",
-            TokenKind::TagKeyword => "tag",
-            TokenKind::ThrowsKeyword => "throws",
-            TokenKind::UncheckedKeyword => "unchecked",
-
-            // Brackets
-            TokenKind::LeftParenthesis => "(",
-            TokenKind::RightParenthesis => ")",
-            TokenKind::LeftBracket => "[",
-            TokenKind::RightBracket => "]",
-            TokenKind::DoubleLeftBracket => "[[",
-            TokenKind::DoubleRightBracket => "]]",
-            TokenKind::LeftBrace => "{",
-            TokenKind::RightBrace => "}",
-            TokenKind::LeftChevron => "<",
-            TokenKind::RightChevron => ">",
+            // Keywords
+            Self::ModuleKeyword => "module",
+            Self::StructKeyword => "struct",
+            Self::ExceptionKeyword => "exception",
+            Self::ClassKeyword => "class",
+            Self::InterfaceKeyword => "interface",
+            Self::EnumKeyword => "enum",
+            Self::CustomKeyword => "custom",
+            Self::TypeAliasKeyword => "typealias",
+            Self::SequenceKeyword => "sequence",
+            Self::DictionaryKeyword => "dictionary",
+            Self::BoolKeyword => "bool",
+            Self::Int8Keyword => "int8",
+            Self::UInt8Keyword => "uint8",
+            Self::Int16Keyword => "int16",
+            Self::UInt16Keyword => "uint16",
+            Self::Int32Keyword => "int32",
+            Self::UInt32Keyword => "uint32",
+            Self::VarInt32Keyword => "varint32",
+            Self::VarUInt32Keyword => "varuint32",
+            Self::Int64Keyword => "int64",
+            Self::UInt64Keyword => "uint64",
+            Self::VarInt62Keyword => "varint62",
+            Self::VarUInt62Keyword => "varuint62",
+            Self::Float32Keyword => "float32",
+            Self::Float64Keyword => "float64",
+            Self::StringKeyword => "string",
+            Self::AnyClassKeyword => "AnyClass",
+            Self::AnyExceptionKeyword => "AnyException",
+            Self::CompactKeyword => "compact",
+            Self::EncodingKeyword => "encoding",
+            Self::IdempotentKeyword => "idempotent",
+            Self::StreamKeyword => "stream",
+            Self::TagKeyword => "tag",
+            Self::ThrowsKeyword => "throws",
+            Self::UncheckedKeyword => "unchecked",
 
             // Symbols
-            TokenKind::Comma => ",",
-            TokenKind::Colon => ":",
-            TokenKind::DoubleColon => "::",
-            TokenKind::Equals => "=",
-            TokenKind::QuestionMark => "?",
-            TokenKind::Arrow => "->",
-            TokenKind::Minus => "-",
+            Self::LeftParenthesis => "(",
+            Self::RightParenthesis => ")",
+            Self::LeftBracket => "[",
+            Self::RightBracket => "]",
+            Self::DoubleLeftBracket => "[[",
+            Self::DoubleRightBracket => "]]",
+            Self::LeftBrace => "{",
+            Self::RightBrace => "}",
+            Self::LeftChevron => "<",
+            Self::RightChevron => ">",
+            Self::Comma => ",",
+            Self::Colon => ":",
+            Self::DoubleColon => "::",
+            Self::Equals => "=",
+            Self::QuestionMark => "?",
+            Self::Arrow => "->",
+            Self::Minus => "-",
         })
     }
 }
@@ -186,4 +178,17 @@ pub enum ErrorKind {
     /// Returned when a block comment is missing its closing "*/".
     /// Ex: `/* this is a bad comment`, there's no closing "*/" before EOF.
     UnterminatedBlockComment,
+}
+
+impl fmt::Display for ErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownSymbol { symbol, suggestion } => match suggestion {
+                Some(s) => write!(f, "unknown symbol '{symbol}', try using '{s}' instead"),
+                None => write!(f, "unknown symbol '{symbol}'"),
+            },
+            Self::UnterminatedStringLiteral => f.write_str("unterminated string literal"),
+            Self::UnterminatedBlockComment => f.write_str("unterminated block comment"),
+        }
+    }
 }

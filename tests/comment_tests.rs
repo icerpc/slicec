@@ -534,7 +534,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Warning::MalformedDocComment {
-            message: "doc comment tag 'linked' is invalid".to_owned(),
+            message: "unknown doc comment tag 'linked'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

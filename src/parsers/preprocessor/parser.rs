@@ -1,31 +1,28 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::common::{ParserResult, SourceBlock};
+use super::super::common::{has_errors, ParserResult, SourceBlock};
+use super::construct_error_from;
+use super::grammar::lalrpop;
 use super::lexer::Lexer;
-use crate::diagnostics::DiagnosticReporter;
-
+use crate::diagnostics::Diagnostic;
 use std::collections::HashSet;
 
 /// Helper macro for generating parsing functions.
 macro_rules! implement_parse_function {
     ($function_name:ident, $underlying_parser:ident, $return_type:ty $(,)?) => {
         #[allow(clippy::result_unit_err)]
-        pub fn $function_name<'input>(&'a mut self, input: impl Into<Lexer<'input>>) -> ParserResult<$return_type> {
-            super::grammar::lalrpop::$underlying_parser::new()
-                .parse(self, input.into())
-                .map_err(|parse_error| {
-                    // Return any leftover errors that the parser didn't recover from.
-                    let error = super::construct_error_from(parse_error, self.file_name);
-                    error.report(self.diagnostic_reporter)
-                })
-                .and_then(|parse_value| {
-                    // Return an error if any errors were reported during parsing.
-                    if self.diagnostic_reporter.has_errors() {
-                        Err(())
-                    } else {
-                        Ok(parse_value)
-                    }
-                })
+        pub fn $function_name<'input>(mut self, input: impl Into<Lexer<'input>>) -> ParserResult<$return_type> {
+            match lalrpop::$underlying_parser::new().parse(&mut self, input.into()) {
+                Err(parse_error) => {
+                    let error = construct_error_from(parse_error, self.file_name);
+                    self.diagnostics.push(error);
+                    Err(())
+                }
+                Ok(parse_value) => match has_errors(self.diagnostics) {
+                    false => Ok(parse_value),
+                    true => Err(()),
+                },
+            }
         }
     };
 }
@@ -33,7 +30,7 @@ macro_rules! implement_parse_function {
 pub struct Preprocessor<'a> {
     pub file_name: &'a str,
     pub(super) definitions: &'a mut HashSet<String>,
-    pub(super) diagnostic_reporter: &'a mut DiagnosticReporter,
+    pub(super) diagnostics: &'a mut Vec<Diagnostic>,
 }
 
 impl<'a> Preprocessor<'a> {
@@ -43,15 +40,11 @@ impl<'a> Preprocessor<'a> {
         impl Iterator<Item = SourceBlock<'input>>,
     );
 
-    pub fn new(
-        file_name: &'a str,
-        definitions: &'a mut HashSet<String>,
-        diagnostic_reporter: &'a mut DiagnosticReporter,
-    ) -> Self {
+    pub fn new(file_name: &'a str, definitions: &'a mut HashSet<String>, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
         Preprocessor {
             file_name,
             definitions,
-            diagnostic_reporter,
+            diagnostics,
         }
     }
 }

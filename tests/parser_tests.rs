@@ -55,3 +55,30 @@ fn string_literals_cannot_contain_newlines() {
 
     check_diagnostics(diagnostics, [expected]);
 }
+
+// Ensure a syntax error in one file doesn't affect how we parse other files; See: github.com/icerpc/slicec/issues/559.
+#[test]
+fn files_are_parsed_independently() {
+    // Arrange
+    let slice1 = "
+        module Not-Valid
+    ";
+    let slice2 = "
+        module Also-Bogus
+    ";
+
+    // Act
+    let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
+
+    // Assert
+    let expected_message = "expected one of '::', '[', '{', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'module', 'struct', 'typealias', or 'unchecked', but found '-'";
+    let expected = [
+        Diagnostic::new(Error::Syntax {
+            message: expected_message.to_owned(),
+        }),
+        Diagnostic::new(Error::Syntax {
+            message: expected_message.to_owned(),
+        }),
+    ];
+    check_diagnostics(diagnostics, expected);
+}

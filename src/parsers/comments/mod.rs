@@ -5,7 +5,7 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
-use self::tokens::{Error, ErrorKind, TokenKind};
+use self::tokens::{Error, TokenKind};
 use crate::diagnostics::{Diagnostic, Warning};
 use crate::slice_file::{Location, Span};
 
@@ -21,27 +21,10 @@ fn construct_warning_from(parse_error: ParseError, file_name: &str) -> Diagnosti
         ParseError::User {
             error: (start, parse_error_kind, end),
         } => {
-            let warning = match parse_error_kind {
-                ErrorKind::UnknownSymbol { symbol } => Warning::MalformedDocComment {
-                    message: format!("unknown symbol '{symbol}'"),
-                },
-                ErrorKind::UnknownTag { tag } => Warning::MalformedDocComment {
-                    message: format!("doc comment tag '{tag}' is invalid"),
-                },
-                ErrorKind::MissingTag => Warning::MalformedDocComment {
-                    message: "missing doc comment tag".to_owned(),
-                },
-                ErrorKind::UnterminatedInlineTag => Warning::MalformedDocComment {
-                    message: "missing a closing '}' on an inline doc comment tag".to_owned(),
-                },
-                ErrorKind::IncorrectContextForTag { tag, is_inline } => Warning::MalformedDocComment {
-                    message: format!(
-                        "doc comment tag '{tag}' cannot be used {}",
-                        if is_inline { "inline" } else { "to start a block" },
-                    ),
-                },
+            let converted = Warning::MalformedDocComment {
+                message: parse_error_kind.to_string(),
             };
-            Diagnostic::new(warning).set_span(&Span::new(start, end, file_name))
+            Diagnostic::new(converted).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser encountered a token that didn't fit any grammar rule.

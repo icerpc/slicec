@@ -20,6 +20,8 @@ lalrpop_mod!(
 
 pub type Recovery<'a> = ErrorRecovery<Location, TokenKind<'a>, Error>;
 
+// Grammar Rule Functions
+
 /// Evaluates an if/elif/else statement and returns the source block contained by the first true conditional.
 /// If none of the conditions are true, and an else block is present, its source block is returned instead.
 /// If none of the conditions are true, and no else block is present, this function returns [None].
@@ -48,8 +50,8 @@ fn evaluate_if_statement<'a>(
 
 fn recover_from_error<T: Default>(preprocessor: &mut Preprocessor, recovery: Recovery) -> T {
     // Report the syntax error.
-    let error = super::construct_error_from(recovery.error, preprocessor.file_name);
-    error.report(preprocessor.diagnostic_reporter);
+    let diagnostic = super::construct_error_from(recovery.error, preprocessor.file_name);
+    preprocessor.diagnostics.push(diagnostic);
 
     // Recover by returning a dummy value.
     T::default()

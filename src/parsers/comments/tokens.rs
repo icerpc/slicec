@@ -3,6 +3,7 @@
 //! This module defines all the tokens and errors that the comment [Lexer](super::lexer::Lexer) can return.
 
 use crate::slice_file::Location;
+use std::fmt;
 
 pub type Token<'a> = (Location, TokenKind<'a>, Location);
 pub type Error<'a> = (Location, ErrorKind<'a>, Location);
@@ -57,4 +58,19 @@ pub enum ErrorKind<'input> {
     /// Some tags can only be used inline, and others can only be used to start a new section.
     /// Ex: `{@param MyParam}`, param tags can't be used inline, and must be at the start of a new section.
     IncorrectContextForTag { tag: &'input str, is_inline: bool },
+}
+
+impl fmt::Display for ErrorKind<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownSymbol { symbol } => write!(f, "unknown symbol '{symbol}'"),
+            Self::UnknownTag { tag } => write!(f, "unknown doc comment tag '{tag}'"),
+            Self::MissingTag => f.write_str("missing doc comment tag"),
+            Self::UnterminatedInlineTag => f.write_str("missing a closing '}' on an inline doc comment tag"),
+            Self::IncorrectContextForTag { tag, is_inline } => f.write_fmt(format_args!(
+                "doc comment tag '{tag}' cannot be used {}",
+                if *is_inline { "inline" } else { "to start a block" },
+            )),
+        }
+    }
 }

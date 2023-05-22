@@ -16,7 +16,7 @@ extern {
 
     // Link the names of terminal tokens with their actual token types. Ex: `identifier => TokenKind::Identifier`
     // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
-    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `token.rs`.
+    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `tokens.rs`.
     enum TokenKind<'input> {
         identifier => TokenKind::Identifier(<&'input str>),
         text => TokenKind::Text(<&'input str>),

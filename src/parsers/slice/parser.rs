@@ -1,9 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::common::{ParserResult, SourceBlock};
+use super::super::common::{has_errors, ParserResult, SourceBlock};
+use super::construct_error_from;
+use super::grammar::lalrpop;
 use super::lexer::Lexer;
 use crate::ast::Ast;
-use crate::diagnostics::DiagnosticReporter;
+use crate::diagnostics::Diagnostic;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 
@@ -11,16 +13,21 @@ use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 macro_rules! implement_parse_function {
     ($function_name:ident, $underlying_parser:ident, $return_type:ty $(,)?) => {
         #[allow(clippy::result_unit_err)]
-        pub fn $function_name<'input, T: Iterator<Item = SourceBlock<'input>>>(
-            &'a mut self,
-            input: impl Into<Lexer<'input, T>>,
-        ) -> ParserResult<$return_type> {
-            super::grammar::lalrpop::$underlying_parser::new()
-                .parse(self, input.into())
-                .map_err(|parse_error| {
-                    let error = super::construct_error_from(parse_error, self.file_name);
-                    error.report(self.diagnostic_reporter);
-                })
+        pub fn $function_name<'input, T>(mut self, input: impl Into<Lexer<'input, T>>) -> ParserResult<$return_type>
+        where
+            T: Iterator<Item = SourceBlock<'input>>,
+        {
+            match lalrpop::$underlying_parser::new().parse(&mut self, input.into()) {
+                Err(parse_error) => {
+                    let error = construct_error_from(parse_error, self.file_name);
+                    self.diagnostics.push(error);
+                    Err(())
+                }
+                Ok(parse_value) => match has_errors(self.diagnostics) {
+                    false => Ok(parse_value),
+                    true => Err(()),
+                },
+            }
         }
     };
 }
@@ -28,7 +35,7 @@ macro_rules! implement_parse_function {
 pub struct Parser<'a> {
     pub file_name: &'a str,
     pub(super) ast: &'a mut Ast,
-    pub(super) diagnostic_reporter: &'a mut DiagnosticReporter,
+    pub(super) diagnostics: &'a mut Vec<Diagnostic>,
     pub(super) current_scope: Scope,
     pub(super) file_encoding: Encoding,
     pub(super) last_enumerator_value: Option<i128>,
@@ -41,11 +48,11 @@ impl<'a> Parser<'a> {
         (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Vec<OwnedPtr<Module>>),
     );
 
-    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostic_reporter: &'a mut DiagnosticReporter) -> Self {
+    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
         Parser {
             file_name,
             ast,
-            diagnostic_reporter,
+            diagnostics,
             file_encoding: Encoding::default(),
             current_scope: Scope::default(),
             last_enumerator_value: None,

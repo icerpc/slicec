@@ -16,7 +16,7 @@ extern {
 
     // Link the names of terminal tokens with their actual token types. Ex: `identifier => TokenKind::Identifier`
     // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
-    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `token.rs`.
+    // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `tokens.rs`.
     enum TokenKind<'input> {
         identifier => TokenKind::Identifier(<&'input str>),
         source_block => TokenKind::SourceBlock(<SourceBlock<'input>>),
@@ -49,7 +49,7 @@ pub SliceFile: std::iter::Flatten<std::vec::IntoIter<Vec<SourceBlock<'input>>>> 
 }
 
 BlockContent: Vec<SourceBlock<'input>> = {
-    Main* => <>.into_iter().flatten().collect()
+    Main* => <>.into_iter().flatten().collect(),
 }
 
 Main: Vec<SourceBlock<'input>> = {
@@ -66,13 +66,13 @@ Main: Vec<SourceBlock<'input>> = {
 DefineDirective: () = {
     define_keyword <identifier> directive_end => {
         preprocessor.definitions.insert(<>.to_owned());
-    }
+    },
 }
 
 UndefineDirective: () = {
     undefine_keyword <identifier> directive_end => {
         preprocessor.definitions.remove(<>);
-    }
+    },
 }
 
 IfDirective = if_keyword <Expression> directive_end;
@@ -90,7 +90,7 @@ EndifDirective: () = {
 ConditionalStatement: Vec<SourceBlock<'input>> = {
     <if_block: (IfDirective BlockContent)> <elif_blocks: (ElifDirective BlockContent)*> <else_block: (ElseDirective <BlockContent>)?> EndifDirective => {
         evaluate_if_statement(if_block, elif_blocks, else_block)
-    }
+    },
 }
 
 Expression: bool = {
