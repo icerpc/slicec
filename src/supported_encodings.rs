@@ -25,11 +25,6 @@ impl SupportedEncodings {
         self.0.contains(encoding)
     }
 
-    /// Returns true if there are multiple supported encodings, and false otherwise.
-    pub fn supports_multiple_encodings(&self) -> bool {
-        self.0.len() > 1
-    }
-
     /// Returns true if there are no supported encodings, and false otherwise.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
