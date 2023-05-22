@@ -95,7 +95,7 @@ pub enum TokenKind<'input> {
 }
 
 impl fmt::Display for TokenKind<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Self::Identifier(input) => input,
             Self::IntegerLiteral(input) => input,
@@ -181,7 +181,7 @@ pub enum ErrorKind {
 }
 
 impl fmt::Display for ErrorKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnknownSymbol { symbol, suggestion } => match suggestion {
                 Some(s) => write!(f, "unknown symbol '{symbol}', try using '{s}' instead"),

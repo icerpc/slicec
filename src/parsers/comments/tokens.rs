@@ -61,7 +61,7 @@ pub enum ErrorKind<'input> {
 }
 
 impl fmt::Display for ErrorKind<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnknownSymbol { symbol } => write!(f, "unknown symbol '{symbol}'"),
             Self::UnknownTag { tag } => write!(f, "unknown doc comment tag '{tag}'"),
