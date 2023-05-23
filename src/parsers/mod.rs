@@ -48,8 +48,14 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
     let parser = Parser::new(&file.relative_path, ast, diagnostics);
     let Ok((file_encoding, attributes, module)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
 
+    // TODOAUSTIN change contents to no longer need a vec!
+    let file_module = module
+        .map(|m| ast.add_named_element(m))
+        .into_iter()
+        .collect();
+
     // Store the parsed data in the `SliceFile` it was parsed from.
     file.encoding = file_encoding;
     file.attributes = attributes;
-    file.contents = vec![ast.add_named_element(module)]; // TODOAUSTIN change contents to no longer need a vec!
+    file.contents = file_module;
 }

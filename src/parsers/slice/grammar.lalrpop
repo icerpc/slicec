@@ -95,8 +95,8 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, OwnedPtr<Module>) = {
-    <sfp: SliceFilePrelude> <flm: Module> => (sfp.0, sfp.1, flm),
+pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>) = {
+    <sfp: SliceFilePrelude> <flm: Module?> => (sfp.0, sfp.1, flm),
 }
 
 SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
