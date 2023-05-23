@@ -289,13 +289,15 @@ fn preprocessor_conditionals_can_contain_empty_source_blocks(slice: &str) {
 #[test]
 fn preprocessor_nested_conditional_blocks() {
     let slice = "
+        module Test
+
         #if !Foo
-            module NotFooModule {}
+            struct NotFooStruct {}
             #if !Bar
-                module NotBarModule {}
+                struct NotBarStruct {}
             #endif
         #else
-            module ElseModule {}
+            struct ElseStruct {}
         #endif
     ";
 
@@ -303,9 +305,9 @@ fn preprocessor_nested_conditional_blocks() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Module>("NotFooModule").is_ok());
-    assert!(ast.find_element::<Module>("NotBarModule").is_ok());
-    assert!(ast.find_element::<Module>("ElseModule").is_err());
+    assert!(ast.find_element::<Struct>("Test::NotFooStruct").is_ok());
+    assert!(ast.find_element::<Struct>("Test::NotBarStruct").is_ok());
+    assert!(ast.find_element::<Struct>("Test::ElseStruct").is_err());
 }
 
 #[test]

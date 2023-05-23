@@ -6,63 +6,24 @@ mod module {
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
     use slicec::grammar::*;
-    use test_case::test_case;
-
-    #[test_case("{}", false; "normal")]
-    #[test_case("", true; "file_scoped")]
-    fn can_be_defined(content: &str, expected: bool) {
-        // Arrange
-        let slice = format!("module Test {content}");
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        assert_eq!(ast.find_element::<Module>("Test").unwrap().is_file_scoped, expected);
-    }
 
     #[test]
-    fn can_be_reopened() {
+    fn can_be_defined() {
         // Arrange
-        let slice = "
-            module Test {
-                struct S1 {}
-            }
-
-            module Test {
-                struct S2 {}
-            }
-        ";
+        let slice = "module Test";
 
         // Act
         let ast = parse_for_ast(slice);
 
         // Assert
-        assert!(ast.find_element::<Struct>("Test::S1").is_ok());
-        assert!(ast.find_element::<Struct>("Test::S2").is_ok());
-    }
-
-    #[test]
-    fn can_be_nested() {
-        // Arrange
-        let slice = "
-            module A {
-                module B {}
-            }
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        assert!(ast.find_element::<Module>("A::B").is_ok());
+        assert!(ast.find_element::<Module>("Test").is_ok());
     }
 
     #[test]
     fn can_use_nested_syntax() {
         // Arrange
         let slice = "
-            module A::B::C::D {}
+            module A::B::C::D
         ";
 
         // Act
@@ -90,65 +51,39 @@ mod module {
     }
 
     #[test]
-    fn file_level_modules_can_not_contain_sub_modules() {
+    fn multiple_files_can_use_the_same_module() {
         // Arrange
-        let slice = "
-            module A
-
-            module B {}
-
-            module C {}
+        let slice1 = "
+            module Foo
+            struct Test1 {}
+        ";
+        let slice2 = "
+            module Foo
+            struct Test2 {}
         ";
 
         // Act
-        let diagnostics = parse_for_diagnostics(slice);
+        let ast = parse_multiple_for_ast(&[slice1, slice2]);
 
         // Assert
-        let expected = [
-            Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
-                identifier: "A".to_owned(),
-            }),
-            Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
-                identifier: "A".to_owned(),
-            }),
-        ];
-        check_diagnostics(diagnostics, expected);
-    }
-
-    #[test]
-    fn nested_file_level_modules_can_not_contain_sub_modules() {
-        // Arrange
-        let slice = "
-            module A::B::C::D
-
-            module E {}
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = [Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
-            identifier: "D".to_owned(),
-        })];
-        check_diagnostics(diagnostics, expected);
+        assert!(ast.find_element::<Struct>("Foo::Test1").is_ok());
+        assert!(ast.find_element::<Struct>("Foo::Test2").is_ok());
     }
 
     #[test]
     fn cross_module_redefinitions_are_disallowed() {
         // Arrange
-        let slice = "
-            module Foo {
-                struct Bar {}
-            }
-
-            module Foo {
-                struct Bar {}
-            }
+        let slice1 = "
+            module Foo
+            struct Bar {}
+        ";
+        let slice2 = "
+            module Foo
+            exception Bar {}
         ";
 
         // Act
-        let diagnostics = parse_for_diagnostics(slice);
+        let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
         let expected = Diagnostic::new(Error::Redefinition {
@@ -157,20 +92,5 @@ mod module {
         .add_note("'Bar' was previously defined here", None);
 
         check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test_case("Foo"; "module")]
-    #[test_case("Foo::Bar"; "nested module")]
-    fn modules_can_be_reopened(module_name: &str) {
-        // Arrange
-        let slice = format!(
-            "
-            module {module_name} {{}}
-            module {module_name} {{}}
-            "
-        );
-
-        // Act/Assert
-        assert_parses(slice);
     }
 }
