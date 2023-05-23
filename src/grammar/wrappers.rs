@@ -22,7 +22,7 @@ macro_rules! generate_definition_wrapper {
     };
 }
 
-generate_definition_wrapper!(Module, Struct, Class, Exception, Interface, Enum, CustomType, TypeAlias);
+generate_definition_wrapper!(Struct, Class, Exception, Interface, Enum, CustomType, TypeAlias);
 
 macro_rules! generate_entities_wrapper {
     ($($variant:ident),*) => {

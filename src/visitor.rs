@@ -120,7 +120,6 @@ impl Module {
         visitor.visit_module(self);
         for definition in &self.contents {
             match definition {
-                Definition::Module(module_def) => module_def.borrow().visit_with(visitor),
                 Definition::Struct(struct_def) => struct_def.borrow().visit_with(visitor),
                 Definition::Class(class_def) => class_def.borrow().visit_with(visitor),
                 Definition::Exception(exception_def) => exception_def.borrow().visit_with(visitor),

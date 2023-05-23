@@ -14,25 +14,6 @@ pub struct Module {
     pub span: Span,
 }
 
-impl Module {
-    pub fn is_top_level(&self) -> bool {
-        self.parent.is_none()
-    }
-
-    pub fn submodules(&self) -> Vec<&Module> {
-        self.contents
-            .iter()
-            .filter_map(|definition| {
-                if let Definition::Module(module_def) = definition {
-                    Some(module_def.borrow())
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-}
-
 impl Contained<Module> for Module {
     fn parent(&self) -> Option<&Module> {
         self.parent.as_ref().map(WeakPtr::borrow)

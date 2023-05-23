@@ -11,6 +11,7 @@ use crate::grammar::*;
 /// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.
 ///
 /// So we compute a map of all the contents in modules with the same name (fully scoped), then check that.
+// TODO fix this function! modules can't contain other modules now!
 pub fn validate_module_contents(compilation_state: &mut CompilationState) {
     let mut merged_module_contents: HashMap<String, Vec<&Definition>> = HashMap::new();
     for node in compilation_state.ast.as_slice() {
