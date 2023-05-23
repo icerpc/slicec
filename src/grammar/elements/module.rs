@@ -8,7 +8,6 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<Definition>,
-    pub is_file_scoped: bool,
     pub parent: Option<WeakPtr<Module>>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,

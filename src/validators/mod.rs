@@ -29,7 +29,7 @@ use dictionary::validate_dictionary;
 use enums::validate_enum;
 use identifiers::{validate_identifiers, validate_inherited_identifiers};
 use members::validate_members;
-use modules::{validate_module, validate_module_contents};
+use modules::validate_module_contents;
 use operations::validate_operation;
 use parameters::validate_parameters;
 use structs::validate_struct;
@@ -69,8 +69,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
     fn visit_module(&mut self, module_def: &Module) {
         reject_attributes!(module_def, self.diagnostic_reporter);
-
-        validate_module(module_def, self.diagnostic_reporter);
     }
 
     fn visit_class(&mut self, class: &Class) {

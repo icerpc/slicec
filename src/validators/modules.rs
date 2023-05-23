@@ -4,24 +4,8 @@ use std::collections::HashMap;
 
 use crate::ast::node::Node;
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Error};
 use crate::grammar::*;
-
-pub fn validate_module(module: &Module, diagnostic_reporter: &mut DiagnosticReporter) {
-    file_scoped_modules_cannot_contain_sub_modules(module, diagnostic_reporter);
-}
-
-fn file_scoped_modules_cannot_contain_sub_modules(module_def: &Module, diagnostic_reporter: &mut DiagnosticReporter) {
-    if module_def.is_file_scoped {
-        module_def.submodules().iter().for_each(|submodule| {
-            Diagnostic::new(Error::FileScopedModuleCannotContainSubModules {
-                identifier: module_def.identifier().to_owned(),
-            })
-            .set_span(submodule.span())
-            .report(diagnostic_reporter);
-        });
-    }
-}
 
 /// Since modules can be re-opened, but each module is a distinct element in the AST, our normal redefinition check
 /// is inadequate. If 2 modules have the same name we have to check for redefinitions across both modules.

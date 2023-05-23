@@ -133,7 +133,6 @@ fn construct_module(
                 span: span.clone(),
             },
             contents: Vec::new(),
-            is_file_scoped: false,
             parent: None,
             scope: parser.current_scope.clone(),
             attributes: Vec::new(),
@@ -149,7 +148,6 @@ fn construct_module(
     unsafe {
         // Any attributes, comments, or definitions belong to the innermost module, stored as `current_module`.
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
-        current_module.borrow_mut().is_file_scoped = true; // TODOAUSTIN do we need is_file_scoped anymore? Can be fixed?
         current_module.borrow_mut().attributes = attributes;
         for definition in definitions {
             match definition {
@@ -166,7 +164,7 @@ fn construct_module(
 
         // Work up the nested module syntax, storing each module in its parent until we reach the outer-most module.
         for mut parent_module in modules {
-            add_definition_to_module!(current_module, Module, parent_module, parser); // TODOAUSTIN can we fix this?
+            add_definition_to_module!(current_module, Module, parent_module, parser); // TODO cleanup module nesting.
             current_module = parent_module;
         }
     }
