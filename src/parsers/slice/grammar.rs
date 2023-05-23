@@ -112,7 +112,6 @@ fn construct_module(
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     definitions: Vec<Node>,
-    is_file_scoped: bool,
     span: Span,
 ) -> OwnedPtr<Module> {
     if !raw_comment.is_empty() {
@@ -150,11 +149,10 @@ fn construct_module(
     unsafe {
         // Any attributes, comments, or definitions belong to the innermost module, stored as `current_module`.
         // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
-        current_module.borrow_mut().is_file_scoped = is_file_scoped;
+        current_module.borrow_mut().is_file_scoped = true; // TODOAUSTIN do we need is_file_scoped anymore? Can be fixed?
         current_module.borrow_mut().attributes = attributes;
         for definition in definitions {
             match definition {
-                Node::Module(mut x) => add_definition_to_module!(x, Module, current_module, parser),
                 Node::Struct(mut x) => add_definition_to_module!(x, Struct, current_module, parser),
                 Node::Exception(mut x) => add_definition_to_module!(x, Exception, current_module, parser),
                 Node::Class(mut x) => add_definition_to_module!(x, Class, current_module, parser),
@@ -168,7 +166,7 @@ fn construct_module(
 
         // Work up the nested module syntax, storing each module in its parent until we reach the outer-most module.
         for mut parent_module in modules {
-            add_definition_to_module!(current_module, Module, parent_module, parser);
+            add_definition_to_module!(current_module, Module, parent_module, parser); // TODOAUSTIN can we fix this?
             current_module = parent_module;
         }
     }

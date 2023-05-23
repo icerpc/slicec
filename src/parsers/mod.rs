@@ -46,16 +46,10 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
 
     // Parse the preprocessed text.
     let parser = Parser::new(&file.relative_path, ast, diagnostics);
-    let Ok((file_encoding, attributes, modules)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
-
-    // Add the top-level-modules into the AST, but keep `WeakPtr`s to them.
-    let top_level_modules = modules
-        .into_iter()
-        .map(|module| ast.add_named_element(module))
-        .collect();
+    let Ok((file_encoding, attributes, module)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
 
     // Store the parsed data in the `SliceFile` it was parsed from.
     file.encoding = file_encoding;
     file.attributes = attributes;
-    file.contents = top_level_modules;
+    file.contents = vec![ast.add_named_element(module)]; // TODOAUSTIN change contents to no longer need a vec!
 }
