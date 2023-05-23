@@ -29,8 +29,7 @@ fn operation_members_are_compatible_with_encoding() {
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
         encoding: Encoding::Slice2,
-    })
-    .add_note("file encoding was set to Slice2 here:", None);
+    });
 
     check_diagnostics(diagnostics, [expected]);
 }

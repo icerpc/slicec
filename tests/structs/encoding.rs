@@ -27,8 +27,7 @@ mod slice1 {
             identifier: "A".to_owned(),
             encoding: Encoding::Slice1,
         })
-        .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None)
-        .add_note("file encoding was set to Slice1 here:", None);
+        .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None);
 
         check_diagnostics(diagnostics, [expected]);
     }
@@ -61,11 +60,7 @@ mod slice2 {
             kind: "AnyClass".to_owned(),
             encoding: Encoding::Slice2,
         })
-        .add_note("file is using the Slice2 encoding by default", None)
-        .add_note(
-            "to use a different encoding, specify it at the top of the slice file, e.g. 'encoding = Slice1'",
-            None,
-        );
+        .add_note("file is using the Slice2 encoding by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

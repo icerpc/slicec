@@ -52,15 +52,12 @@ pub enum Error {
 
     /// Optional are not supported in the specified encoding.
     OptionalsNotSupported {
-        /// The encoding that was specified.
-        encoding: Encoding,
+        /// The kind that is not supported.
+        kind: String,
     },
 
     /// Streamed parameters are not supported with the specified encoding.
-    StreamedParametersNotSupported {
-        ///  The encoding that was specified.
-        encoding: Encoding,
-    },
+    StreamedParametersNotSupported,
 
     /// A non-Slice1 operation used the `AnyException` keyword.
     AnyExceptionNotSupported,
@@ -114,10 +111,7 @@ pub enum Error {
 
     // ----------------  Exception Errors ---------------- //
     /// Exceptions cannot be used as a data type with the specified encoding.
-    ExceptionNotSupported {
-        /// The encoding that was specified.
-        encoding: Encoding,
-    },
+    ExceptionAsDataType,
 
     // ----------------  Operation Errors ---------------- //
     /// A streamed parameter was not the last parameter in the operation.
@@ -452,21 +446,19 @@ implement_diagnostic_functions!(
     ),
     (
         "E031",
-        ExceptionNotSupported,
-        format!("exceptions cannot be used as a data type with the {encoding} encoding"),
-        encoding
+        ExceptionAsDataType,
+        format!("exceptions cannot be used as a data type with the Slice1 encoding")
     ),
     (
         "E032",
         OptionalsNotSupported,
-        format!("optional types are not supported by the {encoding} encoding (except for classes, proxies, and with tags)"),
-        encoding
+        format!("'{kind}' is not a supported optional type with the Slice1 encoding"),
+        kind
     ),
     (
         "E033",
         StreamedParametersNotSupported,
-        format!("streamed parameters are not supported by the {encoding} encoding"),
-        encoding
+        format!("streamed parameters are not supported by the Slice1 encoding")
     ),
     (
         "E034",

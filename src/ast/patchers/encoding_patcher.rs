@@ -124,10 +124,11 @@ impl EncodingPatcher<'_> {
         type_ref: &TypeRef<impl Type + ?Sized>,
         file_encoding: &Encoding,
         mut allow_nullable_with_slice_1: bool,
+        container: Option<&dyn Entity>,
     ) -> SupportedEncodings {
         // If we encounter a type that isn't supported by its file's encodings, and we know a specific reason why, we
         // store an explanation in this variable. If it's empty, we report a generic message.
-        let mut errors = Vec::new();
+        let mut diagnostics = Vec::new();
 
         let mut supported_encodings = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_encodings_for(struct_def),
@@ -136,9 +137,8 @@ impl EncodingPatcher<'_> {
                 // Exceptions can't be used as a data type with Slice1.
                 encodings.disable(Encoding::Slice1);
                 if *file_encoding == Encoding::Slice1 {
-                    errors.push(Error::ExceptionNotSupported {
-                        encoding: Encoding::Slice1,
-                    });
+                    let diagnostic = Diagnostic::new(Error::ExceptionAsDataType).set_span(type_ref.span());
+                    diagnostics.push(diagnostic);
                 }
                 encodings
             }
@@ -157,14 +157,14 @@ impl EncodingPatcher<'_> {
             }
             Types::Sequence(sequence) => {
                 // Sequences are supported by any encoding that supports their elements.
-                self.get_supported_encodings_for_type_ref(&sequence.element_type, file_encoding, false)
+                self.get_supported_encodings_for_type_ref(&sequence.element_type, file_encoding, false, None)
             }
             Types::Dictionary(dictionary) => {
                 // Dictionaries are supported by any encoding that supports their keys and values.
                 let key_encodings =
-                    self.get_supported_encodings_for_type_ref(&dictionary.key_type, file_encoding, false);
+                    self.get_supported_encodings_for_type_ref(&dictionary.key_type, file_encoding, false, None);
                 let value_encodings =
-                    self.get_supported_encodings_for_type_ref(&dictionary.value_type, file_encoding, false);
+                    self.get_supported_encodings_for_type_ref(&dictionary.value_type, file_encoding, false, None);
 
                 let mut supported_encodings = key_encodings;
                 supported_encodings.intersect_with(&value_encodings);
@@ -182,9 +182,13 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
             if *file_encoding == Encoding::Slice1 {
-                errors.push(Error::OptionalsNotSupported {
-                    encoding: Encoding::Slice1,
-                });
+                let diagnostic = Diagnostic::new(Error::OptionalsNotSupported {
+                    kind: type_ref.definition().kind().to_owned(),
+                })
+                .set_span(type_ref.span())
+                .add_notes(disallowed_optional_suggestions(type_ref, container));
+
+                diagnostics.push(diagnostic);
             }
         }
 
@@ -193,19 +197,19 @@ impl EncodingPatcher<'_> {
             supported_encodings
         } else {
             // If no specific reasons were given for the error, generate a generic one.
-            if errors.is_empty() {
-                let error = Error::UnsupportedType {
+            if diagnostics.is_empty() {
+                let diagnostic = Diagnostic::new(Error::UnsupportedType {
                     kind: type_ref.type_string(),
                     encoding: *file_encoding,
-                };
-                errors.push(error);
+                })
+                .set_span(type_ref.span())
+                .add_notes(self.get_file_encoding_mismatch_notes(type_ref));
+
+                diagnostics.push(diagnostic);
             }
 
-            for error in errors {
-                Diagnostic::new(error)
-                    .set_span(type_ref.span())
-                    .add_notes(self.get_file_encoding_mismatch_notes(type_ref))
-                    .report(self.diagnostic_reporter);
+            for diagnostic in diagnostics {
+                diagnostic.report(self.diagnostic_reporter);
             }
 
             // Return a dummy value that supports all encodings, instead of the real result.
@@ -219,27 +223,53 @@ impl EncodingPatcher<'_> {
         let file_name = &symbol.span().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
-        // Emit a note explaining why the file has the Slice encoding it does.
-        if let Some(file_encoding) = &slice_file.encoding {
+        // Emit a note if the file is using the default encoding.
+        if slice_file.encoding.is_none() {
             vec![Note {
-                message: format!("file encoding was set to {} here:", &file_encoding.version),
-                span: Some(file_encoding.span().clone()),
+                message: format!("file is using the {} encoding by default", Encoding::default()),
+                span: None,
             }]
         } else {
-            vec![
-                Note {
-                    message: format!("file is using the {} encoding by default", Encoding::default()),
-                    span: None,
-                },
-                Note {
-                    message:
-                        "to use a different encoding, specify it at the top of the slice file, e.g. 'encoding = Slice1'"
-                            .to_owned(),
-                    span: None,
-                },
-            ]
+            vec![]
         }
     }
+}
+
+fn disallowed_optional_suggestions(
+    type_ref: &TypeRef<impl Type + ?Sized>,
+    container: Option<&dyn Entity>,
+) -> Vec<Note> {
+    let mut notes = vec![];
+    if let Some(container) = container {
+        match container.concrete_entity() {
+            Entities::Field(field) => match field.parent().unwrap().concrete_entity() {
+                // If the field's parent is a class or exception, recommend using a tag.
+                Entities::Class(..) | Entities::Exception(..) => notes.push(Note {
+                    message: format!(
+                        "consider using a tag, e.g. 'tag(n) {}: {}'",
+                        field.identifier(),
+                        type_ref.type_string(),
+                    ),
+                    span: None,
+                }),
+                _ => {}
+            },
+            // If container is an operation parameter, recommend using a tag.
+            Entities::Parameter(parameter) => {
+                notes.push(Note {
+                    message: format!(
+                        "consider using a tag, e.g. 'tag(n) {}: {}'",
+                        parameter.identifier(),
+                        type_ref.type_string(),
+                    ),
+                    span: None,
+                });
+            }
+            _ => {}
+        }
+    }
+
+    notes
 }
 
 trait ComputeSupportedEncodings {
@@ -270,6 +300,7 @@ impl ComputeSupportedEncodings for Struct {
                 field.data_type(),
                 file_encoding,
                 field.is_tagged(),
+                Some(field),
             ));
         }
 
@@ -304,6 +335,7 @@ impl ComputeSupportedEncodings for Exception {
                 field.data_type(),
                 file_encoding,
                 field.is_tagged(),
+                Some(field),
             ));
         }
 
@@ -338,6 +370,7 @@ impl ComputeSupportedEncodings for Class {
                 field.data_type(),
                 file_encoding,
                 field.is_tagged(),
+                Some(field),
             ));
         }
 
@@ -369,16 +402,18 @@ impl ComputeSupportedEncodings for Interface {
         for operation in self.all_operations() {
             for member in operation.parameters_and_return_members() {
                 // This method automatically emits errors for encoding mismatches.
-                patcher.get_supported_encodings_for_type_ref(member.data_type(), file_encoding, member.is_tagged());
+                patcher.get_supported_encodings_for_type_ref(
+                    member.data_type(),
+                    file_encoding,
+                    member.is_tagged(),
+                    Some(member),
+                );
 
                 // Streamed parameters are not supported by the Slice1 encoding.
                 if member.is_streamed && *file_encoding == Encoding::Slice1 {
-                    Diagnostic::new(Error::StreamedParametersNotSupported {
-                        encoding: Encoding::Slice1,
-                    })
-                    .set_span(member.span())
-                    .add_notes(patcher.get_file_encoding_mismatch_notes(member))
-                    .report(patcher.diagnostic_reporter)
+                    Diagnostic::new(Error::StreamedParametersNotSupported)
+                        .set_span(member.span())
+                        .report(patcher.diagnostic_reporter)
                 }
             }
 
@@ -401,7 +436,6 @@ impl ComputeSupportedEncodings for Interface {
                     if *file_encoding != Encoding::Slice1 {
                         Diagnostic::new(Error::AnyExceptionNotSupported)
                             .set_span(operation.span())
-                            .add_notes(patcher.get_file_encoding_mismatch_notes(operation))
                             .report(patcher.diagnostic_reporter)
                     }
                 }
@@ -425,6 +459,7 @@ impl ComputeSupportedEncodings for Enum {
                 underlying_type,
                 file_encoding,
                 false,
+                Some(self),
             ));
 
             // Enums with underlying types are not supported by the Slice1 encoding.
@@ -479,6 +514,7 @@ impl ComputeSupportedEncodings for TypeAlias {
             &self.underlying,
             file_encoding,
             false,
+            Some(self),
         ));
         None
     }
