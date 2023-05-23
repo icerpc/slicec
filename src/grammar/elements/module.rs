@@ -8,18 +8,24 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<Definition>,
-    pub parent: Option<WeakPtr<Module>>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub span: Span,
 }
 
-impl Contained<Module> for Module {
-    fn parent(&self) -> Option<&Module> {
-        self.parent.as_ref().map(WeakPtr::borrow)
+impl Attributable for Module {
+    fn attributes(&self) -> Vec<&Attribute> {
+        self.attributes.iter().map(WeakPtr::borrow).collect::<Vec<_>>()
+    }
+
+    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
+        vec![self.attributes()]
     }
 }
 
 implement_Element_for!(Module, "module");
-implement_Entity_for!(Module);
+implement_Symbol_for!(Module);
+implement_Named_Symbol_for!(Module);
+implement_Scoped_Symbol_for!(Module);
 implement_Container_for!(Module, Definition, contents);
+impl Entity for Module {}

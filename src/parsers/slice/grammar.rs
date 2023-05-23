@@ -125,12 +125,11 @@ fn construct_module(
     // TODO this function needs some cleanup still!
 
     let mut module = OwnedPtr::new(Module {
-            identifier,
-            contents: Vec::new(),
-            parent: None,   // TODO modules can never have a parent now
-            scope: parser.current_scope.clone(),
-            attributes,
-            span,
+        identifier,
+        contents: Vec::new(),
+        scope: parser.current_scope.clone(),
+        attributes,
+        span,
     });
 
     unsafe {
