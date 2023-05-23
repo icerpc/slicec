@@ -81,7 +81,7 @@ pub trait Container<T>: Entity {
 }
 
 pub trait Contained<T: Entity + ?Sized>: Entity {
-    fn parent(&self) -> Option<&T>;
+    fn parent(&self) -> &T;
 }
 
 pub trait Member: Entity {
@@ -170,11 +170,7 @@ macro_rules! implement_Attributable_for {
 
             fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
                 let mut attributes_list = vec![self.attributes()];
-
-                if let Some(parent) = self.parent() {
-                    attributes_list.extend(parent.all_attributes());
-                }
-
+                attributes_list.extend(self.parent().all_attributes());
                 attributes_list
             }
         }
@@ -215,8 +211,8 @@ macro_rules! implement_Container_for {
 macro_rules! implement_Contained_for {
     ($type:ty, $container_type:ty) => {
         impl Contained<$container_type> for $type {
-            fn parent(&self) -> Option<&$container_type> {
-                Some(self.parent.borrow())
+            fn parent(&self) -> &$container_type {
+                self.parent.borrow()
             }
         }
     };
