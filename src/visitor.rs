@@ -105,7 +105,7 @@ impl SliceFile {
     /// the top level modules in the file.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_file(self);
-        for module_def in &self.contents {
+        if let Some(module_def) = &self.contents {
             module_def.borrow().visit_with(visitor);
         }
     }

@@ -39,7 +39,7 @@ pub fn validate_module_contents(compilation_state: &mut CompilationState) {
             // that's allowed. If both identifiers are the same and either definition is not a module, then we have a
             // redefinition error.
             if identifier_0.value == identifier_1.value
-                && !(matches!(window[0], Definition::Module(_)) && matches!(window[1], Definition::Module(_)))
+            //TODO not possible anymore: && !(matches!(window[0], Definition::Module(_)) && matches!(window[1], Definition::Module(_)))
             {
                 Diagnostic::new(Error::Redefinition {
                     identifier: identifier_1.value.clone(),
