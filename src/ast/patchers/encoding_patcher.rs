@@ -260,7 +260,7 @@ fn disallowed_optional_suggestion(
         message: format!(
             "consider using a tag, e.g. 'tag(n) {}: {}'",
             identifier,
-            type_ref.type_string()
+            type_ref.type_string(),
         ),
         span: None,
     })
