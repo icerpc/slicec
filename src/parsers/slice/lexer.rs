@@ -46,7 +46,12 @@ where
     T: Iterator<Item = SourceBlock<'input>>,
 {
     fn new(mut input: T) -> Self {
-        let current_block = input.next().expect("Cannot create lexer over an empty input");
+        // If the input is empty create a dummy source block that's empty and will cause the lexer to immediately exit.
+        let current_block = input.next().unwrap_or_else(|| SourceBlock {
+            content: "",
+            start: Location::default(),
+            end: Location::default(),
+        });
         let buffer = current_block.content.char_indices().peekable();
         let start_location = current_block.start;
 
