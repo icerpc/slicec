@@ -30,8 +30,7 @@ mod slice1 {
         .add_note(
             "enums with underlying types are not supported by the Slice1 encoding",
             None,
-        )
-        .add_note("file encoding was set to Slice1 here:", None);
+        );
 
         check_diagnostics(diagnostics, [expected]);
     }

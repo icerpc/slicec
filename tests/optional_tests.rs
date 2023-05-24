@@ -113,17 +113,14 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: type_name.to_owned(),
             })
             .set_span(&Span::new(
                 (5, 24).into(),
                 (5, 24 + type_name.len() + 1).into(),
                 "string-0",
-            ))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            ));
+
             check_diagnostics(diagnostics, [expected]);
         }
 
@@ -151,9 +148,9 @@ mod optional {
             assert!(field.data_type.is_optional);
         }
 
-        #[test_case("compact struct Foo {}"; "r#struct")]
-        #[test_case("unchecked enum Foo {}"; "r#enum")]
-        fn optional_user_defined_types_are_disallowed(definition: &str) {
+        #[test_case("compact struct Foo {}", "struct"; "r#struct")]
+        #[test_case("unchecked enum Foo {}", "enum"; "r#enum")]
+        fn optional_user_defined_types_are_disallowed(definition: &str, type_name: &str) {
             // Arrange
             let slice = format!(
                 "
@@ -171,13 +168,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: type_name.to_owned(),
             })
-            .set_span(&Span::new((6, 24).into(), (6, 28).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((6, 24).into(), (6, 28).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -218,13 +211,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "bool".to_owned(),
             })
-            .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -248,13 +237,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "uint8".to_owned(),
             })
-            .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -275,13 +260,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "int32".to_owned(),
             })
-            .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -323,13 +304,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "bool".to_owned(),
             })
-            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -375,13 +352,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "float64".to_owned(),
             })
-            .set_span(&Span::new((5, 29).into(), (5, 37).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 29).into(), (5, 37).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -402,13 +375,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                encoding: Encoding::Slice1,
+                kind: "bool".to_owned(),
             })
-            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"))
-            .add_note(
-                "file encoding was set to Slice1 here:",
-                Some(&Span::new((2, 17).into(), (2, 34).into(), "string-0")),
-            );
+            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }

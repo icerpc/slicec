@@ -4,7 +4,6 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an
     /// exception that is a field.
@@ -26,10 +25,7 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::ExceptionNotSupported {
-            encoding: Encoding::Slice1,
-        })
-        .add_note("file encoding was set to Slice1 here:", None);
+        let expected = Diagnostic::new(Error::ExceptionAsDataType);
 
         check_diagnostics(diagnostics, [expected]);
     }
@@ -64,11 +60,7 @@ mod slice2 {
             encoding: Encoding::Slice2,
         })
         .add_note("exception inheritance is only supported by the Slice1 encoding", None)
-        .add_note("file is using the Slice2 encoding by default", None)
-        .add_note(
-            "to use a different encoding, specify it at the top of the slice file, e.g. 'encoding = Slice1'",
-            None,
-        );
+        .add_note("file is using the Slice2 encoding by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

@@ -25,11 +25,7 @@ mod slice2 {
         };
         let expected = Diagnostic::new(error)
             .add_note("classes are only supported by the Slice1 encoding", None)
-            .add_note("file is using the Slice2 encoding by default", None)
-            .add_note(
-                "to use a different encoding, specify it at the top of the slice file, e.g. 'encoding = Slice1'",
-                None,
-            );
+            .add_note("file is using the Slice2 encoding by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

@@ -79,13 +79,11 @@ fn invalid_mixed_encoding_fails() {
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
             encoding: Encoding::Slice1,
-        })
-        .add_note("file encoding was set to Slice1 here:", None),
+        }),
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
             encoding: Encoding::Slice1,
-        })
-        .add_note("file encoding was set to Slice1 here:", None),
+        }),
     ];
     check_diagnostics(diagnostics, expected);
 }

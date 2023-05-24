@@ -36,17 +36,9 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
     let preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostics);
     let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
 
-    // If no text remains after pre-processing, the file is empty and we can skip parsing and exit early.
-    // To check the length of the preprocessed text without consuming the iterator we convert it to a peekable iterator,
-    // then check the peek value.
-    let mut peekable_preprocessed_text = preprocessed_text.peekable();
-    if peekable_preprocessed_text.peek().is_none() {
-        return;
-    }
-
     // Parse the preprocessed text.
     let parser = Parser::new(&file.relative_path, ast, diagnostics);
-    let Ok((file_encoding, attributes, module)) = parser.parse_slice_file(peekable_preprocessed_text) else { return; };
+    let Ok((file_encoding, attributes, module)) = parser.parse_slice_file(preprocessed_text) else { return; };
 
     // Store the parsed data in the `SliceFile` it was parsed from.
     file.encoding = file_encoding;
