@@ -49,7 +49,7 @@ pub struct SliceFile {
     pub filename: String,
     pub relative_path: String,
     pub raw_text: String,
-    pub contents: Vec<WeakPtr<Module>>,
+    pub contents: Option<WeakPtr<Module>>, // TODO split the module declaration from the contents.
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub encoding: Option<FileEncoding>,
     pub is_source: bool,
@@ -95,7 +95,7 @@ impl SliceFile {
             filename,
             relative_path,
             raw_text,
-            contents: Vec::new(),
+            contents: None,
             attributes: Vec::new(),
             encoding: None,
             is_source,

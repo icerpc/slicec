@@ -58,11 +58,6 @@ macro_rules! set_fields_for {
 // 2. Move the definition into the AST and keep a pointer to it.
 // 3. Convert the pointer to a Definition and store it in the module.
 macro_rules! add_definition_to_module {
-    ($child:expr,Module, $module_ptr:expr, $parser:expr) => {{
-        $child.borrow_mut().parent = Some($module_ptr.downgrade());
-        let weak_ptr = $parser.ast.add_named_element($child);
-        $module_ptr.borrow_mut().contents.push(Definition::Module(weak_ptr));
-    }};
     ($child:expr, $node_type:ident, $module_ptr:expr, $parser:expr) => {{
         $child.borrow_mut().parent = $module_ptr.downgrade();
         let weak_ptr = $parser.ast.add_named_element($child);
@@ -112,7 +107,6 @@ fn construct_module(
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
     definitions: Vec<Node>,
-    is_file_scoped: bool,
     span: Span,
 ) -> OwnedPtr<Module> {
     if !raw_comment.is_empty() {
@@ -122,59 +116,37 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    // In case nested module syntax was used, we split the identifier on '::' and construct a module for each segment.
-    // We use `rsplit` to iterate in reverse order (right to left) to construct them in child-to-parent order.
-    // Ex: `Foo::Bar::Baz`: first create `Baz` to add the definitions in, then `Bar` to add `Baz` to it, etc...
-    let mut modules = identifier.value.rsplit("::").map(|i| {
-        // Pop the module's scope off the scope stack and construct it (otherwise it would be in its own scope).
+    // TODO do modules even need a 'scope' field anymore?
+    // Pop the module's scope off the scope stack before constructing it (otherwise it would be in its own scope).
+    for _ in identifier.value.split("::") {
         parser.current_scope.pop_scope();
-        OwnedPtr::new(Module {
-            identifier: Identifier {
-                value: i.to_owned(),
-                span: span.clone(),
-            },
-            contents: Vec::new(),
-            is_file_scoped: false,
-            parent: None,
-            scope: parser.current_scope.clone(),
-            attributes: Vec::new(),
-            span: span.clone(),
-        })
+    }
+
+    // TODO this function needs some cleanup still!
+
+    let mut module = OwnedPtr::new(Module {
+        identifier,
+        contents: Vec::new(),
+        scope: parser.current_scope.clone(),
+        attributes,
+        span,
     });
 
-    // It's safe to unwrap because if the parser called this function, at least one module must have been constructed.
-    // Since we're iterating in reverse order, this will return the inner-most module.
-    // If nested module syntax wasn't used, this is just the singular module.
-    let mut current_module = modules.next().unwrap();
-
     unsafe {
-        // Any attributes, comments, or definitions belong to the innermost module, stored as `current_module`.
-        // We re-borrow it every time we set a field to make ensure that the borrows are dropped immediately.
-        current_module.borrow_mut().is_file_scoped = is_file_scoped;
-        current_module.borrow_mut().attributes = attributes;
         for definition in definitions {
             match definition {
-                Node::Module(mut x) => add_definition_to_module!(x, Module, current_module, parser),
-                Node::Struct(mut x) => add_definition_to_module!(x, Struct, current_module, parser),
-                Node::Exception(mut x) => add_definition_to_module!(x, Exception, current_module, parser),
-                Node::Class(mut x) => add_definition_to_module!(x, Class, current_module, parser),
-                Node::Interface(mut x) => add_definition_to_module!(x, Interface, current_module, parser),
-                Node::Enum(mut x) => add_definition_to_module!(x, Enum, current_module, parser),
-                Node::CustomType(mut x) => add_definition_to_module!(x, CustomType, current_module, parser),
-                Node::TypeAlias(mut x) => add_definition_to_module!(x, TypeAlias, current_module, parser),
+                Node::Struct(mut x) => add_definition_to_module!(x, Struct, module, parser),
+                Node::Exception(mut x) => add_definition_to_module!(x, Exception, module, parser),
+                Node::Class(mut x) => add_definition_to_module!(x, Class, module, parser),
+                Node::Interface(mut x) => add_definition_to_module!(x, Interface, module, parser),
+                Node::Enum(mut x) => add_definition_to_module!(x, Enum, module, parser),
+                Node::CustomType(mut x) => add_definition_to_module!(x, CustomType, module, parser),
+                Node::TypeAlias(mut x) => add_definition_to_module!(x, TypeAlias, module, parser),
                 _ => panic!("impossible definition type encountered: {definition:?}"),
             }
         }
-
-        // Work up the nested module syntax, storing each module in its parent until we reach the outer-most module.
-        for mut parent_module in modules {
-            add_definition_to_module!(current_module, Module, parent_module, parser);
-            current_module = parent_module;
-        }
     }
-
-    // Return the outer-most module.
-    current_module
+    module
 }
 
 fn construct_struct(

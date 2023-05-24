@@ -335,16 +335,10 @@ mod attributes {
         fn deprecated_is_not_allowed_on_modules() {
             // Arrange
             let slice = "
-            [deprecated]
-            module Foo {
-                struct Bar {}
-            }
+                [deprecated]
+                module Foo
 
-            module Test {
-                struct Baz {
-                    b: Foo::Bar
-                }
-            }
+                struct Bar {}
             ";
 
             // Act
@@ -723,16 +717,11 @@ mod attributes {
             // Arrange
             let slice = r#"
                 [test::attribute("A")]
-                module A {
-                    [test::attribute("B")]
-                    module B {
-                        module C {
-                            [test::attribute("I")]
-                            interface I {
-                                op(s: string) -> string
-                            }
-                        }
-                    }
+                module A
+
+                [test::attribute("I")]
+                interface I {
+                    op([test::attribute("S")] s: string) -> string
                 }
             "#;
 
@@ -740,8 +729,8 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("A::B::C::I::op").unwrap();
-            let parent_attributes = operation
+            let parameter = ast.find_element::<Parameter>("A::I::op::s").unwrap();
+            let parent_attributes = parameter
                 .all_attributes()
                 .concat()
                 .into_iter()
@@ -752,8 +741,8 @@ mod attributes {
                 .collect::<Vec<_>>();
 
             assert_eq!(parent_attributes.len(), 3);
-            assert_eq!(parent_attributes[0], ("test::attribute", &vec!["I".to_owned()]));
-            assert_eq!(parent_attributes[1], ("test::attribute", &vec!["B".to_owned()]));
+            assert_eq!(parent_attributes[0], ("test::attribute", &vec!["S".to_owned()]));
+            assert_eq!(parent_attributes[1], ("test::attribute", &vec!["I".to_owned()]));
             assert_eq!(parent_attributes[2], ("test::attribute", &vec!["A".to_owned()]));
         }
 

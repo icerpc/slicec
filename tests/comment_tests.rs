@@ -152,34 +152,18 @@ mod comments {
     fn doc_comments_not_supported_on_modules() {
         // Arrange
         let slice = "
-             /// This is a module comment.
-             module tests
-
-             /// This is a module comment.
-             module Foo {
-
-                /// This is a module comment.
-                module Bar {}
-             }
-         ";
+            /// This is a module comment.
+            module tests
+        ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            Diagnostic::new(Error::Syntax {
-                message: "doc comments cannot be applied to modules".to_owned(),
-            }),
-            Diagnostic::new(Error::Syntax {
-                message: "doc comments cannot be applied to modules".to_owned(),
-            }),
-            Diagnostic::new(Error::Syntax {
-                message: "doc comments cannot be applied to modules".to_owned(),
-            }),
-        ];
-
-        check_diagnostics(diagnostics, expected);
+        let expected = Diagnostic::new(Error::Syntax {
+            message: "doc comments cannot be applied to modules".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]

@@ -208,11 +208,6 @@ pub enum Error {
         encoding: String,
     },
 
-    /// A file scoped module contained submodules.
-    FileScopedModuleCannotContainSubModules {
-        identifier: String,
-    },
-
     /// An self-referential type had an infinite size cycle.
     InfiniteSizeCycle {
         /// The type id of the type that caused the error.
@@ -515,12 +510,6 @@ implement_diagnostic_functions!(
         "E043",
         MultipleEncodingVersions,
         "only a single encoding can be specified per file".to_owned()
-    ),
-    (
-        "E044",
-        FileScopedModuleCannotContainSubModules,
-        format!("file scoped module '{identifier}' cannot contain sub modules"),
-        identifier
     ),
     (
         "E045",

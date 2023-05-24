@@ -45,7 +45,7 @@ impl<'a> Parser<'a> {
     implement_parse_function!(
         parse_slice_file,
         SliceFileParser,
-        (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Vec<OwnedPtr<Module>>),
+        (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>),
     );
 
     pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Vec<Diagnostic>) -> Self {

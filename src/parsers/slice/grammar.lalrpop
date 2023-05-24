@@ -95,9 +95,8 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Vec<OwnedPtr<Module>>) = {
-    <sfp: SliceFilePrelude> <flm: FileScopedModule> => (sfp.0, sfp.1, vec![flm]),
-    <sfp: SliceFilePrelude> <ms: Module*> => (sfp.0, sfp.1, ms),
+pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>) = {
+    <sfp: SliceFilePrelude> <flm: Module?> => (sfp.0, sfp.1, flm),
 }
 
 SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
@@ -115,20 +114,13 @@ FileEncoding: FileEncoding = {
     },
 }
 
-FileScopedModule: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> <ds: Definition*> => {
-        construct_module(parser, p, i, ds, true, Span::new(l, r, parser.file_name))
-    },
-}
-
 Module: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> "{" <ds: Definition*> "}" => {
-        construct_module(parser, p, i, ds, false, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> <ds: Definition*> => {
+        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
     },
 }
 
 Definition: Node = {
-    Module => Node::Module(<>),
     Struct => Node::Struct(<>),
     Exception => Node::Exception(<>),
     Class => Node::Class(<>),
