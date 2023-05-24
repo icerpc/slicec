@@ -81,8 +81,8 @@ impl Diagnostic {
         self
     }
 
-    pub fn add_notes(mut self, notes: Vec<Note>) -> Self {
-        self.notes.extend(notes);
+    pub fn extend_notes<I: IntoIterator<Item = Note>>(mut self, iter: I) -> Self {
+        self.notes.extend(iter);
         self
     }
 
