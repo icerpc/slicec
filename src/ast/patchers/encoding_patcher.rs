@@ -244,7 +244,7 @@ fn disallowed_optional_suggestion(
     };
 
     let identifier = match container.concrete_entity() {
-        Entities::Field(field) => match field.parent().unwrap().concrete_entity() {
+        Entities::Field(field) => match field.parent().concrete_entity() {
             // If the field's parent is a class or exception, recommend using a tag.
             Entities::Class(..) | Entities::Exception(..) => Some(field.identifier()),
             _ => None,
