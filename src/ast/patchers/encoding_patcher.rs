@@ -100,11 +100,11 @@ impl EncodingPatcher<'_> {
                 }],
                 None => Vec::new(),
             };
-            notes.extend(self.get_file_encoding_mismatch_notes(entity_def));
+            notes.extend(self.get_file_encoding_mismatch_note(entity_def));
 
             Diagnostic::new(error)
                 .set_span(entity_def.span())
-                .add_notes(notes)
+                .extend_notes(notes)
                 .report(self.diagnostic_reporter);
 
             // Replace the supported encodings with a dummy that supports all encodings.
@@ -186,7 +186,7 @@ impl EncodingPatcher<'_> {
                     kind: type_ref.definition().kind().to_owned(),
                 })
                 .set_span(type_ref.span())
-                .add_notes(disallowed_optional_suggestions(type_ref, container));
+                .extend_notes(disallowed_optional_suggestion(type_ref, container));
 
                 diagnostics.push(diagnostic);
             }
@@ -203,7 +203,7 @@ impl EncodingPatcher<'_> {
                     encoding: *file_encoding,
                 })
                 .set_span(type_ref.span())
-                .add_notes(self.get_file_encoding_mismatch_notes(type_ref));
+                .extend_notes(self.get_file_encoding_mismatch_note(type_ref));
 
                 diagnostics.push(diagnostic);
             }
@@ -219,57 +219,51 @@ impl EncodingPatcher<'_> {
         }
     }
 
-    fn get_file_encoding_mismatch_notes(&self, symbol: &impl Symbol) -> Vec<Note> {
+    fn get_file_encoding_mismatch_note(&self, symbol: &impl Symbol) -> Option<Note> {
         let file_name = &symbol.span().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
         // Emit a note if the file is using the default encoding.
-        if slice_file.encoding.is_none() {
-            vec![Note {
+
+        // slice_file.encoding.map_or(f)
+
+        match slice_file.encoding.as_ref() {
+            Some(_) => None,
+            None => Some(Note {
                 message: format!("file is using the {} encoding by default", Encoding::default()),
                 span: None,
-            }]
-        } else {
-            vec![]
+            }),
         }
     }
 }
 
-fn disallowed_optional_suggestions(
+fn disallowed_optional_suggestion(
     type_ref: &TypeRef<impl Type + ?Sized>,
     container: Option<&dyn Entity>,
-) -> Vec<Note> {
-    let mut notes = vec![];
-    if let Some(container) = container {
-        match container.concrete_entity() {
-            Entities::Field(field) => match field.parent().unwrap().concrete_entity() {
-                // If the field's parent is a class or exception, recommend using a tag.
-                Entities::Class(..) | Entities::Exception(..) => notes.push(Note {
-                    message: format!(
-                        "consider using a tag, e.g. 'tag(n) {}: {}'",
-                        field.identifier(),
-                        type_ref.type_string(),
-                    ),
-                    span: None,
-                }),
-                _ => {}
-            },
-            // If container is an operation parameter, recommend using a tag.
-            Entities::Parameter(parameter) => {
-                notes.push(Note {
-                    message: format!(
-                        "consider using a tag, e.g. 'tag(n) {}: {}'",
-                        parameter.identifier(),
-                        type_ref.type_string(),
-                    ),
-                    span: None,
-                });
-            }
-            _ => {}
-        }
-    }
+) -> Option<Note> {
+    let Some(container) = container else {
+        return None;
+    };
 
-    notes
+    let identifier = match container.concrete_entity() {
+        Entities::Field(field) => match field.parent().unwrap().concrete_entity() {
+            // If the field's parent is a class or exception, recommend using a tag.
+            Entities::Class(..) | Entities::Exception(..) => Some(field.identifier()),
+            _ => None,
+        },
+        // If container is an operation parameter, recommend using a tag.
+        Entities::Parameter(parameter) => Some(parameter.identifier()),
+        _ => None,
+    };
+
+    identifier.map(|identifier| Note {
+        message: format!(
+            "consider using a tag, e.g. 'tag(n) {}: {}'",
+            identifier,
+            type_ref.type_string()
+        ),
+        span: None,
+    })
 }
 
 trait ComputeSupportedEncodings {
@@ -428,7 +422,7 @@ impl ComputeSupportedEncodings for Interface {
                             encoding: *file_encoding,
                         })
                         .set_span(exception_type.span())
-                        .add_notes(patcher.get_file_encoding_mismatch_notes(exception_type))
+                        .extend_notes(patcher.get_file_encoding_mismatch_note(exception_type))
                         .report(patcher.diagnostic_reporter)
                     }
                 }

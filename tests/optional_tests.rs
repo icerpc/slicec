@@ -6,6 +6,7 @@ mod optional {
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
     use slicec::grammar::*;
+    use slicec::slice_file::Span;
     use test_case::test_case;
 
     #[test_case("bool"; "primitive")]
@@ -113,7 +114,12 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: type_name.to_owned(),
-            });
+            })
+            .set_span(&Span::new(
+                (5, 24).into(),
+                (5, 24 + type_name.len() + 1).into(),
+                "string-0",
+            ));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -144,7 +150,7 @@ mod optional {
 
         #[test_case("compact struct Foo {}", "struct"; "r#struct")]
         #[test_case("unchecked enum Foo {}", "enum"; "r#enum")]
-        fn optional_user_defined_types_are_disallowed(definition: &str, type_str: &str) {
+        fn optional_user_defined_types_are_disallowed(definition: &str, type_name: &str) {
             // Arrange
             let slice = format!(
                 "
@@ -162,8 +168,9 @@ mod optional {
 
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: type_str.to_owned(),
-            });
+                kind: type_name.to_owned(),
+            })
+            .set_span(&Span::new((6, 24).into(), (6, 28).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -205,7 +212,8 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "bool".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -230,7 +238,8 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "uint8".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -252,7 +261,8 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "int32".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -295,7 +305,8 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "bool".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -342,7 +353,9 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "float64".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 29).into(), (5, 37).into(), "string-0"));
+
             check_diagnostics(diagnostics, [expected]);
         }
 
@@ -363,7 +376,8 @@ mod optional {
             // Assert
             let expected = Diagnostic::new(Error::OptionalsNotSupported {
                 kind: "bool".to_owned(),
-            });
+            })
+            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
