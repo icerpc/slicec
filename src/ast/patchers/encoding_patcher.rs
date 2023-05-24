@@ -225,8 +225,6 @@ impl EncodingPatcher<'_> {
 
         // Emit a note if the file is using the default encoding.
 
-        // slice_file.encoding.map_or(f)
-
         match slice_file.encoding.as_ref() {
             Some(_) => None,
             None => Some(Note {
