@@ -151,7 +151,6 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Entity>, Self::Error> {
         match node {
-            Node::Module(module_ptr) => Ok(downgrade_as!(module_ptr, dyn Entity)),
             Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
             Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Entity)),
             Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Entity)),
@@ -181,7 +180,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Entity, Self::Error> {
         match node {
-            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
             Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
             Node::Class(class_ptr) => Ok(class_ptr.borrow()),
             Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),

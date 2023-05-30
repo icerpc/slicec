@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Encoding, Definition, FileEncoding, Module};
+use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, Encoding, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
