@@ -8,7 +8,6 @@ use crate::utils::ptr_util::WeakPtr;
 #[derive(Debug)]
 pub struct CustomType {
     pub identifier: Identifier,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -41,4 +40,3 @@ impl Type for CustomType {
 implement_Element_for!(CustomType, "custom type");
 implement_Entity_for!(CustomType);
 implement_Commentable_for!(CustomType);
-implement_Contained_for!(CustomType, Module);

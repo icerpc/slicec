@@ -11,7 +11,6 @@ pub struct Enum {
     pub enumerators: Vec<WeakPtr<Enumerator>>,
     pub underlying: Option<TypeRef<Primitive>>,
     pub is_unchecked: bool,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -66,4 +65,3 @@ implement_Element_for!(Enum, "enum");
 implement_Entity_for!(Enum);
 implement_Commentable_for!(Enum);
 implement_Container_for!(Enum, WeakPtr<Enumerator>, enumerators);
-implement_Contained_for!(Enum, Module);

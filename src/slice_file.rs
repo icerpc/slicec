@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{Attributable, Attribute, Encoding, FileEncoding, Module};
+use crate::grammar::{Attributable, Attribute, Encoding, Definition, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -49,9 +49,12 @@ pub struct SliceFile {
     pub filename: String,
     pub relative_path: String,
     pub raw_text: String,
-    pub contents: Option<WeakPtr<Module>>, // TODO split the module declaration from the contents.
-    pub attributes: Vec<WeakPtr<Attribute>>,
+
     pub encoding: Option<FileEncoding>,
+    pub module: Option<WeakPtr<Module>>,
+    pub attributes: Vec<WeakPtr<Attribute>>,
+    pub contents: Vec<Definition>,
+
     pub is_source: bool,
     line_positions: Vec<usize>,
 }
@@ -95,9 +98,10 @@ impl SliceFile {
             filename,
             relative_path,
             raw_text,
-            contents: None,
-            attributes: Vec::new(),
             encoding: None,
+            module: None,
+            attributes: Vec::new(),
+            contents: Vec::new(),
             is_source,
             line_positions,
         }

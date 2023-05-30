@@ -9,7 +9,6 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct TypeAlias {
     pub identifier: Identifier,
     pub underlying: TypeRef,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -48,4 +47,3 @@ impl Type for TypeAlias {
 implement_Element_for!(TypeAlias, "type alias");
 implement_Entity_for!(TypeAlias);
 implement_Commentable_for!(TypeAlias);
-implement_Contained_for!(TypeAlias, Module);
