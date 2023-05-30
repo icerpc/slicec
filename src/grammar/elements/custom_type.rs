@@ -38,5 +38,6 @@ impl Type for CustomType {
 }
 
 implement_Element_for!(CustomType, "custom type");
+implement_Attributable_for!(CustomType);
 implement_Entity_for!(CustomType);
 implement_Commentable_for!(CustomType);

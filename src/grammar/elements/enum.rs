@@ -62,6 +62,7 @@ impl Type for Enum {
 }
 
 implement_Element_for!(Enum, "enum");
+implement_Attributable_for!(Enum);
 implement_Entity_for!(Enum);
 implement_Commentable_for!(Enum);
 implement_Container_for!(Enum, WeakPtr<Enumerator>, enumerators);

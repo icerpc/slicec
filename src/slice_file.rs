@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{Attributable, Attribute, Encoding, Definition, FileEncoding, Module};
+use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Encoding, Definition, FileEncoding, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -188,12 +188,4 @@ impl SliceFile {
     }
 }
 
-impl Attributable for SliceFile {
-    fn attributes(&self) -> Vec<&Attribute> {
-        self.attributes.iter().map(WeakPtr::borrow).collect()
-    }
-
-    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-        vec![self.attributes()]
-    }
-}
+implement_Attributable_for!(SliceFile);

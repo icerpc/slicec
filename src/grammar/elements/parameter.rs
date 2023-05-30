@@ -27,6 +27,7 @@ impl Element for Parameter {
     }
 }
 
+implement_Attributable_for!(@Contained Parameter);
 implement_Entity_for!(Parameter);
 implement_Contained_for!(Parameter, Operation);
 implement_Member_for!(Parameter);

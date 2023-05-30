@@ -86,6 +86,7 @@ impl Type for Interface {
 }
 
 implement_Element_for!(Interface, "interface");
+implement_Attributable_for!(Interface);
 implement_Entity_for!(Interface);
 implement_Commentable_for!(Interface);
 implement_Container_for!(Interface, WeakPtr<Operation>, operations);

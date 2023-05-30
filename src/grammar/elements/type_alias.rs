@@ -45,5 +45,6 @@ impl Type for TypeAlias {
 }
 
 implement_Element_for!(TypeAlias, "type alias");
+implement_Attributable_for!(TypeAlias);
 implement_Entity_for!(TypeAlias);
 implement_Commentable_for!(TypeAlias);
