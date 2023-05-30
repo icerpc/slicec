@@ -8,7 +8,6 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Module {
     pub identifier: Identifier,
     pub contents: Vec<Definition>,
-    pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub span: Span,
 }
@@ -26,6 +25,5 @@ impl Attributable for Module {
 implement_Element_for!(Module, "module");
 implement_Symbol_for!(Module);
 implement_Named_Symbol_for!(Module);
-implement_Scoped_Symbol_for!(Module);
 implement_Container_for!(Module, Definition, contents);
 impl Entity for Module {}

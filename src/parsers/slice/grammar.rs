@@ -116,8 +116,7 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    // TODO do modules even need a 'scope' field anymore?
-    // Pop the module's scope off the scope stack before constructing it (otherwise it would be in its own scope).
+    // Pop the module's scopes off the scope stack.
     for _ in identifier.value.split("::") {
         parser.current_scope.pop_scope();
     }
@@ -127,7 +126,6 @@ fn construct_module(
     let mut module = OwnedPtr::new(Module {
         identifier,
         contents: Vec::new(),
-        scope: parser.current_scope.clone(),
         attributes,
         span,
     });
