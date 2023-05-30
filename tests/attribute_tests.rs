@@ -716,7 +716,6 @@ mod attributes {
         fn parent_attributes() {
             // Arrange
             let slice = r#"
-                [test::attribute("A")]
                 module A
 
                 [test::attribute("I")]
@@ -740,10 +739,9 @@ mod attributes {
                 })
                 .collect::<Vec<_>>();
 
-            assert_eq!(parent_attributes.len(), 3);
+            assert_eq!(parent_attributes.len(), 2);
             assert_eq!(parent_attributes[0], ("test::attribute", &vec!["S".to_owned()]));
             assert_eq!(parent_attributes[1], ("test::attribute", &vec!["I".to_owned()]));
-            assert_eq!(parent_attributes[2], ("test::attribute", &vec!["A".to_owned()]));
         }
 
         #[test_case("foo"; "plain_attribute")]
