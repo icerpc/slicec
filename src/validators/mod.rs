@@ -7,7 +7,6 @@ mod dictionary;
 mod enums;
 mod identifiers;
 mod members;
-mod modules;
 mod operations;
 mod parameters;
 mod structs;
@@ -27,9 +26,8 @@ use attribute::{
 use comments::validate_common_doc_comments;
 use dictionary::validate_dictionary;
 use enums::validate_enum;
-use identifiers::{validate_identifiers, validate_inherited_identifiers};
+use identifiers::validate_inherited_identifiers;
 use members::validate_members;
-use modules::validate_module_contents;
 use operations::validate_operation;
 use parameters::validate_parameters;
 use structs::validate_struct;
@@ -44,12 +42,16 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
         return;
     }
 
+    // Check for any redefinitions. If any exist, exit early to avoid errors caused by looking at incorrect definitions.
+    identifiers::check_for_redefinitions(&compilation_state.ast, diagnostic_reporter);
+    if diagnostic_reporter.has_errors() {
+        return;
+    }
+
     let mut validator = ValidatorVisitor::new(diagnostic_reporter);
     for slice_file in compilation_state.files.values() {
         slice_file.visit_with(&mut validator);
     }
-
-    validate_module_contents(compilation_state);
 }
 
 struct ValidatorVisitor<'a> {
@@ -77,7 +79,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         validate_members(class.fields(), self.diagnostic_reporter);
 
-        validate_identifiers(class.fields(), self.diagnostic_reporter);
         validate_inherited_identifiers(class.fields(), class.all_inherited_fields(), self.diagnostic_reporter);
     }
 
@@ -86,8 +87,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_attributes!(enum_def, self.diagnostic_reporter);
 
         validate_enum(enum_def, self.diagnostic_reporter);
-
-        validate_identifiers(enum_def.enumerators(), self.diagnostic_reporter);
     }
 
     fn visit_custom_type(&mut self, custom_type: &CustomType) {
@@ -106,7 +105,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         validate_members(exception.fields(), self.diagnostic_reporter);
 
-        validate_identifiers(exception.fields(), self.diagnostic_reporter);
         validate_inherited_identifiers(
             exception.fields(),
             exception.all_inherited_fields(),
@@ -118,7 +116,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_common_doc_comments(interface, self.diagnostic_reporter);
         validate_attributes_including!(interface, self.diagnostic_reporter, Compress);
 
-        validate_identifiers(interface.operations(), self.diagnostic_reporter);
         validate_inherited_identifiers(
             interface.operations(),
             interface.all_inherited_operations(),
@@ -138,9 +135,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         validate_parameters(&operation.parameters(), self.diagnostic_reporter);
         validate_parameters(&operation.return_members(), self.diagnostic_reporter);
-
-        validate_identifiers(operation.parameters(), self.diagnostic_reporter);
-        validate_identifiers(operation.return_members(), self.diagnostic_reporter);
     }
 
     fn visit_parameter(&mut self, parameter: &Parameter) {
@@ -159,7 +153,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_struct(struct_def, self.diagnostic_reporter);
 
         validate_members(struct_def.fields(), self.diagnostic_reporter);
-        validate_identifiers(struct_def.fields(), self.diagnostic_reporter);
     }
 
     fn visit_field(&mut self, field: &Field) {
