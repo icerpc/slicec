@@ -160,54 +160,22 @@ mod scope_resolution {
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
     }
 
-    #[ignore] // After fixing the redefinition checks
-    #[test]
-    fn interface_has_same_identifier_as_module() {
-        // Arrange
-        let slice = "
-            module A {
-                module B {}
-
-                interface B {}
-
-                struct S {
-                    b: B
-                }
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
-            identifier: "B".to_string(),
-        })
-        .add_note("'B' was previously defined here", None);
-
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[ignore] // After fixing the redefinition checks
     #[test]
     fn relative_scope_is_module_before_interface() {
         // Arrange
-        let slice = "
-            module A {
-                module B {
-                    module C {
-                        struct S {
-                            c: C
-                        }
-                    }
-                }
-
-                interface C {}
+        let slice1 = "
+            module A::B::C
+            struct S {
+                c: C
             }
+        ";
+        let slice2 = "
+            module A
+            interface C {}
         ";
 
         // Act
-        let diagnostics = parse_for_diagnostics(slice);
+        let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
         let expected = Diagnostic::new(Error::TypeMismatch {
