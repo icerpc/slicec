@@ -48,6 +48,15 @@ impl Scope {
     }
 }
 
+/// Returns the scoped version of the provided identifier.
+pub fn get_scoped_identifier(identifier: &str, scope: &str) -> String {
+    if scope.is_empty() {
+        identifier.to_owned()
+    } else {
+        scope.to_owned() + "::" + identifier
+    }
+}
+
 /// This enum specifies all the encodings supported by IceRPC.
 ///
 /// These encodings identity the format used to convert Slice types to and from byte streams.

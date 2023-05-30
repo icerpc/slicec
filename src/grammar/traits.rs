@@ -21,27 +21,11 @@ pub trait ScopedSymbol: Symbol {
     fn raw_scope(&self) -> &Scope;
 }
 
-pub trait NamedSymbol: ScopedSymbol {
+pub trait NamedSymbol: Symbol {
     fn identifier(&self) -> &str;
     fn raw_identifier(&self) -> &Identifier;
-
-    fn module_scoped_identifier(&self) -> String {
-        let module_scope = self.module_scope().to_owned();
-        if module_scope.is_empty() {
-            self.identifier().to_owned()
-        } else {
-            module_scope + "::" + self.identifier()
-        }
-    }
-
-    fn parser_scoped_identifier(&self) -> String {
-        let parser_scope = self.parser_scope().to_owned();
-        if parser_scope.is_empty() {
-            self.identifier().to_owned()
-        } else {
-            parser_scope + "::" + self.identifier()
-        }
-    }
+    fn module_scoped_identifier(&self) -> String;
+    fn parser_scoped_identifier(&self) -> String;
 }
 
 pub trait Attributable {
@@ -70,7 +54,7 @@ pub trait Attributable {
     }
 }
 
-pub trait Entity: NamedSymbol + Attributable + AsEntities {
+pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {
     fn get_deprecation(&self) -> Option<Option<String>> {
         self.attributes().into_iter().find_map(Attribute::match_deprecated)
     }
@@ -156,6 +140,14 @@ macro_rules! implement_Named_Symbol_for {
 
             fn raw_identifier(&self) -> &Identifier {
                 &self.identifier
+            }
+
+            fn module_scoped_identifier(&self) -> String {
+                util::get_scoped_identifier(self.identifier(), self.module_scope())
+            }
+
+            fn parser_scoped_identifier(&self) -> String {
+                util::get_scoped_identifier(self.identifier(), self.parser_scope())
             }
         }
     };
