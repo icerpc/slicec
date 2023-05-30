@@ -21,7 +21,24 @@ impl Attributable for Module {
     }
 }
 
+impl NamedSymbol for Module {
+    fn identifier(&self) -> &str {
+        &self.identifier.value
+    }
+
+    fn raw_identifier(&self) -> &Identifier {
+        &self.identifier
+    }
+
+    fn module_scoped_identifier(&self) -> String {
+        self.identifier().to_owned()
+    }
+
+    fn parser_scoped_identifier(&self) -> String {
+        self.identifier().to_owned()
+    }
+}
+
 implement_Element_for!(Module, "module");
 implement_Symbol_for!(Module);
-implement_Named_Symbol_for!(Module);
 //TODOAUSTIN impl Entity for Module {}
