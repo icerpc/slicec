@@ -611,7 +611,7 @@ fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocC
         // If the doc comment had 0 lines, that just means there is no doc comment.
         None
     } else {
-        let scoped_identifier = parser.current_scope.raw_parser_scope.to_owned() + "::" + identifier;
+        let scoped_identifier = get_scoped_identifier(identifier, &parser.current_scope.raw_parser_scope);
         let comment_parser = CommentParser::new(parser.file_name, &scoped_identifier, parser.diagnostics);
         comment_parser.parse_doc_comment(raw_comment).ok()
     }
