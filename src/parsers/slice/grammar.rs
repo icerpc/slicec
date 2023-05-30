@@ -103,11 +103,6 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    // Pop the module's scopes off the scope stack.
-    for _ in identifier.value.split("::") {
-        parser.current_scope.pop_scope();
-    }
-
     OwnedPtr::new(Module {
         identifier,
         attributes,
