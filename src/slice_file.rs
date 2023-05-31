@@ -192,7 +192,7 @@ impl SliceFile {
                 // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
                 let whitespace = whitespace_to_position(line, underline_start);
 
-                writeln!(formatted_snippet, "{line_prefix} {whitespace}{underline}",);
+                writeln!(formatted_snippet, "{line_prefix} {whitespace}{underline}");
             }
             line_number += 1; // Move to the next line.
         }
