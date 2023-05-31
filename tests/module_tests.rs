@@ -45,7 +45,7 @@ mod module {
 
         // Assert
         let expected = Diagnostic::new(Error::Syntax {
-            message: "invalid syntax: module declaration is required".to_owned(),
+            message: "module declaration is required".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
