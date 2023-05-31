@@ -153,7 +153,7 @@ impl SliceFile {
         // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
         for line in raw_snippet.split('\n') {
-            // We print tabs as 4 spaces so that we can properly compute the underline length
+            // We print tabs as 4 spaces so that we can properly compute the underline length.
             writeln!(
                 formatted_snippet,
                 "{} {}",
