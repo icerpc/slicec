@@ -384,12 +384,12 @@ implement_diagnostic_functions!(
         TypeMismatch,
         format!(
             "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
-            in_definite::get_a_or_an(expected),
-            in_definite::get_a_or_an(actual),
+            in_definite::get_a_or_an(expected).to_lowercase(),
+            in_definite::get_a_or_an(actual).to_lowercase(),
             if *is_concrete {
                 "".to_owned()
             } else {
-                format!(" (which isn't {} '{expected}')", in_definite::get_a_or_an(expected))
+                format!(" (which isn't {} '{expected}')", in_definite::get_a_or_an(expected).to_lowercase())
             }
         ),
         expected,
