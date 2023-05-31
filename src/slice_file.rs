@@ -211,3 +211,4 @@ fn get_whitespace_before_position(line: &str, pos: usize) -> String {
         .take(pos)
         .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
         .collect()
+}
