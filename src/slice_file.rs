@@ -63,11 +63,16 @@ pub struct SliceFile {
 }
 
 impl SliceFile {
-    pub fn new(relative_path: String, raw_text: String, is_source: bool) -> Self {
+    pub fn new(relative_path: String, mut raw_text: String, is_source: bool) -> Self {
         // Store the starting position of each line the file.
         // Slice supports '\n', '\r', and '\r\n' as newlines.
         let mut line_positions = vec![0]; // The first line always starts at index 0.
         let mut last_char_was_carriage_return = false;
+
+        // Ensure that the file ends with a newline character. This ensures that line_positions will
+        // always end with an index of raw_contents one line after the last line containing text.
+        // This is important for the get_snippet function.
+        raw_text += "\n";
 
         // Iterate through each character in the file.
         // If we hit a '\n' we immediately store `index + 1` as the starting position for the next
@@ -86,8 +91,6 @@ impl SliceFile {
                 last_char_was_carriage_return = character == '\r';
             }
         }
-        // Treat EOF as an end-of-line character.
-        line_positions.push(raw_text.chars().count());
 
         // Extract the name of the slice file without its extension.
         let filename = std::path::Path::new(&relative_path)
@@ -147,6 +150,7 @@ impl SliceFile {
         // Raw text from the slice file. Contains all the lines that the specified range touches.
         // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
         let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row] - 1];
+
         // Convert the provided locations into string indexes (in the raw text).
         let start_pos = self.line_positions[start.row - 1] + (start.col - 1);
         let end_pos = self.line_positions[end.row - 1] + (end.col - 1);
