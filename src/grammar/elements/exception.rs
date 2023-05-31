@@ -10,7 +10,6 @@ pub struct Exception {
     pub identifier: Identifier,
     pub fields: Vec<WeakPtr<Field>>,
     pub base: Option<TypeRef<Exception>>,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -72,7 +71,7 @@ impl Type for Exception {
 }
 
 implement_Element_for!(Exception, "exception");
+implement_Attributable_for!(Exception);
 implement_Entity_for!(Exception);
 implement_Commentable_for!(Exception);
 implement_Container_for!(Exception, WeakPtr<Field>, fields);
-implement_Contained_for!(Exception, Module);

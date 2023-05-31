@@ -11,7 +11,6 @@ pub struct Class {
     pub fields: Vec<WeakPtr<Field>>,
     pub compact_id: Option<Integer<u32>>,
     pub base: Option<TypeRef<Class>>,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -66,7 +65,7 @@ impl Type for Class {
 }
 
 implement_Element_for!(Class, "class");
+implement_Attributable_for!(Class);
 implement_Entity_for!(Class);
 implement_Commentable_for!(Class);
 implement_Container_for!(Class, WeakPtr<Field>, fields);
-implement_Contained_for!(Class, Module);

@@ -53,18 +53,6 @@ macro_rules! set_fields_for {
     }};
 }
 
-// This macro does the following:
-// 1. Set the module as the definition's parent.
-// 2. Move the definition into the AST and keep a pointer to it.
-// 3. Convert the pointer to a Definition and store it in the module.
-macro_rules! add_definition_to_module {
-    ($child:expr, $node_type:ident, $module_ptr:expr, $parser:expr) => {{
-        $child.borrow_mut().parent = $module_ptr.downgrade();
-        let weak_ptr = $parser.ast.add_named_element($child);
-        $module_ptr.borrow_mut().contents.push(Definition::$node_type(weak_ptr));
-    }};
-}
-
 // Convenience type for storing an unparsed doc comment. Each element of the vector is one line of the comment.
 type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
@@ -106,7 +94,6 @@ fn construct_module(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
-    definitions: Vec<Node>,
     span: Span,
 ) -> OwnedPtr<Module> {
     if !raw_comment.is_empty() {
@@ -116,37 +103,11 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    // TODO do modules even need a 'scope' field anymore?
-    // Pop the module's scope off the scope stack before constructing it (otherwise it would be in its own scope).
-    for _ in identifier.value.split("::") {
-        parser.current_scope.pop_scope();
-    }
-
-    // TODO this function needs some cleanup still!
-
-    let mut module = OwnedPtr::new(Module {
+    OwnedPtr::new(Module {
         identifier,
-        contents: Vec::new(),
-        scope: parser.current_scope.clone(),
         attributes,
         span,
-    });
-
-    unsafe {
-        for definition in definitions {
-            match definition {
-                Node::Struct(mut x) => add_definition_to_module!(x, Struct, module, parser),
-                Node::Exception(mut x) => add_definition_to_module!(x, Exception, module, parser),
-                Node::Class(mut x) => add_definition_to_module!(x, Class, module, parser),
-                Node::Interface(mut x) => add_definition_to_module!(x, Interface, module, parser),
-                Node::Enum(mut x) => add_definition_to_module!(x, Enum, module, parser),
-                Node::CustomType(mut x) => add_definition_to_module!(x, CustomType, module, parser),
-                Node::TypeAlias(mut x) => add_definition_to_module!(x, TypeAlias, module, parser),
-                _ => panic!("impossible definition type encountered: {definition:?}"),
-            }
-        }
-    }
-    module
+    })
 }
 
 fn construct_struct(
@@ -162,7 +123,6 @@ fn construct_struct(
         identifier,
         fields: Vec::new(),
         is_compact,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -191,7 +151,6 @@ fn construct_exception(
         identifier,
         fields: Vec::new(),
         base,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -222,7 +181,6 @@ fn construct_class(
         fields: Vec::new(),
         compact_id,
         base,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -276,7 +234,6 @@ fn construct_interface(
         identifier,
         operations: Vec::new(),
         bases,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -418,7 +375,6 @@ fn construct_enum(
         enumerators: Vec::new(),
         underlying,
         is_unchecked,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -475,7 +431,6 @@ fn construct_custom_type(
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
     OwnedPtr::new(CustomType {
         identifier,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,
@@ -495,7 +450,6 @@ fn construct_type_alias(
     OwnedPtr::new(TypeAlias {
         identifier,
         underlying,
-        parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
         comment,

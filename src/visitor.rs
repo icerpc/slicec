@@ -13,10 +13,10 @@ use crate::slice_file::SliceFile;
 ///
 /// When a container is visited, first its `visit_x` method is called, then its
 /// contents are recursively visited.
-/// For example, calling `visit_with` on a module containing a single struct would invoke:
-/// - visit_module
-///     - visit_struct
-///         - visit_field (called once per field, in the order they're defined)
+/// For example, calling `visit_with` on an interface containing only a single operation would invoke:
+/// - visit_interface
+///     - visit_operation
+///         - visit_parameter (called once per parameter, in the order they're listed)
 pub trait Visitor {
     /// This function is called by the visitor when it begins visiting a slice file,
     /// before it visits through the file's contents.
@@ -24,8 +24,7 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit a slice file, use `[SliceFile::visit_with]`.
     fn visit_file(&mut self, slice_file: &SliceFile);
 
-    /// This function is called by the visitor when it begins visiting a [Module],
-    /// before it visits through the module's contents.
+    /// This function is called by the visitor when it visits a [Module],
     ///
     /// This shouldn't be called by users. To visit a module, use `[Module::visit_with]`.
     fn visit_module(&mut self, module_def: &Module);
@@ -101,23 +100,15 @@ pub trait Visitor {
 impl SliceFile {
     /// Visits the [SliceFile] with the provided `visitor`.
     ///
-    /// This function first calls `visitor.visit_file`, then recursively visits
-    /// the top level modules in the file.
+    /// This function first calls `visitor.visit_file`, then if the file contains a module declaration it calls
+    /// `visitor.visit_module`, and finally it recursively visits any definitions defined in the file.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_file(self);
-        if let Some(module_def) = &self.contents {
+
+        if let Some(module_def) = &self.module {
             module_def.borrow().visit_with(visitor);
         }
-    }
-}
 
-impl Module {
-    /// Visits the [Module] with the provided `visitor`.
-    ///
-    /// This function first calls `visitor.visit_module`, then recursively visits
-    /// the contents of the module.
-    pub fn visit_with(&self, visitor: &mut impl Visitor) {
-        visitor.visit_module(self);
         for definition in &self.contents {
             match definition {
                 Definition::Struct(struct_def) => struct_def.borrow().visit_with(visitor),
@@ -129,6 +120,15 @@ impl Module {
                 Definition::TypeAlias(type_alias) => type_alias.borrow().visit_with(visitor),
             }
         }
+    }
+}
+
+impl Module {
+    /// Visits the [Module] with the provided `visitor`.
+    ///
+    /// This function delegates to `visitor.visit_module`.
+    pub fn visit_with(&self, visitor: &mut impl Visitor) {
+        visitor.visit_module(self);
     }
 }
 

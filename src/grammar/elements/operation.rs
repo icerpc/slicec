@@ -120,6 +120,7 @@ impl Operation {
 }
 
 implement_Element_for!(Operation, "operation");
+implement_Attributable_for!(@Contained Operation);
 implement_Entity_for!(Operation);
 implement_Commentable_for!(Operation);
 implement_Contained_for!(Operation, Interface);

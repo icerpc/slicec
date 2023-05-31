@@ -10,7 +10,6 @@ pub struct Interface {
     pub identifier: Identifier,
     pub operations: Vec<WeakPtr<Operation>>,
     pub bases: Vec<TypeRef<Interface>>,
-    pub parent: WeakPtr<Module>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -87,7 +86,7 @@ impl Type for Interface {
 }
 
 implement_Element_for!(Interface, "interface");
+implement_Attributable_for!(Interface);
 implement_Entity_for!(Interface);
 implement_Commentable_for!(Interface);
 implement_Container_for!(Interface, WeakPtr<Operation>, operations);
-implement_Contained_for!(Interface, Module);

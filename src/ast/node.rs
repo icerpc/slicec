@@ -91,7 +91,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
 
     /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Type].
     ///
-    /// If the Slice element held by the node implements [Type], this succeeds and returns a pointer to the type,
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a typed pointer,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Type>, Self::Error> {
         match node {
@@ -119,7 +119,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Type].
     ///
-    /// If the Slice element held by the node implements [Type], this succeeds and returns a reference to the type,
+    /// If the Slice element held by the node implements [Type], this succeeds and returns a typed reference,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Type, Self::Error> {
         match node {
@@ -142,16 +142,45 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
     }
 }
 
+impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
+    type Error = LookupError;
+
+    /// Attempts to unwrap a node to a dynamically typed reference of a Slice [NamedSymbol].
+    ///
+    /// If the Slice element held by the node implements [NamedSymbol], this succeeds and returns a typed reference,
+    /// otherwise this fails and returns an error message.
+    fn try_from(node: &'a Node) -> Result<&'a dyn NamedSymbol, Self::Error> {
+        match node {
+            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
+            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
+            Node::Class(class_ptr) => Ok(class_ptr.borrow()),
+            Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
+            Node::Field(field_ptr) => Ok(field_ptr.borrow()),
+            Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
+            Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
+            Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
+            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
+            Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
+            Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
+            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
+            _ => Err(LookupError::TypeMismatch {
+                expected: "NamedSymbol".to_owned(),
+                actual: node.to_string().to_case(Case::Lower),
+                is_concrete: false,
+            }),
+        }
+    }
+}
+
 impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
     type Error = LookupError;
 
     /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Entity].
     ///
-    /// If the Slice element held by the node implements [Entity], this succeeds and returns a pointer to the entity,
+    /// If the Slice element held by the node implements [Entity], this succeeds and returns a typed pointer,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Entity>, Self::Error> {
         match node {
-            Node::Module(module_ptr) => Ok(downgrade_as!(module_ptr, dyn Entity)),
             Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
             Node::Class(class_ptr) => Ok(downgrade_as!(class_ptr, dyn Entity)),
             Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Entity)),
@@ -177,11 +206,10 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
 
     /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Entity].
     ///
-    /// If the Slice element held by the node implements [Entity], this succeeds and returns a reference to the entity,
+    /// If the Slice element held by the node implements [Entity], this succeeds and returns a typed reference,
     /// otherwise this fails and returns an error message.
     fn try_from(node: &'a Node) -> Result<&'a dyn Entity, Self::Error> {
         match node {
-            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
             Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
             Node::Class(class_ptr) => Ok(class_ptr.borrow()),
             Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),

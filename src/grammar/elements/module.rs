@@ -7,25 +7,29 @@ use crate::utils::ptr_util::WeakPtr;
 #[derive(Debug)]
 pub struct Module {
     pub identifier: Identifier,
-    pub contents: Vec<Definition>,
-    pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub span: Span,
 }
 
-impl Attributable for Module {
-    fn attributes(&self) -> Vec<&Attribute> {
-        self.attributes.iter().map(WeakPtr::borrow).collect::<Vec<_>>()
+// TODO do we return the full identifier or the last identifier here?
+impl NamedSymbol for Module {
+    fn identifier(&self) -> &str {
+        &self.identifier.value
     }
 
-    fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-        vec![self.attributes()]
+    fn raw_identifier(&self) -> &Identifier {
+        &self.identifier
+    }
+
+    fn module_scoped_identifier(&self) -> String {
+        self.identifier().to_owned()
+    }
+
+    fn parser_scoped_identifier(&self) -> String {
+        self.identifier().to_owned()
     }
 }
 
 implement_Element_for!(Module, "module");
 implement_Symbol_for!(Module);
-implement_Named_Symbol_for!(Module);
-implement_Scoped_Symbol_for!(Module);
-implement_Container_for!(Module, Definition, contents);
-impl Entity for Module {}
+implement_Attributable_for!(Module);

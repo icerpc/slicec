@@ -97,8 +97,9 @@ impl DiagnosticReporter {
 
                 // If the warning has a scope, check if it's suppressed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
-                    let entity = ast.find_element::<dyn Entity>(scope).expect("entity didn't exist");
-                    is_suppressed |= is_warning_suppressed_by_attributes(entity.all_attributes().concat(), warning);
+                    if let Ok(entity) = ast.find_element::<dyn Entity>(scope) {
+                        is_suppressed |= is_warning_suppressed_by_attributes(entity.all_attributes().concat(), warning);
+                    }
                 }
             }
             !is_suppressed

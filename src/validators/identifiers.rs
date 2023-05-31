@@ -42,42 +42,45 @@ fn check_for_shadowing(
 }
 
 pub fn check_for_redefinitions(ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
-    // A map storing `(scoped_identifier, entity)` pairs. We iterate through the AST and build up this map, and if we
-    // try to add an entry but see it's already occupied, that means we've found a redefinition.
-    let mut slice_definitions: HashMap<String, &dyn Entity> = HashMap::new();
+    // A map storing `(scoped_identifier, named_symbol)` pairs. We iterate through the AST and build up this map,
+    // and if we try to add an entry but see it's already occupied, that means we've found a redefinition.
+    let mut slice_definitions: HashMap<String, &dyn NamedSymbol> = HashMap::new();
 
-    // Iterate through all the nodes in the AST.
     for node in ast.as_slice() {
-        // Only check the node if its an entity, since only entities have identifiers.
-        if let Ok(entity) = <&dyn Entity>::try_from(node) {
-            // Check the entity's scoped identifier for uniqueness.
-            // If the scoped identifier is already in the map, that means its identifier is non-unique.
-            let scoped_identifier = entity.parser_scoped_identifier();
-            if let Some(&other_entity) = slice_definitions.get(&scoped_identifier) {
-                // Don't report an error is both entities are modules, since they can re-use identifiers.
-                if !(is_module(entity) && is_module(other_entity)) {
-                    report_redefinition_error(entity, other_entity, diagnostic_reporter);
+        // Only check nodes that have identifiers, everything else is irrelevant.
+        if let Ok(definition) = <&dyn NamedSymbol>::try_from(node) {
+            let scoped_identifier = definition.parser_scoped_identifier();
+            match slice_definitions.get(&scoped_identifier) {
+                // If we've already seen a node with this identifier, there's a name collision.
+                // This is fine for modules (since they can be re-opened), but for any other type, we report an error.
+                Some(other_definition) => {
+                    if !(is_module(definition) && is_module(*other_definition)) {
+                        report_redefinition_error(definition, *other_definition, diagnostic_reporter);
+                    }
                 }
-            } else {
-                // Getting here means we haven't seen the entity's scoped identifier before, so we add it to the map.
-                slice_definitions.insert(scoped_identifier, entity);
+
+                // If we haven't seen a node with this identifier before, add it to the map and continue checking.
+                None => {
+                    slice_definitions.insert(scoped_identifier, definition);
+                }
             }
         }
     }
 }
 
-fn is_module(entity: &dyn Entity) -> bool {
-    matches!(entity.concrete_entity(), Entities::Module(_))
+// TODO maybe add an 'Elements' wrapper to avoid these string comparisons?
+fn is_module(definition: &dyn NamedSymbol) -> bool {
+    definition.kind() == "module"
 }
 
-fn report_redefinition_error(entity: &dyn Entity, original_entity: &dyn Entity, reporter: &mut DiagnosticReporter) {
+fn report_redefinition_error(new: &dyn NamedSymbol, original: &dyn NamedSymbol, reporter: &mut DiagnosticReporter) {
     Diagnostic::new(Error::Redefinition {
-        identifier: entity.identifier().to_owned(),
+        identifier: new.identifier().to_owned(),
     })
-    .set_span(entity.raw_identifier().span())
+    .set_span(new.raw_identifier().span())
     .add_note(
-        format!("'{}' was previously defined here", original_entity.identifier()),
-        Some(original_entity.raw_identifier().span()),
+        format!("'{}' was previously defined here", original.identifier()),
+        Some(original.raw_identifier().span()),
     )
     .report(reporter);
 }

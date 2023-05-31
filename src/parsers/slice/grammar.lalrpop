@@ -95,8 +95,9 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>) = {
-    <sfp: SliceFilePrelude> <flm: Module?> => (sfp.0, sfp.1, flm),
+// TODO we can probably allow module to come before or after encoding now.
+pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>) = {
+    <sfp: SliceFilePrelude> <m: Module?> <ds: Definition*> => (sfp.0, sfp.1, m, ds),
 }
 
 SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
@@ -115,19 +116,19 @@ FileEncoding: FileEncoding = {
 }
 
 Module: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> <ds: Definition*> => {
-        construct_module(parser, p, i, ds, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> => {
+        construct_module(parser, p, i, Span::new(l, r, parser.file_name))
     },
 }
 
-Definition: Node = {
-    Struct => Node::Struct(<>),
-    Exception => Node::Exception(<>),
-    Class => Node::Class(<>),
-    Interface => Node::Interface(<>),
-    Enum => Node::Enum(<>),
-    CustomType => Node::CustomType(<>),
-    TypeAlias => Node::TypeAlias(<>),
+Definition: Definition = {
+    Struct => Definition::Struct(parser.ast.add_named_element(<>)),
+    Exception => Definition::Exception(parser.ast.add_named_element(<>)),
+    Class => Definition::Class(parser.ast.add_named_element(<>)),
+    Interface => Definition::Interface(parser.ast.add_named_element(<>)),
+    Enum => Definition::Enum(parser.ast.add_named_element(<>)),
+    CustomType => Definition::CustomType(parser.ast.add_named_element(<>)),
+    TypeAlias => Definition::TypeAlias(parser.ast.add_named_element(<>)),
 }
 
 Struct: OwnedPtr<Struct> = {

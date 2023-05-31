@@ -125,7 +125,8 @@ impl CommentLinkPatcher<'_> {
                         format!("no element named '{identifier}' exists in scope")
                     }
                     LookupError::TypeMismatch { actual, .. } => {
-                        debug_assert_eq!(actual, "primitive"); // Only primitives are un-linkable and named.
+                        // Only primitives and modules have names but cannot be linked to.
+                        debug_assert!(actual == "primitive" || actual == "module");
                         format!("{actual}s cannot be linked to")
                     }
                 };
