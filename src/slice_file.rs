@@ -147,12 +147,14 @@ impl SliceFile {
         // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
         for line in raw_snippet.split('\n') {
+            static EXPANDED_TAB: &str = "    ";
+            static SPACE: &str = " ";
             // We print tabs as 4 spaces so that we can properly compute the underline length
             writeln!(
                 formatted_snippet,
                 "{} {}",
                 line_number_prefix(Some(line_number)),
-                line.replace('\t', "    ")
+                line.replace('\t', EXPANDED_TAB)
             );
 
             if start_pos == end_pos {
@@ -184,22 +186,20 @@ impl SliceFile {
 
                 // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed for
                 // each tab.
-                let underline_length = underline_end - underline_start + (underline_tab_count * 3);
+                let underline_length = underline_end - underline_start + (underline_tab_count * EXPANDED_TAB.len() - 1);
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
 
                 // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
                 let whitespace = line
                     .chars()
                     .take(underline_start)
-                    .map(|c| if c == '\t' { "    ".to_owned() } else { " ".to_owned() })
+                    .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
                     .collect::<String>();
 
                 writeln!(
                     formatted_snippet,
-                    "{} {}{}",
-                    line_number_prefix(None),
-                    whitespace,
-                    underline
+                    "{} {whitespace}{underline}",
+                    line_number_prefix(None)
                 );
             }
             line_number += 1; // Move to the next line.
