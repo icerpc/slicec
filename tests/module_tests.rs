@@ -45,7 +45,7 @@ mod module {
 
         // Assert
         let expected = Diagnostic::new(Error::Syntax {
-            message: "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'".to_owned(),
+            message: "invalid syntax: module declaration is required".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
