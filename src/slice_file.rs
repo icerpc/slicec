@@ -147,7 +147,14 @@ impl SliceFile {
         // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
         for line in raw_snippet.split('\n') {
-            writeln!(formatted_snippet, "{} {line}", line_number_prefix(Some(line_number)));
+            // We print tabs as 4 spaces so that we can properly compute the underline length
+            writeln!(
+                formatted_snippet,
+                "{} {}",
+                line_number_prefix(Some(line_number)),
+                line.replace('\t', "    ")
+            );
+
             if start_pos == end_pos {
                 // If the provided range is a single location, point to that location.
                 let point = style("/\\").yellow().bold();
@@ -167,15 +174,32 @@ impl SliceFile {
                     Some(pos) => line.len() - pos, // If the end position is on this line.
                     None => line.trim_end().len(), // If the end position is past the end of this line.
                 };
-                let underline_length = underline_end - underline_start;
+
+                // Number of tabs between the start and end of the underline.
+                let underline_tab_count = line
+                    .chars()
+                    .enumerate()
+                    .filter(|(index, char)| *index >= underline_start && *index < underline_end && *char == '\t')
+                    .count();
+
+                // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed for
+                // each tab.
+                let underline_length = underline_end - underline_start + (underline_tab_count * 3);
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
+
+                // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
+                let whitespace = line
+                    .chars()
+                    .take(underline_start)
+                    .map(|c| if c == '\t' { "    ".to_owned() } else { " ".to_owned() })
+                    .collect::<String>();
+
                 writeln!(
                     formatted_snippet,
-                    "{} {:<3$}{}",
+                    "{} {}{}",
                     line_number_prefix(None),
-                    "",
-                    underline,
-                    underline_start,
+                    whitespace,
+                    underline
                 );
             }
             line_number += 1; // Move to the next line.
