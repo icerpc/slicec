@@ -6,8 +6,8 @@ use console::style;
 use serde::Serialize;
 use std::fmt::{Display, Write};
 
-static EXPANDED_TAB: &str = "    ";
-static SPACE: &str = " ";
+const EXPANDED_TAB: &str = "    ";
+const SPACE: &str = " ";
 
 /// Stores the row and column numbers of a location in a Slice file.
 /// These values are indexed starting at 1 instead of 0 for human readability.
