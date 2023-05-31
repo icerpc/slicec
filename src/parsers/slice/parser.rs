@@ -54,12 +54,16 @@ impl<'a> Parser<'a> {
     );
 
     pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
+        let current_scope = Scope {
+            parser_scope: String::new(),
+            module: WeakPtr::create_uninitialized(), // Patched when we see a module.
+        };
         Parser {
             file_name,
             ast,
             diagnostics,
             file_encoding: Encoding::default(),
-            current_scope: Scope::default(),
+            current_scope,
             last_enumerator_value: None,
         }
     }

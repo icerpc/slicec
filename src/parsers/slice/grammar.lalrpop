@@ -116,7 +116,7 @@ FileEncoding: FileEncoding = {
 }
 
 Module: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: ModuleIdentifier> <r: @R> => {
+    <p: Prelude> <l: @L> module_keyword <i: RelativelyScopedIdentifier> <r: @R> => {
         construct_module(parser, p, i, Span::new(l, r, parser.file_name))
     },
 }
@@ -363,18 +363,9 @@ UndelimitedList<T>: Vec<T> = {
     (<T> ","?)* => <>,
 }
 
-ModuleIdentifier: Identifier = {
-    RelativelyScopedIdentifier => {
-        for scope in <>.value.split("::") {
-            parser.current_scope.push_scope(scope, true);
-        }
-        <>
-    },
-}
-
 ContainerIdentifier: Identifier = {
     Identifier => {
-        parser.current_scope.push_scope(&<>.value, false);
+        parser.current_scope.push_scope(&<>.value);
         <>
     },
 }
