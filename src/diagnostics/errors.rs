@@ -2,7 +2,7 @@
 
 use crate::grammar::Encoding;
 use crate::implement_diagnostic_functions;
-use in_definite;
+use crate::utils::string_util::indefinite_article;
 
 #[derive(Debug)]
 pub enum Error {
@@ -384,12 +384,12 @@ implement_diagnostic_functions!(
         TypeMismatch,
         format!(
             "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
-            in_definite::get_a_or_an(expected).to_lowercase(),
-            in_definite::get_a_or_an(actual).to_lowercase(),
+            indefinite_article(expected),
+            indefinite_article(actual),
             if *is_concrete {
                 "".to_owned()
             } else {
-                format!(" (which isn't {} '{expected}')", in_definite::get_a_or_an(expected).to_lowercase())
+                format!(" (which isn't {} '{expected}')", indefinite_article(expected))
             }
         ),
         expected,
