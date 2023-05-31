@@ -28,12 +28,9 @@ mod module {
 
         // Act
         let ast = parse_for_ast(slice);
-        println!("{ast:?}");
 
         // Assert
-        let result = ast.find_element::<Module>("A::B::C::D");
-        println!("{result:?}");
-        assert!(result.is_ok());
+        assert!(ast.find_element::<Module>("A::B::C::D").is_ok());
     }
 
     #[test]
