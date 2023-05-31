@@ -6,6 +6,9 @@ use console::style;
 use serde::Serialize;
 use std::fmt::{Display, Write};
 
+const EXPANDED_TAB: &str = "    ";
+const SPACE: &str = " ";
+
 /// Stores the row and column numbers of a location in a Slice file.
 /// These values are indexed starting at 1 instead of 0 for human readability.
 /// Ex: (1,1) is the start of a file: the first column in the first row.
@@ -134,6 +137,9 @@ impl SliceFile {
             style(padded_number_string).blue().bold().to_string()
         };
 
+        // The prefix for lines not showing a line number.
+        let line_prefix = line_number_prefix(None);
+
         // Raw text from the slice file. Contains all the lines that the specified range touches.
         // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
         let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row] - 1];
@@ -147,19 +153,21 @@ impl SliceFile {
         // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
         let mut line_number = start.row;
         for line in raw_snippet.split('\n') {
-            writeln!(formatted_snippet, "{} {line}", line_number_prefix(Some(line_number)));
+            // We print tabs as 4 spaces so that we can properly compute the underline length.
+            writeln!(
+                formatted_snippet,
+                "{} {}",
+                line_number_prefix(Some(line_number)),
+                line.replace('\t', EXPANDED_TAB),
+            );
+
             if start_pos == end_pos {
                 // If the provided range is a single location, point to that location.
                 let point = style("/\\").yellow().bold();
                 let point_offset = start_pos - self.line_positions[line_number - 1];
-                writeln!(
-                    formatted_snippet,
-                    "{}{:<3$}{}",
-                    line_number_prefix(None),
-                    "",
-                    point,
-                    point_offset,
-                );
+                let whitespace = get_whitespace_before_position(line, point_offset);
+
+                writeln!(formatted_snippet, "{line_prefix} {whitespace}{point}");
             } else {
                 // If the provided range is between 2 locations, underline everything between them.
                 let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
@@ -167,20 +175,28 @@ impl SliceFile {
                     Some(pos) => line.len() - pos, // If the end position is on this line.
                     None => line.trim_end().len(), // If the end position is past the end of this line.
                 };
-                let underline_length = underline_end - underline_start;
+
+                // Number of tabs between the start and end of the underline.
+                let underline_tab_count = line
+                    .chars()
+                    .enumerate()
+                    .filter(|(index, char)| *index >= underline_start && *index < underline_end && *char == '\t')
+                    .count();
+
+                // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed for
+                // each tab.
+                let underline_length =
+                    (underline_end - underline_start) + (underline_tab_count * (EXPANDED_TAB.len() - 1));
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
-                writeln!(
-                    formatted_snippet,
-                    "{} {:<3$}{}",
-                    line_number_prefix(None),
-                    "",
-                    underline,
-                    underline_start,
-                );
+
+                // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
+                let whitespace = get_whitespace_before_position(line, underline_start);
+
+                writeln!(formatted_snippet, "{line_prefix} {whitespace}{underline}");
             }
             line_number += 1; // Move to the next line.
         }
-        formatted_snippet + &line_number_prefix(None)
+        formatted_snippet + &line_prefix
     }
 }
 
@@ -192,4 +208,11 @@ impl Attributable for SliceFile {
     fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
         vec![self.attributes()]
     }
+}
+
+fn get_whitespace_before_position(line: &str, pos: usize) -> String {
+    line.chars()
+        .take(pos)
+        .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
+        .collect()
 }
