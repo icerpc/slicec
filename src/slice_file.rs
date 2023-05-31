@@ -158,7 +158,7 @@ impl SliceFile {
                 formatted_snippet,
                 "{} {}",
                 line_number_prefix(Some(line_number)),
-                line.replace('\t', EXPANDED_TAB)
+                line.replace('\t', EXPANDED_TAB),
             );
 
             if start_pos == end_pos {
