@@ -44,7 +44,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
     if !definitions.is_empty() && module.is_none() {
         let diagnostic = Diagnostic::new(Error::Syntax {
             // TODO improve this message, see: #348
-            message: "expected one of '[', '[[', 'doc comment', 'encoding', or 'module', but found 'custom'".to_owned(),
+            message: "module declaration is required".to_owned(),
         });
         diagnostics.push(diagnostic);
     }
