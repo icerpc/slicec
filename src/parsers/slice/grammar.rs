@@ -103,8 +103,11 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    let module_def = Module { identifier, attributes, span };
-    let module_ptr = OwnedPtr::new(module_def);
+    let module_ptr = OwnedPtr::new(Module {
+        identifier,
+        attributes,
+        span,
+    });
 
     parser.current_scope.module = module_ptr.downgrade();
     parser.current_scope.parser_scope = module_ptr.borrow().nested_module_identifier().to_owned();

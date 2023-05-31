@@ -51,7 +51,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
 
     // Store the parsed data in the `SliceFile` it was parsed from.
     file.encoding = encoding;
-    file.module = module.map(|m| ast.add_named_element(m)); // TODO maybe we don't need to add modules as named anymore?
+    file.module = module.map(|m| ast.add_named_element(m));
     file.attributes = attributes;
     file.contents = definitions;
 }
