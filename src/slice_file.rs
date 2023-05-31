@@ -165,7 +165,7 @@ impl SliceFile {
                 // If the provided range is a single location, point to that location.
                 let point = style("/\\").yellow().bold();
                 let point_offset = start_pos - self.line_positions[line_number - 1];
-                let whitespace = whitespace_to_position(line, point_offset);
+                let whitespace = get_whitespace_before_position(line, point_offset);
 
                 writeln!(formatted_snippet, "{line_prefix} {whitespace}{point}");
             } else {
@@ -190,7 +190,7 @@ impl SliceFile {
                 let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
 
                 // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
-                let whitespace = whitespace_to_position(line, underline_start);
+                let whitespace = get_whitespace_before_position(line, underline_start);
 
                 writeln!(formatted_snippet, "{line_prefix} {whitespace}{underline}");
             }
@@ -210,7 +210,7 @@ impl Attributable for SliceFile {
     }
 }
 
-fn whitespace_to_position(line: &str, pos: usize) -> String {
+fn get_whitespace_before_position(line: &str, pos: usize) -> String {
     line.chars()
         .take(pos)
         .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
