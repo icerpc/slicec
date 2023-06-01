@@ -47,7 +47,6 @@ mod output {
     }
 
     #[test]
-    #[ignore]
     fn output_to_console() {
         let slice = "
         module Foo
@@ -92,7 +91,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
    |
 8  |             op2(tag(1)
    |                 ------
-9  |     x:\r
+9  |     x:
    | ------
 10 |                     int32, tag(2) y: bool?,
    | -------------------------
@@ -100,7 +99,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:14:9
    |
-14 |         enum E: int8 {}\r
+14 |         enum E: int8 {}
    |         ------
    |
 ";
