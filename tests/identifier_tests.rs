@@ -78,7 +78,7 @@ fn must_be_ascii_alphanumeric_characters() {
 
     // Assert
     let expected = Diagnostic::new(Error::Syntax {
-        message: "foo".to_owned(),
+        message: "unknown symbol '𒅋'".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
 }
