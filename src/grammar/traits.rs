@@ -122,7 +122,7 @@ macro_rules! implement_Scoped_Symbol_for {
             }
 
             fn module_scope(&self) -> &str {
-                match self.scope.module {
+                match &self.scope.module {
                     Some(module_ptr) => module_ptr.borrow().nested_module_identifier(),
                     None => "",
                 }
