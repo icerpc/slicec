@@ -148,9 +148,8 @@ impl SliceFile {
             let space_separated_line = line.replace('\t', EXPANDED_TAB);
             writeln!(formatted_snippet, "{prefix} {space_separated_line}",);
 
-            if let Some(underline) = get_underline(line, underline_start, underline_end) {
-                writeln!(formatted_snippet, "{line_prefix} {underline}");
-            }
+            let underline = get_underline(line, underline_start, underline_end);
+            writeln!(formatted_snippet, "{line_prefix} {underline}");
         }
 
         formatted_snippet + &line_prefix
@@ -159,11 +158,11 @@ impl SliceFile {
 
 implement_Attributable_for!(SliceFile);
 
-fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> Option<String> {
+fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> String {
     if underline_start == underline_end {
         let point = style("/\\").yellow().bold();
         let whitespace = get_whitespace_before_position(line, underline_start);
-        Some(format!("{whitespace}{point}"))
+        format!("{whitespace}{point}")
     } else {
         // Number of tabs between the start and end of the underline.
         let underline_tab_count = line
@@ -179,7 +178,7 @@ fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> Op
 
         // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
         let whitespace = get_whitespace_before_position(line, underline_start);
-        Some(format!("{whitespace}{underline}"))
+        format!("{whitespace}{underline}")
     }
 }
 
