@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
-use super::util::TagFormat;
+use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
@@ -129,7 +129,7 @@ macro_rules! implement_Scoped_Symbol_for {
             }
 
             fn get_module(&self) -> &Module {
-                self.scope.module.borrow()
+                self.scope.module.as_ref().unwrap().borrow()
             }
 
             fn get_raw_scope(&self) -> &Scope {

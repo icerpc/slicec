@@ -15,19 +15,19 @@ impl Scope {
         if !parser_scope.is_empty() {
             self.parser_scope.push_str("::");
         }
-        parser_scope.push_str(scope);
+        self.parser_scope.push_str(scope);
     }
 
     pub fn pop_scope(&mut self) {
         if let Some(last_scope_index) = self.parser_scope.rfind("::") {
             // Remove any characters after the last '::' in the string.
             // We ensure that we're only removing additional parser scopes, and not any scopes that came from a module.
-            debug_assert!(self.parser_scope.len() > module.as_ref().unwrap().borrow().nested_module_identifier().len());
+            debug_assert!(self.parser_scope.len() > self.module.as_ref().unwrap().borrow().nested_module_identifier().len());
             self.parser_scope.truncate(last_scope_index);
         } else {
             // If the string doesn't contain '::', there's only a single scope. We pop it off by clearing the string.
             // This is only possible if we're not in a module, otherwise we'd always have at least 1 module scope.
-            debug_assert!(module.is_none());
+            debug_assert!(self.module.is_none());
             self.parser_scope.clear();
         }
     }
