@@ -11,10 +11,22 @@ pub struct Module {
     pub span: Span,
 }
 
-// TODO do we return the full identifier or the last identifier here?
+impl Module {
+    /// If this module was declared using nested module syntax, this returns the entire nested identifier.
+    /// Otherwise this just returns the module's identifier.
+    pub fn nested_module_identifier(&self) -> &str {
+        &self.identifier.value
+    }
+}
+
 impl NamedSymbol for Module {
     fn identifier(&self) -> &str {
-        &self.identifier.value
+        // If this module uses nested module syntax, only return the last segment (corresponds to the innermost module).
+        if let Some(last_colon_index) = self.identifier.value.rfind(':') {
+            &self.identifier.value[last_colon_index + 1..]
+        } else {
+            &self.identifier.value
+        }
     }
 
     fn raw_identifier(&self) -> &Identifier {
@@ -22,11 +34,11 @@ impl NamedSymbol for Module {
     }
 
     fn module_scoped_identifier(&self) -> String {
-        self.identifier().to_owned()
+        self.nested_module_identifier().to_owned()
     }
 
     fn parser_scoped_identifier(&self) -> String {
-        self.identifier().to_owned()
+        self.nested_module_identifier().to_owned()
     }
 }
 

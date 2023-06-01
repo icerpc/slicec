@@ -103,11 +103,15 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    OwnedPtr::new(Module {
+    let module_ptr = OwnedPtr::new(Module {
         identifier,
         attributes,
         span,
-    })
+    });
+
+    parser.current_scope.module = module_ptr.downgrade();
+    parser.current_scope.parser_scope = module_ptr.borrow().nested_module_identifier().to_owned();
+    module_ptr
 }
 
 fn construct_struct(
@@ -568,7 +572,7 @@ fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocC
         // If the doc comment had 0 lines, that just means there is no doc comment.
         None
     } else {
-        let scoped_identifier = get_scoped_identifier(identifier, &parser.current_scope.raw_parser_scope);
+        let scoped_identifier = get_scoped_identifier(identifier, &parser.current_scope.parser_scope);
         let comment_parser = CommentParser::new(parser.file_name, &scoped_identifier, parser.diagnostics);
         comment_parser.parse_doc_comment(raw_comment).ok()
     }

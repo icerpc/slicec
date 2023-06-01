@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::comments::DocComment;
-use super::elements::{Attribute, Identifier, Integer, TypeRef};
-use super::util::{Scope, TagFormat};
+use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
+use super::util::TagFormat;
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
@@ -16,9 +16,9 @@ pub trait Symbol: Element {
 }
 
 pub trait ScopedSymbol: Symbol {
-    fn module_scope(&self) -> &str;
     fn parser_scope(&self) -> &str;
-    fn raw_scope(&self) -> &Scope;
+    fn module_scope(&self) -> &str;
+    fn get_module(&self) -> &Module;
 }
 
 pub trait NamedSymbol: Symbol {
@@ -32,7 +32,6 @@ pub trait Attributable {
     /// Returns the attributes of the element.
     fn attributes(&self) -> Vec<&Attribute>;
 
-    // TODO this function should be removed!
     /// Returns all the attributes of the element and its parents.
     fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
 
@@ -117,16 +116,16 @@ macro_rules! implement_Symbol_for {
 macro_rules! implement_Scoped_Symbol_for {
     ($type:ty$(, $($bounds:tt)+)?) => {
         impl$(<T: $($bounds)+>)? ScopedSymbol for $type {
-            fn module_scope(&self) -> &str {
-                &self.scope.raw_module_scope
-            }
-
             fn parser_scope(&self) -> &str {
-                &self.scope.raw_parser_scope
+                &self.scope.parser_scope
             }
 
-            fn raw_scope(&self) -> &Scope {
-                &self.scope
+            fn module_scope(&self) -> &str {
+                self.get_module().nested_module_identifier()
+            }
+
+            fn get_module(&self) -> &Module {
+                self.scope.module.borrow()
             }
         }
     };
