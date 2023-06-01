@@ -95,7 +95,7 @@ impl<'input> Lexer<'input> {
         let start_position = self.position;
 
         // Loop while the next character in the buffer is an alphanumeric or underscore.
-        while matches!(self.buffer.peek(), Some(c) if (c.is_alphanumeric() || *c == '_')) {
+        while matches!(self.buffer.peek(), Some(c) if (c.is_ascii_alphanumeric() || *c == '_')) {
             self.advance_buffer(); // Consume the character.
         }
 
@@ -227,7 +227,7 @@ impl<'input> Lexer<'input> {
             }
 
             // If the next character is an alphanumeric or underscore, it's the start of an identifier.
-            c if c.is_alphanumeric() || c == '_' => {
+            c if c.is_ascii_alphanumeric() || c == '_' => {
                 let start_location = self.cursor;
                 let identifier = self.read_identifier();
                 Ok((start_location, TokenKind::Identifier(identifier), self.cursor))

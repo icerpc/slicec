@@ -3,6 +3,7 @@
 mod test_helpers;
 
 use crate::test_helpers::*;
+use slicec::diagnostics::{Diagnostic, Error};
 use slicec::grammar::{CustomType, Exception, Interface, Struct};
 
 #[test]
@@ -65,4 +66,19 @@ fn escaped_scoped_identifiers_containing_keywords() {
 
     // Assert
     assert!(ast.find_element::<Struct>("Foo::module").is_ok());
+}
+
+#[test]
+fn must_be_ascii_alphanumeric_characters() {
+    // Arrange
+    let slice = "module 𒅋";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Syntax {
+        message: "foo".to_owned(),
+    });
+    check_diagnostics(diagnostics, [expected]);
 }
