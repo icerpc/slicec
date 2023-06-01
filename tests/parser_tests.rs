@@ -4,6 +4,7 @@ mod test_helpers;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
+use slicec::grammar::Enumerator;
 use slicec::slice_file::Span;
 
 #[test]
@@ -54,6 +55,25 @@ fn string_literals_cannot_contain_newlines() {
     .set_span(&span);
 
     check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
+fn integer_literals_can_contain_underscores() {
+    // Arrange
+    let slice = "
+        module Test
+
+        enum Foo: int32 {
+            A = 17_000_000
+        }
+    ";
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let enumerator = ast.find_element::<Enumerator>("Test::Foo::A").unwrap();
+    assert_eq!(enumerator.value(), 17_000_000);
 }
 
 // Ensure a syntax error in one file doesn't affect how we parse other files; See: github.com/icerpc/slicec/issues/559.
