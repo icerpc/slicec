@@ -59,39 +59,10 @@ pub struct SliceFile {
     pub contents: Vec<Definition>,
 
     pub is_source: bool,
-    line_positions: Vec<usize>,
 }
 
 impl SliceFile {
-    pub fn new(relative_path: String, mut raw_text: String, is_source: bool) -> Self {
-        // Store the starting position of each line the file.
-        // Slice supports '\n', '\r', and '\r\n' as newlines.
-        let mut line_positions = vec![0]; // The first line always starts at index 0.
-        let mut last_char_was_carriage_return = false;
-
-        // Ensure that the file ends with a newline character. This ensures that line_positions will
-        // always end with an index of raw_contents one line after the last line containing text.
-        // This is important for the get_snippet function.
-        raw_text += "\n";
-
-        // Iterate through each character in the file.
-        // If we hit a '\n' we immediately store `index + 1` as the starting position for the next
-        // line (`+ 1` because the line starts after the newline character).
-        // If we hit a '\r' we wait and read the next character to see if it's a '\n'.
-        // If so, the '\n' block handles it, otherwise we store `index`
-        // (no plus one, because we've already read ahead to the next character).
-        for (index, character) in raw_text.chars().enumerate() {
-            if character == '\n' {
-                line_positions.push(index + 1);
-                last_char_was_carriage_return = false;
-            } else {
-                if last_char_was_carriage_return {
-                    line_positions.push(index);
-                }
-                last_char_was_carriage_return = character == '\r';
-            }
-        }
-
+    pub fn new(relative_path: String, raw_text: String, is_source: bool) -> Self {
         // Extract the name of the slice file without its extension.
         let filename = std::path::Path::new(&relative_path)
             .file_stem()
@@ -109,7 +80,6 @@ impl SliceFile {
             attributes: Vec::new(),
             contents: Vec::new(),
             is_source,
-            line_positions,
         }
     }
 
@@ -147,68 +117,71 @@ impl SliceFile {
         // The prefix for lines not showing a line number.
         let line_prefix = line_number_prefix(None);
 
-        // Raw text from the slice file. Contains all the lines that the specified range touches.
-        // IMPORTANT NOTE: rows and columns are counted from 1 (not 0), so we have to `-1` them everywhere!
-        let raw_snippet = &self.raw_text[self.line_positions[start.row - 1]..self.line_positions[end.row] - 1];
+        // The lines of text that should be included in the snippet.
+        let lines = self
+            .raw_text
+            .lines()
+            .enumerate()
+            .filter(|(line_number, _)| *line_number >= start.row - 1 && *line_number < end.row);
 
-        // Convert the provided locations into string indexes (in the raw text).
-        let start_pos = self.line_positions[start.row - 1] + (start.col - 1);
-        let end_pos = self.line_positions[end.row - 1] + (end.col - 1);
+        let mut formatted_snippet = line_prefix.clone() + "\n";
+        for (i, line) in lines {
+            // The actual line number
+            let line_number = i + 1;
 
-        let mut formatted_snippet = line_number_prefix(None) + "\n";
-        // Iterate through each line of raw text, and add it (and its line number) into the formatted snippet.
-        // Add pointers and underlining on the line below it, as specified by the provided range.
-        // We use `str::split` instead of `str::lines` to preserve '\r's, since our indexes count them as characters.
-        let mut line_number = start.row;
-        for line in raw_snippet.split('\n') {
-            // We print tabs as 4 spaces so that we can properly compute the underline length.
-            writeln!(
-                formatted_snippet,
-                "{} {}",
-                line_number_prefix(Some(line_number)),
-                line.replace('\t', EXPANDED_TAB),
-            );
-
-            if start_pos == end_pos {
-                // If the provided range is a single location, point to that location.
-                let point = style("/\\").yellow().bold();
-                let point_offset = start_pos - self.line_positions[line_number - 1];
-                let whitespace = get_whitespace_before_position(line, point_offset);
-
-                writeln!(formatted_snippet, "{line_prefix} {whitespace}{point}");
+            // If the provided range is between 2 locations, underline everything between them.
+            let underline_start = if line_number == start.row { start.col - 1 } else { 0 };
+            let underline_end = if line_number == end.row {
+                end.col - 1
             } else {
-                // If the provided range is between 2 locations, underline everything between them.
-                let underline_start = start_pos.saturating_sub(self.line_positions[line_number - 1]);
-                let underline_end = match (self.line_positions[line_number] - 1).checked_sub(end_pos) {
-                    Some(pos) => line.len() - pos, // If the end position is on this line.
-                    None => line.trim_end().len(), // If the end position is past the end of this line.
-                };
+                line.chars().count()
+            };
 
-                // Number of tabs between the start and end of the underline.
-                let underline_tab_count = line
-                    .chars()
-                    .enumerate()
-                    .filter(|(index, char)| *index >= underline_start && *index < underline_end && *char == '\t')
-                    .count();
-
-                // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed for
-                // each tab.
-                let underline_length =
-                    (underline_end - underline_start) + (underline_tab_count * (EXPANDED_TAB.len() - 1));
-                let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
-
-                // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
-                let whitespace = get_whitespace_before_position(line, underline_start);
-
-                writeln!(formatted_snippet, "{line_prefix} {whitespace}{underline}");
+            // If the start and end are not the same and the underline start the start position is at the end of the
+            // line, then we don't want to print the line.
+            if start != end && underline_start == line.chars().count() {
+                continue;
             }
-            line_number += 1; // Move to the next line.
+
+            // We print tabs as 4 spaces so that we can properly compute the underline length.
+            let prefix = line_number_prefix(Some(line_number));
+            let space_separated_line = line.replace('\t', EXPANDED_TAB);
+            writeln!(formatted_snippet, "{prefix} {space_separated_line}",);
+
+            if let Some(underline) = get_underline(line, underline_start, underline_end) {
+                writeln!(formatted_snippet, "{line_prefix} {underline}");
+            }
         }
+
         formatted_snippet + &line_prefix
     }
 }
 
 implement_Attributable_for!(SliceFile);
+
+fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> Option<String> {
+    if underline_start == underline_end {
+        let point = style("/\\").yellow().bold();
+        let whitespace = get_whitespace_before_position(line, underline_start);
+        Some(format!("{whitespace}{point}"))
+    } else {
+        // Number of tabs between the start and end of the underline.
+        let underline_tab_count = line
+            .chars()
+            .enumerate()
+            .filter(|(index, char)| *index >= underline_start && *index < underline_end && *char == '\t')
+            .count();
+
+        // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed
+        // for each tab.
+        let underline_length = (underline_end - underline_start) + (underline_tab_count * (EXPANDED_TAB.len() - 1));
+        let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
+
+        // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
+        let whitespace = get_whitespace_before_position(line, underline_start);
+        Some(format!("{whitespace}{underline}"))
+    }
+}
 
 fn get_whitespace_before_position(line: &str, pos: usize) -> String {
     line.chars()

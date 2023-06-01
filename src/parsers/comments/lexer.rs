@@ -74,8 +74,8 @@ impl<'input> Lexer<'input> {
 
     /// Consumes the next character in the buffer and moves the lexer's cursor forward accordingly.
     fn advance_buffer(&mut self) {
-        if self.buffer.next().is_some() {
-            self.position += 1;
+        if let Some(c) = self.buffer.next() {
+            self.position += c.len_utf8();
             self.cursor.col += 1;
         }
     }

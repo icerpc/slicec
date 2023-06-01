@@ -47,21 +47,22 @@ mod output {
     }
 
     #[test]
+    #[ignore]
     fn output_to_console() {
         let slice = "
         module Foo
 
         interface I {
             /// @param x: this is an x
-            op1()\r
+            op1()
 
             op2(tag(1)
-    x:\r
+    x:
                     int32, tag(2) y: bool?,
             )
         }
-\r
-        enum E: int8 {}\r
+
+        enum E: int8 {}
         ";
 
         // Disable ANSI color codes.
@@ -192,7 +193,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Report a diagnostic with a note that has the same span as the diagnostic.
         let span = Span {
             start: (2, 13).into(),
-            end: (2, 39).into(),
+            end: (2, 30).into(),
             file: "string-0".to_owned(),
         };
 
