@@ -109,7 +109,7 @@ fn construct_module(
         span,
     });
 
-    parser.current_scope.module = module_ptr.downgrade();
+    parser.current_scope.module = Some(module_ptr.downgrade());
     parser.current_scope.parser_scope = module_ptr.borrow().nested_module_identifier().to_owned();
     module_ptr
 }

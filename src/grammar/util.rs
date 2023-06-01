@@ -22,7 +22,7 @@ impl Scope {
         if let Some(last_scope_index) = self.parser_scope.rfind("::") {
             // Remove any characters after the last '::' in the string.
             // We ensure that we're only removing additional parser scopes, and not any scopes that came from a module.
-            debug_assert!(self.parser_scope.len() > module.as_ref().unwrap().borrow().nested_module_identifier().len())
+            debug_assert!(self.parser_scope.len() > module.as_ref().unwrap().borrow().nested_module_identifier().len());
             self.parser_scope.truncate(last_scope_index);
         } else {
             // If the string doesn't contain '::', there's only a single scope. We pop it off by clearing the string.
