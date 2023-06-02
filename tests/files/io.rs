@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use std::path::{PathBuf, MAIN_SEPARATOR};
+use std::path::PathBuf;
 
 use slicec::diagnostics::DiagnosticReporter;
 use slicec::slice_options::SliceOptions;
@@ -9,7 +9,7 @@ use slicec::utils::file_util::resolve_files_from;
 #[test]
 fn duplicate_reference_files_ignored() {
     // Arrange
-    let file = PathBuf::from(["tests", "files", "..", "files", "test.slice"].join(&MAIN_SEPARATOR.to_string()));
+    let file = PathBuf::from("tests/files/../files/test.slice");
     let options = SliceOptions {
         sources: vec![file.to_str().unwrap().to_owned()],
         references: vec![file.to_str().unwrap().to_owned()],
@@ -27,9 +27,8 @@ fn duplicate_reference_files_ignored() {
 #[test]
 fn duplicate_source_files_ignored() {
     // Arrange
-    let file_path_one = PathBuf::from(["tests", "files", "test.slice"].join(&MAIN_SEPARATOR.to_string()));
-    let file_path_two =
-        PathBuf::from(["tests", "files", "..", "files", "test.slice"].join(&MAIN_SEPARATOR.to_string()));
+    let file_path_one = PathBuf::from("tests/files/test.slice");
+    let file_path_two = PathBuf::from("tests/files/../files/test.slice");
     let options = SliceOptions {
         sources: vec![
             file_path_one.to_str().unwrap().to_owned(),
