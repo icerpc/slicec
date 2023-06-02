@@ -95,7 +95,6 @@ impl SliceFile {
     }
 
     /// Retrieves a formatted snippet from the slice file.
-    #[allow(unused_must_use)] // 'writeln' can't fail when writing to a string, so we ignore the result it returns.
     pub(crate) fn get_snippet(&self, start: Location, end: Location) -> String {
         debug_assert!(start <= end);
 
@@ -124,32 +123,32 @@ impl SliceFile {
             .enumerate()
             .filter(|(line_number, _)| *line_number >= start.row - 1 && *line_number < end.row);
 
+        // The formatted snippet.
         let mut formatted_snippet = line_prefix.clone() + "\n";
+
         for (i, line) in lines {
             // The actual line number
             let line_number = i + 1;
 
-            // If the provided range is between 2 locations, underline everything between them.
+            let width = line.chars().count();
+
+            // The start and end positions of the underline.
             let underline_start = if line_number == start.row { start.col - 1 } else { 0 };
-            let underline_end = if line_number == end.row {
-                end.col - 1
-            } else {
-                line.chars().count()
-            };
+            let underline_end = if line_number == end.row { end.col - 1 } else { width };
 
             // If the start and end are not the same and the underline start the start position is at the end of the
             // line, then we don't want to print the line.
-            if start != end && underline_start == line.chars().count() {
+            if start != end && underline_start == width {
                 continue;
             }
 
-            // We print tabs as 4 spaces so that we can properly compute the underline length.
+            // Expand tabs to 4 spaces so that we can properly compute the underline length.
             let prefix = line_number_prefix(Some(line_number));
             let space_separated_line = line.replace('\t', EXPANDED_TAB);
-            writeln!(formatted_snippet, "{prefix} {space_separated_line}",);
+            writeln!(formatted_snippet, "{prefix} {space_separated_line}").expect("failed to write snippet");
 
             let underline = get_underline(line, underline_start, underline_end);
-            writeln!(formatted_snippet, "{line_prefix} {underline}");
+            writeln!(formatted_snippet, "{line_prefix} {underline}").expect("failed to write snippet");
         }
 
         formatted_snippet + &line_prefix
@@ -159,10 +158,19 @@ impl SliceFile {
 implement_Attributable_for!(SliceFile);
 
 fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> String {
-    if underline_start == underline_end {
-        let point = style("/\\").yellow().bold();
-        let whitespace = get_whitespace_before_position(line, underline_start);
-        format!("{whitespace}{point}")
+    // The whitespace that should be displayed before the underline. Tabs are expanded to 4 spaces.
+    let whitespace: String = line
+        .chars()
+        .take(underline_start)
+        .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
+        .collect();
+
+    // The underline that should be displayed.
+    // If the underline is a single character, then we use a single point.
+    // If the provided range is between 2 locations, underline everything between them.
+    let underline = if underline_start == underline_end {
+        // Point to a single character.
+        style(r#"/\"#.to_owned()).yellow().bold()
     } else {
         // Number of tabs between the start and end of the underline.
         let underline_tab_count = line
@@ -174,17 +182,9 @@ fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> St
         // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed
         // for each tab.
         let underline_length = (underline_end - underline_start) + (underline_tab_count * (EXPANDED_TAB.len() - 1));
-        let underline = style(format!("{:-<1$}", "", underline_length)).yellow().bold();
+        style(format!("{:-<1$}", "", underline_length)).yellow().bold()
+    };
 
-        // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
-        let whitespace = get_whitespace_before_position(line, underline_start);
-        format!("{whitespace}{underline}")
-    }
-}
-
-fn get_whitespace_before_position(line: &str, pos: usize) -> String {
-    line.chars()
-        .take(pos)
-        .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
-        .collect()
+    // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
+    format!("{whitespace}{underline}")
 }
