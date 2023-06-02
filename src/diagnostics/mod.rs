@@ -53,7 +53,7 @@ impl Diagnostic {
         self.span.as_ref()
     }
 
-    /// Returns the [Scope](crate::grammar::Scope) of this diagnostic if it has one.
+    /// Returns the scope of this diagnostic if it has one.
     pub fn scope(&self) -> Option<&String> {
         self.scope.as_ref()
     }

@@ -19,7 +19,7 @@ pub enum TokenKind<'input> {
 
     /// A string of alphanumeric characters that starts with a number.
     /// We allow alphanumeric characters to support hex literals.
-    IntegerLiteral(&'input str), // "[0-9][a-zA-Z0-9]*"
+    IntegerLiteral(&'input str), // "[0-9][_a-zA-Z0-9]*"
 
     /// A string literal consists of any non-newline characters contained within a pair of unescaped double-quotes.
     /// Note that the value doesn't contain the enclosing quotation marks, only the characters in between them.

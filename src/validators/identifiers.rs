@@ -68,7 +68,6 @@ pub fn check_for_redefinitions(ast: &Ast, diagnostic_reporter: &mut DiagnosticRe
     }
 }
 
-// TODO maybe add an 'Elements' wrapper to avoid these string comparisons?
 fn is_module(definition: &dyn NamedSymbol) -> bool {
     definition.kind() == "module"
 }

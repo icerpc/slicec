@@ -107,26 +107,12 @@ where
 
     /// Reads, consumes, and returns a string of alphanumeric characters from the buffer.
     /// After calling this function, the next character will be a non-alphanumeric character or `None` (end of buffer).
-    fn read_identifier(&mut self) -> &'input str {
+    fn read_alphanumeric(&mut self) -> &'input str {
         let start_position = self.get_position();
 
         // Loop while the next character in the buffer is alphanumeric or an underscore.
         while matches!(self.buffer.peek(), Some((_, c)) if (c.is_alphanumeric() || *c == '_')) {
             self.advance_buffer(); // Consume the alphanumeric character.
-        }
-
-        let end_position = self.get_position();
-        &self.current_block.content[start_position..end_position]
-    }
-
-    /// Reads, consumes, and returns a string of numeric characters from the buffer.
-    /// After calling this function, the next character will be a non-numeric character or `None` (end of buffer).
-    fn read_integer_literal(&mut self) -> &'input str {
-        let start_position = self.get_position();
-
-        // Loop while the next character in the buffer is alphanumeric (because we support hex literals).
-        while matches!(self.buffer.peek(), Some((_, c)) if c.is_alphanumeric()) {
-            self.advance_buffer(); // Consume the numeric character.
         }
 
         let end_position = self.get_position();
@@ -362,7 +348,7 @@ where
                 self.advance_buffer(); // Consume the '\' character.
                                        // Check if the next character could be the start of an identifier.
                 if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_alphabetic() || *ch == '_') {
-                    let identifier = self.read_identifier();
+                    let identifier = self.read_alphanumeric();
                     Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
                 } else {
                     // The token is just "\", indicating a syntax error. '\' on its own isn't a valid Slice token.
@@ -376,14 +362,14 @@ where
             _ if c.is_alphabetic() || c == '_' => {
                 let token = if self.attribute_mode {
                     // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
-                    TokenKind::Identifier(self.read_identifier())
+                    TokenKind::Identifier(self.read_alphanumeric())
                 } else {
-                    Self::check_if_keyword(self.read_identifier())
+                    Self::check_if_keyword(self.read_alphanumeric())
                 };
                 Some(Ok((start_location, token, self.cursor)))
             }
             _ if c.is_numeric() => {
-                let integer = self.read_integer_literal();
+                let integer = self.read_alphanumeric();
                 Some(Ok((start_location, TokenKind::IntegerLiteral(integer), self.cursor)))
             }
             _ if c.is_whitespace() => {

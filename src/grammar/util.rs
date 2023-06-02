@@ -1,50 +1,26 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::Module;
+use crate::utils::ptr_util::WeakPtr;
 use std::fmt;
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Scope {
-    pub raw_module_scope: String,
-    pub module_scope: Vec<String>,
-    pub raw_parser_scope: String,
-    pub parser_scope: Vec<String>,
+    pub parser_scope: String,
+    pub module: WeakPtr<Module>,
 }
 
 impl Scope {
-    pub fn new(name: &str, is_module: bool) -> Scope {
-        let parser_scope = name
-            .split("::")
-            .filter(|s| !s.is_empty())
-            .map(|s| s.to_owned())
-            .collect::<Vec<_>>();
-
-        let module_scope = if is_module { parser_scope.clone() } else { Vec::new() };
-
-        Scope {
-            raw_module_scope: module_scope.join("::"),
-            module_scope,
-            raw_parser_scope: parser_scope.join("::"),
-            parser_scope,
-        }
-    }
-
-    pub fn push_scope(&mut self, name: &str, is_module: bool) {
-        if is_module {
-            self.module_scope.push(name.to_owned());
-            self.raw_module_scope = self.module_scope.join("::");
-        }
-        self.parser_scope.push(name.to_owned());
-        self.raw_parser_scope = self.parser_scope.join("::");
+    pub fn push_scope(&mut self, scope: &str) {
+        self.parser_scope.push_str("::");
+        self.parser_scope.push_str(scope);
     }
 
     pub fn pop_scope(&mut self) {
-        // If the last parser scope is also a module scope, pop off a module scope as well.
-        if self.parser_scope.last() == self.module_scope.last() {
-            self.module_scope.pop();
-            self.raw_module_scope = self.module_scope.join("::");
-        }
-        self.parser_scope.pop();
-        self.raw_parser_scope = self.parser_scope.join("::");
+        // It's safe to unwrap because we never call this function when there aren't parser scopes to pop off,
+        // and there's at least 1 scope from the file-level module, so there's at least 2 scopes when this is called.
+        let last_scope_index = self.parser_scope.rfind("::");
+        self.parser_scope.truncate(last_scope_index.unwrap());
     }
 }
 

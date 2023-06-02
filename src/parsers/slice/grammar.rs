@@ -103,11 +103,15 @@ fn construct_module(
         parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
     }
 
-    OwnedPtr::new(Module {
+    let module_ptr = OwnedPtr::new(Module {
         identifier,
         attributes,
         span,
-    })
+    });
+
+    parser.current_scope.module = module_ptr.downgrade();
+    parser.current_scope.parser_scope = module_ptr.borrow().nested_module_identifier().to_owned();
+    module_ptr
 }
 
 fn construct_struct(
@@ -511,12 +515,15 @@ fn try_construct_attribute(
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {
+    // Remove any underscores from the integer literal before trying to parse it.
+    let sanitized = s.replace('_', "");
+
     // Check the literal for a base prefix. If present, remove it and set the base.
     // "0b" = binary, "0x" = hexadecimal, otherwise we assume it's decimal.
-    let (literal, base) = match s {
-        _ if s.starts_with("0b") => (&s[2..], 2),
-        _ if s.starts_with("0x") => (&s[2..], 16),
-        _ => (s, 10),
+    let (literal, base) = match sanitized {
+        _ if sanitized.starts_with("0b") => (&sanitized[2..], 2),
+        _ if sanitized.starts_with("0x") => (&sanitized[2..], 16),
+        _ => (sanitized.as_str(), 10),
     };
 
     let value = match i128::from_str_radix(literal, base) {
@@ -565,7 +572,7 @@ fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocC
         // If the doc comment had 0 lines, that just means there is no doc comment.
         None
     } else {
-        let scoped_identifier = get_scoped_identifier(identifier, &parser.current_scope.raw_parser_scope);
+        let scoped_identifier = get_scoped_identifier(identifier, &parser.current_scope.parser_scope);
         let comment_parser = CommentParser::new(parser.file_name, &scoped_identifier, parser.diagnostics);
         comment_parser.parse_doc_comment(raw_comment).ok()
     }
