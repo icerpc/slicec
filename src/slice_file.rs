@@ -186,5 +186,5 @@ fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> St
     };
 
     // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
-    format!("{whitespace}{underline}")
+    whitespace + &underline
 }
