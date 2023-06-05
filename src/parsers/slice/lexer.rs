@@ -77,7 +77,6 @@ where
     /// Consumes the next character in the buffer and moves the lexer's cursor forward accordingly.
     fn advance_buffer(&mut self) {
         // Consume the next character and check if it's a newline.
-
         if let Some((_, c)) = self.buffer.next() {
             if c == '\n' {
                 self.cursor.row += 1;

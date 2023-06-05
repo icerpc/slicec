@@ -218,4 +218,35 @@ error [E002]: invalid syntax: foo
 ";
         assert_eq!(expected, String::from_utf8(output).unwrap());
     }
+
+    #[test]
+    fn crlf_line_endings() {
+        let slice = "module Foo \r\n   enum\r\n E : uint8\r\n{}\r\n\r";
+
+        // Disable ANSI color codes.
+        let options = SliceOptions {
+            disable_color: true,
+            ..Default::default()
+        };
+
+        let compilation_state = parse(slice, Some(options));
+        let mut output: Vec<u8> = Vec::new();
+
+        // Act
+        compilation_state.emit_diagnostics(&mut output);
+        // compilation_state.emit_diagnostics(&mut output);
+
+        // Assert
+        let expected = "\
+error [E010]: invalid enum 'E': enums must contain at least one enumerator
+ --> string-0:2:4
+  |
+2 |    enum
+  |    ----
+3 |  E : uint8
+  | --
+  |
+";
+        assert_eq!(expected, String::from_utf8(output).unwrap());
+    }
 }
