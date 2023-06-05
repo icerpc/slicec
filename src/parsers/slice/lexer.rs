@@ -110,7 +110,7 @@ where
         let start_position = self.get_position();
 
         // Loop while the next character in the buffer is alphanumeric or an underscore.
-        while matches!(self.buffer.peek(), Some((_, c)) if (c.is_alphanumeric() || *c == '_')) {
+        while matches!(self.buffer.peek(), Some((_, c)) if (c.is_ascii_alphanumeric() || *c == '_')) {
             self.advance_buffer(); // Consume the alphanumeric character.
         }
 
@@ -185,7 +185,7 @@ where
     /// Checks if an identifier corresponds to a Slice keyword. If it does,
     /// return the keyword's token. Otherwise, return an `[TokenKind::Identifier]` token.
     fn check_if_keyword(identifier: &str) -> TokenKind {
-        debug_assert!(identifier.chars().all(|c| c.is_alphanumeric() || c == '_'));
+        debug_assert!(identifier.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
         debug_assert!(!identifier.is_empty());
 
         match identifier {
@@ -346,7 +346,7 @@ where
             '\\' => {
                 self.advance_buffer(); // Consume the '\' character.
                                        // Check if the next character could be the start of an identifier.
-                if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_alphabetic() || *ch == '_') {
+                if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_ascii_alphabetic() || *ch == '_') {
                     let identifier = self.read_alphanumeric();
                     Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
                 } else {
@@ -358,7 +358,7 @@ where
                     Some(Err((start_location, error, self.cursor)))
                 }
             }
-            _ if c.is_alphabetic() || c == '_' => {
+            _ if c.is_ascii_alphabetic() || c == '_' => {
                 let token = if self.attribute_mode {
                     // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
                     TokenKind::Identifier(self.read_alphanumeric())
@@ -367,7 +367,7 @@ where
                 };
                 Some(Ok((start_location, token, self.cursor)))
             }
-            _ if c.is_numeric() => {
+            _ if c.is_ascii_digit() => {
                 let integer = self.read_alphanumeric();
                 Some(Ok((start_location, TokenKind::IntegerLiteral(integer), self.cursor)))
             }
