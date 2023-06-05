@@ -175,8 +175,9 @@ fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> St
         // Number of tabs between the start and end of the underline.
         let underline_tab_count = line
             .chars()
-            .enumerate()
-            .filter(|(index, char)| *index >= underline_start && *index < underline_end && *char == '\t')
+            .skip(underline_start)
+            .take(underline_end - underline_start)
+            .filter(|c| *c == '\t')
             .count();
 
         // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed
