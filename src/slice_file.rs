@@ -132,23 +132,24 @@ impl SliceFile {
 
             let width = line.chars().count();
 
-            // The start and end positions of the underline.
-            let underline_start = if line_number == start.row { start.col - 1 } else { 0 };
-            let underline_end = if line_number == end.row { end.col - 1 } else { width };
+            // The start and end positions of the highlight.
+            let highlight_start = if line_number == start.row { start.col - 1 } else { 0 };
+            let highlight_end = if line_number == end.row { end.col - 1 } else { width };
 
-            // If the start and end are not the same and the underline start the start position is at the end of the
+            // If the start and end are not the same and the highlight start the start position is at the end of the
             // line, then we don't want to print the line.
-            if start != end && underline_start == width {
+            // TODO: remove once https://github.com/icerpc/slicec/issues/603 is fixed
+            if start != end && highlight_start == width {
                 continue;
             }
 
-            // Expand tabs to 4 spaces so that we can properly compute the underline length.
+            // Expand tabs to 4 spaces so that we can properly compute the highlight length.
             let prefix = line_number_prefix(Some(line_number));
             let space_separated_line = line.replace('\t', EXPANDED_TAB);
-            formatted_snippet += prefix + ' ' + &space_separated_line + '\n';
+            formatted_snippet += &(prefix + " " + &space_separated_line + "\n");
 
-            let underline = get_underline(line, underline_start, underline_end);
-            writeln!(formatted_snippet, "{line_prefix} {underline}").expect("failed to write snippet");
+            let highlight = get_highlight(line, highlight_start, highlight_end);
+            writeln!(formatted_snippet, "{line_prefix} {highlight}").expect("failed to write snippet");
         }
 
         formatted_snippet + &line_prefix
@@ -157,35 +158,34 @@ impl SliceFile {
 
 implement_Attributable_for!(SliceFile);
 
-fn get_underline(line: &str, underline_start: usize, underline_end: usize) -> String {
-    // The whitespace that should be displayed before the underline. Tabs are expanded to 4 spaces.
+fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> String {
+    // The whitespace that should be displayed before the highlight. Tabs are expanded to 4 spaces.
     let whitespace: String = line
         .chars()
-        .take(underline_start)
+        .take(highlight_start)
         .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
         .collect();
 
-    // The underline that should be displayed.
-    // If the underline is a single character, then we use a single point.
-    // If the provided range is between 2 locations, underline everything between them.
-    let underline = if underline_start == underline_end {
+    // The highlight that should be displayed.
+    // If it's between 2 characters (same start and end), then we use a single point.
+    // If the provided range is between 2 locations, highlight everything between them.
+    let highlight = if highlight_start == highlight_end {
         // Point to a single character.
         style(r#"/\"#.to_owned()).yellow().bold()
     } else {
-        // Number of tabs between the start and end of the underline.
-        let underline_tab_count = line
+        // Number of tabs between the start and end of the highlight.
+        let highlight_tab_count = line
             .chars()
-            .skip(underline_start)
-            .take(underline_end - underline_start)
+            .skip(highlight_start)
+            .take(highlight_end - highlight_start)
             .filter(|c| *c == '\t')
             .count();
 
         // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed
         // for each tab.
-        let underline_length = (underline_end - underline_start) + (underline_tab_count * (EXPANDED_TAB.len() - 1));
-        style(format!("{:-<1$}", "", underline_length)).yellow().bold()
+        let highlight_length = (highlight_end - highlight_start) + (highlight_tab_count * (EXPANDED_TAB.len() - 1));
+        style(format!("{:-<1$}", "", highlight_length)).yellow().bold()
     };
 
-    // The whitespace that should be displayed before the underline. Tabs are displayed as 4 spaces.
-    whitespace + &underline
+    whitespace + &highlight.to_string()
 }
