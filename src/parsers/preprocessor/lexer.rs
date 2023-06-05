@@ -49,7 +49,7 @@ impl<'input> Lexer<'input> {
     fn advance_buffer(&mut self) {
         // Consume the next character and check if it's a newline.
         if let Some(c) = self.buffer.next() {
-            self.position += 1;
+            self.position += c.len_utf8();
             if c == '\n' {
                 self.cursor.row += 1;
                 self.cursor.col = 1;

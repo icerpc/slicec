@@ -53,15 +53,15 @@ mod output {
 
         interface I {
             /// @param x: this is an x
-            op1()\r
+            op1()
 
             op2(tag(1)
-    x:\r
+    x:
                     int32, tag(2) y: bool?,
             )
         }
-\r
-        enum E: int8 {}\r
+
+        enum E: int8 {}
         ";
 
         // Disable ANSI color codes.
@@ -91,7 +91,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
    |
 8  |             op2(tag(1)
    |                 ------
-9  |     x:\r
+9  |     x:
    | ------
 10 |                     int32, tag(2) y: bool?,
    | -------------------------
@@ -99,7 +99,7 @@ error [E019]: invalid tag on member 'x': tagged members must be optional
 error [E010]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:14:9
    |
-14 |         enum E: int8 {}\r
+14 |         enum E: int8 {}
    |         ------
    |
 ";
@@ -192,7 +192,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Report a diagnostic with a note that has the same span as the diagnostic.
         let span = Span {
             start: (2, 13).into(),
-            end: (2, 39).into(),
+            end: (2, 30).into(),
             file: "string-0".to_owned(),
         };
 
@@ -215,6 +215,37 @@ error [E002]: invalid syntax: foo
   |             -----------------
   |
     = note: bar
+";
+        assert_eq!(expected, String::from_utf8(output).unwrap());
+    }
+
+    #[test]
+    fn crlf_line_endings() {
+        let slice = "module Foo \r\n   enum\r\n E\r : uint8\r\n{}\r\n\r";
+
+        // Disable ANSI color codes.
+        let options = SliceOptions {
+            disable_color: true,
+            ..Default::default()
+        };
+
+        let compilation_state = parse(slice, Some(options));
+        let mut output: Vec<u8> = Vec::new();
+
+        // Act
+        compilation_state.emit_diagnostics(&mut output);
+        // compilation_state.emit_diagnostics(&mut output);
+
+        // Assert
+        let expected = "\
+error [E010]: invalid enum 'E': enums must contain at least one enumerator
+ --> string-0:2:4
+  |
+2 |    enum
+  |    ----
+3 |  E\r : uint8
+  | --
+  |
 ";
         assert_eq!(expected, String::from_utf8(output).unwrap());
     }
