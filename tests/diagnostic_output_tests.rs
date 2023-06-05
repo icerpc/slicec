@@ -221,7 +221,7 @@ error [E002]: invalid syntax: foo
 
     #[test]
     fn crlf_line_endings() {
-        let slice = "module Foo \r\n   enum\r\n E : uint8\r\n{}\r\n\r";
+        let slice = "module Foo \r\n   enum\r\n E\r : uint8\r\n{}\r\n\r";
 
         // Disable ANSI color codes.
         let options = SliceOptions {
@@ -243,7 +243,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
   |
 2 |    enum
   |    ----
-3 |  E : uint8
+3 |  E\r : uint8
   | --
   |
 ";
