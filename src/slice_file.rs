@@ -145,7 +145,7 @@ impl SliceFile {
             // Expand tabs to 4 spaces so that we can properly compute the underline length.
             let prefix = line_number_prefix(Some(line_number));
             let space_separated_line = line.replace('\t', EXPANDED_TAB);
-            writeln!(formatted_snippet, "{prefix} {space_separated_line}").expect("failed to write snippet");
+            formatted_snippet += prefix + ' ' + &space_separated_line + '\n';
 
             let underline = get_underline(line, underline_start, underline_end);
             writeln!(formatted_snippet, "{line_prefix} {underline}").expect("failed to write snippet");
