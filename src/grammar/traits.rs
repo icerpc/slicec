@@ -2,7 +2,7 @@
 
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
-use super::util::TagFormat;
+use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
@@ -19,6 +19,7 @@ pub trait ScopedSymbol: Symbol {
     fn parser_scope(&self) -> &str;
     fn module_scope(&self) -> &str;
     fn get_module(&self) -> &Module;
+    fn get_raw_scope(&self) -> &Scope;
 }
 
 pub trait NamedSymbol: Symbol {
@@ -121,11 +122,18 @@ macro_rules! implement_Scoped_Symbol_for {
             }
 
             fn module_scope(&self) -> &str {
-                self.get_module().nested_module_identifier()
+                match &self.scope.module {
+                    Some(module_ptr) => module_ptr.borrow().nested_module_identifier(),
+                    None => "",
+                }
             }
 
             fn get_module(&self) -> &Module {
-                self.scope.module.borrow()
+                self.scope.module.as_ref().unwrap().borrow()
+            }
+
+            fn get_raw_scope(&self) -> &Scope {
+                &self.scope
             }
         }
     };
