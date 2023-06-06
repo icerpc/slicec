@@ -35,29 +35,37 @@ pub trait Attributable {
 
     /// Returns all the attributes of the element and its parents.
     fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
+}
 
+// These functions are declared in a separate trait because they have type parameters, making them not 'object-safe'.
+// This restricts how you're allowed to store and pass around dynamically typed instances of the trait.
+//
+// By having them in a separate trait, this allows the main `Attributable` trait to be free of restrictions, while still
+// having access to all these functions (because of the blanket impl underneath this trait definition).
+pub trait AttributeFunctions {
     /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<P, T>(&self, predicate: P) -> bool
-    where
-        Self: Sized,
-        P: FnMut(&Attribute) -> Option<T>,
-    {
+    fn has_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> bool;
+
+    /// Returns the first attribute that matches the predicate.
+    fn find_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> Option<T>;
+}
+
+// Blanket impl to ensure that everything implementing `Attributable` also gets `AttributeFunctions` for free.
+impl<T: Attributable + ?Sized> AttributeFunctions for T {
+    /// Returns true if the predicate matches any attribute. False otherwise.
+    fn has_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> bool {
         self.find_attribute(predicate).is_some()
     }
 
     /// Returns the first attribute that matches the predicate.
-    fn find_attribute<P, T>(&self, predicate: P) -> Option<T>
-    where
-        Self: Sized,
-        P: FnMut(&Attribute) -> Option<T>,
-    {
+    fn find_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> Option<U> {
         self.attributes().into_iter().find_map(predicate)
     }
 }
 
 pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {
     fn get_deprecation(&self) -> Option<Option<String>> {
-        self.attributes().into_iter().find_map(Attribute::match_deprecated)
+        self.find_attribute(Attribute::match_deprecated)
     }
 }
 
