@@ -72,11 +72,10 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 }
 
 fn formatted_kind(definition: &dyn Type) -> String {
-    let kind = definition.kind();
     match definition.concrete_type() {
         Types::Class(c) => format!("{} '{}'", c.kind(), c.identifier()),
         Types::Exception(e) => format!("{} '{}'", e.kind(), e.identifier()),
         Types::Interface(i) => format!("{} '{}'", i.kind(), i.identifier()),
-        _ => kind.to_owned(),
+        _ => definition.kind().to_owned(),
     }
 }

@@ -68,6 +68,7 @@ pub fn check_for_redefinitions(ast: &Ast, diagnostic_reporter: &mut DiagnosticRe
     }
 }
 
+// TODO improve this function.
 fn is_module(definition: &dyn NamedSymbol) -> bool {
     definition.kind() == "module"
 }
