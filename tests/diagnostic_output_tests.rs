@@ -19,7 +19,7 @@ mod output {
             op()
         }
 
-        enum E: int8 {}
+        enum E : int8 {}
         "#;
 
         // Set the output format to JSON.
@@ -61,7 +61,7 @@ mod output {
             )
         }
 
-        enum E: int8 {}
+        enum E : int8 {}
         ";
 
         // Disable ANSI color codes.
