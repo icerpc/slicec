@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticKind, Warning};
-use crate::grammar::{validate_allow_arguments, Attributable, Attribute, Entity};
+use crate::grammar::{attributes, Attributable, Attribute, Entity};
 use crate::slice_file::SliceFile;
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use std::collections::HashMap;
@@ -29,7 +29,7 @@ impl DiagnosticReporter {
     pub fn new(slice_options: &SliceOptions) -> Self {
         // Validate any arguments passed to `--allow` on the command line.
         let mut diagnostics = Vec::new();
-        validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostics);
+        attributes::validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostics);
 
         DiagnosticReporter {
             diagnostics,
@@ -77,8 +77,9 @@ impl DiagnosticReporter {
 
         // Helper function that checks whether a warning should be suppressed according to the provided attributes.
         fn is_warning_suppressed_by_attributes(attributes: Vec<&Attribute>, warning: &Warning) -> bool {
-            let mut allowed_warnings = attributes.into_iter().filter_map(Attribute::match_allow_warnings);
-            allowed_warnings.any(|allowed| is_warning_suppressed_by(allowed.iter(), warning))
+            //TODOlet mut allowed_warnings = attributes.into_iter().filter_map(Attribute::match_allow_warnings);
+            //TODOallowed_warnings.any(|allowed| is_warning_suppressed_by(allowed.iter(), warning))
+            true
         }
 
         // Filter out any diagnostics that should be suppressed.

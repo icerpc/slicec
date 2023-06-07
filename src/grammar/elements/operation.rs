@@ -86,36 +86,26 @@ impl Operation {
             .cloned()
     }
 
+    // TODO Do we need any of these functions now? They're pretty simple IMO.
+
     pub fn compress_arguments(&self) -> bool {
-        match self.find_attribute(Attribute::match_compress) {
-            Some((compress_args, ..)) => compress_args,
-            None => false,
-        }
+        self.find_attribute::<attributes::Compress>().map_or(false, |a| a.compress_args)
     }
 
     pub fn compress_return(&self) -> bool {
-        match self.find_attribute(Attribute::match_compress) {
-            Some((.., compress_return)) => compress_return,
-            None => false,
-        }
+        self.find_attribute::<attributes::Compress>().map_or(false, |a| a.compress_return)
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        match self.find_attribute(Attribute::match_sliced_format) {
-            Some((sliced_args, ..)) => sliced_args,
-            None => false,
-        }
+        self.find_attribute::<attributes::SlicedFormat>().map_or(false, |a| a.sliced_args)
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        match self.find_attribute(Attribute::match_sliced_format) {
-            Some((.., sliced_return)) => sliced_return,
-            None => false,
-        }
+        self.find_attribute::<attributes::SlicedFormat>().map_or(false, |a| a.sliced_return)
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.has_attribute(Attribute::match_oneway)
+        self.has_attribute::<attributes::Oneway>()
     }
 }
 

@@ -500,18 +500,14 @@ fn construct_unpatched_type_ref_definition(mut identifier: Identifier) -> TypeRe
     TypeRefDefinition::Unpatched(identifier)
 }
 
-fn try_construct_attribute(
+fn construct_attribute(
     parser: &mut Parser,
     directive: Identifier,
     arguments: Option<Vec<String>>,
     span: Span,
 ) -> WeakPtr<Attribute> {
-    parser.ast.add_element(OwnedPtr::new(Attribute::new(
-        parser.diagnostics,
-        directive.value,
-        arguments.unwrap_or_default(),
-        span,
-    )))
+    let attribute = Attribute::new(directive.value, arguments.unwrap_or_default(), span);
+    parser.ast.add_element(OwnedPtr::new(attribute))
 }
 
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {

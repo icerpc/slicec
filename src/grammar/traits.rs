@@ -1,9 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::comments::DocComment;
+use super::attributes::{AttributeKind, Deprecated};
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
 use super::util::{Scope, TagFormat};
-use super::wrappers::{AsEntities, AsTypes};
+use super::wrappers::{AsAttributables, AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -29,7 +30,7 @@ pub trait NamedSymbol: Symbol {
     fn parser_scoped_identifier(&self) -> String;
 }
 
-pub trait Attributable {
+pub trait Attributable: AsAttributables {
     /// Returns the attributes of the element.
     fn attributes(&self) -> Vec<&Attribute>;
 
@@ -44,28 +45,37 @@ pub trait Attributable {
 // having access to all these functions (because of the blanket impl underneath this trait definition).
 pub trait AttributeFunctions {
     /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> bool;
+    /// TODO COMMENT
+    fn has_attribute<T: AttributeKind + 'static>(&self) -> bool;
 
     /// Returns the first attribute that matches the predicate.
-    fn find_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> Option<T>;
+    /// TODO COMMENT
+    fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T>;
+
+    /// Returns the first attribute that matches the predicate.
+    /// TODO COMMENT ALSO DO WE ACTUALLY USE THIS???
+    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T>;
 }
 
 // Blanket impl to ensure that everything implementing `Attributable` also gets `AttributeFunctions` for free.
-impl<T: Attributable + ?Sized> AttributeFunctions for T {
-    /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> bool {
-        self.find_attribute(predicate).is_some()
+impl<A: Attributable + ?Sized> AttributeFunctions for A {
+    fn has_attribute<T: AttributeKind + 'static>(&self) -> bool {
+        self.find_attribute::<T>().is_some()
     }
 
-    /// Returns the first attribute that matches the predicate.
-    fn find_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> Option<U> {
-        self.attributes().into_iter().find_map(predicate)
+    fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T> {
+        self.attributes().into_iter().find_map(|a| a.kind.as_any().downcast_ref())
+    }
+
+    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T> {
+        self.attributes().into_iter().filter_map(|a| a.kind.as_any().downcast_ref()).collect()
     }
 }
 
 pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {
-    fn get_deprecation(&self) -> Option<Option<String>> {
-        self.find_attribute(Attribute::match_deprecated)
+    // TODO do we even really need this function now?
+    fn get_deprecation(&self) -> Option<&Deprecated> {
+        self.find_attribute::<Deprecated>()
     }
 }
 
@@ -170,8 +180,8 @@ macro_rules! implement_Named_Symbol_for {
 }
 
 macro_rules! implement_Attributable_for {
-    ($type:ty$(, $($bounds:tt)+)?) => {
-        impl$(<T: $($bounds)+>)? Attributable for $type {
+    ($type:ty) => {
+        impl Attributable for $type {
             fn attributes(&self) -> Vec<&Attribute> {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }
@@ -181,8 +191,8 @@ macro_rules! implement_Attributable_for {
             }
         }
     };
-    (@Contained $type:ty$(, $($bounds:tt)+)?) => {
-        impl$(<T: $($bounds)+>)? Attributable for $type {
+    (@Contained $type:ty) => {
+        impl Attributable for $type {
             fn attributes(&self) -> Vec<&Attribute> {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }
