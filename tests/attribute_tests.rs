@@ -386,7 +386,7 @@ mod attributes {
                     [deprecated]
                     interface A {}
 
-                    interface B: A {}
+                    interface B : A {}
                 ";
 
             // Act

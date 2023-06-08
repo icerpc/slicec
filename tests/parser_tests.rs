@@ -63,7 +63,7 @@ fn integer_literals_can_contain_underscores() {
     let slice = "
         module Test
 
-        enum Foo: int32 {
+        enum Foo : int32 {
             A = 17_000_000
         }
     ";
