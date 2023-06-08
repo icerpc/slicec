@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::attributes::AttributeKind;
 use super::comments::DocComment;
-use super::attributes::{AttributeKind, Deprecated};
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsAttributables, AsEntities, AsTypes};
@@ -64,20 +64,17 @@ impl<A: Attributable + ?Sized> AttributeFunctions for A {
     }
 
     fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T> {
-        self.attributes().into_iter().find_map(|a| a.kind.as_any().downcast_ref())
+        let mut attributes = self.attributes().into_iter();
+        attributes.find_map(|a| a.kind.as_any().downcast_ref())
     }
 
     fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T> {
-        self.attributes().into_iter().filter_map(|a| a.kind.as_any().downcast_ref()).collect()
+        let attributes = self.attributes().into_iter();
+        attributes.filter_map(|a| a.kind.as_any().downcast_ref()).collect()
     }
 }
 
-pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {
-    // TODO do we even really need this function now?
-    fn get_deprecation(&self) -> Option<&Deprecated> {
-        self.find_attribute::<Deprecated>()
-    }
-}
+pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;

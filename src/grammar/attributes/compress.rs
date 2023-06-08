@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::*;
 use super::super::Attributables;
+use super::*;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 
 #[derive(Debug)]
@@ -11,7 +11,7 @@ pub struct Compress {
 }
 
 impl Compress {
-    pub fn parse_from(Unparsed { directive, args }: Unparsed, span: &Span, diagnostics: &mut Vec<Diagnostic>) -> Self {
+    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
         let (mut compress_args, mut compress_return) = (false, false);
@@ -26,13 +26,13 @@ impl Compress {
                     compress_return = true;
                 }
                 _ => {
-                    let diagnostic = Diagnostic::new(Error::ArgumentNotSupported {
-                        argument: arg,
+                    Diagnostic::new(Error::ArgumentNotSupported {
+                        argument: arg.clone(),
                         directive: Self::directive().to_owned(),
                     })
                     .set_span(span)
-                    .add_note("'Args' and 'Return' are the only valid arguments", None);
-                    diagnostics.push(diagnostic);
+                    .add_note("'Args' and 'Return' are the only valid arguments", None)
+                    .report(reporter);
                 }
             }
         }

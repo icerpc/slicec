@@ -72,7 +72,8 @@ pub trait AsAttributables {
 }
 
 generate_attributables_wrapper!(
-    Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias, TypeRef, SliceFile
+    Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias,
+    TypeRef, SliceFile
 );
 
 macro_rules! generate_types_wrapper {

@@ -9,7 +9,11 @@ pub fn validate_attributes(attributable: &impl Attributable, diagnostic_reporter
     let attributes = attributable.attributes();
     validate_repeated_attributes(&attributes, diagnostic_reporter);
     for attribute in attributes {
-        attribute.kind.validate_on(attributable.concrete_attributable(), attribute.span(), diagnostic_reporter);
+        attribute.kind.validate_on(
+            attributable.concrete_attributable(),
+            attribute.span(),
+            diagnostic_reporter,
+        );
     }
 }
 

@@ -10,7 +10,7 @@ mod wrappers;
 
 // Re-export the contents of the grammar submodules directly into the grammar module. This is
 // for convenience, so users don't need to worry about the submodule structure while importing.
-pub use self::attributes::{AttributeKind, ParseableAttributeKind};
+pub use self::attributes::AttributeKind;
 pub use self::comments::*;
 pub use self::elements::*;
 pub use self::traits::*;

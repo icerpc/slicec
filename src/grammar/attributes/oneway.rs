@@ -1,24 +1,24 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::*;
 use super::super::Attributables;
+use super::*;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 
 #[derive(Debug)]
 pub struct Oneway {}
 
 impl Oneway {
-    pub fn parse_from(Unparsed { directive, args }: Unparsed, span: &Span, diagnostics: &mut Vec<Diagnostic>) -> Self {
+    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
         // Check that no arguments were provided to the attribute.
         if !args.is_empty() {
-            let diagnostic = Diagnostic::new(Error::TooManyArguments {
+            Diagnostic::new(Error::TooManyArguments {
                 expected: Self::directive().to_owned(),
             })
             .set_span(span)
-            .add_note("The oneway attribute does not take any arguments", None);
-            diagnostics.push(diagnostic);
+            .add_note("The oneway attribute does not take any arguments", None)
+            .report(reporter);
         }
 
         Oneway {}

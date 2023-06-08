@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::super::attributes::{Compress, Oneway, SlicedFormat};
 use super::super::*;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
@@ -89,23 +90,23 @@ impl Operation {
     // TODO Do we need any of these functions now? They're pretty simple IMO.
 
     pub fn compress_arguments(&self) -> bool {
-        self.find_attribute::<attributes::Compress>().map_or(false, |a| a.compress_args)
+        self.find_attribute::<Compress>().map_or(false, |a| a.compress_args)
     }
 
     pub fn compress_return(&self) -> bool {
-        self.find_attribute::<attributes::Compress>().map_or(false, |a| a.compress_return)
+        self.find_attribute::<Compress>().map_or(false, |a| a.compress_return)
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        self.find_attribute::<attributes::SlicedFormat>().map_or(false, |a| a.sliced_args)
+        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_args)
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        self.find_attribute::<attributes::SlicedFormat>().map_or(false, |a| a.sliced_return)
+        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_return)
     }
 
     pub fn is_oneway(&self) -> bool {
-        self.has_attribute::<attributes::Oneway>()
+        self.has_attribute::<Oneway>()
     }
 }
 

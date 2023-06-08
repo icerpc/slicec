@@ -3,11 +3,12 @@
 //! TODO write a doc comment for the module.
 
 pub mod node;
-mod patchers;
+pub mod patchers;
 
 use self::node::Node;
 use crate::compilation_state::CompilationState;
-use crate::grammar::{Element, NamedSymbol, Primitive};
+use crate::grammar::{Element, NamedSymbol, Primitive, Symbol};
+use crate::grammar::attributes::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
 
@@ -24,6 +25,7 @@ pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     compilation_state.apply_unsafe(patchers::type_ref_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::encoding_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::comment_link_patcher::patch_ast);
+    compilation_state.apply_unsafe(crate::patch_attributes!(Allow, Compress, Deprecated, Oneway, SlicedFormat));
 }
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the slice elements defined and used by
