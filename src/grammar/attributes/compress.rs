@@ -43,7 +43,7 @@ impl Compress {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
         if !matches!(applied_on, Attributables::Operation(_) | Attributables::Interface(_)) {
             let note = "the compress attribute can only be applied to interfaces and operations";
-            report_unexpected_attribute::<Self>(span, Some(note), reporter);
+            report_unexpected_attribute(self, span, Some(note), reporter);
         }
     }
 }

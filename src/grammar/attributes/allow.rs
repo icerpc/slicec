@@ -31,7 +31,7 @@ impl Allow {
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
         if matches!(applied_on, Attributables::Module(_) | Attributables::TypeRef(_)) {
-            report_unexpected_attribute::<Self>(span, None, reporter);
+            report_unexpected_attribute(self, span, None, reporter);
         }
     }
 }

@@ -27,7 +27,7 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
             continue;
         }
 
-        let directive = attribute.kind.dyn_directive();
+        let directive = attribute.kind.directive();
         let span = attribute.span();
 
         match first_attribute_occurrence.entry(directive) {

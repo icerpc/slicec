@@ -43,7 +43,7 @@ impl SlicedFormat {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
         if !matches!(applied_on, Attributables::Operation(_)) {
             let note = "the slicedFormat attribute can only be applied to operations";
-            report_unexpected_attribute::<Self>(span, Some(note), reporter);
+            report_unexpected_attribute(self, span, Some(note), reporter);
         }
     }
 }

@@ -30,11 +30,11 @@ impl Deprecated {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
         match applied_on {
             Attributables::Module(_) | Attributables::TypeRef(_) | Attributables::SliceFile(_) => {
-                report_unexpected_attribute::<Self>(span, None, reporter);
+                report_unexpected_attribute(self, span, None, reporter);
             }
             Attributables::Parameter(_) => {
                 let note = "parameters cannot be individually deprecated";
-                report_unexpected_attribute::<Self>(span, Some(note), reporter);
+                report_unexpected_attribute(self, span, Some(note), reporter);
             }
             _ => {}
         }

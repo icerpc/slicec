@@ -20,18 +20,17 @@ pub trait AttributeKind: std::fmt::Debug {
     fn is_repeatable(&self) -> bool;
     fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter);
     fn as_any(&self) -> &dyn std::any::Any;
-    fn dyn_directive(&self) -> &str; // Only for error reporting. You should probably use directive if possible.
-}
-
-// TODO COMMENT
-// Driver trait for attribute parsing. All attributes (except Unparsed) should implement this, allowing them to be automatically parsed.
-pub trait ParseableAttributeKind: AttributeKind {
-    fn directive() -> &'static str;
-    fn parse_from(unparsed: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self;
+    fn directive(&self) -> &str;
 }
 
 macro_rules! implement_attribute_kind_for {
     ($type:ty, $directive:literal, $is_repeatable:literal) => {
+        impl $type {
+            pub fn directive() -> &'static str {
+                $directive
+            }
+        }
+
         impl AttributeKind for $type {
             fn is_repeatable(&self) -> bool {
                 $is_repeatable
@@ -45,18 +44,8 @@ macro_rules! implement_attribute_kind_for {
                 self
             }
 
-            fn dyn_directive(&self) -> &str {
+            fn directive(&self) -> &str {
                 Self::directive()
-            }
-        }
-
-        impl ParseableAttributeKind for $type {
-            fn directive() -> &'static str {
-                $directive
-            }
-
-            fn parse_from(unparsed: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
-                Self::parse_from(unparsed, span, reporter)
             }
         }
     };
@@ -82,19 +71,19 @@ impl AttributeKind for Unparsed {
         self
     }
 
-    // TODO EXPLAIN THIS
-    fn dyn_directive(&self) -> &str {
-        unreachable!("attempted to get directive of unparsed attribute");
+    fn directive(&self) -> &str {
+        &self.directive
     }
 }
 
-pub fn report_unexpected_attribute<T: ParseableAttributeKind>(
+pub fn report_unexpected_attribute(
+    attribute: &impl AttributeKind,
     span: &Span,
     note: Option<&str>,
     diagnostic_reporter: &mut DiagnosticReporter,
 ) {
     let mut diagnostic = Diagnostic::new(Error::UnexpectedAttribute {
-        attribute: T::directive().to_owned(), // Can we just use a static string here?
+        attribute: attribute.directive().to_owned(), // Can we just use a static string here?
     })
     .set_span(span);
 
