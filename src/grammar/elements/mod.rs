@@ -21,8 +21,7 @@ mod r#struct;
 mod type_alias;
 mod type_ref;
 
-// Re-export the contents of the grammar submodules directly into the grammar module. This is
-// for convenience, so users don't need to worry about the submodule structure while importing.
+// Re-export the grammar elements directly into this module so consumers don't need to think about submodule structure).
 pub use self::attribute::*;
 pub use self::class::*;
 pub use self::custom_type::*;
