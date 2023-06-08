@@ -276,7 +276,7 @@ mod attributes {
                 attribute: "deprecated".to_owned(),
             })
             .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
-            .add_note("parameters can not be individually deprecated", None);
+            .add_note("parameters cannot be individually deprecated", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -708,15 +708,14 @@ mod attributes {
                 .all_attributes()
                 .concat()
                 .into_iter()
-                .map(|a| match &a.kind {
-                    AttributeKind::Other { directive, arguments } => (directive.as_str(), arguments),
-                    _ => unreachable!(),
-                })
+                .map(|a| a.kind.as_any().downcast_ref::<Unparsed>().unwrap())
                 .collect::<Vec<_>>();
 
             assert_eq!(parent_attributes.len(), 2);
-            assert_eq!(parent_attributes[0], ("test::attribute", &vec!["S".to_owned()]));
-            assert_eq!(parent_attributes[1], ("test::attribute", &vec!["I".to_owned()]));
+            assert_eq!(parent_attributes[0].directive, "test::attribute");
+            assert_eq!(parent_attributes[0].args, vec!["S".to_owned()]);
+            assert_eq!(parent_attributes[1].directive, "test::attribute");
+            assert_eq!(parent_attributes[1].args, vec!["I".to_owned()]);
         }
 
         #[test_case("foo"; "plain_attribute")]

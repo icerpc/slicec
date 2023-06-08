@@ -6,6 +6,6 @@ use std::process::exit;
 
 pub fn main() {
     let options = SliceOptions::parse();
-    let state = slicec::compile_from_options(&options, |_| {}, |_| {});
+    let state = slicec::compile_from_options(&options, |_| {});
     exit(state.into_exit_code());
 }
