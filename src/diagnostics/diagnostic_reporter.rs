@@ -2,7 +2,7 @@
 
 use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticKind, Warning};
-use crate::grammar::{attributes, Attributable, Attribute, Entity};
+use crate::grammar::{attributes, Attributable, Entity};
 use crate::slice_file::SliceFile;
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use std::collections::HashMap;
@@ -76,11 +76,11 @@ impl DiagnosticReporter {
             identifiers.any(|identifier| identifier == "All" || identifier == warning.error_code())
         }
 
-        // Helper function that checks whether a warning should be suppressed according to the provided attributes.
-        fn is_warning_suppressed_by_attributes(attributes: Vec<&Attribute>, warning: &Warning) -> bool {
-            //TODOlet mut allowed_warnings = attributes.into_iter().filter_map(Attribute::match_allow_warnings);
-            //TODOallowed_warnings.any(|allowed| is_warning_suppressed_by(allowed.iter(), warning))
-            true
+        // Helper function that checks whether a warning is suppressed by attributes on the provided entity.
+        fn is_warning_suppressed_by_attributes(attributable: &(impl Attributable + ?Sized), warning: &Warning) -> bool {
+            let attributes = attributable.all_attributes().concat().into_iter();
+            let mut allowed = attributes.filter_map(|a| a.kind.as_any().downcast_ref::<attributes::Allow>());
+            allowed.any(|allow| is_warning_suppressed_by(allow.allowed_warnings.iter(), warning))
         }
 
         // Filter out any diagnostics that should be suppressed.
@@ -94,13 +94,13 @@ impl DiagnosticReporter {
                 // If the warning has a span, check if it's suppressed by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
                     let file = files.get(&span.file).expect("slice file didn't exist");
-                    is_suppressed |= is_warning_suppressed_by_attributes(file.attributes(), warning);
+                    is_suppressed |= is_warning_suppressed_by_attributes(file, warning);
                 }
 
                 // If the warning has a scope, check if it's suppressed by an `allow` attribute in that scope.
                 if let Some(scope) = diagnostic.scope() {
                     if let Ok(entity) = ast.find_element::<dyn Entity>(scope) {
-                        is_suppressed |= is_warning_suppressed_by_attributes(entity.all_attributes().concat(), warning);
+                        is_suppressed |= is_warning_suppressed_by_attributes(entity, warning);
                     }
                 }
             }

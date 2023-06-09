@@ -8,7 +8,7 @@ pub(super) mod type_ref_patcher;
 
 #[macro_export]
 macro_rules! patch_attributes {
-    ($($attribute_type:ty),*) => {{
+    ($prefix:literal, $($attribute_type:ty),*) => {{
         unsafe fn _patch_attributes_impl(compilation_state: &mut CompilationState) {
             let reporter = &mut compilation_state.diagnostic_reporter;
 
@@ -37,7 +37,19 @@ macro_rules! patch_attributes {
                                 attribute.kind = Box::new(parsed);
                             }
                             )*
-                            _ => {}
+
+                            directive => {
+                                // If the directive starts with the provided prefix, but didn't match a known attribute.
+                                let directive_prefix = directive.split_once("::").map_or("", |(p, _)| p);
+                                if $prefix == directive_prefix {
+                                    // TODO add a separate error for unknown attributes.
+                                    Diagnostic::new(Error::UnexpectedAttribute {
+                                        attribute: directive.to_owned(), // Can we just use a static string here?
+                                    })
+                                    .set_span(attribute.span())
+                                    .report(reporter);
+                                }
+                            }
                         }
                     }
                 }
