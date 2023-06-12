@@ -1,8 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::Attributables;
 use super::*;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 
 #[derive(Debug)]
 pub struct SlicedFormat {

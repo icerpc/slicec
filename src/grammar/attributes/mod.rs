@@ -12,7 +12,7 @@ pub use deprecated::*;
 pub use oneway::*;
 pub use sliced_format::*;
 
-pub use super::Attributables;
+use super::Attributables;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::Span;
 
@@ -23,6 +23,7 @@ pub trait AttributeKind: std::fmt::Debug {
     fn directive(&self) -> &str;
 }
 
+#[macro_export] // We export this macro so languages can implement their own attributes.
 macro_rules! implement_attribute_kind_for {
     ($type:ty, $directive:literal, $is_repeatable:literal) => {
         impl $type {
@@ -51,7 +52,7 @@ macro_rules! implement_attribute_kind_for {
     };
 }
 
-pub(self) use implement_attribute_kind_for;
+pub use implement_attribute_kind_for;
 
 #[derive(Debug)]
 pub struct Unparsed {
