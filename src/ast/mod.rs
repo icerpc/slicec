@@ -3,7 +3,7 @@
 //! TODO write a doc comment for the module.
 
 pub mod node;
-pub mod patchers;
+mod patchers;
 
 use self::node::Node;
 use crate::compilation_state::CompilationState;
@@ -23,10 +23,7 @@ use std::collections::HashMap;
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
-    // TODO delay attribute patching until all the other patching is completed.
-    let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
-    attribute_patcher(compilation_state);
-
+    compilation_state.apply_unsafe(crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat));
     compilation_state.apply_unsafe(patchers::type_ref_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::encoding_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::comment_link_patcher::patch_ast);
