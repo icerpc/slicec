@@ -79,7 +79,7 @@ mod attributes {
 
             // Assert
             let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: "allow(<arguments>)".to_owned(),
+                argument: "allow".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }

@@ -11,16 +11,7 @@ impl Allow {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        // Check that the attribute has arguments.
-        if args.is_empty() {
-            Diagnostic::new(Error::MissingRequiredArgument {
-                argument: r#"allow(<arguments>)"#.to_owned(),
-            })
-            .set_span(span)
-            .report(reporter);
-        }
-
-        // Check that each of the arguments are valid.
+        check_that_arguments_were_provided(args, Self::directive(), span, reporter);
         validate_allow_arguments(args, Some(span), reporter);
 
         let allowed_warnings = args.clone();

@@ -11,18 +11,10 @@ impl Deprecated {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        if args.len() > 1 {
-            Diagnostic::new(Error::TooManyArguments {
-                expected: Self::directive().to_owned(),
-            })
-            .set_span(span)
-            .add_note("The deprecated attribute takes at most one argument", Some(span))
-            .report(reporter);
-        }
+        check_that_at_most_one_argument_was_provided(args, Self::directive(), span, reporter);
 
-        Deprecated {
-            reason: args.first().cloned(),
-        }
+        let reason = args.first().cloned();
+        Deprecated { reason }
     }
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {

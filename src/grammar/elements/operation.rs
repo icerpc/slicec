@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::attributes::{Compress, Oneway, SlicedFormat};
+use super::super::attributes::{Compress, SlicedFormat};
 use super::super::*;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
@@ -103,10 +103,6 @@ impl Operation {
 
     pub fn slice_classes_in_return(&self) -> bool {
         self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_return)
-    }
-
-    pub fn is_oneway(&self) -> bool {
-        self.has_attribute::<Oneway>()
     }
 }
 

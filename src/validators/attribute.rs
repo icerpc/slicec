@@ -5,7 +5,10 @@ use crate::grammar::*;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
-pub fn validate_attributes(attributable: &impl Attributable, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_attributes(
+    attributable: &(impl Attributable + AsAttributables),
+    diagnostic_reporter: &mut DiagnosticReporter,
+) {
     let attributes = attributable.attributes();
     validate_repeated_attributes(&attributes, diagnostic_reporter);
     for attribute in attributes {

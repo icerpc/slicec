@@ -4,7 +4,7 @@ use super::attributes::AttributeKind;
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
 use super::util::{Scope, TagFormat};
-use super::wrappers::{AsAttributables, AsEntities, AsTypes};
+use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 use crate::supported_encodings::SupportedEncodings;
 
@@ -30,7 +30,7 @@ pub trait NamedSymbol: Symbol {
     fn parser_scoped_identifier(&self) -> String;
 }
 
-pub trait Attributable: AsAttributables {
+pub trait Attributable {
     /// Returns the attributes of the element.
     fn attributes(&self) -> Vec<&Attribute>;
 
@@ -177,8 +177,8 @@ macro_rules! implement_Named_Symbol_for {
 }
 
 macro_rules! implement_Attributable_for {
-    ($type:ty) => {
-        impl Attributable for $type {
+    ($type:ty$(, $($bounds:tt)+)?) => {
+        impl$(<T: $($bounds)+>)? Attributable for $type {
             fn attributes(&self) -> Vec<&Attribute> {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }
@@ -188,8 +188,8 @@ macro_rules! implement_Attributable_for {
             }
         }
     };
-    (@Contained $type:ty) => {
-        impl Attributable for $type {
+    (@Contained $type:ty$(, $($bounds:tt)+)?) => {
+        impl$(<T: $($bounds)+>)? Attributable for $type {
             fn attributes(&self) -> Vec<&Attribute> {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }

@@ -8,7 +8,7 @@ pub mod type_ref_patcher;
 
 #[macro_export]
 macro_rules! patch_attributes {
-    ($prefix:literal, $($attribute_type:ty),*) => {{
+    ($prefix:literal, $($attribute_type:ty),* $(,)?) => {{
         unsafe fn _patch_attributes_impl(compilation_state: &mut CompilationState) {
             let reporter = &mut compilation_state.diagnostic_reporter;
 
