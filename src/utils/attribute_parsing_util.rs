@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::AttributeKind;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::grammar::AttributeKind;
 use crate::slice_file::Span;
 
 pub fn report_unexpected_attribute(
