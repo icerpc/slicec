@@ -15,6 +15,7 @@ pub use sliced_format::*;
 use super::Attributables;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
 use crate::slice_file::Span;
+use crate::utils::attribute_parsing_util::*;
 
 pub trait AttributeKind: std::fmt::Debug {
     fn is_repeatable(&self) -> bool;
@@ -75,22 +76,4 @@ impl AttributeKind for Unparsed {
     fn directive(&self) -> &str {
         &self.directive
     }
-}
-
-pub fn report_unexpected_attribute(
-    attribute: &impl AttributeKind,
-    span: &Span,
-    note: Option<&str>,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) {
-    let mut diagnostic = Diagnostic::new(Error::UnexpectedAttribute {
-        attribute: attribute.directive().to_owned(), // Can we just use a static string here?
-    })
-    .set_span(span);
-
-    if let Some(note) = note {
-        diagnostic = diagnostic.add_note(note, None);
-    }
-
-    diagnostic.report(diagnostic_reporter);
 }
