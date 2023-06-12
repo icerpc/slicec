@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-// TODO move all the attribute structs into their own folder!
-
 use super::super::*;
 use crate::slice_file::Span;
 
