@@ -35,7 +35,10 @@ impl SlicedFormat {
             }
         }
 
-        SlicedFormat { sliced_args, sliced_return }
+        SlicedFormat {
+            sliced_args,
+            sliced_return,
+        }
     }
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
