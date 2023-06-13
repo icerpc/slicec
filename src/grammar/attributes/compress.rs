@@ -35,7 +35,10 @@ impl Compress {
             }
         }
 
-        Compress { compress_args, compress_return }
+        Compress {
+            compress_args,
+            compress_return,
+        }
     }
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
