@@ -87,8 +87,6 @@ impl Operation {
             .cloned()
     }
 
-    // TODO Do we need any of these functions now? They're pretty simple IMO.
-
     pub fn compress_arguments(&self) -> bool {
         self.find_attribute::<Compress>().map_or(false, |a| a.compress_args)
     }

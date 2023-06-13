@@ -44,16 +44,14 @@ pub trait Attributable {
 // By having them in a separate trait, this allows the main `Attributable` trait to be free of restrictions, while still
 // having access to all these functions (because of the blanket impl underneath this trait definition).
 pub trait AttributeFunctions {
-    /// Returns true if the predicate matches any attribute. False otherwise.
-    /// TODO COMMENT
+    /// Returns true if this element has an attribute of the specified type and false otherwise.
     fn has_attribute<T: AttributeKind + 'static>(&self) -> bool;
 
-    /// Returns the first attribute that matches the predicate.
-    /// TODO COMMENT
+    /// Returns the first attribute of the specified type that is applied to this element.
+    /// If no attributes of the specified type can be found, this returns `None`.
     fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T>;
 
-    /// Returns the first attribute that matches the predicate.
-    /// TODO COMMENT ALSO DO WE ACTUALLY USE THIS???
+    /// Returns all the attributes applied to this element that are of the specified type.
     fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T>;
 }
 
@@ -64,13 +62,11 @@ impl<A: Attributable + ?Sized> AttributeFunctions for A {
     }
 
     fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T> {
-        let mut attributes = self.attributes().into_iter();
-        attributes.find_map(|a| a.kind.as_any().downcast_ref())
+        self.attributes().into_iter().find_map(Attribute::downcast)
     }
 
     fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T> {
-        let attributes = self.attributes().into_iter();
-        attributes.filter_map(|a| a.kind.as_any().downcast_ref()).collect()
+        self.attributes().into_iter().filter_map(Attribute::downcast).collect()
     }
 }
 

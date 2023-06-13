@@ -14,6 +14,10 @@ impl Attribute {
         let kind = Box::new(attributes::Unparsed { directive, args });
         Self { kind, span }
     }
+
+    pub fn downcast<T: AttributeKind + 'static>(&self) -> Option<&T> {
+        self.kind.as_any().downcast_ref()
+    }
 }
 
 implement_Element_for!(Attribute, "attribute");

@@ -20,8 +20,7 @@ macro_rules! patch_attributes {
 
                     // And it is unparsed...
                     let attribute = attribute_ptr.borrow_mut();
-                    let attribute_kind = attribute.kind.as_any();
-                    if let Some(unparsed) = attribute_kind.downcast_ref::<Unparsed>() {
+                    if let Some(unparsed) = attribute.downcast::<Unparsed>() {
 
                         // Check it's directive to see if it's one that we know about.
                         match unparsed.directive.as_str() {
@@ -42,9 +41,8 @@ macro_rules! patch_attributes {
                                 // If the directive starts with the provided prefix, but didn't match a known attribute.
                                 let directive_prefix = directive.split_once("::").map_or("", |(p, _)| p);
                                 if $prefix == directive_prefix {
-                                    // TODO add a separate error for unknown attributes.
                                     Diagnostic::new(Error::UnexpectedAttribute {
-                                        attribute: directive.to_owned(), // Can we just use a static string here?
+                                        attribute: directive.to_owned(),
                                     })
                                     .set_span(attribute.span())
                                     .report(reporter);

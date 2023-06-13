@@ -79,7 +79,7 @@ impl DiagnosticReporter {
         // Helper function that checks whether a warning is suppressed by attributes on the provided entity.
         fn is_warning_suppressed_by_attributes(attributable: &(impl Attributable + ?Sized), warning: &Warning) -> bool {
             let attributes = attributable.all_attributes().concat().into_iter();
-            let mut allowed = attributes.filter_map(|a| a.kind.as_any().downcast_ref::<attributes::Allow>());
+            let mut allowed = attributes.filter_map(|a| a.downcast::<attributes::Allow>());
             allowed.any(|allow| is_warning_suppressed_by(allow.allowed_warnings.iter(), warning))
         }
 

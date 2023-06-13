@@ -708,7 +708,7 @@ mod attributes {
                 .all_attributes()
                 .concat()
                 .into_iter()
-                .map(|a| a.kind.as_any().downcast_ref::<Unparsed>().unwrap())
+                .map(|a| a.downcast::<Unparsed>().unwrap())
                 .collect::<Vec<_>>();
 
             assert_eq!(parent_attributes.len(), 2);
