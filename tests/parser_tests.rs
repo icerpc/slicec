@@ -4,7 +4,7 @@ mod test_helpers;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Enumerator;
+use slicec::grammar::{attributes, AttributeFunctions, Enumerator, Struct};
 use slicec::slice_file::Span;
 
 #[test]
@@ -55,6 +55,25 @@ fn string_literals_cannot_contain_newlines() {
     .set_span(&span);
 
     check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
+fn string_literals_support_character_escaping() {
+    // Arrange
+    let slice = r#"
+        module Test
+
+        [deprecated("This is a \"bad\" type.")]
+        struct Foo {}
+    "#;
+
+    // Act
+    let ast = parse_for_ast(slice);
+
+    // Assert
+    let struct_def = ast.find_element::<Struct>("Test::Foo").unwrap();
+    let deprecated = struct_def.find_attribute::<attributes::Deprecated>().unwrap();
+    assert_eq!(deprecated.reason, Some("This is a \"bad\" type.".to_owned()))
 }
 
 #[test]
