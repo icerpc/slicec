@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::super::attributes::{Compress, SlicedFormat};
 use super::super::*;
 use crate::slice_file::Span;
 use crate::utils::ptr_util::WeakPtr;
@@ -87,35 +88,19 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        match self.find_attribute(Attribute::match_compress) {
-            Some((compress_args, ..)) => compress_args,
-            None => false,
-        }
+        self.find_attribute::<Compress>().map_or(false, |a| a.compress_args)
     }
 
     pub fn compress_return(&self) -> bool {
-        match self.find_attribute(Attribute::match_compress) {
-            Some((.., compress_return)) => compress_return,
-            None => false,
-        }
+        self.find_attribute::<Compress>().map_or(false, |a| a.compress_return)
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        match self.find_attribute(Attribute::match_sliced_format) {
-            Some((sliced_args, ..)) => sliced_args,
-            None => false,
-        }
+        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_args)
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        match self.find_attribute(Attribute::match_sliced_format) {
-            Some((.., sliced_return)) => sliced_return,
-            None => false,
-        }
-    }
-
-    pub fn is_oneway(&self) -> bool {
-        self.has_attribute(Attribute::match_oneway)
+        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_return)
     }
 }
 

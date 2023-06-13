@@ -2,6 +2,7 @@
 
 use super::elements::*;
 use super::traits::*;
+use crate::slice_file::SliceFile;
 use crate::utils::ptr_util::WeakPtr;
 
 macro_rules! generate_definition_wrapper {
@@ -47,6 +48,32 @@ pub trait AsEntities {
 
 generate_entities_wrapper!(
     Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias
+);
+
+macro_rules! generate_attributables_wrapper {
+    ($($variant:ident),*) => {
+        #[derive(Debug)]
+        pub enum Attributables<'a> {
+            $($variant(&'a $variant),)*
+        }
+
+        $(
+        impl AsAttributables for $variant {
+            fn concrete_attributable(&self) -> Attributables {
+                Attributables::$variant(self)
+            }
+        }
+        )*
+    };
+}
+
+pub trait AsAttributables {
+    fn concrete_attributable(&self) -> Attributables;
+}
+
+generate_attributables_wrapper!(
+    Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias,
+    TypeRef, SliceFile
 );
 
 macro_rules! generate_types_wrapper {

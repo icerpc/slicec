@@ -7,7 +7,9 @@ mod patchers;
 
 use self::node::Node;
 use crate::compilation_state::CompilationState;
-use crate::grammar::{Element, NamedSymbol, Primitive};
+use crate::diagnostics::{Diagnostic, Error};
+use crate::grammar::attributes::*;
+use crate::grammar::{Element, NamedSymbol, Primitive, Symbol};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
 
@@ -21,6 +23,8 @@ use std::collections::HashMap;
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
+    let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
+    compilation_state.apply_unsafe(attribute_patcher);
     compilation_state.apply_unsafe(patchers::type_ref_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::encoding_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::comment_link_patcher::patch_ast);

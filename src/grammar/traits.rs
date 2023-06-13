@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::attributes::AttributeKind;
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
 use super::util::{Scope, TagFormat};
@@ -43,31 +44,33 @@ pub trait Attributable {
 // By having them in a separate trait, this allows the main `Attributable` trait to be free of restrictions, while still
 // having access to all these functions (because of the blanket impl underneath this trait definition).
 pub trait AttributeFunctions {
-    /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> bool;
+    /// Returns true if this element has an attribute of the specified type and false otherwise.
+    fn has_attribute<T: AttributeKind + 'static>(&self) -> bool;
 
-    /// Returns the first attribute that matches the predicate.
-    fn find_attribute<T, P: FnMut(&Attribute) -> Option<T>>(&self, predicate: P) -> Option<T>;
+    /// Returns the first attribute of the specified type that is applied to this element.
+    /// If no attributes of the specified type can be found, this returns `None`.
+    fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T>;
+
+    /// Returns all the attributes applied to this element that are of the specified type.
+    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T>;
 }
 
 // Blanket impl to ensure that everything implementing `Attributable` also gets `AttributeFunctions` for free.
-impl<T: Attributable + ?Sized> AttributeFunctions for T {
-    /// Returns true if the predicate matches any attribute. False otherwise.
-    fn has_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> bool {
-        self.find_attribute(predicate).is_some()
+impl<A: Attributable + ?Sized> AttributeFunctions for A {
+    fn has_attribute<T: AttributeKind + 'static>(&self) -> bool {
+        self.find_attribute::<T>().is_some()
     }
 
-    /// Returns the first attribute that matches the predicate.
-    fn find_attribute<U, P: FnMut(&Attribute) -> Option<U>>(&self, predicate: P) -> Option<U> {
-        self.attributes().into_iter().find_map(predicate)
+    fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T> {
+        self.attributes().into_iter().find_map(Attribute::downcast)
+    }
+
+    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T> {
+        self.attributes().into_iter().filter_map(Attribute::downcast).collect()
     }
 }
 
-pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {
-    fn get_deprecation(&self) -> Option<Option<String>> {
-        self.find_attribute(Attribute::match_deprecated)
-    }
-}
+pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {}
 
 pub trait Container<T>: Entity {
     fn contents(&self) -> &Vec<T>;

@@ -32,7 +32,7 @@ where
     /// The lexer's current [`Location`](crate::slice_file::Location) in the slice file.
     /// Used to tag tokens with their starting and ending locations in the source input.
     ///
-    /// Since code blocks can be non-adjacent (separated by a preprocessor directive) in a slice file,
+    /// Since source blocks can be non-adjacent (separated by a preprocessor directive) in a slice file,
     /// it's value can jump forward when switching to a new source block, making it unreliable for indexing.
     cursor: Location,
 
@@ -420,7 +420,7 @@ where
     }
 }
 
-// Allows iterators of code blocks to be converted into `Lexer`s.
+// Allows iterators of source blocks to be converted into `Lexer`s.
 impl<'input, T> From<T> for Lexer<'input, T>
 where
     T: Iterator<Item = SourceBlock<'input>>,

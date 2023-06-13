@@ -5,6 +5,7 @@ mod test_helpers;
 mod attributes {
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error, Warning};
+    use slicec::grammar::attributes::*;
 
     mod allow {
         use super::*;
@@ -78,7 +79,7 @@ mod attributes {
 
             // Assert
             let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: "allow(<arguments>)".to_owned(),
+                argument: "allow".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -137,8 +138,7 @@ mod attributes {
 
     mod slice_api {
 
-        use crate::test_helpers::*;
-        use slicec::diagnostics::{Diagnostic, Error, Warning};
+        use super::*;
         use slicec::grammar::*;
         use slicec::slice_file::Span;
         use test_case::test_case;
@@ -254,7 +254,7 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert!(operation.get_deprecation().is_some());
+            assert!(operation.has_attribute::<Deprecated>());
         }
 
         #[test]
@@ -276,7 +276,7 @@ mod attributes {
                 attribute: "deprecated".to_owned(),
             })
             .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
-            .add_note("parameters can not be individually deprecated", None);
+            .add_note("parameters cannot be individually deprecated", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -298,10 +298,9 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-            assert_eq!(
-                operation.get_deprecation().unwrap().unwrap(),
-                "Deprecation message here",
-            );
+
+            let deprecated_attribute = operation.find_attribute::<Deprecated>().unwrap();
+            assert_eq!(deprecated_attribute.reason.as_deref(), Some("Deprecation message here"));
         }
 
         #[test]
@@ -585,8 +584,7 @@ mod attributes {
 
     mod generalized_api {
 
-        use crate::test_helpers::*;
-        use slicec::diagnostics::{Diagnostic, Error};
+        use super::*;
         use slicec::grammar::*;
         use test_case::test_case;
 
@@ -608,19 +606,9 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            let (directive, arguments) = operation
-                .attributes()
-                .iter()
-                .find_map(|a| match &a.kind {
-                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
-                        Some((directive, arguments))
-                    }
-                    _ => None,
-                })
-                .unwrap();
-
-            assert_eq!(directive, "foo::bar");
-            assert_eq!(arguments.len(), 0);
+            let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
+            assert_eq!(unparsed_attribute.directive, "foo::bar");
+            assert_eq!(unparsed_attribute.args.len(), 0);
         }
 
         #[test]
@@ -641,19 +629,11 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            let (directive, arguments) = operation
-                .attributes()
-                .iter()
-                .find_map(|a| match &a.kind {
-                    AttributeKind::Other { directive, arguments } if directive == "foo::bar" => {
-                        Some((directive, arguments))
-                    }
-                    _ => None,
-                })
-                .unwrap();
+            let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
+            assert_eq!(unparsed_attribute.directive, "foo::bar");
 
-            assert_eq!(directive, "foo::bar");
-            assert_eq!(arguments, &vec!["a".to_owned(), "b".to_owned(), "c".to_owned()]);
+            let arguments = unparsed_attribute.args.iter().map(String::as_str).collect::<Vec<_>>();
+            assert_eq!(arguments, vec!["a", "b", "c"]);
         }
 
         #[test_case("a", &["a"]; "single argument")]
@@ -679,14 +659,9 @@ mod attributes {
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
 
-            match &operation.attributes[0].borrow().kind {
-                AttributeKind::Other { arguments, .. } => {
-                    for (i, v) in arguments.iter().enumerate() {
-                        assert_eq!(v, expected.get(i).unwrap().to_owned());
-                    }
-                }
-                _ => unreachable!(),
-            }
+            let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
+            let arguments = unparsed_attribute.args.iter().map(String::as_str).collect::<Vec<_>>();
+            assert_eq!(arguments, expected);
         }
 
         #[test_case("a, \""; "quoted argument with unterminated string literal")]
@@ -733,15 +708,14 @@ mod attributes {
                 .all_attributes()
                 .concat()
                 .into_iter()
-                .map(|a| match &a.kind {
-                    AttributeKind::Other { directive, arguments } => (directive.as_str(), arguments),
-                    _ => unreachable!(),
-                })
+                .map(|a| a.downcast::<Unparsed>().unwrap())
                 .collect::<Vec<_>>();
 
             assert_eq!(parent_attributes.len(), 2);
-            assert_eq!(parent_attributes[0], ("test::attribute", &vec!["S".to_owned()]));
-            assert_eq!(parent_attributes[1], ("test::attribute", &vec!["I".to_owned()]));
+            assert_eq!(parent_attributes[0].directive, "test::attribute");
+            assert_eq!(parent_attributes[0].args, vec!["S".to_owned()]);
+            assert_eq!(parent_attributes[1].directive, "test::attribute");
+            assert_eq!(parent_attributes[1].args, vec!["I".to_owned()]);
         }
 
         #[test_case("foo"; "plain_attribute")]
@@ -791,11 +765,11 @@ mod attributes {
 
         #[test_case("cs::custom"; "cs")]
         #[test_case("foo::custom"; "foo")]
-        fn unknown_language_attributes_are_not_rejected(attribute: &str) {
+        fn unknown_language_attributes_are_not_rejected(directive: &str) {
             // Arrange
             let slice = format!(
                 "
-                    [{attribute}]
+                    [{directive}]
                     module Test
                 "
             );
@@ -806,10 +780,9 @@ mod attributes {
             // Assert
             let module = ast.find_element::<Module>("Test").unwrap();
             assert_eq!(module.attributes.len(), 1);
-            assert!(matches!(
-                &module.attributes[0].borrow().kind,
-                AttributeKind::Other { directive, .. } if directive == attribute,
-            ));
+
+            let attribute = module.find_attribute::<Unparsed>().unwrap();
+            assert_eq!(attribute.directive, directive);
         }
     }
 }

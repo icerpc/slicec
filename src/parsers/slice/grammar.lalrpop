@@ -273,7 +273,7 @@ LocalAttribute = "[" <Attribute> "]";
 
 Attribute: WeakPtr<Attribute> = {
     <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
-        try_construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
+        construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
     },
 }
 
