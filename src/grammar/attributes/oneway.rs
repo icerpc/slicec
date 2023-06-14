@@ -18,8 +18,8 @@ impl Oneway {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
         if let Attributables::Operation(operation) = applied_on {
             // If the operation can return or throw data, it can't be marked oneway.
-            if !operation.return_members().is_empty() || !matches!(operation.throws, Throws::None) {
-                let note = "operations that return or throw data can not be marked oneway";
+            if !operation.return_type.is_empty() || !matches!(operation.throws, Throws::None) {
+                let note = "operations that return or throw data cannot be marked oneway";
                 report_unexpected_attribute(self, span, Some(note), reporter);
             }
         } else {
