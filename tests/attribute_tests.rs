@@ -196,7 +196,7 @@ mod attributes {
             let slice = "
                 module Test
 
-                [slicedFormat]
+                [slicedFormat(Args)]
                 struct S {
                     s: string
                 }
@@ -209,7 +209,7 @@ mod attributes {
             let expected = Diagnostic::new(Error::UnexpectedAttribute {
                 attribute: "slicedFormat".to_owned(),
             })
-            .set_span(&Span::new((4, 18).into(), (4, 30).into(), "string-0"))
+            .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
             .add_note("the slicedFormat attribute can only be applied to operations", None);
 
             check_diagnostics(diagnostics, [expected]);
@@ -228,13 +228,15 @@ mod attributes {
             ";
 
             // Act
-            let ast = parse_for_ast(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let expected = Diagnostic::new(Error::MissingRequiredArgument {
+                argument: "slicedFormat".to_owned(),
+            })
+            .set_span(&Span::new((5, 22).into(), (5, 34).into(), "string-0"));
 
-            assert!(!operation.slice_classes_in_arguments());
-            assert!(!operation.slice_classes_in_return());
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -452,7 +454,7 @@ mod attributes {
             let slice = "
                 module Test
 
-                [compress()]
+                [compress(Args)]
                 struct S {
                     s: string
                 }
@@ -465,11 +467,8 @@ mod attributes {
             let expected = Diagnostic::new(Error::UnexpectedAttribute {
                 attribute: "compress".to_owned(),
             })
-            .set_span(&Span::new((4, 18).into(), (4, 28).into(), "string-0"))
-            .add_note(
-                "the compress attribute can only be applied to interfaces and operations",
-                None,
-            );
+            .set_span(&Span::new((4, 18).into(), (4, 32).into(), "string-0"))
+            .add_note("the compress attribute can only be applied to operations", None);
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -481,19 +480,21 @@ mod attributes {
                 module Test
 
                 interface I {
-                    [compress()]
+                    [compress]
                     op(s: string) -> string
                 }
             ";
 
             // Act
-            let ast = parse_for_ast(slice);
+            let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let expected = Diagnostic::new(Error::MissingRequiredArgument {
+                argument: "compress".to_owned(),
+            })
+            .set_span(&Span::new((5, 22).into(), (5, 30).into(), "string-0"));
 
-            assert!(!operation.compress_arguments());
-            assert!(!operation.compress_return());
+            check_diagnostics(diagnostics, [expected]);
         }
 
         #[test]
@@ -561,7 +562,6 @@ mod attributes {
         }
 
         #[test_case("oneway", "struct Foo {}"; "oneway on struct")]
-        #[test_case("slicedFormat", "exception Foo {}"; "slicedFormat on exception")]
         fn non_common_attributes_rejected(attribute: &str, slice_type: &str) {
             let slice = format!(
                 "

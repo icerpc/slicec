@@ -12,17 +12,13 @@ impl SlicedFormat {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
+        check_that_arguments_were_provided(args, Self::directive(), span, reporter);
+
         let (mut sliced_args, mut sliced_return) = (false, false);
         for arg in args {
             match arg.as_str() {
-                "Args" => {
-                    // TODO should we report a warning/error for duplicates?
-                    sliced_args = true;
-                }
-                "Return" => {
-                    // TODO should we report a warning/error for duplicates?
-                    sliced_return = true;
-                }
+                "Args" => sliced_args = true,
+                "Return" => sliced_return = true,
                 _ => {
                     Diagnostic::new(Error::ArgumentNotSupported {
                         argument: arg.clone(),
