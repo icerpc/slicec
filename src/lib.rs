@@ -70,7 +70,7 @@ fn compile_files(
     state.files = files.into_iter().map(|f| (f.relative_path.clone(), f)).collect();
 
     // Retrieve any preprocessor symbols defined by the compiler itself, or by the user on the command line.
-    let defined_symbols = HashSet::from_iter(options.definitions.clone());
+    let defined_symbols = HashSet::from_iter(options.defined_symbols.clone());
 
     // There are several phases of compilation handled by `slicec`:
     // 1) Parse the files passed in by the user.

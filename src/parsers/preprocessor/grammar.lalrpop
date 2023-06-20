@@ -65,13 +65,13 @@ Main: Vec<SourceBlock<'input>> = {
 
 DefineDirective: () = {
     define_keyword <identifier> directive_end => {
-        preprocessor.definitions.insert(<>.to_owned());
+        preprocessor.defined_symbols.insert(<>.to_owned());
     },
 }
 
 UndefineDirective: () = {
     undefine_keyword <identifier> directive_end => {
-        preprocessor.definitions.remove(<>);
+        preprocessor.defined_symbols.remove(<>);
     },
 }
 
@@ -101,6 +101,6 @@ Expression: bool = {
 }
 
 Term: bool = {
-    identifier => preprocessor.definitions.contains(<>),
+    identifier => preprocessor.defined_symbols.contains(<>),
     "(" <Expression> ")" => <>,
 }

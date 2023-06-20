@@ -29,7 +29,7 @@ macro_rules! implement_parse_function {
 
 pub struct Preprocessor<'a> {
     pub file_name: &'a str,
-    pub(super) definitions: &'a mut HashSet<String>,
+    pub(super) defined_symbols: &'a mut HashSet<String>,
     pub(super) diagnostics: &'a mut Vec<Diagnostic>,
 }
 
@@ -40,10 +40,14 @@ impl<'a> Preprocessor<'a> {
         impl Iterator<Item = SourceBlock<'input>>,
     );
 
-    pub fn new(file_name: &'a str, definitions: &'a mut HashSet<String>, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
+    pub fn new(
+        file_name: &'a str,
+        defined_symbols: &'a mut HashSet<String>,
+        diagnostics: &'a mut Vec<Diagnostic>,
+    ) -> Self {
         Preprocessor {
             file_name,
-            definitions,
+            defined_symbols,
             diagnostics,
         }
     }

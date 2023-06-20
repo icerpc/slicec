@@ -22,7 +22,7 @@ fn command_line_defined_symbols() {
         ";
 
     let options = SliceOptions {
-        definitions: vec!["Foo".to_string()],
+        defined_symbols: vec!["Foo".to_string()],
         ..Default::default()
     };
 

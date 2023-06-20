@@ -22,7 +22,7 @@ pub struct SliceOptions {
 
     /// Define a preprocessor symbol.
     #[arg(short = 'D', value_name="SYMBOL", num_args = 1, action = Append)]
-    pub definitions: Vec<String>,
+    pub defined_symbols: Vec<String>,
 
     /// Instruct the compiler to treat warnings as errors.
     #[arg(short = 'W', long)]
