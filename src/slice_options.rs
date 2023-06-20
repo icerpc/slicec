@@ -20,15 +20,15 @@ pub struct SliceOptions {
     #[arg(short = 'R', value_name="REFERENCE", num_args = 1, action = Append)]
     pub references: Vec<String>,
 
-    /// Define a preprocessor definition.
-    #[arg(short = 'D', value_name="DEFINITION", num_args = 1, action = Append)]
+    /// Define a preprocessor symbol.
+    #[arg(short = 'D', value_name="SYMBOL", num_args = 1, action = Append)]
     pub definitions: Vec<String>,
 
     /// Instruct the compiler to treat warnings as errors.
     #[arg(short = 'W', long)]
     pub warn_as_error: bool,
 
-    /// Instruct the compiler to allow (not emit) the specified warning.
+    /// This flag will set which warnings should be set to the allow level.
     #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
     pub allowed_warnings: Vec<String>,
 
