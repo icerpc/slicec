@@ -311,11 +311,17 @@ where
                     // The token is at least '//', indicating a line comment.
                     Some((_, '/')) => {
                         self.advance_buffer(); // Consume the 2nd '/' character.
-                                               // Check there is a 3rd '/' character indicating this a doc comment.
-                        let is_doc_comment = matches!(self.buffer.peek(), Some((_, '/')));
+
+                        // Check if there's a 3rd '/' character indicating this may be a doc comment.
+                        let mut is_doc_comment = matches!(self.buffer.peek(), Some((_, '/')));
                         if is_doc_comment {
                             self.advance_buffer(); // Consume the 3rd '/' character.
+
+                            // Check if there's a 4th '/' character, which would turn this back into a non-doc comment.
+                            // Doc comments must start with _exactly_ 3 '/' characters.
+                            is_doc_comment = !matches!(self.buffer.peek(), Some((_, '/')));
                         }
+
                         let content_start_loc = self.cursor;
                         let comment = self.read_line_comment();
                         match is_doc_comment {
