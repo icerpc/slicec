@@ -437,6 +437,26 @@ mod comments {
     }
 
     #[test]
+    fn doc_comments_must_start_with_exactly_3_slashes() {
+        // Arrange
+        let slice = "
+            module Test
+
+            //// This is not a doc comment.
+            struct Foo {}
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let struct_def = ast.find_element::<Struct>("Test::Foo").unwrap();
+        let struct_doc = struct_def.comment();
+
+        assert!(struct_doc.is_none());
+    }
+
+    #[test]
     fn doc_comment_linked_identifiers() {
         // Arrange
         let slice = "
