@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{Encoding, Entity, Member, Message, MessageComponent};
+use crate::grammar::{Encoding, Member};
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -36,17 +36,4 @@ pub fn get_sorted_members<'a, T: Member + ?Sized>(members: &[&'a T]) -> (Vec<&'a
     let (mut tagged, required): (Vec<&T>, Vec<&T>) = members.iter().partition(|member| member.is_tagged());
     tagged.sort_by_key(|member| member.tag().unwrap());
     (required, tagged)
-}
-
-pub fn format_message(message: &Message, link_formatter: impl Fn(&dyn Entity) -> String) -> String {
-    // Iterate through the components of the message and append them into a string.
-    // If the component is text, append it as is. If the component is a link, format it first, then append it.
-    message.iter().fold(String::new(), |s, component| match &component {
-        MessageComponent::Text(text) => s + text,
-        MessageComponent::Link(link_tag) => match link_tag.linked_entity() {
-            // If the link is to a valid entity, run the link formatter. Otherwise just use the link's raw text.
-            Ok(entity) => s + &link_formatter(entity),
-            Err(identifier) => s + &identifier.value,
-        },
-    })
 }
