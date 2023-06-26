@@ -15,8 +15,6 @@ pub struct DiagnosticReporter {
     error_count: usize,
     /// The total number of warnings reported.
     warning_count: usize,
-    /// If true, compilation will fail on warnings in addition to errors.
-    treat_warnings_as_errors: bool,
     /// Lists all the warnings that should be suppressed by this reporter.
     pub allowed_warnings: Vec<String>,
     /// Can specify json to serialize errors as JSON or console to output errors to console.
@@ -31,7 +29,6 @@ impl DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
-            treat_warnings_as_errors: slice_options.warn_as_error,
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
             allowed_warnings: slice_options.allowed_warnings.clone(),
@@ -59,9 +56,8 @@ impl DiagnosticReporter {
     }
 
     /// Returns 1 if any errors were reported and 0 if no errors were reported.
-    /// If `treat_warnings_as_errors` is true, warnings well be counted as errors by this function.
     pub fn get_exit_code(&self) -> i32 {
-        i32::from(self.has_errors() || (self.treat_warnings_as_errors && self.has_diagnostics()))
+        i32::from(self.has_errors())
     }
 
     /// Consumes the diagnostic reporter and returns an iterator over its diagnostics, with any suppressed warnings
