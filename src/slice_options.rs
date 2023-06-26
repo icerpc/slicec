@@ -24,10 +24,6 @@ pub struct SliceOptions {
     #[arg(short = 'D', value_name="SYMBOL", num_args = 1, action = Append)]
     pub defined_symbols: Vec<String>,
 
-    /// Instruct the compiler to treat warnings as errors.
-    #[arg(short = 'W', long)]
-    pub warn_as_error: bool,
-
     /// Instruct the compiler to allow (not emit) the specified warning.
     #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
     pub allowed_warnings: Vec<String>,
