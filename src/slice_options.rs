@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::diagnostics::Warning;
 use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
@@ -25,7 +26,7 @@ pub struct SliceOptions {
     pub defined_symbols: Vec<String>,
 
     /// Instruct the compiler to allow (not emit) the specified warning.
-    #[arg(short = 'A', long = "allow", value_name="WARNING", num_args = 1, action = Append)]
+    #[arg(short = 'A', long = "allow", value_name="WARNING", value_parser = Warning::ALLOWABLE_WARNING_IDENTIFIERS, num_args = 1, action = Append)]
     pub allowed_warnings: Vec<String>,
 
     /// Validate input files without generating code for them.

@@ -25,19 +25,14 @@ pub struct DiagnosticReporter {
 
 impl DiagnosticReporter {
     pub fn new(slice_options: &SliceOptions) -> Self {
-        let mut diagnostic_reporter = DiagnosticReporter {
+        DiagnosticReporter {
             diagnostics: Vec::new(),
             error_count: 0,
             warning_count: 0,
             diagnostic_format: slice_options.diagnostic_format,
             disable_color: slice_options.disable_color,
             allowed_warnings: slice_options.allowed_warnings.clone(),
-        };
-
-        // Validate any arguments passed to `--allow` on the command line.
-        attributes::validate_allow_arguments(&slice_options.allowed_warnings, None, &mut diagnostic_reporter);
-
-        diagnostic_reporter
+        }
     }
 
     /// Checks if any errors have been reported during compilation.
