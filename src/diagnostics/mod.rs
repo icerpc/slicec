@@ -5,14 +5,14 @@ use serde::Serialize;
 
 mod diagnostic_reporter;
 mod errors;
-mod warnings;
+mod lints;
 
 pub use diagnostic_reporter::DiagnosticReporter;
 pub use errors::Error;
-pub use warnings::Warning;
+pub use lints::Lint;
 
 /// A diagnostic is a message that is reported to the user during compilation.
-/// It can either hold an [Error] or a [Warning].
+/// It can either hold an [Error] or a [Lint].
 #[derive(Debug)]
 pub struct Diagnostic {
     pub kind: DiagnosticKind,
@@ -35,7 +35,7 @@ impl Diagnostic {
     pub fn message(&self) -> String {
         match &self.kind {
             DiagnosticKind::Error(error) => error.message(),
-            DiagnosticKind::Warning(warning) => warning.message(),
+            DiagnosticKind::Lint(lint) => lint.message(),
         }
     }
 
@@ -43,7 +43,7 @@ impl Diagnostic {
     pub fn error_code(&self) -> &str {
         match &self.kind {
             DiagnosticKind::Error(error) => error.error_code(),
-            DiagnosticKind::Warning(warning) => warning.error_code(),
+            DiagnosticKind::Lint(lint) => lint.error_code(),
         }
     }
 
@@ -93,7 +93,7 @@ impl Diagnostic {
 #[derive(Debug)]
 pub enum DiagnosticKind {
     Error(Error),
-    Warning(Warning),
+    Lint(Lint),
 }
 
 impl From<Error> for DiagnosticKind {
@@ -102,9 +102,9 @@ impl From<Error> for DiagnosticKind {
     }
 }
 
-impl From<Warning> for DiagnosticKind {
-    fn from(warning: Warning) -> Self {
-        DiagnosticKind::Warning(warning)
+impl From<Lint> for DiagnosticKind {
+    fn from(lint: Lint) -> Self {
+        DiagnosticKind::Lint(lint)
     }
 }
 
@@ -116,14 +116,14 @@ pub struct Note {
     pub span: Option<Span>,
 }
 
-/// A macro that implements the `error_code` and `message` functions for [Warning] and [Error] enums.
+/// A macro that implements the `error_code` and `message` functions for [Lint] and [Error] enums.
 #[macro_export]
 macro_rules! implement_diagnostic_functions {
-    (Warning, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
-        impl Warning {
-            // TODO maybe we should move this somewhere other than `Warning`? Like in `Attribute` maybe?
+    (Lint, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
+        impl Lint {
+            // TODO maybe we should move this somewhere other than `Lint`? Like in `Attribute` maybe?
             /// This array contains all the valid arguments for the 'allow' attribute.
-            pub const ALLOWABLE_WARNING_IDENTIFIERS: [&str; 6] = [
+            pub const ALLOWABLE_LINT_IDENTIFIERS: [&str; 6] = [
                 "All",
                 $(stringify!($kind)),*
             ];
@@ -131,7 +131,7 @@ macro_rules! implement_diagnostic_functions {
             pub fn error_code(&self) -> &str {
                 match self {
                     $(
-                        implement_diagnostic_functions!(@error Warning::$kind, $($variant),*) => stringify!($kind),
+                        implement_diagnostic_functions!(@error Lint::$kind, $($variant),*) => stringify!($kind),
                     )*
                 }
             }
@@ -139,7 +139,7 @@ macro_rules! implement_diagnostic_functions {
             pub fn message(&self) -> String {
                 match self {
                     $(
-                        implement_diagnostic_functions!(@description Warning::$kind, $($variant),*) => $message.into(),
+                        implement_diagnostic_functions!(@description Lint::$kind, $($variant),*) => $message.into(),
                     )*
                 }
             }

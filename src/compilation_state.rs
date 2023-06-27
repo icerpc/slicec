@@ -84,7 +84,7 @@ impl CompilationState {
             let mut state = serializer.serialize_struct("Diagnostic", 5)?;
             let severity = match &diagnostic.kind {
                 DiagnosticKind::Error(_) => "error",
-                DiagnosticKind::Warning(_) => "warning",
+                DiagnosticKind::Lint(_) => "warning", // TODO AUSTIN
             };
             state.serialize_field("message", &diagnostic.message())?;
             state.serialize_field("severity", severity)?;
@@ -107,7 +107,7 @@ impl CompilationState {
             let code = diagnostic.error_code();
             let prefix = match &diagnostic.kind {
                 DiagnosticKind::Error(_) => style(format!("error [{code}]")).red().bold(),
-                DiagnosticKind::Warning(_) => style(format!("warning [{code}]")).yellow().bold(),
+                DiagnosticKind::Lint(_) => style(format!("warning [{code}]")).yellow().bold(), // TODO AUSTIN
             };
 
             let mut message = vec![];

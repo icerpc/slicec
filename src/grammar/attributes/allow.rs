@@ -4,7 +4,7 @@ use super::*;
 
 #[derive(Debug)]
 pub struct Allow {
-    pub allowed_warnings: Vec<String>,
+    pub allowed_lints: Vec<String>,
 }
 
 impl Allow {
@@ -14,16 +14,16 @@ impl Allow {
         check_that_arguments_were_provided(args, Self::directive(), span, reporter);
 
         for arg in args {
-            let mut is_valid = Warning::ALLOWABLE_WARNING_IDENTIFIERS.contains(&arg.as_str());
+            let mut is_valid = Lint::ALLOWABLE_LINT_IDENTIFIERS.contains(&arg.as_str());
 
-            // The `DuplicateFile` lint can't be configured by attributes because it's a command-line specific warning.
+            // The `DuplicateFile` lint can't be configured by attributes because it's a command-line specific lint.
             if arg == "DuplicateFile" {
                 is_valid = false;
             }
 
             // Emit an error if the argument wasn't valid.
             if !is_valid {
-                // TODO we should emit a link to the warnings page when we write it!
+                // TODO we should emit a link to the lint page when we write it!
                 let mut error = Diagnostic::new(Error::ArgumentNotSupported {
                     argument: arg.to_owned(),
                     directive: "allow".to_owned(),
@@ -31,7 +31,7 @@ impl Allow {
                 .set_span(span);
 
                 // Check if the argument only differs in case from a valid one.
-                let suggestion = Warning::ALLOWABLE_WARNING_IDENTIFIERS
+                let suggestion = Lint::ALLOWABLE_LINT_IDENTIFIERS
                     .iter()
                     .find(|identifier| identifier.eq_ignore_ascii_case(arg));
                 if let Some(identifier) = suggestion {
@@ -43,8 +43,8 @@ impl Allow {
             }
         }
 
-        let allowed_warnings = args.clone();
-        Allow { allowed_warnings }
+        let allowed_lints = args.clone();
+        Allow { allowed_lints }
     }
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {

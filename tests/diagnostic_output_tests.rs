@@ -108,7 +108,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_all_warnings_flag() {
+    fn allow_all_lints_flag() {
         let slice = "
             module Foo
 
@@ -121,7 +121,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allowed_warnings: vec!["All".to_owned()],
+            allowed_lints: vec!["All".to_owned()],
             ..Default::default()
         };
 
@@ -138,7 +138,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_specific_warning_flag() {
+    fn allow_specific_lint_flag() {
         let slice = "
             module Foo
 
@@ -152,7 +152,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allowed_warnings: vec!["BrokenDocLink".to_owned()],
+            allowed_lints: vec!["BrokenDocLink".to_owned()],
             ..Default::default()
         };
 
@@ -173,7 +173,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn notes_with_same_span_as_diagnostic_suppressed() {
+    fn notes_with_same_span_as_diagnostic_are_suppressed() {
         // Arrange
         let slice = "
             encoding = Slice2
