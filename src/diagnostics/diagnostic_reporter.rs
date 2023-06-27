@@ -47,8 +47,13 @@ impl DiagnosticReporter {
     /// This consumes the entire `CompilationState`, emits any diagnostics that shouldn't be suppressed,
     /// and finally returns the exit code the compiler should terminate with.
     pub fn emit_diagnostics_and_get_exit_code(compilation_state: CompilationState, output: &mut impl Write) -> i32 {
-        #[rustfmt::skip] // Destructure the compilation state into it's components.
-        let CompilationState { mut diagnostic_reporter, ast, files } = compilation_state;
+        // TODO this should really be on one line.
+        // Destructure the compilation state into it's components.
+        let CompilationState {
+            mut diagnostic_reporter,
+            ast,
+            files,
+        } = compilation_state;
 
         // Update the diagnostic levels of all diagnostics based on any attributes or command line options.
         let (total_warnings, total_errors) = diagnostic_reporter.update_diagnostics(&ast, &files);
@@ -222,8 +227,12 @@ impl DiagnosticReporter {
     /// Updates and returns all the diagnostics reported during compilation.
     /// This method exists to simplify the testing of diagnostic emission.
     pub fn into_diagnostics(compilation_state: CompilationState) -> Vec<Diagnostic> {
-        #[rustfmt::skip] // Destructure the compilation state into it's components.
-        let CompilationState { mut diagnostic_reporter, ast, files } = compilation_state;
+        // TODO this should really be on one line.
+        let CompilationState {
+            mut diagnostic_reporter,
+            ast,
+            files,
+        } = compilation_state;
 
         // Update and return all the diagnostics.
         diagnostic_reporter.update_diagnostics(&ast, &files);
