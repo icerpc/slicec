@@ -4,12 +4,12 @@
 //! For the test helpers that are specific to slicec (and hence not exported, see: 'tests/test_helpers.rs').
 
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, DiagnosticLevel, DiagnosticReporter};
+use crate::diagnostics::{Diagnostic, DiagnosticLevel};
 
 /// This function is used to get the Diagnostics from a `CompilationState`.
 #[must_use]
 pub fn diagnostics_from_compilation_state(compilation_state: CompilationState) -> Vec<Diagnostic> {
-    let mut diagnostics = DiagnosticReporter::into_diagnostics(compilation_state);
+    let mut diagnostics = compilation_state.into_diagnostics();
     diagnostics.retain(|diagnostic| diagnostic.level() != DiagnosticLevel::Allowed);
     diagnostics
 }

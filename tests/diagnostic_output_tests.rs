@@ -5,7 +5,7 @@ mod test_helpers;
 mod output {
 
     use crate::test_helpers::parse;
-    use slicec::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+    use slicec::diagnostics::{Diagnostic, Error};
     use slicec::slice_file::Span;
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
@@ -34,7 +34,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert
         let expected = concat!(
@@ -76,7 +76,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert
         let expected = "\
@@ -131,7 +131,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -162,7 +162,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
@@ -204,7 +204,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         .report(&mut compilation_state.diagnostic_reporter);
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert
         let expected = "\
@@ -233,7 +233,7 @@ error [E002]: invalid syntax: foo
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
+        compilation_state.into_exit_code(&mut output);
 
         // Assert
         let expected = "\
