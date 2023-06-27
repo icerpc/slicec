@@ -3,7 +3,6 @@
 use crate::diagnostics::Warning;
 use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
-use serde::Serialize;
 
 // Note: clap uses the doc-comments of fields to populate the '--help' output of slicec-xxx.
 //       boolean flags automatically default to false, and strings automatically default to empty.
@@ -51,7 +50,7 @@ pub struct SliceOptions {
 /// # Variants
 /// * Human - Any emitted diagnostics will be printed to the console with an easily readable format.
 /// * Json - Any emitted diagnostics will be serialized as JSON objects and printed to the console.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, ValueEnum)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, ValueEnum)]
 pub enum DiagnosticFormat {
     #[default]
     Human,
