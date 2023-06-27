@@ -5,6 +5,8 @@ use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
+use serde::ser::SerializeStruct;
+use serde::Serializer;
 use std::collections::HashMap;
 use std::io::Write;
 
@@ -77,8 +79,20 @@ impl CompilationState {
 
         // Write each diagnostic as a single line of JSON.
         for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
-            let json = serde_json::to_string(&diagnostic).expect("Failed to serialize diagnostic to JSON");
-            writeln!(writer, "{json}")?;
+            let mut serializer = serde_json::Serializer::new(&mut *writer);
+
+            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
+            let severity = match &diagnostic.kind {
+                DiagnosticKind::Error(_) => "error",
+                DiagnosticKind::Warning(_) => "warning",
+            };
+            state.serialize_field("message", &diagnostic.message())?;
+            state.serialize_field("severity", severity)?;
+            state.serialize_field("span", &diagnostic.span())?;
+            state.serialize_field("notes", diagnostic.notes())?;
+            state.serialize_field("error_code", diagnostic.error_code())?;
+            state.end()?;
+            writeln!(writer)?; // Separate each diagnostic by a newline character.
         }
         Self::output_counts(counts)
     }

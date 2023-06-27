@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::slice_file::Span;
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use serde::Serialize;
 
 mod diagnostic_reporter;
 mod errors;
@@ -88,22 +87,6 @@ impl Diagnostic {
 
     pub fn report(self, diagnostic_reporter: &mut DiagnosticReporter) {
         diagnostic_reporter.report(self);
-    }
-}
-
-impl Serialize for Diagnostic {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("Diagnostic", 5)?;
-        let severity = match &self.kind {
-            DiagnosticKind::Error(_) => "error",
-            DiagnosticKind::Warning(_) => "warning",
-        };
-        state.serialize_field("message", &self.message())?;
-        state.serialize_field("severity", severity)?;
-        state.serialize_field("span", &self.span())?;
-        state.serialize_field("notes", self.notes())?;
-        state.serialize_field("error_code", self.error_code())?;
-        state.end()
     }
 }
 
