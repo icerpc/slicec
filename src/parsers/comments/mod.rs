@@ -43,8 +43,7 @@ fn construct_lint_from(parse_error: ParseError, file_name: &str) -> Diagnostic {
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEof { location, expected } => {
             let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
-            Diagnostic::new(Lint::MalformedDocComment { message })
-                .set_span(&Span::new(location, location, file_name))
+            Diagnostic::new(Lint::MalformedDocComment { message }).set_span(&Span::new(location, location, file_name))
         }
 
         _ => unreachable!("impossible error encountered in comment parser: {parse_error:?}"),

@@ -16,6 +16,7 @@ pub use lints::Lint;
 #[derive(Debug)]
 pub struct Diagnostic {
     pub kind: DiagnosticKind,
+    pub(self) level: DiagnosticLevel,
     span: Option<Span>,
     scope: Option<String>,
     notes: Vec<Note>,
@@ -23,8 +24,15 @@ pub struct Diagnostic {
 
 impl Diagnostic {
     pub fn new(kind: impl Into<DiagnosticKind>) -> Self {
+        let kind = kind.into();
+        let level = match &kind {
+            DiagnosticKind::Error(_) => DiagnosticLevel::Error,
+            DiagnosticKind::Lint(lint) => lint.get_default_level(),
+        };
+
         Diagnostic {
-            kind: kind.into(),
+            kind,
+            level,
             span: None,
             scope: None,
             notes: Vec::new(),
@@ -39,12 +47,18 @@ impl Diagnostic {
         }
     }
 
-    /// Returns the error code of this diagnostic if it has one.
-    pub fn error_code(&self) -> &str {
+    /// Returns this diagnostic's code. This is either the name of a lint, or of the form `E###`.
+    pub fn code(&self) -> &str {
         match &self.kind {
-            DiagnosticKind::Error(error) => error.error_code(),
-            DiagnosticKind::Lint(lint) => lint.error_code(),
+            DiagnosticKind::Error(error) => error.code(),
+            DiagnosticKind::Lint(lint) => lint.code(),
         }
+    }
+
+    /// Returns the [level](Level) of this diagnostic.
+    /// Note that this value may change after the diagnostic is reported, since levels can be changed by attributes.
+    pub fn level(&self) -> DiagnosticLevel {
+        self.level
     }
 
     /// Returns the [Span] of this diagnostic if it has one.
@@ -116,7 +130,21 @@ pub struct Note {
     pub span: Option<Span>,
 }
 
-/// A macro that implements the `error_code` and `message` functions for [Lint] and [Error] enums.
+/// Diagnostic levels describe the severity of a diagnostic, and how the compiler should react to their emission.
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+pub enum DiagnosticLevel {
+    #[rustfmt::skip] // See https://github.com/rust-lang/rustfmt/issues/5801
+    /// Diagnostics with the `Error` level will be emitted and will cause compilation to fail with a non-zero exit code.
+    Error,
+
+    /// Diagnostics with the `Warning` level will be emitted, but will not influence the exit code of the compiler.
+    Warning,
+
+    /// Diagnostics with the `Allowed` level will be suppressed and will not emit any message.
+    Allowed,
+}
+
+/// A macro that implements the `code` and `message` functions for [Lint] and [Error] enums.
 #[macro_export]
 macro_rules! implement_diagnostic_functions {
     (Lint, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
@@ -128,7 +156,7 @@ macro_rules! implement_diagnostic_functions {
                 $(stringify!($kind)),*
             ];
 
-            pub fn error_code(&self) -> &str {
+            pub fn code(&self) -> &str {
                 match self {
                     $(
                         implement_diagnostic_functions!(@error Lint::$kind, $($variant),*) => stringify!($kind),
@@ -148,7 +176,7 @@ macro_rules! implement_diagnostic_functions {
 
     (Error, $(($code:literal, $kind:ident, $message:expr $(, $variant:ident)* )),*) => {
         impl Error {
-            pub fn error_code(&self) -> &str {
+            pub fn code(&self) -> &str {
                 match self {
                     $(
                         implement_diagnostic_functions!(@error Error::$kind, $($variant),*) => $code,

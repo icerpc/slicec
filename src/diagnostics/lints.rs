@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::DiagnosticLevel;
 use crate::implement_diagnostic_functions;
 
 #[derive(Debug)]
@@ -33,6 +34,19 @@ pub enum Lint {
     /// - The tag itself is incorrect. Ex: using `@throws` on an element that can't or doesn't throw an exception.
     /// - The tag describes something incorrect. Ex: specifying `@param foo` when no parameter named "foo" exists.
     IncorrectDocComment { message: String },
+}
+
+impl Lint {
+    /// Returns the default diagnostic level this lint should use when reporting violations.
+    pub fn get_default_level(&self) -> DiagnosticLevel {
+        match self {
+            Self::DuplicateFile { .. } => DiagnosticLevel::Warning,
+            Self::Deprecated { .. } => DiagnosticLevel::Warning,
+            Self::MalformedDocComment { .. } => DiagnosticLevel::Warning,
+            Self::BrokenDocLink { .. } => DiagnosticLevel::Warning,
+            Self::IncorrectDocComment { .. } => DiagnosticLevel::Warning,
+        }
+    }
 }
 
 implement_diagnostic_functions!(

@@ -4,8 +4,8 @@ mod test_helpers;
 
 mod output {
 
-    use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error};
+    use crate::test_helpers::parse;
+    use slicec::diagnostics::{Diagnostic, DiagnosticReporter, Error};
     use slicec::slice_file::Span;
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
@@ -34,7 +34,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
         // Assert
         let expected = concat!(
@@ -76,7 +76,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
         // Assert
         let expected = "\
@@ -131,7 +131,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -162,9 +162,9 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
-        // Assert: Only one of the two warnings should be allowed.
+        // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
             r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
@@ -204,7 +204,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         .report(&mut compilation_state.diagnostic_reporter);
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
         // Assert
         let expected = "\
@@ -233,8 +233,7 @@ error [E002]: invalid syntax: foo
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
-        // compilation_state.emit_diagnostics(&mut output);
+        DiagnosticReporter::emit_diagnostics_and_get_exit_code(compilation_state, &mut output);
 
         // Assert
         let expected = "\

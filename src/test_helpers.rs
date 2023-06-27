@@ -4,15 +4,14 @@
 //! For the test helpers that are specific to slicec (and hence not exported, see: 'tests/test_helpers.rs').
 
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::{Diagnostic, DiagnosticLevel, DiagnosticReporter};
 
 /// This function is used to get the Diagnostics from a `CompilationState`.
 #[must_use]
 pub fn diagnostics_from_compilation_state(compilation_state: CompilationState) -> Vec<Diagnostic> {
-    compilation_state
-        .diagnostic_reporter
-        .into_diagnostics(&compilation_state.ast, &compilation_state.files)
-        .collect()
+    let mut diagnostics = DiagnosticReporter::into_diagnostics(compilation_state);
+    diagnostics.retain(|diagnostic| diagnostic.level() != DiagnosticLevel::Allowed);
+    diagnostics
 }
 
 /// Compares diagnostics emitted by the compiler to an array of expected diagnostics.
@@ -48,14 +47,10 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
         let expect: Diagnostic = expect.into();
         let mut failed = false;
 
-        // Check that the error codes match.
-        if expect.error_code() != diagnostic.error_code() {
+        // Check that the diagnostic codes match.
+        if expect.code() != diagnostic.code() {
             eprintln!("diagnostic codes didn't match:");
-            eprintln!(
-                "\texpected '{:?}', but got '{:?}'",
-                expect.error_code(),
-                diagnostic.error_code()
-            );
+            eprintln!("\texpected '{:?}', but got '{:?}'", expect.code(), diagnostic.code());
             failed = true;
         }
 

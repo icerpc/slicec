@@ -185,7 +185,7 @@ fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticR
 
 fn find_slice_files_in_directory(
     path: &Path,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostic_reporter: &mut DiagnosticReporter
 ) -> io::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let dir = path.read_dir()?;
