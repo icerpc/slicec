@@ -47,7 +47,7 @@ impl Diagnostic {
         }
     }
 
-    /// Returns this diagnostic's code. This is either the name of a lint, or of the form `E###`.
+    /// Returns this diagnostic's code. This is either the name of a lint or of the form `E###`.
     pub fn code(&self) -> &str {
         match &self.kind {
             DiagnosticKind::Error(error) => error.code(),
@@ -56,7 +56,7 @@ impl Diagnostic {
     }
 
     /// Returns the [level](Level) of this diagnostic.
-    /// Note that this value may change after the diagnostic is reported, since levels can be changed by attributes.
+    /// Note that this value may change after the diagnostic is reported, since levels can be altered by attributes.
     pub fn level(&self) -> DiagnosticLevel {
         self.level
     }
