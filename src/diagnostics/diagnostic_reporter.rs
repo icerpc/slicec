@@ -35,10 +35,6 @@ impl DiagnosticReporter {
         diagnostics.any(|diagnostic| matches!(diagnostic.kind, DiagnosticKind::Error(_)))
     }
 
-    pub(super) fn report(&mut self, diagnostic: Diagnostic) {
-        self.diagnostics.push(diagnostic);
-    }
-
     // TODO COMMENT
     // TODO add support for deny/warn lint configuration attributes & command line options.
     pub fn update_diagnostics(&mut self, ast: &Ast, files: &HashMap<String, SliceFile>) -> (usize, usize) {
@@ -91,5 +87,9 @@ impl DiagnosticReporter {
         }
 
         (total_warnings, total_errors)
+    }
+
+    pub(super) fn report(&mut self, diagnostic: Diagnostic) {
+        self.diagnostics.push(diagnostic);
     }
 }

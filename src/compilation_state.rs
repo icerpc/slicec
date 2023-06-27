@@ -72,6 +72,29 @@ impl CompilationState {
         }
     }
 
+    fn emit_diagnostics_in_json(self, output: &mut impl Write) -> Result<()> {
+        // Write each diagnostic as a single line of JSON.
+        for diagnostic in self.diagnostic_reporter.diagnostics {
+            let severity = match diagnostic.level() {
+                DiagnosticLevel::Error => "error",
+                DiagnosticLevel::Warning => "warning",
+                DiagnosticLevel::Allowed => continue,
+            };
+
+            let mut serializer = serde_json::Serializer::new(&mut *output);
+            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
+            state.serialize_field("message", &diagnostic.message())?;
+            state.serialize_field("severity", severity)?;
+            state.serialize_field("span", &diagnostic.span())?;
+            state.serialize_field("notes", diagnostic.notes())?;
+            state.serialize_field("error_code", diagnostic.code())?;
+            state.end()?;
+            writeln!(output)?; // Separate each diagnostic by a newline character.
+        }
+        Ok(())
+    }
+    
+
     fn emit_diagnostics_in_human(self, output: &mut impl Write) -> Result<()> {
         fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
             // Display the file name and line row and column where the error began.
@@ -120,28 +143,6 @@ impl CompilationState {
                 }
             }
             writeln!(output, "{}", message.join("\n"))?;
-        }
-        Ok(())
-    }
-
-    fn emit_diagnostics_in_json(self, output: &mut impl Write) -> Result<()> {
-        // Write each diagnostic as a single line of JSON.
-        for diagnostic in self.diagnostic_reporter.diagnostics {
-            let severity = match diagnostic.level() {
-                DiagnosticLevel::Error => "error",
-                DiagnosticLevel::Warning => "warning",
-                DiagnosticLevel::Allowed => continue,
-            };
-
-            let mut serializer = serde_json::Serializer::new(&mut *output);
-            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
-            state.serialize_field("message", &diagnostic.message())?;
-            state.serialize_field("severity", severity)?;
-            state.serialize_field("span", &diagnostic.span())?;
-            state.serialize_field("notes", diagnostic.notes())?;
-            state.serialize_field("error_code", diagnostic.code())?;
-            state.end()?;
-            writeln!(output)?; // Separate each diagnostic by a newline character.
         }
         Ok(())
     }
