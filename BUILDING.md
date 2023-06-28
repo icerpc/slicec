@@ -23,7 +23,7 @@ To generate the crate's documentation:
 cargo doc --no-deps --document-private-items
 ```
 By default this will generate the documentation in `target/doc/slicec`.
-However, you can easily view the documentation after generating it:
+However, you can easily view the documentation after generating it with:
 ```
 cargo doc --no-deps --document-private-items --open
 ```
@@ -41,7 +41,7 @@ To generate the crate's coverage report:
 cargo llvm-cov --html
 ```
 By default this will generate the report in `target/llvm-cov/html`.
-However, you can easily view the report after generating it:
+However, you can easily view the report after generating it with:
 ```
 cargo llvm-cov --open
 ```
