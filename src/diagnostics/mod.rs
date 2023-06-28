@@ -55,7 +55,7 @@ impl Diagnostic {
         }
     }
 
-    /// Returns the [level](Level) of this diagnostic.
+    /// Returns the [level](DiagnosticLevel) of this diagnostic.
     /// Note that this value may change after the diagnostic is reported, since levels can be altered by attributes.
     pub fn level(&self) -> DiagnosticLevel {
         self.level
