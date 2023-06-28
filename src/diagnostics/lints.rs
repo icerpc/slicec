@@ -1,9 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
+use super::DiagnosticLevel;
 use crate::implement_diagnostic_functions;
 
 #[derive(Debug)]
-pub enum Warning {
+pub enum Lint {
     /// An input filename/directory was provided multiple times.
     /// Note: it's valid to specify the same path as a source and reference file (ex: `slicec foo.slice -R foo.slice`).
     /// This is only triggered by specifying it multiple times in the same context: (ex: `slicec foo.slice foo.slice`).
@@ -35,8 +36,21 @@ pub enum Warning {
     IncorrectDocComment { message: String },
 }
 
+impl Lint {
+    /// Returns the default diagnostic level this lint should use when reporting violations.
+    pub fn get_default_level(&self) -> DiagnosticLevel {
+        match self {
+            Self::DuplicateFile { .. } => DiagnosticLevel::Warning,
+            Self::Deprecated { .. } => DiagnosticLevel::Warning,
+            Self::MalformedDocComment { .. } => DiagnosticLevel::Warning,
+            Self::BrokenDocLink { .. } => DiagnosticLevel::Warning,
+            Self::IncorrectDocComment { .. } => DiagnosticLevel::Warning,
+        }
+    }
+}
+
 implement_diagnostic_functions!(
-    Warning,
+    Lint,
     (
         DuplicateFile,
         format!("slice file was provided more than once: '{path}'"),

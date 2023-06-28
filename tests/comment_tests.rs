@@ -5,7 +5,7 @@ mod test_helpers;
 mod comments {
 
     use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error, Warning};
+    use slicec::diagnostics::{Diagnostic, Error, Lint};
     use slicec::grammar::*;
     use test_case::test_case;
 
@@ -216,7 +216,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
             message: "void operation must not contain doc comment return tag".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -239,7 +239,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
             message: "doc comment has a param tag for 'testParam2', but there is no parameter by that name".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -351,10 +351,10 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Warning::BrokenDocLink {
+            Diagnostic::new(Lint::BrokenDocLink {
                 message: "no element named 'FakeException' exists in scope".to_owned(),
             }),
-            Diagnostic::new(Warning::IncorrectDocComment {
+            Diagnostic::new(Lint::IncorrectDocComment {
                 message: "operation 'testOp' does not throw anything".to_owned(),
             }),
         ];
@@ -375,7 +375,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
             message: "doc comment indicates that struct 'S' throws, however, only operations can throw".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -497,7 +497,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::BrokenDocLink {
+        let expected = Diagnostic::new(Lint::BrokenDocLink {
             message: "no element named 'OtherStruct' exists in scope".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -517,7 +517,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::BrokenDocLink {
+        let expected = Diagnostic::new(Lint::BrokenDocLink {
             message: "primitives cannot be linked to".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -537,7 +537,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::MalformedDocComment {
+        let expected = Diagnostic::new(Lint::MalformedDocComment {
             message: "unknown doc comment tag 'linked'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -562,7 +562,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Warning::IncorrectDocComment {
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
             message: "'S' is not a throwable type".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -590,10 +590,10 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Warning::IncorrectDocComment {
+            Diagnostic::new(Lint::IncorrectDocComment {
                 message: "operation 'testOp' does not throw anything".to_owned(),
             }),
-            Diagnostic::new(Warning::IncorrectDocComment {
+            Diagnostic::new(Lint::IncorrectDocComment {
                 message: "operation 'testOpTwo' does not throw anything".to_owned(),
             }),
         ];

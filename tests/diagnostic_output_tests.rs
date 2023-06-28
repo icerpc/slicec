@@ -4,7 +4,7 @@ mod test_helpers;
 
 mod output {
 
-    use crate::test_helpers::*;
+    use crate::test_helpers::parse;
     use slicec::diagnostics::{Diagnostic, Error};
     use slicec::slice_file::Span;
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
@@ -34,7 +34,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = concat!(
@@ -76,7 +76,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
@@ -108,7 +108,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn allow_all_warnings_flag() {
+    fn allow_all_lints_flag() {
         let slice = "
             module Foo
 
@@ -121,7 +121,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allowed_warnings: vec!["All".to_owned()],
+            allowed_lints: vec!["All".to_owned()],
             ..Default::default()
         };
 
@@ -131,14 +131,14 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
     }
 
     #[test]
-    fn allow_specific_warning_flag() {
+    fn allow_specific_lint_flag() {
         let slice = "
             module Foo
 
@@ -152,7 +152,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Set the output format to JSON.
         let options = SliceOptions {
             diagnostic_format: DiagnosticFormat::Json,
-            allowed_warnings: vec!["BrokenDocLink".to_owned()],
+            allowed_lints: vec!["BrokenDocLink".to_owned()],
             ..Default::default()
         };
 
@@ -162,9 +162,9 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
-        // Assert: Only one of the two warnings should be allowed.
+        // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
             r#"{"message":"doc comment has a param tag for 'x', but there is no parameter by that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
@@ -173,7 +173,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
-    fn notes_with_same_span_as_diagnostic_suppressed() {
+    fn notes_with_same_span_as_diagnostic_are_suppressed() {
         // Arrange
         let slice = "
             encoding = Slice2
@@ -204,7 +204,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         .report(&mut compilation_state.diagnostic_reporter);
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
@@ -233,8 +233,7 @@ error [E002]: invalid syntax: foo
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.emit_diagnostics(&mut output);
-        // compilation_state.emit_diagnostics(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\

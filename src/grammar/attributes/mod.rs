@@ -13,7 +13,7 @@ pub use oneway::*;
 pub use sliced_format::*;
 
 use super::Attributables;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Lint};
 use crate::slice_file::Span;
 use crate::utils::attribute_parsing_util::*;
 

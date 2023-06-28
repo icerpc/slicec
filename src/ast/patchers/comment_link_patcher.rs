@@ -2,7 +2,7 @@
 
 use crate::ast::{Ast, LookupError, Node};
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Warning};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Lint};
 use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use std::collections::VecDeque;
@@ -116,7 +116,7 @@ impl CommentLinkPatcher<'_> {
             .find_node_with_scope(&identifier.value, &commentable.parser_scoped_identifier())
             .and_then(<WeakPtr<dyn Entity>>::try_from);
 
-        // If the lookup succeeded, store the result, otherwise report a warning and store `None` as a placeholder.
+        // If the lookup succeeded, store the result, otherwise report a lint violation and store `None` as a dummy.
         self.link_patches.push_back(match result {
             Ok(ptr) => Some(ptr),
             Err(error) => {
@@ -130,7 +130,7 @@ impl CommentLinkPatcher<'_> {
                         format!("{actual}s cannot be linked to")
                     }
                 };
-                Diagnostic::new(Warning::BrokenDocLink { message })
+                Diagnostic::new(Lint::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(commentable.parser_scoped_identifier())
                     .report(self.diagnostic_reporter);
@@ -173,14 +173,14 @@ impl CommentLinkPatcher<'_> {
     fn patch_thrown_type(&mut self, scope: &str, tag: &mut ThrowsTag) {
         // Get the next patch out of the queue and apply it to the tag.
         if let Some(patch) = self.link_patches.pop_front().unwrap() {
-            // If the linked-to type isn't an exception report a warning and leave the link unpatched.
+            // If the linked-to type isn't an exception report a lint violation and leave the link unpatched.
             match patch.downcast::<Exception>() {
                 Ok(converted_patch) => {
                     tag.thrown_type = Some(TypeRefDefinition::Patched(converted_patch));
                 }
                 Err(original_patch) => {
                     let entity = original_patch.borrow();
-                    Diagnostic::new(Warning::IncorrectDocComment {
+                    Diagnostic::new(Lint::IncorrectDocComment {
                         message: format!("'{}' is not a throwable type", entity.identifier()),
                     })
                     .add_note(

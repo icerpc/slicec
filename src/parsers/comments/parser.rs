@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::common::{has_errors, ParserResult};
-use super::construct_warning_from;
+use super::construct_lint_from;
 use super::grammar::lalrpop;
 use super::lexer::Lexer;
 use crate::diagnostics::Diagnostic;
@@ -15,8 +15,8 @@ macro_rules! implement_parse_function {
         pub fn $function_name(mut self, input: Vec<(&str, Span)>) -> ParserResult<$return_type> {
             match lalrpop::$underlying_parser::new().parse(&mut self, Lexer::new(input)) {
                 Err(parse_error) => {
-                    let warning = construct_warning_from(parse_error, self.file_name).set_scope(self.identifier);
-                    self.diagnostics.push(warning);
+                    let lint = construct_lint_from(parse_error, self.file_name).set_scope(self.identifier);
+                    self.diagnostics.push(lint);
                     Err(())
                 }
                 Ok(parse_value) => match has_errors(self.diagnostics) {

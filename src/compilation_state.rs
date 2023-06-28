@@ -1,14 +1,14 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostics::{DiagnosticKind, DiagnosticReporter};
+use crate::diagnostics::{Diagnostic, DiagnosticLevel, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
-use console::{set_colors_enabled, set_colors_enabled_stderr, style, Term};
+use console::Term;
 use serde::ser::SerializeStruct;
 use serde::Serializer;
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{Result, Write};
 
 #[derive(Debug)]
 pub struct CompilationState {
@@ -48,126 +48,131 @@ impl CompilationState {
     }
 
     pub fn into_exit_code(self) -> i32 {
-        // If there are any errors, return a non-zero exit code.
-        let exit_code = self.diagnostic_reporter.get_exit_code();
+        // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
+        let (total_warnings, total_errors) = self.update_and_emit_diagnostics(&mut Term::stderr());
+        Self::emit_totals(total_warnings, total_errors).expect("failed to print totals");
 
-        // If any diagnostics were reported, emit them.
-        if self.diagnostic_reporter.has_diagnostics() {
-            self.emit_diagnostics(&mut Term::stderr());
-        }
-
-        exit_code
+        // Return exit code 1 if any errors were reported, and exit code 0 otherwise.
+        i32::from(total_errors != 0)
     }
 
-    pub fn emit_diagnostics(self, writer: &mut impl Write) {
+    /// Consumes the diagnostic reporter and writes any non-allowed diagnostics to the provided output.
+    /// This returns the number of warnings and errors emitted respectively.
+    pub fn update_and_emit_diagnostics(mut self, output: &mut impl Write) -> (usize, usize) {
+        // Update the diagnostics and store how many warnings and errors there are.
+        let totals = self.diagnostic_reporter.update_diagnostics(&self.ast, &self.files);
+
         // Disable colors if the user requested no colors.
         if self.diagnostic_reporter.disable_color {
-            set_colors_enabled(false);
-            set_colors_enabled_stderr(false);
+            console::set_colors_enabled(false);
+            console::set_colors_enabled_stderr(false);
         }
 
+        // Emit the diagnostics in whatever form the user requested.
         match self.diagnostic_reporter.diagnostic_format {
-            DiagnosticFormat::Human => self.output_to_console(writer),
-            DiagnosticFormat::Json => self.output_to_json(writer),
+            DiagnosticFormat::Human => self.emit_diagnostics_in_human(output),
+            DiagnosticFormat::Json => self.emit_diagnostics_in_json(output),
         }
-        .expect("Failed to write diagnostic output to writer");
+        .expect("failed to print diagnostics");
+
+        totals
     }
 
-    fn output_to_json(self, writer: &mut impl Write) -> std::io::Result<()> {
-        // The for loop consumes the diagnostics, so we compute the count now.
-        let counts = self.diagnostic_reporter.get_totals();
-
+    fn emit_diagnostics_in_json(self, output: &mut impl Write) -> Result<()> {
         // Write each diagnostic as a single line of JSON.
-        for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
-            let mut serializer = serde_json::Serializer::new(&mut *writer);
-
-            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
-            let severity = match &diagnostic.kind {
-                DiagnosticKind::Error(_) => "error",
-                DiagnosticKind::Warning(_) => "warning",
+        for diagnostic in self.diagnostic_reporter.diagnostics {
+            let severity = match diagnostic.level() {
+                DiagnosticLevel::Error => "error",
+                DiagnosticLevel::Warning => "warning",
+                DiagnosticLevel::Allowed => continue,
             };
+
+            let mut serializer = serde_json::Serializer::new(&mut *output);
+            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
             state.serialize_field("message", &diagnostic.message())?;
             state.serialize_field("severity", severity)?;
             state.serialize_field("span", &diagnostic.span())?;
             state.serialize_field("notes", diagnostic.notes())?;
-            state.serialize_field("error_code", diagnostic.error_code())?;
+            state.serialize_field("error_code", diagnostic.code())?;
             state.end()?;
-            writeln!(writer)?; // Separate each diagnostic by a newline character.
+            writeln!(output)?; // Separate each diagnostic by a newline character.
         }
-        Self::output_counts(counts)
+        Ok(())
     }
 
-    fn output_to_console(self, writer: &mut impl Write) -> std::io::Result<()> {
-        // The for loop consumes the diagnostics, so we compute the count now.
-        let counts = self.diagnostic_reporter.get_totals();
+    fn emit_diagnostics_in_human(self, output: &mut impl Write) -> Result<()> {
+        fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
+            // Display the file name and line row and column where the error began.
+            let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
+            let path = std::path::Path::new(&file_location);
+            message.push(format!(" {} {}", console::style("-->").blue().bold(), path.display()));
 
-        for diagnostic in self.diagnostic_reporter.into_diagnostics(&self.ast, &self.files) {
+            // Display the line of code where the error occurred.
+            let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
+            message.push(snippet);
+        }
+
+        for diagnostic in self.diagnostic_reporter.diagnostics {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
-            let code = diagnostic.error_code();
-            let prefix = match &diagnostic.kind {
-                DiagnosticKind::Error(_) => style(format!("error [{code}]")).red().bold(),
-                DiagnosticKind::Warning(_) => style(format!("warning [{code}]")).yellow().bold(),
+            let code = diagnostic.code();
+            let prefix = match diagnostic.level() {
+                DiagnosticLevel::Error => console::style(format!("error [{code}]")).red().bold(),
+                DiagnosticLevel::Warning => console::style(format!("warning [{code}]")).yellow().bold(),
+                DiagnosticLevel::Allowed => continue,
             };
 
             let mut message = vec![];
 
             // Emit the message with the prefix.
-            message.push(format!("{prefix}: {}", style(diagnostic.message()).bold()));
+            message.push(format!("{prefix}: {}", console::style(diagnostic.message()).bold()));
 
             // If the diagnostic contains a span, show a snippet containing the offending code.
             if let Some(span) = diagnostic.span() {
-                Self::append_snippet(&mut message, span, &self.files);
+                append_snippet(&mut message, span, &self.files);
             }
 
             // If the diagnostic contains notes, display them.
             for note in diagnostic.notes() {
                 message.push(format!(
                     "    {} {}: {:}",
-                    style("=").blue().bold(),
-                    style("note").bold(),
-                    style(&note.message).bold(),
+                    console::style("=").blue().bold(),
+                    console::style("note").bold(),
+                    console::style(&note.message).bold(),
                 ));
                 // Only display the snippet if the note has a different span than the diagnostic.
                 if note.span.as_ref() != diagnostic.span() {
                     if let Some(span) = &note.span {
-                        Self::append_snippet(&mut message, span, &self.files)
+                        append_snippet(&mut message, span, &self.files)
                     }
                 }
             }
-            writeln!(writer, "{}", message.join("\n"))?;
+            writeln!(output, "{}", message.join("\n"))?;
         }
-        Self::output_counts(counts)
+        Ok(())
     }
 
-    // Output the total number of errors and warnings.
-    fn output_counts(counts: (usize, usize)) -> std::io::Result<()> {
-        let mut counter_messages = vec![];
-        if counts.1 != 0 {
-            counter_messages.push(format!(
-                "{}: Compilation generated {} warning(s)",
-                style("Warnings").yellow().bold(),
-                counts.1,
-            ));
+    /// Prints the total number of warnings and errors to stdout.
+    /// These messages are conditionally printed; if there were no warnings or errors we don't print them.
+    fn emit_totals(total_warnings: usize, total_errors: usize) -> Result<()> {
+        let stdout = &mut Term::stdout();
+
+        if total_warnings > 0 {
+            let warnings = console::style("Warnings").yellow().bold();
+            writeln!(stdout, "{warnings}: Compilation generated {total_warnings} warning(s)")?;
         }
-        if counts.0 != 0 {
-            counter_messages.push(format!(
-                "{}: Compilation failed with {} error(s)",
-                style("Failed").red().bold(),
-                counts.0,
-            ));
+        if total_errors > 0 {
+            let failed = console::style("Failed").red().bold();
+            writeln!(stdout, "{failed}: Compilation failed with {total_errors} error(s)")?;
         }
-        writeln!(Term::stdout(), "\n{}", counter_messages.join("\n"))
+        Ok(())
     }
 
-    fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
-        // Display the file name and line row and column where the error began.
-        let file_location = format!("{}:{}:{}", &span.file, span.start.row, span.start.col);
-        let path = std::path::Path::new(&file_location);
-        message.push(format!(" {} {}", style("-->").blue().bold(), path.display()));
-
-        // Display the line of code where the error occurred.
-        let snippet = files.get(&span.file).unwrap().get_snippet(span.start, span.end);
-        message.push(snippet);
+    /// Updates and returns all the diagnostics reported during compilation.
+    /// This method exists to simplify the testing of diagnostic emission.
+    pub fn into_diagnostics(mut self) -> Vec<Diagnostic> {
+        // Update and return all the diagnostics.
+        self.diagnostic_reporter.update_diagnostics(&self.ast, &self.files);
+        self.diagnostic_reporter.diagnostics
     }
 }

@@ -4,7 +4,7 @@ mod test_helpers;
 
 mod attributes {
     use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error, Warning};
+    use slicec::diagnostics::{Diagnostic, Error, Lint};
     use slicec::grammar::attributes::*;
 
     mod allow {
@@ -88,7 +88,7 @@ mod attributes {
         #[test_case("Deprecated", [1, 2]; "deprecated")]
         #[test_case("BrokenDocLink", [0, 2]; "broken_link")]
         #[test_case("IncorrectDocComment", [0, 1]; "incorrect_doc_comment")]
-        fn allow_only_specified_warnings<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
+        fn allow_only_specified_lints<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
             // Arrange
             let slice = format!(
                 "
@@ -110,26 +110,26 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let mut all_warnings = vec![
-                Diagnostic::new(Warning::Deprecated {
+            let mut all_lints = vec![
+                Diagnostic::new(Lint::Deprecated {
                     identifier: "S".to_owned(),
                     reason: Some("test".to_owned()),
                 }),
-                Diagnostic::new(Warning::BrokenDocLink {
+                Diagnostic::new(Lint::BrokenDocLink {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
-                Diagnostic::new(Warning::IncorrectDocComment {
+                Diagnostic::new(Lint::IncorrectDocComment {
                     message: "doc comment indicates that struct 'S' throws, however, only operations can throw"
                         .to_owned(),
                 }),
             ];
-            // Filter out any warning that should be ignored by the supplied test arguments.
+            // Filter out any lints that should be allowed by the supplied test arguments.
             let mut index = 0;
-            all_warnings.retain(|_| {
+            all_lints.retain(|_| {
                 index += 1;
                 expected_indexes.contains(&(index - 1))
             });
-            let expected: [Diagnostic; L] = all_warnings.try_into().unwrap();
+            let expected: [Diagnostic; L] = all_lints.try_into().unwrap();
 
             // Check that only the correct warnings were emitted.
             check_diagnostics(diagnostics, expected);
@@ -325,7 +325,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::Deprecated {
+            let expected = Diagnostic::new(Lint::Deprecated {
                 identifier: "Bar".to_owned(),
                 reason: None,
             });
@@ -371,7 +371,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::Deprecated {
+            let expected = Diagnostic::new(Lint::Deprecated {
                 identifier: "A".to_owned(),
                 reason: Some("Message here".to_owned()),
             });
@@ -394,7 +394,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Warning::Deprecated {
+            let expected = Diagnostic::new(Lint::Deprecated {
                 identifier: "A".to_owned(),
                 reason: None,
             });

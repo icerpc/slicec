@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Warning};
+use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Lint};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
 use std::collections::HashMap;
@@ -50,18 +50,17 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
 
     let reference_files = find_slice_files(&options.references, true, diagnostic_reporter);
 
-    // Any duplicate reference files will be reported as a warning.
+    // Report a lint violation for any duplicate reference files.
     for reference_file in reference_files {
         let path = reference_file.path.clone();
         if file_paths.insert(reference_file, false).is_some() {
-            Diagnostic::new(Warning::DuplicateFile { path }).report(diagnostic_reporter);
+            Diagnostic::new(Lint::DuplicateFile { path }).report(diagnostic_reporter);
         }
     }
 
     let source_files = find_slice_files(&options.sources, false, diagnostic_reporter);
 
-    // Any duplicate source files (that duplicate another source file, not a reference file) will be reported as
-    // a warning.
+    // Report a lint violation for duplicate source files (any that duplicate another source file not a reference file).
     for source_file in source_files {
         let path = source_file.path.clone();
         // Insert will return replace and return the previous value if the key already exists.
@@ -69,7 +68,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         if let Some(is_source) = file_paths.insert(source_file, true) {
             // Only report an error if the file was previously a source file.
             if is_source {
-                Diagnostic::new(Warning::DuplicateFile { path }).report(diagnostic_reporter);
+                Diagnostic::new(Lint::DuplicateFile { path }).report(diagnostic_reporter);
             }
         }
     }
