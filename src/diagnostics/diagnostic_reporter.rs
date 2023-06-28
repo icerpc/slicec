@@ -35,8 +35,8 @@ impl DiagnosticReporter {
         diagnostics.any(|diagnostic| matches!(diagnostic.kind, DiagnosticKind::Error(_)))
     }
 
-    // TODO COMMENT
-    // TODO add support for deny/warn lint configuration attributes & command line options.
+    /// Updates the levels of any lints reported with this reporter.
+    /// Lint levels can be configured via attributes or command line options, but these aren't applied until this runs.
     pub fn update_diagnostics(&mut self, ast: &Ast, files: &HashMap<String, SliceFile>) -> (usize, usize) {
         // Helper function that checks whether a lint should be allowed according to the provided identifiers.
         fn is_lint_allowed_by<'b>(mut identifiers: impl Iterator<Item = &'b String>, lint: &Lint) -> bool {
@@ -50,8 +50,9 @@ impl DiagnosticReporter {
             allowed.any(|allow| is_lint_allowed_by(allow.allowed_lints.iter(), lint))
         }
 
-        // TODO COMMENT
+        // Store a running count of the total number of warnings and errors.
         let (mut total_warnings, mut total_errors) = (0, 0);
+
         for diagnostic in &mut self.diagnostics {
             // If this diagnostic is a lint, update its diagnostic level. Errors always have a level of `Error`.
             if let DiagnosticKind::Lint(lint) = &diagnostic.kind {

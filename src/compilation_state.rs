@@ -4,8 +4,8 @@ use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticLevel, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
-use serde::Serializer;
 use serde::ser::SerializeStruct;
+use serde::Serializer;
 use std::collections::HashMap;
 use std::io::{Result, Write};
 
@@ -93,7 +93,6 @@ impl CompilationState {
         }
         Ok(())
     }
-    
 
     fn emit_diagnostics_in_human(self, output: &mut impl Write) -> Result<()> {
         fn append_snippet(message: &mut Vec<String>, span: &Span, files: &HashMap<String, SliceFile>) {
