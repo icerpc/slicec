@@ -34,7 +34,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = concat!(
@@ -76,7 +76,7 @@ mod output {
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
@@ -131,7 +131,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -162,7 +162,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
@@ -204,7 +204,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         .report(&mut compilation_state.diagnostic_reporter);
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\
@@ -233,7 +233,7 @@ error [E002]: invalid syntax: foo
         let mut output: Vec<u8> = Vec::new();
 
         // Act
-        compilation_state.into_exit_code(&mut output);
+        compilation_state.update_and_emit_diagnostics(&mut output);
 
         // Assert
         let expected = "\

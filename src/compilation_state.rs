@@ -4,6 +4,7 @@ use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticLevel, DiagnosticReporter};
 use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
+use console::Term;
 use serde::ser::SerializeStruct;
 use serde::Serializer;
 use std::collections::HashMap;
@@ -46,12 +47,9 @@ impl CompilationState {
         }
     }
 
-    pub fn into_exit_code(mut self, output: &mut impl Write) -> i32 {
-        // Update the diagnostic levels of all diagnostics based on any attributes or command line options.
-        let (total_warnings, total_errors) = self.diagnostic_reporter.update_diagnostics(&self.ast, &self.files);
-
-        // Print the diagnostics to the console, along with the total number of warnings and errors emitted.
-        Self::emit_diagnostics(self, output).expect("failed to print diagnostics");
+    pub fn into_exit_code(self) -> i32 {
+        // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
+        let (total_warnings, total_errors) = self.update_and_emit_diagnostics(&mut Term::stderr());
         Self::emit_totals(total_warnings, total_errors).expect("failed to print totals");
 
         // Return exit code 1 if any errors were reported, and exit code 0 otherwise.
@@ -59,17 +57,25 @@ impl CompilationState {
     }
 
     /// Consumes the diagnostic reporter and writes any non-allowed diagnostics to the provided output.
-    fn emit_diagnostics(self, output: &mut impl Write) -> Result<()> {
+    /// This returns the number of warnings and errors emitted respectively.
+    pub fn update_and_emit_diagnostics(mut self, output: &mut impl Write) -> (usize, usize) {
+        // Update the diagnostics and store how many warnings and errors there are.
+        let totals = self.diagnostic_reporter.update_diagnostics(&self.ast, &self.files);
+
         // Disable colors if the user requested no colors.
         if self.diagnostic_reporter.disable_color {
             console::set_colors_enabled(false);
             console::set_colors_enabled_stderr(false);
         }
 
+        // Emit the diagnostics in whatever form the user requested.
         match self.diagnostic_reporter.diagnostic_format {
             DiagnosticFormat::Human => self.emit_diagnostics_in_human(output),
             DiagnosticFormat::Json => self.emit_diagnostics_in_json(output),
         }
+        .expect("failed to print diagnostics");
+
+        totals
     }
 
     fn emit_diagnostics_in_json(self, output: &mut impl Write) -> Result<()> {
@@ -149,7 +155,7 @@ impl CompilationState {
     /// Prints the total number of warnings and errors to stdout.
     /// These messages are conditionally printed; if there were no warnings or errors we don't print them.
     fn emit_totals(total_warnings: usize, total_errors: usize) -> Result<()> {
-        let mut stdout = std::io::stdout();
+        let stdout = &mut Term::stdout();
 
         if total_warnings > 0 {
             let warnings = console::style("Warnings").yellow().bold();
