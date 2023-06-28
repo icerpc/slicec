@@ -9,11 +9,6 @@
 - [Testing](#testing)
 - [Code coverage report](#code-coverage-report)
 
-## Build Requirements
-
-To build the slicec library you need to have Rust and Cargo installed.
-The recommended method to install Rust is by using [rustup](https://rustup.rs).
-
 ## Overview
 
 The slicec library is a Rust library that can be used to compile Slice definitions into a `CompilationState` struct.
@@ -78,21 +73,3 @@ Build and run using Cargo:
 cargo build
 cargo run greeter.slice
 ```
-
-## Testing
-
-The test suite can be run from the command line by running `cargo test` in the repository.
-
-## Code coverage report
-
-Code coverage reports can be generated using [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) from a regular
-command prompt, using the following command
-
-For Linux and macOS:
-
-```shell
-cargo install cargo-llvm-cov
-cargo llvm-cov --html
-```
-
-The output html is in the `target/llvm-cov/html/` directory.
