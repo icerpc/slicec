@@ -2,7 +2,7 @@
 ## Prerequisites
 
 The slicec library (and the compilers that use it) are written in Rust.
-So you must have Rust installed: [rustup](https://rustup.rs/).
+So you must have Rust installed: [rustup](https://rustup.rs).
 
 ## Building and Testing
 
