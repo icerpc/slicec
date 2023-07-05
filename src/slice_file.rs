@@ -136,13 +136,6 @@ impl SliceFile {
             let highlight_start = if line_number == start.row { start.col - 1 } else { 0 };
             let highlight_end = if line_number == end.row { end.col - 1 } else { width };
 
-            // If the start and end are not the same and the highlight start the start position is at the end of the
-            // line, then we don't want to print the line.
-            // TODO: remove once https://github.com/icerpc/slicec/issues/603 is fixed
-            if start != end && highlight_start == width {
-                continue;
-            }
-
             // Expand tabs to 4 spaces so that we can properly compute the highlight length.
             let prefix = line_number_prefix(Some(line_number));
             let space_separated_line = line.replace('\t', EXPANDED_TAB);

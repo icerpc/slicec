@@ -12,6 +12,7 @@ unstable_features = true
 
 max_width = 120
 comment_width = 120
+single_line_let_else_max_width = 120
 
 format_code_in_doc_comments = true
 format_macro_matchers = true

@@ -216,7 +216,7 @@ impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for WeakPtr<U> {
     fn eq(&self, other: &&'a T) -> bool {
         // Convert the other borrow to a raw pointer, then strip it and this pointer's typing, and convert any
         // DST fat pointers to thin pointers to avoid checking their v-tables (which can be transient).
-        let Some(self_ptr) = self.data else { return false; };
+        let Some(self_ptr) = self.data else { return false };
         let other_ptr = (*other as *const T).cast::<()>();
         // Check if the data pointers point to the same location in memory.
         std::ptr::eq(self_ptr.cast::<()>(), other_ptr)

@@ -178,7 +178,7 @@ impl TypeRefPatcher<'_> {
     {
         // If the definition is already patched, we skip the function and return `None` immediately.
         // Otherwise we retrieve the type string and try to resolve it in the ast.
-        let TypeRefDefinition::Unpatched(identifier) = &type_ref.definition else { return None; };
+        let TypeRefDefinition::Unpatched(identifier) = &type_ref.definition else { return None };
 
         // There are 3 steps to type resolution.
         // First, lookup the type as a node in the AST.
