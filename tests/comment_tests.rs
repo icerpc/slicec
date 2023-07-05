@@ -201,51 +201,6 @@ mod comments {
     }
 
     #[test]
-    fn operation_with_no_return_but_doc_comment_contains_return_fails() {
-        // Arrange
-        let slice = "
-            module tests
-
-            interface TestInterface {
-                /// @returns: This operation will return a bool.
-                testOp(testParam: string)
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "void operation must not contain doc comment return tag".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
-    fn operation_with_doc_comment_for_param_but_no_param_fails() {
-        // Arrange
-        let slice = "
-            module tests
-
-            interface TestInterface {
-                /// @param testParam1: A string param
-                /// @param testParam2: A bool param
-                testOp(testParam1: string)
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "doc comment has a param tag for 'testParam2', but there is no parameter by that name".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
     fn operation_with_correct_doc_comments() {
         // Arrange
         let slice = "
@@ -255,7 +210,7 @@ mod comments {
 
             interface TestInterface {
                 /// @param testParam1: A string param
-                /// @returns bool
+                /// @returns: bool
                 /// @throws MyException: Some message about why testOp throws
                 testOp(testParam1: string) -> bool throws MyException
             }
@@ -332,53 +287,6 @@ mod comments {
         assert_eq!(message.len(), 2);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
         assert_eq!(text, "Message about my thrown thing.");
-    }
-
-    #[test]
-    fn doc_comments_throws_invalid_type() {
-        // Arrange
-        let slice = "
-            module tests
-
-            interface TestInterface {
-                /// @throws FakeException: causes a warning.
-                testOp(testParam: string) -> bool
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = [
-            Diagnostic::new(Lint::BrokenDocLink {
-                message: "no element named 'FakeException' exists in scope".to_owned(),
-            }),
-            Diagnostic::new(Lint::IncorrectDocComment {
-                message: "operation 'testOp' does not throw anything".to_owned(),
-            }),
-        ];
-        check_diagnostics(diagnostics, expected);
-    }
-
-    #[test]
-    fn doc_comments_non_operations_cannot_throw() {
-        // Arrange
-        let slice = "
-            module tests
-
-            /// @throws: Message about my thrown thing.
-            struct S {}
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "doc comment indicates that struct 'S' throws, however, only operations can throw".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -484,46 +392,6 @@ mod comments {
     }
 
     #[test]
-    fn missing_doc_comment_linked_identifiers() {
-        // Arrange
-        let slice = "
-            module tests
-
-            /// A test struct. Similar to {@link OtherStruct}.
-            struct TestStruct {}
-            ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Lint::BrokenDocLink {
-            message: "no element named 'OtherStruct' exists in scope".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
-    fn doc_comment_links_to_invalid_element() {
-        // Arrange
-        let slice = "
-            module tests
-
-            /// A test struct, should probably use {@link bool}.
-            struct TestStruct {}
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Lint::BrokenDocLink {
-            message: "primitives cannot be linked to".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
     fn unknown_doc_comment_tag() {
         // Arrange
         let slice = "
@@ -544,17 +412,57 @@ mod comments {
     }
 
     #[test]
-    fn doc_comment_throws_tag_invalid_type() {
+    fn missing_doc_comment_linked_identifiers() {
         // Arrange
         let slice = "
             module tests
 
-            exception E {}
-            struct S {}
+            /// A test struct. Similar to {@link OtherStruct}.
+            struct TestStruct {}
+            ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::BrokenDocLink {
+            message: "no element named 'OtherStruct' exists in scope".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test_case("bool", "primitive types"; "primitive")]
+    #[test_case("tests", "modules"; "module")]
+    fn doc_comment_links_to_invalid_element(link_identifier: &str, kind: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            module tests
+
+            /// A test struct, should probably use {{@link {link_identifier}}}.
+            struct TestStruct {{}}
+            "
+        );
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::BrokenDocLink {
+            message: format!("{kind} cannot be linked to"),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn param_tag_is_rejected_for_operations_with_no_parameters() {
+        // Arrange
+        let slice = "
+            module tests
 
             interface I {
-                /// @throws S: Message about my thrown thing.
-                testOp(testParam: string) -> bool throws E
+                /// @param foo: this parameter doesn't exist.
+                op()
             }
         ";
 
@@ -563,25 +471,144 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "'S' is not a throwable type".to_owned(),
+            message: "comment has a 'param' tag for 'foo', but its operation has no parameter with that name"
+                .to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
-    fn doc_comment_throw_tag_operation_throws_nothing() {
+    fn param_tag_is_rejected_if_its_identifier_doesnt_match_a_parameters() {
         // Arrange
         let slice = "
             module tests
 
-            exception E {}
+            interface I {
+                /// @param foo: this parameter doesn't exist.
+                op(bar: bool)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'param' tag for 'foo', but its operation has no parameter with that name"
+                .to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test_case("returns"; "unnamed tag")]
+    #[test_case("returns foo"; "named tag")]
+    fn returns_tag_is_rejected_for_operations_that_return_nothing(returns_tag: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            module tests
+
+            interface I {{
+                /// @{returns_tag}: this tag is invalid.
+                op()
+            }}
+            ",
+        );
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'returns' tag, but its operation does not return anything".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn named_returns_tag_is_rejected_for_operations_that_return_an_unnamed_type() {
+        // Arrange
+        let slice = "
+            module tests
 
             interface I {
-                /// @throws E: Message about my thrown thing.
-                testOp(testParam: string) -> bool
+                /// @returns foo: this tag is invalid.
+                op() -> bool
+            }
+        ";
 
-                /// @throws: Second message about my thrown thing.
-                testOpTwo(testParam: string) -> bool
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'returns' tag for 'foo', but its operation doesn't return anything with that name"
+                .to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn named_returns_tag_is_rejected_if_its_identifier_doesnt_match_a_return_tuple_elements() {
+        // Arrange
+        let slice = "
+            module tests
+
+            interface I {
+                /// @returns foo: this tag is invalid.
+                op() -> (alice: bool, bob: bool)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'returns' tag for 'foo', but its operation doesn't return anything with that name"
+                .to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test_case("throws"; "unnamed tag")]
+    #[test_case("throws Foo"; "named tag")]
+    fn throws_tag_is_rejected_for_operations_that_do_not_throw(throws_tag: &str) {
+        // Arrange
+        let slice = format!(
+            "
+            module tests
+
+            exception Foo {{}}
+
+            interface I {{
+                /// @{throws_tag}: this tag is invalid.
+                op()
+            }}
+            ",
+        );
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'throws' tag, but its operation does not throw anything".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn throws_tag_is_rejected_if_it_names_an_unthrowable_type() {
+        // Arrange
+        let slice = "
+            module tests
+
+            struct Foo {}
+
+            interface I {
+                /// @throws Foo: this type isn't an exception`.
+                op()
             }
         ";
 
@@ -591,12 +618,99 @@ mod comments {
         // Assert
         let expected = [
             Diagnostic::new(Lint::IncorrectDocComment {
-                message: "operation 'testOp' does not throw anything".to_owned(),
+                message: "comment has a 'throws' tag for 'Foo', but it is not a throwable type".to_owned(),
             }),
             Diagnostic::new(Lint::IncorrectDocComment {
-                message: "operation 'testOpTwo' does not throw anything".to_owned(),
+                message: "comment has a 'throws' tag, but its operation does not throw anything".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);
+    }
+
+    #[test]
+    fn named_throws_tag_is_rejected_if_its_types_doesnt_match_the_thrown_type() {
+        // Arrange
+        let slice = format!(
+            "
+            module tests
+
+            exception E {{}}
+            exception Foo {{}}
+
+            interface I {{
+                /// @throws Foo: this isn't the type that is thrown.
+                op() throws E
+            }}
+            "
+        );
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'throws' tag for 'Foo', but it's operation doesn't throw this exception".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn param_tags_can_only_be_used_with_operations() {
+        // Arrange
+        let slice = "
+            module tests
+
+            /// @param foo: bad tag.
+            struct Foo {}
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'param' tag, but only operations can have parameters".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn returns_tags_can_only_be_used_with_operations() {
+        // Arrange
+        let slice = "
+            module tests
+
+            /// @returns: bad tag.
+            struct Foo {}
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'returns' tag, but only operations can return".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn throws_tags_can_only_be_used_with_operations() {
+        // Arrange
+        let slice = "
+            module tests
+
+            /// @throws: bad tag.
+            struct Foo {}
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+            message: "comment has a 'throws' tag, but only operations can throw".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 }

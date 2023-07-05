@@ -119,8 +119,7 @@ mod attributes {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
                 Diagnostic::new(Lint::IncorrectDocComment {
-                    message: "doc comment indicates that struct 'S' throws, however, only operations can throw"
-                        .to_owned(),
+                    message: "comment has a 'throws' tag, but only operations can throw".to_owned(),
                 }),
             ];
             // Filter out any lints that should be allowed by the supplied test arguments.

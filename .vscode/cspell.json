@@ -8,6 +8,7 @@
     "codepoints",
     "Commentable",
     "deque",
+    "doesnt",
     "downcasted",
     "downcasting",
     "encodable",
@@ -33,6 +34,7 @@
     "Undelimited",
     "unprefixed",
     "Unsize",
+    "unthrowable",
     "upcasting",
     "varint",
     "varuint"
