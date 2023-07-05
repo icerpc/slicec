@@ -34,11 +34,11 @@ pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
 fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnostic>, mut symbols: HashSet<String>) {
     // Pre-process the file's raw text.
     let preprocessor = Preprocessor::new(&file.relative_path, &mut symbols, diagnostics);
-    let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return; };
+    let Ok(preprocessed_text) = preprocessor.parse_slice_file(file.raw_text.as_str()) else { return };
 
     // Parse the preprocessed text.
     let parser = Parser::new(&file.relative_path, ast, diagnostics);
-    let Ok((encoding, attributes, module, definitions)) = parser.parse_slice_file(preprocessed_text) else { return; };
+    let Ok((encoding, attributes, module, definitions)) = parser.parse_slice_file(preprocessed_text) else { return };
 
     // Issue a syntax error if the user had definitions but forgot to declare a module.
     if !definitions.is_empty() && module.is_none() {
