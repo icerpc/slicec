@@ -22,7 +22,7 @@ mod slice1 {
         // Test setup
         let slice = &format!(
             "
-                encoding = Slice1
+                mode = Slice1
                 module Test
 
                 compact struct S {{
@@ -58,7 +58,7 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             compact struct S {{

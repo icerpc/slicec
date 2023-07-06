@@ -64,7 +64,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {{
                     a: {type_name}?
@@ -100,7 +100,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {{
                     a: {type_name}?
@@ -131,7 +131,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 {definition}
                 exception E {{
@@ -154,7 +154,7 @@ mod optional {
             // Arrange
             let slice = format!(
                 "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 {definition}
                 exception E {{
@@ -179,7 +179,7 @@ mod optional {
         fn sequences_of_optionals_are_allowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     a: sequence<AnyClass?>
@@ -199,7 +199,7 @@ mod optional {
         fn sequences_of_optionals_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     a: sequence<bool?>
@@ -225,7 +225,7 @@ mod optional {
         fn dictionaries_with_optional_keys_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     a: dictionary<uint8?, float32>
@@ -248,7 +248,7 @@ mod optional {
         fn dictionaries_with_optional_values_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     a: dictionary<string, int32?>
@@ -271,7 +271,7 @@ mod optional {
         fn dictionaries_with_optional_values_are_allowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     a: dictionary<string, AnyClass?>
@@ -292,7 +292,7 @@ mod optional {
         fn untagged_optional_parameters_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 interface I {
                     op(a: bool?)
@@ -318,7 +318,7 @@ mod optional {
         fn tagged_optional_parameters_are_allowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 interface I {
                     op(tag(1) a: float32?)
@@ -340,7 +340,7 @@ mod optional {
         fn optional_return_types_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 interface I {
                     op() -> float64?
@@ -363,7 +363,7 @@ mod optional {
         fn untagged_optional_fields_are_disallowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 compact struct S {
                     a: bool?
@@ -389,7 +389,7 @@ mod optional {
         fn tagged_optional_fields_are_allowed() {
             // Arrange
             let slice = "
-                encoding = Slice1
+                mode = Slice1
                 module Test
                 exception E {
                     tag(1) a: float32?

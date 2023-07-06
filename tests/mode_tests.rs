@@ -2,27 +2,27 @@
 
 mod test_helpers;
 
-mod encodings {
+mod modes {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
     use test_case::test_case;
 
-    /// Verifies that the supported encodings compile
+    /// Verifies that the supported modes compile
     #[test_case("Slice1")]
     #[test_case("Slice2")]
-    fn valid_encodings(value: &str) {
+    fn valid_mode(value: &str) {
         // Arrange
-        let slice = format!("encoding = {value}");
+        let slice = format!("mode = {value}");
 
         // Act/Assert
         assert_parses(slice);
     }
 
     #[test]
-    fn invalid_encodings_fail() {
+    fn invalid_modes_fail() {
         // Arrange
-        let slice = "encoding = Slice3";
+        let slice = "mode = Slice3";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
@@ -35,18 +35,18 @@ mod encodings {
     }
 
     #[test]
-    fn encoding_must_be_first() {
+    fn mode_must_be_first() {
         // Arrange
         let slice = "
             module Test
-            encoding = Slice2
+            mode = Slice2
         ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '::', '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '::', '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'struct', 'typealias', or 'unchecked', but found 'mode'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }

@@ -63,7 +63,7 @@ extern {
         // Other keywords
         any_exception_keyword => TokenKind::AnyExceptionKeyword,
         compact_keyword => TokenKind::CompactKeyword,
-        encoding_keyword => TokenKind::EncodingKeyword,
+        mode_keyword => TokenKind::ModeKeyword,
         idempotent_keyword => TokenKind::IdempotentKeyword,
         stream_keyword => TokenKind::StreamKeyword,
         tag_keyword => TokenKind::TagKeyword,
@@ -95,23 +95,23 @@ extern {
 
 // Grammar Rules
 
-// TODO we can probably allow module to come before or after encoding now.
-pub SliceFile: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>) = {
+// TODO we can probably allow module to come before or after mode now.
+pub SliceFile: (Option<FileMode>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>) = {
     <sfp: SliceFilePrelude> <m: Module?> <ds: Definition*> => (sfp.0, sfp.1, m, ds),
 }
 
-SliceFilePrelude: (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) = {
+SliceFilePrelude: (Option<FileMode>, Vec<WeakPtr<Attribute>>) = {
     => (None, Vec::new()),
-    <sfp: SliceFilePrelude> <fe: FileEncoding> => handle_file_encoding(parser, sfp, fe),
+    <sfp: SliceFilePrelude> <fe: FileMode> => handle_file_mode(parser, sfp, fe),
     <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
         sfp.1.push(fa);
         sfp
     },
 }
 
-FileEncoding: FileEncoding = {
-    <l: @L> encoding_keyword "=" <i: Identifier> <r: @R> => {
-        construct_file_encoding(parser, i, Span::new(l, r, parser.file_name))
+FileMode: FileMode = {
+    <l: @L> mode_keyword "=" <i: Identifier> <r: @R> => {
+        construct_file_mode(parser, i, Span::new(l, r, parser.file_name))
     },
 }
 

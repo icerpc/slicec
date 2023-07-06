@@ -12,7 +12,7 @@ mod slice1 {
     fn unsupported_fail() {
         // Arrange
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             struct A {}

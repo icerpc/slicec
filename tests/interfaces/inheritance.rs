@@ -70,7 +70,7 @@ fn supports_multiple_inheritance() {
 fn must_inherit_from_interface() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class C {}

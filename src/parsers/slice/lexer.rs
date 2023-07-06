@@ -218,7 +218,7 @@ where
             "AnyClass" => TokenKind::AnyClassKeyword,
             "AnyException" => TokenKind::AnyExceptionKeyword,
             "compact" => TokenKind::CompactKeyword,
-            "encoding" => TokenKind::EncodingKeyword,
+            "mode" => TokenKind::ModeKeyword,
             "idempotent" => TokenKind::IdempotentKeyword,
             "stream" => TokenKind::StreamKeyword,
             "tag" => TokenKind::TagKeyword,

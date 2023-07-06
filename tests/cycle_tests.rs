@@ -13,7 +13,7 @@ mod container {
     fn classes_can_contain_cycles() {
         // Arrange
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             class C {

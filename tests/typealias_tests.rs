@@ -10,21 +10,21 @@ mod typealias {
     use slicec::slice_file::Span;
     use test_case::test_case;
 
-    #[test_case("struct S {}", "S", 2 ; "structs")]
-    #[test_case("exception E { }", "E", 2; "exceptions")]
-    #[test_case("class C {}", "C", 1; "classes")]
-    #[test_case("interface I {}", "I", 2; "interfaces")]
-    #[test_case("enum E { Foo }", "E", 1; "enums")]
-    #[test_case("custom C", "C", 2; "custom types")]
-    #[test_case("", "bool", 2; "primitives")]
-    #[test_case("", "sequence<bool>", 2; "sequences")]
-    #[test_case("", "dictionary<bool, bool>", 2; "dictionaries")]
-    #[test_case("typealias T = bool", "T", 2; "type aliases")]
-    fn can_have_type_alias_of(definition: &str, identifier: &str, encoding: u8) {
+    #[test_case("struct S {}", "S", "Slice2" ; "structs")]
+    #[test_case("exception E { }", "E", "Slice2"; "exceptions")]
+    #[test_case("class C {}", "C", "Slice1"; "classes")]
+    #[test_case("interface I {}", "I", "Slice2"; "interfaces")]
+    #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
+    #[test_case("custom C", "C", "Slice2"; "custom types")]
+    #[test_case("", "bool", "Slice2"; "primitives")]
+    #[test_case("", "sequence<bool>", "Slice2"; "sequences")]
+    #[test_case("", "dictionary<bool, bool>", "Slice2"; "dictionaries")]
+    #[test_case("typealias T = bool", "T", "Slice2"; "type aliases")]
+    fn can_have_type_alias_of(definition: &str, identifier: &str, mode: &str) {
         // Arrange
         let slice = format!(
             "
-                encoding = Slice{encoding}
+                mode = {mode}
                 module Test
                 {definition}
                 typealias Alias = {identifier}
@@ -140,13 +140,13 @@ mod typealias {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case(1, "uint32"; "Slice1")]
-    #[test_case(2, "AnyClass"; "Slice2")]
-    fn reject_unsupported_underlying_type_encoding(encoding: u8, underlying_type: &str) {
+    #[test_case("Slice1", "uint32"; "Slice1")]
+    #[test_case("Slice2", "AnyClass"; "Slice2")]
+    fn reject_unsupported_underlying_type_encoding(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
-            encoding = Slice{encoding}
+            mode = {mode}
             module Test
             typealias Foo = {underlying_type}
             "
@@ -158,22 +158,22 @@ mod typealias {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
-            encoding: match encoding {
-                1 => Encoding::Slice1,
-                2 => Encoding::Slice2,
+            encoding: match mode {
+                "Slice1" => Encoding::Slice1,
+                "Slice2" => Encoding::Slice2,
                 _ => panic!(),
             },
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case(1, "AnyClass"; "Slice1")]
-    #[test_case(2, "uint32"; "Slice2")]
-    fn allow_supported_underlying_type_encoding(encoding: u8, underlying_type: &str) {
+    #[test_case("Slice1", "AnyClass"; "Slice1")]
+    #[test_case("Slice2", "uint32"; "Slice2")]
+    fn allow_supported_underlying_type_encoding(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
-            encoding = Slice{encoding}
+            mode = {mode}
             module Test
             typealias Foo = {underlying_type}
             "

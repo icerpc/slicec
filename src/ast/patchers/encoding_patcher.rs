@@ -225,7 +225,7 @@ impl EncodingPatcher<'_> {
 
         // Emit a note if the file is using the default encoding.
 
-        match slice_file.encoding.as_ref() {
+        match slice_file.mode.as_ref() {
             Some(_) => None,
             None => Some(Note {
                 message: format!("file is using the {} encoding by default", Encoding::default()),

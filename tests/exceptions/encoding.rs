@@ -11,7 +11,7 @@ mod slice1 {
     fn can_not_be_fields() {
         // Arrange
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             exception E {}
@@ -89,7 +89,7 @@ mod slice2 {
     fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
         // Arrange
         let slice1 = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             exception E {

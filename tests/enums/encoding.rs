@@ -12,7 +12,7 @@ mod slice1 {
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             unchecked enum E : int32 {}

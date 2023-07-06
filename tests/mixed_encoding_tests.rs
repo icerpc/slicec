@@ -10,7 +10,7 @@ use slicec::grammar::Encoding;
 fn valid_mixed_encoding_works() {
     // Arrange
     let slice1 = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         compact struct ACompactStruct {
@@ -31,7 +31,7 @@ fn valid_mixed_encoding_works() {
         }
     ";
     let slice2 = "
-        encoding = Slice2
+        mode = Slice2
         module Test
         struct AStruct {
             e: AnEnum
@@ -53,7 +53,7 @@ fn valid_mixed_encoding_works() {
 fn invalid_mixed_encoding_fails() {
     // Arrange
     let slice2 = "
-        encoding = Slice2
+        mode = Slice2
         module Test
 
         custom ACustomType
@@ -63,7 +63,7 @@ fn invalid_mixed_encoding_fails() {
         }
     ";
     let slice1 = "
-        encoding = Slice1
+        mode = Slice1
         module Test
         compact struct AStruct {
             c: ACustomType

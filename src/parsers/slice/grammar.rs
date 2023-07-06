@@ -58,25 +58,25 @@ type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 // Grammar Rule Functions
 
-fn handle_file_encoding(
+fn handle_file_mode(
     parser: &mut Parser,
-    (old_encoding, attributes): (Option<FileEncoding>, Vec<WeakPtr<Attribute>>),
-    encoding: FileEncoding,
-) -> (Option<FileEncoding>, Vec<WeakPtr<Attribute>>) {
+    (old_mode, attributes): (Option<FileMode>, Vec<WeakPtr<Attribute>>),
+    mode: FileMode,
+) -> (Option<FileMode>, Vec<WeakPtr<Attribute>>) {
     // The file encoding can only be set once.
-    if let Some(old_file_encoding) = old_encoding {
+    if let Some(old_file_encoding) = old_mode {
         let old_span = old_file_encoding.span();
         let diagnostic = Diagnostic::new(Error::MultipleEncodingVersions)
             .set_span(old_span)
             .add_note("file encoding was previously specified here", Some(old_span));
         parser.diagnostics.push(diagnostic);
     }
-    parser.file_encoding = encoding.version;
-    (Some(encoding), attributes)
+    parser.encoding = mode.encoding;
+    (Some(mode), attributes)
 }
 
-fn construct_file_encoding(parser: &mut Parser, i: Identifier, span: Span) -> FileEncoding {
-    let version = match i.value.as_str() {
+fn construct_file_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileMode {
+    let encoding = match i.value.as_str() {
         "Slice1" => Encoding::Slice1,
         "Slice2" => Encoding::Slice2,
         _ => {
@@ -87,7 +87,7 @@ fn construct_file_encoding(parser: &mut Parser, i: Identifier, span: Span) -> Fi
             Encoding::default() // Dummy
         }
     };
-    FileEncoding { version, span }
+    FileMode { encoding, span }
 }
 
 fn construct_module(
@@ -276,7 +276,7 @@ fn construct_operation(
         return_type: Vec::new(),
         throws,
         is_idempotent,
-        encoding: parser.file_encoding,
+        encoding: parser.encoding,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,

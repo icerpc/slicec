@@ -65,7 +65,7 @@ pub enum TokenKind<'input> {
     // Other keywords
     AnyExceptionKeyword, // "AnyException"
     CompactKeyword,      // "compact"
-    EncodingKeyword,     // "encoding"
+    ModeKeyword,         // "mode"
     IdempotentKeyword,   // "idempotent"
     StreamKeyword,       // "stream"
     TagKeyword,          // "tag"
@@ -132,7 +132,7 @@ impl fmt::Display for TokenKind<'_> {
             Self::AnyClassKeyword => "AnyClass",
             Self::AnyExceptionKeyword => "AnyException",
             Self::CompactKeyword => "compact",
-            Self::EncodingKeyword => "encoding",
+            Self::ModeKeyword => "mode",
             Self::IdempotentKeyword => "idempotent",
             Self::StreamKeyword => "stream",
             Self::TagKeyword => "tag",

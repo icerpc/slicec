@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, Encoding, FileEncoding, Module};
+use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, Encoding, FileMode, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -53,7 +53,7 @@ pub struct SliceFile {
     pub relative_path: String,
     pub raw_text: String,
 
-    pub encoding: Option<FileEncoding>,
+    pub mode: Option<FileMode>,
     pub module: Option<WeakPtr<Module>>,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub contents: Vec<Definition>,
@@ -75,7 +75,7 @@ impl SliceFile {
             filename,
             relative_path,
             raw_text,
-            encoding: None,
+            mode: None,
             module: None,
             attributes: Vec::new(),
             contents: Vec::new(),
@@ -89,9 +89,7 @@ impl SliceFile {
     ///
     /// See [Encoding::default()](crate::grammar::Encoding::default)
     pub fn encoding(&self) -> Encoding {
-        self.encoding
-            .as_ref()
-            .map_or(Encoding::default(), |encoding| encoding.version)
+        self.mode.as_ref().map_or(Encoding::default(), |mode| mode.encoding)
     }
 
     /// Retrieves a formatted snippet from the slice file.

@@ -8,13 +8,13 @@ mod custom {
     use slicec::grammar::*;
     use test_case::test_case;
 
-    #[test_case(1; "Slice1")]
-    #[test_case(2; "Slice2")]
-    fn type_parses(encoding: u8) {
+    #[test_case("Slice1")]
+    #[test_case("Slice2")]
+    fn type_parses(mode: &str) {
         // Arrange
         let slice = format!(
             "
-                encoding = Slice{encoding}
+                mode = {mode}
                 module Test
                 custom ACustomType
             "
