@@ -39,7 +39,7 @@ fn validate_returns_tags(comment: &DocComment, operation: &Operation, reporter: 
         // If the operation doesn't return anything, but its doc comment has 'returns' tags, emit an error.
         [] => validate_returns_tags_for_operation_that_doesnt_return_anything(returns_tags, operation, reporter),
 
-        // If the operation returns a single type, ensure that its 'throws' tag doesn't have an identifier.
+        // If the operation returns a single type, ensure that its 'returns' tag doesn't have an identifier.
         [_] => validate_returns_tags_for_operation_with_single_return(returns_tags, operation, reporter),
 
         // If the operation returns a tuple, ensure its returns tags use identifiers matching the tuple's.
