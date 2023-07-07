@@ -7,7 +7,7 @@ use crate::grammar::Mode;
 pub struct SupportedModes(Vec<Mode>);
 
 impl SupportedModes {
-    /// Creates a new [Supportedmodes] with support for the specified modes.
+    /// Creates a new [SupportedModes] with support for the specified modes.
     ///
     /// # Arguments
     ///
