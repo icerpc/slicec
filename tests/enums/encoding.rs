@@ -22,10 +22,10 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithMode {
             kind: "enum".to_owned(),
             identifier: "E".to_owned(),
-            encoding: Encoding::Slice1,
+            mode: Encoding::Slice1.to_string(),
         })
         .add_note(
             "enums with underlying types are not supported by the Slice1 encoding",

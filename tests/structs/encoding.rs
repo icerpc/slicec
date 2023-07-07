@@ -22,10 +22,10 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithMode {
             kind: "struct".to_owned(),
             identifier: "A".to_owned(),
-            encoding: Encoding::Slice1,
+            mode: Encoding::Slice1.to_string(),
         })
         .add_note("structs must be 'compact' to be supported by the Slice1 encoding", None);
 
@@ -58,7 +58,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: Encoding::Slice2.to_string(),
         })
         .add_note("file is using the Slice2 encoding by default", None);
 

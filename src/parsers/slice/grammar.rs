@@ -66,7 +66,7 @@ fn handle_file_mode(
     // The file encoding can only be set once.
     if let Some(old_file_encoding) = old_mode {
         let old_span = old_file_encoding.span();
-        let diagnostic = Diagnostic::new(Error::MultipleEncodingVersions)
+        let diagnostic = Diagnostic::new(Error::MultipleModes)
             .set_span(old_span)
             .add_note("file encoding was previously specified here", Some(old_span));
         parser.diagnostics.push(diagnostic);
@@ -80,7 +80,7 @@ fn construct_file_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileMo
         "Slice1" => Encoding::Slice1,
         "Slice2" => Encoding::Slice2,
         _ => {
-            let diagnostic = Diagnostic::new(Error::InvalidEncodingVersion { encoding: i.value })
+            let diagnostic = Diagnostic::new(Error::InvalidMode { mode: i.value })
                 .set_span(&i.span)
                 .add_note("must be 'Slice1' or 'Slice2'", None);
             parser.diagnostics.push(diagnostic);

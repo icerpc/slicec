@@ -54,10 +54,10 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedWithMode {
             kind: "exception".to_owned(),
             identifier: "B".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: Encoding::Slice2.to_string(),
         })
         .add_note("exception inheritance is only supported by the Slice1 encoding", None)
         .add_note("file is using the Slice2 encoding by default", None);
@@ -111,7 +111,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: Encoding::Slice2.to_string(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

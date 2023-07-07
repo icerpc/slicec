@@ -78,11 +78,11 @@ fn invalid_mixed_encoding_fails() {
     let expected = [
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
-            encoding: Encoding::Slice1,
+            mode: Encoding::Slice1.to_string(),
         }),
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
-            encoding: Encoding::Slice1,
+            mode: Encoding::Slice1.to_string(),
         }),
     ];
     check_diagnostics(diagnostics, expected);

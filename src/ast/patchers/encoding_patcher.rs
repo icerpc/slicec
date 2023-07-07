@@ -88,10 +88,10 @@ impl EncodingPatcher<'_> {
 
         // Ensure the entity is supported by its file's Slice encoding.
         if !supported_encodings.supports(&file_encoding) {
-            let error = Error::NotSupportedWithEncoding {
+            let error = Error::NotSupportedWithMode {
                 kind: entity_def.kind().to_owned(),
                 identifier: entity_def.identifier().to_owned(),
-                encoding: file_encoding,
+                mode: file_encoding.to_string(),
             };
             let mut notes = match additional_info {
                 Some(message) => vec![Note {
@@ -200,7 +200,7 @@ impl EncodingPatcher<'_> {
             if diagnostics.is_empty() {
                 let diagnostic = Diagnostic::new(Error::UnsupportedType {
                     kind: type_ref.type_string(),
-                    encoding: *file_encoding,
+                    mode: file_encoding.to_string(),
                 })
                 .set_span(type_ref.span())
                 .extend_notes(self.get_file_encoding_mismatch_note(type_ref));
@@ -417,7 +417,7 @@ impl ComputeSupportedEncodings for Interface {
                     if !supported_encodings.supports(file_encoding) {
                         Diagnostic::new(Error::UnsupportedType {
                             kind: exception_type.type_string(),
-                            encoding: *file_encoding,
+                            mode: file_encoding.to_string(),
                         })
                         .set_span(exception_type.span())
                         .extend_notes(patcher.get_file_encoding_mismatch_note(exception_type))

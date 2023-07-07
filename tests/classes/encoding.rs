@@ -18,10 +18,10 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let error = Error::NotSupportedWithEncoding {
+        let error = Error::NotSupportedWithMode {
             kind: "class".to_owned(),
             identifier: "C".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: Encoding::Slice2.to_string(),
         };
         let expected = Diagnostic::new(error)
             .add_note("classes are only supported by the Slice1 encoding", None)

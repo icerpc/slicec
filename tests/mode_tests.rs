@@ -28,8 +28,8 @@ mod modes {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InvalidEncodingVersion {
-            encoding: "Slice3".to_owned(),
+        let expected = Diagnostic::new(Error::InvalidMode {
+            mode: "Slice3".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

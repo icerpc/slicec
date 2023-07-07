@@ -28,7 +28,7 @@ fn operation_members_are_compatible_with_encoding() {
     // Assert
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
-        encoding: Encoding::Slice2,
+        mode: Encoding::Slice2.to_string(),
     });
 
     check_diagnostics(diagnostics, [expected]);

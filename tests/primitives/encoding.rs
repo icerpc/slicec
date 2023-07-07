@@ -37,7 +37,7 @@ mod slice1 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: value.to_owned(),
-            encoding: Encoding::Slice1,
+            mode: Encoding::Slice1.to_string(),
         });
 
         check_diagnostics(diagnostics, [expected]);
@@ -98,7 +98,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: Encoding::Slice2.to_string(),
         })
         .add_note("file is using the Slice2 encoding by default", None);
 

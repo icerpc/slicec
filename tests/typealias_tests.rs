@@ -158,11 +158,7 @@ mod typealias {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
-            encoding: match mode {
-                "Slice1" => Encoding::Slice1,
-                "Slice2" => Encoding::Slice2,
-                _ => panic!(),
-            },
+            mode: mode.to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
