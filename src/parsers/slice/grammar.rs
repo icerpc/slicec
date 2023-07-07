@@ -63,12 +63,12 @@ fn handle_file_mode(
     (old_mode, attributes): (Option<FileMode>, Vec<WeakPtr<Attribute>>),
     mode: FileMode,
 ) -> (Option<FileMode>, Vec<WeakPtr<Attribute>>) {
-    // The file encoding can only be set once.
-    if let Some(old_file_encoding) = old_mode {
-        let old_span = old_file_encoding.span();
+    // The file mode can only be set once.
+    if let Some(old_file_mode) = old_mode {
+        let old_span = old_file_mode.span();
         let diagnostic = Diagnostic::new(Error::MultipleModes)
             .set_span(old_span)
-            .add_note("file encoding was previously specified here", Some(old_span));
+            .add_note("file mode was previously specified here", Some(old_span));
         parser.diagnostics.push(diagnostic);
     }
     parser.mode = mode.mode;
@@ -131,7 +131,7 @@ fn construct_struct(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     });
 
     // Add all the fields to the struct.
@@ -159,7 +159,7 @@ fn construct_exception(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     });
 
     // Add all the fields to the exception.
@@ -189,7 +189,7 @@ fn construct_class(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     });
 
     // Add all the fields to the class.
@@ -242,7 +242,7 @@ fn construct_interface(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     });
 
     // Add all the operations to the interface.
@@ -383,7 +383,7 @@ fn construct_enum(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     });
 
     // Add all the enumerators to the enum.
@@ -439,7 +439,7 @@ fn construct_custom_type(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     })
 }
 
@@ -458,7 +458,7 @@ fn construct_type_alias(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the mode patcher.
     })
 }
 

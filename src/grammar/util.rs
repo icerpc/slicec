@@ -44,20 +44,20 @@ pub fn get_scoped_identifier(identifier: &str, scope: &str) -> String {
     }
 }
 
-/// This enum specifies all the encodings supported by IceRPC.
+/// This enum specifies all the modes supported by IceRPC.
 ///
-/// These encodings identity the format used to convert Slice types to and from byte streams.
+/// These modes identity the format used to convert Slice types to and from byte streams.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Mode {
-    /// Version 1 of the Slice encoding, supported by IceRPC, and compatible with Ice 3.5 or
+    /// Supported by IceRPC, and compatible with Ice 3.5 or
     /// greater.
     ///
     /// It is primarily for interoperability between Ice and IceRPC.
     Slice1,
 
-    /// Version 2 of the Slice encoding, supported by IceRPC.
+    /// Supported by IceRPC.
     ///
-    /// The default encoding when using IceRPC.
+    /// The default mode when using IceRPC.
     #[default]
     Slice2,
 }

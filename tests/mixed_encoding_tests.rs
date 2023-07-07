@@ -7,7 +7,7 @@ use slicec::diagnostics::{Diagnostic, Error};
 use slicec::grammar::Mode;
 
 #[test]
-fn valid_mixed_encoding_works() {
+fn valid_mixed_mode_works() {
     // Arrange
     let slice1 = "
         mode = Slice1
@@ -50,7 +50,7 @@ fn valid_mixed_encoding_works() {
 }
 
 #[test]
-fn invalid_mixed_encoding_fails() {
+fn invalid_mixed_mode_fails() {
     // Arrange
     let slice2 = "
         mode = Slice2

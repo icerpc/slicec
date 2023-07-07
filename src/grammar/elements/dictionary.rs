@@ -35,9 +35,9 @@ impl Type for Dictionary {
     }
 
     fn supported_modes(&self) -> SupportedModes {
-        let mut encodings = self.key_type.supported_modes();
-        encodings.intersect_with(&self.value_type.supported_modes());
-        encodings
+        let mut modes = self.key_type.supported_modes();
+        modes.intersect_with(&self.value_type.supported_modes());
+        modes
     }
 }
 

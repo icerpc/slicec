@@ -9,7 +9,7 @@ use crate::supported_modes::SupportedModes;
 use std::collections::HashMap;
 
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
-    // Create a new encoding patcher.
+    // Create a new mode patcher.
     let mut patcher = ModePatcher {
         supported_modes_cache: HashMap::new(),
         slice_files: &mut compilation_state.files,
@@ -81,12 +81,12 @@ impl ModePatcher<'_> {
             Mode::Slice2 => vec![Mode::Slice2],
         });
 
-        // Handle any type-specific encoding restrictions.
+        // Handle any type-specific mode restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
         let additional_info = entity_def.compute_supported_modes(self, &mut supported_modes, &file_mode);
 
-        // Ensure the entity is supported by its file's Slice encoding.
+        // Ensure the entity is supported by its file's Slice mode.
         if !supported_modes.supports(&file_mode) {
             let error = Error::NotSupportedWithMode {
                 kind: entity_def.kind().to_owned(),
@@ -209,9 +209,9 @@ impl ModePatcher<'_> {
                 diagnostic.report(self.diagnostic_reporter);
             }
 
-            // Return a dummy value that supports all encodings, instead of the real result.
+            // Return a dummy value that supports all modes, instead of the real result.
             // Otherwise everything that uses this type will also not be supported by the file's
-            // encoding, causing a cascade of unhelpful error messages.
+            // mode, causing a cascade of unhelpful error messages.
             SupportedModes::dummy()
         }
     }

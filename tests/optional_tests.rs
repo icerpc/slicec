@@ -219,8 +219,8 @@ mod optional {
         }
 
         // Using optional dictionary keys is always an error, but that check isn't until the validation phase.
-        // This tests that we emit an `OptionalsNotSupported` error in the encoding compatibility phase before that.
-        // Ensuring that the encoding compatibility checks correctly validate dictionary keys.
+        // This tests that we emit an `OptionalsNotSupported` error in the mode compatibility phase before that.
+        // Ensuring that the mode compatibility checks correctly validate dictionary keys.
         #[test]
         fn dictionaries_with_optional_keys_are_disallowed() {
             // Arrange

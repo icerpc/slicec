@@ -142,7 +142,7 @@ mod typealias {
 
     #[test_case("Slice1", "uint32"; "Slice1")]
     #[test_case("Slice2", "AnyClass"; "Slice2")]
-    fn reject_unsupported_underlying_type_encoding(mode: &str, underlying_type: &str) {
+    fn reject_unsupported_underlying_type_mode(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
@@ -165,7 +165,7 @@ mod typealias {
 
     #[test_case("Slice1", "AnyClass"; "Slice1")]
     #[test_case("Slice2", "uint32"; "Slice2")]
-    fn allow_supported_underlying_type_encoding(mode: &str, underlying_type: &str) {
+    fn allow_supported_underlying_type_mode(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "

@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 mod container;
-mod encoding;
 mod inheritance;
+mod mode;
 mod tags;
 
 use crate::test_helpers::*;

@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-mod encoding;
+mod mode;
 
 use crate::test_helpers::*;
 use slicec::grammar::*;

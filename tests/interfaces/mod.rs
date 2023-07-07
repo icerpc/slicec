@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-mod encoding;
 mod inheritance;
+mod mode;
 mod operations;
 
 use crate::test_helpers::*;

@@ -19,8 +19,8 @@ pub enum TypeContext {
     Nested,
 }
 
-pub fn get_bit_sequence_size<T: Member>(encoding: Mode, members: &[&T]) -> usize {
-    if encoding == Mode::Slice1 {
+pub fn get_bit_sequence_size<T: Member>(mode: Mode, members: &[&T]) -> usize {
+    if mode == Mode::Slice1 {
         return 0;
     }
 
