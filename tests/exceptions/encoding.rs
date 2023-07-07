@@ -35,7 +35,7 @@ mod slice2 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::Mode;
 
     /// Verifies that the slice parser with the Slice2 encoding emits errors when parsing an
     /// exception that inherits from another exception.
@@ -57,9 +57,9 @@ mod slice2 {
         let expected = Diagnostic::new(Error::NotSupportedWithMode {
             kind: "exception".to_owned(),
             identifier: "B".to_owned(),
-            mode: Encoding::Slice2.to_string(),
+            mode: Mode::Slice2.to_string(),
         })
-        .add_note("exception inheritance is only supported by the Slice1 encoding", None)
+        .add_note("exception inheritance is only supported by the Slice1 mode", None)
         .add_note("file is using Slice2 mode by default", None);
 
         check_diagnostics(diagnostics, [expected]);
@@ -111,7 +111,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
-            mode: Encoding::Slice2.to_string(),
+            mode: Mode::Slice2.to_string(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

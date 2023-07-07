@@ -48,7 +48,7 @@ pub fn get_scoped_identifier(identifier: &str, scope: &str) -> String {
 ///
 /// These encodings identity the format used to convert Slice types to and from byte streams.
 #[derive(Clone, Copy, Debug, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Encoding {
+pub enum Mode {
     /// Version 1 of the Slice encoding, supported by IceRPC, and compatible with Ice 3.5 or
     /// greater.
     ///
@@ -62,7 +62,7 @@ pub enum Encoding {
     Slice2,
 }
 
-impl fmt::Display for Encoding {
+impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
             Self::Slice1 => "Slice1",

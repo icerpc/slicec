@@ -4,7 +4,7 @@ pub mod test_helpers;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Encoding;
+use slicec::grammar::Mode;
 
 #[test]
 fn valid_mixed_encoding_works() {
@@ -78,11 +78,11 @@ fn invalid_mixed_encoding_fails() {
     let expected = [
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
-            mode: Encoding::Slice1.to_string(),
+            mode: Mode::Slice1.to_string(),
         }),
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
-            mode: Encoding::Slice1.to_string(),
+            mode: Mode::Slice1.to_string(),
         }),
     ];
     check_diagnostics(diagnostics, expected);

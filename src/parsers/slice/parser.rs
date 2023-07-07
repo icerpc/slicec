@@ -37,7 +37,7 @@ pub struct Parser<'a> {
     pub(super) ast: &'a mut Ast,
     pub(super) diagnostics: &'a mut Vec<Diagnostic>,
     pub(super) current_scope: Scope,
-    pub(super) encoding: Encoding,
+    pub(super) mode: Mode,
     pub(super) last_enumerator_value: Option<i128>,
 }
 
@@ -58,7 +58,7 @@ impl<'a> Parser<'a> {
             file_name,
             ast,
             diagnostics,
-            encoding: Encoding::default(),
+            mode: Mode::default(),
             current_scope: Scope::default(),
             last_enumerator_value: None,
         }

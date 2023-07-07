@@ -26,7 +26,7 @@ pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
     compilation_state.apply_unsafe(attribute_patcher);
     compilation_state.apply_unsafe(patchers::type_ref_patcher::patch_ast);
-    compilation_state.apply_unsafe(patchers::encoding_patcher::patch_ast);
+    compilation_state.apply_unsafe(patchers::mode_patcher::patch_ast);
     compilation_state.apply_unsafe(patchers::comment_link_patcher::patch_ast);
 }
 

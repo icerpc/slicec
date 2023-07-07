@@ -71,23 +71,23 @@ fn handle_file_mode(
             .add_note("file encoding was previously specified here", Some(old_span));
         parser.diagnostics.push(diagnostic);
     }
-    parser.encoding = mode.encoding;
+    parser.mode = mode.mode;
     (Some(mode), attributes)
 }
 
 fn construct_file_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileMode {
-    let encoding = match i.value.as_str() {
-        "Slice1" => Encoding::Slice1,
-        "Slice2" => Encoding::Slice2,
+    let mode = match i.value.as_str() {
+        "Slice1" => Mode::Slice1,
+        "Slice2" => Mode::Slice2,
         _ => {
             let diagnostic = Diagnostic::new(Error::InvalidMode { mode: i.value })
                 .set_span(&i.span)
                 .add_note("must be 'Slice1' or 'Slice2'", None);
             parser.diagnostics.push(diagnostic);
-            Encoding::default() // Dummy
+            Mode::default() // Dummy
         }
     };
-    FileMode { encoding, span }
+    FileMode { mode, span }
 }
 
 fn construct_module(
@@ -276,7 +276,7 @@ fn construct_operation(
         return_type: Vec::new(),
         throws,
         is_idempotent,
-        encoding: parser.encoding,
+        mode: parser.mode,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,

@@ -10,88 +10,88 @@ use std::collections::HashMap;
 
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     // Create a new encoding patcher.
-    let mut patcher = EncodingPatcher {
+    let mut patcher = ModePatcher {
         supported_modes_cache: HashMap::new(),
         slice_files: &mut compilation_state.files,
         diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
     };
 
     // Iterate through each node in the AST and patch any `supported_modes` fields.
-    // We only patch elements that internally cache what encodings they support, all other elements are skipped.
+    // We only patch elements that internally cache what modes they support, all other elements are skipped.
     //
-    // For types where it's trivial to compute their encodings (primitives, sequences, etc.) we compute them on the fly
+    // For types where it's trivial to compute their modes (primitives, sequences, etc.) we compute them on the fly
     // but other types that are computationally intensive (like containers) we compute it once (here) and cache it.
     for node in compilation_state.ast.as_mut_slice() {
         match node {
             Node::Struct(struct_ptr) => {
-                let encodings = patcher.get_supported_modes_for(struct_ptr.borrow());
-                struct_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(struct_ptr.borrow());
+                struct_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::Exception(exception_ptr) => {
-                let encodings = patcher.get_supported_modes_for(exception_ptr.borrow());
-                exception_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(exception_ptr.borrow());
+                exception_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::Class(class_ptr) => {
-                let encodings = patcher.get_supported_modes_for(class_ptr.borrow());
-                class_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(class_ptr.borrow());
+                class_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::Interface(interface_ptr) => {
-                let encodings = patcher.get_supported_modes_for(interface_ptr.borrow());
-                interface_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(interface_ptr.borrow());
+                interface_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::Enum(enum_ptr) => {
-                let encodings = patcher.get_supported_modes_for(enum_ptr.borrow());
-                enum_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(enum_ptr.borrow());
+                enum_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::CustomType(custom_type_ptr) => {
-                let encodings = patcher.get_supported_modes_for(custom_type_ptr.borrow());
-                custom_type_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(custom_type_ptr.borrow());
+                custom_type_ptr.borrow_mut().supported_modes = Some(modes);
             }
             Node::TypeAlias(type_alias_ptr) => {
-                let encodings = patcher.get_supported_modes_for(type_alias_ptr.borrow());
-                type_alias_ptr.borrow_mut().supported_modes = Some(encodings);
+                let modes = patcher.get_supported_modes_for(type_alias_ptr.borrow());
+                type_alias_ptr.borrow_mut().supported_modes = Some(modes);
             }
             _ => {}
         }
     }
 }
 
-struct EncodingPatcher<'a> {
+struct ModePatcher<'a> {
     supported_modes_cache: HashMap<String, SupportedModes>,
     slice_files: &'a HashMap<String, SliceFile>,
     diagnostic_reporter: &'a mut DiagnosticReporter,
 }
 
-impl EncodingPatcher<'_> {
+impl ModePatcher<'_> {
     fn get_supported_modes_for<T>(&mut self, entity_def: &T) -> SupportedModes
     where
-        T: Entity + Type + ComputeSupportedEncodings,
+        T: Entity + Type + ComputeSupportedModes,
     {
-        // Check if the entity's supported encodings have already been computed.
+        // Check if the entity's supported modes have already been computed.
         let type_id = entity_def.parser_scoped_identifier();
         if let Some(supported_modes) = self.supported_modes_cache.get(&type_id) {
             return supported_modes.clone();
         }
 
-        // Retrieve the encodings supported by the file that the entity is defined in.
+        // Retrieve the modes supported by the file that the entity is defined in.
         let file_name = &entity_def.span().file;
-        let file_encoding = self.slice_files.get(file_name).unwrap().encoding();
-        let mut supported_modes = SupportedModes::new(match &file_encoding {
-            Encoding::Slice1 => vec![Encoding::Slice1, Encoding::Slice2],
-            Encoding::Slice2 => vec![Encoding::Slice2],
+        let file_mode = self.slice_files.get(file_name).unwrap().mode();
+        let mut supported_modes = SupportedModes::new(match &file_mode {
+            Mode::Slice1 => vec![Mode::Slice1, Mode::Slice2],
+            Mode::Slice2 => vec![Mode::Slice2],
         });
 
         // Handle any type-specific encoding restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
-        let additional_info = entity_def.compute_supported_modes(self, &mut supported_modes, &file_encoding);
+        let additional_info = entity_def.compute_supported_modes(self, &mut supported_modes, &file_mode);
 
         // Ensure the entity is supported by its file's Slice encoding.
-        if !supported_modes.supports(&file_encoding) {
+        if !supported_modes.supports(&file_mode) {
             let error = Error::NotSupportedWithMode {
                 kind: entity_def.kind().to_owned(),
                 identifier: entity_def.identifier().to_owned(),
-                mode: file_encoding.to_string(),
+                mode: file_mode.to_string(),
             };
             let mut notes = match additional_info {
                 Some(message) => vec![Note {
@@ -107,13 +107,13 @@ impl EncodingPatcher<'_> {
                 .extend_notes(notes)
                 .report(self.diagnostic_reporter);
 
-            // Replace the supported encodings with a dummy that supports all encodings.
+            // Replace the supported modes with a dummy that supports all modes.
             // Otherwise everything that uses this type will also not be supported by the file's
-            // encoding, causing a cascade of unhelpful error messages.
+            // mode, causing a cascade of unhelpful error messages.
             supported_modes = SupportedModes::dummy();
         }
 
-        // Cache and return this entity's supported encodings.
+        // Cache and return this entity's supported modes.
         self.supported_modes_cache.insert(type_id, supported_modes.clone());
         supported_modes
     }
@@ -121,25 +121,25 @@ impl EncodingPatcher<'_> {
     fn get_supported_modes_for_type_ref(
         &mut self,
         type_ref: &TypeRef<impl Type + ?Sized>,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
         mut allow_nullable_with_slice_1: bool,
         container: Option<&dyn Entity>,
     ) -> SupportedModes {
-        // If we encounter a type that isn't supported by its file's encodings, and we know a specific reason why, we
+        // If we encounter a type that isn't supported by its file's modes, and we know a specific reason why, we
         // store an explanation in this variable. If it's empty, we report a generic message.
         let mut diagnostics = Vec::new();
 
         let mut supported_modes = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_modes_for(struct_def),
             Types::Exception(exception_def) => {
-                let mut encodings = self.get_supported_modes_for(exception_def);
+                let mut modes = self.get_supported_modes_for(exception_def);
                 // Exceptions can't be used as a data type with Slice1.
-                encodings.disable(Encoding::Slice1);
-                if *file_encoding == Encoding::Slice1 {
+                modes.disable(Mode::Slice1);
+                if *file_mode == Mode::Slice1 {
                     let diagnostic = Diagnostic::new(Error::ExceptionAsDataType).set_span(type_ref.span());
                     diagnostics.push(diagnostic);
                 }
-                encodings
+                modes
             }
             Types::Class(class_def) => {
                 allow_nullable_with_slice_1 = true;
@@ -155,18 +155,16 @@ impl EncodingPatcher<'_> {
                 self.get_supported_modes_for(custom_type)
             }
             Types::Sequence(sequence) => {
-                // Sequences are supported by any encoding that supports their elements.
-                self.get_supported_modes_for_type_ref(&sequence.element_type, file_encoding, false, None)
+                // Sequences are supported by any mode that supports their elements.
+                self.get_supported_modes_for_type_ref(&sequence.element_type, file_mode, false, None)
             }
             Types::Dictionary(dictionary) => {
-                // Dictionaries are supported by any encoding that supports their keys and values.
-                let key_encodings =
-                    self.get_supported_modes_for_type_ref(&dictionary.key_type, file_encoding, false, None);
-                let value_encodings =
-                    self.get_supported_modes_for_type_ref(&dictionary.value_type, file_encoding, false, None);
+                // Dictionaries are supported by any mode that supports their keys and values.
+                let key_modes = self.get_supported_modes_for_type_ref(&dictionary.key_type, file_mode, false, None);
+                let value_modes = self.get_supported_modes_for_type_ref(&dictionary.value_type, file_mode, false, None);
 
-                let mut supported_modes = key_encodings;
-                supported_modes.intersect_with(&value_encodings);
+                let mut supported_modes = key_modes;
+                supported_modes.intersect_with(&value_modes);
                 supported_modes
             }
             Types::Primitive(primitive) => {
@@ -177,10 +175,10 @@ impl EncodingPatcher<'_> {
             }
         };
 
-        // Optional types aren't supported by the Slice1 encoding (with some exceptions).
+        // Optional types aren't supported by the Slice1 mode (with some exceptions).
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
-            supported_modes.disable(Encoding::Slice1);
-            if *file_encoding == Encoding::Slice1 {
+            supported_modes.disable(Mode::Slice1);
+            if *file_mode == Mode::Slice1 {
                 let diagnostic = Diagnostic::new(Error::OptionalsNotSupported {
                     kind: type_ref.definition().kind().to_owned(),
                 })
@@ -191,15 +189,15 @@ impl EncodingPatcher<'_> {
             }
         }
 
-        // Ensure the Slice encoding of the file where the type is being used supports the type.
-        if supported_modes.supports(file_encoding) {
+        // Ensure the Slice mode of the file where the type is being used supports the type.
+        if supported_modes.supports(file_mode) {
             supported_modes
         } else {
             // If no specific reasons were given for the error, generate a generic one.
             if diagnostics.is_empty() {
                 let diagnostic = Diagnostic::new(Error::UnsupportedType {
                     kind: type_ref.type_string(),
-                    mode: file_encoding.to_string(),
+                    mode: file_mode.to_string(),
                 })
                 .set_span(type_ref.span())
                 .extend_notes(self.get_file_mode_mismatch_note(type_ref));
@@ -227,7 +225,7 @@ impl EncodingPatcher<'_> {
         match slice_file.mode.as_ref() {
             Some(_) => None,
             None => Some(Note {
-                message: format!("file is using {} mode by default", Encoding::default()),
+                message: format!("file is using {} mode by default", Mode::default()),
                 span: None,
             }),
         }
@@ -263,145 +261,145 @@ fn disallowed_optional_suggestion(
     })
 }
 
-trait ComputeSupportedEncodings {
+trait ComputeSupportedModes {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str>;
 }
 
-impl ComputeSupportedEncodings for Struct {
+impl ComputeSupportedModes for Struct {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the struct into the cache to prevent infinite lookup cycles.
-        // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
-        // error for structs to be cyclic, so it's fine if the supported encodings are bogus.
+        // If a cycle is encountered, the modes will be computed incorrectly, but it's an
+        // error for structs to be cyclic, so it's fine if the supported modes are bogus.
         patcher
             .supported_modes_cache
             .insert(self.parser_scoped_identifier(), SupportedModes::dummy());
-        // Structs only support encodings that all its fields also support.
+        // Structs only support modes that all its fields also support.
         for field in self.fields() {
             supported_modes.intersect_with(&patcher.get_supported_modes_for_type_ref(
                 field.data_type(),
-                file_encoding,
+                file_mode,
                 field.is_tagged(),
                 Some(field),
             ));
         }
 
-        // Non-compact structs are not supported by the Slice1 encoding.
+        // Non-compact structs are not supported by the Slice1 mode.
         if !self.is_compact {
-            supported_modes.disable(Encoding::Slice1);
-            if *file_encoding == Encoding::Slice1 {
-                return Some("structs must be 'compact' to be supported by the Slice1 encoding");
+            supported_modes.disable(Mode::Slice1);
+            if *file_mode == Mode::Slice1 {
+                return Some("structs must be 'compact' to be supported by the Slice1 mode");
             }
         }
         None
     }
 }
 
-impl ComputeSupportedEncodings for Exception {
+impl ComputeSupportedModes for Exception {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the exception into the cache to prevent infinite lookup cycles.
-        // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
-        // error for exceptions to be cyclic, so it's fine if the supported encodings are bogus.
+        // If a cycle is encountered, the modes will be computed incorrectly, but it's an
+        // error for exceptions to be cyclic, so it's fine if the supported modes are bogus.
         patcher
             .supported_modes_cache
             .insert(self.parser_scoped_identifier(), SupportedModes::dummy());
-        // Exceptions only support encodings that all its fields also support
+        // Exceptions only support modes that all its fields also support
         // (including inherited ones).
         for field in self.all_fields() {
             supported_modes.intersect_with(&patcher.get_supported_modes_for_type_ref(
                 field.data_type(),
-                file_encoding,
+                file_mode,
                 field.is_tagged(),
                 Some(field),
             ));
         }
 
-        // Exception inheritance is only supported by the Slice1 encoding.
+        // Exception inheritance is only supported by the Slice1 mode.
         if self.base_exception().is_some() {
-            supported_modes.disable(Encoding::Slice2);
-            if *file_encoding != Encoding::Slice1 {
-                return Some("exception inheritance is only supported by the Slice1 encoding");
+            supported_modes.disable(Mode::Slice2);
+            if *file_mode != Mode::Slice1 {
+                return Some("exception inheritance is only supported by the Slice1 mode");
             }
         }
         None
     }
 }
 
-impl ComputeSupportedEncodings for Class {
+impl ComputeSupportedModes for Class {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the class into the cache to prevent infinite lookup cycles.
-        // Cycles are allowed with classes, but the only encoding that supports classes is Slice1,
-        // so using this approach to break cycles will still yield the correct supported encodings.
+        // Cycles are allowed with classes, but the only mode that supports classes is Slice1,
+        // so using this approach to break cycles will still yield the correct supported modes.
         patcher
             .supported_modes_cache
             .insert(self.parser_scoped_identifier(), SupportedModes::dummy());
-        // Classes only support encodings that all its fields also support
+        // Classes only support modes that all its fields also support
         // (including inherited ones).
         for field in self.all_fields() {
             supported_modes.intersect_with(&patcher.get_supported_modes_for_type_ref(
                 field.data_type(),
-                file_encoding,
+                file_mode,
                 field.is_tagged(),
                 Some(field),
             ));
         }
 
-        // Classes are only supported by the Slice1 encoding.
-        supported_modes.disable(Encoding::Slice2);
-        if *file_encoding != Encoding::Slice1 {
-            Some("classes are only supported by the Slice1 encoding")
+        // Classes are only supported by the Slice1 mode.
+        supported_modes.disable(Mode::Slice2);
+        if *file_mode != Mode::Slice1 {
+            Some("classes are only supported by the Slice1 mode")
         } else {
             None
         }
     }
 }
 
-impl ComputeSupportedEncodings for Interface {
+impl ComputeSupportedModes for Interface {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         _: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the interface into the cache to prevent infinite lookup cycles.
-        // The correct encoding is computed and inserted later.
+        // The correct mode is computed and inserted later.
         patcher
             .supported_modes_cache
             .insert(self.parser_scoped_identifier(), SupportedModes::dummy());
 
-        // Interfaces have no restrictions apart from those imposed by its file's encoding.
-        // However, all the operations in an interface must support its file's encoding too.
+        // Interfaces have no restrictions apart from those imposed by its file's mode.
+        // However, all the operations in an interface must support its file's mode too.
         for operation in self.all_operations() {
             for member in operation.parameters_and_return_members() {
-                // This method automatically emits errors for encoding mismatches.
+                // This method automatically emits errors for mode mismatches.
                 patcher.get_supported_modes_for_type_ref(
                     member.data_type(),
-                    file_encoding,
+                    file_mode,
                     member.is_tagged(),
                     Some(member),
                 );
 
-                // Streamed parameters are not supported by the Slice1 encoding.
-                if member.is_streamed && *file_encoding == Encoding::Slice1 {
+                // Streamed parameters are not supported by the Slice1 mode.
+                if member.is_streamed && *file_mode == Mode::Slice1 {
                     Diagnostic::new(Error::StreamedParametersNotSupported)
                         .set_span(member.span())
                         .report(patcher.diagnostic_reporter)
@@ -411,12 +409,12 @@ impl ComputeSupportedEncodings for Interface {
             match &operation.throws {
                 Throws::None => {}
                 Throws::Specific(exception_type) => {
-                    // Ensure the exception is supported by the operation's (file's) encoding.
+                    // Ensure the exception is supported by the operation's (file's) mode.
                     let supported_modes = patcher.get_supported_modes_for(exception_type.definition());
-                    if !supported_modes.supports(file_encoding) {
+                    if !supported_modes.supports(file_mode) {
                         Diagnostic::new(Error::UnsupportedType {
                             kind: exception_type.type_string(),
-                            mode: file_encoding.to_string(),
+                            mode: file_mode.to_string(),
                         })
                         .set_span(exception_type.span())
                         .extend_notes(patcher.get_file_mode_mismatch_note(exception_type))
@@ -424,7 +422,7 @@ impl ComputeSupportedEncodings for Interface {
                     }
                 }
                 Throws::AnyException => {
-                    if *file_encoding != Encoding::Slice1 {
+                    if *file_mode != Mode::Slice1 {
                         Diagnostic::new(Error::AnyExceptionNotSupported)
                             .set_span(operation.span())
                             .report(patcher.diagnostic_reporter)
@@ -436,31 +434,31 @@ impl ComputeSupportedEncodings for Interface {
     }
 }
 
-impl ComputeSupportedEncodings for Enum {
+impl ComputeSupportedModes for Enum {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
         // TODO: rework all of this when we add enums with associated types.
         if let Some(underlying_type) = &self.underlying {
-            // Enums only support encodings that its underlying type also supports.
+            // Enums only support modes that its underlying type also supports.
             supported_modes.intersect_with(&patcher.get_supported_modes_for_type_ref(
                 underlying_type,
-                file_encoding,
+                file_mode,
                 false,
                 Some(self),
             ));
 
-            // Enums with underlying types are not supported by the Slice1 encoding.
-            supported_modes.disable(Encoding::Slice1);
-            if *file_encoding == Encoding::Slice1 {
-                return Some("enums with underlying types are not supported by the Slice1 encoding");
+            // Enums with underlying types are not supported by the Slice1 mode.
+            supported_modes.disable(Mode::Slice1);
+            if *file_mode == Mode::Slice1 {
+                return Some("enums with underlying types are not supported by the Slice1 mode");
             }
         } else {
             // Enums defined in a file using Slice2 must have an explicit underlying type.
-            if *file_encoding == Encoding::Slice2 {
+            if *file_mode == Mode::Slice2 {
                 // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
                 Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
                     enum_identifier: self.identifier().to_owned(),
@@ -481,29 +479,24 @@ impl ComputeSupportedEncodings for Enum {
     }
 }
 
-impl ComputeSupportedEncodings for CustomType {
-    fn compute_supported_modes(
-        &self,
-        _: &mut EncodingPatcher,
-        _: &mut SupportedModes,
-        _: &Encoding,
-    ) -> Option<&'static str> {
-        // Custom types are supported by all encodings.
+impl ComputeSupportedModes for CustomType {
+    fn compute_supported_modes(&self, _: &mut ModePatcher, _: &mut SupportedModes, _: &Mode) -> Option<&'static str> {
+        // Custom types are supported by all modes.
         None
     }
 }
 
-impl ComputeSupportedEncodings for TypeAlias {
+impl ComputeSupportedModes for TypeAlias {
     fn compute_supported_modes(
         &self,
-        patcher: &mut EncodingPatcher,
+        patcher: &mut ModePatcher,
         supported_modes: &mut SupportedModes,
-        file_encoding: &Encoding,
+        file_mode: &Mode,
     ) -> Option<&'static str> {
-        // Type aliases only support encodings that its underlying type also supports.
+        // Type aliases only support modes that its underlying type also supports.
         supported_modes.intersect_with(&patcher.get_supported_modes_for_type_ref(
             &self.underlying,
-            file_encoding,
+            file_mode,
             false,
             Some(self),
         ));

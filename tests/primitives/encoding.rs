@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::Mode;
     use test_case::test_case;
 
     /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -37,7 +37,7 @@ mod slice1 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: value.to_owned(),
-            mode: Encoding::Slice1.to_string(),
+            mode: Mode::Slice1.to_string(),
         });
 
         check_diagnostics(diagnostics, [expected]);
@@ -76,7 +76,7 @@ mod slice2 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::Mode;
     use test_case::test_case;
 
     /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
@@ -98,7 +98,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            mode: Encoding::Slice2.to_string(),
+            mode: Mode::Slice2.to_string(),
         })
         .add_note("file is using Slice2 mode by default", None);
 

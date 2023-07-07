@@ -12,7 +12,7 @@ pub struct Operation {
     pub parameters: Vec<WeakPtr<Parameter>>,
     pub throws: Throws,
     pub is_idempotent: bool,
-    pub encoding: Encoding,
+    pub mode: Mode,
     pub parent: WeakPtr<Interface>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
@@ -121,6 +121,6 @@ pub enum Throws {
     Specific(TypeRef<Exception>),
 
     /// The operation can throw any Slice exception.
-    /// This is only supported by the Slice1 encoding.
+    /// This is only supported by the Slice1 mode.
     AnyException,
 }

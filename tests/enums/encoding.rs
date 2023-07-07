@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::Mode;
 
     /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
     /// that has an underlying type.
@@ -25,12 +25,9 @@ mod slice1 {
         let expected = Diagnostic::new(Error::NotSupportedWithMode {
             kind: "enum".to_owned(),
             identifier: "E".to_owned(),
-            mode: Encoding::Slice1.to_string(),
+            mode: Mode::Slice1.to_string(),
         })
-        .add_note(
-            "enums with underlying types are not supported by the Slice1 encoding",
-            None,
-        );
+        .add_note("enums with underlying types are not supported by the Slice1 mode", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

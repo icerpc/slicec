@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, Encoding, FileMode, Module};
+use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, FileMode, Mode, Module};
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -83,13 +83,13 @@ impl SliceFile {
         }
     }
 
-    /// Returns the Slice encoding used by this file.
+    /// Returns the Slice mode used by this file.
     ///
-    /// If no encoding was explicitly declared, it returns the default encoding.
+    /// If no mode was explicitly declared, it returns the default mode.
     ///
-    /// See [Encoding::default()](crate::grammar::Encoding::default)
-    pub fn encoding(&self) -> Encoding {
-        self.mode.as_ref().map_or(Encoding::default(), |mode| mode.encoding)
+    /// See [Mode::default()](crate::grammar::Mode::default)
+    pub fn mode(&self) -> Mode {
+        self.mode.as_ref().map_or(Mode::default(), |file_mode| file_mode.mode)
     }
 
     /// Retrieves a formatted snippet from the slice file.

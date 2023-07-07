@@ -5,7 +5,7 @@ use crate::slice_file::Span;
 
 #[derive(Clone, Debug)]
 pub struct FileMode {
-    pub encoding: Encoding,
+    pub mode: Mode,
     pub span: Span,
 }
 

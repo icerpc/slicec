@@ -2,7 +2,7 @@
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Encoding;
+use slicec::grammar::Mode;
 
 #[test]
 fn operation_members_are_compatible_with_encoding() {
@@ -28,7 +28,7 @@ fn operation_members_are_compatible_with_encoding() {
     // Assert
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
-        mode: Encoding::Slice2.to_string(),
+        mode: Mode::Slice2.to_string(),
     });
 
     check_diagnostics(diagnostics, [expected]);
