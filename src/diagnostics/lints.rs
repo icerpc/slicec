@@ -31,7 +31,7 @@ pub enum Lint {
     IncorrectDocComment { message: String },
 
     /// A link in a doc-comment couldn't be resolved. Either:
-    /// - The link pointed to an un-linkable element, ie. a primitive, sequence, or dictionary.
+    /// - The link pointed to an un-linkable element, e.g. a module, primitive, sequence, or dictionary.
     /// - The link pointed to a non-existent element.
     BrokenDocLink { message: String },
 }
