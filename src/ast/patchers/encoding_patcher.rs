@@ -100,7 +100,7 @@ impl EncodingPatcher<'_> {
                 }],
                 None => Vec::new(),
             };
-            notes.extend(self.get_file_encoding_mismatch_note(entity_def));
+            notes.extend(self.get_file_mode_mismatch_note(entity_def));
 
             Diagnostic::new(error)
                 .set_span(entity_def.span())
@@ -203,7 +203,7 @@ impl EncodingPatcher<'_> {
                     mode: file_encoding.to_string(),
                 })
                 .set_span(type_ref.span())
-                .extend_notes(self.get_file_encoding_mismatch_note(type_ref));
+                .extend_notes(self.get_file_mode_mismatch_note(type_ref));
 
                 diagnostics.push(diagnostic);
             }
@@ -219,16 +219,16 @@ impl EncodingPatcher<'_> {
         }
     }
 
-    fn get_file_encoding_mismatch_note(&self, symbol: &impl Symbol) -> Option<Note> {
+    fn get_file_mode_mismatch_note(&self, symbol: &impl Symbol) -> Option<Note> {
         let file_name = &symbol.span().file;
         let slice_file = self.slice_files.get(file_name).unwrap();
 
-        // Emit a note if the file is using the default encoding.
+        // Emit a note if the file is using the default mode.
 
         match slice_file.mode.as_ref() {
             Some(_) => None,
             None => Some(Note {
-                message: format!("file is using the {} encoding by default", Encoding::default()),
+                message: format!("file is using {} mode by default", Encoding::default()),
                 span: None,
             }),
         }
@@ -420,7 +420,7 @@ impl ComputeSupportedEncodings for Interface {
                             mode: file_encoding.to_string(),
                         })
                         .set_span(exception_type.span())
-                        .extend_notes(patcher.get_file_encoding_mismatch_note(exception_type))
+                        .extend_notes(patcher.get_file_mode_mismatch_note(exception_type))
                         .report(patcher.diagnostic_reporter)
                     }
                 }
