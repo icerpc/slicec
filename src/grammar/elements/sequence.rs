@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
+use crate::supported_modes::SupportedModes;
 
 #[derive(Debug)]
 pub struct Sequence {
@@ -52,8 +52,8 @@ impl Type for Sequence {
         }
     }
 
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.element_type.supported_encodings()
+    fn supported_modes(&self) -> SupportedModes {
+        self.element_type.supported_modes()
     }
 }
 

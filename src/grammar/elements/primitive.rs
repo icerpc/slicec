@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
+use crate::supported_modes::SupportedModes;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Primitive {
@@ -150,8 +150,8 @@ impl Type for Primitive {
         }
     }
 
-    fn supported_encodings(&self) -> SupportedEncodings {
-        SupportedEncodings::new(match self {
+    fn supported_modes(&self) -> SupportedModes {
+        SupportedModes::new(match self {
             Self::Bool => vec![Encoding::Slice1, Encoding::Slice2],
             Self::Int8 => vec![Encoding::Slice2],
             Self::UInt8 => vec![Encoding::Slice1, Encoding::Slice2],

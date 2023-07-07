@@ -6,7 +6,7 @@ use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
 use super::util::{Scope, TagFormat};
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
+use crate::supported_modes::SupportedModes;
 
 pub trait Element: std::fmt::Debug {
     fn kind(&self) -> &'static str;
@@ -102,7 +102,7 @@ pub trait Type: Element + AsTypes {
     fn fixed_wire_size(&self) -> Option<u32>;
     fn is_class_type(&self) -> bool;
     fn tag_format(&self) -> Option<TagFormat>;
-    fn supported_encodings(&self) -> SupportedEncodings;
+    fn supported_modes(&self) -> SupportedModes;
 }
 
 macro_rules! implement_Element_for {

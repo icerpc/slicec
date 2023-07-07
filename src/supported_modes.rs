@@ -4,9 +4,9 @@ use crate::grammar::Encoding;
 
 /// A struct for storing and computing what Slice encodings a Slice construct supports.
 #[derive(Clone, Debug)]
-pub struct SupportedEncodings(Vec<Encoding>);
+pub struct SupportedModes(Vec<Encoding>);
 
-impl SupportedEncodings {
+impl SupportedModes {
     /// Creates a new [SupportedEncodings] with support for the specified encodings.
     ///
     /// # Arguments
@@ -17,7 +17,7 @@ impl SupportedEncodings {
         encodings.sort();
         encodings.dedup();
 
-        SupportedEncodings(encodings)
+        SupportedModes(encodings)
     }
 
     /// Returns whether the specified encoding is supported.
@@ -36,7 +36,7 @@ impl SupportedEncodings {
     }
 
     /// Computes the encodings supported by this and the provided [SupportedEncodings], in place.
-    pub(crate) fn intersect_with(&mut self, other: &SupportedEncodings) {
+    pub(crate) fn intersect_with(&mut self, other: &SupportedModes) {
         self.0.retain(|encoding| other.0.contains(encoding));
     }
 
@@ -48,25 +48,25 @@ impl SupportedEncodings {
     /// supported encodings, causing any types that use it to also have no supported encodings.
     /// This would lead to a cascade of spurious error messages about unsupportable types.
     pub(crate) fn dummy() -> Self {
-        SupportedEncodings(vec![Encoding::Slice1, Encoding::Slice2])
+        SupportedModes(vec![Encoding::Slice1, Encoding::Slice2])
     }
 }
 
 /// Allows slice syntax to be used with [SupportedEncodings].
 /// Example:
 /// ```
-/// # use slicec::supported_encodings::SupportedEncodings;
+/// # use slicec::supported_modes::SupportedModes;
 /// # use slicec::grammar::Encoding;
 /// let encodings = vec![Encoding::Slice1];
-/// let supported_encodings = SupportedEncodings::new(encodings);
+/// let supported_modes = SupportedModes::new(encodings);
 ///
-/// match supported_encodings[..] {
-///     [] => println!("No supported encodings"),
+/// match supported_modes[..] {
+///     [] => println!("No supported modes"),
 ///     [e] => println!("Only supports {}", e),
-///     _ => println!("Supports multiple encodings"),
+///     _ => println!("Supports multiple modes"),
 /// }
 /// ```
-impl<I: std::slice::SliceIndex<[Encoding]>> std::ops::Index<I> for SupportedEncodings {
+impl<I: std::slice::SliceIndex<[Encoding]>> std::ops::Index<I> for SupportedModes {
     type Output = I::Output;
 
     fn index(&self, index: I) -> &Self::Output {

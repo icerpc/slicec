@@ -60,7 +60,7 @@ mod slice2 {
             kind: "AnyClass".to_owned(),
             mode: Encoding::Slice2.to_string(),
         })
-        .add_note("file is using the Slice2 encoding by default", None);
+        .add_note("file is using Slice2 mode by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

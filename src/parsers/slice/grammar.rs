@@ -131,7 +131,7 @@ fn construct_struct(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the struct.
@@ -159,7 +159,7 @@ fn construct_exception(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the exception.
@@ -189,7 +189,7 @@ fn construct_class(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the class.
@@ -242,7 +242,7 @@ fn construct_interface(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     });
 
     // Add all the operations to the interface.
@@ -383,7 +383,7 @@ fn construct_enum(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     });
 
     // Add all the enumerators to the enum.
@@ -439,7 +439,7 @@ fn construct_custom_type(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     })
 }
 
@@ -458,7 +458,7 @@ fn construct_type_alias(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
+        supported_modes: None, // Patched by the encoding patcher.
     })
 }
 
