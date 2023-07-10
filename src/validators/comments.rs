@@ -36,7 +36,7 @@ fn only_operations_can_throw(comment: &DocComment, entity: &dyn Commentable, rep
     }
 }
 
-/// Helper function that emits an error if an operation only comment tag was used on something other than a comment.
+/// Helper function that emits an error if an operation-only comment-tag was used on something other than a comment.
 fn report_only_operation_error(tag: &impl Symbol, entity: &dyn Commentable, reporter: &mut DiagnosticReporter) {
     let entity_kind = entity.kind();
     let note = format!(

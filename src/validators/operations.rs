@@ -37,7 +37,7 @@ fn validate_returns_tags(comment: &DocComment, operation: &Operation, reporter: 
     let returns_tags = &comment.returns;
     match operation.return_members().as_slice() {
         // If the operation doesn't return anything, but its doc comment has 'returns' tags, emit an error.
-        [] => validate_returns_tags_for_operation_that_doesnt_return_anything(returns_tags, operation, reporter),
+        [] => validate_returns_tags_for_operation_with_no_return_type(returns_tags, operation, reporter),
 
         // If the operation returns a single type, ensure that its 'returns' tag doesn't have an identifier.
         [_] => validate_returns_tags_for_operation_with_single_return(returns_tags, operation, reporter),
@@ -47,7 +47,7 @@ fn validate_returns_tags(comment: &DocComment, operation: &Operation, reporter: 
     }
 }
 
-fn validate_returns_tags_for_operation_that_doesnt_return_anything(
+fn validate_returns_tags_for_operation_with_no_return_type(
     returns_tags: &[ReturnsTag],
     operation: &Operation,
     reporter: &mut DiagnosticReporter,
@@ -125,7 +125,7 @@ fn validate_throws_tags(comment: &DocComment, operation: &Operation, reporter: &
 
     match &operation.throws {
         // If the operation doesn't throw, but its doc comment has 'throws' tags, emit an error.
-        Throws::None => validate_throws_tags_for_operation_that_doesnt_throw(throws_tags, operation, reporter),
+        Throws::None => validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, reporter),
 
         // If the operation throws a specific exception, ensure that its 'throws' tag agrees with it.
         Throws::Specific(exception_ref) => validate_throws_tags_for_operation_that_throws_a_specific_exception(
@@ -140,7 +140,7 @@ fn validate_throws_tags(comment: &DocComment, operation: &Operation, reporter: &
     }
 }
 
-fn validate_throws_tags_for_operation_that_doesnt_throw(
+fn validate_throws_tags_for_operation_with_no_throws_clause(
     throws_tags: &[ThrowsTag],
     operation: &Operation,
     reporter: &mut DiagnosticReporter,

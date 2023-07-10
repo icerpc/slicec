@@ -478,7 +478,7 @@ mod comments {
     }
 
     #[test]
-    fn param_tag_is_rejected_if_its_identifier_doesnt_match_a_parameters() {
+    fn param_tag_is_rejected_if_its_identifier_does_not_match_a_parameters() {
         // Arrange
         let slice = "
             module tests
@@ -549,7 +549,7 @@ mod comments {
     }
 
     #[test]
-    fn named_returns_tag_is_rejected_if_its_identifier_doesnt_match_a_return_tuple_elements() {
+    fn named_returns_tag_is_rejected_if_its_identifier_does_not_match_a_return_tuple_elements() {
         // Arrange
         let slice = "
             module tests
@@ -628,7 +628,7 @@ mod comments {
     }
 
     #[test]
-    fn named_throws_tag_is_rejected_if_its_types_doesnt_match_the_thrown_type() {
+    fn named_throws_tag_is_rejected_if_its_types_does_not_match_the_thrown_type() {
         // Arrange
         let slice = format!(
             "
