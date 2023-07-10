@@ -471,7 +471,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'param' tag for 'foo', but its operation has no parameter with that name"
+            message: "comment has a 'param' tag for 'foo', but operation 'op' has no parameter with that name"
                 .to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -494,7 +494,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'param' tag for 'foo', but its operation has no parameter with that name"
+            message: "comment has a 'param' tag for 'foo', but operation 'op' has no parameter with that name"
                 .to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -520,7 +520,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag, but its operation does not return anything".to_owned(),
+            message: "comment has a 'returns' tag, but operation 'op' does not return anything".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -542,7 +542,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag for 'foo', but its operation doesn't return anything with that name"
+            message: "comment has a 'returns' tag for 'foo', but operation 'op' doesn't return anything with that name"
                 .to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -565,7 +565,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag for 'foo', but its operation doesn't return anything with that name"
+            message: "comment has a 'returns' tag for 'foo', but operation 'op' doesn't return anything with that name"
                 .to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -593,7 +593,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'throws' tag, but its operation does not throw anything".to_owned(),
+            message: "comment has a 'throws' tag, but operation 'op' does not throw anything".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -621,7 +621,7 @@ mod comments {
                 message: "comment has a 'throws' tag for 'Foo', but it is not a throwable type".to_owned(),
             }),
             Diagnostic::new(Lint::IncorrectDocComment {
-                message: "comment has a 'throws' tag, but its operation does not throw anything".to_owned(),
+                message: "comment has a 'throws' tag, but operation 'op' does not throw anything".to_owned(),
             }),
         ];
         check_diagnostics(diagnostics, expected);
@@ -649,7 +649,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'throws' tag for 'Foo', but it's operation doesn't throw this exception".to_owned(),
+            message: "comment has a 'throws' tag for 'Foo', but operation 'op' doesn't throw this exception".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

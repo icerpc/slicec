@@ -38,7 +38,7 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"comment has a 'param' tag for 'x', but its operation has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[{"message":"operation 'op' has no parameter named 'x'","span":{"start":{"row":6,"col":13},"end":{"row":6,"col":17},"file":"string-0"}}],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":39},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
             r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E010"}"#,
             "\n",
@@ -80,17 +80,11 @@ mod output {
 
         // Assert
         let expected = "\
-warning [IncorrectDocComment]: comment has a 'param' tag for 'x', but its operation has no parameter with that name
+warning [IncorrectDocComment]: comment has a 'param' tag for 'x', but operation 'op1' has no parameter with that name
  --> string-0:5:17
   |
 5 |             /// @param x: this is an x
   |                 ----------------------
-  |
-    = note: operation 'op1' has no parameter named 'x'
- --> string-0:6:13
-  |
-6 |             op1()
-  |             -----
   |
 error [E019]: invalid tag on member 'x': tagged members must be optional
  --> string-0:8:17
@@ -172,7 +166,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
-            r#"{"message":"comment has a 'param' tag for 'x', but its operation has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[{"message":"operation 'op' has no parameter named 'x'","span":{"start":{"row":7,"col":17},"end":{"row":7,"col":21},"file":"string-0"}}],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
