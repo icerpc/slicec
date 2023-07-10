@@ -19,15 +19,12 @@ fn validate_param_tags(comment: &DocComment, operation: &Operation, reporter: &m
         if !parameters.contains(&tag_identifier) {
             Diagnostic::new(Lint::IncorrectDocComment {
                 message: format!(
-                    "comment has a 'param' tag for '{tag_identifier}', but its operation has no parameter with that name",
+                    "comment has a 'param' tag for '{tag_identifier}', but operation '{}' has no parameter with that name",
+                    operation.identifier(),
                 ),
             })
             .set_span(param_tag.span())
             .set_scope(operation.parser_scoped_identifier())
-            .add_note(
-                format!("operation '{}' has no parameter named '{tag_identifier}'", operation.identifier()),
-                Some(operation.span()),
-            )
             .report(reporter);
         }
     }
@@ -54,14 +51,13 @@ fn validate_returns_tags_for_operation_with_no_return_type(
 ) {
     for returns_tag in returns_tags {
         Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag, but its operation does not return anything".to_owned(),
+            message: format!(
+                "comment has a 'returns' tag, but operation '{}' does not return anything",
+                operation.identifier(),
+            ),
         })
         .set_span(returns_tag.span())
         .set_scope(operation.parser_scoped_identifier())
-        .add_note(
-            format!("operation '{}' does not have a return type", operation.identifier()),
-            Some(operation.span()),
-        )
         .report(reporter);
     }
 }
@@ -75,8 +71,9 @@ fn validate_returns_tags_for_operation_with_single_return(
         if let Some(tag_identifier) = &returns_tag.identifier {
             Diagnostic::new(Lint::IncorrectDocComment {
                 message: format!(
-                    "comment has a 'returns' tag for '{}', but its operation doesn't return anything with that name",
+                    "comment has a 'returns' tag for '{}', but operation '{}' doesn't return anything with that name",
                     &tag_identifier.value,
+                    operation.identifier(),
                 ),
             })
             .set_span(returns_tag.span())
@@ -105,15 +102,12 @@ fn validate_returns_tags_for_operation_with_return_tuple(
             if !return_members.contains(&tag_identifier) {
                 Diagnostic::new(Lint::IncorrectDocComment {
                     message: format!(
-                        "comment has a 'returns' tag for '{tag_identifier}', but its operation doesn't return anything with that name",
+                        "comment has a 'returns' tag for '{tag_identifier}', but operation '{}' doesn't return anything with that name",
+                        operation.identifier(),
                     ),
                 })
                 .set_span(returns_tag.span())
                 .set_scope(operation.parser_scoped_identifier())
-                .add_note(
-                    format!("operation '{}' has no return member named '{tag_identifier}", operation.identifier()),
-                    Some(operation.span()),
-                )
                 .report(reporter);
             }
         }
@@ -147,14 +141,13 @@ fn validate_throws_tags_for_operation_with_no_throws_clause(
 ) {
     for throws_tag in throws_tags {
         Diagnostic::new(Lint::IncorrectDocComment {
-            message: "comment has a 'throws' tag, but its operation does not throw anything".to_owned(),
+            message: format!(
+                "comment has a 'throws' tag, but operation '{}' does not throw anything",
+                operation.identifier(),
+            ),
         })
         .set_span(throws_tag.span())
         .set_scope(operation.parser_scoped_identifier())
-        .add_note(
-            format!("operation '{}' does not throw", operation.identifier()),
-            Some(operation.span()),
-        )
         .report(reporter);
     }
 }
@@ -176,8 +169,9 @@ fn validate_throws_tags_for_operation_that_throws_a_specific_exception(
 
                 Diagnostic::new(Lint::IncorrectDocComment {
                     message: format!(
-                        "comment has a 'throws' tag for '{}', but it's operation doesn't throw this exception",
+                        "comment has a 'throws' tag for '{}', but operation '{}' doesn't throw this exception",
                         documented_exception.identifier(),
+                        operation.identifier(),
                     ),
                 })
                 .set_span(throws_tag.span())
