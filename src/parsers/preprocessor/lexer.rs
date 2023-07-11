@@ -185,7 +185,7 @@ impl<'input> Lexer<'input> {
                     }
                 }
             }
-            ch if ch.is_ascii_alphabetic() || ch == '_' => {
+            ch if ch.is_ascii_alphabetic() => {
                 let identifier = self.read_identifier();
                 Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
             }
