@@ -49,6 +49,21 @@ fn escaped_identifiers() {
 }
 
 #[test]
+fn must_start_with_a_letter() {
+    // Arrange
+    let slice = "module _foo";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Syntax {
+        message: "unknown symbol '_'".to_owned(),
+    });
+    check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
 fn escaped_scoped_identifiers_containing_keywords() {
     // Arrange
     let slice = r#"
