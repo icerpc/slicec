@@ -13,7 +13,7 @@ pub type Error = (Location, ErrorKind, Location);
 #[derive(Clone, Debug)]
 pub enum TokenKind<'input> {
     /// An identifier for a preprocessor variable, which may either be defined (true) or undefined (false).
-    Identifier(&'input str), // "[_a-zA-Z][_a-zA-Z0-9]*"
+    Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
 
     /// A block of contiguous Slice source code (as opposed to a preprocessor directive).
     /// A Slice file is comprised of lines of preprocessor directives with blocks of source code between them.

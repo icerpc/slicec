@@ -12,10 +12,10 @@ pub type Error = (Location, ErrorKind, Location);
 #[derive(Clone, Debug)]
 pub enum TokenKind<'input> {
     /// An identifier for a Slice definition. Valid identifiers contain only underscores and alphanumeric characters,
-    /// and the first character must be non-numeric.
+    /// and the first character must be a letter.
     ///
     /// While identifiers can be escaped with a leading '\', this is not counted as part of the identifier.
-    Identifier(&'input str), // "[_a-zA-Z][_a-zA-Z0-9]*"
+    Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
 
     /// A string of alphanumeric characters that starts with a number.
     /// We allow alphanumeric characters to support hex literals.
