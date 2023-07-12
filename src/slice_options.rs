@@ -17,16 +17,16 @@ pub struct SliceOptions {
     pub sources: Vec<String>,
 
     /// Add a directory or Slice file to the list of references.
-    #[arg(short = 'R', num_args = 1, action = Append, value_name="REFERENCE")]
+    #[arg(short = 'R', num_args = 1, action = Append, value_name = "REFERENCE")]
     pub references: Vec<String>,
 
     /// Define a preprocessor symbol.
-    #[arg(short = 'D', num_args = 1, action = Append, value_name="SYMBOL")]
+    #[arg(short = 'D', num_args = 1, action = Append, value_name = "SYMBOL")]
     pub defined_symbols: Vec<String>,
 
     /// Instruct the compiler to allow the specified lint.
     // TODO add a link to the lint reference in this doc comment!
-    #[arg(short = 'A', long = "allow", num_args = 1, action = Append, value_name="LINT_NAME", value_parser = Lint::ALLOWABLE_LINT_IDENTIFIERS, hide_possible_values = true, ignore_case = true)]
+    #[arg(short = 'A', long = "allow", num_args = 1, action = Append, value_name = "LINT_NAME", value_parser = Lint::ALLOWABLE_LINT_IDENTIFIERS, hide_possible_values = true, ignore_case = true)]
     pub allowed_lints: Vec<String>,
 
     /// Validate input files without generating code for them.
@@ -34,11 +34,11 @@ pub struct SliceOptions {
     pub dry_run: bool,
 
     /// Set the output directory for the generated code. Defaults to the current working directory.
-    #[arg(short = 'O', long, value_name="DIRECTORY")]
+    #[arg(short = 'O', long, value_name = "DIRECTORY")]
     pub output_dir: Option<String>,
 
-    /// Specify what format the compiler should use to emit errors and warnings.
-    #[arg(long, value_name="FORMAT", value_enum, default_value_t = DiagnosticFormat::Human, ignore_case = true)]
+    /// Specify how the compiler should emit errors and warnings.
+    #[arg(long, value_name = "FORMAT", value_enum, default_value_t = DiagnosticFormat::Human, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disable ANSI color codes in diagnostic output.
