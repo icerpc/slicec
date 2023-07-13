@@ -61,4 +61,4 @@ implement_Element_for!(Struct, "struct");
 implement_Attributable_for!(Struct);
 implement_Entity_for!(Struct);
 implement_Commentable_for!(Struct);
-implement_Container_for!(Struct, WeakPtr<Field>, fields);
+implement_Container_for!(Struct, Field, fields);

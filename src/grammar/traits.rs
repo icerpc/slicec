@@ -221,8 +221,8 @@ macro_rules! implement_Entity_for {
 
 macro_rules! implement_Container_for {
     ($type:ty, $contained_type:ty, $field_name:ident) => {
-        impl Container<$contained_type> for $type {
-            fn contents(&self) -> &Vec<$contained_type> {
+        impl Container<WeakPtr<$contained_type>> for $type {
+            fn contents(&self) -> &Vec<WeakPtr<$contained_type>> {
                 &self.$field_name
             }
         }

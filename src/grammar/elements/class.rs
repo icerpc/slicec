@@ -68,4 +68,4 @@ implement_Element_for!(Class, "class");
 implement_Attributable_for!(Class);
 implement_Entity_for!(Class);
 implement_Commentable_for!(Class);
-implement_Container_for!(Class, WeakPtr<Field>, fields);
+implement_Container_for!(Class, Field, fields);
