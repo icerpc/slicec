@@ -5,7 +5,6 @@ pub mod code_block;
 pub mod compilation_state;
 pub mod diagnostics;
 pub mod grammar;
-pub mod parsers;
 pub mod slice_file;
 pub mod slice_options;
 pub mod supported_encodings;
@@ -13,6 +12,9 @@ pub mod test_helpers;
 pub mod utils;
 pub mod validators;
 pub mod visitor;
+
+mod parsers;
+mod patchers;
 
 use compilation_state::CompilationState;
 use slice_file::SliceFile;
@@ -80,7 +82,7 @@ fn compile_files(
     // 5) Apply the user-provided validation function.
     parsers::parse_files(state, &defined_symbols);
 
-    unsafe { state.apply_unsafe(ast::patch_ast) };
+    unsafe { state.apply_unsafe(patchers::patch_ast) };
     unsafe { state.apply_unsafe(patcher) };
 
     state.apply(validators::validate_ast);
