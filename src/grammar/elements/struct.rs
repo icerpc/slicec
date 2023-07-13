@@ -19,7 +19,7 @@ pub struct Struct {
 
 impl Struct {
     pub fn fields(&self) -> Vec<&Field> {
-        self.content()
+        self.contents()
     }
 }
 
