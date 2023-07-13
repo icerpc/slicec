@@ -19,7 +19,7 @@ pub struct Interface {
 
 impl Interface {
     pub fn operations(&self) -> Vec<&Operation> {
-        self.operations.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn all_inherited_operations(&self) -> Vec<&Operation> {

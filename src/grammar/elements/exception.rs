@@ -19,7 +19,7 @@ pub struct Exception {
 
 impl Exception {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn all_inherited_fields(&self) -> Vec<&Field> {

@@ -20,7 +20,7 @@ pub struct Class {
 
 impl Class {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn all_inherited_fields(&self) -> Vec<&Field> {

@@ -20,7 +20,7 @@ pub struct Enum {
 
 impl Enum {
     pub fn enumerators(&self) -> Vec<&Enumerator> {
-        self.enumerators.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn get_min_max_values(&self) -> Option<(i128, i128)> {
