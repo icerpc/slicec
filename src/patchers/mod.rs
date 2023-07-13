@@ -6,6 +6,29 @@ pub mod comment_link_patcher;
 pub mod encoding_patcher;
 pub mod type_ref_patcher;
 
+use crate::ast::node::Node;
+use crate::compilation_state::CompilationState;
+use crate::diagnostics::{Diagnostic, Error};
+use crate::grammar::attributes::*;
+use crate::grammar::Symbol;
+
+/// Since Slice definitions can be split across multiple files, and defined in any order, it is impossible for some
+/// things to be determined during parsing (as it's a sequential process).
+///
+/// So, after parsing is complete, we modify the AST in place, 'patching' in the information that can only now be
+/// computed, in the following order:
+/// 1. References to other Slice types are verified and resolved.
+/// 2. Compute and store the Slice encodings that each element can be used with.
+///
+/// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
+pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
+    let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
+    compilation_state.apply_unsafe(attribute_patcher);
+    compilation_state.apply_unsafe(type_ref_patcher::patch_ast);
+    compilation_state.apply_unsafe(encoding_patcher::patch_ast);
+    compilation_state.apply_unsafe(comment_link_patcher::patch_ast);
+}
+
 #[macro_export]
 macro_rules! patch_attributes {
     ($prefix:literal, $($attribute_type:ty),* $(,)?) => {{
