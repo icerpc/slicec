@@ -10,11 +10,11 @@ pub mod slice_options;
 pub mod supported_encodings;
 pub mod test_helpers;
 pub mod utils;
-pub mod validators;
 pub mod visitor;
 
 mod parsers;
 mod patchers;
+mod validators;
 
 use compilation_state::CompilationState;
 use slice_file::SliceFile;
