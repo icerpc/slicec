@@ -130,7 +130,7 @@ mod container {
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
-        // Assert: only one error is emitting, despite multiple cyclic paths existing.
+        // Assert: only one error is emitted, despite multiple cyclic paths existing.
         let expected = Diagnostic::new(Error::InfiniteSizeCycle {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Container".to_owned(),

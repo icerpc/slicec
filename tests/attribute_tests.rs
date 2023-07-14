@@ -683,7 +683,7 @@ mod attributes {
             let compilation_state = parse(slice, None);
 
             // Assert
-            assert!(compilation_state.diagnostic_reporter.has_errors());
+            assert!(compilation_state.diagnostics.has_errors());
         }
 
         #[test]

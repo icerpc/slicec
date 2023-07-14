@@ -11,7 +11,7 @@ use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let mut patcher = TypeRefPatcher {
         type_ref_patches: Vec::new(),
-        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
+        diagnostics: &mut compilation_state.diagnostics,
     };
 
     // TODO why explain we split this logic so that we can for sure have an immutable AST.
@@ -21,7 +21,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 
 struct TypeRefPatcher<'a> {
     type_ref_patches: Vec<PatchKind>,
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostics: &'a mut Diagnostics,
 }
 
 impl TypeRefPatcher<'_> {
@@ -217,7 +217,7 @@ impl TypeRefPatcher<'_> {
                 };
                 Diagnostic::new(mapped_error)
                     .set_span(identifier.span())
-                    .report(self.diagnostic_reporter);
+                    .push_into(self.diagnostics);
                 None
             }
         }
@@ -229,7 +229,7 @@ impl TypeRefPatcher<'_> {
         if let Ok(entity) = <&dyn Entity>::try_from(node) {
             if let Some(deprecated) = entity.find_attribute::<Deprecated>() {
                 // Compute the lint message. The `deprecated` attribute can have either 0 or 1 arguments, so we
-                // only check the first argument. If it's present, we attach it to the lint message we emit.
+                // only check the first argument. If it's present, we attach it to the lint message.
                 let identifier = entity.identifier().to_owned();
                 let reason = deprecated.reason.clone();
                 Diagnostic::new(Lint::Deprecated { identifier, reason })
@@ -239,7 +239,7 @@ impl TypeRefPatcher<'_> {
                         format!("{} was deprecated here:", entity.identifier()),
                         Some(entity.span()),
                     )
-                    .report(self.diagnostic_reporter);
+                    .push_into(self.diagnostics);
             }
         }
     }
@@ -249,8 +249,8 @@ impl TypeRefPatcher<'_> {
         T: Element + ?Sized,
         &'a Node: TryInto<WeakPtr<T>, Error = LookupError>,
     {
-        // TODO this function is run once per type-alias usage, so we will emit multiple errors for cyclic aliases,
-        // once for each use. It would be better to only emit a single error per cyclic alias.
+        // TODO this function is run once per type-alias usage, so we will report multiple errors for cyclic aliases,
+        // once for each use. It would be better to only report a single error per cyclic alias.
 
         // In case there's a chain of type aliases, we maintain a stack of all the ones we've seen.
         // While resolving the chain, if we see a type alias already in this vector, a cycle is present.
@@ -277,7 +277,7 @@ impl TypeRefPatcher<'_> {
                         format!("cycle: {} -> {}", type_alias_chain.join(" -> "), type_alias_id),
                         None,
                     )
-                    .report(self.diagnostic_reporter);
+                    .push_into(self.diagnostics);
                 }
                 return Err(LookupError::DoesNotExist {
                     identifier: current_type_alias.module_scoped_identifier(),

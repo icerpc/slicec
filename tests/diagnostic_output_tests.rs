@@ -201,7 +201,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         })
         .set_span(&span)
         .add_note("bar", Some(&span))
-        .report(&mut compilation_state.diagnostic_reporter);
+        .push_into(&mut compilation_state.diagnostics);
 
         // Act
         compilation_state.update_and_emit_diagnostics(&mut output);

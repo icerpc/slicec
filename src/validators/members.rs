@@ -1,16 +1,16 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::*;
 
-pub fn validate_members(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
-    tags_have_optional_types(members.clone(), diagnostic_reporter);
-    tagged_members_cannot_use_classes(members.clone(), diagnostic_reporter);
-    tags_are_unique(members.clone(), diagnostic_reporter);
+pub fn validate_members(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
+    tags_have_optional_types(members.clone(), diagnostics);
+    tagged_members_cannot_use_classes(members.clone(), diagnostics);
+    tags_are_unique(members.clone(), diagnostics);
 }
 
 /// Validates that the tags are unique.
-fn tags_are_unique(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tags_are_unique(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
@@ -29,13 +29,13 @@ fn tags_are_unique(members: Vec<&impl Member>, diagnostic_reporter: &mut Diagnos
                 ),
                 Some(window[0].span()),
             )
-            .report(diagnostic_reporter);
+            .push_into(diagnostics);
         };
     });
 }
 
 /// Validate that the data type of the tagged member is optional.
-fn tags_have_optional_types(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tags_have_optional_types(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     let tagged_members = members.into_iter().filter(|member| member.is_tagged());
 
     // Validate that tagged members are optional.
@@ -45,12 +45,12 @@ fn tags_have_optional_types(members: Vec<&impl Member>, diagnostic_reporter: &mu
                 identifier: member.identifier().to_owned(),
             })
             .set_span(member.span())
-            .report(diagnostic_reporter);
+            .push_into(diagnostics);
         }
     }
 }
 
-fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostic_reporter: &mut DiagnosticReporter) {
+fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     // Helper function that recursively checks if a type is a class, or contains classes.
     // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
     fn uses_classes(typeref: &TypeRef) -> bool {
@@ -76,9 +76,7 @@ fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostic_repo
             } else {
                 Error::CannotTagContainingClass { identifier }
             };
-            Diagnostic::new(error)
-                .set_span(member.span())
-                .report(diagnostic_reporter);
+            Diagnostic::new(error).set_span(member.span()).push_into(diagnostics);
         }
     }
 }

@@ -2,13 +2,13 @@
 
 use crate::ast::node::Node;
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::{Container, Field, Member, Types};
 
-pub(super) fn detect_cycles(ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
+pub(super) fn detect_cycles(ast: &Ast, diagnostics: &mut Diagnostics) {
     let mut cycle_detector = CycleDetector {
         dependency_stack: Vec::new(),
-        diagnostic_reporter,
+        diagnostics,
     };
 
     for node in ast.as_slice() {
@@ -27,8 +27,8 @@ struct CycleDetector<'a> {
     /// A stack containing all of the types we've seen in the dependency tree we're currently traversing through.
     dependency_stack: Vec<String>,
 
-    /// Reference to a diagnostic reporter for reporting `InfiniteSizeCycle` errors.
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    /// Reference to a diagnostics struct for reporting `InfiniteSizeCycle` errors.
+    diagnostics: &'a mut Diagnostics,
 }
 
 impl CycleDetector<'_> {
@@ -41,7 +41,7 @@ impl CycleDetector<'_> {
             let cycle = self.dependency_stack.join(" -> ") + " -> " + &type_id;
             Diagnostic::new(Error::InfiniteSizeCycle { type_id, cycle })
                 .set_span(container.span())
-                .report(self.diagnostic_reporter);
+                .push_into(self.diagnostics);
             return true;
         } else if self.dependency_stack.contains(&type_id) {
             // If this container's identifier is in the stack, but isn't the first element, this means it uses a cyclic

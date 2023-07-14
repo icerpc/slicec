@@ -13,13 +13,13 @@ pub use oneway::*;
 pub use sliced_format::*;
 
 use super::Attributables;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::slice_file::Span;
 use crate::utils::attribute_parsing_util::*;
 
 pub trait AttributeKind: std::fmt::Debug {
     fn is_repeatable(&self) -> bool;
-    fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter);
+    fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics);
     fn as_any(&self) -> &dyn std::any::Any;
     fn directive(&self) -> &str;
 }
@@ -38,8 +38,8 @@ macro_rules! implement_attribute_kind_for {
                 $is_repeatable
             }
 
-            fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
-                Self::validate_on(&self, applied_on, span, reporter);
+            fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
+                Self::validate_on(&self, applied_on, span, diagnostics);
             }
 
             fn as_any(&self) -> &dyn std::any::Any {
@@ -67,7 +67,7 @@ impl AttributeKind for Unparsed {
     }
 
     // We perform no additional validation for unparsed attributes.
-    fn validate_on(&self, _: Attributables, _: &Span, _: &mut DiagnosticReporter) {}
+    fn validate_on(&self, _: Attributables, _: &Span, _: &mut Diagnostics) {}
 
     fn as_any(&self) -> &dyn std::any::Any {
         self

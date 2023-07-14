@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::AttributeKind;
 use crate::slice_file::Span;
 
@@ -9,14 +9,14 @@ pub fn check_that_arguments_were_provided(
     arguments: &Vec<String>,
     directive: &str,
     span: &Span,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     if arguments.is_empty() {
         Diagnostic::new(Error::MissingRequiredArgument {
             argument: directive.to_owned(),
         })
         .set_span(span)
-        .report(diagnostic_reporter);
+        .push_into(diagnostics);
     }
 }
 
@@ -25,14 +25,14 @@ pub fn check_that_no_arguments_were_provided(
     arguments: &Vec<String>,
     directive: &str,
     span: &Span,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     if !arguments.is_empty() {
         Diagnostic::new(Error::TooManyArguments {
             expected: directive.to_owned(),
         })
         .set_span(span)
-        .report(diagnostic_reporter);
+        .push_into(diagnostics);
     }
 }
 
@@ -41,14 +41,14 @@ pub fn check_that_at_most_one_argument_was_provided(
     arguments: &Vec<String>,
     directive: &str,
     span: &Span,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     if arguments.len() > 1 {
         Diagnostic::new(Error::TooManyArguments {
             expected: directive.to_owned(),
         })
         .set_span(span)
-        .report(diagnostic_reporter);
+        .push_into(diagnostics);
     }
 }
 
@@ -57,10 +57,10 @@ pub fn check_that_exactly_one_argument_was_provided(
     arguments: &Vec<String>,
     directive: &str,
     span: &Span,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
-    check_that_arguments_were_provided(arguments, directive, span, diagnostic_reporter);
-    check_that_at_most_one_argument_was_provided(arguments, directive, span, diagnostic_reporter);
+    check_that_arguments_were_provided(arguments, directive, span, diagnostics);
+    check_that_at_most_one_argument_was_provided(arguments, directive, span, diagnostics);
 }
 
 /// Used to report an error when an attribute is applied to something it shouldn't be.
@@ -69,7 +69,7 @@ pub fn report_unexpected_attribute(
     attribute: &impl AttributeKind,
     span: &Span,
     note: Option<&str>,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     let mut diagnostic = Diagnostic::new(Error::UnexpectedAttribute {
         attribute: attribute.directive().to_owned(),
@@ -80,5 +80,5 @@ pub fn report_unexpected_attribute(
         diagnostic = diagnostic.add_note(note, None);
     }
 
-    diagnostic.report(diagnostic_reporter);
+    diagnostic.push_into(diagnostics);
 }

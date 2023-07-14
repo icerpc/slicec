@@ -8,10 +8,10 @@ pub struct Allow {
 }
 
 impl Allow {
-    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
+    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, diagnostics: &mut Diagnostics) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        check_that_arguments_were_provided(args, Self::directive(), span, reporter);
+        check_that_arguments_were_provided(args, Self::directive(), span, diagnostics);
 
         for arg in args {
             let mut is_valid = Lint::ALLOWABLE_LINT_IDENTIFIERS.contains(&arg.as_str());
@@ -21,7 +21,7 @@ impl Allow {
                 is_valid = false;
             }
 
-            // Emit an error if the argument wasn't valid.
+            // Report an error if the argument wasn't valid.
             if !is_valid {
                 // TODO we should emit a link to the lint page when we write it!
                 let mut error = Diagnostic::new(Error::ArgumentNotSupported {
@@ -39,7 +39,7 @@ impl Allow {
                     error = error.add_note(message, None);
                 }
 
-                error.report(reporter);
+                error.push_into(diagnostics);
             }
         }
 
@@ -47,9 +47,9 @@ impl Allow {
         Allow { allowed_lints }
     }
 
-    pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
+    pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if matches!(applied_on, Attributables::Module(_) | Attributables::TypeRef(_)) {
-            report_unexpected_attribute(self, span, None, reporter);
+            report_unexpected_attribute(self, span, None, diagnostics);
         }
     }
 }

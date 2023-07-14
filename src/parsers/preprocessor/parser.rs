@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::common::{has_errors, ParserResult, SourceBlock};
+use super::super::common::{ParserResult, SourceBlock};
 use super::construct_error_from;
 use super::grammar::lalrpop;
 use super::lexer::Lexer;
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::Diagnostics;
 use std::collections::HashSet;
 
 /// Helper macro for generating parsing functions.
@@ -15,10 +15,10 @@ macro_rules! implement_parse_function {
             match lalrpop::$underlying_parser::new().parse(&mut self, input.into()) {
                 Err(parse_error) => {
                     let error = construct_error_from(parse_error, self.file_name);
-                    self.diagnostics.push(error);
+                    error.push_into(self.diagnostics);
                     Err(())
                 }
-                Ok(parse_value) => match has_errors(self.diagnostics) {
+                Ok(parse_value) => match self.diagnostics.has_errors() {
                     false => Ok(parse_value),
                     true => Err(()),
                 },
@@ -30,7 +30,7 @@ macro_rules! implement_parse_function {
 pub struct Preprocessor<'a> {
     pub file_name: &'a str,
     pub(super) defined_symbols: &'a mut HashSet<String>,
-    pub(super) diagnostics: &'a mut Vec<Diagnostic>,
+    pub(super) diagnostics: &'a mut Diagnostics,
 }
 
 impl<'a> Preprocessor<'a> {
@@ -40,11 +40,7 @@ impl<'a> Preprocessor<'a> {
         impl Iterator<Item = SourceBlock<'input>>,
     );
 
-    pub fn new(
-        file_name: &'a str,
-        defined_symbols: &'a mut HashSet<String>,
-        diagnostics: &'a mut Vec<Diagnostic>,
-    ) -> Self {
+    pub fn new(file_name: &'a str, defined_symbols: &'a mut HashSet<String>, diagnostics: &'a mut Diagnostics) -> Self {
         Preprocessor {
             file_name,
             defined_symbols,

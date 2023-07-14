@@ -9,10 +9,10 @@ pub struct Compress {
 }
 
 impl Compress {
-    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, reporter: &mut DiagnosticReporter) -> Self {
+    pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, diagnostics: &mut Diagnostics) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        check_that_arguments_were_provided(args, Self::directive(), span, reporter);
+        check_that_arguments_were_provided(args, Self::directive(), span, diagnostics);
 
         let (mut compress_args, mut compress_return) = (false, false);
         for arg in args {
@@ -26,7 +26,7 @@ impl Compress {
                     })
                     .set_span(span)
                     .add_note("'Args' and 'Return' are the only valid arguments", None)
-                    .report(reporter);
+                    .push_into(diagnostics);
                 }
             }
         }
@@ -37,10 +37,10 @@ impl Compress {
         }
     }
 
-    pub fn validate_on(&self, applied_on: Attributables, span: &Span, reporter: &mut DiagnosticReporter) {
+    pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if !matches!(applied_on, Attributables::Operation(_)) {
             let note = "the compress attribute can only be applied to operations";
-            report_unexpected_attribute(self, span, Some(note), reporter);
+            report_unexpected_attribute(self, span, Some(note), diagnostics);
         }
     }
 }

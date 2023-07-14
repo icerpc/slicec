@@ -51,7 +51,7 @@ fn evaluate_if_statement<'a>(
 fn recover_from_error<T: Default>(preprocessor: &mut Preprocessor, recovery: Recovery) -> T {
     // Report the syntax error.
     let diagnostic = super::construct_error_from(recovery.error, preprocessor.file_name);
-    preprocessor.diagnostics.push(diagnostic);
+    diagnostic.push_into(preprocessor.diagnostics);
 
     // Recover by returning a dummy value.
     T::default()

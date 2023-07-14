@@ -33,7 +33,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 macro_rules! patch_attributes {
     ($prefix:literal, $($attribute_type:ty),* $(,)?) => {{
         unsafe fn _patch_attributes_impl(compilation_state: &mut CompilationState) {
-            let reporter = &mut compilation_state.diagnostic_reporter;
+            let diagnostics = &mut compilation_state.diagnostics;
 
             // Iterate through every node in the AST.
             for node in compilation_state.ast.as_mut_slice() {
@@ -55,7 +55,7 @@ macro_rules! patch_attributes {
 
                                 // If one of those matched, call that attribute's `parse_from` function,
                                 // and replace the unparsed attribute with the result.
-                                let parsed = <$attribute_type>::parse_from(unparsed, attribute.span(), reporter);
+                                let parsed = <$attribute_type>::parse_from(unparsed, attribute.span(), diagnostics);
                                 attribute.kind = Box::new(parsed);
                             }
                             )*
@@ -68,7 +68,7 @@ macro_rules! patch_attributes {
                                         attribute: directive.to_owned(),
                                     })
                                     .set_span(attribute.span())
-                                    .report(reporter);
+                                    .push_into(diagnostics);
                                 }
                             }
                         }

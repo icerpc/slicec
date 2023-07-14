@@ -1,27 +1,24 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::*;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
 use std::collections::HashMap;
 
-pub fn validate_attributes(
-    attributable: &(impl Attributable + AsAttributables),
-    diagnostic_reporter: &mut DiagnosticReporter,
-) {
+pub fn validate_attributes(attributable: &(impl Attributable + AsAttributables), diagnostics: &mut Diagnostics) {
     let attributes = attributable.attributes();
-    validate_repeated_attributes(&attributes, diagnostic_reporter);
+    validate_repeated_attributes(&attributes, diagnostics);
     for attribute in attributes {
         attribute.kind.validate_on(
             attributable.concrete_attributable(),
             attribute.span(),
-            diagnostic_reporter,
+            diagnostics,
         );
     }
 }
 
 /// Validates a list of attributes to ensure attributes which are not allowed to be repeated are not repeated.
-pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostics: &mut Diagnostics) {
     let mut first_attribute_occurrence = HashMap::new();
 
     for attribute in attributes {
@@ -40,7 +37,7 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostic_report
                 })
                 .set_span(span)
                 .add_note("attribute was previously used here", Some(entry.get()))
-                .report(diagnostic_reporter);
+                .push_into(diagnostics);
             }
             Vacant(entry) => {
                 entry.insert(span.clone());

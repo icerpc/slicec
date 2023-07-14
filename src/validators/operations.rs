@@ -1,17 +1,17 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
 use crate::grammar::*;
 
-pub fn validate_operation(operation: &Operation, reporter: &mut DiagnosticReporter) {
+pub fn validate_operation(operation: &Operation, diagnostics: &mut Diagnostics) {
     if let Some(comment) = operation.comment() {
-        validate_param_tags(comment, operation, reporter);
-        validate_returns_tags(comment, operation, reporter);
-        validate_throws_tags(comment, operation, reporter);
+        validate_param_tags(comment, operation, diagnostics);
+        validate_returns_tags(comment, operation, diagnostics);
+        validate_throws_tags(comment, operation, diagnostics);
     }
 }
 
-fn validate_param_tags(comment: &DocComment, operation: &Operation, reporter: &mut DiagnosticReporter) {
+fn validate_param_tags(comment: &DocComment, operation: &Operation, diagnostics: &mut Diagnostics) {
     let parameters: Vec<_> = operation.parameters().iter().map(|p| p.identifier()).collect();
 
     for param_tag in &comment.params {
@@ -25,29 +25,29 @@ fn validate_param_tags(comment: &DocComment, operation: &Operation, reporter: &m
             })
             .set_span(param_tag.span())
             .set_scope(operation.parser_scoped_identifier())
-            .report(reporter);
+            .push_into(diagnostics);
         }
     }
 }
 
-fn validate_returns_tags(comment: &DocComment, operation: &Operation, reporter: &mut DiagnosticReporter) {
+fn validate_returns_tags(comment: &DocComment, operation: &Operation, diagnostics: &mut Diagnostics) {
     let returns_tags = &comment.returns;
     match operation.return_members().as_slice() {
-        // If the operation doesn't return anything, but its doc comment has 'returns' tags, emit an error.
-        [] => validate_returns_tags_for_operation_with_no_return_type(returns_tags, operation, reporter),
+        // If the operation doesn't return anything, but its doc comment has 'returns' tags, report an error.
+        [] => validate_returns_tags_for_operation_with_no_return_type(returns_tags, operation, diagnostics),
 
         // If the operation returns a single type, ensure that its 'returns' tag doesn't have an identifier.
-        [_] => validate_returns_tags_for_operation_with_single_return(returns_tags, operation, reporter),
+        [_] => validate_returns_tags_for_operation_with_single_return(returns_tags, operation, diagnostics),
 
         // If the operation returns a tuple, ensure its returns tags use identifiers matching the tuple's.
-        tuple => validate_returns_tags_for_operation_with_return_tuple(returns_tags, operation, tuple, reporter),
+        tuple => validate_returns_tags_for_operation_with_return_tuple(returns_tags, operation, tuple, diagnostics),
     }
 }
 
 fn validate_returns_tags_for_operation_with_no_return_type(
     returns_tags: &[ReturnsTag],
     operation: &Operation,
-    reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     for returns_tag in returns_tags {
         Diagnostic::new(Lint::IncorrectDocComment {
@@ -58,14 +58,14 @@ fn validate_returns_tags_for_operation_with_no_return_type(
         })
         .set_span(returns_tag.span())
         .set_scope(operation.parser_scoped_identifier())
-        .report(reporter);
+        .push_into(diagnostics);
     }
 }
 
 fn validate_returns_tags_for_operation_with_single_return(
     returns_tags: &[ReturnsTag],
     operation: &Operation,
-    reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     for returns_tag in returns_tags {
         if let Some(tag_identifier) = &returns_tag.identifier {
@@ -83,7 +83,7 @@ fn validate_returns_tags_for_operation_with_single_return(
                 Some(operation.span()),
             )
             .add_note("try removing the identifier from your comment: \"@returns: ...\"", None)
-            .report(reporter);
+            .push_into(diagnostics);
         }
     }
 }
@@ -92,7 +92,7 @@ fn validate_returns_tags_for_operation_with_return_tuple(
     returns_tags: &[ReturnsTag],
     operation: &Operation,
     return_tuple: &[&Parameter],
-    reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     let return_members: Vec<_> = return_tuple.iter().map(|p| p.identifier()).collect();
 
@@ -108,25 +108,25 @@ fn validate_returns_tags_for_operation_with_return_tuple(
                 })
                 .set_span(returns_tag.span())
                 .set_scope(operation.parser_scoped_identifier())
-                .report(reporter);
+                .push_into(diagnostics);
             }
         }
     }
 }
 
-fn validate_throws_tags(comment: &DocComment, operation: &Operation, reporter: &mut DiagnosticReporter) {
+fn validate_throws_tags(comment: &DocComment, operation: &Operation, diagnostics: &mut Diagnostics) {
     let throws_tags = &comment.throws;
 
     match &operation.throws {
-        // If the operation doesn't throw, but its doc comment has 'throws' tags, emit an error.
-        Throws::None => validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, reporter),
+        // If the operation doesn't throw, but its doc comment has 'throws' tags, report an error.
+        Throws::None => validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, diagnostics),
 
         // If the operation throws a specific exception, ensure that its 'throws' tag agrees with it.
         Throws::Specific(exception_ref) => validate_throws_tags_for_operation_that_throws_a_specific_exception(
             throws_tags,
             operation,
             exception_ref,
-            reporter,
+            diagnostics,
         ),
 
         // We perform no validation if the operation throws 'AnyException'.
@@ -137,7 +137,7 @@ fn validate_throws_tags(comment: &DocComment, operation: &Operation, reporter: &
 fn validate_throws_tags_for_operation_with_no_throws_clause(
     throws_tags: &[ThrowsTag],
     operation: &Operation,
-    reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     for throws_tag in throws_tags {
         Diagnostic::new(Lint::IncorrectDocComment {
@@ -148,7 +148,7 @@ fn validate_throws_tags_for_operation_with_no_throws_clause(
         })
         .set_span(throws_tag.span())
         .set_scope(operation.parser_scoped_identifier())
-        .report(reporter);
+        .push_into(diagnostics);
     }
 }
 
@@ -156,7 +156,7 @@ fn validate_throws_tags_for_operation_that_throws_a_specific_exception(
     throws_tags: &[ThrowsTag],
     operation: &Operation,
     thrown_exception: &TypeRef<Exception>,
-    reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     for throws_tag in throws_tags {
         if let Some(Ok(documented_exception)) = throws_tag.thrown_type() {
@@ -177,7 +177,7 @@ fn validate_throws_tags_for_operation_that_throws_a_specific_exception(
                 .set_span(throws_tag.span())
                 .set_scope(operation.parser_scoped_identifier())
                 .add_note(note_message, Some(thrown_exception.span()))
-                .report(reporter);
+                .push_into(diagnostics);
             }
         }
     }

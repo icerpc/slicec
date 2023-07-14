@@ -362,7 +362,7 @@ pub enum LookupError {
         /// The type that was actually stored in the AST node.
         actual: String,
         /// Whether the expected type was concrete or a trait.
-        /// This is used to change the wording of the error message we emit.
+        /// This is used to change the wording of the error message.
         is_concrete: bool,
     },
 }

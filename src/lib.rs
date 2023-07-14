@@ -3,6 +3,7 @@
 pub mod ast;
 pub mod code_block;
 pub mod compilation_state;
+pub mod diagnostic_emitter;
 pub mod diagnostics;
 pub mod grammar;
 pub mod slice_file;
@@ -28,13 +29,13 @@ pub fn compile_from_options(
     validator: fn(&mut CompilationState),
 ) -> CompilationState {
     // Create an instance of `CompilationState` for holding all the compiler's state.
-    let mut state = CompilationState::create(options);
+    let mut state = CompilationState::create();
 
     // Recursively resolve any Slice files contained in the paths specified by the user.
-    let files = file_util::resolve_files_from(options, &mut state.diagnostic_reporter);
+    let files = file_util::resolve_files_from(options, &mut state.diagnostics);
 
     // If any files were unreadable, return without parsing. Otherwise, parse the files normally.
-    if !state.diagnostic_reporter.has_errors() {
+    if !state.diagnostics.has_errors() {
         compile_files(files, &mut state, options, patcher, validator);
     }
     state
@@ -46,10 +47,8 @@ pub fn compile_from_strings(
     patcher: unsafe fn(&mut CompilationState),
     validator: fn(&mut CompilationState),
 ) -> CompilationState {
-    let slice_options = options.unwrap_or_default();
-
     // Create an instance of `CompilationState` for holding all the compiler's state.
-    let mut state = CompilationState::create(&slice_options);
+    let mut state = CompilationState::create();
 
     // Create a Slice file from each of the strings.
     let mut files = Vec::new();
@@ -57,6 +56,7 @@ pub fn compile_from_strings(
         files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
     }
 
+    let slice_options = options.unwrap_or_default();
     compile_files(files, &mut state, &slice_options, patcher, validator);
     state
 }

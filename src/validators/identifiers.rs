@@ -1,22 +1,22 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::*;
 use std::collections::HashMap;
 
 pub fn validate_inherited_identifiers(
     symbols: Vec<&impl NamedSymbol>,
     inherited_symbols: Vec<&impl NamedSymbol>,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
-    check_for_shadowing(symbols, inherited_symbols, diagnostic_reporter);
+    check_for_shadowing(symbols, inherited_symbols, diagnostics);
 }
 
 fn check_for_shadowing(
     symbols: Vec<&impl NamedSymbol>,
     inherited_symbols: Vec<&impl NamedSymbol>,
-    diagnostic_reporter: &mut DiagnosticReporter,
+    diagnostics: &mut Diagnostics,
 ) {
     let identifiers = symbols.into_iter().map(NamedSymbol::raw_identifier);
     let inherited_identifiers = inherited_symbols
@@ -35,13 +35,13 @@ fn check_for_shadowing(
                     format!("'{}' was previously defined here", inherited_identifier.value),
                     Some(inherited_identifier.span()),
                 )
-                .report(diagnostic_reporter);
+                .push_into(diagnostics);
             }
         }
     }
 }
 
-pub fn check_for_redefinitions(ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
+pub fn check_for_redefinitions(ast: &Ast, diagnostics: &mut Diagnostics) {
     // A map storing `(scoped_identifier, named_symbol)` pairs. We iterate through the AST and build up this map,
     // and if we try to add an entry but see it's already occupied, that means we've found a redefinition.
     let mut slice_definitions: HashMap<String, &dyn NamedSymbol> = HashMap::new();
@@ -55,7 +55,7 @@ pub fn check_for_redefinitions(ast: &Ast, diagnostic_reporter: &mut DiagnosticRe
                 // This is fine for modules (since they can be re-opened), but for any other type, we report an error.
                 Some(other_definition) => {
                     if !(is_module(definition) && is_module(*other_definition)) {
-                        report_redefinition_error(definition, *other_definition, diagnostic_reporter);
+                        report_redefinition_error(definition, *other_definition, diagnostics);
                     }
                 }
 
@@ -73,7 +73,7 @@ fn is_module(definition: &dyn NamedSymbol) -> bool {
     definition.kind() == "module"
 }
 
-fn report_redefinition_error(new: &dyn NamedSymbol, original: &dyn NamedSymbol, reporter: &mut DiagnosticReporter) {
+fn report_redefinition_error(new: &dyn NamedSymbol, original: &dyn NamedSymbol, diagnostics: &mut Diagnostics) {
     Diagnostic::new(Error::Redefinition {
         identifier: new.identifier().to_owned(),
     })
@@ -82,5 +82,5 @@ fn report_redefinition_error(new: &dyn NamedSymbol, original: &dyn NamedSymbol, 
         format!("'{}' was previously defined here", original.identifier()),
         Some(original.raw_identifier().span()),
     )
-    .report(reporter);
+    .push_into(diagnostics);
 }
