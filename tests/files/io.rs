@@ -48,7 +48,7 @@ fn duplicate_source_files_ignored_with_warning() {
     let expected = Diagnostic::new(Lint::DuplicateFile {
         path: "tests/files/../files/test.slice".to_owned(),
     });
-    check_diagnostics(diagnostics, [expected]);
+    check_diagnostics(diagnostics.into_inner(), [expected]);
 }
 
 #[test]
@@ -74,5 +74,5 @@ fn duplicate_reference_files_ignored_with_warning() {
     let expected = Diagnostic::new(Lint::DuplicateFile {
         path: "tests/files/../files/test.slice".to_owned(),
     });
-    check_diagnostics(diagnostics, [expected]);
+    check_diagnostics(diagnostics.into_inner(), [expected]);
 }

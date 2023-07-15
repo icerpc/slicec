@@ -4,9 +4,12 @@ mod test_helpers;
 
 mod output {
 
+    use std::collections::HashMap;
+
     use crate::test_helpers::parse;
+    use slicec::diagnostic_emitter::DiagnosticEmitter;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::slice_file::Span;
+    use slicec::slice_file::{SliceFile, Span};
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
@@ -29,12 +32,14 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_state = parse(slice, Some(options));
+        let state = parse(slice, Some(&options));
+        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
 
         let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(diagnostics).unwrap();
 
         // Assert
         let expected = concat!(
@@ -71,12 +76,14 @@ mod output {
         };
 
         // Parse the Slice file.
-        let compilation_state = parse(slice, Some(options));
+        let state = parse(slice, Some(&options));
+        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
 
         let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(diagnostics).unwrap();
 
         // Assert
         let expected = "\
@@ -126,12 +133,14 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_state = parse(slice, Some(options));
+        let state = parse(slice, Some(&options));
+        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
 
         let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(diagnostics).unwrap();
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -157,12 +166,14 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         // Parse the Slice file.
-        let compilation_state = parse(slice, Some(options));
+        let state = parse(slice, Some(&options));
+        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
 
         let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(diagnostics).unwrap();
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
@@ -175,36 +186,42 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     #[test]
     fn notes_with_same_span_as_diagnostic_are_suppressed() {
         // Arrange
+
+        // Create a dummy slice file for the test.
         let slice = "
             mode = Slice2
             module Foo
         ";
+        let mut files = HashMap::new();
+        let file_name = "string-0".to_owned();
+        files.insert(
+            file_name.clone(),
+            SliceFile::new(file_name.clone(), slice.to_owned(), false),
+        );
 
-        // Disable ANSI color codes.
+        // Report a diagnostic where its span is the same as its note's span.
+        let span = Span {
+            start: (2, 13).into(),
+            end: (2, 30).into(),
+            file: file_name,
+        };
+        let diagnostic = Diagnostic::new(Error::Syntax {
+            message: "foo".to_owned(),
+        })
+        .set_span(&span)
+        .add_note("bar", Some(&span));
+
+        // Create a DiagnosticEmitter to test the emission (with ANSI color codes disabled for consistency).
         let options = SliceOptions {
             disable_color: true,
             ..Default::default()
         };
-
-        let mut compilation_state = parse(slice, Some(options));
         let mut output: Vec<u8> = Vec::new();
 
-        // Report a diagnostic with a note that has the same span as the diagnostic.
-        let span = Span {
-            start: (2, 13).into(),
-            end: (2, 26).into(),
-            file: "string-0".to_owned(),
-        };
-
-        Diagnostic::new(Error::Syntax {
-            message: "foo".to_owned(),
-        })
-        .set_span(&span)
-        .add_note("bar", Some(&span))
-        .push_into(&mut compilation_state.diagnostics);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(vec![diagnostic]).unwrap();
 
         // Assert
         let expected = "\
@@ -229,11 +246,14 @@ error [E002]: invalid syntax: foo
             ..Default::default()
         };
 
-        let compilation_state = parse(slice, Some(options));
+        let state = parse(slice, Some(&options));
+        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+
         let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
 
         // Act
-        compilation_state.update_and_emit_diagnostics(&mut output);
+        emitter.emit_diagnostics(diagnostics).unwrap();
 
         // Assert
         let expected = "\

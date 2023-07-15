@@ -19,7 +19,7 @@ pub use slicec::test_helpers::*;
 /// It is the lowest level test helper function, returning a full [`CompilationState`] instead of only part of it.
 /// It also allows tests to configure the compiler by passing in [`SliceOptions`].
 #[must_use]
-pub fn parse(slice: impl Into<String>, options: Option<SliceOptions>) -> CompilationState {
+pub fn parse(slice: impl Into<String>, options: Option<&SliceOptions>) -> CompilationState {
     compile_from_strings(&[&slice.into()], options, |_| {}, |_| {})
 }
 
@@ -56,8 +56,8 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
     diagnostics_from_compilation_state(
-        SliceOptions::default(),
         compile_from_strings(slice, None, |_| {}, |_| {}),
+        &SliceOptions::default(),
     )
 }
 

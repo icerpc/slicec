@@ -101,11 +101,7 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
 
         validate_members(exception.fields(), self.diagnostics);
 
-        validate_inherited_identifiers(
-            exception.fields(),
-            exception.all_inherited_fields(),
-            self.diagnostics,
-        );
+        validate_inherited_identifiers(exception.fields(), exception.all_inherited_fields(), self.diagnostics);
     }
 
     fn visit_interface(&mut self, interface: &Interface) {

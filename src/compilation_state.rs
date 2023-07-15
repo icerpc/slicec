@@ -47,7 +47,7 @@ impl CompilationState {
     }
 
     pub fn into_exit_code(self, options: &SliceOptions) -> i32 {
-        let diagnostics = self.diagnostics.into_updated_diagnostics(&self.ast, &self.files, options);
+        let diagnostics = self.diagnostics.into_updated(&self.ast, &self.files, options);
         let (total_warnings, total_errors) = get_totals(&diagnostics);
 
         // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
@@ -63,7 +63,7 @@ impl CompilationState {
     /// Consumes this `CompilationState` and returns the diagnostics it contains.
     /// This method exists to simplify the testing of diagnostic emission.
     pub fn into_diagnostics(self, options: &SliceOptions) -> Vec<Diagnostic> {
-        self.diagnostics.into_updated_diagnostics(&self.ast, &self.files, options)
+        self.diagnostics.into_updated(&self.ast, &self.files, options)
     }
 
     fn emit_totals(total_warnings: usize, total_errors: usize) -> Result<()> {

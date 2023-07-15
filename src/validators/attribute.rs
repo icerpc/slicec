@@ -9,11 +9,8 @@ pub fn validate_attributes(attributable: &(impl Attributable + AsAttributables),
     let attributes = attributable.attributes();
     validate_repeated_attributes(&attributes, diagnostics);
     for attribute in attributes {
-        attribute.kind.validate_on(
-            attributable.concrete_attributable(),
-            attribute.span(),
-            diagnostics,
-        );
+        let concrete_type = attributable.concrete_attributable();
+        attribute.kind.validate_on(concrete_type, attribute.span(), diagnostics);
     }
 }
 

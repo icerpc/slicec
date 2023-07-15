@@ -43,7 +43,7 @@ pub fn compile_from_options(
 
 pub fn compile_from_strings(
     inputs: &[&str],
-    options: Option<SliceOptions>,
+    options: Option<&SliceOptions>,
     patcher: unsafe fn(&mut CompilationState),
     validator: fn(&mut CompilationState),
 ) -> CompilationState {
@@ -56,8 +56,11 @@ pub fn compile_from_strings(
         files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
     }
 
-    let slice_options = options.unwrap_or_default();
-    compile_files(files, &mut state, &slice_options, patcher, validator);
+    match options {
+        Some(slice_options) => compile_files(files, &mut state, slice_options, patcher, validator),
+        None => compile_files(files, &mut state, &SliceOptions::default(), patcher, validator),
+    }
+
     state
 }
 

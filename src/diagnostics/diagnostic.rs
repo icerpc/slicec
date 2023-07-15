@@ -158,7 +158,7 @@ impl Diagnostics {
 
     /// Returns the diagnostics this struct contains after it has patched and updated them.
     /// Lint levels can be configured via attributes or command line options, but these aren't applied until this runs.
-    pub fn into_updated_diagnostics(
+    pub fn into_updated(
         mut self,
         ast: &Ast,
         files: &HashMap<String, SliceFile>,
@@ -202,6 +202,12 @@ impl Diagnostics {
                 }
             }
         }
+        self.0
+    }
+
+    /// Returns the diagnostics held by this without any updates or patches.
+    /// This should only be called by tests that want to bypass this behavior.
+    pub fn into_inner(self) -> Vec<Diagnostic> {
         self.0
     }
 }
