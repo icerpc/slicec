@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::grammar::CompilationMode;
 use crate::implement_diagnostic_functions;
 use crate::utils::string_util::indefinite_article;
 
@@ -35,38 +36,38 @@ pub enum Error {
     /// Structs must be compact to be used as a dictionary key type.
     StructKeyMustBeCompact,
 
-    // ----------------  Mode Errors ---------------- //
-    /// The user specified a mode multiple times in a single Slice file.
-    MultipleModes,
+    // ----------------  Compilation Mode Errors ---------------- //
+    /// The user specified the compilation mode multiple times in a single Slice file.
+    MultipleCompilationModes,
 
-    /// The provided kind with identifier is not supported in the specified mode.
-    NotSupportedWithMode {
+    /// A slice construct cannot be used with the compilation mode it was defined in.
+    NotSupportedInCompilationMode {
         /// The kind that is not supported.
         kind: String,
         /// The identifier of the kind that is not supported.
         identifier: String,
-        /// The mode that was specified.
-        mode: String,
+        /// The compilation mode the construct was defined in.
+        mode: CompilationMode,
     },
 
-    /// Optionals of this kind are not supported with in Slice1 mode.
+    /// Optionals of this kind cannot be used in Slice1 mode.
     OptionalsNotSupported {
         /// The kind that is not supported.
         kind: String,
     },
 
-    /// Streamed parameters are not supported with in Slice1 mode.
+    /// Streamed parameters cannot be used in Slice1 mode.
     StreamedParametersNotSupported,
 
-    /// A non-Slice1 operation used the `AnyException` keyword.
+    /// An operation throws `AnyException` outside of Slice1 mode.
     AnyExceptionNotSupported,
 
-    /// An unsupported type was used in the specified mode.
+    /// A slice type isn't supported by the compilation mode it was used in.
     UnsupportedType {
-        /// The name of the kind that was used in the specified mode.
+        /// The kind that was used.
         kind: String,
-        /// The mode that was specified.
-        mode: String,
+        /// The compilation mode the type was used in.
+        compilation_mode: CompilationMode,
     },
 
     // ----------------  Enum Errors ---------------- //
@@ -109,7 +110,7 @@ pub enum Error {
     },
 
     // ----------------  Exception Errors ---------------- //
-    /// Exceptions cannot be used as a data type with in Slice1 mode.
+    /// Exceptions cannot be used as a data type in Slice1 mode.
     ExceptionAsDataType,
 
     // ----------------  Operation Errors ---------------- //
@@ -201,9 +202,9 @@ pub enum Error {
         base: u32,
     },
 
-    /// An invalid Slice file mode was used.
-    InvalidMode {
-        /// The mode that was used.
+    /// An invalid compilation mode was specified.
+    InvalidCompilationMode {
+        /// The compilation mode that was specified.
         mode: String,
     },
 
@@ -427,32 +428,32 @@ implement_diagnostic_functions!(
     ),
     (
         "E029",
-        NotSupportedWithMode,
-        format!("{kind} '{identifier}' is not supported by in {mode} mode"),
+        NotSupportedInCompilationMode,
+        format!("{kind} '{identifier}' cannot be used in {mode} mode"),
         kind, identifier, mode
     ),
     (
         "E030",
         UnsupportedType,
-        format!("the type '{kind}' is not supported by in {mode} mode"),
+        format!("the type '{kind}' cannot be used in {compilation_mode} mode"),
         kind,
-        mode
+        compilation_mode
     ),
     (
         "E031",
         ExceptionAsDataType,
-        format!("exceptions cannot be used as a data type with in Slice1 mode")
+        "exceptions cannot be used as a data type in Slice1 mode"
     ),
     (
         "E032",
         OptionalsNotSupported,
-        format!("optionals of type '{kind}' are not supported with in Slice1 mode"),
+        format!("optionals of type '{kind}' cannot be used in Slice1 mode"),
         kind
     ),
     (
         "E033",
         StreamedParametersNotSupported,
-        "streamed parameters are not supported by in Slice1 mode"
+        "streamed parameters cannot be used in Slice1 mode"
     ),
     (
         "E034",
@@ -501,20 +502,19 @@ implement_diagnostic_functions!(
     ),
     (
         "E042",
-        InvalidMode,
-        format!("'{mode}' is not a valid Slice file mode"),
+        InvalidCompilationMode,
+        format!("'{mode}' is not a valid Slice compilation mode"),
         mode
     ),
     (
         "E043",
-        MultipleModes,
-        "only a single mode can be specified per file".to_owned()
+        MultipleCompilationModes,
+        "the compilation mode can only be specified once per file"
     ),
     (
         "E045",
         AnyExceptionNotSupported,
-        format!("operations that throw AnyException are only supported by in Slice1 mode")
-
+        "operations that throw AnyException cannot be used in Slice1 mode"
     ),
     (
         "E047",

@@ -2,16 +2,16 @@
 
 mod test_helpers;
 
-mod modes {
+mod compilation_mode {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
     use test_case::test_case;
 
-    /// Verifies that the supported modes compile
+    /// Verifies that the supported compilation modes compile
     #[test_case("Slice1")]
     #[test_case("Slice2")]
-    fn valid_mode(value: &str) {
+    fn valid_compilation_modes_succeed(value: &str) {
         // Arrange
         let slice = format!("mode = {value}");
 
@@ -20,7 +20,7 @@ mod modes {
     }
 
     #[test]
-    fn invalid_modes_fail() {
+    fn invalid_compilation_modes_fail() {
         // Arrange
         let slice = "mode = Slice3";
 
@@ -28,14 +28,14 @@ mod modes {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InvalidMode {
+        let expected = Diagnostic::new(Error::InvalidCompilationMode {
             mode: "Slice3".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
-    fn mode_must_be_first() {
+    fn compilation_mode_must_appear_before_other_statements() {
         // Arrange
         let slice = "
             module Test

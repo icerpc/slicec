@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{Member, Mode};
+use crate::grammar::{Encoding, Member};
 
 /// The context that a type is being used in while generating code. This is used primarily by the
 /// `type_to_string` methods in each of the language mapping's code generators.
@@ -19,8 +19,8 @@ pub enum TypeContext {
     Nested,
 }
 
-pub fn get_bit_sequence_size<T: Member>(mode: Mode, members: &[&T]) -> usize {
-    if mode == Mode::Slice1 {
+pub fn get_bit_sequence_size<T: Member>(encoding: Encoding, members: &[&T]) -> usize {
+    if encoding == Encoding::Slice1 {
         return 0;
     }
 

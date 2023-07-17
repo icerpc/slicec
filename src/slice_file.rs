@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, FileMode, Mode, Module};
+use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -53,7 +53,7 @@ pub struct SliceFile {
     pub relative_path: String,
     pub raw_text: String,
 
-    pub mode: Option<FileMode>,
+    pub mode: Option<FileCompilationMode>,
     pub module: Option<WeakPtr<Module>>,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub contents: Vec<Definition>,
@@ -83,13 +83,15 @@ impl SliceFile {
         }
     }
 
-    /// Returns the Slice mode used by this file.
+    /// Returns the compilation mode used by this file.
     ///
     /// If no mode was explicitly declared, it returns the default mode.
     ///
-    /// See [Mode::default()](crate::grammar::Mode::default)
-    pub fn mode(&self) -> Mode {
-        self.mode.as_ref().map_or(Mode::default(), |file_mode| file_mode.mode)
+    /// See [CompilationMode::default()](crate::grammar::CompilationMode::default)
+    pub fn compilation_mode(&self) -> CompilationMode {
+        self.mode
+            .as_ref()
+            .map_or(CompilationMode::default(), |mode| mode.version)
     }
 
     /// Retrieves a formatted snippet from the slice file.

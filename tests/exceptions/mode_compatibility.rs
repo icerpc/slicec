@@ -5,8 +5,7 @@ mod slice1 {
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
 
-    /// Verifies that the slice parser with the Slice1 mode emits errors when parsing an
-    /// exception that is a field.
+    /// Verifies that exceptions cannot be used as data types while in Slice1 mode.
     #[test]
     fn can_not_be_fields() {
         // Arrange
@@ -35,10 +34,9 @@ mod slice2 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Mode;
+    use slicec::grammar::CompilationMode;
 
-    /// Verifies that the slice parser with the Slice2 mode emits errors when parsing an
-    /// exception that inherits from another exception.
+    /// Verifies that exception inheritance is disallowed while in Slice2 mode.
     #[test]
     fn inheritance_fails() {
         // Arrange
@@ -54,19 +52,18 @@ mod slice2 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithMode {
+        let expected = Diagnostic::new(Error::NotSupportedInCompilationMode {
             kind: "exception".to_owned(),
             identifier: "B".to_owned(),
-            mode: Mode::Slice2.to_string(),
+            mode: CompilationMode::Slice2,
         })
-        .add_note("exception inheritance is only supported by the Slice1 mode", None)
-        .add_note("file is using Slice2 mode by default", None);
+        .add_note("exception inheritance is only allowed in Slice1 mode", None)
+        .add_note("this file's compilation mode is Slice2 by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }
 
-    /// Verifies that the slice parser with the Slice2 mode does not emit errors when parsing
-    /// exceptions that are fields.
+    /// Verifies that exceptions can be used as data types while in Slice2 mode.
     #[test]
     fn can_be_fields() {
         // Arrange
@@ -84,7 +81,6 @@ mod slice2 {
         assert_parses(slice);
     }
 
-    /// Verify that exceptions which are only Slice1 encodable a Slice2 operation.
     #[test]
     fn slice1_only_exceptions_cannot_be_thrown_from_slice2_operation() {
         // Arrange
@@ -111,7 +107,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
-            mode: Mode::Slice2.to_string(),
+            compilation_mode: CompilationMode::Slice2,
         });
         check_diagnostics(diagnostics, [expected]);
     }

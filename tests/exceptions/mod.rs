@@ -2,7 +2,7 @@
 
 mod container;
 mod inheritance;
-mod mode;
+mod mode_compatibility;
 mod tags;
 
 use crate::test_helpers::*;

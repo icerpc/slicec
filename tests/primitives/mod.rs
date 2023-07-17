@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-mod mode;
+mod mode_compatibility;
 
 use crate::test_helpers::*;
 use slicec::grammar::*;

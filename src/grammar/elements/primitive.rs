@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_modes::SupportedModes;
+use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Primitive {
@@ -150,25 +150,25 @@ impl Type for Primitive {
         }
     }
 
-    fn supported_modes(&self) -> SupportedModes {
-        SupportedModes::new(match self {
-            Self::Bool => vec![Mode::Slice1, Mode::Slice2],
-            Self::Int8 => vec![Mode::Slice2],
-            Self::UInt8 => vec![Mode::Slice1, Mode::Slice2],
-            Self::Int16 => vec![Mode::Slice1, Mode::Slice2],
-            Self::UInt16 => vec![Mode::Slice2],
-            Self::Int32 => vec![Mode::Slice1, Mode::Slice2],
-            Self::UInt32 => vec![Mode::Slice2],
-            Self::VarInt32 => vec![Mode::Slice2],
-            Self::VarUInt32 => vec![Mode::Slice2],
-            Self::Int64 => vec![Mode::Slice1, Mode::Slice2],
-            Self::UInt64 => vec![Mode::Slice2],
-            Self::VarInt62 => vec![Mode::Slice2],
-            Self::VarUInt62 => vec![Mode::Slice2],
-            Self::Float32 => vec![Mode::Slice1, Mode::Slice2],
-            Self::Float64 => vec![Mode::Slice1, Mode::Slice2],
-            Self::String => vec![Mode::Slice1, Mode::Slice2],
-            Self::AnyClass => vec![Mode::Slice1],
+    fn supported_encodings(&self) -> SupportedEncodings {
+        SupportedEncodings::new(match self {
+            Self::Bool => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int8 => vec![Encoding::Slice2],
+            Self::UInt8 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Int16 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt16 => vec![Encoding::Slice2],
+            Self::Int32 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt32 => vec![Encoding::Slice2],
+            Self::VarInt32 => vec![Encoding::Slice2],
+            Self::VarUInt32 => vec![Encoding::Slice2],
+            Self::Int64 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::UInt64 => vec![Encoding::Slice2],
+            Self::VarInt62 => vec![Encoding::Slice2],
+            Self::VarUInt62 => vec![Encoding::Slice2],
+            Self::Float32 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::Float64 => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::String => vec![Encoding::Slice1, Encoding::Slice2],
+            Self::AnyClass => vec![Encoding::Slice1],
         })
     }
 }

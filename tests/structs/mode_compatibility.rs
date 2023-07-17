@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Mode;
+    use slicec::grammar::CompilationMode;
 
     /// Verifies using the slice parser with Slice1 will emit errors when parsing
     /// non-compact structs.
@@ -22,12 +22,12 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithMode {
+        let expected = Diagnostic::new(Error::NotSupportedInCompilationMode {
             kind: "struct".to_owned(),
             identifier: "A".to_owned(),
-            mode: Mode::Slice1.to_string(),
+            mode: CompilationMode::Slice1,
         })
-        .add_note("structs must be 'compact' to be supported by the Slice1 mode", None);
+        .add_note("only 'compact' structs are allowed in Slice1 mode", None);
 
         check_diagnostics(diagnostics, [expected]);
     }
@@ -37,7 +37,7 @@ mod slice2 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Mode;
+    use slicec::grammar::CompilationMode;
 
     /// Verifies using the slice parser with Slice2 will emit errors when parsing
     /// structs that contain Slice1 types.
@@ -58,9 +58,9 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            mode: Mode::Slice2.to_string(),
+            compilation_mode: CompilationMode::Slice2,
         })
-        .add_note("file is using Slice2 mode by default", None);
+        .add_note("this file's compilation mode is Slice2 by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

@@ -10,7 +10,7 @@ mod typealias {
     use slicec::slice_file::Span;
     use test_case::test_case;
 
-    #[test_case("struct S {}", "S", "Slice2" ; "structs")]
+    #[test_case("struct S {}", "S", "Slice2"; "structs")]
     #[test_case("exception E { }", "E", "Slice2"; "exceptions")]
     #[test_case("class C {}", "C", "Slice1"; "classes")]
     #[test_case("interface I {}", "I", "Slice2"; "interfaces")]
@@ -142,7 +142,7 @@ mod typealias {
 
     #[test_case("Slice1", "uint32"; "Slice1")]
     #[test_case("Slice2", "AnyClass"; "Slice2")]
-    fn reject_unsupported_underlying_type_mode(mode: &str, underlying_type: &str) {
+    fn reject_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "
@@ -158,14 +158,18 @@ mod typealias {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
-            mode: mode.to_owned(),
+            compilation_mode: match mode {
+                "Slice1" => CompilationMode::Slice1,
+                "Slice2" => CompilationMode::Slice2,
+                _ => panic!(),
+            },
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
     #[test_case("Slice1", "AnyClass"; "Slice1")]
     #[test_case("Slice2", "uint32"; "Slice2")]
-    fn allow_supported_underlying_type_mode(mode: &str, underlying_type: &str) {
+    fn allow_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
             "

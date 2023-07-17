@@ -1,4 +1,4 @@
 // Copyright (c) ZeroC, Inc.
 
 mod container;
-mod mode;
+mod mode_compatibility;

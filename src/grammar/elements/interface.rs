@@ -2,7 +2,7 @@
 
 use super::super::*;
 use crate::slice_file::Span;
-use crate::supported_modes::SupportedModes;
+use crate::supported_encodings::SupportedEncodings;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -14,7 +14,7 @@ pub struct Interface {
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
-    pub(crate) supported_modes: Option<SupportedModes>,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Interface {
@@ -80,8 +80,8 @@ impl Type for Interface {
         Some(TagFormat::FSize)
     }
 
-    fn supported_modes(&self) -> SupportedModes {
-        self.supported_modes.clone().unwrap()
+    fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
     }
 }
 

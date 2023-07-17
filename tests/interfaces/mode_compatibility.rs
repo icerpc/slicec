@@ -2,10 +2,10 @@
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Mode;
+use slicec::grammar::CompilationMode;
 
 #[test]
-fn operation_members_are_compatible_with_mode() {
+fn parameters_must_be_allowed_within_compilation_mode() {
     // Arrange
     let slice1 = "
         mode = Slice1
@@ -28,7 +28,7 @@ fn operation_members_are_compatible_with_mode() {
     // Assert
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
-        mode: Mode::Slice2.to_string(),
+        compilation_mode: CompilationMode::Slice2,
     });
 
     check_diagnostics(diagnostics, [expected]);

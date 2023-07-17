@@ -8,7 +8,7 @@ pub mod grammar;
 pub mod parsers;
 pub mod slice_file;
 pub mod slice_options;
-pub mod supported_modes;
+pub mod supported_encodings;
 pub mod test_helpers;
 pub mod utils;
 pub mod validators;

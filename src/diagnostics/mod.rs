@@ -122,7 +122,7 @@ impl From<Lint> for DiagnosticKind {
     }
 }
 
-/// Additional information about a diagnostic.
+/// Stores additional information about a diagnostic.
 #[derive(Serialize, Debug, Clone)]
 pub struct Note {
     pub message: String,

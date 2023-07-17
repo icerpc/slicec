@@ -58,36 +58,36 @@ type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 // Grammar Rule Functions
 
-fn handle_file_mode(
+fn handle_file_compilation_mode(
     parser: &mut Parser,
-    (old_mode, attributes): (Option<FileMode>, Vec<WeakPtr<Attribute>>),
-    mode: FileMode,
-) -> (Option<FileMode>, Vec<WeakPtr<Attribute>>) {
-    // The file mode can only be set once.
+    (old_mode, attributes): (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>),
+    mode: FileCompilationMode,
+) -> (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>) {
+    // Compilation mode can only be set once per file.
     if let Some(old_file_mode) = old_mode {
         let old_span = old_file_mode.span();
-        let diagnostic = Diagnostic::new(Error::MultipleModes)
+        let diagnostic = Diagnostic::new(Error::MultipleCompilationModes)
             .set_span(old_span)
-            .add_note("file mode was previously specified here", Some(old_span));
+            .add_note("the compilation mode was previously specified here", Some(old_span));
         parser.diagnostics.push(diagnostic);
     }
-    parser.mode = mode.mode;
+    parser.compilation_mode = mode.version;
     (Some(mode), attributes)
 }
 
-fn construct_file_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileMode {
-    let mode = match i.value.as_str() {
-        "Slice1" => Mode::Slice1,
-        "Slice2" => Mode::Slice2,
+fn construct_file_compilation_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileCompilationMode {
+    let version = match i.value.as_str() {
+        "Slice1" => CompilationMode::Slice1,
+        "Slice2" => CompilationMode::Slice2,
         _ => {
-            let diagnostic = Diagnostic::new(Error::InvalidMode { mode: i.value })
+            let diagnostic = Diagnostic::new(Error::InvalidCompilationMode { mode: i.value })
                 .set_span(&i.span)
                 .add_note("must be 'Slice1' or 'Slice2'", None);
             parser.diagnostics.push(diagnostic);
-            Mode::default() // Dummy
+            CompilationMode::default() // Dummy
         }
     };
-    FileMode { mode, span }
+    FileCompilationMode { version, span }
 }
 
 fn construct_module(
@@ -131,7 +131,7 @@ fn construct_struct(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the struct.
@@ -159,7 +159,7 @@ fn construct_exception(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the exception.
@@ -189,7 +189,7 @@ fn construct_class(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the class.
@@ -242,7 +242,7 @@ fn construct_interface(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the operations to the interface.
@@ -276,7 +276,7 @@ fn construct_operation(
         return_type: Vec::new(),
         throws,
         is_idempotent,
-        mode: parser.mode,
+        encoding: parser.compilation_mode,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -383,7 +383,7 @@ fn construct_enum(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the enumerators to the enum.
@@ -439,7 +439,7 @@ fn construct_custom_type(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 
@@ -458,7 +458,7 @@ fn construct_type_alias(
         attributes,
         comment,
         span,
-        supported_modes: None, // Patched by the mode patcher.
+        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 

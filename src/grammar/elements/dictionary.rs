@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_modes::SupportedModes;
+use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Dictionary {
@@ -34,10 +34,10 @@ impl Type for Dictionary {
         }
     }
 
-    fn supported_modes(&self) -> SupportedModes {
-        let mut modes = self.key_type.supported_modes();
-        modes.intersect_with(&self.value_type.supported_modes());
-        modes
+    fn supported_encodings(&self) -> SupportedEncodings {
+        let mut encodings = self.key_type.supported_encodings();
+        encodings.intersect_with(&self.value_type.supported_encodings());
+        encodings
     }
 }
 

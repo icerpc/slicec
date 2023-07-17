@@ -4,10 +4,10 @@ pub mod test_helpers;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Mode;
+use slicec::grammar::CompilationMode;
 
 #[test]
-fn valid_mixed_mode_works() {
+fn valid_mixed_compilation_mode_succeeds() {
     // Arrange
     let slice1 = "
         mode = Slice1
@@ -50,7 +50,7 @@ fn valid_mixed_mode_works() {
 }
 
 #[test]
-fn invalid_mixed_mode_fails() {
+fn invalid_mixed_compilation_mode_fails() {
     // Arrange
     let slice2 = "
         mode = Slice2
@@ -78,11 +78,11 @@ fn invalid_mixed_mode_fails() {
     let expected = [
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
-            mode: Mode::Slice1.to_string(),
+            compilation_mode: CompilationMode::Slice1,
         }),
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
-            mode: Mode::Slice1.to_string(),
+            compilation_mode: CompilationMode::Slice1,
         }),
     ];
     check_diagnostics(diagnostics, expected);
