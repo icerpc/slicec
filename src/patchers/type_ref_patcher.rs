@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::{Ast, LookupError, Node};
+use crate::ast::node::Node;
+use crate::ast::{Ast, LookupError};
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::*;
 use crate::grammar::attributes::Deprecated;

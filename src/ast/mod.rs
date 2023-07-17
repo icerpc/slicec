@@ -3,32 +3,11 @@
 //! TODO write a doc comment for the module.
 
 pub mod node;
-mod patchers;
 
 use self::node::Node;
-use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, Error};
-use crate::grammar::attributes::*;
-use crate::grammar::{Element, NamedSymbol, Primitive, Symbol};
+use crate::grammar::{Element, NamedSymbol, Primitive};
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 use std::collections::HashMap;
-
-/// Since Slice definitions can be split across multiple files, and defined in any order, it is impossible for some
-/// things to be determined during parsing (as it's a sequential process).
-///
-/// So, after parsing is complete, we modify the AST in place, 'patching' in the information that can only now be
-/// computed, in the following order:
-/// 1. References to other Slice types are verified and resolved.
-/// 2. Compute and store the Slice encodings that each element can be used with.
-///
-/// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
-pub(crate) unsafe fn patch_ast(compilation_state: &mut CompilationState) {
-    let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
-    compilation_state.apply_unsafe(attribute_patcher);
-    compilation_state.apply_unsafe(patchers::type_ref_patcher::patch_ast);
-    compilation_state.apply_unsafe(patchers::encoding_patcher::patch_ast);
-    compilation_state.apply_unsafe(patchers::comment_link_patcher::patch_ast);
-}
 
 /// The AST (Abstract Syntax Tree) is the heart of the compiler, containing all the slice elements defined and used by
 /// slice files passed into the compiler.

@@ -33,6 +33,7 @@
     "Undelimited",
     "unprefixed",
     "Unsize",
+    "unthrowable",
     "upcasting",
     "varint",
     "varuint"

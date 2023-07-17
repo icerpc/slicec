@@ -59,6 +59,22 @@ fn preprocessor_consumes_comments() {
     assert_parses(slice);
 }
 
+#[test_case("6foo"; "numeric")]
+#[test_case("_foo"; "underscore")]
+fn identifiers_must_start_with_a_letter(identifier: &str) {
+    // Arrange
+    let slice = format!("#define {identifier}");
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::Syntax {
+        message: format!("unknown symbol '{}'", identifier.chars().next().unwrap()),
+    });
+    check_diagnostics(diagnostics, [expected]);
+}
+
 #[test]
 fn preprocessor_define_symbol() {
     // Arrange

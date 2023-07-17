@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::Node;
+use crate::ast::node::Node;
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::*;
 use crate::grammar::*;

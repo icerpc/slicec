@@ -352,7 +352,7 @@ where
             '\\' => {
                 self.advance_buffer(); // Consume the '\' character.
                                        // Check if the next character could be the start of an identifier.
-                if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_ascii_alphabetic() || *ch == '_') {
+                if matches!(self.buffer.peek(), Some((_, ch)) if ch.is_ascii_alphabetic()) {
                     let identifier = self.read_alphanumeric();
                     Some(Ok((start_location, TokenKind::Identifier(identifier), self.cursor)))
                 } else {
@@ -364,7 +364,7 @@ where
                     Some(Err((start_location, error, self.cursor)))
                 }
             }
-            _ if c.is_ascii_alphabetic() || c == '_' => {
+            _ if c.is_ascii_alphabetic() => {
                 let token = if self.attribute_mode {
                     // If we're lexing an attribute, return the identifier as-is, without checking if it's a keyword.
                     TokenKind::Identifier(self.read_alphanumeric())

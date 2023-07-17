@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::ast::{Ast, LookupError, Node};
+use crate::ast::node::Node;
+use crate::ast::{Ast, LookupError};
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Lint};
 use crate::grammar::*;
@@ -125,9 +126,14 @@ impl CommentLinkPatcher<'_> {
                         format!("no element named '{identifier}' exists in scope")
                     }
                     LookupError::TypeMismatch { actual, .. } => {
-                        // Only primitives and modules have names but cannot be linked to.
-                        debug_assert!(actual == "primitive" || actual == "module");
-                        format!("{actual}s cannot be linked to")
+                        let type_string = match actual.as_str() {
+                            "primitive" => "primitive types",
+                            "module" => "modules",
+
+                            // Only primitive types and modules have names but cannot be linked to.
+                            _ => unreachable!(),
+                        };
+                        type_string.to_owned() + " cannot be linked to"
                     }
                 };
                 Diagnostic::new(Lint::BrokenDocLink { message })
@@ -180,8 +186,18 @@ impl CommentLinkPatcher<'_> {
                 }
                 Err(original_patch) => {
                     let entity = original_patch.borrow();
+                    let kind = entity.kind();
+                    let note = format!(
+                        "'{identifier}' is {a} {kind}",
+                        identifier = entity.identifier(),
+                        a = crate::utils::string_util::indefinite_article(kind),
+                    );
+
                     Diagnostic::new(Lint::IncorrectDocComment {
-                        message: format!("'{}' is not a throwable type", entity.identifier()),
+                        message: format!(
+                            "comment has a 'throws' tag for '{}', but it is not a throwable type",
+                            entity.identifier(),
+                        ),
                     })
                     .add_note(
                         format!(
@@ -192,6 +208,7 @@ impl CommentLinkPatcher<'_> {
                         Some(entity.span()),
                     )
                     .add_note("operations can only throw exceptions", None)
+                    .add_note(note, Some(entity.span()))
                     .set_span(tag.span())
                     .set_scope(scope)
                     .report(self.diagnostic_reporter);
