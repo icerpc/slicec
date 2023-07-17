@@ -57,7 +57,7 @@ mod slice2 {
             identifier: "B".to_owned(),
             mode: CompilationMode::Slice2,
         })
-        .add_note("exception inheritance is only allowed in Slice1 mode", None)
+        .add_note("exception inheritance can only be used in Slice1 mode", None)
         .add_note("this file's compilation mode is Slice2 by default", None);
 
         check_diagnostics(diagnostics, [expected]);

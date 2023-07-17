@@ -27,7 +27,7 @@ mod slice1 {
             identifier: "A".to_owned(),
             mode: CompilationMode::Slice1,
         })
-        .add_note("only 'compact' structs are allowed in Slice1 mode", None);
+        .add_note("structs defined in Slice1 mode must be 'compact'", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

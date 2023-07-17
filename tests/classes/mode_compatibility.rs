@@ -24,7 +24,7 @@ mod slice2 {
             mode: CompilationMode::Slice2,
         };
         let expected = Diagnostic::new(error)
-            .add_note("classes can only be used in Slice1 mode", None)
+            .add_note("classes can only be defined in Slice1 mode", None)
             .add_note("this file's compilation mode is Slice2 by default", None);
 
         check_diagnostics(diagnostics, [expected]);
