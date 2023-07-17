@@ -62,7 +62,7 @@ pub enum Error {
     /// An operation throws `AnyException` outside of Slice1 mode.
     AnyExceptionNotSupported,
 
-    /// A slice type isn't supported by the compilation mode it was used in.
+    /// A slice type was used in a compilation mode that it isn't supported by.
     UnsupportedType {
         /// The kind that was used.
         kind: String,
