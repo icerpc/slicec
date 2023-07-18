@@ -21,8 +21,8 @@ impl SupportedEncodings {
     }
 
     /// Returns whether the specified encoding is supported.
-    pub fn supports(&self, encoding: &Encoding) -> bool {
-        self.0.contains(encoding)
+    pub fn supports(&self, encoding: Encoding) -> bool {
+        self.0.contains(&encoding)
     }
 
     /// Returns true if there are no supported encodings, and false otherwise.

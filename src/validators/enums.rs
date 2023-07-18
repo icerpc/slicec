@@ -15,7 +15,7 @@ pub fn validate_enum(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReport
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
 fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
-    if enum_def.supported_encodings().supports(&Encoding::Slice1) {
+    if enum_def.supported_encodings().supports(Encoding::Slice1) {
         // Enum was defined in a Slice1 file, so it's underlying type is int32 and its enumerators must be positive.
         for enumerator in enum_def.enumerators() {
             let value = enumerator.value();

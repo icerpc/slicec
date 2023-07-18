@@ -84,10 +84,10 @@ impl EncodingPatcher<'_> {
         // Handle any type-specific encoding restrictions.
         //
         // This function can optionally return information to be emitted alongside a main error in specific cases.
-        let additional_info = entity_def.compute_supported_encodings(self, &mut supported_encodings, &compilation_mode);
+        let additional_info = entity_def.compute_supported_encodings(self, &mut supported_encodings, compilation_mode);
 
         // Ensure the entity supports the encodings required by its compilation mode.
-        if !supported_encodings.supports(&compilation_mode) {
+        if !supported_encodings.supports(compilation_mode) {
             let error = Error::NotSupportedInCompilationMode {
                 kind: entity_def.kind().to_owned(),
                 identifier: entity_def.identifier().to_owned(),
@@ -122,7 +122,7 @@ impl EncodingPatcher<'_> {
     fn get_supported_encodings_for_type_ref(
         &mut self,
         type_ref: &TypeRef<impl Type + ?Sized>,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
         mut allow_nullable_with_slice_1: bool,
         container: Option<&dyn Entity>,
     ) -> SupportedEncodings {
@@ -137,7 +137,7 @@ impl EncodingPatcher<'_> {
                 encodings.disable(Encoding::Slice1);
 
                 // Exceptions cannot be used as a data type in Slice1 mode.
-                if *compilation_mode == CompilationMode::Slice1 {
+                if compilation_mode == CompilationMode::Slice1 {
                     let diagnostic = Diagnostic::new(Error::ExceptionAsDataType).set_span(type_ref.span());
                     diagnostics.push(diagnostic);
                 }
@@ -184,7 +184,7 @@ impl EncodingPatcher<'_> {
         if !allow_nullable_with_slice_1 && type_ref.is_optional {
             supported_encodings.disable(Encoding::Slice1);
 
-            if *compilation_mode == CompilationMode::Slice1 {
+            if compilation_mode == CompilationMode::Slice1 {
                 let diagnostic = Diagnostic::new(Error::OptionalsNotSupported {
                     kind: type_ref.definition().kind().to_owned(),
                 })
@@ -203,7 +203,7 @@ impl EncodingPatcher<'_> {
             if diagnostics.is_empty() {
                 let diagnostic = Diagnostic::new(Error::UnsupportedType {
                     kind: type_ref.type_string(),
-                    mode: *compilation_mode,
+                    mode: compilation_mode,
                 })
                 .set_span(type_ref.span())
                 .extend_notes(self.get_mode_mismatch_note(type_ref));
@@ -274,7 +274,7 @@ trait ComputeSupportedEncodings {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str>;
 }
 
@@ -283,7 +283,7 @@ impl ComputeSupportedEncodings for Struct {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the struct into the cache to prevent infinite lookup cycles.
         // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
@@ -304,7 +304,7 @@ impl ComputeSupportedEncodings for Struct {
         // Non-compact structs cannot be defined in Slice1 mode.
         if !self.is_compact {
             supported_encodings.disable(Encoding::Slice1);
-            if *compilation_mode == CompilationMode::Slice1 {
+            if compilation_mode == CompilationMode::Slice1 {
                 return Some("structs defined in Slice1 mode must be 'compact'");
             }
         }
@@ -317,7 +317,7 @@ impl ComputeSupportedEncodings for Exception {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the exception into the cache to prevent infinite lookup cycles.
         // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
@@ -340,7 +340,7 @@ impl ComputeSupportedEncodings for Exception {
             supported_encodings.disable(Encoding::Slice2);
 
             // Exception inheritance can only be used in Slice1 mode.
-            if *compilation_mode != CompilationMode::Slice1 {
+            if compilation_mode != CompilationMode::Slice1 {
                 return Some("exception inheritance can only be used in Slice1 mode");
             }
         }
@@ -353,7 +353,7 @@ impl ComputeSupportedEncodings for Class {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the class into the cache to prevent infinite lookup cycles.
         // Cycles are allowed with classes, but the only encoding that supports classes is Slice1,
@@ -373,7 +373,7 @@ impl ComputeSupportedEncodings for Class {
         }
 
         supported_encodings.disable(Encoding::Slice2);
-        if *compilation_mode != CompilationMode::Slice1 {
+        if compilation_mode != CompilationMode::Slice1 {
             Some("classes can only be defined in Slice1 mode")
         } else {
             None
@@ -386,7 +386,7 @@ impl ComputeSupportedEncodings for Interface {
         &self,
         patcher: &mut EncodingPatcher,
         _: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // Insert a dummy entry for the interface into the cache to prevent infinite lookup cycles.
         // The correct encoding is computed and inserted later.
@@ -407,7 +407,7 @@ impl ComputeSupportedEncodings for Interface {
                 );
 
                 // Streamed parameters cannot be used in Slice1 mode.
-                if member.is_streamed && *compilation_mode == CompilationMode::Slice1 {
+                if member.is_streamed && compilation_mode == CompilationMode::Slice1 {
                     Diagnostic::new(Error::StreamedParametersNotSupported)
                         .set_span(member.span())
                         .report(patcher.diagnostic_reporter)
@@ -422,7 +422,7 @@ impl ComputeSupportedEncodings for Interface {
                     if !supported_encodings.supports(compilation_mode) {
                         Diagnostic::new(Error::UnsupportedType {
                             kind: exception_type.type_string(),
-                            mode: *compilation_mode,
+                            mode: compilation_mode,
                         })
                         .set_span(exception_type.span())
                         .extend_notes(patcher.get_mode_mismatch_note(exception_type))
@@ -430,7 +430,7 @@ impl ComputeSupportedEncodings for Interface {
                     }
                 }
                 Throws::AnyException => {
-                    if *compilation_mode != CompilationMode::Slice1 {
+                    if compilation_mode != CompilationMode::Slice1 {
                         Diagnostic::new(Error::AnyExceptionNotSupported)
                             .set_span(operation.span())
                             .report(patcher.diagnostic_reporter)
@@ -447,7 +447,7 @@ impl ComputeSupportedEncodings for Enum {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // TODO: rework all of this when we add enums with associated types.
         if let Some(underlying_type) = &self.underlying {
@@ -461,12 +461,12 @@ impl ComputeSupportedEncodings for Enum {
 
             // Enums with underlying types are not allowed in Slice1 mode.
             supported_encodings.disable(Encoding::Slice1);
-            if *compilation_mode == CompilationMode::Slice1 {
+            if compilation_mode == CompilationMode::Slice1 {
                 return Some("enums defined in Slice1 mode cannot have underlying types");
             }
         } else {
             // Enums defined in a file using Slice2 must have an explicit underlying type.
-            if *compilation_mode == CompilationMode::Slice2 {
+            if compilation_mode == CompilationMode::Slice2 {
                 // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
                 Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
                     enum_identifier: self.identifier().to_owned(),
@@ -492,7 +492,7 @@ impl ComputeSupportedEncodings for CustomType {
         &self,
         _: &mut EncodingPatcher,
         _: &mut SupportedEncodings,
-        _: &CompilationMode,
+        _: CompilationMode,
     ) -> Option<&'static str> {
         // Custom types are supported by all encodings.
         None
@@ -504,7 +504,7 @@ impl ComputeSupportedEncodings for TypeAlias {
         &self,
         patcher: &mut EncodingPatcher,
         supported_encodings: &mut SupportedEncodings,
-        compilation_mode: &CompilationMode,
+        compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
         // Type aliases only support encodings that its underlying type also supports.
         supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
