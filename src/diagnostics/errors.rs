@@ -514,7 +514,7 @@ implement_diagnostic_functions!(
     (
         "E045",
         AnyExceptionNotSupported,
-        "operations that throw AnyException cannot be used in Slice1 mode"
+        "operations that throw AnyException can only be used in Slice1 mode"
     ),
     (
         "E047",
