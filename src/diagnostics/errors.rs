@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::Encoding;
+use crate::grammar::CompilationMode;
 use crate::implement_diagnostic_functions;
 use crate::utils::string_util::indefinite_article;
 
@@ -36,38 +36,38 @@ pub enum Error {
     /// Structs must be compact to be used as a dictionary key type.
     StructKeyMustBeCompact,
 
-    // ----------------  Encoding Errors ---------------- //
-    /// The user specified an encoding multiple times in a single Slice file.
-    MultipleEncodingVersions,
+    // ----------------  Compilation Mode Errors ---------------- //
+    /// The user specified the compilation mode multiple times in a single Slice file.
+    MultipleCompilationModes,
 
-    /// The provided kind with identifier is not supported in the specified encoding.
-    NotSupportedWithEncoding {
+    /// A Slice construct was defined in a compilation mode that it isn't supported by.
+    NotSupportedInCompilationMode {
         /// The kind that is not supported.
         kind: String,
         /// The identifier of the kind that is not supported.
         identifier: String,
-        /// The encoding that was specified.
-        encoding: Encoding,
+        /// The compilation mode the construct was defined in.
+        mode: CompilationMode,
     },
 
-    /// Optionals of this kind are not supported with the Slice1 encoding.
+    /// Optionals of this kind cannot be used in Slice1 mode.
     OptionalsNotSupported {
         /// The kind that is not supported.
         kind: String,
     },
 
-    /// Streamed parameters are not supported with the Slice1 encoding.
+    /// Streamed parameters cannot be used in Slice1 mode.
     StreamedParametersNotSupported,
 
-    /// A non-Slice1 operation used the `AnyException` keyword.
+    /// 'AnyException' can only be used in Slice1 mode.
     AnyExceptionNotSupported,
 
-    /// An unsupported type was used in the specified encoding.
+    /// A slice type was used in a compilation mode that it isn't supported by.
     UnsupportedType {
-        /// The name of the kind that was used in the specified encoding.
+        /// The kind that was used.
         kind: String,
-        /// The encoding that was specified.
-        encoding: Encoding,
+        /// The compilation mode the type was used in.
+        mode: CompilationMode,
     },
 
     // ----------------  Enum Errors ---------------- //
@@ -110,7 +110,7 @@ pub enum Error {
     },
 
     // ----------------  Exception Errors ---------------- //
-    /// Exceptions cannot be used as a data type with the Slice1 encoding.
+    /// Exceptions cannot be used as a data type in Slice1 mode.
     ExceptionAsDataType,
 
     // ----------------  Operation Errors ---------------- //
@@ -202,10 +202,10 @@ pub enum Error {
         base: u32,
     },
 
-    /// An invalid Slice encoding was used.
-    InvalidEncodingVersion {
-        /// The encoding version that was used.
-        encoding: String,
+    /// An invalid compilation mode was specified.
+    InvalidCompilationMode {
+        /// The compilation mode that was specified.
+        mode: String,
     },
 
     /// An self-referential type had an infinite size cycle.
@@ -428,32 +428,32 @@ implement_diagnostic_functions!(
     ),
     (
         "E029",
-        NotSupportedWithEncoding,
-        format!("{kind} '{identifier}' is not supported by the {encoding} encoding"),
-        kind, identifier, encoding
+        NotSupportedInCompilationMode,
+        format!("{kind} '{identifier}' cannot be used in {mode} mode"),
+        kind, identifier, mode
     ),
     (
         "E030",
         UnsupportedType,
-        format!("the type '{kind}' is not supported by the {encoding} encoding"),
+        format!("the type '{kind}' cannot be used in {mode} mode"),
         kind,
-        encoding
+        mode
     ),
     (
         "E031",
         ExceptionAsDataType,
-        format!("exceptions cannot be used as a data type with the Slice1 encoding")
+        "exceptions cannot be used as a data type in Slice1 mode"
     ),
     (
         "E032",
         OptionalsNotSupported,
-        format!("optionals of type '{kind}' are not supported with the Slice1 encoding"),
+        format!("optionals of type '{kind}' cannot be used in Slice1 mode"),
         kind
     ),
     (
         "E033",
         StreamedParametersNotSupported,
-        "streamed parameters are not supported by the Slice1 encoding"
+        "streamed parameters cannot be used in Slice1 mode"
     ),
     (
         "E034",
@@ -502,20 +502,19 @@ implement_diagnostic_functions!(
     ),
     (
         "E042",
-        InvalidEncodingVersion,
-        format!("'{encoding}' is not a valid Slice encoding version"),
-        encoding
+        InvalidCompilationMode,
+        format!("'{mode}' is not a valid Slice compilation mode"),
+        mode
     ),
     (
         "E043",
-        MultipleEncodingVersions,
-        "only a single encoding can be specified per file".to_owned()
+        MultipleCompilationModes,
+        "the compilation mode can only be specified once per file"
     ),
     (
         "E045",
         AnyExceptionNotSupported,
-        format!("operations that throw AnyException are only supported by the Slice1 encoding")
-
+        "operations that throw AnyException can only be used in Slice1 mode"
     ),
     (
         "E047",

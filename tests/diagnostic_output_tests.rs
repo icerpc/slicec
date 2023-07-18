@@ -176,7 +176,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
     fn notes_with_same_span_as_diagnostic_are_suppressed() {
         // Arrange
         let slice = "
-            encoding = Slice2
+            mode = Slice2
             module Foo
         ";
 
@@ -192,7 +192,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Report a diagnostic with a note that has the same span as the diagnostic.
         let span = Span {
             start: (2, 13).into(),
-            end: (2, 30).into(),
+            end: (2, 26).into(),
             file: "string-0".to_owned(),
         };
 
@@ -211,8 +211,8 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
 error [E002]: invalid syntax: foo
  --> string-0:2:13
   |
-2 |             encoding = Slice2
-  |             -----------------
+2 |             mode = Slice2
+  |             -------------
   |
     = note: bar
 ";

@@ -64,7 +64,7 @@ fn can_be_empty() {
 fn cannot_redefine_fields() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         exception E {

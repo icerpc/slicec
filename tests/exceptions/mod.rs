@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 mod container;
-mod encoding;
 mod inheritance;
+mod mode_compatibility;
 mod tags;
 
 use crate::test_helpers::*;
@@ -52,7 +52,7 @@ fn throws_nothing() {
 #[test]
 fn throws_any_exception() {
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         interface I {

@@ -47,14 +47,14 @@ fn allowed_primitive_types(key_type: &str) {
     assert_parses(slice);
 }
 
-#[test_case("float32", 2; "float32")]
-#[test_case("float64", 2; "float64")]
-#[test_case("AnyClass", 1; "AnyClass")]
-fn disallowed_primitive_types(key_type: &str, encoding: u8) {
+#[test_case("float32", "Slice2"; "float32")]
+#[test_case("float64", "Slice2"; "float64")]
+#[test_case("AnyClass", "Slice1"; "AnyClass")]
+fn disallowed_primitive_types(key_type: &str, mode: &str) {
     // Arrange
     let slice = format!(
         "
-            encoding = Slice{encoding}
+            mode = {mode}
             module Test
             typealias Dict = dictionary<{key_type}, uint8>
         "
@@ -107,14 +107,14 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     assert_parses(slice);
 }
 
-#[test_case("MyClass", "class", 1; "classes")]
-#[test_case("MyException", "exception", 2; "exceptions")]
-#[test_case("MyInterface", "interface", 2; "interfaces")]
-fn disallowed_constructed_types(key_type: &str, key_kind: &str, encoding: u8) {
+#[test_case("MyClass", "class", "Slice1"; "classes")]
+#[test_case("MyException", "exception", "Slice2"; "exceptions")]
+#[test_case("MyInterface", "interface", "Slice2"; "interfaces")]
+fn disallowed_constructed_types(key_type: &str, key_kind: &str, mode: &str) {
     // Arrange
     let slice = format!(
         "
-            encoding = Slice{encoding}
+            mode = {mode}
             module Test
 
             {key_kind} {key_type} {{}}

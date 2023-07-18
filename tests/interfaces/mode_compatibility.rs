@@ -2,19 +2,19 @@
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
-use slicec::grammar::Encoding;
+use slicec::grammar::CompilationMode;
 
 #[test]
-fn operation_members_are_compatible_with_encoding() {
+fn parameters_must_be_allowed_within_compilation_mode() {
     // Arrange
     let slice1 = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class C {}
     ";
     let slice2 = "
-        encoding = Slice2
+        mode = Slice2
         module Test
 
         interface I {
@@ -28,7 +28,7 @@ fn operation_members_are_compatible_with_encoding() {
     // Assert
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
-        encoding: Encoding::Slice2,
+        mode: CompilationMode::Slice2,
     });
 
     check_diagnostics(diagnostics, [expected]);
@@ -59,7 +59,7 @@ mod slice1 {
     #[test]
     fn operations_can_throw_any_exception() {
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             interface I {

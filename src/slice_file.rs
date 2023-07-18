@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::{implement_Attributable_for, Attributable, Attribute, Definition, Encoding, FileEncoding, Module};
+use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
@@ -53,7 +53,7 @@ pub struct SliceFile {
     pub relative_path: String,
     pub raw_text: String,
 
-    pub encoding: Option<FileEncoding>,
+    pub mode: Option<FileCompilationMode>,
     pub module: Option<WeakPtr<Module>>,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub contents: Vec<Definition>,
@@ -75,7 +75,7 @@ impl SliceFile {
             filename,
             relative_path,
             raw_text,
-            encoding: None,
+            mode: None,
             module: None,
             attributes: Vec::new(),
             contents: Vec::new(),
@@ -83,15 +83,15 @@ impl SliceFile {
         }
     }
 
-    /// Returns the Slice encoding used by this file.
+    /// Returns the compilation mode used by this file.
     ///
-    /// If no encoding was explicitly declared, it returns the default encoding.
+    /// If no mode was explicitly declared, it returns the default mode.
     ///
-    /// See [Encoding::default()](crate::grammar::Encoding::default)
-    pub fn encoding(&self) -> Encoding {
-        self.encoding
+    /// See [CompilationMode::default()](crate::grammar::CompilationMode::default)
+    pub fn compilation_mode(&self) -> CompilationMode {
+        self.mode
             .as_ref()
-            .map_or(Encoding::default(), |encoding| encoding.version)
+            .map_or(CompilationMode::default(), |mode| mode.version)
     }
 
     /// Retrieves a formatted snippet from the slice file.

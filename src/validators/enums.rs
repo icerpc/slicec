@@ -65,11 +65,8 @@ fn backing_type_bounds(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticRepo
     }
 }
 
-/// Validate that the backing type specified for a Slice2 enums is an integral type.
+/// Validate that the backing type (if present) is an integral type.
 fn allowed_underlying_types(enum_def: &Enum, diagnostic_reporter: &mut DiagnosticReporter) {
-    if enum_def.supported_encodings().supports(&Encoding::Slice1) {
-        return;
-    }
     match &enum_def.underlying {
         Some(underlying_type) => {
             if !underlying_type.is_integral() {

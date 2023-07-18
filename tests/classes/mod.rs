@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 mod container;
-mod encoding;
 mod inheritance;
+mod mode_compatibility;
 mod tags;
 
 use crate::test_helpers::*;
@@ -12,7 +12,7 @@ use slicec::grammar::*;
 fn support_compact_type_id() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class C(42) {}

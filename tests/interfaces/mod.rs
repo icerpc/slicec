@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-mod encoding;
 mod inheritance;
+mod mode_compatibility;
 mod operations;
 
 use crate::test_helpers::*;
@@ -85,7 +85,7 @@ fn can_have_multiple_operation() {
 fn cannot_redefine_operations() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         interface I {

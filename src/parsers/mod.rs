@@ -38,7 +38,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
 
     // Parse the preprocessed text.
     let parser = Parser::new(&file.relative_path, ast, diagnostics);
-    let Ok((encoding, attributes, module, definitions)) = parser.parse_slice_file(preprocessed_text) else { return };
+    let Ok((mode, attributes, module, definitions)) = parser.parse_slice_file(preprocessed_text) else { return };
 
     // Issue a syntax error if the user had definitions but forgot to declare a module.
     if !definitions.is_empty() && module.is_none() {
@@ -50,7 +50,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Vec<Diagnos
     }
 
     // Store the parsed data in the `SliceFile` it was parsed from.
-    file.encoding = encoding;
+    file.mode = mode;
     file.module = module.map(|m| ast.add_named_element(m));
     file.attributes = attributes;
     file.contents = definitions;

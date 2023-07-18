@@ -9,7 +9,7 @@ use slicec::slice_file::Span;
 fn supports_single_inheritance() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
         class I {}
 
@@ -35,7 +35,7 @@ fn supports_single_inheritance() {
 fn does_not_support_multiple_inheritance() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class I {}
@@ -61,7 +61,7 @@ fn does_not_support_multiple_inheritance() {
 fn field_shadowing_is_disallowed() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class I {
@@ -88,7 +88,7 @@ fn field_shadowing_is_disallowed() {
 fn inherits_correct_fields() {
     // Arrange
     let slice = "
-        encoding = Slice1
+        mode = Slice1
         module Test
 
         class A {

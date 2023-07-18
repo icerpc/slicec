@@ -71,6 +71,11 @@ impl fmt::Display for Encoding {
     }
 }
 
+/// This enum specifies all the compilation modes supported by Slice.
+///
+/// For convenience it's an alias of `Encoding`, since they are used interchangeably in places.
+pub type CompilationMode = Encoding;
+
 /// This tag format describes how the data is encoded and how it can be skipped by the decoding
 /// code if the tagged parameter is present in the buffer but is not known to the receiver.
 #[derive(Clone, Debug, PartialEq, Eq)]

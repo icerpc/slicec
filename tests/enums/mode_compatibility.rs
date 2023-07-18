@@ -4,15 +4,14 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::CompilationMode;
 
-    /// Verifies that the slice parser with the Slice1 encoding emits errors when parsing an enum
-    /// that has an underlying type.
+    /// Verifies that underlying types are disallowed in Slice1 mode.
     #[test]
     fn underlying_types_fail() {
         // Arrange
         let slice = "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             unchecked enum E : int32 {}
@@ -22,15 +21,12 @@ mod slice1 {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::NotSupportedWithEncoding {
+        let expected = Diagnostic::new(Error::NotSupportedInCompilationMode {
             kind: "enum".to_owned(),
             identifier: "E".to_owned(),
-            encoding: Encoding::Slice1,
+            mode: CompilationMode::Slice1,
         })
-        .add_note(
-            "enums with underlying types are not supported by the Slice1 encoding",
-            None,
-        );
+        .add_note("enums defined in Slice1 mode cannot have underlying types", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

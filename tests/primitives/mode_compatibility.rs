@@ -4,7 +4,7 @@ mod slice1 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::CompilationMode;
     use test_case::test_case;
 
     /// Verifies that if Slice1 is used with unsupported types (int8, uint16, uint32, varint32,
@@ -22,7 +22,7 @@ mod slice1 {
         // Test setup
         let slice = &format!(
             "
-                encoding = Slice1
+                mode = Slice1
                 module Test
 
                 compact struct S {{
@@ -37,7 +37,7 @@ mod slice1 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: value.to_owned(),
-            encoding: Encoding::Slice1,
+            mode: CompilationMode::Slice1,
         });
 
         check_diagnostics(diagnostics, [expected]);
@@ -58,7 +58,7 @@ mod slice1 {
         // Arrange
         let slice = &format!(
             "
-            encoding = Slice1
+            mode = Slice1
             module Test
 
             compact struct S {{
@@ -76,7 +76,7 @@ mod slice2 {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::Encoding;
+    use slicec::grammar::CompilationMode;
     use test_case::test_case;
 
     /// Verifies that if Slice2 is used with unsupported types (AnyClass) that the compiler will
@@ -98,9 +98,9 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            encoding: Encoding::Slice2,
+            mode: CompilationMode::Slice2,
         })
-        .add_note("file is using the Slice2 encoding by default", None);
+        .add_note("this file's compilation mode is Slice2 by default", None);
 
         check_diagnostics(diagnostics, [expected]);
     }

@@ -2,51 +2,51 @@
 
 mod test_helpers;
 
-mod encodings {
+mod compilation_mode {
 
     use crate::test_helpers::*;
     use slicec::diagnostics::{Diagnostic, Error};
     use test_case::test_case;
 
-    /// Verifies that the supported encodings compile
+    /// Verifies that the supported compilation modes compile
     #[test_case("Slice1")]
     #[test_case("Slice2")]
-    fn valid_encodings(value: &str) {
+    fn valid_compilation_modes_succeed(value: &str) {
         // Arrange
-        let slice = format!("encoding = {value}");
+        let slice = format!("mode = {value}");
 
         // Act/Assert
         assert_parses(slice);
     }
 
     #[test]
-    fn invalid_encodings_fail() {
+    fn invalid_compilation_modes_fail() {
         // Arrange
-        let slice = "encoding = Slice3";
+        let slice = "mode = Slice3";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InvalidEncodingVersion {
-            encoding: "Slice3".to_owned(),
+        let expected = Diagnostic::new(Error::InvalidCompilationMode {
+            mode: "Slice3".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
-    fn encoding_must_be_first() {
+    fn compilation_mode_must_appear_before_other_statements() {
         // Arrange
         let slice = "
             module Test
-            encoding = Slice2
+            mode = Slice2
         ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '::', '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'struct', 'typealias', or 'unchecked', but found 'encoding'".to_owned()});
+        let expected = Diagnostic::new(Error::Syntax{message: "expected one of '::', '[', 'class', 'compact', 'custom', 'doc comment', 'enum', 'exception', 'interface', 'struct', 'typealias', or 'unchecked', but found 'mode'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }

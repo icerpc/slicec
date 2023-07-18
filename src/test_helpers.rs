@@ -19,7 +19,7 @@ pub fn diagnostics_from_compilation_state(compilation_state: CompilationState) -
 ///
 /// If the correct number were emitted, it checks each diagnostic against the expected array in order.
 /// For each diagnostic we ensure:
-/// - It has the correct error code.
+/// - It has the correct diagnostic code.
 /// - It has the correct message.
 /// - If a span was expected, that it has the correct span.
 /// - If notes are expected, we check that all the notes have correct messages and spans.
