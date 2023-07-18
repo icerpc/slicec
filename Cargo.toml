@@ -25,7 +25,7 @@ serde_json = "1.0.103"
 lalrpop = { version = "0.20.0", default-features = false }
 
 [dev-dependencies]
-test-case = "3.0.0"
+test-case = "3.1.0"
 
 [lib]
 name = "slicec"
