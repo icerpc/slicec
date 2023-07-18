@@ -60,15 +60,15 @@ type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 fn handle_file_compilation_mode(
     parser: &mut Parser,
-    (old_mode, attributes): (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>),
+    (previous_mode, attributes): (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>),
     mode: FileCompilationMode,
 ) -> (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>) {
     // Compilation mode can only be set once per file.
-    if let Some(old_file_mode) = old_mode {
-        let old_span = old_file_mode.span();
+    if let Some(previous_file_mode) = previous_mode {
+        let span = previous_file_mode.span();
         let diagnostic = Diagnostic::new(Error::MultipleCompilationModes)
-            .set_span(old_span)
-            .add_note("the compilation mode was previously specified here", Some(old_span));
+            .set_span(span)
+            .add_note("the compilation mode was previously specified here", Some(span));
         parser.diagnostics.push(diagnostic);
     }
     parser.compilation_mode = mode.version;

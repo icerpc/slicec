@@ -203,7 +203,7 @@ impl EncodingPatcher<'_> {
             if diagnostics.is_empty() {
                 let diagnostic = Diagnostic::new(Error::UnsupportedType {
                     kind: type_ref.type_string(),
-                    compilation_mode: *compilation_mode,
+                    mode: *compilation_mode,
                 })
                 .set_span(type_ref.span())
                 .extend_notes(self.get_mode_mismatch_note(type_ref));
@@ -422,7 +422,7 @@ impl ComputeSupportedEncodings for Interface {
                     if !supported_encodings.supports(compilation_mode) {
                         Diagnostic::new(Error::UnsupportedType {
                             kind: exception_type.type_string(),
-                            compilation_mode: *compilation_mode,
+                            mode: *compilation_mode,
                         })
                         .set_span(exception_type.span())
                         .extend_notes(patcher.get_mode_mismatch_note(exception_type))

@@ -158,7 +158,7 @@ mod typealias {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: underlying_type.to_owned(),
-            compilation_mode: match mode {
+            mode: match mode {
                 "Slice1" => CompilationMode::Slice1,
                 "Slice2" => CompilationMode::Slice2,
                 _ => panic!(),

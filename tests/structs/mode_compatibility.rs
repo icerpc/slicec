@@ -58,7 +58,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "AnyClass".to_owned(),
-            compilation_mode: CompilationMode::Slice2,
+            mode: CompilationMode::Slice2,
         })
         .add_note("this file's compilation mode is Slice2 by default", None);
 

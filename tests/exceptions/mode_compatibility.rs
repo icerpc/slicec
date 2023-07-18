@@ -107,7 +107,7 @@ mod slice2 {
         // Assert
         let expected = Diagnostic::new(Error::UnsupportedType {
             kind: "E".to_owned(),
-            compilation_mode: CompilationMode::Slice2,
+            mode: CompilationMode::Slice2,
         });
         check_diagnostics(diagnostics, [expected]);
     }

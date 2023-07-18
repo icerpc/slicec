@@ -28,7 +28,7 @@ fn parameters_must_be_allowed_within_compilation_mode() {
     // Assert
     let expected = Diagnostic::new(Error::UnsupportedType {
         kind: "C".to_owned(),
-        compilation_mode: CompilationMode::Slice2,
+        mode: CompilationMode::Slice2,
     });
 
     check_diagnostics(diagnostics, [expected]);

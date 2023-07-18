@@ -40,7 +40,7 @@ pub enum Error {
     /// The user specified the compilation mode multiple times in a single Slice file.
     MultipleCompilationModes,
 
-    /// A slice construct cannot be used with the compilation mode it was defined in.
+    /// A Slice construct was defined in a compilation mode that it isn't supported by.
     NotSupportedInCompilationMode {
         /// The kind that is not supported.
         kind: String,
@@ -59,7 +59,7 @@ pub enum Error {
     /// Streamed parameters cannot be used in Slice1 mode.
     StreamedParametersNotSupported,
 
-    /// An operation throws `AnyException` outside of Slice1 mode.
+    /// 'AnyException' can only be used in Slice1 mode.
     AnyExceptionNotSupported,
 
     /// A slice type was used in a compilation mode that it isn't supported by.
@@ -67,7 +67,7 @@ pub enum Error {
         /// The kind that was used.
         kind: String,
         /// The compilation mode the type was used in.
-        compilation_mode: CompilationMode,
+        mode: CompilationMode,
     },
 
     // ----------------  Enum Errors ---------------- //
@@ -435,9 +435,9 @@ implement_diagnostic_functions!(
     (
         "E030",
         UnsupportedType,
-        format!("the type '{kind}' cannot be used in {compilation_mode} mode"),
+        format!("the type '{kind}' cannot be used in {mode} mode"),
         kind,
-        compilation_mode
+        mode
     ),
     (
         "E031",

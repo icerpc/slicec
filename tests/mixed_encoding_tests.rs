@@ -78,11 +78,11 @@ fn invalid_mixed_compilation_mode_fails() {
     let expected = [
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACustomType".to_owned(),
-            compilation_mode: CompilationMode::Slice1,
+            mode: CompilationMode::Slice1,
         }),
         Diagnostic::new(Error::UnsupportedType {
             kind: "ACompactStruct".to_owned(),
-            compilation_mode: CompilationMode::Slice1,
+            mode: CompilationMode::Slice1,
         }),
     ];
     check_diagnostics(diagnostics, expected);
