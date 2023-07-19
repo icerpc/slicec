@@ -37,7 +37,7 @@ pub struct SliceOptions {
     #[arg(short = 'O', long, value_name = "DIRECTORY")]
     pub output_dir: Option<String>,
 
-    /// Specify how the compiler should emit errors and warnings.
+    /// Set which format to emit errors and warnings with.
     #[arg(long, value_name = "FORMAT", value_enum, default_value_t = DiagnosticFormat::Human, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
