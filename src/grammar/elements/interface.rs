@@ -19,7 +19,7 @@ pub struct Interface {
 
 impl Interface {
     pub fn operations(&self) -> Vec<&Operation> {
-        self.operations.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn all_inherited_operations(&self) -> Vec<&Operation> {
@@ -89,4 +89,4 @@ implement_Element_for!(Interface, "interface");
 implement_Attributable_for!(Interface);
 implement_Entity_for!(Interface);
 implement_Commentable_for!(Interface);
-implement_Container_for!(Interface, WeakPtr<Operation>, operations);
+implement_Container_for!(Interface, Operation, operations);

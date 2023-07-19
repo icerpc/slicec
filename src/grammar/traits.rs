@@ -72,8 +72,8 @@ impl<A: Attributable + ?Sized> AttributeFunctions for A {
 
 pub trait Entity: ScopedSymbol + NamedSymbol + Attributable + AsEntities {}
 
-pub trait Container<T>: Entity {
-    fn contents(&self) -> &Vec<T>;
+pub trait Container<T: Entity>: Entity {
+    fn contents(&self) -> Vec<&T>;
 }
 
 pub trait Contained<T: Entity + ?Sized>: Entity {
@@ -222,8 +222,8 @@ macro_rules! implement_Entity_for {
 macro_rules! implement_Container_for {
     ($type:ty, $contained_type:ty, $field_name:ident) => {
         impl Container<$contained_type> for $type {
-            fn contents(&self) -> &Vec<$contained_type> {
-                &self.$field_name
+            fn contents(&self) -> Vec<&$contained_type> {
+                self.$field_name.iter().map(WeakPtr::borrow).collect()
             }
         }
     };

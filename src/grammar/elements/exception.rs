@@ -19,7 +19,7 @@ pub struct Exception {
 
 impl Exception {
     pub fn fields(&self) -> Vec<&Field> {
-        self.fields.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn all_inherited_fields(&self) -> Vec<&Field> {
@@ -74,4 +74,4 @@ implement_Element_for!(Exception, "exception");
 implement_Attributable_for!(Exception);
 implement_Entity_for!(Exception);
 implement_Commentable_for!(Exception);
-implement_Container_for!(Exception, WeakPtr<Field>, fields);
+implement_Container_for!(Exception, Field, fields);

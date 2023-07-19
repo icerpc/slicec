@@ -4,7 +4,6 @@ use crate::ast::node::Node;
 use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
 use crate::grammar::{Container, Field, Member, Types};
-use crate::utils::ptr_util::WeakPtr;
 
 pub(super) fn detect_cycles(ast: &Ast, diagnostic_reporter: &mut DiagnosticReporter) {
     let mut cycle_detector = CycleDetector {
@@ -33,7 +32,7 @@ struct CycleDetector<'a> {
 }
 
 impl CycleDetector<'_> {
-    fn check_for_cycles(&mut self, container: &impl Container<WeakPtr<Field>>) -> bool {
+    fn check_for_cycles(&mut self, container: &impl Container<Field>) -> bool {
         let type_id = container.module_scoped_identifier();
 
         if self.dependency_stack.first() == Some(&type_id) {
@@ -52,7 +51,7 @@ impl CycleDetector<'_> {
             // If this container's identifier isn't in the stack, we check its fields for cycles.
             self.dependency_stack.push(type_id);
             for field in container.contents() {
-                let cycle_was_found = match field.borrow().data_type().concrete_type() {
+                let cycle_was_found = match field.data_type().concrete_type() {
                     Types::Struct(struct_def) => self.check_for_cycles(struct_def),
                     Types::Exception(exception_def) => self.check_for_cycles(exception_def),
                     _ => false,

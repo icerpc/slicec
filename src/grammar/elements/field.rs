@@ -9,7 +9,7 @@ pub struct Field {
     pub identifier: Identifier,
     pub data_type: TypeRef,
     pub tag: Option<Integer<u32>>,
-    pub parent: WeakPtr<dyn Container<WeakPtr<Field>>>,
+    pub parent: WeakPtr<dyn Container<Field>>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
@@ -20,5 +20,5 @@ implement_Element_for!(Field, "field");
 implement_Attributable_for!(@Contained Field);
 implement_Entity_for!(Field);
 implement_Commentable_for!(Field);
-implement_Contained_for!(Field, dyn Container<WeakPtr<Field>> + 'static);
+implement_Contained_for!(Field, dyn Container<Field> + 'static);
 implement_Member_for!(Field);

@@ -20,7 +20,7 @@ pub struct Enum {
 
 impl Enum {
     pub fn enumerators(&self) -> Vec<&Enumerator> {
-        self.enumerators.iter().map(WeakPtr::borrow).collect()
+        self.contents()
     }
 
     pub fn get_min_max_values(&self) -> Option<(i128, i128)> {
@@ -65,4 +65,4 @@ implement_Element_for!(Enum, "enum");
 implement_Attributable_for!(Enum);
 implement_Entity_for!(Enum);
 implement_Commentable_for!(Enum);
-implement_Container_for!(Enum, WeakPtr<Enumerator>, enumerators);
+implement_Container_for!(Enum, Enumerator, enumerators);

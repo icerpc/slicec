@@ -48,7 +48,7 @@ macro_rules! set_children_for {
 
 macro_rules! set_fields_for {
     ($parent_ptr:expr, $children:ident, $parser:expr) => {{
-        let downgraded = downgrade_as!($parent_ptr, dyn Container<WeakPtr<Field>>);
+        let downgraded = downgrade_as!($parent_ptr, dyn Container<Field>);
         set_children_for_impl!($parent_ptr, downgraded.clone(), $children, $parser);
     }};
 }
