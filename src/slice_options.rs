@@ -17,15 +17,16 @@ pub struct SliceOptions {
     pub sources: Vec<String>,
 
     /// Add a directory or Slice file to the list of references.
-    #[arg(short = 'R', value_name="REFERENCE", num_args = 1, action = Append)]
+    #[arg(short = 'R', num_args = 1, action = Append, value_name = "REFERENCE")]
     pub references: Vec<String>,
 
     /// Define a preprocessor symbol.
-    #[arg(short = 'D', value_name="SYMBOL", num_args = 1, action = Append)]
+    #[arg(short = 'D', num_args = 1, action = Append, value_name = "SYMBOL")]
     pub defined_symbols: Vec<String>,
 
     /// Instruct the compiler to allow the specified lint.
-    #[arg(short = 'A', long = "allow", value_name="LINT_NAME", value_parser = Lint::ALLOWABLE_LINT_IDENTIFIERS, num_args = 1, action = Append)]
+    // TODO add a link to the lint reference in this doc comment!
+    #[arg(short = 'A', long = "allow", num_args = 1, action = Append, value_name = "LINT_NAME", value_parser = Lint::ALLOWABLE_LINT_IDENTIFIERS, hide_possible_values = true, ignore_case = true)]
     pub allowed_lints: Vec<String>,
 
     /// Validate input files without generating code for them.
@@ -33,11 +34,11 @@ pub struct SliceOptions {
     pub dry_run: bool,
 
     /// Set the output directory for the generated code. Defaults to the current working directory.
-    #[arg(short = 'O', long)]
+    #[arg(short = 'O', long, value_name = "DIRECTORY")]
     pub output_dir: Option<String>,
 
-    /// Set the output format for emitted errors.
-    #[arg(value_enum, default_value_t = DiagnosticFormat::Human, long, ignore_case = true)]
+    /// Set which format to emit errors and warnings with.
+    #[arg(long, value_name = "FORMAT", value_enum, default_value_t = DiagnosticFormat::Human, ignore_case = true)]
     pub diagnostic_format: DiagnosticFormat,
 
     /// Disable ANSI color codes in diagnostic output.
@@ -46,13 +47,12 @@ pub struct SliceOptions {
 }
 
 /// This enum is used to specify the format for emitted diagnostics.
-///
-/// # Variants
-/// * Human - Any emitted diagnostics will be printed to the console with an easily readable format.
-/// * Json - Any emitted diagnostics will be serialized as JSON objects and printed to the console.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, ValueEnum)]
 pub enum DiagnosticFormat {
+    /// Diagnostics are printed to the console in an easily readable format with source code snippets when possible.
     #[default]
     Human,
+
+    /// Diagnostics will be serialized as JSON objects and printed to the console, one diagnostic per line.
     Json,
 }
