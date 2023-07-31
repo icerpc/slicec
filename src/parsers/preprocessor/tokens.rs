@@ -12,13 +12,13 @@ pub type Error = (Location, ErrorKind, Location);
 /// This enum specifies all the kinds of tokens that the preprocessor [Lexer](super::lexer::Lexer) can return.
 #[derive(Clone, Debug)]
 pub enum TokenKind<'input> {
-    /// An identifier for a preprocessor variable, which may either be defined (true) or undefined (false).
-    Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
-
     /// A block of contiguous Slice source code (as opposed to a preprocessor directive).
     /// A Slice file is comprised of lines of preprocessor directives with blocks of source code between them.
     /// The preprocessor preserves these blocks untouched, and performs no analysis or parsing of them.
     SourceBlock(SourceBlock<'input>),
+
+    /// An identifier for a preprocessor variable, which may either be defined (true) or undefined (false).
+    Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
 
     // Directive keywords
     DefineKeyword,   // "#\s*define"

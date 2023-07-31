@@ -226,8 +226,8 @@ impl<'input> Lexer<'input> {
                 Ok((start_location, TokenKind::RightBrace, self.cursor))
             }
 
-            // If the next character is an alphanumeric or underscore, it's the start of an identifier.
-            c if c.is_ascii_alphanumeric() || c == '_' => {
+            // If the next character is a letter, it's the start of an identifier.
+            c if c.is_ascii_alphabetic() => {
                 let start_location = self.cursor;
                 let identifier = self.read_identifier();
                 Ok((start_location, TokenKind::Identifier(identifier), self.cursor))

@@ -17,13 +17,13 @@ pub enum TokenKind<'input> {
     /// While identifiers can be escaped with a leading '\', this is not counted as part of the identifier.
     Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
 
-    /// A string of alphanumeric characters that starts with a number.
-    /// We allow alphanumeric characters to support hex literals.
-    IntegerLiteral(&'input str), // "[0-9][_a-zA-Z0-9]*"
-
     /// A string literal consists of any non-newline characters contained within a pair of unescaped double-quotes.
     /// Note that the value doesn't contain the enclosing quotation marks, only the characters in between them.
     StringLiteral(&'input str),
+
+    /// A string of alphanumeric characters that starts with a number.
+    /// We allow alphanumeric characters to support hex literals.
+    IntegerLiteral(&'input str), // "[0-9][_a-zA-Z0-9]*"
 
     /// Documentation comments are preceded by 3 forward slashes ("///") and continue until end of line.
     /// Note that the value doesn't contain the slashes or the newline, only the characters in between them.

@@ -18,8 +18,8 @@ extern {
     // says that wherever we use `identifier` in the grammar, it actually represents a `TokenKind::Identifier`.
     // Identifiers must match the names we use in the grammar rules, and values must match enumerators in `tokens.rs`.
     enum TokenKind<'input> {
-        identifier => TokenKind::Identifier(<&'input str>),
         source_block => TokenKind::SourceBlock(<SourceBlock<'input>>),
+        identifier => TokenKind::Identifier(<&'input str>),
 
         // Directive keywords
         define_keyword => TokenKind::DefineKeyword,
