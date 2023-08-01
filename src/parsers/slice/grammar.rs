@@ -66,7 +66,7 @@ fn handle_file_compilation_mode(
     // Compilation mode can only be set once per file.
     if let Some(previous_file_mode) = previous_mode {
         let span = previous_file_mode.span();
-        Diagnostic::new(Error::MultipleEncodingVersions)
+        Diagnostic::new(Error::MultipleCompilationModes)
             .set_span(span)
             .add_note("the compilation mode was previously specified here", Some(span))
             .push_into(parser.diagnostics);

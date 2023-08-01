@@ -202,7 +202,7 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
         // Report a diagnostic where its span is the same as its note's span.
         let span = Span {
             start: (2, 13).into(),
-            end: (2, 30).into(),
+            end: (2, 26).into(),
             file: file_name,
         };
         let diagnostic = Diagnostic::new(Error::Syntax {
