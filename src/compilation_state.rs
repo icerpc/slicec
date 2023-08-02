@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostic_emitter::{DiagnosticEmitter, emit_totals};
+use crate::diagnostic_emitter::{emit_totals, DiagnosticEmitter};
 use crate::diagnostics::{get_totals, Diagnostic, Diagnostics};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
