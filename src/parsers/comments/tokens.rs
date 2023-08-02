@@ -13,7 +13,7 @@ pub type Error<'a> = (Location, ErrorKind<'a>, Location);
 pub enum TokenKind<'input> {
     /// An identifier for a Slice definition. This rule is more flexible than Slice allows but this keeps the lexer
     /// simpler. This is fine because we validate that the identifier corresponds to a real identifier later.
-    Identifier(&'input str), // "[_a-zA-Z0-9]+"
+    Identifier(&'input str), // "[a-zA-Z][_a-zA-Z0-9]*"
 
     /// Raw text that isn't parsed any further. These tokens make up messages and descriptions and are only lexed on
     /// lines that continue another section, or after a ':' character on lines that start a new section.
