@@ -1,13 +1,13 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::*;
 
-pub fn validate_type_alias(type_alias: &TypeAlias, diagnostic_reporter: &mut DiagnosticReporter) {
-    type_aliases_cannot_be_optional(type_alias, diagnostic_reporter);
+pub fn validate_type_alias(type_alias: &TypeAlias, diagnostics: &mut Diagnostics) {
+    type_aliases_cannot_be_optional(type_alias, diagnostics);
 }
 
-fn type_aliases_cannot_be_optional(type_alias: &TypeAlias, diagnostic_reporter: &mut DiagnosticReporter) {
+fn type_aliases_cannot_be_optional(type_alias: &TypeAlias, diagnostics: &mut Diagnostics) {
     if type_alias.underlying.is_optional {
         Diagnostic::new(Error::TypeAliasOfOptional)
             .set_span(type_alias.span())
@@ -19,6 +19,6 @@ fn type_aliases_cannot_be_optional(type_alias: &TypeAlias, diagnostic_reporter: 
                 "instead of aliasing an optional type directly, try making it optional where you use it",
                 None,
             )
-            .report(diagnostic_reporter)
+            .push_into(diagnostics)
     }
 }

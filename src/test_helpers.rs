@@ -5,11 +5,12 @@
 
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, DiagnosticLevel};
+use crate::slice_options::SliceOptions;
 
 /// This function is used to get the Diagnostics from a `CompilationState`.
 #[must_use]
-pub fn diagnostics_from_compilation_state(compilation_state: CompilationState) -> Vec<Diagnostic> {
-    let mut diagnostics = compilation_state.into_diagnostics();
+pub fn diagnostics_from_compilation_state(state: CompilationState, options: &SliceOptions) -> Vec<Diagnostic> {
+    let mut diagnostics = state.into_diagnostics(options);
     diagnostics.retain(|diagnostic| diagnostic.level() != DiagnosticLevel::Allowed);
     diagnostics
 }

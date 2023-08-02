@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
 use std::collections::HashMap;
@@ -42,23 +42,23 @@ impl PartialEq for FilePath {
     }
 }
 
-pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<SliceFile> {
+pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics) -> Vec<SliceFile> {
     // Create a map of all the Slice files with entries like: (absolute_path, is_source).
     // HashMap protects against files being passed twice (as reference and source).
     // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
     let mut file_paths = HashMap::new();
 
-    let reference_files = find_slice_files(&options.references, true, diagnostic_reporter);
+    let reference_files = find_slice_files(&options.references, true, diagnostics);
 
     // Report a lint violation for any duplicate reference files.
     for reference_file in reference_files {
         let path = reference_file.path.clone();
         if file_paths.insert(reference_file, false).is_some() {
-            Diagnostic::new(Lint::DuplicateFile { path }).report(diagnostic_reporter);
+            Diagnostic::new(Lint::DuplicateFile { path }).push_into(diagnostics);
         }
     }
 
-    let source_files = find_slice_files(&options.sources, false, diagnostic_reporter);
+    let source_files = find_slice_files(&options.sources, false, diagnostics);
 
     // Report a lint violation for duplicate source files (any that duplicate another source file not a reference file).
     for source_file in source_files {
@@ -68,7 +68,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
         if let Some(is_source) = file_paths.insert(source_file, true) {
             // Only report an error if the file was previously a source file.
             if is_source {
-                Diagnostic::new(Lint::DuplicateFile { path }).report(diagnostic_reporter);
+                Diagnostic::new(Lint::DuplicateFile { path }).push_into(diagnostics);
             }
         }
     }
@@ -84,31 +84,26 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostic_reporter: &mut Diag
                 path: file_path.path,
                 error,
             })
-            .report(diagnostic_reporter),
+            .push_into(diagnostics),
         }
     }
 
     files
 }
 
-fn find_slice_files(
-    paths: &[String],
-    allow_directories: bool,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) -> Vec<FilePath> {
+fn find_slice_files(paths: &[String], allow_directories: bool, diagnostics: &mut Diagnostics) -> Vec<FilePath> {
     let mut slice_paths = Vec::new();
     for path in paths {
         let path_buf = PathBuf::from(path);
 
-        // If the path does not exist, report an error and continue to the next path.
+        // If the path does not exist, report an error and continue.
         if !path_buf.exists() {
-            // If the path does not exist, report an error and continue.
             Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io::ErrorKind::NotFound.into(),
             })
-            .report(diagnostic_reporter);
+            .push_into(diagnostics);
             continue;
         }
 
@@ -122,7 +117,7 @@ fn find_slice_files(
                 path: path.to_owned(),
                 error: io_error,
             })
-            .report(diagnostic_reporter);
+            .push_into(diagnostics);
             continue;
         }
 
@@ -136,11 +131,11 @@ fn find_slice_files(
                 path: path.to_owned(),
                 error: io_error,
             })
-            .report(diagnostic_reporter);
+            .push_into(diagnostics);
             continue;
         }
 
-        slice_paths.extend(find_slice_files_in_path(path_buf, diagnostic_reporter));
+        slice_paths.extend(find_slice_files_in_path(path_buf, diagnostics));
     }
 
     slice_paths
@@ -154,25 +149,25 @@ fn find_slice_files(
                     path,
                     error,
                 })
-                .report(diagnostic_reporter);
+                .push_into(diagnostics);
                 None
             }
         })
         .collect()
 }
 
-fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticReporter) -> Vec<PathBuf> {
+fn find_slice_files_in_path(path: PathBuf, diagnostics: &mut Diagnostics) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     if path.is_dir() {
         // Recurse into the directory.
-        match find_slice_files_in_directory(&path, diagnostic_reporter) {
+        match find_slice_files_in_directory(&path, diagnostics) {
             Ok(child_paths) => paths.extend(child_paths),
             Err(error) => Diagnostic::new(Error::IO {
                 action: "read",
                 path: path.display().to_string(),
                 error,
             })
-            .report(diagnostic_reporter),
+            .push_into(diagnostics),
         }
     } else if path.is_file() && is_slice_file(&path) {
         // Add the file to the list of paths.
@@ -183,17 +178,14 @@ fn find_slice_files_in_path(path: PathBuf, diagnostic_reporter: &mut DiagnosticR
     paths
 }
 
-fn find_slice_files_in_directory(
-    path: &Path,
-    diagnostic_reporter: &mut DiagnosticReporter,
-) -> io::Result<Vec<PathBuf>> {
+fn find_slice_files_in_directory(path: &Path, diagnostics: &mut Diagnostics) -> io::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let dir = path.read_dir()?;
 
     // Iterate though the directory and recurse into any subdirectories.
     for child in dir {
         match child {
-            Ok(child) => paths.extend(find_slice_files_in_path(child.path(), diagnostic_reporter)),
+            Ok(child) => paths.extend(find_slice_files_in_path(child.path(), diagnostics)),
             Err(error) => {
                 // If we cannot read the directory entry, report an error and continue.
                 Diagnostic::new(Error::IO {
@@ -201,7 +193,7 @@ fn find_slice_files_in_directory(
                     path: path.display().to_string(),
                     error,
                 })
-                .report(diagnostic_reporter);
+                .push_into(diagnostics);
                 continue;
             }
         }

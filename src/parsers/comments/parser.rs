@@ -1,10 +1,10 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::common::{has_errors, ParserResult};
+use super::super::common::ParserResult;
 use super::construct_lint_from;
 use super::grammar::lalrpop;
 use super::lexer::Lexer;
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::Diagnostics;
 use crate::grammar::DocComment;
 use crate::slice_file::Span;
 
@@ -16,10 +16,10 @@ macro_rules! implement_parse_function {
             match lalrpop::$underlying_parser::new().parse(&mut self, Lexer::new(input)) {
                 Err(parse_error) => {
                     let lint = construct_lint_from(parse_error, self.file_name).set_scope(self.identifier);
-                    self.diagnostics.push(lint);
+                    lint.push_into(self.diagnostics);
                     Err(())
                 }
-                Ok(parse_value) => match has_errors(self.diagnostics) {
+                Ok(parse_value) => match self.diagnostics.has_errors() {
                     false => Ok(parse_value),
                     true => Err(()),
                 },
@@ -31,13 +31,13 @@ macro_rules! implement_parse_function {
 pub struct CommentParser<'a> {
     pub file_name: &'a str,
     pub(super) identifier: &'a String,
-    pub(super) diagnostics: &'a mut Vec<Diagnostic>,
+    pub(super) diagnostics: &'a mut Diagnostics,
 }
 
 impl<'a> CommentParser<'a> {
     implement_parse_function!(parse_doc_comment, DocCommentParser, DocComment);
 
-    pub fn new(file_name: &'a str, identifier: &'a String, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
+    pub fn new(file_name: &'a str, identifier: &'a String, diagnostics: &'a mut Diagnostics) -> Self {
         CommentParser {
             file_name,
             identifier,

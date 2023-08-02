@@ -2,7 +2,6 @@
 
 //! This module contains common types and functions that are useful to multiple parsers.
 
-use crate::diagnostics::{Diagnostic, DiagnosticKind};
 use crate::slice_file::Location;
 
 /// Stores a reference to a block of source code in a Slice file.
@@ -16,11 +15,6 @@ pub struct SourceBlock<'input> {
     pub end: Location,
 }
 
-// TODO Move this functionality into the diagnostics module.
-pub fn has_errors(diagnostics: &[Diagnostic]) -> bool {
-    diagnostics.iter().any(|d| matches!(d.kind, DiagnosticKind::Error(_)))
-}
-
-/// A specialized [Result] type used by parsing functions. The `Err` variant is empty because errors are reported with
-/// a [DiagnosticReporter](crate::diagnostics::DiagnosticReporter) instead of being directly returned.
+/// A specialized [Result] type used by parsing functions. The `Err` variant is empty because errors are pushed into a
+/// [Diagnostics](crate::diagnostics::Diagnostics) container instead of being directly returned.
 pub type ParserResult<T> = Result<T, ()>;

@@ -19,7 +19,7 @@ pub use slicec::test_helpers::*;
 /// It is the lowest level test helper function, returning a full [`CompilationState`] instead of only part of it.
 /// It also allows tests to configure the compiler by passing in [`SliceOptions`].
 #[must_use]
-pub fn parse(slice: impl Into<String>, options: Option<SliceOptions>) -> CompilationState {
+pub fn parse(slice: impl Into<String>, options: Option<&SliceOptions>) -> CompilationState {
     compile_from_strings(&[&slice.into()], options, |_| {}, |_| {})
 }
 
@@ -28,8 +28,8 @@ pub fn parse(slice: impl Into<String>, options: Option<SliceOptions>) -> Compila
 #[must_use]
 pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
     let compilation_state = parse(slice, None);
-    if compilation_state.diagnostic_reporter.has_errors() {
-        panic!("{:?}", compilation_state.diagnostic_reporter);
+    if compilation_state.diagnostics.has_errors() {
+        panic!("{:?}", compilation_state.diagnostics);
     }
     compilation_state.ast
 }
@@ -39,8 +39,8 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 #[must_use]
 pub fn parse_multiple_for_ast(slice: &[&str]) -> Ast {
     let compilation_state = compile_from_strings(slice, None, |_| {}, |_| {});
-    if compilation_state.diagnostic_reporter.has_errors() {
-        panic!("{:?}", compilation_state.diagnostic_reporter);
+    if compilation_state.diagnostics.has_errors() {
+        panic!("{:?}", compilation_state.diagnostics);
     }
     compilation_state.ast
 }
@@ -55,7 +55,10 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 /// Each string is treated as a separate Slice file by the parser.
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    diagnostics_from_compilation_state(compile_from_strings(slice, None, |_| {}, |_| {}))
+    diagnostics_from_compilation_state(
+        compile_from_strings(slice, None, |_| {}, |_| {}),
+        &SliceOptions::default(),
+    )
 }
 
 /// Asserts that the provided slice parses okay, producing no errors.

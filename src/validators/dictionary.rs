@@ -1,15 +1,15 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::grammar::*;
 
-pub fn validate_dictionary(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
-    has_allowed_key_type(dictionary, diagnostic_reporter);
+pub fn validate_dictionary(dictionary: &Dictionary, diagnostics: &mut Diagnostics) {
+    has_allowed_key_type(dictionary, diagnostics);
 }
 
-fn has_allowed_key_type(dictionary: &Dictionary, diagnostic_reporter: &mut DiagnosticReporter) {
+fn has_allowed_key_type(dictionary: &Dictionary, diagnostics: &mut Diagnostics) {
     if let Some(e) = check_dictionary_key_type(&dictionary.key_type) {
-        e.report(diagnostic_reporter)
+        e.push_into(diagnostics)
     }
 }
 

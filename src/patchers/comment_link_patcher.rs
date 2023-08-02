@@ -3,7 +3,7 @@
 use crate::ast::node::Node;
 use crate::ast::{Ast, LookupError};
 use crate::compilation_state::CompilationState;
-use crate::diagnostics::{Diagnostic, DiagnosticReporter, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
 use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use std::collections::VecDeque;
@@ -27,7 +27,7 @@ macro_rules! patch_element {
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let mut patcher = CommentLinkPatcher {
         link_patches: VecDeque::new(),
-        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
+        diagnostics: &mut compilation_state.diagnostics,
     };
 
     // Immutably iterate through the AST and compute patches for all the doc comments stored in it.
@@ -68,7 +68,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 
 struct CommentLinkPatcher<'a> {
     link_patches: VecDeque<Option<WeakPtr<dyn Entity>>>,
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostics: &'a mut Diagnostics,
 }
 
 impl CommentLinkPatcher<'_> {
@@ -139,7 +139,7 @@ impl CommentLinkPatcher<'_> {
                 Diagnostic::new(Lint::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(commentable.parser_scoped_identifier())
-                    .report(self.diagnostic_reporter);
+                    .push_into(self.diagnostics);
                 None
             }
         });
@@ -211,7 +211,7 @@ impl CommentLinkPatcher<'_> {
                     .add_note(note, Some(entity.span()))
                     .set_span(tag.span())
                     .set_scope(scope)
-                    .report(self.diagnostic_reporter);
+                    .push_into(self.diagnostics);
                 }
             }
         }

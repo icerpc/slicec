@@ -1,11 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::common::{has_errors, ParserResult, SourceBlock};
+use super::super::common::{ParserResult, SourceBlock};
 use super::construct_error_from;
 use super::grammar::lalrpop;
 use super::lexer::Lexer;
 use crate::ast::Ast;
-use crate::diagnostics::Diagnostic;
+use crate::diagnostics::Diagnostics;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
 
@@ -20,10 +20,10 @@ macro_rules! implement_parse_function {
             match lalrpop::$underlying_parser::new().parse(&mut self, input.into()) {
                 Err(parse_error) => {
                     let error = construct_error_from(parse_error, self.file_name);
-                    self.diagnostics.push(error);
+                    error.push_into(self.diagnostics);
                     Err(())
                 }
-                Ok(parse_value) => match has_errors(self.diagnostics) {
+                Ok(parse_value) => match self.diagnostics.has_errors() {
                     false => Ok(parse_value),
                     true => Err(()),
                 },
@@ -35,7 +35,7 @@ macro_rules! implement_parse_function {
 pub struct Parser<'a> {
     pub file_name: &'a str,
     pub(super) ast: &'a mut Ast,
-    pub(super) diagnostics: &'a mut Vec<Diagnostic>,
+    pub(super) diagnostics: &'a mut Diagnostics,
     pub(super) current_scope: Scope,
     pub(super) compilation_mode: CompilationMode,
     pub(super) last_enumerator_value: Option<i128>,
@@ -53,7 +53,7 @@ impl<'a> Parser<'a> {
         ),
     );
 
-    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Vec<Diagnostic>) -> Self {
+    pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Diagnostics) -> Self {
         Parser {
             file_name,
             ast,

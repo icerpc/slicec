@@ -13,7 +13,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let mut patcher = EncodingPatcher {
         supported_encodings_cache: HashMap::new(),
         slice_files: &mut compilation_state.files,
-        diagnostic_reporter: &mut compilation_state.diagnostic_reporter,
+        diagnostics: &mut compilation_state.diagnostics,
     };
 
     // Iterate through each node in the AST and patch any `supported_encodings` fields.
@@ -59,7 +59,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 struct EncodingPatcher<'a> {
     supported_encodings_cache: HashMap<String, SupportedEncodings>,
     slice_files: &'a HashMap<String, SliceFile>,
-    diagnostic_reporter: &'a mut DiagnosticReporter,
+    diagnostics: &'a mut Diagnostics,
 }
 
 impl EncodingPatcher<'_> {
@@ -105,7 +105,7 @@ impl EncodingPatcher<'_> {
             Diagnostic::new(error)
                 .set_span(entity_def.span())
                 .extend_notes(notes)
-                .report(self.diagnostic_reporter);
+                .push_into(self.diagnostics);
 
             // Replace the supported encodings with a dummy that supports all encodings.
             // Otherwise everything that uses this type will also not be compliant with its file's compilation mode,
@@ -212,7 +212,7 @@ impl EncodingPatcher<'_> {
             }
 
             for diagnostic in diagnostics {
-                diagnostic.report(self.diagnostic_reporter);
+                diagnostic.push_into(self.diagnostics);
             }
 
             // Return a dummy value that supports all encodings, instead of the real result.
@@ -398,7 +398,7 @@ impl ComputeSupportedEncodings for Interface {
         // However all the types used in this interface's operations must be allowed within that mode.
         for operation in self.all_operations() {
             for member in operation.parameters_and_return_members() {
-                // This method emits errors on its own.
+                // This method automatically reports errors for encoding mismatches.
                 patcher.get_supported_encodings_for_type_ref(
                     member.data_type(),
                     compilation_mode,
@@ -410,7 +410,7 @@ impl ComputeSupportedEncodings for Interface {
                 if member.is_streamed && compilation_mode == CompilationMode::Slice1 {
                     Diagnostic::new(Error::StreamedParametersNotSupported)
                         .set_span(member.span())
-                        .report(patcher.diagnostic_reporter)
+                        .push_into(patcher.diagnostics)
                 }
             }
 
@@ -426,14 +426,14 @@ impl ComputeSupportedEncodings for Interface {
                         })
                         .set_span(exception_type.span())
                         .extend_notes(patcher.get_mode_mismatch_note(exception_type))
-                        .report(patcher.diagnostic_reporter)
+                        .push_into(patcher.diagnostics)
                     }
                 }
                 Throws::AnyException => {
                     if compilation_mode != CompilationMode::Slice1 {
                         Diagnostic::new(Error::AnyExceptionNotSupported)
                             .set_span(operation.span())
-                            .report(patcher.diagnostic_reporter)
+                            .push_into(patcher.diagnostics)
                     }
                 }
             }
@@ -467,7 +467,7 @@ impl ComputeSupportedEncodings for Enum {
         } else {
             // Enums defined in a file using Slice2 must have an explicit underlying type.
             if compilation_mode == CompilationMode::Slice2 {
-                // TODO: this isn't the correct error to emit, remove this when we add enums with associated values.
+                // TODO: this isn't the correct error to report, remove this when we add enums with associated values.
                 Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
                     enum_identifier: self.identifier().to_owned(),
                     kind: None,
@@ -480,7 +480,7 @@ impl ComputeSupportedEncodings for Enum {
                     ),
                     None,
                 )
-                .report(patcher.diagnostic_reporter)
+                .push_into(patcher.diagnostics)
             }
         }
         None

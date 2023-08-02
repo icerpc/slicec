@@ -66,10 +66,10 @@ fn handle_file_compilation_mode(
     // Compilation mode can only be set once per file.
     if let Some(previous_file_mode) = previous_mode {
         let span = previous_file_mode.span();
-        let diagnostic = Diagnostic::new(Error::MultipleCompilationModes)
+        Diagnostic::new(Error::MultipleCompilationModes)
             .set_span(span)
-            .add_note("the compilation mode was previously specified here", Some(span));
-        parser.diagnostics.push(diagnostic);
+            .add_note("the compilation mode was previously specified here", Some(span))
+            .push_into(parser.diagnostics);
     }
     parser.compilation_mode = mode.version;
     (Some(mode), attributes)
@@ -80,10 +80,10 @@ fn construct_file_compilation_mode(parser: &mut Parser, i: Identifier, span: Spa
         "Slice1" => CompilationMode::Slice1,
         "Slice2" => CompilationMode::Slice2,
         _ => {
-            let diagnostic = Diagnostic::new(Error::InvalidCompilationMode { mode: i.value })
+            Diagnostic::new(Error::InvalidCompilationMode { mode: i.value })
                 .set_span(&i.span)
-                .add_note("must be 'Slice1' or 'Slice2'", None);
-            parser.diagnostics.push(diagnostic);
+                .add_note("must be 'Slice1' or 'Slice2'", None)
+                .push_into(parser.diagnostics);
             CompilationMode::default() // Dummy
         }
     };
@@ -100,7 +100,7 @@ fn construct_module(
         let error = Error::Syntax {
             message: "doc comments cannot be applied to modules".to_owned(),
         };
-        parser.diagnostics.push(Diagnostic::new(error).set_span(&span));
+        Diagnostic::new(error).set_span(&span).push_into(parser.diagnostics);
     }
 
     let module_ptr = OwnedPtr::new(Module {
@@ -307,13 +307,13 @@ fn construct_parameter(
             true => "return member",
             false => "parameter",
         };
-        let diagnostic = Diagnostic::new(Error::Syntax {
+        Diagnostic::new(Error::Syntax {
             message: format!("doc comments cannot be applied to {kind}s"),
         })
         .set_span(&span)
         .add_note("try using an '@param' tag on the operation it belongs to instead", None)
-        .add_note(format!("Ex: @param {}: {}", &identifier.value, raw_comment[0].0), None);
-        parser.diagnostics.push(diagnostic);
+        .add_note(format!("Ex: @param {}: {}", &identifier.value, raw_comment[0].0), None)
+        .push_into(parser.diagnostics);
     }
 
     OwnedPtr::new(Parameter {
@@ -358,7 +358,7 @@ fn construct_single_return_type(
 fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter>>, span: Span) {
     if return_tuple.len() < 2 {
         let diagnostic = Diagnostic::new(Error::ReturnTuplesMustContainAtLeastTwoElements).set_span(&span);
-        parser.diagnostics.push(diagnostic);
+        diagnostic.push_into(parser.diagnostics);
     }
 }
 
@@ -529,7 +529,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
                 IntErrorKind::InvalidDigit => Error::InvalidIntegerLiteral { base },
                 _ => Error::IntegerLiteralOverflows,
             };
-            parser.diagnostics.push(Diagnostic::new(e).set_span(&span));
+            Diagnostic::new(e).set_span(&span).push_into(parser.diagnostics);
             0 // Dummy value
         }
     };
@@ -541,7 +541,7 @@ fn parse_tag_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     // Verify that the provided integer is a valid tag id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         let diagnostic = Diagnostic::new(Error::TagValueOutOfBounds).set_span(&i.span);
-        parser.diagnostics.push(diagnostic);
+        diagnostic.push_into(parser.diagnostics);
     }
 
     // Cast the integer to a `u32` since it most closely matches the allowed range of tags.
@@ -554,7 +554,7 @@ fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32>
     // Verify that the provided integer is a valid compact id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
         let diagnostic = Diagnostic::new(Error::CompactIdOutOfBounds).set_span(&i.span);
-        parser.diagnostics.push(diagnostic);
+        diagnostic.push_into(parser.diagnostics);
     }
 
     // Cast the integer to a `u32` since it most closely matches the allowed range of compact ids.
