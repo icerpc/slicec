@@ -34,7 +34,7 @@ fn tags_are_unique(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     });
 }
 
-/// Validate that the data type of the tagged member is optional.
+/// Validate that the type of the tagged member is optional.
 fn tags_have_optional_types(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     let tagged_members = members.into_iter().filter(|member| member.is_tagged());
 
