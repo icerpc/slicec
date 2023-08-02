@@ -300,15 +300,10 @@ fn construct_parameter(
     is_streamed: bool,
     data_type: TypeRef,
     span: Span,
-    is_returned: bool,
 ) -> OwnedPtr<Parameter> {
     if !raw_comment.is_empty() {
-        let kind = match is_returned {
-            true => "return member",
-            false => "parameter",
-        };
         Diagnostic::new(Error::Syntax {
-            message: format!("doc comments cannot be applied to {kind}s"),
+            message: "doc comments cannot be applied to parameters".to_owned(),
         })
         .set_span(&span)
         .add_note("try using an '@param' tag on the operation it belongs to instead", None)
@@ -321,7 +316,6 @@ fn construct_parameter(
         data_type,
         tag,
         is_streamed,
-        is_returned,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -347,7 +341,6 @@ fn construct_single_return_type(
         data_type,
         tag,
         is_streamed,
-        is_returned: true,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes: Vec::new(),

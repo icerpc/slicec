@@ -10,23 +10,13 @@ pub struct Parameter {
     pub data_type: TypeRef,
     pub tag: Option<Integer<u32>>,
     pub is_streamed: bool,
-    pub is_returned: bool,
     pub parent: WeakPtr<Operation>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub span: Span,
 }
 
-impl Element for Parameter {
-    fn kind(&self) -> &'static str {
-        if self.is_returned {
-            "return element"
-        } else {
-            "parameter"
-        }
-    }
-}
-
+implement_Element_for!(Parameter, "parameter");
 implement_Attributable_for!(@Contained Parameter);
 implement_Entity_for!(Parameter);
 implement_Contained_for!(Parameter, Operation);
