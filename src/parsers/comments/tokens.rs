@@ -32,7 +32,7 @@ pub enum TokenKind<'input> {
     LeftBrace,   // "{"
     RightBrace,  // "}"
     Colon,       // ":"
-    DoubleColon, // ":"
+    DoubleColon, // "::"
 }
 
 /// This enum specifies all the kinds of errors that the comment [Lexer](super::lexer::Lexer) can return.
