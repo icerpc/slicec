@@ -124,3 +124,19 @@ impl<'a, T: Write> DiagnosticEmitter<'a, T> {
         Ok(())
     }
 }
+
+pub fn emit_totals(total_warnings: usize, total_errors: usize) -> Result<()> {
+    // Totals are always printed to stdout.
+    let stdout = &mut console::Term::stdout();
+
+    if total_warnings > 0 {
+        let warnings = console::style("Warnings").yellow().bold();
+        writeln!(stdout, "{warnings}: Compilation generated {total_warnings} warning(s)")?;
+    }
+    if total_errors > 0 {
+        let failed = console::style("Failed").red().bold();
+        writeln!(stdout, "{failed}: Compilation failed with {total_errors} error(s)")?;
+    }
+
+    Ok(())
+}

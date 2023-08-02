@@ -1,13 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostic_emitter::DiagnosticEmitter;
+use crate::diagnostic_emitter::{DiagnosticEmitter, emit_totals};
 use crate::diagnostics::{get_totals, Diagnostic, Diagnostics};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
-use console::Term;
 use std::collections::HashMap;
-use std::io::{Result, Write};
 
 #[derive(Debug)]
 pub struct CompilationState {
@@ -51,10 +49,10 @@ impl CompilationState {
         let (total_warnings, total_errors) = get_totals(&diagnostics);
 
         // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
-        let mut stderr = Term::stderr();
+        let mut stderr = console::Term::stderr();
         let mut emitter = DiagnosticEmitter::new(&mut stderr, options, &self.files);
         DiagnosticEmitter::emit_diagnostics(&mut emitter, diagnostics).expect("failed to emit diagnostics");
-        Self::emit_totals(total_warnings, total_errors).expect("failed to emit totals");
+        emit_totals(total_warnings, total_errors).expect("failed to emit totals");
 
         // Return exit code 1 if any errors were emitted, and exit code 0 otherwise.
         i32::from(total_errors != 0)
@@ -64,20 +62,5 @@ impl CompilationState {
     /// This method exists to simplify the testing of diagnostic emission.
     pub fn into_diagnostics(self, options: &SliceOptions) -> Vec<Diagnostic> {
         self.diagnostics.into_updated(&self.ast, &self.files, options)
-    }
-
-    fn emit_totals(total_warnings: usize, total_errors: usize) -> Result<()> {
-        let stdout = &mut Term::stdout();
-
-        if total_warnings > 0 {
-            let warnings = console::style("Warnings").yellow().bold();
-            writeln!(stdout, "{warnings}: Compilation generated {total_warnings} warning(s)")?;
-        }
-        if total_errors > 0 {
-            let failed = console::style("Failed").red().bold();
-            writeln!(stdout, "{failed}: Compilation failed with {total_errors} error(s)")?;
-        }
-
-        Ok(())
     }
 }
