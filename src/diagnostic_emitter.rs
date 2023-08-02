@@ -13,9 +13,9 @@ use std::path::Path;
 pub struct DiagnosticEmitter<'a, T: Write> {
     /// Reference to the output that diagnostics should be emitted to.
     output: &'a mut T,
-    /// Can specify json to serialize errors as JSON or console to output errors to console.
+    /// Can specify `json` to serialize errors as JSON or `human` to pretty-print them.
     diagnostic_format: DiagnosticFormat,
-    /// If true, diagnostic output will not be styled with colors.
+    /// If true, diagnostic output will not be styled with colors (only used in `human` format).
     disable_color: bool,
     /// Provides the emitter access to the slice files that were compiled so it can extract snippets from them.
     files: &'a HashMap<String, SliceFile>,

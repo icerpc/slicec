@@ -44,7 +44,10 @@ impl CompilationState {
         }
     }
 
-    pub fn into_exit_code(self, options: &SliceOptions) -> i32 {
+    /// This function is the exit point of the compiler.
+    /// It emits diagnostics to the console, along with the total number of warning/errors emitted.
+    /// After this it returns whether any errors were emitted.
+    pub fn emit_diagnostics(self, options: &SliceOptions) -> bool {
         let diagnostics = self.diagnostics.into_updated(&self.ast, &self.files, options);
         let (total_warnings, total_errors) = get_totals(&diagnostics);
 
@@ -54,8 +57,7 @@ impl CompilationState {
         DiagnosticEmitter::emit_diagnostics(&mut emitter, diagnostics).expect("failed to emit diagnostics");
         emit_totals(total_warnings, total_errors).expect("failed to emit totals");
 
-        // Return exit code 1 if any errors were emitted, and exit code 0 otherwise.
-        i32::from(total_errors != 0)
+        total_errors != 0
     }
 
     /// Consumes this `CompilationState` and returns the diagnostics it contains.
