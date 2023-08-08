@@ -61,7 +61,6 @@ extern {
         any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
-        any_exception_keyword => TokenKind::AnyExceptionKeyword,
         compact_keyword => TokenKind::CompactKeyword,
         idempotent_keyword => TokenKind::IdempotentKeyword,
         mode_keyword => TokenKind::ModeKeyword,
@@ -189,12 +188,9 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
     },
 }
 
-ExceptionSpecification: Throws = {
-    throws_keyword <tr: TypeRef> => {
-        let exception = tr.downcast::<Exception>().unwrap();
-        Throws::Specific(exception)
-    },
-    throws_keyword any_exception_keyword => Throws::AnyException,
+ExceptionSpecification: Vec<TypeRef> = {
+    throws_keyword <TypeRef> => vec![<>],
+    throws_keyword "(" <NonEmptyCommaList<TypeRef>> ")" => <>,
 }
 
 Enum: OwnedPtr<Enum> = {

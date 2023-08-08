@@ -7,7 +7,9 @@ use slicec::grammar::*;
 fn can_contain_tags() {
     // Arrange
     let slice = "
+        mode = Slice1
         module Test
+
         exception E {
             i: int32
             s: string

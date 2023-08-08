@@ -59,9 +59,6 @@ pub enum Error {
     /// Streamed parameters cannot be used in Slice1 mode.
     StreamedParametersNotSupported,
 
-    /// 'AnyException' can only be used in Slice1 mode.
-    AnyExceptionNotSupported,
-
     /// A slice type was used in a compilation mode that it isn't supported by.
     UnsupportedType {
         /// The kind that was used.
@@ -110,8 +107,8 @@ pub enum Error {
     },
 
     // ----------------  Exception Errors ---------------- //
-    /// Exceptions cannot be used as a data type in Slice1 mode.
-    ExceptionAsDataType,
+    /// Exception specifications can only be used in Slice1 mode.
+    ExceptionSpecificationNotSupported,
 
     // ----------------  Operation Errors ---------------- //
     /// A streamed parameter was not the last parameter in the operation.
@@ -429,7 +426,7 @@ implement_diagnostic_functions!(
     (
         "E029",
         NotSupportedInCompilationMode,
-        format!("{kind} '{identifier}' cannot be used in {mode} mode"),
+        format!("{kind} '{identifier}' cannot be defined in {mode} mode"),
         kind, identifier, mode
     ),
     (
@@ -438,11 +435,6 @@ implement_diagnostic_functions!(
         format!("the type '{kind}' cannot be used in {mode} mode"),
         kind,
         mode
-    ),
-    (
-        "E031",
-        ExceptionAsDataType,
-        "exceptions cannot be used as a data type in Slice1 mode"
     ),
     (
         "E032",
@@ -512,11 +504,6 @@ implement_diagnostic_functions!(
         "the compilation mode can only be specified once per file"
     ),
     (
-        "E045",
-        AnyExceptionNotSupported,
-        "operations that throw AnyException can only be used in Slice1 mode"
-    ),
-    (
         "E047",
         InfiniteSizeCycle,
         format!("self-referential type {type_id} has infinite size.\n{cycle}"),
@@ -538,6 +525,11 @@ implement_diagnostic_functions!(
         "E051",
         TypeAliasOfOptional,
         "optional types cannot be aliased"
+    ),
+    (
+        "E052",
+        ExceptionSpecificationNotSupported,
+        "exceptions can be only thrown by Slice1 operations"
     )
 );
 

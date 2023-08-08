@@ -19,7 +19,7 @@ mod optional {
             "
             module Test
             struct Foo {{}}
-            exception E {{
+            struct S {{
                 a: {type_name}?
             }}
             "
@@ -29,7 +29,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::E::a").unwrap();
+        let field = ast.find_element::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
     }
 
@@ -41,7 +41,7 @@ mod optional {
             "
             module Test
             struct Foo {{}}
-            exception E {{
+            struct S {{
                 a: {type_name}?
             }}
             "
@@ -51,7 +51,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::E::a").unwrap();
+        let field = ast.find_element::<Field>("Test::S::a").unwrap();
         assert_eq!(field.data_type.type_string(), type_name.to_owned() + "?");
     }
 
@@ -431,7 +431,7 @@ mod optional {
             let slice = format!(
                 "
                 module Test
-                exception E {{
+                struct S {{
                     a: {type_name}?
                 }}
                 "
@@ -441,12 +441,11 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(field.data_type.is_optional);
         }
 
         #[test_case("struct Foo {}"; "r#struct")]
-        #[test_case("exception Foo {}"; "class")]
         #[test_case("unchecked enum Foo: uint8 {}"; "r#enum")]
         #[test_case("interface Foo {}"; "interface")]
         #[test_case("custom Foo"; "custom type")]
@@ -456,7 +455,7 @@ mod optional {
                 "
                 module Test
                 {definition}
-                exception E {{
+                struct S {{
                     a: Foo?
                 }}
                 "
@@ -466,7 +465,7 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(field.data_type.is_optional);
         }
 
@@ -475,7 +474,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                exception E {
+                struct S {
                     a: sequence<int32>?
                 }
             ";
@@ -484,7 +483,7 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(field.data_type.is_optional);
 
             let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
@@ -496,7 +495,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                exception E {
+                struct S {
                     a: sequence<bool?>
                 }
             ";
@@ -505,7 +504,7 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(!field.data_type.is_optional);
 
             let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
@@ -517,7 +516,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                exception E {
+                struct S {
                     a: dictionary<varuint62, string>?
                 }
             ";
@@ -526,7 +525,7 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(field.data_type.is_optional);
 
             let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
@@ -540,7 +539,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                exception E {
+                struct S {
                     a: dictionary<varuint62?, string>
                 }
             ";
@@ -549,7 +548,7 @@ mod optional {
             let ast = parse(slice, None).ast; // use `parse` to ignore errors.
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(!field.data_type.is_optional);
 
             let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
@@ -562,7 +561,7 @@ mod optional {
             // Arrange
             let slice = "
                 module Test
-                exception E {
+                struct S {
                     a: dictionary<varuint62, string?>
                 }
             ";
@@ -571,7 +570,7 @@ mod optional {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
             assert!(!field.data_type.is_optional);
 
             let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };

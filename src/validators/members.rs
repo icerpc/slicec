@@ -57,7 +57,6 @@ fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostics: &m
         match typeref.definition().concrete_type() {
             Types::Struct(struct_def) => struct_def.fields().iter().any(|m| uses_classes(&m.data_type)),
             Types::Class(_) => true,
-            Types::Exception(exception_def) => exception_def.all_fields().iter().any(|m| uses_classes(&m.data_type)),
             Types::Interface(_) => false,
             Types::Enum(_) => false,
             Types::CustomType(_) => false,

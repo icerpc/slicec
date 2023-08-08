@@ -84,9 +84,7 @@ impl CommentLinkPatcher<'_> {
                 self.resolve_links_in(&returns_tag.message, commentable, ast);
             }
             for throws_tag in &comment.throws {
-                if let Some(thrown_type) = &throws_tag.thrown_type {
-                    self.resolve_link(thrown_type, commentable, ast);
-                }
+                self.resolve_link(&throws_tag.thrown_type, commentable, ast);
                 self.resolve_links_in(&throws_tag.message, commentable, ast);
             }
             for see_tag in &comment.see {
@@ -157,9 +155,7 @@ impl CommentLinkPatcher<'_> {
                 self.patch_links_in(&mut returns_tag.message);
             }
             for throws_tag in &mut comment.throws {
-                if throws_tag.thrown_type.is_some() {
-                    self.patch_thrown_type(scope, throws_tag);
-                }
+                self.patch_thrown_type(scope, throws_tag);
                 self.patch_links_in(&mut throws_tag.message);
             }
             for see_tag in &mut comment.see {
@@ -182,7 +178,7 @@ impl CommentLinkPatcher<'_> {
             // If the linked-to type isn't an exception report a lint violation and leave the link unpatched.
             match patch.downcast::<Exception>() {
                 Ok(converted_patch) => {
-                    tag.thrown_type = Some(TypeRefDefinition::Patched(converted_patch));
+                    tag.thrown_type = TypeRefDefinition::Patched(converted_patch);
                 }
                 Err(original_patch) => {
                     let entity = original_patch.borrow();

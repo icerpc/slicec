@@ -216,7 +216,6 @@ where
             "float64" => TokenKind::Float64Keyword,
             "string" => TokenKind::StringKeyword,
             "AnyClass" => TokenKind::AnyClassKeyword,
-            "AnyException" => TokenKind::AnyExceptionKeyword,
             "compact" => TokenKind::CompactKeyword,
             "idempotent" => TokenKind::IdempotentKeyword,
             "mode" => TokenKind::ModeKeyword,

@@ -27,13 +27,13 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
                 let encodings = patcher.get_supported_encodings_for(struct_ptr.borrow());
                 struct_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
-            Node::Exception(exception_ptr) => {
-                let encodings = patcher.get_supported_encodings_for(exception_ptr.borrow());
-                exception_ptr.borrow_mut().supported_encodings = Some(encodings);
-            }
             Node::Class(class_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(class_ptr.borrow());
                 class_ptr.borrow_mut().supported_encodings = Some(encodings);
+            }
+            Node::Exception(exception_ptr) => {
+                let encodings = patcher.get_supported_encodings_for(exception_ptr.borrow());
+                exception_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
             Node::Interface(interface_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(interface_ptr.borrow());
@@ -65,7 +65,7 @@ struct EncodingPatcher<'a> {
 impl EncodingPatcher<'_> {
     fn get_supported_encodings_for<T>(&mut self, entity_def: &T) -> SupportedEncodings
     where
-        T: Entity + Type + ComputeSupportedEncodings,
+        T: Entity + ComputeSupportedEncodings,
     {
         // Check if the entity's supported encodings have already been computed.
         let type_id = entity_def.parser_scoped_identifier();
@@ -132,18 +132,6 @@ impl EncodingPatcher<'_> {
 
         let mut supported_encodings = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_encodings_for(struct_def),
-            Types::Exception(exception_def) => {
-                let mut encodings = self.get_supported_encodings_for(exception_def);
-                encodings.disable(Encoding::Slice1);
-
-                // Exceptions cannot be used as a data type in Slice1 mode.
-                if compilation_mode == CompilationMode::Slice1 {
-                    let diagnostic = Diagnostic::new(Error::ExceptionAsDataType).set_span(type_ref.span());
-                    diagnostics.push(diagnostic);
-                }
-
-                encodings
-            }
             Types::Class(class_def) => {
                 allow_nullable_with_slice_1 = true;
                 self.get_supported_encodings_for(class_def)
@@ -312,42 +300,6 @@ impl ComputeSupportedEncodings for Struct {
     }
 }
 
-impl ComputeSupportedEncodings for Exception {
-    fn compute_supported_encodings(
-        &self,
-        patcher: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        compilation_mode: CompilationMode,
-    ) -> Option<&'static str> {
-        // Insert a dummy entry for the exception into the cache to prevent infinite lookup cycles.
-        // If a cycle is encountered, the encodings will be computed incorrectly, but it's an
-        // error for exceptions to be cyclic, so it's fine if the supported encodings are bogus.
-        patcher
-            .supported_encodings_cache
-            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
-        // Exceptions only support encodings that all its fields also support
-        // (including inherited ones).
-        for field in self.all_fields() {
-            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                field.data_type(),
-                compilation_mode,
-                field.is_tagged(),
-                Some(field),
-            ));
-        }
-
-        if self.base_exception().is_some() {
-            supported_encodings.disable(Encoding::Slice2);
-
-            // Exception inheritance can only be used in Slice1 mode.
-            if compilation_mode != CompilationMode::Slice1 {
-                return Some("exception inheritance can only be used in Slice1 mode");
-            }
-        }
-        None
-    }
-}
-
 impl ComputeSupportedEncodings for Class {
     fn compute_supported_encodings(
         &self,
@@ -375,6 +327,32 @@ impl ComputeSupportedEncodings for Class {
         supported_encodings.disable(Encoding::Slice2);
         if compilation_mode != CompilationMode::Slice1 {
             Some("classes can only be defined in Slice1 mode")
+        } else {
+            None
+        }
+    }
+}
+
+impl ComputeSupportedEncodings for Exception {
+    fn compute_supported_encodings(
+        &self,
+        patcher: &mut EncodingPatcher,
+        supported_encodings: &mut SupportedEncodings,
+        compilation_mode: CompilationMode,
+    ) -> Option<&'static str> {
+        // Exceptions only support encodings that all its fields also support (including inherited ones).
+        for field in self.all_fields() {
+            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
+                field.data_type(),
+                compilation_mode,
+                field.is_tagged(),
+                Some(field),
+            ));
+        }
+
+        supported_encodings.disable(Encoding::Slice2);
+        if compilation_mode != CompilationMode::Slice1 {
+            Some("exceptions can only be defined in Slice1 mode")
         } else {
             None
         }
@@ -411,30 +389,6 @@ impl ComputeSupportedEncodings for Interface {
                     Diagnostic::new(Error::StreamedParametersNotSupported)
                         .set_span(member.span())
                         .push_into(patcher.diagnostics)
-                }
-            }
-
-            match &operation.throws {
-                Throws::None => {}
-                Throws::Specific(exception_type) => {
-                    // Ensure the exception is supported by the operation's encoding.
-                    let supported_encodings = patcher.get_supported_encodings_for(exception_type.definition());
-                    if !supported_encodings.supports(compilation_mode) {
-                        Diagnostic::new(Error::UnsupportedType {
-                            kind: exception_type.type_string(),
-                            mode: compilation_mode,
-                        })
-                        .set_span(exception_type.span())
-                        .extend_notes(patcher.get_mode_mismatch_note(exception_type))
-                        .push_into(patcher.diagnostics)
-                    }
-                }
-                Throws::AnyException => {
-                    if compilation_mode != CompilationMode::Slice1 {
-                        Diagnostic::new(Error::AnyExceptionNotSupported)
-                            .set_span(operation.span())
-                            .push_into(patcher.diagnostics)
-                    }
                 }
             }
         }

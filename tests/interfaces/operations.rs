@@ -224,72 +224,6 @@ fn cannot_redefine_return_members() {
     check_diagnostics(diagnostics, [expected]);
 }
 
-#[test]
-fn operations_can_omit_throws_clause() {
-    let slice = "
-        module Test
-
-        interface I {
-            op()
-        }
-    ";
-
-    // Act
-    let ast = parse_for_ast(slice);
-
-    // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-    assert!(matches!(&operation.throws, Throws::None));
-}
-
-#[test]
-fn operations_can_throw_specific_exceptions() {
-    let slice = "
-        module Test
-
-        exception E {}
-
-        interface I {
-            op() throws E
-        }
-    ";
-
-    // Act
-    let ast = parse_for_ast(slice);
-
-    // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
-    assert!(matches!(
-        &operation.throws,
-        Throws::Specific(exception_ref) if exception_ref.parser_scoped_identifier() == "Test::E",
-    ));
-}
-
-#[test]
-fn operations_can_only_throw_exceptions() {
-    // Arrange
-    let slice = "
-        module Test
-
-        struct S {}
-
-        interface I {
-            op() throws S
-        }
-    ";
-
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    let expected = Diagnostic::new(Error::TypeMismatch {
-        expected: "exception".to_owned(),
-        actual: "struct".to_owned(),
-        is_concrete: true,
-    });
-    check_diagnostics(diagnostics, [expected]);
-}
-
 #[test_case("()"; "0 elements")]
 #[test_case("(b: bool)"; "1 element")]
 fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
@@ -310,6 +244,142 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     // Assert
     let expected = Diagnostic::new(Error::ReturnTuplesMustContainAtLeastTwoElements);
     check_diagnostics(diagnostics, [expected]);
+}
+
+mod slice2 {
+    use slicec::diagnostics::{Diagnostic, Error};
+    use crate::test_helpers::*;
+
+    #[test]
+    fn exception_specifications_are_not_supported() {
+        // Arrange
+        let slice1 = "
+            mode = Slice1
+            module Test
+
+            exception E {}
+        ";
+        let slice2 = "
+            mode = Slice2
+            module Test
+
+            interface I {
+                op() throws E
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
+
+        // Assert
+        let expected = Diagnostic::new(Error::ExceptionSpecificationNotSupported);
+        check_diagnostics(diagnostics, [expected]);
+    }
+}
+
+mod slice1 {
+    use crate::test_helpers::*;
+    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::{NamedSymbol, Operation};
+
+    #[test]
+    fn operations_can_omit_throws_clause() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Test
+
+            exception E1 {}
+            exception E2 {}
+
+            interface I {
+                op()
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+        assert!(operation.exception_specification.is_empty());
+    }
+
+    #[test]
+    fn operations_can_throw_single_exception() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Test
+
+            exception E1 {}
+            exception E2 {}
+
+            interface I {
+                op() throws E1
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let op = ast.find_element::<Operation>("Test::I::op").unwrap();
+
+        let single_exception = &op.exception_specification[0];
+        assert_eq!(single_exception.parser_scoped_identifier(), "Test::E1");
+    }
+
+    #[test]
+    fn operations_can_throw_multiple_exceptions() {
+        let slice = "
+            mode = Slice1
+            module Test
+
+            exception E1 {}
+            exception E2 {}
+
+            interface I {
+                op() throws (E1, E2)
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let op = ast.find_element::<Operation>("Test::I::op").unwrap();
+
+        let first_exception = &op.exception_specification[0];
+        assert_eq!(first_exception.parser_scoped_identifier(), "Test::E1");
+        let second_exception = &op.exception_specification[1];
+        assert_eq!(second_exception.parser_scoped_identifier(), "Test::E2");
+    }
+
+    #[test]
+    fn operations_can_only_throw_exceptions() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct S {}
+
+            interface I {
+                op() throws S
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::TypeMismatch {
+            expected: "exception".to_owned(),
+            actual: "struct".to_owned(),
+            is_concrete: true,
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
 }
 
 mod streams {

@@ -259,14 +259,18 @@ fn construct_operation(
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
     return_type: Option<Vec<OwnedPtr<Parameter>>>,
-    exception_specification: Option<Throws>,
+    throws_clause: Option<Vec<TypeRef>>,
     span: Span,
 ) -> OwnedPtr<Operation> {
     // If no return type was provided set the return type to an empty Vec.
     let return_type = return_type.unwrap_or_default();
 
-    // If no throws clause was present, set the exception specification to `None`.
-    let throws = exception_specification.unwrap_or(Throws::None);
+    // If no throws clause was present, set the exception specification to an empty Vec.
+    let throws_clause = throws_clause.unwrap_or_default();
+    let exception_specification = throws_clause
+        .into_iter()
+        .map(|type_ref| type_ref.downcast::<Exception>().unwrap())
+        .collect();
 
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
@@ -274,7 +278,7 @@ fn construct_operation(
         identifier,
         parameters: Vec::new(),
         return_type: Vec::new(),
-        throws,
+        exception_specification,
         is_idempotent,
         encoding: parser.compilation_mode,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.

@@ -7,7 +7,6 @@ use slicec::diagnostics::{Diagnostic, Error};
 
 mod container {
     use super::*;
-    use test_case::test_case;
 
     #[test]
     fn classes_can_contain_cycles() {
@@ -25,19 +24,16 @@ mod container {
         assert_parses(slice)
     }
 
-    #[test_case("struct")]
-    #[test_case("exception")]
-    fn direct_cycles_are_disallowed(kind: &str) {
+    #[test]
+    fn direct_cycles_are_disallowed() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module Test
 
-            {kind} Container {{
+            struct Container {
                 c: Container
-            }}
-            "
-        );
+            }
+        ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
@@ -50,23 +46,20 @@ mod container {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case("struct")]
-    #[test_case("exception")]
-    fn indirect_cycles_are_disallowed(kind: &str) {
+    #[test]
+    fn indirect_cycles_are_disallowed() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module Test
 
-            {kind} Container {{
+            struct Container {
                 i: Inner
-            }}
+            }
 
-            struct Inner {{
+            struct Inner {
                 c: Container
-            }}
-            "
-        );
+            }
+        ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
@@ -85,23 +78,20 @@ mod container {
         check_diagnostics(diagnostics, expected);
     }
 
-    #[test_case("struct")]
-    #[test_case("exception")]
-    fn using_a_cyclic_type_is_not_flagged(kind: &str) {
+    #[test]
+    fn using_a_cyclic_type_is_not_flagged() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             module Test
 
-            {kind} OnlyUsesACyclicType {{
+            struct OnlyUsesACyclicType {
                 c: Container
-            }}
+            }
 
-            {kind} Container {{
+            struct Container {
                 c: Container
-            }}
-            "
-        );
+            }
+        ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);

@@ -90,7 +90,6 @@ fn clean_message(expected: &[String]) -> String {
             "any_class_keyword" => tokens::TokenKind::AnyClassKeyword.to_string(),
 
             // Other keywords
-            "any_exception_keyword" => tokens::TokenKind::AnyExceptionKeyword.to_string(),
             "compact_keyword" => tokens::TokenKind::CompactKeyword.to_string(),
             "idempotent_keyword" => tokens::TokenKind::IdempotentKeyword.to_string(),
             "mode_keyword" => tokens::TokenKind::ModeKeyword.to_string(),

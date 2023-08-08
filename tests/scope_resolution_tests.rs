@@ -179,7 +179,7 @@ mod scope_resolution {
 
         // Assert
         let expected = Diagnostic::new(Error::TypeMismatch {
-            expected: "Type".to_string(),
+            expected: "type".to_string(),
             actual: "module".to_string(),
             is_concrete: false,
         });
