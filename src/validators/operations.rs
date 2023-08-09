@@ -135,8 +135,8 @@ fn validate_throws_tags(comment: &DocComment, operation: &Operation, diagnostics
         validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, diagnostics);
     } else {
         // If the operation can throw exceptions, ensure that its 'throws' tags agree with them.
-        let exception_types = &operation.exception_specification;
-        validate_throws_tags_for_operation_with_throws_clause(throws_tags, operation, exception_types, diagnostics);
+        let thrown_exceptions = &operation.exception_specification;
+        validate_throws_tags_for_operation_with_throws_clause(throws_tags, operation, thrown_exceptions, diagnostics);
     }
 }
 
@@ -166,9 +166,9 @@ fn validate_throws_tags_for_operation_with_throws_clause(
 ) {
     for throws_tag in throws_tags {
         if let Ok(documented_exception) = throws_tag.thrown_type() {
-            let is_correct = exception_types
-                .iter()
-                .any(|thrown_exception| std::ptr::eq(thrown_exception.definition(), documented_exception));
+            let is_correct = exception_types.iter().any(|thrown_exception| {
+                is_documented_exception_compatible(thrown_exception.definition(), documented_exception)
+            });
 
             if !is_correct {
                 Diagnostic::new(Lint::IncorrectDocComment {
@@ -183,5 +183,16 @@ fn validate_throws_tags_for_operation_with_throws_clause(
                 .push_into(diagnostics);
             }
         }
+    }
+}
+
+/// Returns true if `documented_exception` is the same as, or derives from `thrown_exception`.
+fn is_documented_exception_compatible(thrown_exception: &Exception, documented_exception: &Exception) -> bool {
+    if std::ptr::eq(thrown_exception, documented_exception) {
+        true
+    } else if let Some(base_exception) = documented_exception.base_exception() {
+        is_documented_exception_compatible(thrown_exception, base_exception)
+    } else {
+        false
     }
 }

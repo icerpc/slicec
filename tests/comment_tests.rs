@@ -630,24 +630,81 @@ mod comments {
     #[test]
     fn multiple_throws_tags_can_be_specified() {
         // Arrange
-        let slice = format!(
-            "
+        let slice = "
             mode = Slice1
             module tests
 
-            exception E1 {{}}
-            exception E2 {{}}
+            exception E1 {}
+            exception E2 {}
 
-            interface I {{
+            interface I {
                 /// @throws E1: first exception.
                 /// @throws E2: second exception.
                 op() throws (E1, E2)
-            }}
-            "
-        );
+            }
+        ";
 
         // Act/Assert
         assert_parses(slice);
+    }
+
+    #[test]
+    fn throws_tag_can_be_derived_exception() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Tests
+
+            exception Base {}
+            exception Middle1: Base {}
+            exception Middle2: Base {}
+            exception Derived: Middle1 {}
+
+            interface I {
+                /// @throws Middle1
+                /// @throws Derived
+                op() throws Middle1
+            }
+        ";
+
+        // Act/Assert
+        assert_parses(slice);
+    }
+
+    #[test]
+    fn throws_tag_cannot_be_base_exception() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Tests
+
+            exception Base {}
+            exception Middle1: Base {}
+            exception Middle2: Base {}
+            exception Derived: Middle1 {}
+
+            interface I {
+                /// @throws Base
+                /// @throws Middle2
+                op() throws Middle1
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Lint::IncorrectDocComment {
+                message: "comment has a 'throws' tag for 'Base', but operation 'op' doesn't throw this exception"
+                    .to_owned(),
+            }),
+            Diagnostic::new(Lint::IncorrectDocComment {
+                message: "comment has a 'throws' tag for 'Middle2', but operation 'op' doesn't throw this exception"
+                    .to_owned(),
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
