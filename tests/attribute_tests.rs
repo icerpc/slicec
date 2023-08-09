@@ -541,7 +541,7 @@ mod attributes {
         }
 
         #[test_case("[deprecated] string"; "non nested")]
-        #[test_case("sequence<[deprecated] string>"; "nested")]
+        #[test_case("Sequence<[deprecated] string>"; "nested")]
         fn attributes_on_anonymous_types_are_rejected(alias_type: &str) {
             let slice = format!(
                 "

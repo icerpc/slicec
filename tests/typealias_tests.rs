@@ -16,8 +16,8 @@ mod typealias {
     #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
     #[test_case("custom C", "C", "Slice2"; "custom types")]
     #[test_case("", "bool", "Slice2"; "primitives")]
-    #[test_case("", "sequence<bool>", "Slice2"; "sequences")]
-    #[test_case("", "dictionary<bool, bool>", "Slice2"; "dictionaries")]
+    #[test_case("", "Sequence<bool>", "Slice2"; "sequences")]
+    #[test_case("", "Dictionary<bool, bool>", "Slice2"; "dictionaries")]
     #[test_case("typealias T = bool", "T", "Slice2"; "type aliases")]
     fn can_have_type_alias_of(definition: &str, identifier: &str, mode: &str) {
         // Arrange
@@ -43,7 +43,7 @@ mod typealias {
         // Arrange
         let slice = "
             module Test
-            typealias MyDict = dictionary<varint32, sequence<uint8>>
+            typealias MyDict = Dictionary<varint32, Sequence<uint8>>
             compact struct S {
                 dict: MyDict
             }
@@ -58,7 +58,7 @@ mod typealias {
         // Arrange
         let slice = "
             module Test
-            typealias MyDict = dictionary<varint32, sequence<uint8>>
+            typealias MyDict = Dictionary<varint32, Sequence<uint8>>
             interface I {
                 op(dict: MyDict)
             }

@@ -9,8 +9,8 @@ fn invalid_dictionary_values_produce_error() {
     let slice = "
     module Foo
     struct Bar {
-         i: dictionary<int32, dictionary<float32, bool>>
-         j: dictionary<int32, sequence<dictionary<float64, bool>>>
+         i: Dictionary<int32, Dictionary<float32, bool>>
+         j: Dictionary<int32, Sequence<Dictionary<float64, bool>>>
     }
     ";
 

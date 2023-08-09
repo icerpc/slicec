@@ -12,7 +12,7 @@ pub struct Dictionary {
 impl Type for Dictionary {
     fn type_string(&self) -> String {
         format!(
-            "dictionary<{}, {}>",
+            "Dictionary<{}, {}>",
             self.key_type.type_string(),
             self.value_type.type_string(),
         )

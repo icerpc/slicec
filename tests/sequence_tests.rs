@@ -13,7 +13,7 @@ mod sequences {
         // Arrange
         let slice = "
             module Test
-            typealias Seq = sequence<int8>
+            typealias Seq = Sequence<int8>
         ";
 
         // Act
@@ -37,7 +37,7 @@ mod sequences {
         // Arrange
         let slice = "
             module Test
-            typealias Seq = sequence<dictionary<int32, dictionary<float32, float32>>>
+            typealias Seq = Sequence<Dictionary<int32, Dictionary<float32, float32>>>
         ";
 
         // Act

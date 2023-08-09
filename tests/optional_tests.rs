@@ -182,7 +182,7 @@ mod optional {
                 mode = Slice1
                 module Test
                 exception E {
-                    a: sequence<AnyClass?>
+                    a: Sequence<AnyClass?>
                 }
             ";
 
@@ -202,7 +202,7 @@ mod optional {
                 mode = Slice1
                 module Test
                 exception E {
-                    a: sequence<bool?>
+                    a: Sequence<bool?>
                 }
             ";
 
@@ -228,7 +228,7 @@ mod optional {
                 mode = Slice1
                 module Test
                 exception E {
-                    a: dictionary<uint8?, float32>
+                    a: Dictionary<uint8?, float32>
                 }
             ";
 
@@ -251,7 +251,7 @@ mod optional {
                 mode = Slice1
                 module Test
                 exception E {
-                    a: dictionary<string, int32?>
+                    a: Dictionary<string, int32?>
                 }
             ";
 
@@ -274,7 +274,7 @@ mod optional {
                 mode = Slice1
                 module Test
                 exception E {
-                    a: dictionary<string, AnyClass?>
+                    a: Dictionary<string, AnyClass?>
                 }
             ";
 
@@ -475,7 +475,7 @@ mod optional {
             let slice = "
                 module Test
                 struct S {
-                    a: sequence<int32>?
+                    a: Sequence<int32>?
                 }
             ";
 
@@ -496,7 +496,7 @@ mod optional {
             let slice = "
                 module Test
                 struct S {
-                    a: sequence<bool?>
+                    a: Sequence<bool?>
                 }
             ";
 
@@ -517,7 +517,7 @@ mod optional {
             let slice = "
                 module Test
                 struct S {
-                    a: dictionary<varuint62, string>?
+                    a: Dictionary<varuint62, string>?
                 }
             ";
 
@@ -540,7 +540,7 @@ mod optional {
             let slice = "
                 module Test
                 struct S {
-                    a: dictionary<varuint62?, string>
+                    a: Dictionary<varuint62?, string>
                 }
             ";
 
@@ -562,7 +562,7 @@ mod optional {
             let slice = "
                 module Test
                 struct S {
-                    a: dictionary<varuint62, string?>
+                    a: Dictionary<varuint62, string?>
                 }
             ";
 

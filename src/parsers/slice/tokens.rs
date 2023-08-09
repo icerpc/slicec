@@ -40,8 +40,8 @@ pub enum TokenKind<'input> {
     TypeAliasKeyword, // "typealias"
 
     // Collection keywords
-    SequenceKeyword,   // "sequence"
-    DictionaryKeyword, // "dictionary"
+    SequenceKeyword,   // "Sequence"
+    DictionaryKeyword, // "Dictionary"
 
     // Primitive type keywords
     BoolKeyword,      // "bool"
@@ -110,8 +110,8 @@ impl fmt::Display for TokenKind<'_> {
             Self::EnumKeyword => "enum",
             Self::CustomKeyword => "custom",
             Self::TypeAliasKeyword => "typealias",
-            Self::SequenceKeyword => "sequence",
-            Self::DictionaryKeyword => "dictionary",
+            Self::SequenceKeyword => "Sequence",
+            Self::DictionaryKeyword => "Dictionary",
             Self::BoolKeyword => "bool",
             Self::Int8Keyword => "int8",
             Self::UInt8Keyword => "uint8",

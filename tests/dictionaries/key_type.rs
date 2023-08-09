@@ -9,7 +9,7 @@ fn optional_keys_are_disallowed() {
     // Arrange
     let slice = "
         module Test
-        typealias Dict = dictionary<int32?, int8>
+        typealias Dict = Dictionary<int32?, int8>
     ";
 
     // Act
@@ -39,7 +39,7 @@ fn allowed_primitive_types(key_type: &str) {
     let slice = format!(
         "
             module Test
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = Dictionary<{key_type}, int8>
         "
     );
 
@@ -56,7 +56,7 @@ fn disallowed_primitive_types(key_type: &str, mode: &str) {
         "
             mode = {mode}
             module Test
-            typealias Dict = dictionary<{key_type}, uint8>
+            typealias Dict = Dictionary<{key_type}, uint8>
         "
     );
 
@@ -70,14 +70,14 @@ fn disallowed_primitive_types(key_type: &str, mode: &str) {
     check_diagnostics(diagnostics, [expected]);
 }
 
-#[test_case("sequence<int8>", "sequence" ; "sequence")]
-#[test_case("dictionary<int8, bool>", "dictionary" ; "dictionary")]
+#[test_case("Sequence<int8>", "sequence" ; "sequence")]
+#[test_case("Dictionary<int8, bool>", "dictionary" ; "dictionary")]
 fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     // Arrange
     let slice = format!(
         "
             module Test
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = Dictionary<{key_type}, int8>
         "
     );
 
@@ -99,7 +99,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
         "
             module Test
             {key_type_def}
-            typealias Dict = dictionary<{key_type}, int8>
+            typealias Dict = Dictionary<{key_type}, int8>
         "
     );
 
@@ -117,7 +117,7 @@ fn disallowed_constructed_types(key_type: &str, key_kind: &str, mode: &str) {
             module Test
 
             {key_kind} {key_type} {{}}
-            typealias Dict = dictionary<{key_type}, uint8>
+            typealias Dict = Dictionary<{key_type}, uint8>
         "
     );
 
@@ -139,7 +139,7 @@ fn non_compact_structs_are_disallowed() {
 
         struct MyStruct {}
 
-        typealias Dict = dictionary<MyStruct, int8>
+        typealias Dict = Dictionary<MyStruct, int8>
     ";
 
     // Act
@@ -165,7 +165,7 @@ fn compact_struct_with_allowed_fields_is_allowed() {
             i: Inner
         }
 
-        typealias Dict = dictionary<Outer, int8>
+        typealias Dict = Dictionary<Outer, int8>
     ";
 
     // Act/Assert
@@ -184,12 +184,12 @@ fn compact_struct_with_disallowed_fields_is_disallowed() {
         }
 
         compact struct Outer {
-            seq: sequence<int8> // disallowed key type
+            seq: Sequence<int8> // disallowed key type
             i: Inner // disallowed key type
             s: string
         }
 
-        typealias Dict = dictionary<Outer, int8>
+        typealias Dict = Dictionary<Outer, int8>
     ";
 
     // Act

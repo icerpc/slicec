@@ -33,7 +33,7 @@ impl Sequence {
 
 impl Type for Sequence {
     fn type_string(&self) -> String {
-        format!("sequence<{}>", self.element_type.type_string())
+        format!("Sequence<{}>", self.element_type.type_string())
     }
 
     fn fixed_wire_size(&self) -> Option<u32> {
