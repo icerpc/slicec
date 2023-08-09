@@ -15,7 +15,7 @@ pub(super) fn detect_cycles(ast: &Ast, diagnostics: &mut Diagnostics) {
         cycle_detector.dependency_stack.clear(); // Make sure the detector is cleared between checks.
         match node {
             // We only check structs since these are the only types that can cause infinite cycles.
-            // Classes can safely contain cycles since they user reference semantics.
+            // Classes can safely contain cycles since they use reference semantics.
             // Exceptions cannot cause cycles because they cannot be used as the type of a field.
             Node::Struct(struct_def) => cycle_detector.check_for_cycles(struct_def.borrow()),
             _ => false,

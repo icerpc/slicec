@@ -53,7 +53,7 @@ impl TypeRefPatcher<'_> {
                 Node::Operation(operation_ptr) => {
                     operation_ptr.borrow().exception_specification.iter()
                         .map(|type_ref| self.resolve_definition(type_ref, ast))
-                        .collect::<Option<Vec<_>>>() // None if any of the bases couldn't be resolved.
+                        .collect::<Option<Vec<_>>>() // None if any of the exceptions couldn't be resolved.
                         .map(PatchKind::ExceptionSpecification)
                 }
                 Node::Parameter(parameter_ptr) => {
@@ -134,7 +134,7 @@ impl TypeRefPatcher<'_> {
                 PatchKind::ExceptionSpecification(exception_patches) => {
                     let operation_ptr: &mut OwnedPtr<Operation> = element.try_into().unwrap();
                     let exception_specification = &mut operation_ptr.borrow_mut().exception_specification;
-                    // Ensure the number of patches is equal to the number of base interfaces.
+                    // Ensure the number of patches is equal to the number of exceptions.
                     debug_assert_eq!(exception_specification.len(), exception_patches.len());
 
                     // Iterate through and patch each exception type.

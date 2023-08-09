@@ -247,8 +247,8 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
 }
 
 mod slice2 {
-    use slicec::diagnostics::{Diagnostic, Error};
     use crate::test_helpers::*;
+    use slicec::diagnostics::{Diagnostic, Error};
 
     #[test]
     fn exception_specifications_are_not_supported() {

@@ -20,8 +20,8 @@ mod slice1 {
 
 mod slice2 {
     use crate::test_helpers::*;
-    use slicec::grammar::CompilationMode;
     use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::grammar::CompilationMode;
 
     #[test]
     fn cannot_define_exceptions() {

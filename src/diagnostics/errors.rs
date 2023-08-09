@@ -529,7 +529,7 @@ implement_diagnostic_functions!(
     (
         "E052",
         ExceptionSpecificationNotSupported,
-        "exceptions can be only thrown by Slice1 operations"
+        "exceptions can be only thrown by operations defined in Slice1 mode"
     )
 );
 
