@@ -112,4 +112,4 @@ pub trait AsTypes {
     fn concrete_type(&self) -> Types;
 }
 
-generate_types_wrapper!(Struct, Class, Exception, Interface, Enum, CustomType, Sequence, Dictionary, Primitive);
+generate_types_wrapper!(Struct, Class, Interface, Enum, CustomType, Sequence, Dictionary, Primitive);

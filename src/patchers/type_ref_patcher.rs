@@ -51,11 +51,10 @@ impl TypeRefPatcher<'_> {
                         .map(PatchKind::BaseInterfaces)
                 }
                 Node::Operation(operation_ptr) => {
-                    if let Throws::Specific(type_ref) = &operation_ptr.borrow().throws {
-                        self.resolve_definition(type_ref, ast).map(PatchKind::ThrowsType)
-                    } else {
-                        None
-                    }
+                    operation_ptr.borrow().exception_specification.iter()
+                        .map(|type_ref| self.resolve_definition(type_ref, ast))
+                        .collect::<Option<Vec<_>>>() // None if any of the exceptions couldn't be resolved.
+                        .map(PatchKind::ExceptionSpecification)
                 }
                 Node::Parameter(parameter_ptr) => {
                     let type_ref = &parameter_ptr.borrow().data_type;
@@ -132,12 +131,17 @@ impl TypeRefPatcher<'_> {
                     let parameter_type_ref = &mut parameter_ptr.borrow_mut().data_type;
                     parameter_type_ref.patch(parameter_type_ptr, attributes);
                 }
-                PatchKind::ThrowsType((exception_type_ptr, attributes)) => {
+                PatchKind::ExceptionSpecification(exception_patches) => {
                     let operation_ptr: &mut OwnedPtr<Operation> = element.try_into().unwrap();
-                    if let Throws::Specific(throws_type_ref) = &mut operation_ptr.borrow_mut().throws {
-                        throws_type_ref.patch(exception_type_ptr, attributes);
-                    } else {
-                        unreachable!() // If a patch exists, there must of been a type_ref to patch.
+                    let exception_specification = &mut operation_ptr.borrow_mut().exception_specification;
+                    // Ensure the number of patches is equal to the number of exceptions.
+                    debug_assert_eq!(exception_specification.len(), exception_patches.len());
+
+                    // Iterate through and patch each exception type.
+                    for (j, patch) in exception_patches.into_iter().enumerate() {
+                        let (exception_type_ptr, attributes) = patch;
+                        let exception_type_ref = &mut exception_specification[j];
+                        exception_type_ref.patch(exception_type_ptr, attributes);
                     }
                 }
                 PatchKind::EnumUnderlyingType((enum_underlying_type_ptr, attributes)) => {
@@ -325,7 +329,7 @@ enum PatchKind {
     BaseInterfaces(Vec<Patch<Interface>>),
     FieldType(Patch<dyn Type>),
     ParameterType(Patch<dyn Type>),
-    ThrowsType(Patch<Exception>),
+    ExceptionSpecification(Vec<Patch<Exception>>),
     EnumUnderlyingType(Patch<Primitive>),
     TypeAliasUnderlyingType(Patch<dyn Type>),
     SequenceType(Patch<dyn Type>),

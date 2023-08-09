@@ -25,10 +25,6 @@ fn valid_mixed_compilation_mode_succeeds() {
         interface AnInterface {
             op() -> AnEnum
         }
-
-        exception AnException {
-            message: string
-        }
     ";
     let slice2 = "
         mode = Slice2
@@ -37,7 +33,6 @@ fn valid_mixed_compilation_mode_succeeds() {
             e: AnEnum
             i: AnInterface
             c: ACompactStruct
-            ex: AnException
         }
     ";
 

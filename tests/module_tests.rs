@@ -79,7 +79,7 @@ mod module {
         ";
         let slice2 = "
             module Foo
-            exception Bar {}
+            custom Bar
         ";
 
         // Act

@@ -41,35 +41,6 @@ impl Exception {
     }
 }
 
-impl Type for Exception {
-    fn type_string(&self) -> String {
-        self.identifier().to_owned()
-    }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        // Return `None` if any of the exception's fields aren't of fixed size.
-        // Otherwise the fixed size of the exception is equal to the fixed size of its fields added together.
-        self.all_fields()
-            .into_iter()
-            .map(|field| field.data_type.fixed_wire_size())
-            .collect::<Option<Vec<u32>>>() // ensure all fields are of fixed size; will return none if any are not
-            .map(|sizes| sizes.iter().sum())
-    }
-
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        // Exceptions as a data type are only supported with Slice2, which doesn't use tag formats.
-        None
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.supported_encodings.clone().unwrap()
-    }
-}
-
 implement_Element_for!(Exception, "exception");
 implement_Attributable_for!(Exception);
 implement_Entity_for!(Exception);

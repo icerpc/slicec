@@ -1,13 +1,27 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::grammar::*;
 
 pub fn validate_operation(operation: &Operation, diagnostics: &mut Diagnostics) {
+    exception_specifications_can_only_be_used_in_slice1_mode(operation, diagnostics);
     if let Some(comment) = operation.comment() {
         validate_param_tags(comment, operation, diagnostics);
         validate_returns_tags(comment, operation, diagnostics);
         validate_throws_tags(comment, operation, diagnostics);
+    }
+}
+
+fn exception_specifications_can_only_be_used_in_slice1_mode(operation: &Operation, diagnostics: &mut Diagnostics) {
+    if operation.encoding != CompilationMode::Slice1 && !operation.exception_specification.is_empty() {
+        // Create a span that covers the the entire exception specification.
+        let mut span = operation.exception_specification.first().unwrap().span().clone();
+        span.end = operation.exception_specification.last().unwrap().span().end;
+
+        Diagnostic::new(Error::ExceptionSpecificationNotSupported)
+            .set_span(&span)
+            .set_scope(operation.parser_scoped_identifier())
+            .push_into(diagnostics);
     }
 }
 
@@ -116,21 +130,13 @@ fn validate_returns_tags_for_operation_with_return_tuple(
 
 fn validate_throws_tags(comment: &DocComment, operation: &Operation, diagnostics: &mut Diagnostics) {
     let throws_tags = &comment.throws;
-
-    match &operation.throws {
+    if operation.exception_specification.is_empty() {
         // If the operation doesn't throw, but its doc comment has 'throws' tags, report an error.
-        Throws::None => validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, diagnostics),
-
-        // If the operation throws a specific exception, ensure that its 'throws' tag agrees with it.
-        Throws::Specific(exception_ref) => validate_throws_tags_for_operation_that_throws_a_specific_exception(
-            throws_tags,
-            operation,
-            exception_ref,
-            diagnostics,
-        ),
-
-        // We perform no validation if the operation throws 'AnyException'.
-        Throws::AnyException => {}
+        validate_throws_tags_for_operation_with_no_throws_clause(throws_tags, operation, diagnostics);
+    } else {
+        // If the operation can throw exceptions, ensure that its 'throws' tags agree with them.
+        let thrown_exceptions = &operation.exception_specification;
+        validate_throws_tags_for_operation_with_throws_clause(throws_tags, operation, thrown_exceptions, diagnostics);
     }
 }
 
@@ -152,21 +158,19 @@ fn validate_throws_tags_for_operation_with_no_throws_clause(
     }
 }
 
-fn validate_throws_tags_for_operation_that_throws_a_specific_exception(
+fn validate_throws_tags_for_operation_with_throws_clause(
     throws_tags: &[ThrowsTag],
     operation: &Operation,
-    thrown_exception: &TypeRef<Exception>,
+    exception_types: &[TypeRef<Exception>],
     diagnostics: &mut Diagnostics,
 ) {
     for throws_tag in throws_tags {
-        if let Some(Ok(documented_exception)) = throws_tag.thrown_type() {
-            if (thrown_exception.definition() as *const _) != (documented_exception as *const _) {
-                let note_message = format!(
-                    "operation '{}' only throws '{}'",
-                    operation.identifier(),
-                    thrown_exception.identifier(),
-                );
+        if let Ok(documented_exception) = throws_tag.thrown_type() {
+            let is_correct = exception_types.iter().any(|thrown_exception| {
+                is_documented_exception_compatible(thrown_exception.definition(), documented_exception)
+            });
 
+            if !is_correct {
                 Diagnostic::new(Lint::IncorrectDocComment {
                     message: format!(
                         "comment has a 'throws' tag for '{}', but operation '{}' doesn't throw this exception",
@@ -176,9 +180,19 @@ fn validate_throws_tags_for_operation_that_throws_a_specific_exception(
                 })
                 .set_span(throws_tag.span())
                 .set_scope(operation.parser_scoped_identifier())
-                .add_note(note_message, Some(thrown_exception.span()))
                 .push_into(diagnostics);
             }
         }
+    }
+}
+
+/// Returns true if `documented_exception` is the same as, or derives from `thrown_exception`.
+fn is_documented_exception_compatible(thrown_exception: &Exception, documented_exception: &Exception) -> bool {
+    if std::ptr::eq(thrown_exception, documented_exception) {
+        true
+    } else if let Some(base_exception) = documented_exception.base_exception() {
+        is_documented_exception_compatible(thrown_exception, base_exception)
+    } else {
+        false
     }
 }

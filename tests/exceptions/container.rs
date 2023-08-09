@@ -9,6 +9,7 @@ use slicec::grammar::*;
 fn can_contain_fields() {
     // Arrange
     let slice = "
+        mode = Slice1
         module Test
 
         exception E {
@@ -47,6 +48,7 @@ fn can_contain_fields() {
 fn can_be_empty() {
     // Arrange
     let slice = "
+        mode = Slice1
         module Test
 
         exception E {}

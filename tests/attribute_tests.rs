@@ -96,7 +96,7 @@ mod attributes {
                 module Test
 
                 /// {{@link fake}}
-                /// @throws
+                /// @returns
                 [deprecated(\"test\")]
                 struct S {{}}
 
@@ -119,7 +119,7 @@ mod attributes {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
                 Diagnostic::new(Lint::IncorrectDocComment {
-                    message: "comment has a 'throws' tag, but only operations can throw".to_owned(),
+                    message: "comment has a 'returns' tag, but only operations can return".to_owned(),
                 }),
             ];
             // Filter out any lints that should be allowed by the supplied test arguments.

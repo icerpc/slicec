@@ -35,17 +35,17 @@ pub struct ReturnsTag {
 
 #[derive(Debug)]
 pub struct ThrowsTag {
-    pub thrown_type: Option<TypeRefDefinition<Exception>>,
+    pub thrown_type: TypeRefDefinition<Exception>,
     pub message: Message,
     pub span: Span,
 }
 
 impl ThrowsTag {
-    pub fn thrown_type(&self) -> Option<Result<&Exception, &Identifier>> {
-        self.thrown_type.as_ref().map(|link| match link {
+    pub fn thrown_type(&self) -> Result<&Exception, &Identifier> {
+        match &self.thrown_type {
             TypeRefDefinition::Patched(ptr) => Ok(ptr.borrow()),
             TypeRefDefinition::Unpatched(identifier) => Err(identifier),
-        })
+        }
     }
 }
 

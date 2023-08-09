@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::super::Throws;
 use super::*;
 
 #[derive(Debug)]
@@ -18,7 +17,7 @@ impl Oneway {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if let Attributables::Operation(operation) = applied_on {
             // If the operation can return or throw data, it can't be marked oneway.
-            if !operation.return_type.is_empty() || !matches!(operation.throws, Throws::None) {
+            if !operation.return_type.is_empty() || !operation.exception_specification.is_empty() {
                 let note = "operations that return or throw data cannot be marked oneway";
                 report_unexpected_attribute(self, span, Some(note), diagnostics);
             }

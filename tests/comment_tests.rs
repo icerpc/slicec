@@ -206,6 +206,7 @@ mod comments {
     fn operation_with_correct_doc_comments() {
         // Arrange
         let slice = "
+            mode = Slice1
             module tests
 
             exception MyException {}
@@ -226,11 +227,14 @@ mod comments {
     fn doc_comment_throws() {
         // Arrange
         let slice = "
+            mode = Slice1
             module tests
 
+            exception MyException {}
+
             interface TestInterface {
-                /// @throws: Message about my thrown thing.
-                testOp(testParam: string) -> bool
+                /// @throws MyException: Message about my thrown thing.
+                testOp(testParam: string) -> bool throws MyException
             }
         ";
 
@@ -244,46 +248,11 @@ mod comments {
         assert_eq!(throws_tags.len(), 1);
 
         let throws_tag = &throws_tags[0];
-        assert_eq!(throws_tag.span.start, (5, 21).into());
-        assert_eq!(throws_tag.span.end, (5, 60).into());
+        assert_eq!(throws_tag.span.start, (8, 21).into());
+        assert_eq!(throws_tag.span.end, (8, 72).into());
 
-        assert!(throws_tag.thrown_type().is_none());
-
-        let message = &throws_tag.message;
-        assert_eq!(message.len(), 2);
-        let MessageComponent::Text(text) = &message[0] else { panic!() };
-        assert_eq!(text, "Message about my thrown thing.");
-    }
-
-    #[test]
-    fn doc_comments_throws_specific_type() {
-        // Arrange
-        let slice = "
-            module tests
-
-            exception MyThrownThing {}
-
-            interface TestInterface {
-                /// @throws MyThrownThing: Message about my thrown thing.
-                testOp(testParam: string) -> bool
-            }
-        ";
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
-
-        let throws_tags = &operation.comment().unwrap().throws;
-        assert_eq!(throws_tags.len(), 1);
-
-        let throws_tag = &throws_tags[0];
-        assert_eq!(throws_tag.span.start, (7, 21).into());
-        assert_eq!(throws_tag.span.end, (7, 74).into());
-
-        let thrown_type = throws_tag.thrown_type().unwrap().unwrap();
-        assert_eq!(thrown_type.module_scoped_identifier(), "tests::MyThrownThing");
+        let thrown_type = throws_tag.thrown_type().unwrap();
+        assert_eq!(thrown_type.parser_scoped_identifier(), "tests::MyException");
 
         let message = &throws_tag.message;
         assert_eq!(message.len(), 2);
@@ -573,18 +542,18 @@ mod comments {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case("throws"; "unnamed tag")]
-    #[test_case("throws Foo"; "named tag")]
-    fn throws_tag_is_rejected_for_operations_that_do_not_throw(throws_tag: &str) {
+    #[test]
+    fn throws_tag_is_rejected_for_operations_that_do_not_throw() {
         // Arrange
         let slice = format!(
             "
+            mode = Slice1
             module tests
 
             exception Foo {{}}
 
             interface I {{
-                /// @{throws_tag}: this tag is invalid.
+                /// @throws Foo: this tag is invalid.
                 op()
             }}
             ",
@@ -604,12 +573,11 @@ mod comments {
     fn throws_tag_is_rejected_if_it_names_an_unthrowable_type() {
         // Arrange
         let slice = "
+            mode = Slice1
             module tests
 
-            struct Foo {}
-
             interface I {
-                /// @throws Foo: this type isn't an exception`.
+                /// @throws I: this type isn't an exception.
                 op()
             }
         ";
@@ -620,7 +588,7 @@ mod comments {
         // Assert
         let expected = [
             Diagnostic::new(Lint::IncorrectDocComment {
-                message: "comment has a 'throws' tag for 'Foo', but it is not a throwable type".to_owned(),
+                message: "comment has a 'throws' tag for 'I', but it is not a throwable type".to_owned(),
             }),
             Diagnostic::new(Lint::IncorrectDocComment {
                 message: "comment has a 'throws' tag, but operation 'op' does not throw anything".to_owned(),
@@ -629,19 +597,22 @@ mod comments {
         check_diagnostics(diagnostics, expected);
     }
 
-    #[test]
-    fn named_throws_tag_is_rejected_if_its_types_does_not_match_the_thrown_type() {
+    #[test_case("E1"; "single")]
+    #[test_case("(E1, E2)"; "multiple")]
+    fn named_throws_tag_is_rejected_if_its_types_does_not_match_the_thrown_type(exceptions: &str) {
         // Arrange
         let slice = format!(
             "
+            mode = Slice1
             module tests
 
-            exception E {{}}
+            exception E1 {{}}
+            exception E2 {{}}
             exception Foo {{}}
 
             interface I {{
                 /// @throws Foo: this isn't the type that is thrown.
-                op() throws E
+                op() throws {exceptions}
             }}
             "
         );
@@ -654,6 +625,86 @@ mod comments {
             message: "comment has a 'throws' tag for 'Foo', but operation 'op' doesn't throw this exception".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn multiple_throws_tags_can_be_specified() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module tests
+
+            exception E1 {}
+            exception E2 {}
+
+            interface I {
+                /// @throws E1: first exception.
+                /// @throws E2: second exception.
+                op() throws (E1, E2)
+            }
+        ";
+
+        // Act/Assert
+        assert_parses(slice);
+    }
+
+    #[test]
+    fn throws_tag_can_be_derived_exception() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Tests
+
+            exception Base {}
+            exception Middle1: Base {}
+            exception Middle2: Base {}
+            exception Derived: Middle1 {}
+
+            interface I {
+                /// @throws Middle1
+                /// @throws Derived
+                op() throws Middle1
+            }
+        ";
+
+        // Act/Assert
+        assert_parses(slice);
+    }
+
+    #[test]
+    fn throws_tag_cannot_be_base_exception() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Tests
+
+            exception Base {}
+            exception Middle1: Base {}
+            exception Middle2: Base {}
+            exception Derived: Middle1 {}
+
+            interface I {
+                /// @throws Base
+                /// @throws Middle2
+                op() throws Middle1
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Lint::IncorrectDocComment {
+                message: "comment has a 'throws' tag for 'Base', but operation 'op' doesn't throw this exception"
+                    .to_owned(),
+            }),
+            Diagnostic::new(Lint::IncorrectDocComment {
+                message: "comment has a 'throws' tag for 'Middle2', but operation 'op' doesn't throw this exception"
+                    .to_owned(),
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
@@ -700,10 +751,13 @@ mod comments {
     fn throws_tags_can_only_be_used_with_operations() {
         // Arrange
         let slice = "
+            mode = Slice1
             module tests
 
-            /// @throws: bad tag.
-            struct Foo {}
+            exception E {}
+
+            /// @throws E: bad tag.
+            interface Foo {}
         ";
 
         // Act

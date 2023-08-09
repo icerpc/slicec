@@ -108,7 +108,6 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
 }
 
 #[test_case("MyClass", "class", "Slice1"; "classes")]
-#[test_case("MyException", "exception", "Slice2"; "exceptions")]
 #[test_case("MyInterface", "interface", "Slice2"; "interfaces")]
 fn disallowed_constructed_types(key_type: &str, key_kind: &str, mode: &str) {
     // Arrange

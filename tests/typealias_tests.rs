@@ -11,7 +11,6 @@ mod typealias {
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", "Slice2"; "structs")]
-    #[test_case("exception E { }", "E", "Slice2"; "exceptions")]
     #[test_case("class C {}", "C", "Slice1"; "classes")]
     #[test_case("interface I {}", "I", "Slice2"; "interfaces")]
     #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
