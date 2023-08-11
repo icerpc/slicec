@@ -26,7 +26,7 @@ macro_rules! append_tag_to_comment {
     }};
 }
 
-pub(self) use append_tag_to_comment; // To let LALRPOP use the macro.
+use append_tag_to_comment; // To let LALRPOP use the macro.
 
 // Grammar Rule Functions
 

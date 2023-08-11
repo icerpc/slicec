@@ -164,7 +164,7 @@ fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> St
     // If the provided range is between 2 locations, highlight everything between them.
     let highlight = if highlight_start == highlight_end {
         // Point to a single character.
-        style(r#"/\"#.to_owned()).yellow().bold()
+        style(r"/\".to_owned()).yellow().bold()
     } else {
         // Number of tabs between the start and end of the highlight.
         let highlight_tab_count = line
