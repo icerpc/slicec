@@ -68,9 +68,8 @@ impl<'a, T: Write> DiagnosticEmitter<'a, T> {
             for note in diagnostic.notes() {
                 writeln!(
                     self.output,
-                    "    {} {}: {:}",
-                    console::style("=").blue().bold(),
-                    console::style("note").bold(),
+                    "{}: {}",
+                    console::style("note").blue().bold(),
                     console::style(&note.message).bold(),
                 )?;
 
