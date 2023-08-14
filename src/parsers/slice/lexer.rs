@@ -381,6 +381,7 @@ where
                 None
             }
             unknown => {
+                self.advance_buffer(); // Consume the unknown symbol.
                 let error = ErrorKind::UnknownSymbol {
                     symbol: unknown.to_string(),
                     suggestion: None,
