@@ -115,7 +115,7 @@ FileCompilationMode: FileCompilationMode = {
 }
 
 Module: OwnedPtr<Module> = {
-    <p: Prelude> <l: @L> module_keyword <i: RelativelyScopedIdentifier> <r: @R> => {
+    <p: Prelude> <l: @L> module_keyword <i: RelativeIdentifier> <r: @R> => {
         construct_module(parser, p, i, Span::new(l, r, parser.file_name))
     },
 }
@@ -260,8 +260,8 @@ TypeRefDefinition: TypeRefDefinition = {
     Primitive => primitive_to_type_ref_definition(parser, <>),
     Sequence => anonymous_type_to_type_ref_definition(parser, <>),
     Dictionary => anonymous_type_to_type_ref_definition(parser, <>),
-    RelativelyScopedIdentifier => construct_unpatched_type_ref_definition(<>),
-    GloballyScopedIdentifier => construct_unpatched_type_ref_definition(<>),
+    RelativeIdentifier => construct_unpatched_type_ref_definition(<>),
+    GlobalIdentifier => construct_unpatched_type_ref_definition(<>),
 }
 
 FileAttribute = "[[" <Attribute> "]]";
@@ -269,7 +269,7 @@ FileAttribute = "[[" <Attribute> "]]";
 LocalAttribute = "[" <Attribute> "]";
 
 Attribute: WeakPtr<Attribute> = {
-    <l: @L> <rsi: RelativelyScopedIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
+    <l: @L> <rsi: RelativeIdentifier> <aas: ("(" <CommaList<AttributeArgument>> ")")?> <r: @R> => {
         construct_attribute(parser, rsi, aas, Span::new(l, r, parser.file_name))
     },
 }
@@ -285,14 +285,14 @@ Identifier: Identifier = {
     },
 }
 
-RelativelyScopedIdentifier: Identifier = {
+RelativeIdentifier: Identifier = {
     <l: @L> <i: identifier> <mut v: ("::" <identifier>)*> <r: @R> => {
         v.insert(0, i);
         Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
     },
 }
 
-GloballyScopedIdentifier: Identifier = {
+GlobalIdentifier: Identifier = {
     <l: @L> <mut v: ("::" <identifier>)+> <r: @R> => {
         v.insert(0, ""); // Gives a leading "::" when we `join`.
         Identifier { value: v.join("::"), span: Span::new(l, r, parser.file_name) }
