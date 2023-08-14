@@ -7,7 +7,6 @@ use serde::Serialize;
 use std::fmt::{Display, Write};
 
 const EXPANDED_TAB: &str = "    ";
-const SPACE: &str = " ";
 
 /// Stores the row and column numbers of a location in a Slice file.
 /// These values are indexed starting at 1 instead of 0 for human readability.
@@ -142,7 +141,7 @@ impl SliceFile {
             formatted_snippet += &(prefix + " " + &space_separated_line + "\n");
 
             let highlight = get_highlight(line, highlight_start, highlight_end);
-            writeln!(formatted_snippet, "{line_prefix} {highlight}").expect("failed to write snippet");
+            writeln!(formatted_snippet, "{line_prefix}{highlight}").expect("failed to write snippet");
         }
 
         formatted_snippet + &line_prefix
@@ -153,16 +152,23 @@ implement_Attributable_for!(SliceFile);
 
 fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> String {
     // The whitespace that should be displayed before the highlight. Tabs are expanded to 4 spaces.
-    let whitespace: String = line
-        .chars()
-        .take(highlight_start)
-        .map(|c| if c == '\t' { EXPANDED_TAB } else { SPACE })
-        .collect();
+    // We always start with one space to separate the highlight from the vertical separator.
+    let mut whitespace_count = 1;
+    for c in line.chars().take(highlight_start) {
+        if c == '\t' {
+            whitespace_count += EXPANDED_TAB.len();
+        } else {
+            whitespace_count += 1;
+        }
+    }
 
     // The highlight that should be displayed.
     // If it's between 2 characters (same start and end), then we use a single point.
     // If the provided range is between 2 locations, highlight everything between them.
     let highlight = if highlight_start == highlight_end {
+        // Subtract 1 from the whitespace count so the '/' is in the column before the highlight starts.
+        whitespace_count -= 1;
+
         // Point to a single character.
         style(r"/\".to_owned()).yellow().bold()
     } else {
@@ -180,5 +186,5 @@ fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> St
         style(format!("{:-<1$}", "", highlight_length)).yellow().bold()
     };
 
-    whitespace + &highlight.to_string()
+    " ".repeat(whitespace_count) + &highlight.to_string()
 }
