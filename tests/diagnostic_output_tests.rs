@@ -3,13 +3,8 @@
 mod test_helpers;
 
 mod output {
-
-    use std::collections::HashMap;
-
     use crate::test_helpers::parse;
     use slicec::diagnostic_emitter::DiagnosticEmitter;
-    use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::slice_file::{SliceFile, Span};
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
@@ -180,59 +175,6 @@ error [E010]: invalid enum 'E': enums must contain at least one enumerator
             r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":43},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
         );
-        assert_eq!(expected, String::from_utf8(output).unwrap());
-    }
-
-    #[test]
-    fn notes_with_same_span_as_diagnostic_are_suppressed() {
-        // Arrange
-
-        // Create a dummy slice file for the test.
-        let slice = "
-            mode = Slice2
-            module Foo
-        ";
-        let mut files = HashMap::new();
-        let file_name = "string-0".to_owned();
-        files.insert(
-            file_name.clone(),
-            SliceFile::new(file_name.clone(), slice.to_owned(), false),
-        );
-
-        // Report a diagnostic where its span is the same as its note's span.
-        let span = Span {
-            start: (2, 13).into(),
-            end: (2, 26).into(),
-            file: file_name,
-        };
-        let diagnostic = Diagnostic::new(Error::Syntax {
-            message: "foo".to_owned(),
-        })
-        .set_span(&span)
-        .add_note("bar", Some(&span));
-
-        // Create a DiagnosticEmitter to test the emission (with ANSI color codes disabled for consistency).
-        let options = SliceOptions {
-            disable_color: true,
-            ..Default::default()
-        };
-        let mut output: Vec<u8> = Vec::new();
-
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &files);
-
-        // Act
-        emitter.emit_diagnostics(vec![diagnostic]).unwrap();
-
-        // Assert
-        let expected = "\
-error [E002]: invalid syntax: foo
- --> string-0:2:13
-  |
-2 |             mode = Slice2
-  |             -------------
-  |
-    = note: bar
-";
         assert_eq!(expected, String::from_utf8(output).unwrap());
     }
 

@@ -73,11 +73,9 @@ impl<'a, T: Write> DiagnosticEmitter<'a, T> {
                     console::style("note").bold(),
                     console::style(&note.message).bold(),
                 )?;
-                // Only display the snippet if the note has a different span than the diagnostic.
-                if note.span.as_ref() != diagnostic.span() {
-                    if let Some(span) = &note.span {
-                        self.emit_snippet(span)?;
-                    }
+
+                if let Some(span) = &note.span {
+                    self.emit_snippet(span)?;
                 }
             }
         }
