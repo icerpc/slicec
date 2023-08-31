@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::Diagnostics;
 use super::parser::Preprocessor;
+use crate::diagnostics::Diagnostics;
 use std::collections::HashSet;
 
 #[test]
