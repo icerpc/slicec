@@ -5,6 +5,7 @@ use crate::parsers::preprocessor::tokens::*;
 use crate::parsers::preprocessor::grammar::*;
 use crate::parsers::preprocessor::parser::Preprocessor;
 use crate::slice_file::Span;
+use std::convert::identity;
 
 // Specify the signature of the parser's entry function.
 grammar<'input, 'a>(preprocessor: &mut Preprocessor<'a>);
@@ -44,36 +45,37 @@ extern {
 
 // Grammar Rules
 
-pub SliceFile: std::iter::Flatten<std::vec::IntoIter<Vec<SourceBlock<'input>>>> = {
-    Main* => <>.into_iter().flatten(),
+pub SliceFile: std::vec::IntoIter<SourceBlock<'input>> = {
+    BlockContent => {
+        let mut source_blocks = Vec::new();
+        process_nodes(<>, &mut source_blocks, preprocessor);
+        source_blocks.into_iter()
+    }
 }
 
-BlockContent: Vec<SourceBlock<'input>> = {
-    Main* => <>.into_iter().flatten().collect(),
+BlockContent: Vec<Node<'input>> = {
+    Node* => {
+        <>.into_iter().filter_map(identity).collect()
+    }
 }
 
-Main: Vec<SourceBlock<'input>> = {
-    source_block => vec![<>],
-    DefineDirective => Vec::new(),
-    UndefineDirective => Vec::new(),
-    ConditionalStatement => <>,
+Node: Option<Node<'input>> = {
+    source_block => Some(Node::SourceBlock(<>)),
+    DefineDirective => Some(Node::DefineDirective(<>)),
+    UndefineDirective => Some(Node::UndefineDirective(<>)),
+    Conditional => Some(Node::Conditional(<>)),
 
     // If there was a syntax error in a preprocessor directive, we recover from it here
     // by matching any syntax error, followed by a `DirectiveEnd` (newline or EOF).
-    <!> directive_end => recover_from_error(preprocessor, <>),
-}
-
-DefineDirective: () = {
-    define_keyword <identifier> directive_end => {
-        preprocessor.defined_symbols.insert(<>.to_owned());
+    <!> directive_end => {
+        recover_from_error(preprocessor, <>);
+        None
     },
 }
 
-UndefineDirective: () = {
-    undefine_keyword <identifier> directive_end => {
-        preprocessor.defined_symbols.remove(<>);
-    },
-}
+DefineDirective: &'input str = define_keyword <identifier> directive_end;
+
+UndefineDirective: &'input str = undefine_keyword <identifier> directive_end;
 
 IfDirective = if_keyword <Expression> directive_end;
 
@@ -87,20 +89,20 @@ EndifDirective: () = {
     endif_keyword directive_end => (),
 }
 
-ConditionalStatement: Vec<SourceBlock<'input>> = {
-    <if_block: (IfDirective BlockContent)> <elif_blocks: (ElifDirective BlockContent)*> <else_block: (ElseDirective <BlockContent>)?> EndifDirective => {
-        evaluate_if_statement(if_block, elif_blocks, else_block)
+ Conditional: Conditional<'input> = {
+    <if_section: (IfDirective BlockContent)> <elif_sections: (ElifDirective BlockContent)*> <else_section: (ElseDirective <BlockContent>)?> EndifDirective => {
+        Conditional { if_section, elif_sections, else_section }
     },
 }
 
-Expression: bool = {
-    <term: Term> => term,
-    "!" <term: Term> => !term,
-    <expr: Expression> "&&" <term: Term> => expr && term,
-    <expr: Expression> "||" <term: Term> => expr || term,
+Expression: Expression<'input> = {
+    <term: Term> => Expression::Term(term),
+    "!" <term: Term> => Expression::Not(term),
+    <expr: Expression> "&&" <term: Term> => Expression::And(Box::new(expr), term),
+    <expr: Expression> "||" <term: Term> => Expression::Or(Box::new(expr), term),
 }
 
-Term: bool = {
-    identifier => preprocessor.defined_symbols.contains(<>),
-    "(" <Expression> ")" => <>,
+Term: Term<'input> = {
+    identifier => Term::Symbol(<>),
+    "(" <Expression> ")" => Term::Expression(Box::new(<>)),
 }

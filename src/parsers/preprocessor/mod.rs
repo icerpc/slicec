@@ -5,6 +5,8 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 
+#[cfg(test)] mod tests;
+
 use self::tokens::TokenKind;
 use crate::diagnostics::{Diagnostic, Error};
 use crate::slice_file::{Location, Span};

@@ -25,7 +25,7 @@ macro_rules! implement_diagnostic_functions {
         impl Lint {
             // TODO maybe we should move this somewhere other than `Lint`? Like in `Attribute` maybe?
             /// This array contains all the valid arguments for the 'allow' attribute.
-            pub const ALLOWABLE_LINT_IDENTIFIERS: [&str; 6] = [
+            pub const ALLOWABLE_LINT_IDENTIFIERS: [&'static str; 6] = [
                 "All",
                 $(stringify!($kind)),*
             ];
