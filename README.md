@@ -1,6 +1,6 @@
 # Slice compiler library (slicec)
 
-[![.github/workflows/rust.yml](https://github.com/icerpc/slicec/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
+[![.github/workflows/ci.yml](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
 
 The slicec library is a Rust library that compiles [Slice][slice] definitions into a `CompilationState` struct. The
 `CompilationState` struct contains the AST and diagnostics emitted during compilation (if any).
