@@ -2,95 +2,57 @@
   <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
 </p>
 
-# Slice compiler library (slicec)
+# The Slice compiler (slicec)
 
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-home]
 [![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
 
-The slicec library is a Rust library that compiles [Slice][slice] definitions into a `CompilationState` struct. The
-`CompilationState` struct contains the AST and diagnostics emitted during compilation (if any).
+To build slicec you must have Rust and Cargo installed.
+To install these, we recommend reading the following [guide](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
-## Build requirements
+### Building
 
-Install Rust and Cargo using [rustup](https://rustup.rs/).
-
-## Compile from strings
-
-The simplest way to compile a Slice definition is by using the `compile_from_strings` function:
-
-```rust
-pub fn main() {
-    let slice = "
-
-    module VisitorCenter
-
-    /// Represents a simple greeter.
-    interface Greeter {
-        /// Creates a personalized greeting.
-        /// @param name: The name of the person to greet.
-        /// @returns: The greeting.
-        greet(name: string) -> string
-    }
-    ";
-
-    let compilation_state = slice::compile_from_strings(&[slice], None);
-}
-```
-
-This function takes an array of strings containing Slice definitions and an optional set of compilation options.
-
-## Compile from options
-
-Alternatively, you can create `SliceOptions` and use the `compile_from_options` function to create a command line
-application that compiles Slice definitions:
-
-```rust
-// main.rs
-pub fn main() {
-    let options = SliceOptions::parse();
-    let slice_options = &options.slice_options;
-    let compilation_state = slice::compile_from_options(slice_options);
-}
-```
-
-```slice
-// greeter.slice
-
-module VisitorCenter
-
-/// Represents a simple greeter.
-interface Greeter {
-    /// Creates a personalized greeting.
-    /// @param name: The name of the person to greet.
-    /// @returns: The greeting.
-    greet(name: string) -> string
-}
-```
-
-Build and run using Cargo:
-
+Run the following command to build slicec and its dependencies:
 ```shell
 cargo build
-cargo run greeter.slice
 ```
 
-## Testing
+### Running the tests
 
-The test suite can be run from the command line by running `cargo test` in the repository.
+Run the following command to run the test suite:
+```shell
+cargo test
+```
 
-## Code coverage report
+### Generating documentation
 
-Code coverage reports can be generated using [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) from a regular
-command prompt, using the following command
+To generate documentation for slicec, run the following command:
+```shell
+cargo doc --no-deps --document-private-items
+```
+This will generate documentation in `target/doc/slicec/`.
+However, you can easily view the documentation after generating it with:
+```shell
+cargo doc --no-deps --document-private-items --open
+```
 
-For Linux and macOS:
+### Generating a code coverage report
 
+slicec uses the [llvm-cov](https://crates.io/crates/cargo-llvm-cov) Cargo subcommand to generate coverage reports.
+So, to generate reports you must install it by running:
 ```shell
 cargo install cargo-llvm-cov
-cargo llvm-cov --html
 ```
 
-The output html is in the `target/llvm-cov/html/` directory.
+To generate a coverage report for slicec, run the following command:
+```shell
+cargo llvm-cov --html
+```
+This will generate an HTML report in `target/llvm-cov/html/`.
+However, you can easily view the report after generating it with:
+```shell
+cargo llvm-cov --open
+```
 
 [ci-home]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [license]: https://github.com/icerpc/slicec/blob/main/LICENSE
