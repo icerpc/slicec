@@ -12,6 +12,10 @@ readme = "README.md"
 keywords = ["slice", "ice", "icerpc"]
 license = "Apache-2.0"
 edition = "2021"
+exclude = [
+    ".github/*",
+    ".vscode/*",
+]
 
 [dependencies]
 # derive feature allows structs to derive Parser automatically
