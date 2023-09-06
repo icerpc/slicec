@@ -30,16 +30,17 @@ To generate documentation for slicec, run the following command:
 ```shell
 cargo doc --no-deps --document-private-items
 ```
-This will generate documentation in `target/doc/slicec/`.
-However, you can easily view the documentation after generating it with:
+This will generate documentation in the `target/doc/slicec` directory.
+
+Additionally, you can easily view the documentation after generating it with the `open` flag:
 ```shell
 cargo doc --no-deps --document-private-items --open
 ```
 
 ### Generating a code coverage report
 
-slicec uses the [llvm-cov](https://crates.io/crates/cargo-llvm-cov) Cargo subcommand to generate coverage reports.
-So, to generate reports you must install it by running:
+slicec uses [llvm-cov](https://crates.io/crates/cargo-llvm-cov) to generate coverage reports.
+So, to generate reports you must install it:
 ```shell
 cargo install cargo-llvm-cov
 ```
@@ -48,8 +49,9 @@ To generate a coverage report for slicec, run the following command:
 ```shell
 cargo llvm-cov --html
 ```
-This will generate an HTML report in `target/llvm-cov/html/`.
-However, you can easily view the report after generating it with:
+This will generate an HTML report in the `target/llvm-cov/html` directory.
+
+Additionally, you can easily view the report after generating it with the `open` flag:
 ```shell
 cargo llvm-cov --open
 ```
