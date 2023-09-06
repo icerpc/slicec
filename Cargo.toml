@@ -5,6 +5,10 @@ authors = ["ZeroC Inc."]
 description = """
 The Slice parser and other core components for Slice compilers.
 """
+homepage = "https://docs.icerpc.dev/slice2"
+documentation = "https://docs.rs/slicec"
+repository = "https://github.com/icerpc/slicec"
+readme = "README.md"
 keywords = ["slice", "ice", "icerpc"]
 license = "Apache-2.0"
 edition = "2021"
