@@ -10,21 +10,21 @@
 To build slicec you must have Rust and Cargo installed.
 To install these, we recommend reading the following [guide](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
-### Building
+## Building
 
 Run the following command to build slicec and its dependencies:
 ```shell
 cargo build
 ```
 
-### Running the tests
+## Running the tests
 
 Run the following command to run the test suite:
 ```shell
 cargo test
 ```
 
-### Generating documentation
+## Generating documentation
 
 To generate documentation for slicec, run the following command:
 ```shell
@@ -37,7 +37,7 @@ Additionally, you can easily view the documentation after generating it with the
 cargo doc --no-deps --document-private-items --open
 ```
 
-### Generating a code coverage report
+## Generating a code coverage report
 
 slicec uses [llvm-cov](https://crates.io/crates/cargo-llvm-cov) to generate coverage reports.
 So, to generate reports you must install it:
