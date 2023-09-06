@@ -1,6 +1,7 @@
 # Slice compiler library (slicec)
 
-[![.github/workflows/ci.yml](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/icerpc/slicec/actions?query=branch:main)
+[![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-home]
+[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
 
 The slicec library is a Rust library that compiles [Slice][slice] definitions into a `CompilationState` struct. The
 `CompilationState` struct contains the AST and diagnostics emitted during compilation (if any).
@@ -87,4 +88,6 @@ cargo llvm-cov --html
 
 The output html is in the `target/llvm-cov/html/` directory.
 
+[ci-home]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
+[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
 [slice]: https://docs.testing.zeroc.com/slice2
