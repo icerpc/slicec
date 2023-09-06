@@ -2,7 +2,7 @@
   <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
 </p>
 
-# The Slice compiler (slicec)
+# The Slice compiler library (slicec)
 
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-home]
 [![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
