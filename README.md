@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
+</p>
+
 # Slice compiler library (slicec)
 
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-home]
