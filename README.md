@@ -90,4 +90,4 @@ The output html is in the `target/llvm-cov/html/` directory.
 
 [ci-home]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [license]: https://github.com/icerpc/slicec/blob/main/LICENSE
-[slice]: https://docs.testing.zeroc.com/slice2
+[slice]: https://docs.icerpc.dev/slice2
