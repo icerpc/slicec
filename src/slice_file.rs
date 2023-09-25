@@ -84,7 +84,7 @@ impl SliceFile {
 
     /// Returns the compilation mode used by this file.
     ///
-    /// If no mode was explicitly declared, it returns the default mode.
+    /// If a mode wasn't explicitly stated, it returns the default mode.
     ///
     /// See [CompilationMode::default()](crate::grammar::CompilationMode::default)
     pub fn compilation_mode(&self) -> CompilationMode {

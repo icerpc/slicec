@@ -164,7 +164,7 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l1: @L> <ik: idempotent_keyword?> <l2: @L> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ("->" <ReturnType>)?> <r1: @R> <es: ExceptionSpecification?> <r2: @R> ContainerEnd => {
+    <p: Prelude> <l1: @L> <ik: idempotent_keyword?> <l2: @L> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ReturnType?> <r1: @R> <es: ExceptionSpecification?> <r2: @R> ContainerEnd => {
         let l = if ik.is_some() { l1 } else { l2 };
         let r = if es.is_some() { r2 } else { r1 };
         construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
@@ -179,10 +179,10 @@ Parameter: OwnedPtr<Parameter> = {
 }
 
 ReturnType: Vec<OwnedPtr<Parameter>> = {
-    <l: @L> <t: Tag?> <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
+    "->" <l: @L> <t: Tag?> <s: stream_keyword?> <tr: TypeRef> <r: @R> => {
         construct_single_return_type(parser, t, s.is_some(), tr, Span::new(l, r, parser.file_name))
     },
-    <l: @L> "(" <ps: UndelimitedList<Parameter>> ")" <r: @R> => {
+    "->" <l: @L> "(" <ps: UndelimitedList<Parameter>> ")" <r: @R> => {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
         ps
     },
