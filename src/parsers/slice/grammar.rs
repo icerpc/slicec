@@ -507,6 +507,18 @@ fn construct_attribute(
     parser.ast.add_element(OwnedPtr::new(attribute))
 }
 
+fn unescape_string_literal(s: &str) -> String {
+    let mut is_escaped = false;
+    s.chars()
+        .filter(|c| {
+            // If `c` is a backslash that isn't escaped, set that the next character is escaped,
+            // and return false to remove the backslash from the string.
+            is_escaped = *c == '\\' && !is_escaped;
+            !is_escaped
+        })
+        .collect()
+}
+
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {
     // Remove any underscores from the integer literal before trying to parse it.
     let sanitized = s.replace('_', "");

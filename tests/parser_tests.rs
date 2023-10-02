@@ -63,7 +63,7 @@ fn string_literals_support_character_escaping() {
     let slice = r#"
         module Test
 
-        [deprecated("This is a \"bad\" type.")]
+        [deprecated("This is a backslash\"\\\"\n.")]
         struct Foo {}
     "#;
 
@@ -73,7 +73,7 @@ fn string_literals_support_character_escaping() {
     // Assert
     let struct_def = ast.find_element::<Struct>("Test::Foo").unwrap();
     let deprecated = struct_def.find_attribute::<attributes::Deprecated>().unwrap();
-    assert_eq!(deprecated.reason, Some("This is a \"bad\" type.".to_owned()))
+    assert_eq!(deprecated.reason, Some("This is a backslash\"\\\"n.".to_owned()))
 }
 
 #[test]

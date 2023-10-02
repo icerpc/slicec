@@ -275,7 +275,7 @@ Attribute: WeakPtr<Attribute> = {
 }
 
 AttributeArgument: String = {
-    <sl: string_literal> => sl.replace('\\', ""),
+    <sl: string_literal> => unescape_string_literal(sl),
     <i: identifier> => i.to_owned(),
 }
 
