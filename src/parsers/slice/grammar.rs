@@ -507,6 +507,22 @@ fn construct_attribute(
     parser.ast.add_element(OwnedPtr::new(attribute))
 }
 
+fn unescape_string_literal(s: &str) -> String {
+    // Flag that stores whether the next character we read is being escaped.
+    let mut is_escaped = false;
+    s.chars()
+        .filter(|c| {
+            // If `c` is a backslash, and it isn't already escaped (ie: "\\"), then it is an escape character.
+            let is_escape_character = *c == '\\' && !is_escaped;
+            // Set `is_escaped` accordingly, so we know if the next character is being escaped.
+            is_escaped = is_escape_character;
+
+            // Return false for escape characters to filter them out of the string.
+            !is_escape_character
+        })
+        .collect()
+}
+
 fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> {
     // Remove any underscores from the integer literal before trying to parse it.
     let sanitized = s.replace('_', "");
