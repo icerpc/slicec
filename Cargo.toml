@@ -1,6 +1,6 @@
 [package]
 name = "slicec"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["ZeroC Inc."]
 description = """
 The Slice parser and other core components for Slice compilers.
@@ -13,10 +13,7 @@ keywords = ["slice", "ice", "icerpc"]
 license = "Apache-2.0"
 edition = "2021"
 rust-version = "1.70"
-exclude = [
-    ".github/*",
-    ".vscode/*",
-]
+exclude = [".github/*", ".vscode/*"]
 
 [dependencies]
 # derive feature allows structs to derive Parser automatically
@@ -26,7 +23,7 @@ convert_case = "0.6.0"
 in_definite = "0.2.5"
 lalrpop-util = "0.20.0"
 # derive feature allows structs to derive Serialize automatically
-serde = { version="1.0.171", features = ["derive"] }
+serde = { version = "1.0.171", features = ["derive"] }
 serde_json = "1.0.103"
 
 [build-dependencies]
