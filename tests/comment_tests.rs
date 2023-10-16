@@ -543,6 +543,38 @@ mod comments {
     }
 
     #[test]
+    fn throws_tag_can_specify_scoped_exception() {
+        // Arrange
+        let slice1 = "
+            mode = Slice1
+            module Tests
+
+            exception E {}
+        ";
+        let slice2 = "
+            mode = Slice1
+            module Other
+
+            interface Foo {
+                /// @throws Tests::E: it failed
+                op() throws Tests::E
+            }
+        ";
+
+        // Act
+        let ast = parse_multiple_for_ast(&[slice1, slice2]);
+
+        // Assert
+        let operation = ast.find_element::<Operation>("Other::Foo::op").unwrap();
+        let thrown_type = operation.exception_specification[0].definition();
+
+        let doc_comment = operation.comment().unwrap();
+        let TypeRefDefinition::Patched(documented_exception) = &doc_comment.throws[0].thrown_type else { panic!() };
+
+        assert_eq!(documented_exception, &thrown_type);
+    }
+
+    #[test]
     fn throws_tag_is_rejected_for_operations_that_do_not_throw() {
         // Arrange
         let slice = format!(
