@@ -95,7 +95,7 @@ impl Ast {
     }
 
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
-    /// The identifier must be globally scoped, since this method performs no scope resolution.
+    /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
@@ -199,7 +199,7 @@ impl Ast {
     }
 
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
-    /// The identifier must be globally scoped, since this method performs no scope resolution.
+    /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
     ///
     /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
