@@ -82,4 +82,33 @@ mod slice1 {
         );
         check_diagnostics(diagnostics, [expected]);
     }
+
+    /// Verifies that even empty associated field lists are disallowed in Slice1 mode.
+    #[test]
+    fn empty_associated_fields_fail() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Test
+
+            unchecked enum E {
+                A()
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::NotSupportedInCompilationMode {
+            kind: "enum".to_owned(),
+            identifier: "E".to_owned(),
+            mode: CompilationMode::Slice1,
+        })
+        .add_note(
+            "enumerators declared in Slice1 mode cannot have associated fields",
+            None,
+        );
+        check_diagnostics(diagnostics, [expected]);
+    }
 }

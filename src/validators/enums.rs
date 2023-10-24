@@ -138,13 +138,13 @@ fn nonempty_if_checked(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     }
 }
 
-/// Validate that enumerators don't specify any associated fields.
+/// Validate that this enum's enumerators don't specify any associated fields.
 /// This function should only be called for enums with underlying types.
 fn cannot_contain_associated_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     debug_assert!(enum_def.underlying.is_some());
 
     for enumerator in enum_def.enumerators() {
-        if !enumerator.associated_fields().is_empty() {
+        if enumerator.associated_fields().is_some() {
             Diagnostic::new(Error::EnumeratorCannotDeclareAssociatedFields {
                 enumerator_identifier: enumerator.identifier().to_owned(),
             })
@@ -158,7 +158,7 @@ fn cannot_contain_associated_fields(enum_def: &Enum, diagnostics: &mut Diagnosti
     }
 }
 
-/// Validate that enumerators don't specify any explicit values.
+/// Validate that this enum's enumerators don't specify any explicit values.
 /// This function should only be called for enums without underlying types.
 fn cannot_contain_explicit_values(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     debug_assert!(enum_def.underlying.is_none());

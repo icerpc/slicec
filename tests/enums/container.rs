@@ -82,6 +82,7 @@ mod associated_fields {
                 A
                 B(b: bool)
                 C(i: int32, tag(2) s: string)
+                D()
             }
         ";
 
@@ -91,15 +92,19 @@ mod associated_fields {
         // Assert
         let a = ast.find_element::<Enumerator>("Test::E::A").unwrap();
         assert!(matches!(a.value, EnumeratorValue::Implicit(0)));
-        assert!(a.associated_fields().is_empty());
+        assert!(a.associated_fields().is_none());
 
         let b = ast.find_element::<Enumerator>("Test::E::B").unwrap();
         assert!(matches!(b.value, EnumeratorValue::Implicit(1)));
-        assert!(b.associated_fields().len() == 1);
+        assert!(b.associated_fields().unwrap().len() == 1);
 
         let c = ast.find_element::<Enumerator>("Test::E::C").unwrap();
         assert!(matches!(c.value, EnumeratorValue::Implicit(2)));
-        assert!(c.associated_fields().len() == 2);
+        assert!(c.associated_fields().unwrap().len() == 2);
+
+        let d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
+        assert!(matches!(d.value, EnumeratorValue::Implicit(3)));
+        assert!(d.associated_fields().unwrap().len() == 0);
     }
 
     #[test_case("unchecked enum", true ; "unchecked")]

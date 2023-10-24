@@ -8,7 +8,7 @@ use crate::utils::ptr_util::WeakPtr;
 pub struct Enumerator {
     pub identifier: Identifier,
     pub value: EnumeratorValue,
-    pub associated_fields: Vec<WeakPtr<Field>>,
+    pub associated_fields: Option<Vec<WeakPtr<Field>>>,
     pub parent: WeakPtr<Enum>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,
@@ -24,8 +24,10 @@ impl Enumerator {
         }
     }
 
-    pub fn associated_fields(&self) -> Vec<&Field> {
-        self.contents()
+    pub fn associated_fields(&self) -> Option<Vec<&Field>> {
+        self.associated_fields
+            .as_ref()
+            .map(|fields| fields.iter().map(WeakPtr::borrow).collect())
     }
 }
 
@@ -35,9 +37,14 @@ pub enum EnumeratorValue {
     Explicit(Integer<i128>),
 }
 
+impl Container<Field> for Enumerator {
+    fn contents(&self) -> Vec<&Field> {
+        self.associated_fields().unwrap_or_default()
+    }
+}
+
 implement_Element_for!(Enumerator, "enumerator");
 implement_Attributable_for!(@Contained Enumerator);
 implement_Entity_for!(Enumerator);
 implement_Commentable_for!(Enumerator);
 implement_Contained_for!(Enumerator, Enum);
-implement_Container_for!(Enumerator, Field, associated_fields);

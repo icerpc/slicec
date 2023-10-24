@@ -400,7 +400,6 @@ fn construct_enumerator(
     enumerator_value: Option<Integer<i128>>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
-    let associated_fields = associated_fields.unwrap_or_default();
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     // If the enumerator was given an explicit value, use it. Otherwise an implicit value is calculated as follows:
@@ -414,7 +413,7 @@ fn construct_enumerator(
     let mut enumerator = OwnedPtr::new(Enumerator {
         identifier,
         value,
-        associated_fields: Vec::new(),
+        associated_fields: None,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -423,8 +422,18 @@ fn construct_enumerator(
     });
 
     // Add any associated fields to the enumerator.
-    set_fields_for!(enumerator, associated_fields, parser);
+    if let Some(fields) = associated_fields {
+        let downgraded = downgrade_as!(enumerator, dyn Container<Field>);
+        unsafe {
+            let converted_fields = fields.into_iter().map(|mut field| {
+                field.borrow_mut().parent = downgraded.clone();
+                parser.ast.add_named_element(field)
+            });
+            enumerator.borrow_mut().associated_fields = Some(converted_fields.collect());
+        }
+    }
 
+    // Update `previous_enumerator_value` to be this enumerator's value.
     parser.previous_enumerator_value = Some(enumerator.borrow().value());
     enumerator
 }
