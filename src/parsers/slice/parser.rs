@@ -38,7 +38,7 @@ pub struct Parser<'a> {
     pub(super) diagnostics: &'a mut Diagnostics,
     pub(super) current_scope: Scope,
     pub(super) compilation_mode: CompilationMode,
-    pub(super) last_enumerator_value: Option<i128>,
+    pub(super) previous_enumerator_value: Option<i128>,
 }
 
 impl<'a> Parser<'a> {
@@ -60,7 +60,7 @@ impl<'a> Parser<'a> {
             diagnostics,
             compilation_mode: CompilationMode::default(),
             current_scope: Scope::default(),
-            last_enumerator_value: None,
+            previous_enumerator_value: None,
         }
     }
 }

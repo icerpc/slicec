@@ -403,7 +403,6 @@ impl ComputeSupportedEncodings for Enum {
         supported_encodings: &mut SupportedEncodings,
         compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
-        // TODO: rework all of this when we add enums with associated types.
         if let Some(underlying_type) = &self.underlying {
             // Enums only support encodings that its underlying type also supports.
             supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
@@ -418,25 +417,19 @@ impl ComputeSupportedEncodings for Enum {
             if compilation_mode == CompilationMode::Slice1 {
                 return Some("enums defined in Slice1 mode cannot have underlying types");
             }
-        } else {
-            // Enums defined in a file using Slice2 must have an explicit underlying type.
-            if compilation_mode == CompilationMode::Slice2 {
-                // TODO: this isn't the correct error to report, remove this when we add enums with associated values.
-                Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
-                    enum_identifier: self.identifier().to_owned(),
-                    kind: None,
-                })
-                .set_span(self.span())
-                .add_note(
-                    format!(
-                        "Slice2 enums must have an underlying type. e.g. 'enum {} : uint8'",
-                        self.identifier(),
-                    ),
-                    None,
-                )
-                .push_into(patcher.diagnostics)
+        }
+
+        for enumerator in self.enumerators() {
+            // Enums with associated fields are not allowed in Slice1 mode.
+            if !enumerator.associated_fields().is_empty() {
+                supported_encodings.disable(Encoding::Slice1);
+                if compilation_mode == CompilationMode::Slice1 {
+                    return Some("enumerators declared in Slice1 mode cannot have associated fields");
+                }
+                break; // Once we've found a single enumerator with associated fields, we can stop checking.
             }
         }
+
         None
     }
 }

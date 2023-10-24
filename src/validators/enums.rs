@@ -11,6 +11,16 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     enumerator_values_are_unique(enum_def, diagnostics);
     underlying_type_cannot_be_optional(enum_def, diagnostics);
     nonempty_if_checked(enum_def, diagnostics);
+
+    // If the enum wasn't defined in a Slice1 file, validate whether associated fields or explicit values are allowed,
+    // based on whether it has an underlying type. Associated fields in Slice1 files are rejected by `encoding_patcher`.
+    if !enum_def.supported_encodings().supports(Encoding::Slice1) {
+        if enum_def.underlying.is_some() {
+            cannot_contain_associated_fields(enum_def, diagnostics);
+        } else {
+            cannot_contain_explicit_values(enum_def, diagnostics);
+        }
+    }
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
@@ -125,5 +135,41 @@ fn nonempty_if_checked(enum_def: &Enum, diagnostics: &mut Diagnostics) {
         })
         .set_span(enum_def.span())
         .push_into(diagnostics);
+    }
+}
+
+/// Validate that enumerators don't specify any associated fields.
+/// This function should only be called for enums with underlying types.
+fn cannot_contain_associated_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
+    debug_assert!(enum_def.underlying.is_some());
+
+    for enumerator in enum_def.enumerators() {
+        if !enumerator.associated_fields().is_empty() {
+            Diagnostic::new(Error::EnumeratorCannotDeclareAssociatedFields {
+                enumerator_identifier: enumerator.identifier().to_owned(),
+            })
+            .set_span(enumerator.span())
+            .add_note(
+                "an underlying type was specified here:",
+                Some(enum_def.underlying.as_ref().unwrap().span()),
+            )
+            .push_into(diagnostics);
+        }
+    }
+}
+
+/// Validate that enumerators don't specify any explicit values.
+/// This function should only be called for enums without underlying types.
+fn cannot_contain_explicit_values(enum_def: &Enum, diagnostics: &mut Diagnostics) {
+    debug_assert!(enum_def.underlying.is_none());
+
+    for enumerator in enum_def.enumerators() {
+        if matches!(enumerator.value, EnumeratorValue::Explicit(_)) {
+            Diagnostic::new(Error::EnumeratorCannotDeclareExplicitValue {
+                enumerator_identifier: enumerator.identifier().to_owned(),
+            })
+            .set_span(enumerator.span())
+            .push_into(diagnostics);
+        }
     }
 }
