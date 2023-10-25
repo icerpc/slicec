@@ -37,7 +37,9 @@ mod module {
     fn is_required() {
         // Arrange
         let slice = "
-            custom C
+            interface I {
+                op()
+            }
         ";
 
         // Act
