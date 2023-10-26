@@ -550,7 +550,7 @@ implement_diagnostic_functions!(
     (
         "E054",
         EnumeratorCannotDeclareAssociatedFields,
-        format!("invalid enumerator '{enumerator_identifier}': associated fields cannot be declared within enums that specify underlying types"),
+        format!("invalid enumerator '{enumerator_identifier}': associated fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
     )
 );
