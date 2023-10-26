@@ -544,7 +544,7 @@ implement_diagnostic_functions!(
     (
         "E053",
         EnumeratorCannotDeclareExplicitValue,
-        format!("invalid enumerator '{enumerator_identifier}': explicit values can only be declared within enums that specify underlying types"),
+        format!("invalid enumerator '{enumerator_identifier}': explicit values can only be declared within enums that specify an underlying type"),
         enumerator_identifier
     ),
     (
