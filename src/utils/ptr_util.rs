@@ -150,6 +150,15 @@ impl<T: ?Sized> Clone for WeakPtr<T> {
     }
 }
 
+// It is safe to send and share these pointers between threads, since they do not use interior mutability.
+// It is impossible to mutate the pointed-to data through a `WeakPtr`, and mutating the pointed-to data through an
+// `OwnedPtr` is only possible through a mutable reference to the pointer itself, guaranteeing exclusivity.
+// Additionally, both `WeakPtr` and `OwnedPtr` are covariant over `T`, and the lifetimes of references through them.
+unsafe impl<T: ?Sized + Send> Send for OwnedPtr<T> {}
+unsafe impl<T: ?Sized + Sync> Sync for OwnedPtr<T> {}
+unsafe impl<T: ?Sized + Send> Send for WeakPtr<T> {}
+unsafe impl<T: ?Sized + Sync> Sync for WeakPtr<T> {}
+
 // TODO
 // Implementing these traits would give our pointers support for implicit upcasting (casting a
 // concrete type to a trait type it implements). But the trait is still marked as unstable.
