@@ -7,6 +7,7 @@ use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
 use test_case::test_case;
 
+#[test_case("int8"; "int8")]
 #[test_case("uint8"; "uint8")]
 #[test_case("int16"; "int16")]
 #[test_case("uint16"; "uint16")]
@@ -14,6 +15,8 @@ use test_case::test_case;
 #[test_case("uint32"; "uint32")]
 #[test_case("varint32"; "varint32")]
 #[test_case("varuint32"; "varuint32")]
+#[test_case("int64"; "int64")]
+#[test_case("uint64"; "uint64")]
 #[test_case("varint62"; "varint62")]
 #[test_case("varuint62"; "varuint62")]
 fn supported_numeric_underlying_types_succeed(valid_type: &str) {

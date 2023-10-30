@@ -93,6 +93,8 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
     fn visit_enumerator(&mut self, enumerator: &Enumerator) {
         validate_common_doc_comments(enumerator, self.diagnostics);
         validate_attributes(enumerator, self.diagnostics);
+
+        validate_members(enumerator.contents(), self.diagnostics);
     }
 
     fn visit_exception(&mut self, exception: &Exception) {

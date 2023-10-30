@@ -39,7 +39,7 @@ mod associated_fields {
             module Test
             enum E {
                 A
-                B = 7,
+                B = 7
                 C
             }
         ";
@@ -81,7 +81,7 @@ mod associated_fields {
             enum E {
                 A
                 B(b: bool)
-                C(i: int32, tag(2) s: string)
+                C(i: int32, tag(2) s: string?)
                 D()
             }
         ";
@@ -109,7 +109,7 @@ mod associated_fields {
 
     #[test_case("unchecked enum", true ; "unchecked")]
     #[test_case("enum", false ; "checked")]
-    fn can_be_unchecked(enum_definition: &str, expected: bool) {
+    fn test_presence_of_unchecked(enum_definition: &str, expected: bool) {
         // Arrange
         let slice = format!(
             "
@@ -198,7 +198,7 @@ mod underlying_type {
             module Test
             enum E: uint8 {
                 A
-                B(b: bool),
+                B(b: bool)
                 C
             }
         ";
@@ -350,7 +350,7 @@ mod underlying_type {
     }
 
     #[test]
-    fn enumerators_have_unique_values() {
+    fn enumerators_must_have_unique_values() {
         // Arrange
         let slice = "
             module Test
@@ -373,7 +373,7 @@ mod underlying_type {
 
     #[test_case("unchecked enum", true ; "unchecked")]
     #[test_case("enum", false ; "checked")]
-    fn can_be_unchecked(enum_definition: &str, expected: bool) {
+    fn test_presence_of_unchecked(enum_definition: &str, expected: bool) {
         // Arrange
         let slice = format!(
             "
@@ -430,7 +430,7 @@ mod underlying_type {
     }
 
     #[test]
-    fn enumerators_support_different_base_literals() {
+    fn enumerator_values_support_different_base_literals() {
         // Arrange
         let slice = "
             module Test
