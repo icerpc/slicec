@@ -19,7 +19,7 @@ pub struct Location {
 }
 
 impl Location {
-    /// Returns true if this location is within the specified span (including the span's boundary).
+    /// Returns true if this [`Location`] is within the specified [`Span`] (including the span's boundary).
     pub fn is_within(&self, span: &Span) -> bool {
         self.cmp(&span.start) != Ordering::Less && self.cmp(&span.end) != Ordering::Greater
     }
