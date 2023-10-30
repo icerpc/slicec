@@ -386,8 +386,8 @@ fn construct_enum(
     // Add all the enumerators to the enum.
     set_children_for!(enum_ptr, enumerators, parser);
 
-    // Clear the `last_enumerator_value` field since this is the end of the enum.
-    parser.last_enumerator_value = None;
+    // Clear the `previous_enumerator_value` field since this is the end of the enum.
+    parser.previous_enumerator_value = None;
 
     enum_ptr
 }
@@ -396,22 +396,24 @@ fn construct_enumerator(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
+    associated_fields: Option<Vec<OwnedPtr<Field>>>,
     enumerator_value: Option<Integer<i128>>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
-    // If the enumerator was given an explicit value, use it. Otherwise it's implicit value is calculated as follows:
-    // If this is the first enumerator in the enum its value is 0 (since `last_enumerator_value` is `None`).
-    // For any other enumerator, its value is equal to the previous enumerator's value plus 1.
+    // If the enumerator was given an explicit value, use it. Otherwise an implicit value is calculated as follows:
+    // If this is the first enumerator in the enum (`previous_enumerator_value` is `None`), its value is set to 0.
+    // Otherwise, this enumerator's value is set to the previous enumerator's value plus 1.
     let value = match enumerator_value {
         Some(integer) => EnumeratorValue::Explicit(integer),
-        None => EnumeratorValue::Implicit(parser.last_enumerator_value.map_or(0, |x| x.wrapping_add(1))),
+        None => EnumeratorValue::Implicit(parser.previous_enumerator_value.map_or(0, |x| x.wrapping_add(1))),
     };
 
-    let enumerator = OwnedPtr::new(Enumerator {
+    let mut enumerator = OwnedPtr::new(Enumerator {
         identifier,
         value,
+        associated_fields: None,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -419,7 +421,20 @@ fn construct_enumerator(
         span,
     });
 
-    parser.last_enumerator_value = Some(enumerator.borrow().value());
+    // Add any associated fields to the enumerator.
+    if let Some(fields) = associated_fields {
+        let downgraded = downgrade_as!(enumerator, dyn Container<Field>);
+        unsafe {
+            let converted_fields = fields.into_iter().map(|mut field| {
+                field.borrow_mut().parent = downgraded.clone();
+                parser.ast.add_named_element(field)
+            });
+            enumerator.borrow_mut().associated_fields = Some(converted_fields.collect());
+        }
+    }
+
+    // Update `previous_enumerator_value` to be this enumerator's value.
+    parser.previous_enumerator_value = Some(enumerator.borrow().value());
     enumerator
 }
 

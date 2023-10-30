@@ -63,7 +63,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics)
     // Report a lint violation for duplicate source files (any that duplicate another source file not a reference file).
     for source_file in source_files {
         let path = source_file.path.clone();
-        // Insert will return replace and return the previous value if the key already exists.
+        // Insert will replace and return the previous value if the key already exists.
         // We use this to allow replacing references with sources.
         if let Some(is_source) = file_paths.insert(source_file, true) {
             // Only report an error if the file was previously a source file.

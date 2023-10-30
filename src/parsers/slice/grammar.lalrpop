@@ -201,8 +201,8 @@ Enum: OwnedPtr<Enum> = {
 }
 
 Enumerator: OwnedPtr<Enumerator> = {
-    <p: Prelude> <l: @L> <i: Identifier> <si: ("=" <SignedInteger>)?> <r: @R> => {
-        construct_enumerator(parser, p, i, si, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l: @L> <i: ContainerIdentifier> <afs: ("(" <UndelimitedList<Field>> ")")?> <si: ("=" <SignedInteger>)?> <r: @R> ContainerEnd => {
+        construct_enumerator(parser, p, i, afs, si, Span::new(l, r, parser.file_name))
     },
 }
 

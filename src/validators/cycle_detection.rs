@@ -14,10 +14,11 @@ pub(super) fn detect_cycles(ast: &Ast, diagnostics: &mut Diagnostics) {
     for node in ast.as_slice() {
         cycle_detector.dependency_stack.clear(); // Make sure the detector is cleared between checks.
         match node {
-            // We only check structs since these are the only types that can cause infinite cycles.
-            // Classes can safely contain cycles since they use reference semantics.
-            // Exceptions cannot cause cycles because they cannot be used as the type of a field.
+            // Only structs and enumerators (with associated fields) need to be checked for cycles.
+            // It is safe for classes to contain cycles since they use reference semantics,
+            // and exceptions can't cause cycles since they cannot be used as types.
             Node::Struct(struct_def) => cycle_detector.check_for_cycles(struct_def.borrow()),
+            Node::Enumerator(enumerator) => cycle_detector.check_for_cycles(enumerator.borrow()),
             _ => false,
         };
     }
@@ -53,6 +54,7 @@ impl CycleDetector<'_> {
             for field in container.contents() {
                 let cycle_was_found = match field.data_type().concrete_type() {
                     Types::Struct(struct_def) => self.check_for_cycles(struct_def),
+                    // TODO we need to recursively check enums here now!
                     _ => false,
                 };
 
