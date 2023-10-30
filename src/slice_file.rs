@@ -4,8 +4,8 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
-use std::fmt::{Display, Write};
 use std::cmp::Ordering;
+use std::fmt::{Display, Write};
 
 const EXPANDED_TAB: &str = "    ";
 
