@@ -4,6 +4,7 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
+use std::cmp::Ordering;
 use std::fmt::{Display, Write};
 
 const EXPANDED_TAB: &str = "    ";
@@ -15,6 +16,13 @@ const EXPANDED_TAB: &str = "    ";
 pub struct Location {
     pub row: usize,
     pub col: usize,
+}
+
+impl Location {
+    /// Returns true if this [`Location`] is within the specified [`Span`] (including the span's boundary).
+    pub fn is_within(&self, span: &Span) -> bool {
+        self.cmp(&span.start) != Ordering::Less && self.cmp(&span.end) != Ordering::Greater
+    }
 }
 
 impl From<(usize, usize)> for Location {
