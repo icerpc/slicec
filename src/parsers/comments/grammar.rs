@@ -5,7 +5,7 @@
 //! While many of these functions could be written directly into the parser rules, we implement them here instead, to
 //! keep the rules focused on grammar instead of implementation details, making the grammar easier to read and modify.
 
-use crate::grammar::{DocComment, Message, MessageComponent, Overview};
+use crate::grammar::{DocComment, Message, MessageComponent};
 use crate::slice_file::{Location, Span};
 use lalrpop_util::lalrpop_mod;
 
@@ -31,7 +31,7 @@ use append_tag_to_comment; // To let LALRPOP use the macro.
 // Grammar Rule Functions
 
 /// Creates a new doc comment with the specified overview and everything else empty.
-fn create_doc_comment(overview: Option<Overview>, start: Location, file: &str) -> DocComment {
+fn create_doc_comment(overview: Option<Message>, start: Location, file: &str) -> DocComment {
     // We subtract 3 from the start of the comment to account for the leading "///" that is always present.
     // This span is automatically extended as more constructs are parsed.
     let mut span = Span::new(start, start, file);
@@ -62,8 +62,12 @@ fn get_scoped_identifier_string<'a>(first: &'a str, mut others: Vec<&'a str>, is
 }
 
 /// Removes any leading whitespace from the inline part of the message, then combines it with any following lines.
-fn construct_section_message(inline_message: Option<Message>, message_lines: Option<Message>) -> Message {
-    let mut message_lines = message_lines.unwrap_or_default();
+fn construct_section_message(
+    inline_message: Option<Vec<MessageComponent>>,
+    message_lines: Option<Message>,
+    span: Span,
+) -> Message {
+    let mut value = message_lines.map(|m| m.value).unwrap_or_default();
 
     if let Some(mut message) = inline_message {
         // Remove any leading whitespace from the inline portion of the message.
@@ -75,17 +79,19 @@ fn construct_section_message(inline_message: Option<Message>, message_lines: Opt
         message.push(MessageComponent::Text("\n".to_owned()));
 
         // Combine the 2 messages together, with the inline portion at the front.
-        message.append(&mut message_lines);
-        message_lines = message;
+        message.append(&mut value);
+        value = message;
     }
 
-    message_lines
+    Message { value, span }
 }
 
 /// Removes any common leading whitespace from the provided lines and returns the result.
 /// Each element in the vector represents one line of the message.
 /// `None` means the line existed but was empty, `Some(message)` means the line had a message.
-fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
+///
+/// Note that the message's span is not updated to reflect the stripping of common leading whitespace.
+fn sanitize_message_lines(lines: Vec<Option<Vec<MessageComponent>>>, span: Span) -> Message {
     // First compute the amount of leading whitespace that is common to every line.
     let mut common_leading_whitespace = usize::MAX;
     for line in &lines {
@@ -111,7 +117,7 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
     }
 
     // Now that we know the common leading whitespace, we iterate through the lines again and remove the whitespace.
-    lines
+    let value = lines
         .into_iter()
         .flat_map(|line| match line {
             // If the message had text, we remove the common leading whitespace and append a newline at the end.
@@ -126,5 +132,7 @@ fn sanitize_message_lines(lines: Vec<Option<Message>>) -> Message {
             // If the line was empty, we create a new message that only contains a newline character.
             None => vec![MessageComponent::Text("\n".to_owned())],
         })
-        .collect()
+        .collect();
+
+    Message { value, span }
 }

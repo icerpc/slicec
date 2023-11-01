@@ -40,7 +40,7 @@ extern {
 // Grammar Rules
 
 pub DocComment: DocComment = {
-    <l: @L> <overview: Overview?> => create_doc_comment(overview, l, comment_parser.file_name),
+    <l: @L> <overview: MessageLines?> => create_doc_comment(overview, l, comment_parser.file_name),
     <mut comment: DocComment> <param_block: ParamBlock> => {
         append_tag_to_comment!(comment, params, param_block)
     },
@@ -55,29 +55,22 @@ pub DocComment: DocComment = {
     },
 }
 
-Overview: Overview = {
-    <l: @L> <message: MessageLines> <r: @R> => {
-        let span = Span::new(l, r, comment_parser.file_name);
-        Overview { message, span }
-    },
-}
-
 ParamBlock: ParamTag = {
-    <l: @L> param_keyword <identifier: Identifier> <message: Section> <r: @R> => {
+    <l: @L> param_keyword <identifier: Identifier> <r: @R> <message: Section> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ParamTag { identifier, message, span }
     },
 }
 
 ReturnsBlock: ReturnsTag = {
-    <l: @L> returns_keyword <identifier: Identifier?> <message: Section> <r: @R> => {
+    <l: @L> returns_keyword <identifier: Identifier?> <r: @R> <message: Section> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ReturnsTag { identifier, message, span }
     },
 }
 
 ThrowsBlock: ThrowsTag = {
-    <l: @L> throws_keyword <identifier: ScopedIdentifier> <message: Section> <r: @R> => {
+    <l: @L> throws_keyword <identifier: ScopedIdentifier> <r: @R> <message: Section> => {
         let span = Span::new(l, r, comment_parser.file_name);
         let thrown_type = TypeRefDefinition::Unpatched(identifier);
         ThrowsTag { thrown_type, message, span }
@@ -99,13 +92,17 @@ InlineLink: LinkTag = {
 }
 
 Section: Message = {
-    <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> => {
-        construct_section_message(inline_message.flatten(), message_lines)
+    <l: @L> <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        construct_section_message(inline_message.flatten(), message_lines, span)
     },
 }
 
 MessageLines: Message = {
-    (<Message?> newline)+ => sanitize_message_lines(<>),
+    <l: @L> <m: (<Message?> newline)+> <r: @R> => {
+        let span = Span::new(l, r, comment_parser.file_name);
+        sanitize_message_lines(m, span)
+    }
 }
 
 Message = MessageComponent+;

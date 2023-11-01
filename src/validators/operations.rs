@@ -70,7 +70,7 @@ fn validate_returns_tags_for_operation_with_no_return_type(
                 operation.identifier(),
             ),
         })
-        .set_span(returns_tag.span())
+        .set_span(&(returns_tag.span() + returns_tag.message.span()))
         .set_scope(operation.parser_scoped_identifier())
         .push_into(diagnostics);
     }
@@ -152,7 +152,7 @@ fn validate_throws_tags_for_operation_with_no_throws_clause(
                 operation.identifier(),
             ),
         })
-        .set_span(throws_tag.span())
+        .set_span(&(throws_tag.span() + throws_tag.message.span()))
         .set_scope(operation.parser_scoped_identifier())
         .push_into(diagnostics);
     }

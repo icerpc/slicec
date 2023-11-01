@@ -5,17 +5,11 @@ use crate::slice_file::Span;
 
 #[derive(Debug)]
 pub struct DocComment {
-    pub overview: Option<Overview>,
+    pub overview: Option<Message>,
     pub params: Vec<ParamTag>,
     pub returns: Vec<ReturnsTag>,
     pub throws: Vec<ThrowsTag>,
     pub see: Vec<SeeTag>,
-    pub span: Span,
-}
-
-#[derive(Debug)]
-pub struct Overview {
-    pub message: Message,
     pub span: Span,
 }
 
@@ -85,12 +79,14 @@ pub enum MessageComponent {
     Link(LinkTag),
 }
 
-pub type Message = Vec<MessageComponent>;
+#[derive(Debug)]
+pub struct Message {
+    pub value: Vec<MessageComponent>,
+    pub span: Span,
+}
 
 implement_Element_for!(DocComment, "doc comment");
 implement_Symbol_for!(DocComment);
-implement_Element_for!(Overview, "overview");
-implement_Symbol_for!(Overview);
 implement_Element_for!(ParamTag, "param tag");
 implement_Symbol_for!(ParamTag);
 implement_Element_for!(ReturnsTag, "returns tag");
@@ -101,3 +97,5 @@ implement_Element_for!(SeeTag, "see tag");
 implement_Symbol_for!(SeeTag);
 implement_Element_for!(LinkTag, "link tag");
 implement_Symbol_for!(LinkTag);
+implement_Element_for!(Message, "doc message");
+implement_Symbol_for!(Message);

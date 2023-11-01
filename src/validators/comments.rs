@@ -2,6 +2,7 @@
 
 use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
 use crate::grammar::*;
+use crate::slice_file::Span;
 
 pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: &mut Diagnostics) {
     // Only run this validation if a doc comment is present.
@@ -15,7 +16,7 @@ pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: 
 fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for param_tag in &comment.params {
-            report_only_operation_error(param_tag, entity, diagnostics);
+            report_only_operation_error(param_tag, param_tag.message.span(), entity, diagnostics);
         }
     }
 }
@@ -23,7 +24,7 @@ fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentabl
 fn only_operations_can_return(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for returns_tag in &comment.returns {
-            report_only_operation_error(returns_tag, entity, diagnostics);
+            report_only_operation_error(returns_tag, returns_tag.message.span(), entity, diagnostics);
         }
     }
 }
@@ -31,13 +32,18 @@ fn only_operations_can_return(comment: &DocComment, entity: &dyn Commentable, di
 fn only_operations_can_throw(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for throws_tag in &comment.throws {
-            report_only_operation_error(throws_tag, entity, diagnostics);
+            report_only_operation_error(throws_tag, throws_tag.message.span(), entity, diagnostics);
         }
     }
 }
 
 /// Helper function that reports an error if an operation-only comment-tag was used on something other than a comment.
-fn report_only_operation_error(tag: &impl Symbol, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
+fn report_only_operation_error(
+    tag: &impl Symbol,
+    message_span: &Span,
+    entity: &dyn Commentable,
+    diagnostics: &mut Diagnostics,
+) {
     let entity_kind = entity.kind();
     let note = format!(
         "'{identifier}' is {a} {entity_kind}",
@@ -57,7 +63,7 @@ fn report_only_operation_error(tag: &impl Symbol, entity: &dyn Commentable, diag
     Diagnostic::new(Lint::IncorrectDocComment {
         message: format!("comment has a '{tag_kind}' tag, but only operations can {action_phrase}"),
     })
-    .set_span(tag.span())
+    .set_span(&(tag.span() + message_span))
     .set_scope(entity.parser_scoped_identifier())
     .add_note(note, Some(entity.span()))
     .push_into(diagnostics);

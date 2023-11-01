@@ -75,7 +75,7 @@ impl CommentLinkPatcher<'_> {
     fn compute_patches_for(&mut self, commentable: &impl Commentable, ast: &Ast) {
         if let Some(comment) = commentable.comment() {
             if let Some(overview) = &comment.overview {
-                self.resolve_links_in(&overview.message, commentable, ast);
+                self.resolve_links_in(overview, commentable, ast);
             }
             for param_tag in &comment.params {
                 self.resolve_links_in(&param_tag.message, commentable, ast);
@@ -94,7 +94,7 @@ impl CommentLinkPatcher<'_> {
     }
 
     fn resolve_links_in(&mut self, message: &Message, commentable: &impl Commentable, ast: &Ast) {
-        for component in message {
+        for component in &message.value {
             if let MessageComponent::Link(link_tag) = component {
                 self.resolve_link(&link_tag.link, commentable, ast);
             }
@@ -146,7 +146,7 @@ impl CommentLinkPatcher<'_> {
     fn apply_patches(&mut self, scope: &str, comment: &mut Option<DocComment>) {
         if let Some(comment) = comment {
             if let Some(overview) = &mut comment.overview {
-                self.patch_links_in(&mut overview.message);
+                self.patch_links_in(overview);
             }
             for param_tag in &mut comment.params {
                 self.patch_links_in(&mut param_tag.message);
@@ -165,7 +165,7 @@ impl CommentLinkPatcher<'_> {
     }
 
     fn patch_links_in(&mut self, message: &mut Message) {
-        for component in message {
+        for component in &mut message.value {
             if let MessageComponent::Link(link_tag) = component {
                 patch_link!(self, link_tag);
             }
