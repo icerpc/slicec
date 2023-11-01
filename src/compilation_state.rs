@@ -66,3 +66,9 @@ impl CompilationState {
         self.diagnostics.into_updated(&self.ast, &self.files, options)
     }
 }
+
+// CompilationState is entirely self-contained, and hence safe to send between threads.
+//
+// Note that the `files` field of CompilationState is not self-contained on its own, since `SliceFile`
+// references contents that are owned by the Ast.
+unsafe impl Send for CompilationState {}
