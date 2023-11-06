@@ -4,7 +4,7 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
-use std::cmp::Ordering;
+use std::cmp::{max, min, Ordering};
 use std::fmt::{Display, Write};
 
 const EXPANDED_TAB: &str = "    ";
@@ -51,6 +51,18 @@ impl Span {
     pub fn new(start: Location, end: Location, file: &str) -> Self {
         let file = file.to_owned();
         Span { start, end, file }
+    }
+}
+
+impl std::ops::Add for &Span {
+    type Output = Span;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Span {
+            start: min(self.start, rhs.start),
+            end: max(self.end, rhs.end),
+            file: self.file.clone(),
+        }
     }
 }
 

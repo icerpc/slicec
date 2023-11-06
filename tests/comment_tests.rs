@@ -33,7 +33,7 @@ mod comments {
         assert_eq!(overview.span.start, (4, 16).into());
         assert_eq!(overview.span.end, (4, 51).into());
 
-        let message = &overview.message;
+        let message = &overview.value;
         assert_eq!(message.len(), 2);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
         assert_eq!(text, "This is a single line doc comment.");
@@ -66,7 +66,7 @@ mod comments {
         assert_eq!(overview.span.start, (4, 16).into());
         assert_eq!(overview.span.end, (5, 39).into());
 
-        let message = &overview.message;
+        let message = &overview.value;
         assert_eq!(message.len(), 4);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
         assert_eq!(text, "This is a");
@@ -101,7 +101,7 @@ mod comments {
 
         let param_tag = &param_tags[0];
         assert_eq!(param_tag.span.start, (5, 21).into());
-        assert_eq!(param_tag.span.end, (5, 52).into());
+        assert_eq!(param_tag.span.end, (5, 37).into());
 
         let identifier = &param_tag.identifier;
         assert_eq!(identifier.value, "testParam");
@@ -109,8 +109,12 @@ mod comments {
         assert_eq!(identifier.span.end, (5, 37).into());
 
         let message = &param_tag.message;
-        assert_eq!(message.len(), 2);
-        let MessageComponent::Text(text) = &message[0] else { panic!() };
+        assert_eq!(message.span.start, (5, 37).into());
+        assert_eq!(message.span.end, (5, 52).into());
+
+        let components = &message.value;
+        assert_eq!(components.len(), 2);
+        let MessageComponent::Text(text) = &components[0] else { panic!() };
         assert_eq!(text, "My test param");
     }
 
@@ -145,7 +149,9 @@ mod comments {
         assert_eq!(identifier.span.end, (5, 34).into());
 
         let message = &returns_tag.message;
-        assert!(message.is_empty());
+        assert!(message.value.is_empty());
+        assert_eq!(message.span.start, (5, 34).into());
+        assert_eq!(message.span.end, (5, 34).into());
     }
 
     #[test]
@@ -249,14 +255,18 @@ mod comments {
 
         let throws_tag = &throws_tags[0];
         assert_eq!(throws_tag.span.start, (8, 21).into());
-        assert_eq!(throws_tag.span.end, (8, 72).into());
+        assert_eq!(throws_tag.span.end, (8, 40).into());
 
         let thrown_type = throws_tag.thrown_type().unwrap();
         assert_eq!(thrown_type.parser_scoped_identifier(), "tests::MyException");
 
         let message = &throws_tag.message;
-        assert_eq!(message.len(), 2);
-        let MessageComponent::Text(text) = &message[0] else { panic!() };
+        assert_eq!(message.span.start, (8, 40).into());
+        assert_eq!(message.span.end, (8, 72).into());
+
+        let components = &message.value;
+        assert_eq!(components.len(), 2);
+        let MessageComponent::Text(text) = &components[0] else { panic!() };
         assert_eq!(text, "Message about my thrown thing.");
     }
 
@@ -351,7 +361,7 @@ mod comments {
         // Assert
         let struct_def = ast.find_element::<Struct>("tests::TestStruct").unwrap();
         let overview = &struct_def.comment().unwrap().overview;
-        let message = &overview.as_ref().unwrap().message;
+        let message = &overview.as_ref().unwrap().value;
 
         assert_eq!(message.len(), 3);
         let MessageComponent::Text(text) = &message[0] else { panic!() };
