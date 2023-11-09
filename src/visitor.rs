@@ -268,6 +268,11 @@ impl TypeRef {
     /// dictionary, it recursively calls itself on their underlying element, key, and value types.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_type_ref(self);
+
+        if matches!(&self.definition, TypeRefDefinition::Unpatched(_)) {
+            return;
+        }
+
         match self.concrete_type() {
             Types::Sequence(sequence_ref) => sequence_ref.element_type.visit_with(visitor),
             Types::Dictionary(dictionary_ref) => {
