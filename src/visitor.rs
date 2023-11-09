@@ -269,6 +269,8 @@ impl TypeRef {
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_type_ref(self);
 
+        // If this typeref isn't patched, do not attempt to visit it further.
+        // Note that sequence and dictionary types (the only types we visit further) are always patched anyways.
         if matches!(&self.definition, TypeRefDefinition::Unpatched(_)) {
             return;
         }
