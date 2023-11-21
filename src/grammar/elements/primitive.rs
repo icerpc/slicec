@@ -70,10 +70,6 @@ impl Primitive {
         )
     }
 
-    pub fn is_numeric_or_bool(&self) -> bool {
-        self.is_numeric() || matches!(self, Self::Bool)
-    }
-
     pub fn numeric_bounds(&self) -> Option<(i128, i128)> {
         const VARINT62_MIN: i128 = -2_305_843_009_213_693_952; // -2^61
         const VARINT62_MAX: i128 = 2_305_843_009_213_693_951; // 2^61 - 1

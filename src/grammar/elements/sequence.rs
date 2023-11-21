@@ -9,7 +9,7 @@ pub struct Sequence {
 }
 
 impl Sequence {
-    pub fn has_fixed_size_numeric_elements(&self) -> bool {
+    pub fn has_fixed_size_primitive_elements(&self) -> bool {
         if self.element_type.is_optional {
             false
         } else {
@@ -23,7 +23,7 @@ impl Sequence {
             }
 
             if let Types::Primitive(primitive) = definition {
-                primitive.is_numeric_or_bool() && primitive.fixed_wire_size().is_some()
+                primitive.fixed_wire_size().is_some()
             } else {
                 false
             }
