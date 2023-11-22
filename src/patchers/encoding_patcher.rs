@@ -36,8 +36,11 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
                 exception_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
             Node::Interface(interface_ptr) => {
-                let encodings = patcher.get_supported_encodings_for(interface_ptr.borrow());
-                interface_ptr.borrow_mut().supported_encodings = Some(encodings);
+                // We still compute which encodings an interface can be used with, so we can validate that the interface
+                // is supported by whatever compilation mode it has been declared in.
+                // But since interfaces aren't a type, we don't need to store the result of this computation, since
+                // nothing can reference this interface except other interfaces.
+                patcher.get_supported_encodings_for(interface_ptr.borrow());
             }
             Node::Enum(enum_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(enum_ptr.borrow());
@@ -135,10 +138,6 @@ impl EncodingPatcher<'_> {
             Types::Class(class_def) => {
                 allow_nullable_with_slice_1 = true;
                 self.get_supported_encodings_for(class_def)
-            }
-            Types::Interface(interface_def) => {
-                allow_nullable_with_slice_1 = true;
-                self.get_supported_encodings_for(interface_def)
             }
             Types::Enum(enum_def) => self.get_supported_encodings_for(enum_def),
             Types::CustomType(custom_type) => {

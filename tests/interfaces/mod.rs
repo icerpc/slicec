@@ -27,21 +27,6 @@ fn can_have_no_operations() {
 }
 
 #[test]
-fn can_have_self_referencing_operations() {
-    // Arrange
-    let slice = "
-        module Test
-
-        interface I {
-            myOp() -> I
-        }
-    ";
-
-    // Act/Assert
-    assert_parses(slice);
-}
-
-#[test]
 fn can_have_one_operation() {
     // Arrange
     let slice = "

@@ -21,17 +21,12 @@ fn valid_mixed_compilation_mode_succeeds() {
             A
             B
         }
-
-        interface AnInterface {
-            op() -> AnEnum
-        }
     ";
     let slice2 = "
         mode = Slice2
         module Test
         struct AStruct {
             e: AnEnum
-            i: AnInterface
             c: ACompactStruct
         }
     ";

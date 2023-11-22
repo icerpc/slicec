@@ -12,7 +12,6 @@ mod typealias {
 
     #[test_case("struct S {}", "S", "Slice2"; "structs")]
     #[test_case("class C {}", "C", "Slice1"; "classes")]
-    #[test_case("interface I {}", "I", "Slice2"; "interfaces")]
     #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
     #[test_case("custom C", "C", "Slice2"; "custom types")]
     #[test_case("", "bool", "Slice2"; "primitives")]
