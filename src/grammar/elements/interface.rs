@@ -61,26 +61,9 @@ impl Interface {
 
         all_bases
     }
-}
 
-impl Type for Interface {
-    fn type_string(&self) -> String {
-        self.identifier().to_owned()
-    }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        None
-    }
-
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        Some(TagFormat::FSize)
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn supported_encodings(&self) -> SupportedEncodings {
         self.supported_encodings.clone().unwrap()
     }
 }

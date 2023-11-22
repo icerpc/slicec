@@ -125,7 +125,6 @@ mod optional {
         }
 
         #[test_case("class Foo {}"; "class")]
-        #[test_case("interface Foo {}"; "interface")]
         #[test_case("custom Foo"; "custom type")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
             // Arrange
@@ -447,7 +446,6 @@ mod optional {
 
         #[test_case("struct Foo {}"; "r#struct")]
         #[test_case("unchecked enum Foo: uint8 {}"; "r#enum")]
-        #[test_case("interface Foo {}"; "interface")]
         #[test_case("custom Foo"; "custom type")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
             // Arrange

@@ -136,10 +136,6 @@ impl EncodingPatcher<'_> {
                 allow_nullable_with_slice_1 = true;
                 self.get_supported_encodings_for(class_def)
             }
-            Types::Interface(interface_def) => {
-                allow_nullable_with_slice_1 = true;
-                self.get_supported_encodings_for(interface_def)
-            }
             Types::Enum(enum_def) => self.get_supported_encodings_for(enum_def),
             Types::CustomType(custom_type) => {
                 allow_nullable_with_slice_1 = true;
