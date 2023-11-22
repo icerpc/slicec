@@ -242,6 +242,7 @@ fn construct_interface(
         attributes,
         comment,
         span,
+        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the operations to the interface.

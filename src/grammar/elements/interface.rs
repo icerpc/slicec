@@ -2,6 +2,7 @@
 
 use super::super::*;
 use crate::slice_file::Span;
+use crate::supported_encodings::SupportedEncodings;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -13,6 +14,7 @@ pub struct Interface {
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
+    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Interface {
@@ -58,6 +60,11 @@ impl Interface {
         all_bases.retain(|base| seen_identifiers.insert(base.parser_scoped_identifier()));
 
         all_bases
+    }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
     }
 }
 

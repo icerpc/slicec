@@ -39,6 +39,11 @@ impl Exception {
     pub fn base_exception(&self) -> Option<&Exception> {
         self.base.as_ref().map(TypeRef::definition)
     }
+
+    // This intentionally shadows the trait method of the same name on `Type`.
+    pub fn supported_encodings(&self) -> SupportedEncodings {
+        self.supported_encodings.clone().unwrap()
+    }
 }
 
 implement_Element_for!(Exception, "exception");
