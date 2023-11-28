@@ -35,16 +35,13 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
             token: (start, token_kind, end),
             expected,
         } => {
-            let message = format!(
-                "expected one of {}, but found '{token_kind:?}'",
-                clean_message(&expected)
-            );
+            let message = generate_message(&expected, token_kind);
             Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEof { location, expected } => {
-            let message = format!("expected one of {}, but found 'EOF'", clean_message(&expected));
+            let message = generate_message(&expected, "EOF");
             Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
@@ -57,13 +54,15 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
     }
 }
 
-fn clean_message(expected: &[String]) -> String {
-    match expected {
-        [first] => first.to_owned(),
-        [first, second] => format!("{first} or {second}"),
+fn generate_message(expected: &[String], found: impl std::fmt::Debug) -> String {
+    let expected_message = match expected {
+        [] => "expected no tokens, ".to_owned(),
+        [first] => format!("expected one of {first}, "),
+        [first, second] => format!("expected one of {first} or {second}, "),
         many => {
             let (last, others) = many.split_last().unwrap();
-            format!("{}, or {last}", others.join(", "))
+            format!("expected one of {}, or {last}, ", others.join(", "))
         }
-    }
+    };
+    format!("{expected_message} but found '{found:?}'")
 }
