@@ -1,6 +1,6 @@
 [package]
 name = "slicec"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["ZeroC Inc."]
 description = """
 The Slice parser and other core components for Slice compilers.
@@ -20,18 +20,18 @@ exclude = [".github/*", ".vscode/*"]
 clap = { version = "4.3.15", features = ["derive"] }
 console = "0.15.7"
 convert_case = "0.6.0"
-in_definite = "0.2.5"
+in_definite = "1.0.0"
 lalrpop-util = "0.20.0"
 # derive feature allows structs to derive Serialize automatically
-serde = { version = "1.0.171", features = ["derive"] }
-serde_json = "1.0.103"
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = "1.0.108"
 
 [build-dependencies]
 # The default features enable a built-in lexer. We supply our own lexer so we don't need these.
 lalrpop = { version = "0.20.0", default-features = false }
 
 [dev-dependencies]
-test-case = "3.1.0"
+test-case = "3.3.1"
 
 [lib]
 name = "slicec"
