@@ -1,6 +1,6 @@
 [package]
 name = "slicec"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["ZeroC Inc."]
 description = """
 The Slice parser and other core components for Slice compilers.
