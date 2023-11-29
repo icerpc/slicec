@@ -15,6 +15,7 @@
     "Hasher",
     "icerpc",
     "lalrpop",
+    "MSRV",
     "nonterminal",
     "peekable",
     "rfind",
