@@ -14,7 +14,7 @@ pub fn validate_operation(operation: &Operation, diagnostics: &mut Diagnostics) 
 
 fn exception_specifications_can_only_be_used_in_slice1_mode(operation: &Operation, diagnostics: &mut Diagnostics) {
     if operation.encoding != CompilationMode::Slice1 && !operation.exception_specification.is_empty() {
-        // Create a span that covers the the entire exception specification.
+        // Create a span that covers the entire exception specification.
         let mut span = operation.exception_specification.first().unwrap().span().clone();
         span.end = operation.exception_specification.last().unwrap().span().end;
 

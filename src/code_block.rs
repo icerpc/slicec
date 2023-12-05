@@ -121,7 +121,7 @@ impl From<&str> for CodeBlock {
 
 impl From<CodeBlock> for String {
     fn from(code: CodeBlock) -> Self {
-        // Do not return `code.content` here as we want the the format function to be applied first
+        // Do not return `code.content` here as we want the format function to be applied first
         code.to_string()
     }
 }

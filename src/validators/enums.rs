@@ -114,7 +114,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostics: &mut Diagnostics) 
     }
 }
 
-/// Validate the the underlying type of an enum is not optional.
+/// Validate the underlying type of an enum is not optional.
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
