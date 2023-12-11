@@ -417,7 +417,7 @@ impl ComputeSupportedEncodings for Enum {
 
         for enumerator in self.enumerators() {
             // Enums with fields are not allowed in Slice1 mode.
-            if enumerator.fields().is_some() {
+            if enumerator.fields.is_some() {
                 supported_encodings.disable(Encoding::Slice1);
                 if compilation_mode == CompilationMode::Slice1 {
                     return Some("field syntax cannot be used with enumerators declared in Slice1 mode");

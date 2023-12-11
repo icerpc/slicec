@@ -144,7 +144,7 @@ fn cannot_contain_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     debug_assert!(enum_def.underlying.is_some());
 
     for enumerator in enum_def.enumerators() {
-        if enumerator.fields().is_some() {
+        if enumerator.fields.is_some() {
             Diagnostic::new(Error::EnumeratorCannotContainFields {
                 enumerator_identifier: enumerator.identifier().to_owned(),
             })

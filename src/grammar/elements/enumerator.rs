@@ -24,10 +24,11 @@ impl Enumerator {
         }
     }
 
-    pub fn fields(&self) -> Option<Vec<&Field>> {
+    pub fn fields(&self) -> Vec<&Field> {
         self.fields
             .as_ref()
             .map(|fields| fields.iter().map(WeakPtr::borrow).collect())
+            .unwrap_or_default()
     }
 }
 
@@ -39,7 +40,7 @@ pub enum EnumeratorValue {
 
 impl Container<Field> for Enumerator {
     fn contents(&self) -> Vec<&Field> {
-        self.fields().unwrap_or_default()
+        self.fields()
     }
 }
 
