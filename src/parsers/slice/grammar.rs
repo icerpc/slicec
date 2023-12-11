@@ -396,7 +396,7 @@ fn construct_enumerator(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
     identifier: Identifier,
-    associated_fields: Option<Vec<OwnedPtr<Field>>>,
+    fields: Option<Vec<OwnedPtr<Field>>>,
     enumerator_value: Option<Integer<i128>>,
     span: Span,
 ) -> OwnedPtr<Enumerator> {
@@ -413,7 +413,7 @@ fn construct_enumerator(
     let mut enumerator = OwnedPtr::new(Enumerator {
         identifier,
         value,
-        associated_fields: None,
+        fields: None,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -422,14 +422,14 @@ fn construct_enumerator(
     });
 
     // Add any associated fields to the enumerator.
-    if let Some(fields) = associated_fields {
+    if let Some(fields) = fields {
         let downgraded = downgrade_as!(enumerator, dyn Container<Field>);
         unsafe {
             let converted_fields = fields.into_iter().map(|mut field| {
                 field.borrow_mut().parent = downgraded.clone();
                 parser.ast.add_named_element(field)
             });
-            enumerator.borrow_mut().associated_fields = Some(converted_fields.collect());
+            enumerator.borrow_mut().fields = Some(converted_fields.collect());
         }
     }
 

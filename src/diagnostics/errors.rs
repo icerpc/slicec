@@ -79,8 +79,8 @@ pub enum Error {
         enumerator_identifier: String,
     },
 
-    /// Enumerators cannot declare associated fields when their enclosing enum has an underlying type.
-    EnumeratorCannotDeclareAssociatedFields {
+    /// Enumerators cannot contain fields when their enclosing enum has an underlying type.
+    EnumeratorCannotContainFields {
         enumerator_identifier: String,
     },
 
@@ -549,8 +549,8 @@ implement_diagnostic_functions!(
     ),
     (
         "E054",
-        EnumeratorCannotDeclareAssociatedFields,
-        format!("invalid enumerator '{enumerator_identifier}': associated fields cannot be declared within enums that specify an underlying type"),
+        EnumeratorCannotContainFields,
+        format!("invalid enumerator '{enumerator_identifier}': fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
     )
 );

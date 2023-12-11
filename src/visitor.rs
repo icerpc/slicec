@@ -261,8 +261,8 @@ impl Enumerator {
     /// This function delegates to `visitor.visit_enumerator`.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_enumerator(self);
-        if let Some(associated_fields) = &self.associated_fields {
-            for field in associated_fields {
+        if let Some(fields) = &self.fields {
+            for field in fields {
                 field.borrow().visit_with(visitor);
             }
         }

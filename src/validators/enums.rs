@@ -12,11 +12,11 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     underlying_type_cannot_be_optional(enum_def, diagnostics);
     nonempty_if_checked(enum_def, diagnostics);
 
-    // If the enum wasn't defined in a Slice1 file, validate whether associated fields or explicit values are allowed,
-    // based on whether it has an underlying type. Associated fields in Slice1 files are rejected by `encoding_patcher`.
+    // If the enum wasn't defined in a Slice1 file, validate whether fields or explicit values are allowed,
+    // based on whether it has an underlying type. Fields in Slice1 files are already rejected by `encoding_patcher`.
     if !enum_def.supported_encodings().supports(Encoding::Slice1) {
         if enum_def.underlying.is_some() {
-            cannot_contain_associated_fields(enum_def, diagnostics);
+            cannot_contain_fields(enum_def, diagnostics);
         } else {
             cannot_contain_explicit_values(enum_def, diagnostics);
         }
@@ -138,14 +138,14 @@ fn nonempty_if_checked(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     }
 }
 
-/// Validate that this enum's enumerators don't specify any associated fields.
+/// Validate that this enum's enumerators don't specify any fields.
 /// This function should only be called for enums with underlying types.
-fn cannot_contain_associated_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
+fn cannot_contain_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     debug_assert!(enum_def.underlying.is_some());
 
     for enumerator in enum_def.enumerators() {
-        if enumerator.associated_fields().is_some() {
-            Diagnostic::new(Error::EnumeratorCannotDeclareAssociatedFields {
+        if enumerator.fields().is_some() {
+            Diagnostic::new(Error::EnumeratorCannotContainFields {
                 enumerator_identifier: enumerator.identifier().to_owned(),
             })
             .set_span(enumerator.span())
