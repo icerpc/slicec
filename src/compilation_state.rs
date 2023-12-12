@@ -67,6 +67,12 @@ impl CompilationState {
     }
 }
 
+impl Default for CompilationState {
+    fn default() -> Self {
+        Self::create()
+    }
+}
+
 // CompilationState is entirely self-contained, and hence safe to send between threads.
 //
 // Note that the `files` field of CompilationState is not self-contained on its own, since `SliceFile`
