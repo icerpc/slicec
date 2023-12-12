@@ -71,6 +71,12 @@ impl TypeRefPatcher<'_> {
                     self.resolve_definition(type_ref, ast)
                         .map(PatchKind::TypeAliasUnderlyingType)
                 }
+                Node::ResultType(result_ptr) => {
+                    let result_type = result_ptr.borrow();
+                    let ok_patch = self.resolve_definition(&result_type.ok_type, ast);
+                    let err_patch = self.resolve_definition(&result_type.err_type, ast);
+                    Some(PatchKind::ResultTypes(ok_patch, err_patch))
+                }
                 Node::Sequence(sequence_ptr) => {
                     let type_ref = &sequence_ptr.borrow().element_type;
                     self.resolve_definition(type_ref, ast).map(PatchKind::SequenceType)
@@ -153,6 +159,15 @@ impl TypeRefPatcher<'_> {
                     let type_alias_ptr: &mut OwnedPtr<TypeAlias> = element.try_into().unwrap();
                     let type_alias_underlying_type_ref = &mut type_alias_ptr.borrow_mut().underlying;
                     type_alias_underlying_type_ref.patch(type_alias_underlying_type_ptr, attributes);
+                }
+                PatchKind::ResultTypes(ok_patch, err_patch) => {
+                    let result_ptr: &mut OwnedPtr<ResultType> = element.try_into().unwrap();
+                    if let Some((ok_type_ptr, ok_attributes)) = ok_patch {
+                        result_ptr.borrow_mut().ok_type.patch(ok_type_ptr, ok_attributes);
+                    }
+                    if let Some((err_type_ptr, err_attributes)) = err_patch {
+                        result_ptr.borrow_mut().err_type.patch(err_type_ptr, err_attributes);
+                    }
                 }
                 PatchKind::SequenceType((element_type_ptr, attributes)) => {
                     let sequence_ptr: &mut OwnedPtr<Sequence> = element.try_into().unwrap();
@@ -332,6 +347,7 @@ enum PatchKind {
     ExceptionSpecification(Vec<Patch<Exception>>),
     EnumUnderlyingType(Patch<Primitive>),
     TypeAliasUnderlyingType(Patch<dyn Type>),
+    ResultTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
     SequenceType(Patch<dyn Type>),
     DictionaryTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),
 }

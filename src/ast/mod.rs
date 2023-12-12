@@ -97,7 +97,7 @@ impl Ast {
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
     /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
     ///
-    /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
+    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
@@ -148,7 +148,7 @@ impl Ast {
     /// This returns the first matching AST node it can find. If another node in a more outward scope also has the
     /// specified identifier, it is shadowed, and will not be returned.
     ///
-    /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
+    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
@@ -201,7 +201,7 @@ impl Ast {
     /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
     /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
     ///
-    /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
+    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///
@@ -255,7 +255,7 @@ impl Ast {
     /// This returns the first matching Slice element it can find. If another element in a more outward scope also has
     /// the specified identifier, it is shadowed, and will not be returned.
     ///
-    /// Anonymous types (those without identifiers) cannot be looked up. This only includes sequences and dictionaries.
+    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
     /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
     ///

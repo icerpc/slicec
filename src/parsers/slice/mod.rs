@@ -65,6 +65,7 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             "enum_keyword" => tokens::TokenKind::EnumKeyword.to_string(),
             "custom_keyword" => tokens::TokenKind::CustomKeyword.to_string(),
             "type_alias_keyword" => tokens::TokenKind::TypeAliasKeyword.to_string(),
+            "result_keyword" => tokens::TokenKind::ResultKeyword.to_string(),
 
             // Collection keywords
             "sequence_keyword" => tokens::TokenKind::SequenceKeyword.to_string(),

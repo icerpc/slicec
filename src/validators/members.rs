@@ -59,6 +59,7 @@ fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostics: &m
             Types::Class(_) => true,
             Types::Enum(_) => false,
             Types::CustomType(_) => false,
+            Types::ResultType(_) => false, // 'Result' is Slice2 only, and classes are Slice1 only.
             Types::Sequence(sequence) => uses_classes(&sequence.element_type),
             // It is disallowed for key types to use classes, so we only need to check the value type.
             Types::Dictionary(dictionary) => uses_classes(&dictionary.value_type),
