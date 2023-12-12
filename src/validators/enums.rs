@@ -11,6 +11,8 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     enumerator_values_are_unique(enum_def, diagnostics);
     underlying_type_cannot_be_optional(enum_def, diagnostics);
     nonempty_if_checked(enum_def, diagnostics);
+    check_compact_modifier(enum_def, diagnostics);
+    compact_enums_cannot_contain_tags(enum_def, diagnostics);
 
     // If the enum wasn't defined in a Slice1 file, validate whether fields or explicit values are allowed,
     // based on whether it has an underlying type. Fields in Slice1 files are already rejected by `encoding_patcher`.
@@ -170,6 +172,56 @@ fn cannot_contain_explicit_values(enum_def: &Enum, diagnostics: &mut Diagnostics
             })
             .set_span(enumerator.span())
             .push_into(diagnostics);
+        }
+    }
+}
+
+/// Validate that compact enums do not have an underlying type and are not marked as 'unchecked'.
+fn check_compact_modifier(enum_def: &Enum, diagnostics: &mut Diagnostics) {
+    if enum_def.is_compact {
+        if let Some(underlying) = &enum_def.underlying {
+            Diagnostic::new(Error::CannotBeCompact {
+                kind: enum_def.kind(),
+                identifier: enum_def.identifier().to_owned(),
+            })
+            .set_span(enum_def.span())
+            .add_note(
+                "compact enums cannot also have underlying types\ntry removing either the 'compact' modifier, or the underlying type",
+                Some(underlying.span()),
+            )
+            .push_into(diagnostics);
+        }
+
+        if enum_def.is_unchecked {
+            Diagnostic::new(Error::CannotBeCompact {
+                kind: enum_def.kind(),
+                identifier: enum_def.identifier().to_owned(),
+            })
+            .set_span(enum_def.span())
+            .add_note(
+                "An enum cannot be both unchecked and compact - try removing the 'compact' modifier",
+                None,
+            )
+            .push_into(diagnostics);
+        }
+    }
+}
+
+/// Validate that tags cannot be used in compact enums.
+fn compact_enums_cannot_contain_tags(enum_def: &Enum, diagnostics: &mut Diagnostics) {
+    if enum_def.is_compact {
+        for enumerator in enum_def.enumerators() {
+            for field in enumerator.fields() {
+                if field.is_tagged() {
+                    Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: enum_def.kind() })
+                        .set_span(field.span())
+                        .add_note(
+                            format!("enum '{}' is declared compact here", enum_def.identifier()),
+                            Some(enum_def.span()),
+                        )
+                        .push_into(diagnostics);
+                }
+            }
         }
     }
 }

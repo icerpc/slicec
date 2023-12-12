@@ -90,6 +90,14 @@ pub enum Error {
         enum_identifier: String,
     },
 
+    /// A type was marked 'compact' when it was invalid to do so.
+    CannotBeCompact {
+        /// The kind of type that was marked compact.
+        kind: &'static str,
+        /// The identifier of the type.
+        identifier: String,
+    },
+
     /// An enumerator was found that was out of bounds of the underlying type of the parent enum.
     EnumeratorValueOutOfBounds {
         /// The identifier of the enumerator.
@@ -137,9 +145,6 @@ pub enum Error {
     /// Compact structs cannot be empty.
     CompactStructCannotBeEmpty,
 
-    /// Compact structs cannot contain tagged fields.
-    CompactStructCannotContainTaggedFields,
-
     // ----------------  Tag Errors ---------------- //
     /// A duplicate tag value was found.
     CannotHaveDuplicateTag {
@@ -166,6 +171,12 @@ pub enum Error {
     TaggedMemberMustBeOptional {
         /// The identifier of the tagged member.
         identifier: String,
+    },
+
+    /// Compact types cannot contain tagged fields.
+    CompactTypeCannotContainTaggedFields {
+        /// The kind of type that contains the fields.
+        kind: &'static str,
     },
 
     // ----------------  General Errors ---------------- //
@@ -365,8 +376,9 @@ implement_diagnostic_functions!(
     ),
     (
         "E018",
-        CompactStructCannotContainTaggedFields,
-        "tagged fields are not supported in compact structs\nconsider removing the tag, or making the struct non-compact"
+        CompactTypeCannotContainTaggedFields,
+        format!("tagged fields are not supported in compact {kind}s\nconsider removing the tag, or making the {kind} non-compact"),
+        kind
     ),
     (
         "E019",
@@ -552,6 +564,12 @@ implement_diagnostic_functions!(
         EnumeratorCannotContainFields,
         format!("invalid enumerator '{enumerator_identifier}': fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
+    ),
+    (
+        "E055",
+        CannotBeCompact,
+        format!("'{kind}' '{identifier}' cannot be marked compact"),
+        kind, identifier
     )
 );
 

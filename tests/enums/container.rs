@@ -33,6 +33,44 @@ mod associated_fields {
     use test_case::test_case;
 
     #[test]
+    fn enumerator_fields_can_be_tagged() {
+        // Arrange
+        let slice = "
+        module Test
+        enum E {
+            A(tag(1) b: bool?),
+        }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let field = ast.find_element::<Field>("Test::E::A::b").unwrap();
+        assert!(field.is_tagged());
+    }
+
+    #[test]
+    fn tags_are_disallowed_in_compact_enums() {
+        // Arrange
+        let slice = "
+        module Test
+        compact enum E {
+            A(tag(1) b: bool?),
+        }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: "enum" })
+            .add_note("enum 'E' is declared compact here", None);
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
     fn explicit_values_are_not_allowed() {
         // Arrange
         let slice = "

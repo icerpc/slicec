@@ -1,5 +1,11 @@
 # Changelog
 
+## [Future] - Sometime
+### Added
+- Added support for compact enums ([686]).
+### Breaking
+- Only simple enums can be used as dictionary key types ([685]).
+
 ## [0.2.1] - 2023-11-29
 ### Enhancements
 - Added default no-op implementations to `Visitor` to make it easier to implement ([678]).

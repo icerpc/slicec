@@ -49,7 +49,7 @@ mod compact_structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::CompactStructCannotContainTaggedFields)
+        let expected = Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: "struct" })
             .add_note("struct 'S' is declared compact here", None);
 
         check_diagnostics(diagnostics, [expected]);

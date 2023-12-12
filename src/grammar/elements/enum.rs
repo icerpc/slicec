@@ -10,6 +10,7 @@ pub struct Enum {
     pub identifier: Identifier,
     pub enumerators: Vec<WeakPtr<Enumerator>>,
     pub underlying: Option<TypeRef<Primitive>>,
+    pub is_compact: bool,
     pub is_unchecked: bool,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,

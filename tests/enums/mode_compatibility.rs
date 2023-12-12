@@ -111,4 +111,33 @@ mod slice1 {
         );
         check_diagnostics(diagnostics, [expected]);
     }
+
+    /// Verifies that compact enums are disallowed in Slice1 mode.
+    #[test]
+    fn compact_enums_fail() {
+        // Arrange
+        let slice = "
+            mode = Slice1
+            module Test
+
+            compact enum E {
+                A
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::NotSupportedInCompilationMode {
+            kind: "enum".to_owned(),
+            identifier: "E".to_owned(),
+            mode: CompilationMode::Slice1,
+        })
+        .add_note(
+            "enums defined in Slice1 mode cannot be 'compact'",
+            None,
+        );
+        check_diagnostics(diagnostics, [expected]);
+    }
 }

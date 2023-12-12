@@ -359,9 +359,11 @@ fn check_return_tuple(parser: &mut Parser, return_tuple: &Vec<OwnedPtr<Parameter
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn construct_enum(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
+    is_compact: bool,
     is_unchecked: bool,
     identifier: Identifier,
     underlying_type: Option<TypeRef>,
@@ -375,6 +377,7 @@ fn construct_enum(
         identifier,
         enumerators: Vec::new(),
         underlying,
+        is_compact,
         is_unchecked,
         scope: parser.current_scope.clone(),
         attributes,
