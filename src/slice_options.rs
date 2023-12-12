@@ -9,7 +9,7 @@ use clap::{Parser, ValueEnum};
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Debug, Default, Hash, Parser)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Parser)]
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of Slice files to compile.
@@ -47,7 +47,7 @@ pub struct SliceOptions {
 }
 
 /// This enum is used to specify the format for emitted diagnostics.
-#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, ValueEnum)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, ValueEnum)]
 pub enum DiagnosticFormat {
     /// Diagnostics are printed to the console in an easily readable format with source code snippets when possible.
     #[default]
