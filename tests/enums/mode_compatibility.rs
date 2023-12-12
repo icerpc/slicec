@@ -134,10 +134,7 @@ mod slice1 {
             identifier: "E".to_owned(),
             mode: CompilationMode::Slice1,
         })
-        .add_note(
-            "enums defined in Slice1 mode cannot be 'compact'",
-            None,
-        );
+        .add_note("enums defined in Slice1 mode cannot be 'compact'", None);
         check_diagnostics(diagnostics, [expected]);
     }
 }
