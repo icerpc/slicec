@@ -91,7 +91,8 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     check_diagnostics(diagnostics, [expected]);
 }
 
-#[test_case("MyEnum", "unchecked enum MyEnum: int8 {}" ; "enums")]
+#[test_case("MyEnum", "enum MyEnum: int8 { A }" ; "simple enums")]
+#[test_case("MyEnum", "unchecked enum MyEnum: int8 {}" ; "unchecked simple enums")]
 #[test_case("MyCustom", "custom MyCustom" ; "custom_types")]
 fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     // Arrange
@@ -107,15 +108,18 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     assert_parses(slice);
 }
 
-#[test_case("MyClass", "class", "Slice1"; "classes")]
-fn disallowed_constructed_types(key_type: &str, key_kind: &str, mode: &str) {
+#[test_case("MyEnum", "enum MyEnum { A }", "enum", "Slice2" ; "enums")]
+#[test_case("MyEnum", "compact enum MyEnum { A }", "enum", "Slice2" ; "compact enums")]
+#[test_case("MyEnum", "unchecked enum MyEnum {}", "enum", "Slice2" ; "unchecked enums")]
+#[test_case("MyClass", "class MyClass {}", "class", "Slice1"; "classes")]
+fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str, mode: &str) {
     // Arrange
     let slice = format!(
         "
             mode = {mode}
             module Test
 
-            {key_kind} {key_type} {{}}
+            {key_type_def}
             typealias Dict = Dictionary<{key_type}, uint8>
         "
     );
