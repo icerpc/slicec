@@ -50,7 +50,17 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
         }
 
         // Only enums with underlying types can be used as dictionary keys. Fields aren't allowed.
-        Types::Enum(enum_def) => enum_def.underlying.is_some(),
+        Types::Enum(enum_def) => {
+            if enum_def.underlying.is_none() {
+                let error = Diagnostic::new(Error::KeyTypeNotSupported {
+                    kind: formatted_kind(definition),
+                })
+                .set_span(type_ref.span())
+                .add_note("only enums with underlying types can be used as dictionary keys", None);
+                return Some(error);
+            }
+            true
+        }
 
         Types::Class(_) => false,
         Types::CustomType(_) => true,
