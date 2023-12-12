@@ -542,6 +542,7 @@ mod attributes {
 
         #[test_case("[deprecated] string"; "non nested")]
         #[test_case("Sequence<[deprecated] string>"; "nested")]
+        #[test_case("Result<bool, [deprecated] varuint62>"; "nested result")]
         fn attributes_on_anonymous_types_are_rejected(alias_type: &str) {
             let slice = format!(
                 "

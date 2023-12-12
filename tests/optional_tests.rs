@@ -468,6 +468,72 @@ mod optional {
         }
 
         #[test]
+        fn optional_results_are_parsed_correctly() {
+            // Arrange
+            let slice = "
+                module Test
+                struct S {
+                    a: Result<varuint62, string>?
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
+            assert!(field.data_type.is_optional);
+
+            let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
+            assert!(!result_type.ok_type.is_optional);
+            assert!(!result_type.err_type.is_optional);
+        }
+
+        #[test]
+        fn results_with_optional_keys_are_parsed_correctly() {
+            // Arrange
+            let slice = "
+                module Test
+                struct S {
+                    a: Result<varuint62?, string>
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
+            assert!(!field.data_type.is_optional);
+
+            let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
+            assert!(result_type.ok_type.is_optional);
+            assert!(!result_type.err_type.is_optional);
+        }
+
+        #[test]
+        fn results_with_optional_values_are_parsed_correctly() {
+            // Arrange
+            let slice = "
+                module Test
+                struct S {
+                    a: Result<varuint62, string?>
+                }
+            ";
+
+            // Act
+            let ast = parse_for_ast(slice);
+
+            // Assert
+            let field = ast.find_element::<Field>("Test::S::a").unwrap();
+            assert!(!field.data_type.is_optional);
+
+            let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
+            assert!(!result_type.ok_type.is_optional);
+            assert!(result_type.err_type.is_optional);
+        }
+
+        #[test]
         fn optional_sequences_are_parsed_correctly() {
             // Arrange
             let slice = "
