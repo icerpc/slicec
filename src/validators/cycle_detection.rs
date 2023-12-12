@@ -14,7 +14,7 @@ pub(super) fn detect_cycles(ast: &Ast, diagnostics: &mut Diagnostics) {
     for node in ast.as_slice() {
         cycle_detector.dependency_stack.clear(); // Make sure the detector is cleared between checks.
         match node {
-            // Only structs and enumerators (with associated fields) need to be checked for cycles.
+            // Only structs and enumerators (with fields) need to be checked for cycles.
             // It is safe for classes to contain cycles since they use reference semantics,
             // and exceptions can't cause cycles since they cannot be used as types.
             Node::Struct(struct_def) => cycle_detector.check_for_cycles(struct_def.borrow()),

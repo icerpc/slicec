@@ -416,13 +416,13 @@ impl ComputeSupportedEncodings for Enum {
         }
 
         for enumerator in self.enumerators() {
-            // Enums with associated fields are not allowed in Slice1 mode.
-            if enumerator.associated_fields().is_some() {
+            // Enums with fields are not allowed in Slice1 mode.
+            if enumerator.fields.is_some() {
                 supported_encodings.disable(Encoding::Slice1);
                 if compilation_mode == CompilationMode::Slice1 {
-                    return Some("enumerators declared in Slice1 mode cannot have associated fields");
+                    return Some("field syntax cannot be used with enumerators declared in Slice1 mode");
                 }
-                break; // Once we've found a single enumerator with associated fields, we can stop checking.
+                break; // Once we've found a single enumerator with fields, we can stop checking.
             }
         }
 

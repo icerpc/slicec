@@ -48,8 +48,21 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
             }
             true
         }
+
+        // Only enums with underlying types can be used as dictionary keys. Fields aren't allowed.
+        Types::Enum(enum_def) => {
+            if enum_def.underlying.is_none() {
+                let error = Diagnostic::new(Error::KeyTypeNotSupported {
+                    kind: formatted_kind(definition),
+                })
+                .set_span(type_ref.span())
+                .add_note("only enums with underlying types can be used as dictionary keys", None);
+                return Some(error);
+            }
+            true
+        }
+
         Types::Class(_) => false,
-        Types::Enum(_) => true,
         Types::CustomType(_) => true,
         Types::Sequence(_) => false,
         Types::Dictionary(_) => false,
@@ -70,9 +83,9 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 }
 
 fn formatted_kind(definition: &dyn Type) -> String {
-    if let Types::Class(class_def) = definition.concrete_type() {
-        format!("class '{}'", class_def.identifier())
-    } else {
-        definition.kind().to_owned()
+    match definition.concrete_type() {
+        Types::Class(class_def) => format!("class '{}'", class_def.identifier()),
+        Types::Enum(enum_def) => format!("enum '{}'", enum_def.identifier()),
+        _ => definition.kind().to_owned(),
     }
 }

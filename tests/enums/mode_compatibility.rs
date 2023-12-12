@@ -54,7 +54,7 @@ mod slice1 {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    /// Verifies that associated fields are disallowed in Slice1 mode.
+    /// Verifies that enumerators with fields are disallowed in Slice1 mode.
     #[test]
     fn associated_fields_fail() {
         // Arrange
@@ -77,13 +77,13 @@ mod slice1 {
             mode: CompilationMode::Slice1,
         })
         .add_note(
-            "enumerators declared in Slice1 mode cannot have associated fields",
+            "field syntax cannot be used with enumerators declared in Slice1 mode",
             None,
         );
         check_diagnostics(diagnostics, [expected]);
     }
 
-    /// Verifies that even empty associated field lists are disallowed in Slice1 mode.
+    /// Verifies that even empty field lists are disallowed in Slice1 mode.
     #[test]
     fn empty_associated_fields_fail() {
         // Arrange
@@ -106,7 +106,7 @@ mod slice1 {
             mode: CompilationMode::Slice1,
         })
         .add_note(
-            "enumerators declared in Slice1 mode cannot have associated fields",
+            "field syntax cannot be used with enumerators declared in Slice1 mode",
             None,
         );
         check_diagnostics(diagnostics, [expected]);
