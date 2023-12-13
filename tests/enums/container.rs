@@ -71,25 +71,37 @@ mod associated_fields {
     }
 
     #[test]
-    fn explicit_values_are_not_allowed() {
+    fn explicit_values_are_allowed() {
         // Arrange
         let slice = "
             module Test
             enum E {
                 A
                 B = 7
-                C
+                C(a: int8)
+                D(b: bool) = 4
             }
         ";
 
         // Act
-        let diagnostics = parse_for_diagnostics(slice);
+        let ast = parse_for_ast(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::EnumeratorCannotDeclareExplicitValue {
-            enumerator_identifier: "B".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
+        let enumerator_a = ast.find_element::<Enumerator>("Test::E::A").unwrap();
+        assert!(matches!(enumerator_a.value, EnumeratorValue::Implicit(0)));
+        assert_eq!(enumerator_a.value(), 0);
+
+        let enumerator_b = ast.find_element::<Enumerator>("Test::E::B").unwrap();
+        assert!(matches!(enumerator_b.value, EnumeratorValue::Explicit(_)));
+        assert_eq!(enumerator_b.value(), 7);
+
+        let enumerator_c = ast.find_element::<Enumerator>("Test::E::C").unwrap();
+        assert!(matches!(enumerator_c.value, EnumeratorValue::Implicit(8)));
+        assert_eq!(enumerator_c.value(), 8);
+
+        let enumerator_d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
+        assert!(matches!(enumerator_d.value, EnumeratorValue::Explicit(_)));
+        assert_eq!(enumerator_d.value(), 4);
     }
 
     #[test]

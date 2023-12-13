@@ -74,11 +74,6 @@ pub enum Error {
         enumerator_value: i128,
     },
 
-    /// Enumerators cannot declare explicit values when their enclosing enum doesn't have an underlying type.
-    EnumeratorCannotDeclareExplicitValue {
-        enumerator_identifier: String,
-    },
-
     /// Enumerators cannot contain fields when their enclosing enum has an underlying type.
     EnumeratorCannotContainFields {
         enumerator_identifier: String,
@@ -552,12 +547,6 @@ implement_diagnostic_functions!(
         "E052",
         ExceptionSpecificationNotSupported,
         "exceptions can only be thrown by operations defined in Slice1 mode"
-    ),
-    (
-        "E053",
-        EnumeratorCannotDeclareExplicitValue,
-        format!("invalid enumerator '{enumerator_identifier}': explicit values can only be declared within enums that specify an underlying type"),
-        enumerator_identifier
     ),
     (
         "E054",

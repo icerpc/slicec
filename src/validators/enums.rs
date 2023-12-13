@@ -14,14 +14,9 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     check_compact_modifier(enum_def, diagnostics);
     compact_enums_cannot_contain_tags(enum_def, diagnostics);
 
-    // If the enum wasn't defined in a Slice1 file, validate whether fields or explicit values are allowed,
-    // based on whether it has an underlying type. Fields in Slice1 files are already rejected by `encoding_patcher`.
-    if !enum_def.supported_encodings().supports(Encoding::Slice1) {
-        if enum_def.underlying.is_some() {
-            cannot_contain_fields(enum_def, diagnostics);
-        } else {
-            cannot_contain_explicit_values(enum_def, diagnostics);
-        }
+    // Fields in Slice1 files are already rejected by `encoding_patcher`.
+    if enum_def.underlying.is_some() && !enum_def.supported_encodings().supports(Encoding::Slice1) {
+        cannot_contain_fields(enum_def, diagnostics);
     }
 }
 
@@ -155,22 +150,6 @@ fn cannot_contain_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
                 "an underlying type was specified here:",
                 Some(enum_def.underlying.as_ref().unwrap().span()),
             )
-            .push_into(diagnostics);
-        }
-    }
-}
-
-/// Validate that this enum's enumerators don't specify any explicit values.
-/// This function should only be called for enums without underlying types.
-fn cannot_contain_explicit_values(enum_def: &Enum, diagnostics: &mut Diagnostics) {
-    debug_assert!(enum_def.underlying.is_none());
-
-    for enumerator in enum_def.enumerators() {
-        if matches!(enumerator.value, EnumeratorValue::Explicit(_)) {
-            Diagnostic::new(Error::EnumeratorCannotDeclareExplicitValue {
-                enumerator_identifier: enumerator.identifier().to_owned(),
-            })
-            .set_span(enumerator.span())
             .push_into(diagnostics);
         }
     }
