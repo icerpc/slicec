@@ -490,7 +490,7 @@ mod optional {
         }
 
         #[test]
-        fn results_with_optional_keys_are_parsed_correctly() {
+        fn results_with_optional_ok_types_are_parsed_correctly() {
             // Arrange
             let slice = "
                 module Test
@@ -512,7 +512,7 @@ mod optional {
         }
 
         #[test]
-        fn results_with_optional_values_are_parsed_correctly() {
+        fn results_with_optional_err_types_are_parsed_correctly() {
             // Arrange
             let slice = "
                 module Test

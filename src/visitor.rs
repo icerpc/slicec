@@ -288,8 +288,8 @@ impl TypeRef {
                 result_ref.ok_type.visit_with(visitor);
                 result_ref.err_type.visit_with(visitor);
             }
-            Types::Sequence(sequence_ref) => {
-                sequence_ref.element_type.visit_with(visitor)
+            Types::Sequence(sequence_ref_______________) => {
+                sequence_ref_______________.element_type.visit_with(visitor)
             }
             Types::Dictionary(dictionary_ref) => {
                 dictionary_ref.key_type.visit_with(visitor);
