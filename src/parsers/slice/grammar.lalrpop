@@ -194,9 +194,9 @@ ExceptionSpecification: Vec<TypeRef> = {
 }
 
 Enum: OwnedPtr<Enum> = {
-    <p: Prelude> <l1: @L> <uk: unchecked_keyword?> <l2: @L> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: UndelimitedList<Enumerator>> "}" ContainerEnd => {
-        let l = if uk.is_some() { l1 } else { l2 };
-        construct_enum(parser, p, uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
+    <p: Prelude> <l1: @L> <ck: compact_keyword?> <uk: unchecked_keyword?> <l2: @L> enum_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <es: UndelimitedList<Enumerator>> "}" ContainerEnd => {
+        let l = if ck.is_some() || uk.is_some() { l1 } else { l2 };
+        construct_enum(parser, p, ck.is_some(), uk.is_some(), i, tr, es, Span::new(l, r, parser.file_name))
     },
 }
 

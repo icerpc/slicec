@@ -109,6 +109,7 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
 }
 
 #[test_case("MyEnum", "enum MyEnum { A }", "enum", "Slice2" ; "enums")]
+#[test_case("MyEnum", "compact enum MyEnum { A }", "enum", "Slice2" ; "compact enums")]
 #[test_case("MyEnum", "unchecked enum MyEnum {}", "enum", "Slice2" ; "unchecked enums")]
 #[test_case("MyClass", "class MyClass {}", "class", "Slice1"; "classes")]
 fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str, mode: &str) {

@@ -5,6 +5,7 @@ mod mode_compatibility;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
+use slicec::slice_file::Span;
 use test_case::test_case;
 
 #[test_case("int8"; "int8")]
@@ -76,5 +77,81 @@ fn optional_underlying_types_fail() {
     let expected = Diagnostic::new(Error::CannotUseOptionalUnderlyingType {
         enum_identifier: "E".to_owned(),
     });
+    check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
+fn enums_can_be_unchecked() {
+    // Arrange
+    let slice = "
+        module Test
+
+        unchecked enum E { A }
+    ";
+
+    // Act/Assert
+    assert_parses(slice);
+}
+
+#[test]
+fn enums_can_be_compact() {
+    // Arrange
+    let slice = "
+        module Test
+
+        compact enum E { A }
+    ";
+
+    // Act/Assert
+    assert_parses(slice);
+}
+
+#[test]
+fn compact_enums_cannot_have_underlying_types() {
+    // Arrange
+    let slice = "
+        module Test
+
+        compact enum E: uint8 { A }
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::CannotBeCompact {
+        kind: "enum",
+        identifier: "E".to_owned(),
+    })
+    .set_span(&Span::new((4, 9).into(), (4, 23).into(), "string-0"))
+    .add_note(
+        "compact enums cannot also have underlying types; try removing either the 'compact' modifier, or the underlying type",
+        Some(&Span::new((4, 25).into(), (4, 30).into(), "string-0")),
+    );
+    check_diagnostics(diagnostics, [expected]);
+}
+
+#[test]
+fn compact_enums_cannot_be_unchecked() {
+    // Arrange
+    let slice = "
+        module Test
+
+        compact unchecked enum E { A }
+    ";
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = Diagnostic::new(Error::CannotBeCompact {
+        kind: "enum",
+        identifier: "E".to_owned(),
+    })
+    .set_span(&Span::new((4, 9).into(), (4, 33).into(), "string-0"))
+    .add_note(
+        "An enum cannot be both unchecked and compact - try removing the 'compact' modifier",
+        None,
+    );
     check_diagnostics(diagnostics, [expected]);
 }

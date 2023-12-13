@@ -21,13 +21,15 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostics: &mut Di
     if struct_def.is_compact {
         for field in struct_def.fields() {
             if field.is_tagged() {
-                Diagnostic::new(Error::CompactStructCannotContainTaggedFields)
-                    .set_span(field.span())
-                    .add_note(
-                        format!("struct '{}' is declared compact here", struct_def.identifier()),
-                        Some(struct_def.span()),
-                    )
-                    .push_into(diagnostics);
+                Diagnostic::new(Error::CompactTypeCannotContainTaggedFields {
+                    kind: struct_def.kind(),
+                })
+                .set_span(field.span())
+                .add_note(
+                    format!("struct '{}' is declared compact here", struct_def.identifier()),
+                    Some(struct_def.span()),
+                )
+                .push_into(diagnostics);
             }
         }
     }

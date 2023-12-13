@@ -415,6 +415,14 @@ impl ComputeSupportedEncodings for Enum {
             }
         }
 
+        if self.is_compact {
+            // Compact enums are not allowed in Slice1 mode.
+            supported_encodings.disable(Encoding::Slice1);
+            if compilation_mode == CompilationMode::Slice1 {
+                return Some("enums defined in Slice1 mode cannot be 'compact'");
+            }
+        }
+
         for enumerator in self.enumerators() {
             // Enums with fields are not allowed in Slice1 mode.
             if enumerator.fields.is_some() {
