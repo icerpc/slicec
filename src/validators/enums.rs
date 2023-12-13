@@ -39,9 +39,8 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
         }
     } else {
         // Enum was defined in a Slice2 file.
-        // Non-integrals are handled by `allowed_underlying_types`
-        fn check_bounds(enum_def: &Enum, underlying_type: &Primitive, diagnostics: &mut Diagnostics) {
-            let (min, max) = underlying_type.numeric_bounds().unwrap();
+
+        fn check_bounds(enum_def: &Enum, (min, max): (i128, i128), diagnostics: &mut Diagnostics) {
             enum_def
                 .enumerators()
                 .iter()
@@ -60,13 +59,15 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
         }
         match &enum_def.underlying {
             Some(underlying_type) => {
-                if underlying_type.is_integral() {
-                    check_bounds(enum_def, underlying_type, diagnostics);
+                // Non-integral underlying types are rejected by the `allowed_underlying_types` check.
+                if let Some(bounds) = underlying_type.numeric_bounds() {
+                    check_bounds(enum_def, bounds, diagnostics);
                 }
             }
             None => {
-                // No underlying type, the default is varint32 for Slice2.
-                check_bounds(enum_def, &Primitive::VarInt32, diagnostics);
+                // For enumerators in Slice2, values must fit within varint32 and be positive.
+                let varint32_max = Primitive::VarInt32.numeric_bounds().unwrap().1;
+                check_bounds(enum_def, (0, varint32_max), diagnostics);
             }
         }
     }

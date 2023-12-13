@@ -105,6 +105,55 @@ mod associated_fields {
     }
 
     #[test]
+    fn explicit_values_must_be_within_range() {
+        // Arrange
+        let slice = "
+            module Test
+            enum E {
+                ImplicitOkay                           //  0
+                ExplicitNegative = -3                  // -3
+                ImplicitNegative(tag(4) s: string?)    // -2
+                Okay(b: bool) = 2_147_483_647          // 2_147_483_647
+                ImplicitOverflow                       // 2_147_483_648
+                ExplicitOverflow = 0x686921203A7629    // something big
+                ExplicitOkay(a: int8) = 79             // 79
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Arrange
+        let expected = [
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ExplicitNegative".to_owned(),
+                value: -3,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ImplicitNegative".to_owned(),
+                value: -2,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ImplicitOverflow".to_owned(),
+                value: 2_147_483_648,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ExplicitOverflow".to_owned(),
+                value: 0x686921203A7629,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
+    }
+
+    #[test]
     fn associated_fields_are_scoped_correctly() {
         // Arrange
         let slice = "
