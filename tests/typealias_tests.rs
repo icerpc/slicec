@@ -18,6 +18,7 @@ mod typealias {
     #[test_case("", "Sequence<bool>", "Slice2"; "sequences")]
     #[test_case("", "Dictionary<bool, bool>", "Slice2"; "dictionaries")]
     #[test_case("typealias T = bool", "T", "Slice2"; "type aliases")]
+    #[test_case("", "Result<bool, string>", "Slice2"; "result types")]
     fn can_have_type_alias_of(definition: &str, identifier: &str, mode: &str) {
         // Arrange
         let slice = format!(

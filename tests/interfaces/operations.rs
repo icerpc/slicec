@@ -128,7 +128,7 @@ fn can_have_return_value() {
         module Test
 
         interface I {
-            op() -> string
+            op() -> Result<bool, string>
         }
     ";
 
@@ -141,10 +141,7 @@ fn can_have_return_value() {
 
     assert_eq!(returns.len(), 1);
     assert_eq!(returns[0].identifier(), "returnValue");
-    assert!(matches!(
-        returns[0].data_type.concrete_type(),
-        Types::Primitive(Primitive::String),
-    ));
+    assert!(matches!(returns[0].data_type.concrete_type(), Types::ResultType(_)));
 }
 
 #[test]

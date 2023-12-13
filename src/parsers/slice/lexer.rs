@@ -197,6 +197,7 @@ where
             "enum" => TokenKind::EnumKeyword,
             "custom" => TokenKind::CustomKeyword,
             "typealias" => TokenKind::TypeAliasKeyword,
+            "Result" => TokenKind::ResultKeyword,
             "Sequence" => TokenKind::SequenceKeyword,
             "Dictionary" => TokenKind::DictionaryKeyword,
             "bool" => TokenKind::BoolKeyword,

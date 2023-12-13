@@ -141,6 +141,21 @@ impl EncodingPatcher<'_> {
                 allow_nullable_with_slice_1 = true;
                 self.get_supported_encodings_for(custom_type)
             }
+            Types::ResultType(result_type) => {
+                let mut encodings = SupportedEncodings::dummy();
+                let additional_info = result_type.compute_supported_encodings(self, &mut encodings, compilation_mode);
+                if let Some(note) = additional_info {
+                    let diagnostic = Diagnostic::new(Error::UnsupportedType {
+                        kind: type_ref.type_string(),
+                        mode: compilation_mode,
+                    })
+                    .set_span(type_ref.span())
+                    .add_note(note, None)
+                    .extend_notes(self.get_mode_mismatch_note(type_ref));
+                    diagnostics.push(diagnostic);
+                }
+                encodings
+            }
             Types::Sequence(sequence) => {
                 // Sequences are supported by any encoding that supports their elements.
                 self.get_supported_encodings_for_type_ref(&sequence.element_type, compilation_mode, false, None)
@@ -464,6 +479,29 @@ impl ComputeSupportedEncodings for TypeAlias {
             false,
             Some(self),
         ));
+        None
+    }
+}
+
+impl ComputeSupportedEncodings for ResultType {
+    fn compute_supported_encodings(
+        &self,
+        patcher: &mut EncodingPatcher,
+        supported_encodings: &mut SupportedEncodings,
+        compilation_mode: CompilationMode,
+    ) -> Option<&'static str> {
+        // Results only support encodings that their `ok` and `err` types also support.
+        let ok_encodings = patcher.get_supported_encodings_for_type_ref(&self.ok_type, compilation_mode, false, None);
+        supported_encodings.intersect_with(&ok_encodings);
+        let err_encodings = patcher.get_supported_encodings_for_type_ref(&self.err_type, compilation_mode, false, None);
+        supported_encodings.intersect_with(&err_encodings);
+
+        // Result can only be used in Slice2 mode.
+        supported_encodings.disable(Encoding::Slice1);
+        if compilation_mode == CompilationMode::Slice1 {
+            return Some("'Result' can only be used in Slice2 mode");
+        }
+
         None
     }
 }

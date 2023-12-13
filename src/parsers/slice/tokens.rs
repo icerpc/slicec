@@ -38,6 +38,7 @@ pub enum TokenKind<'input> {
     EnumKeyword,      // "enum"
     CustomKeyword,    // "custom"
     TypeAliasKeyword, // "typealias"
+    ResultKeyword,    // "Result"
 
     // Collection keywords
     SequenceKeyword,   // "Sequence"
@@ -110,6 +111,7 @@ impl fmt::Display for TokenKind<'_> {
             Self::EnumKeyword => "enum",
             Self::CustomKeyword => "custom",
             Self::TypeAliasKeyword => "typealias",
+            Self::ResultKeyword => "Result",
             Self::SequenceKeyword => "Sequence",
             Self::DictionaryKeyword => "Dictionary",
             Self::BoolKeyword => "bool",

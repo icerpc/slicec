@@ -36,6 +36,7 @@ extern {
         enum_keyword => TokenKind::EnumKeyword,
         custom_keyword => TokenKind::CustomKeyword,
         type_alias_keyword => TokenKind::TypeAliasKeyword,
+        result_keyword => TokenKind::ResultKeyword,
 
         // Collection keywords
         sequence_keyword => TokenKind::SequenceKeyword,
@@ -218,6 +219,12 @@ TypeAlias: OwnedPtr<TypeAlias> = {
     },
 }
 
+Result: OwnedPtr<ResultType> = {
+    result_keyword "<" <ok_type: TypeRef> "," <err_type: TypeRef> ">" => {
+        OwnedPtr::new(ResultType { ok_type, err_type })
+    },
+}
+
 Sequence: OwnedPtr<Sequence> = {
     sequence_keyword "<" <element_type: TypeRef> ">" => {
         OwnedPtr::new(Sequence { element_type })
@@ -258,6 +265,7 @@ TypeRef: TypeRef = {
 
 TypeRefDefinition: TypeRefDefinition = {
     Primitive => primitive_to_type_ref_definition(parser, <>),
+    Result => anonymous_type_to_type_ref_definition(parser, <>),
     Sequence => anonymous_type_to_type_ref_definition(parser, <>),
     Dictionary => anonymous_type_to_type_ref_definition(parser, <>),
     RelativeIdentifier => construct_unpatched_type_ref_definition(<>),

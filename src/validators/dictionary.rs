@@ -64,6 +64,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 
         Types::Class(_) => false,
         Types::CustomType(_) => true,
+        Types::ResultType(_) => false,
         Types::Sequence(_) => false,
         Types::Dictionary(_) => false,
         Types::Primitive(primitive) => {

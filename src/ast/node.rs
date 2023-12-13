@@ -83,7 +83,7 @@ macro_rules! generate_node_enum {
 // generate the `Node` enum with variants for every type allowed to be in the AST.
 generate_node_enum! {
     Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum,
-    Enumerator, CustomType, TypeAlias, Sequence, Dictionary, Primitive, Attribute
+    Enumerator, CustomType, TypeAlias, ResultType, Sequence, Dictionary, Primitive, Attribute
 }
 
 impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
@@ -100,6 +100,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
             Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Type)),
             Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Type)),
             Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Type)),
+            Node::ResultType(result_ptr) => Ok(downgrade_as!(result_ptr, dyn Type)),
             Node::Sequence(sequence_ptr) => Ok(downgrade_as!(sequence_ptr, dyn Type)),
             Node::Dictionary(dictionary_ptr) => Ok(downgrade_as!(dictionary_ptr, dyn Type)),
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
@@ -126,6 +127,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
             Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
+            Node::ResultType(result_ptr) => Ok(result_ptr.borrow()),
             Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
             Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
@@ -253,6 +255,7 @@ impl_into_node_for!(Enum);
 impl_into_node_for!(Enumerator);
 impl_into_node_for!(CustomType);
 impl_into_node_for!(TypeAlias);
+impl_into_node_for!(ResultType);
 impl_into_node_for!(Sequence);
 impl_into_node_for!(Dictionary);
 // We don't implement it on `Primitive`, because primitive types are baked into the compiler, so we don't need

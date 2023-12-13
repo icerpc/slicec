@@ -272,19 +272,25 @@ impl Enumerator {
 impl TypeRef {
     /// Visits the [TypeRef] with the provided `visitor`.
     ///
-    /// This function first calls `visitor.visit_type_ref`, then if the type being referenced is a sequence or
-    /// dictionary, it recursively calls itself on their underlying element, key, and value types.
+    /// This function first calls `visitor.visit_type_ref`, then if the type being referenced is a result, sequence,
+    /// or dictionary, it recursively calls itself on their underlying types.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_type_ref(self);
 
         // If this typeref isn't patched, do not attempt to visit it further.
-        // Note that sequence and dictionary types (the only types we visit further) are always patched anyways.
+        // Note that result, sequence, and dictionary types (the only ones we visit further) are always patched anyways.
         if matches!(&self.definition, TypeRefDefinition::Unpatched(_)) {
             return;
         }
 
         match self.concrete_type() {
-            Types::Sequence(sequence_ref) => sequence_ref.element_type.visit_with(visitor),
+            Types::ResultType(result_ref) => {
+                result_ref.ok_type.visit_with(visitor);
+                result_ref.err_type.visit_with(visitor);
+            }
+            Types::Sequence(sequence_ref_______________) => {
+                sequence_ref_______________.element_type.visit_with(visitor)
+            }
             Types::Dictionary(dictionary_ref) => {
                 dictionary_ref.key_type.visit_with(visitor);
                 dictionary_ref.value_type.visit_with(visitor);

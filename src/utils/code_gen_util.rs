@@ -14,8 +14,8 @@ pub enum TypeContext {
     /// Used when generating the types of operation parameters, and return types in places where
     /// they're being encoded.
     Encode,
-    /// Used when generating types that are parts of other types, such as the key & value types of
-    /// dictionaries, or the element type of a sequence.
+    /// Used when generating types that are parts of other types, such as the ok & err types of results,
+    /// the key & value types of dictionaries, or the element type of a sequence.
     Nested,
 }
 
