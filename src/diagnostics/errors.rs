@@ -377,7 +377,7 @@ implement_diagnostic_functions!(
     (
         "E018",
         CompactTypeCannotContainTaggedFields,
-        format!("tagged fields are not supported in compact {kind}s\nconsider removing the tag, or making the {kind} non-compact"),
+        format!("tagged fields are not supported in compact {kind}s; consider removing the tag, or making the {kind} non-compact"),
         kind
     ),
     (
@@ -528,7 +528,7 @@ implement_diagnostic_functions!(
     (
         "E047",
         InfiniteSizeCycle,
-        format!("self-referential type {type_id} has infinite size.\n{cycle}"),
+        format!("self-referential type {type_id} has infinite size: {cycle}"),
         type_id, cycle
     ),
     (

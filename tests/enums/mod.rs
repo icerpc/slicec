@@ -125,7 +125,7 @@ fn compact_enums_cannot_have_underlying_types() {
     })
     .set_span(&Span::new((4, 9).into(), (4, 23).into(), "string-0"))
     .add_note(
-        "compact enums cannot also have underlying types\ntry removing either the 'compact' modifier, or the underlying type",
+        "compact enums cannot also have underlying types; try removing either the 'compact' modifier, or the underlying type",
         Some(&Span::new((4, 25).into(), (4, 30).into(), "string-0")),
     );
     check_diagnostics(diagnostics, [expected]);

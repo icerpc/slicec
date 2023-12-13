@@ -186,7 +186,7 @@ fn check_compact_modifier(enum_def: &Enum, diagnostics: &mut Diagnostics) {
             })
             .set_span(enum_def.span())
             .add_note(
-                "compact enums cannot also have underlying types\ntry removing either the 'compact' modifier, or the underlying type",
+                "compact enums cannot also have underlying types; try removing either the 'compact' modifier, or the underlying type",
                 Some(underlying.span()),
             )
             .push_into(diagnostics);
