@@ -71,25 +71,86 @@ mod associated_fields {
     }
 
     #[test]
-    fn explicit_values_are_not_allowed() {
+    fn explicit_values_are_allowed() {
         // Arrange
         let slice = "
             module Test
             enum E {
                 A
                 B = 7
-                C
+                C(a: int8)
+                D(b: bool) = 4
+            }
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let enumerator_a = ast.find_element::<Enumerator>("Test::E::A").unwrap();
+        assert!(matches!(enumerator_a.value, EnumeratorValue::Implicit(0)));
+        assert_eq!(enumerator_a.value(), 0);
+
+        let enumerator_b = ast.find_element::<Enumerator>("Test::E::B").unwrap();
+        assert!(matches!(enumerator_b.value, EnumeratorValue::Explicit(_)));
+        assert_eq!(enumerator_b.value(), 7);
+
+        let enumerator_c = ast.find_element::<Enumerator>("Test::E::C").unwrap();
+        assert!(matches!(enumerator_c.value, EnumeratorValue::Implicit(8)));
+        assert_eq!(enumerator_c.value(), 8);
+
+        let enumerator_d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
+        assert!(matches!(enumerator_d.value, EnumeratorValue::Explicit(_)));
+        assert_eq!(enumerator_d.value(), 4);
+    }
+
+    #[test]
+    fn explicit_values_must_be_within_range() {
+        // Arrange
+        let slice = "
+            module Test
+            enum E {
+                ImplicitOkay                           //  0
+                ExplicitNegative = -3                  // -3
+                ImplicitNegative(tag(4) s: string?)    // -2
+                Okay(b: bool) = 2_147_483_647          // 2_147_483_647
+                ImplicitOverflow                       // 2_147_483_648
+                ExplicitOverflow = 0x686921203A7629    // something big
+                ExplicitOkay(a: int8) = 79             // 79
             }
         ";
 
         // Act
         let diagnostics = parse_for_diagnostics(slice);
 
-        // Assert
-        let expected = Diagnostic::new(Error::EnumeratorCannotDeclareExplicitValue {
-            enumerator_identifier: "B".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
+        // Arrange
+        let expected = [
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ExplicitNegative".to_owned(),
+                value: -3,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ImplicitNegative".to_owned(),
+                value: -2,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ImplicitOverflow".to_owned(),
+                value: 2_147_483_648,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+                enumerator_identifier: "ExplicitOverflow".to_owned(),
+                value: 0x686921203A7629,
+                min: 0,
+                max: i32::MAX as i128,
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
     }
 
     #[test]
