@@ -65,17 +65,11 @@ mod container {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = [
-            Diagnostic::new(Error::InfiniteSizeCycle {
-                type_id: "Test::Container".to_owned(),
-                cycle: "Test::Container -> Test::Inner -> Test::Container".to_owned(),
-            }),
-            Diagnostic::new(Error::InfiniteSizeCycle {
-                type_id: "Test::Inner".to_owned(),
-                cycle: "Test::Inner -> Test::Container -> Test::Inner".to_owned(),
-            }),
-        ];
-        check_diagnostics(diagnostics, expected);
+        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+            type_id: "Test::Container".to_owned(),
+            cycle: "Test::Container -> Test::Inner -> Test::Container".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
@@ -125,6 +119,128 @@ mod container {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Container".to_owned(),
         });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn duplicate_cycles_are_not_reported_multiple_times() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct A { b: B, c: C }
+            struct B { a: A, c: C }
+            struct C { a: A, b: B }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert: There are technically 18 cycles in the above Slice, but only 4 are unique cycles.
+        let expected = [
+            Diagnostic::new(Error::InfiniteSizeCycle {
+                type_id: "Test::A".to_owned(),
+                cycle: "Test::A -> Test::B -> Test::A".to_owned(),
+            }),
+            Diagnostic::new(Error::InfiniteSizeCycle {
+                type_id: "Test::A".to_owned(),
+                cycle: "Test::A -> Test::B -> Test::C -> Test::A".to_owned(),
+            }),
+            Diagnostic::new(Error::InfiniteSizeCycle {
+                type_id: "Test::A".to_owned(),
+                cycle: "Test::A -> Test::C -> Test::A".to_owned(),
+            }),
+            Diagnostic::new(Error::InfiniteSizeCycle {
+                type_id: "Test::B".to_owned(),
+                cycle: "Test::B -> Test::C -> Test::B".to_owned(),
+            }),
+        ];
+        check_diagnostics(diagnostics, expected);
+    }
+}
+
+mod builtin {
+    use super::*;
+    use slicec::slice_file::Span;
+
+    #[test]
+    fn cycles_through_results_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct Foo {
+                f: Result<Foo, bool>
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+            type_id: "Test::Foo".to_owned(),
+            cycle: "Test::Foo -> Test::Foo".to_owned(),
+        })
+        .add_note(
+            "struct 'Foo' contains a field named 'f' that is of type 'Result<Foo, bool>'",
+            Some(&Span::new((5, 17).into(), (5, 37).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn cycles_through_sequences_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct Foo {
+                f: Sequence<Foo>
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+            type_id: "Test::Foo".to_owned(),
+            cycle: "Test::Foo -> Test::Foo".to_owned(),
+        })
+        .add_note(
+            "struct 'Foo' contains a field named 'f' that is of type 'Sequence<Foo>'",
+            Some(&Span::new((5, 17).into(), (5, 33).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn cycles_through_dictionaries_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct Foo {
+                f: Dictionary<Foo, bool>
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+            type_id: "Test::Foo".to_owned(),
+            cycle: "Test::Foo -> Test::Foo".to_owned(),
+        })
+        .add_note(
+            "struct 'Foo' contains a field named 'f' that is of type 'Dictionary<Foo, bool>'",
+            Some(&Span::new((5, 17).into(), (5, 41).into(), "string-0")),
+        );
+
         check_diagnostics(diagnostics, [expected]);
     }
 }
