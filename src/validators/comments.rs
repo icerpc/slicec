@@ -14,7 +14,7 @@ pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: 
 }
 
 fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
-    if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
+    if !matches!(entity.concrete_entity(), Entities::Operation(_) | Entities::Enumerator(_)) {
         for param_tag in &comment.params {
             report_only_operation_error(param_tag, param_tag.message.span(), entity, diagnostics);
         }
