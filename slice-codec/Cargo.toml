@@ -1,6 +1,16 @@
 [package]
 name = "slice-codec"
 
+description = """
+TODO
+"""
+homepage = "https://docs.icerpc.dev/slice2"
+documentation = "https://docs.rs/slice-codec"
+repository = "https://github.com/icerpc/slice-rust"
+readme = "README.md"
+keywords = ["slice", "ice", "icerpc"]
+rust-version = "1.73"
+
 # Get these crate fields from the top-level workspace 'Cargo.toml'.
 version.workspace = true
 authors.workspace = true
@@ -12,7 +22,7 @@ name = "slice_codec"
 path = "src/lib.rs"
 
 [features]
-default = ["slice2", "std"]
+default = ["slice2", "slice1", "std"]
 
 # Provides support for the Slice2 encoding.
 slice2 = []
@@ -27,3 +37,6 @@ std = ["alloc"]
 # Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
 # Requires host applications to configure a global allocator, if the 'std' feature is unset.
 alloc = []
+
+[package.metadata.docs.rs]
+all-features = true
