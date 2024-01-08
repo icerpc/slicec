@@ -10,3 +10,20 @@ edition.workspace = true
 [lib]
 name = "slice_codec"
 path = "src/lib.rs"
+
+[features]
+default = ["slice2", "std"]
+
+# Provides support for the Slice2 encoding.
+slice2 = []
+
+# Provides support for the Slice1 encoding.
+slice1 = []
+
+# Provides implementations for encoding and decoding common standard library types like `String`, `Vec`, `HashMap`, etc.
+# Requires a dependency on the Rust standard library.
+std = ["alloc"]
+
+# Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
+# Requires host applications to configure a global allocator, if the 'std' feature is unset.
+alloc = []
