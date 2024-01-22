@@ -6,17 +6,13 @@ use crate::grammar::{Encoding, Member};
 /// `type_to_string` methods in each of the language mapping's code generators.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum TypeContext {
-    /// Used when generating the types of fields in structs, classes, and exceptions.
+    /// Used when generating the types of fields in structs, classes, and exceptions, or when generating types that are
+    /// parts of other types, such as the element type of a sequence, or the success & failure types of results.
     Field,
-    /// Used when generating the types of operation parameters, and return types in places where
-    /// they're being decoded.
-    Decode,
-    /// Used when generating the types of operation parameters, and return types in places where
-    /// they're being encoded.
-    Encode,
-    /// Used when generating types that are parts of other types, such as the success & failure types of results,
-    /// the key & value types of dictionaries, or the element type of a sequence.
-    Nested,
+    /// Used when generating the types of operation parameters and return types in places where they're being decoded.
+    IncomingParam,
+    /// Used when generating the types of operation parameters and return types in places where they're being encoded.
+    OutgoingParam,
 }
 
 pub fn get_bit_sequence_size<T: Member>(encoding: Encoding, members: &[&T]) -> usize {
