@@ -82,8 +82,8 @@ impl<'a> CycleDetector<'a> {
             Types::Enum(enum_ref) => self.push_to_stack_and_check(enum_ref, origin),
 
             Types::ResultType(result_type) => {
-                self.check_field_type_for_cycles(&result_type.ok_type, origin);
-                self.check_field_type_for_cycles(&result_type.err_type, origin);
+                self.check_field_type_for_cycles(&result_type.success_type, origin);
+                self.check_field_type_for_cycles(&result_type.failure_type, origin);
             }
 
             Types::Sequence(sequence) => self.check_field_type_for_cycles(&sequence.element_type, origin),

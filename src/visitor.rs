@@ -285,8 +285,8 @@ impl TypeRef {
 
         match self.concrete_type() {
             Types::ResultType(result_ref) => {
-                result_ref.ok_type.visit_with(visitor);
-                result_ref.err_type.visit_with(visitor);
+                result_ref.success_type.visit_with(visitor);
+                result_ref.failure_type.visit_with(visitor);
             }
             Types::Sequence(sequence_ref_______________) => {
                 sequence_ref_______________.element_type.visit_with(visitor)

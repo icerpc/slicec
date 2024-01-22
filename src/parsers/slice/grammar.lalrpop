@@ -220,8 +220,8 @@ TypeAlias: OwnedPtr<TypeAlias> = {
 }
 
 Result: OwnedPtr<ResultType> = {
-    result_keyword "<" <ok_type: TypeRef> "," <err_type: TypeRef> ">" => {
-        OwnedPtr::new(ResultType { ok_type, err_type })
+    result_keyword "<" <success_type: TypeRef> "," <failure_type: TypeRef> ">" => {
+        OwnedPtr::new(ResultType { success_type, failure_type })
     },
 }
 

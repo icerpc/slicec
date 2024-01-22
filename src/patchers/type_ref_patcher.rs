@@ -73,9 +73,9 @@ impl TypeRefPatcher<'_> {
                 }
                 Node::ResultType(result_ptr) => {
                     let result_type = result_ptr.borrow();
-                    let ok_patch = self.resolve_definition(&result_type.ok_type, ast);
-                    let err_patch = self.resolve_definition(&result_type.err_type, ast);
-                    Some(PatchKind::ResultTypes(ok_patch, err_patch))
+                    let success_patch = self.resolve_definition(&result_type.success_type, ast);
+                    let failure_patch = self.resolve_definition(&result_type.failure_type, ast);
+                    Some(PatchKind::ResultTypes(success_patch, failure_patch))
                 }
                 Node::Sequence(sequence_ptr) => {
                     let type_ref = &sequence_ptr.borrow().element_type;
@@ -160,13 +160,13 @@ impl TypeRefPatcher<'_> {
                     let type_alias_underlying_type_ref = &mut type_alias_ptr.borrow_mut().underlying;
                     type_alias_underlying_type_ref.patch(type_alias_underlying_type_ptr, attributes);
                 }
-                PatchKind::ResultTypes(ok_patch, err_patch) => {
+                PatchKind::ResultTypes(success_patch, failure_patch) => {
                     let result_ptr: &mut OwnedPtr<ResultType> = element.try_into().unwrap();
-                    if let Some((ok_type_ptr, ok_attributes)) = ok_patch {
-                        result_ptr.borrow_mut().ok_type.patch(ok_type_ptr, ok_attributes);
+                    if let Some((success_type_ptr, attributes)) = success_patch {
+                        result_ptr.borrow_mut().success_type.patch(success_type_ptr, attributes);
                     }
-                    if let Some((err_type_ptr, err_attributes)) = err_patch {
-                        result_ptr.borrow_mut().err_type.patch(err_type_ptr, err_attributes);
+                    if let Some((failure_type_ptr, attributes)) = failure_patch {
+                        result_ptr.borrow_mut().failure_type.patch(failure_type_ptr, attributes);
                     }
                 }
                 PatchKind::SequenceType((element_type_ptr, attributes)) => {
@@ -176,14 +176,11 @@ impl TypeRefPatcher<'_> {
                 }
                 PatchKind::DictionaryTypes(key_patch, value_patch) => {
                     let dictionary_ptr: &mut OwnedPtr<Dictionary> = element.try_into().unwrap();
-                    if let Some((key_type_ptr, key_attributes)) = key_patch {
-                        dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, key_attributes);
+                    if let Some((key_type_ptr, attributes)) = key_patch {
+                        dictionary_ptr.borrow_mut().key_type.patch(key_type_ptr, attributes);
                     }
-                    if let Some((value_type_ptr, value_attributes)) = value_patch {
-                        dictionary_ptr
-                            .borrow_mut()
-                            .value_type
-                            .patch(value_type_ptr, value_attributes);
+                    if let Some((value_type_ptr, attributes)) = value_patch {
+                        dictionary_ptr.borrow_mut().value_type.patch(value_type_ptr, attributes);
                     }
                 }
                 PatchKind::None => {}

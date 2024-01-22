@@ -490,11 +490,11 @@ impl ComputeSupportedEncodings for ResultType {
         supported_encodings: &mut SupportedEncodings,
         compilation_mode: CompilationMode,
     ) -> Option<&'static str> {
-        // Results only support encodings that their `ok` and `err` types also support.
-        let ok_encodings = patcher.get_supported_encodings_for_type_ref(&self.ok_type, compilation_mode, false, None);
-        supported_encodings.intersect_with(&ok_encodings);
-        let err_encodings = patcher.get_supported_encodings_for_type_ref(&self.err_type, compilation_mode, false, None);
-        supported_encodings.intersect_with(&err_encodings);
+        // Results only support encodings that their `success` and `failure` types also support.
+        let success_encodings = patcher.get_supported_encodings_for_type_ref(&self.success_type, compilation_mode, false, None);
+        supported_encodings.intersect_with(&success_encodings);
+        let failure_encodings = patcher.get_supported_encodings_for_type_ref(&self.failure_type, compilation_mode, false, None);
+        supported_encodings.intersect_with(&failure_encodings);
 
         // Result can only be used in Slice2 mode.
         supported_encodings.disable(Encoding::Slice1);

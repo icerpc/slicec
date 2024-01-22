@@ -37,15 +37,15 @@ mod results {
 
         let Types::ResultType(result_type) = return_type.concrete_type() else { panic!() };
 
-        assert_eq!(result_type.ok_type.type_string(), "Sequence<uint8>");
+        assert_eq!(result_type.success_type.type_string(), "Sequence<uint8>");
         assert_eq!(
-            *result_type.ok_type.span(),
+            *result_type.success_type.span(),
             Span::new((4, 32).into(), (4, 47).into(), "string-0"),
         );
 
-        assert_eq!(result_type.err_type.type_string(), "Error");
+        assert_eq!(result_type.failure_type.type_string(), "Error");
         assert_eq!(
-            *result_type.err_type.span(),
+            *result_type.failure_type.span(),
             Span::new((4, 49).into(), (4, 54).into(), "string-0"),
         );
     }
@@ -69,18 +69,18 @@ mod results {
         assert_eq!(returns.len(), 1);
         let Types::ResultType(result_type) = returns[0].data_type().concrete_type() else { panic!() };
 
-        let Types::ResultType(inner_result_type) = result_type.ok_type.concrete_type() else { panic!() };
+        let Types::ResultType(inner_result_type) = result_type.success_type.concrete_type() else { panic!() };
         assert!(matches!(
-            result_type.err_type.concrete_type(),
+            result_type.failure_type.concrete_type(),
             Types::Primitive(Primitive::String),
         ));
 
         assert!(matches!(
-            inner_result_type.ok_type.concrete_type(),
+            inner_result_type.success_type.concrete_type(),
             Types::Primitive(Primitive::Bool),
         ));
         assert!(matches!(
-            inner_result_type.err_type.concrete_type(),
+            inner_result_type.failure_type.concrete_type(),
             Types::Primitive(Primitive::String),
         ));
     }

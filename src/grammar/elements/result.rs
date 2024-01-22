@@ -5,16 +5,16 @@ use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct ResultType {
-    pub ok_type: TypeRef,
-    pub err_type: TypeRef,
+    pub success_type: TypeRef,
+    pub failure_type: TypeRef,
 }
 
 impl Type for ResultType {
     fn type_string(&self) -> String {
         format!(
             "Result<{}, {}>",
-            self.ok_type.type_string(),
-            self.err_type.type_string(),
+            self.success_type.type_string(),
+            self.failure_type.type_string(),
         )
     }
 
@@ -31,8 +31,8 @@ impl Type for ResultType {
     }
 
     fn supported_encodings(&self) -> SupportedEncodings {
-        let mut encodings = self.ok_type.supported_encodings();
-        encodings.intersect_with(&self.err_type.supported_encodings());
+        let mut encodings = self.success_type.supported_encodings();
+        encodings.intersect_with(&self.failure_type.supported_encodings());
         encodings.disable(Encoding::Slice1);
         encodings
     }

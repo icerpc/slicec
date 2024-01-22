@@ -485,12 +485,12 @@ mod optional {
             assert!(field.data_type.is_optional);
 
             let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
-            assert!(!result_type.ok_type.is_optional);
-            assert!(!result_type.err_type.is_optional);
+            assert!(!result_type.success_type.is_optional);
+            assert!(!result_type.failure_type.is_optional);
         }
 
         #[test]
-        fn results_with_optional_ok_types_are_parsed_correctly() {
+        fn results_with_optional_success_types_are_parsed_correctly() {
             // Arrange
             let slice = "
                 module Test
@@ -507,12 +507,12 @@ mod optional {
             assert!(!field.data_type.is_optional);
 
             let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
-            assert!(result_type.ok_type.is_optional);
-            assert!(!result_type.err_type.is_optional);
+            assert!(result_type.success_type.is_optional);
+            assert!(!result_type.failure_type.is_optional);
         }
 
         #[test]
-        fn results_with_optional_err_types_are_parsed_correctly() {
+        fn results_with_optional_failure_types_are_parsed_correctly() {
             // Arrange
             let slice = "
                 module Test
@@ -529,8 +529,8 @@ mod optional {
             assert!(!field.data_type.is_optional);
 
             let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
-            assert!(!result_type.ok_type.is_optional);
-            assert!(result_type.err_type.is_optional);
+            assert!(!result_type.success_type.is_optional);
+            assert!(result_type.failure_type.is_optional);
         }
 
         #[test]
