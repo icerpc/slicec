@@ -7,7 +7,7 @@ use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct CompilationState {
     pub ast: Ast,
     pub diagnostics: Diagnostics,
@@ -66,15 +66,3 @@ impl CompilationState {
         self.diagnostics.into_updated(&self.ast, &self.files, options)
     }
 }
-
-impl Default for CompilationState {
-    fn default() -> Self {
-        Self::create()
-    }
-}
-
-// CompilationState is entirely self-contained, and hence safe to send between threads.
-//
-// Note that the `files` field of CompilationState is not self-contained on its own, since `SliceFile`
-// references contents that are owned by the Ast.
-unsafe impl Send for CompilationState {}

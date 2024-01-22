@@ -9,7 +9,7 @@ use clap::{Parser, ValueEnum};
 
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
-#[derive(Debug, Default, PartialEq, Eq, Hash, Parser)]
+#[derive(Debug, Default, Hash, Parser)]
 #[command(rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of Slice files to compile.

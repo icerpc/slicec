@@ -346,6 +346,12 @@ impl Ast {
     }
 }
 
+impl Default for Ast {
+    fn default() -> Self {
+        Self::create()
+    }
+}
+
 /// The error type for lookup operations on the AST.
 #[derive(Debug)]
 pub enum LookupError {
