@@ -142,19 +142,29 @@ impl EncodingPatcher<'_> {
                 self.get_supported_encodings_for(custom_type)
             }
             Types::ResultType(result_type) => {
-                let mut encodings = SupportedEncodings::dummy();
-                let additional_info = result_type.compute_supported_encodings(self, &mut encodings, compilation_mode);
-                if let Some(note) = additional_info {
+                // Results are only supported by encodings that support their `success` and `failure` types.
+                let success_encodings =
+                    self.get_supported_encodings_for_type_ref(&result_type.success_type, compilation_mode, false, None);
+                let failure_encodings =
+                    self.get_supported_encodings_for_type_ref(&result_type.failure_type, compilation_mode, false, None);
+
+                let mut supported_encodings = success_encodings;
+                supported_encodings.intersect_with(&failure_encodings);
+
+                // Result can only be used in Slice2 mode.
+                supported_encodings.disable(Encoding::Slice1);
+                if compilation_mode == CompilationMode::Slice1 {
                     let diagnostic = Diagnostic::new(Error::UnsupportedType {
                         kind: type_ref.type_string(),
                         mode: compilation_mode,
                     })
                     .set_span(type_ref.span())
-                    .add_note(note, None)
+                    .add_note("'Result' can only be used in Slice2 mode", None)
                     .extend_notes(self.get_mode_mismatch_note(type_ref));
                     diagnostics.push(diagnostic);
                 }
-                encodings
+
+                supported_encodings
             }
             Types::Sequence(sequence) => {
                 // Sequences are supported by any encoding that supports their elements.
@@ -479,29 +489,6 @@ impl ComputeSupportedEncodings for TypeAlias {
             false,
             Some(self),
         ));
-        None
-    }
-}
-
-impl ComputeSupportedEncodings for ResultType {
-    fn compute_supported_encodings(
-        &self,
-        patcher: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        compilation_mode: CompilationMode,
-    ) -> Option<&'static str> {
-        // Results only support encodings that their `success` and `failure` types also support.
-        let success_encodings = patcher.get_supported_encodings_for_type_ref(&self.success_type, compilation_mode, false, None);
-        supported_encodings.intersect_with(&success_encodings);
-        let failure_encodings = patcher.get_supported_encodings_for_type_ref(&self.failure_type, compilation_mode, false, None);
-        supported_encodings.intersect_with(&failure_encodings);
-
-        // Result can only be used in Slice2 mode.
-        supported_encodings.disable(Encoding::Slice1);
-        if compilation_mode == CompilationMode::Slice1 {
-            return Some("'Result' can only be used in Slice2 mode");
-        }
-
         None
     }
 }
