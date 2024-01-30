@@ -30,13 +30,14 @@ impl CodeBlock {
         }
     }
 
-    pub fn indent(&mut self) -> &mut Self {
+    pub fn indent(mut self) -> Self {
         self.content = self.content.replace('\n', "\n    ");
         self
     }
 
-    pub fn add_block<T: fmt::Display + ?Sized>(&mut self, s: &T) {
-        self.write(&format!("\n{s}\n"));
+    pub fn add_block(&mut self, block: impl Into<CodeBlock>) {
+        let block: CodeBlock = block.into();
+        self.write(&format!("\n{block}\n"));
     }
 
     pub fn is_empty(&self) -> bool {
@@ -80,24 +81,13 @@ impl fmt::Display for CodeBlock {
     }
 }
 
-/// Converts an iterator of strings into a CodeBlock. Each string is separated by a single newline.
-impl FromIterator<String> for CodeBlock {
-    fn from_iter<T: IntoIterator<Item = String>>(iter: T) -> Self {
-        let mut code = CodeBlock::default();
-        for i in iter {
-            code.writeln(&i);
-        }
-        code
-    }
-}
-
 /// Converts an iterator of CodeBlocks into a single CodeBlock. Each of the individual CodeBlocks
 /// are stringified and spaced with an empty line between them.
 impl FromIterator<CodeBlock> for CodeBlock {
     fn from_iter<T: IntoIterator<Item = CodeBlock>>(iter: T) -> Self {
         let mut code = CodeBlock::default();
-        for i in iter {
-            code.add_block(&i);
+        for block in iter {
+            code.add_block(block);
         }
         code
     }
@@ -116,12 +106,5 @@ impl From<String> for CodeBlock {
 impl From<&str> for CodeBlock {
     fn from(s: &str) -> Self {
         CodeBlock { content: s.to_owned() }
-    }
-}
-
-impl From<CodeBlock> for String {
-    fn from(code: CodeBlock) -> Self {
-        // Do not return `code.content` here as we want the format function to be applied first
-        code.to_string()
     }
 }
