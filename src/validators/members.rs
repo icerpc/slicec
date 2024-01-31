@@ -14,7 +14,8 @@ fn tags_are_unique(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     // The tagged members must be sorted by value first as we are using windowing to check the
     // n + 1 tagged member against the n tagged member. If the tags are sorted by value then
     // the windowing will reveal any duplicate tags.
-    let (_, sorted_tagged_members) = crate::utils::code_gen_util::get_sorted_members(&members);
+    let mut sorted_tagged_members = members.into_iter().filter(|m| m.is_tagged()).collect::<Vec<_>>();
+    sorted_tagged_members.sort_by_key(|member| member.tag().expect("tagged member has no tag!"));
     sorted_tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
             Diagnostic::new(Error::CannotHaveDuplicateTag {
