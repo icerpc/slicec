@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 pub mod ast;
-pub mod code_block;
 pub mod compilation_state;
 pub mod diagnostic_emitter;
 pub mod diagnostics;
