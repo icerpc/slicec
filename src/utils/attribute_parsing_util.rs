@@ -6,7 +6,7 @@ use crate::slice_file::Span;
 
 /// Reports an error if the provided list of arguments is empty.
 pub fn check_that_arguments_were_provided(
-    arguments: &Vec<String>,
+    arguments: &[String],
     directive: &str,
     span: &Span,
     diagnostics: &mut Diagnostics,
@@ -22,7 +22,7 @@ pub fn check_that_arguments_were_provided(
 
 /// Reports an error if the provided list of arguments is non-empty.
 pub fn check_that_no_arguments_were_provided(
-    arguments: &Vec<String>,
+    arguments: &[String],
     directive: &str,
     span: &Span,
     diagnostics: &mut Diagnostics,
@@ -38,7 +38,7 @@ pub fn check_that_no_arguments_were_provided(
 
 /// Reports an error if the provided list of arguments has more than 1 element.
 pub fn check_that_at_most_one_argument_was_provided(
-    arguments: &Vec<String>,
+    arguments: &[String],
     directive: &str,
     span: &Span,
     diagnostics: &mut Diagnostics,
@@ -54,7 +54,7 @@ pub fn check_that_at_most_one_argument_was_provided(
 
 /// Reports an error if the provided list of arguments doesn't have exactly 1 element.
 pub fn check_that_exactly_one_argument_was_provided(
-    arguments: &Vec<String>,
+    arguments: &[String],
     directive: &str,
     span: &Span,
     diagnostics: &mut Diagnostics,
