@@ -58,7 +58,7 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
 
 struct EncodingPatcher<'a> {
     supported_encodings_cache: HashMap<String, SupportedEncodings>,
-    slice_files: &'a HashMap<String, SliceFile>,
+    slice_files: &'a [SliceFile],
     diagnostics: &'a mut Diagnostics,
 }
 
@@ -74,9 +74,10 @@ impl EncodingPatcher<'_> {
         }
 
         // Store which Slice encodings can possibly be supported based on the file's compilation mode.
-        let file_name = &entity_def.span().file;
-        let compilation_mode = self.slice_files.get(file_name).unwrap().compilation_mode();
-        let mut supported_encodings = SupportedEncodings::new(match &compilation_mode {
+        let mut files = self.slice_files.iter();
+        let slice_file = files.find(|f| f.relative_path == entity_def.span().file).unwrap();
+        let compilation_mode = slice_file.compilation_mode();
+        let mut supported_encodings = SupportedEncodings::new(match compilation_mode {
             CompilationMode::Slice1 => vec![Encoding::Slice1, Encoding::Slice2],
             CompilationMode::Slice2 => vec![Encoding::Slice2],
         });
@@ -232,8 +233,8 @@ impl EncodingPatcher<'_> {
     }
 
     fn get_mode_mismatch_note(&self, symbol: &impl Symbol) -> Option<Note> {
-        let file_name = &symbol.span().file;
-        let slice_file = self.slice_files.get(file_name).unwrap();
+        let mut files = self.slice_files.iter();
+        let slice_file = files.find(|f| f.relative_path == symbol.span().file).unwrap();
 
         // Emit a note if the file's compilation mode wasn't explicitly set.
         match slice_file.mode.as_ref() {

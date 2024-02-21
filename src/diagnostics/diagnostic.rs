@@ -5,7 +5,6 @@ use crate::ast::Ast;
 use crate::grammar::{attributes, Attributable, Entity};
 use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::SliceOptions;
-use std::collections::HashMap;
 
 /// A diagnostic is a message that is reported to the user during compilation.
 /// It can either hold an [Error] or a [Lint].
@@ -158,12 +157,7 @@ impl Diagnostics {
 
     /// Returns the diagnostics this struct contains after it has patched and updated them.
     /// Lint levels can be configured via attributes or command line options, but these aren't applied until this runs.
-    pub fn into_updated(
-        mut self,
-        ast: &Ast,
-        files: &HashMap<String, SliceFile>,
-        options: &SliceOptions,
-    ) -> Vec<Diagnostic> {
+    pub fn into_updated(mut self, ast: &Ast, files: &[SliceFile], options: &SliceOptions) -> Vec<Diagnostic> {
         // Helper function that checks whether a lint should be allowed according to the provided identifiers.
         fn is_lint_allowed_by<'b>(mut identifiers: impl Iterator<Item = &'b String>, lint: &Lint) -> bool {
             identifiers.any(|identifier| identifier == "All" || identifier == lint.code())
@@ -186,7 +180,7 @@ impl Diagnostics {
 
                 // If the diagnostic has a span, check if it's affected by an `allow` attribute on its file.
                 if let Some(span) = diagnostic.span() {
-                    let file = files.get(&span.file).expect("slice file didn't exist");
+                    let file = files.iter().find(|f| f.relative_path == span.file).expect("no file");
                     if is_lint_allowed_by_attributes(file, lint) {
                         diagnostic.level = DiagnosticLevel::Allowed;
                     }

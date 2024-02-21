@@ -5,13 +5,12 @@ use crate::diagnostic_emitter::{emit_totals, DiagnosticEmitter};
 use crate::diagnostics::{get_totals, Diagnostic, Diagnostics};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
-use std::collections::HashMap;
 
 #[derive(Debug, Default)]
 pub struct CompilationState {
     pub ast: Ast,
     pub diagnostics: Diagnostics,
-    pub files: HashMap<String, SliceFile>,
+    pub files: Vec<SliceFile>,
 }
 
 impl CompilationState {
@@ -19,7 +18,7 @@ impl CompilationState {
         CompilationState {
             ast: Ast::create(),
             diagnostics: Diagnostics::new(),
-            files: HashMap::new(),
+            files: Vec::new(),
         }
     }
 

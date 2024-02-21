@@ -31,11 +31,11 @@ pub fn compile_from_options(
     let mut state = CompilationState::create();
 
     // Recursively resolve any Slice files contained in the paths specified by the user.
-    let files = file_util::resolve_files_from(options, &mut state.diagnostics);
+    state.files = file_util::resolve_files_from(options, &mut state.diagnostics);
 
     // If any files were unreadable, return without parsing. Otherwise, parse the files normally.
     if !state.diagnostics.has_errors() {
-        compile_files(files, &mut state, options, patcher, validator);
+        compile_files(&mut state, options, patcher, validator);
     }
     state
 }
@@ -50,29 +50,24 @@ pub fn compile_from_strings(
     let mut state = CompilationState::create();
 
     // Create a Slice file from each of the strings.
-    let mut files = Vec::new();
     for (i, &input) in inputs.iter().enumerate() {
-        files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
+        state.files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
     }
 
     match options {
-        Some(slice_options) => compile_files(files, &mut state, slice_options, patcher, validator),
-        None => compile_files(files, &mut state, &SliceOptions::default(), patcher, validator),
+        Some(slice_options) => compile_files(&mut state, slice_options, patcher, validator),
+        None => compile_files(&mut state, &SliceOptions::default(), patcher, validator),
     }
 
     state
 }
 
 fn compile_files(
-    files: Vec<SliceFile>,
     state: &mut CompilationState,
     options: &SliceOptions,
     patcher: unsafe fn(&mut CompilationState),
     validator: fn(&mut CompilationState),
 ) {
-    // Convert the `Vec<SliceFile>` into a `HashMap<absolute_path, SliceFile>` for easier lookup, and store it.
-    state.files = files.into_iter().map(|f| (f.relative_path.clone(), f)).collect();
-
     // Retrieve any preprocessor symbols defined by the compiler itself, or by the user on the command line.
     let defined_symbols = HashSet::from_iter(options.defined_symbols.clone());
 
