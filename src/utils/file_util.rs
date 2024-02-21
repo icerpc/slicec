@@ -3,8 +3,6 @@
 use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
 use std::{fs, io};
 
@@ -16,23 +14,18 @@ struct FilePath {
     path: String,
     // The canonicalized path
     canonicalized_path: PathBuf,
+    // True for source files, false for reference files.
+    is_source: bool,
 }
 
-impl TryFrom<&String> for FilePath {
-    type Error = io::Error;
-
+impl FilePath {
     /// Creates a new [FilePath] from the given path. If the path does not exist, an [Error] is returned.
-    fn try_from(path: &String) -> Result<Self, Self::Error> {
-        PathBuf::from(&path).canonicalize().map(|canonicalized_path| Self {
-            path: path.clone(),
+    pub fn try_create(path: &str, is_source: bool) -> Result<Self, io::Error> {
+        PathBuf::from(path).canonicalize().map(|canonicalized_path| Self {
+            path: path.to_owned(),
             canonicalized_path,
+            is_source,
         })
-    }
-}
-
-impl Hash for FilePath {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.canonicalized_path.hash(state);
     }
 }
 
@@ -42,43 +35,44 @@ impl PartialEq for FilePath {
     }
 }
 
-pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics) -> Vec<SliceFile> {
-    // Create a map of all the Slice files with entries like: (absolute_path, is_source).
-    // HashMap protects against files being passed twice (as reference and source).
-    // It's important to add sources AFTER references, so sources overwrite references and not vice versa.
-    let mut file_paths = HashMap::new();
-
-    let reference_files = find_slice_files(&options.references, true, diagnostics);
-
-    // Report a lint violation for any duplicate reference files.
-    for reference_file in reference_files {
-        let path = reference_file.path.clone();
-        if file_paths.insert(reference_file, false).is_some() {
-            Diagnostic::new(Lint::DuplicateFile { path }).push_into(diagnostics);
+/// This function takes a `Vec<FilePath>` and returns it, after removing any duplicate elements.
+/// A lint violation is reported for each duplicate element.
+fn remove_duplicate_file_paths(file_paths: Vec<FilePath>, diagnostics: &mut Diagnostics) -> Vec<FilePath> {
+    let mut deduped_file_paths = Vec::with_capacity(file_paths.len());
+    for file_path in file_paths {
+        if deduped_file_paths.contains(&file_path) {
+            let lint = Lint::DuplicateFile { path: file_path.path };
+            Diagnostic::new(lint).push_into(diagnostics);
+        } else {
+            deduped_file_paths.push(file_path);
         }
     }
+    deduped_file_paths
+}
 
-    let source_files = find_slice_files(&options.sources, false, diagnostics);
+pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics) -> Vec<SliceFile> {
+    let mut file_paths = Vec::new();
 
-    // Report a lint violation for duplicate source files (any that duplicate another source file not a reference file).
-    for source_file in source_files {
-        let path = source_file.path.clone();
-        // Insert will replace and return the previous value if the key already exists.
-        // We use this to allow replacing references with sources.
-        if let Some(is_source) = file_paths.insert(source_file, true) {
-            // Only report an error if the file was previously a source file.
-            if is_source {
-                Diagnostic::new(Lint::DuplicateFile { path }).push_into(diagnostics);
-            }
+    // Add any source files to the list of file paths, after removing duplicates.
+    let source_files = find_slice_files(&options.sources, true, diagnostics);
+    file_paths.extend(remove_duplicate_file_paths(source_files, diagnostics));
+
+    // Add any reference files to the list of file paths, after removing duplicates. We omit reference files that have
+    // already been included as source files; we don't emit a warning for them, we just silently omit them. It's
+    // important to do this after the source files, to ensure source files are given 'priority' over reference files.
+    let reference_files = find_slice_files(&options.references, false, diagnostics);
+    for reference_file in remove_duplicate_file_paths(reference_files, diagnostics) {
+        if !file_paths.contains(&reference_file) {
+            file_paths.push(reference_file);
         }
     }
 
     // Iterate through the discovered files and try to read them into Strings.
     // Report an error if it fails, otherwise create a new `SliceFile` to hold the data.
     let mut files = Vec::new();
-    for (file_path, is_source) in file_paths {
+    for file_path in file_paths {
         match fs::read_to_string(&file_path.path) {
-            Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, is_source)),
+            Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, file_path.is_source)),
             Err(error) => Diagnostic::new(Error::IO {
                 action: "read",
                 path: file_path.path,
@@ -87,11 +81,13 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics)
             .push_into(diagnostics),
         }
     }
-
     files
 }
 
-fn find_slice_files(paths: &[String], allow_directories: bool, diagnostics: &mut Diagnostics) -> Vec<FilePath> {
+fn find_slice_files(paths: &[String], are_source_files: bool, diagnostics: &mut Diagnostics) -> Vec<FilePath> {
+    // Directories can only be passed as references.
+    let allow_directories = !are_source_files;
+
     let mut slice_paths = Vec::new();
     for path in paths {
         let path_buf = PathBuf::from(path);
@@ -141,7 +137,7 @@ fn find_slice_files(paths: &[String], allow_directories: bool, diagnostics: &mut
     slice_paths
         .into_iter()
         .map(|path| path.display().to_string())
-        .filter_map(|path| match FilePath::try_from(&path) {
+        .filter_map(|path| match FilePath::try_create(&path, are_source_files) {
             Ok(file_path) => Some(file_path),
             Err(error) => {
                 Diagnostic::new(Error::IO {
@@ -171,7 +167,7 @@ fn find_slice_files_in_path(path: PathBuf, diagnostics: &mut Diagnostics) -> Vec
         }
     } else if path.is_file() && is_slice_file(&path) {
         // Add the file to the list of paths.
-        paths.push(path.to_path_buf());
+        paths.push(path);
     }
     // else we ignore the path
 
