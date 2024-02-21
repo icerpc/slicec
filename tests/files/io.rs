@@ -93,6 +93,7 @@ fn file_resolution_preserves_order() {
             file_path_c.to_str().unwrap().to_owned(),
         ],
         references: vec![
+            file_path_b.to_str().unwrap().to_owned(), // Should be filtered out with no diagnostic.
             file_path_test.to_str().unwrap().to_owned(),
         ],
         ..Default::default()
@@ -126,6 +127,7 @@ fn compilation_preserves_order() {
             file_path_c.to_str().unwrap().to_owned(),
         ],
         references: vec![
+            file_path_b.to_str().unwrap().to_owned(), // Should be filtered out with no diagnostic.
             file_path_test.to_str().unwrap().to_owned(),
         ],
         ..Default::default()

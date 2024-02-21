@@ -51,7 +51,8 @@ pub fn compile_from_strings(
 
     // Create a Slice file from each of the strings.
     for (i, &input) in inputs.iter().enumerate() {
-        state.files.push(SliceFile::new(format!("string-{i}"), input.to_owned(), false))
+        let slice_file = SliceFile::new(format!("string-{i}"), input.to_owned(), false);
+        state.files.push(slice_file);
     }
 
     match options {
