@@ -45,7 +45,7 @@ pub(crate) fn validate_ast(compilation_state: &mut CompilationState) {
     }
 
     let mut validator = ValidatorVisitor::new(diagnostics);
-    for slice_file in compilation_state.files.values() {
+    for slice_file in &compilation_state.files {
         slice_file.visit_with(&mut validator);
     }
 }

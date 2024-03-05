@@ -19,7 +19,7 @@ use crate::slice_file::SliceFile;
 use std::collections::HashSet;
 
 pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
-    for file in state.files.values_mut() {
+    for file in &mut state.files {
         // Attempt to parse the file.
         let mut diagnostics = Diagnostics::new();
         parse_file(file, &mut state.ast, &mut diagnostics, symbols.clone());

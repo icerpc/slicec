@@ -5,7 +5,6 @@ use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use serde::ser::SerializeStruct;
 use serde::Serializer;
-use std::collections::HashMap;
 use std::io::{Result, Write};
 use std::path::Path;
 
@@ -18,11 +17,11 @@ pub struct DiagnosticEmitter<'a, T: Write> {
     /// If true, diagnostic output will not be styled with colors (only used in `human` format).
     disable_color: bool,
     /// Provides the emitter access to the slice files that were compiled so it can extract snippets from them.
-    files: &'a HashMap<String, SliceFile>,
+    files: &'a [SliceFile],
 }
 
 impl<'a, T: Write> DiagnosticEmitter<'a, T> {
-    pub fn new(output: &'a mut T, slice_options: &SliceOptions, files: &'a HashMap<String, SliceFile>) -> Self {
+    pub fn new(output: &'a mut T, slice_options: &SliceOptions, files: &'a [SliceFile]) -> Self {
         DiagnosticEmitter {
             output,
             diagnostic_format: slice_options.diagnostic_format,
@@ -115,8 +114,8 @@ impl<'a, T: Write> DiagnosticEmitter<'a, T> {
         )?;
 
         // Display the line of code where the error occurred.
-        let snippet = self.files.get(&span.file).unwrap().get_snippet(span.start, span.end);
-        writeln!(self.output, "{}", snippet)?;
+        let file = self.files.iter().find(|f| f.relative_path == span.file).unwrap();
+        writeln!(self.output, "{}", file.get_snippet(span.start, span.end))?;
 
         Ok(())
     }
