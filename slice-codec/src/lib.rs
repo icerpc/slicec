@@ -27,3 +27,12 @@ pub mod encoding;
 pub mod io;
 pub mod try_decode;
 pub mod try_encode;
+
+/// A specialized [`Result`](core::result::Result) type for decoding and encoding functions which may produce errors.
+///
+/// This typedef is a convenience to avoid repetitively specifying [`Error`] as the error type, and is otherwise a
+/// direct mapping to  [`core::result::Result`].
+pub type Result<T> = core::result::Result<T, Error>;
+
+/// The error type for encoding and decoding functions.
+pub enum Error {}
