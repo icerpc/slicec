@@ -21,8 +21,11 @@ edition.workspace = true
 name = "slice_codec"
 path = "src/lib.rs"
 
+[dependencies]
+bytes = { version = "1.5.0", optional = true }
+
 [features]
-default = ["slice2", "slice1", "std"]
+default = ["slice2", "std"]
 
 # Provides support for the Slice2 encoding.
 slice2 = []
@@ -37,6 +40,9 @@ std = ["alloc"]
 # Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
 # Requires host applications to configure a global allocator, if the 'std' feature is unset.
 alloc = []
+
+# Provides support for encoding from and decoding into the types exposed by the `bytes` crate.
+bytes = ["dep:bytes", "alloc"]
 
 [package.metadata.docs.rs]
 all-features = true
