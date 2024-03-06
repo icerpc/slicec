@@ -2,7 +2,7 @@
 name = "slice-codec"
 
 description = """
-Library to encode and decode Slice types
+Library for encoding and decoding Slice types.
 """
 homepage = "https://docs.icerpc.dev/slice2"
 documentation = "https://docs.rs/slice-codec"
@@ -34,7 +34,7 @@ slice2 = []
 slice1 = []
 
 # Provides implementations for encoding and decoding common standard library types like `String`, `Vec`, `HashMap`, etc.
-# Introduces a dependency on the Rust standard library. This flag should be disabled for 'no-std' projects
+# Introduces a dependency on the Rust standard library. This flag should be disabled for 'no-std' projects.
 std = ["alloc"]
 
 # Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
