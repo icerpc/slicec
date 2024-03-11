@@ -164,3 +164,57 @@ cargo test --no-default-features --features slice1,slice2,bytes
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo test --no-default-features --features slice1,slice2,std,bytes
 if %ERRORLEVEL% NEQ 0 EXIT
+
+ECHO.
+ECHO.
+ECHO.
+
+cargo miri --no-default-features
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features alloc
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features std
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features std,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+
+ECHO.
+
+cargo miri --no-default-features --features slice2
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice2,alloc
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice2,std
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice2,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice2,std,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+
+ECHO.
+
+cargo miri --no-default-features --features slice1
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,alloc
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,std
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,std,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+
+ECHO.
+
+cargo miri --no-default-features --features slice1,slice2
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,slice2,alloc
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,slice2,std
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,slice2,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
+cargo miri --no-default-features --features slice1,slice2,std,bytes
+if %ERRORLEVEL% NEQ 0 EXIT
