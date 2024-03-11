@@ -218,3 +218,10 @@ cargo miri --no-default-features --features slice1,slice2,bytes
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo miri --no-default-features --features slice1,slice2,std,bytes
 if %ERRORLEVEL% NEQ 0 EXIT
+
+ECHO.
+ECHO.
+ECHO.
+
+cargo doc --document-private-items --no-default-features --features slice1,slice2,std,bytes
+if %ERRORLEVEL% NEQ 0 EXIT

@@ -140,3 +140,9 @@ cargo miri --no-default-features --features slice1,slice2,alloc
 cargo miri --no-default-features --features slice1,slice2,std
 cargo miri --no-default-features --features slice1,slice2,bytes
 cargo miri --no-default-features --features slice1,slice2,std,bytes
+
+echo
+echo
+echo
+
+cargo doc --document-private-items --no-default-features --features slice1,slice2,std,bytes
