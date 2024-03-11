@@ -111,35 +111,35 @@ echo
 echo
 echo
 
-cargo miri --no-default-features
-cargo miri --no-default-features --features alloc
-cargo miri --no-default-features --features std
-cargo miri --no-default-features --features bytes
-cargo miri --no-default-features --features std,bytes
+cargo +nightly miri test --no-default-features
+cargo +nightly miri test --no-default-features --features alloc
+cargo +nightly miri test --no-default-features --features std
+cargo +nightly miri test --no-default-features --features bytes
+cargo +nightly miri test --no-default-features --features std,bytes
 
 echo
 
-cargo miri --no-default-features --features slice2
-cargo miri --no-default-features --features slice2,alloc
-cargo miri --no-default-features --features slice2,std
-cargo miri --no-default-features --features slice2,bytes
-cargo miri --no-default-features --features slice2,std,bytes
+cargo +nightly miri test --no-default-features --features slice2
+cargo +nightly miri test --no-default-features --features slice2,alloc
+cargo +nightly miri test --no-default-features --features slice2,std
+cargo +nightly miri test --no-default-features --features slice2,bytes
+cargo +nightly miri test --no-default-features --features slice2,std,bytes
 
 echo
 
-cargo miri --no-default-features --features slice1
-cargo miri --no-default-features --features slice1,alloc
-cargo miri --no-default-features --features slice1,std
-cargo miri --no-default-features --features slice1,bytes
-cargo miri --no-default-features --features slice1,std,bytes
+cargo +nightly miri test --no-default-features --features slice1
+cargo +nightly miri test --no-default-features --features slice1,alloc
+cargo +nightly miri test --no-default-features --features slice1,std
+cargo +nightly miri test --no-default-features --features slice1,bytes
+cargo +nightly miri test --no-default-features --features slice1,std,bytes
 
 echo
 
-cargo miri --no-default-features --features slice1,slice2
-cargo miri --no-default-features --features slice1,slice2,alloc
-cargo miri --no-default-features --features slice1,slice2,std
-cargo miri --no-default-features --features slice1,slice2,bytes
-cargo miri --no-default-features --features slice1,slice2,std,bytes
+cargo +nightly miri test --no-default-features --features slice1,slice2
+cargo +nightly miri test --no-default-features --features slice1,slice2,alloc
+cargo +nightly miri test --no-default-features --features slice1,slice2,std
+cargo +nightly miri test --no-default-features --features slice1,slice2,bytes
+cargo +nightly miri test --no-default-features --features slice1,slice2,std,bytes
 
 echo
 echo
