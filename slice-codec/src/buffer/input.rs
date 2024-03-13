@@ -40,14 +40,14 @@ pub trait InputSource<'a> {
 #[derive(Debug)]
 pub struct SliceInputSource<'a> {
     /// The underlying buffer that this type wraps.
-    source: &'a [u8],
+    buffer: &'a [u8],
     /// Tracks the current position in the buffer that is being read from.
     pos: usize,
 }
 
 impl<'a> SliceInputSource<'a> {
-    fn ensure_source_has_at_least(&self, requested: usize) -> Result<()> {
-        let remaining = self.source.len() - self.pos;
+    fn does_buffer_have_at_least(&self, requested: usize) -> Result<()> {
+        let remaining = self.buffer.len() - self.pos;
         if remaining < requested {
             let error = ErrorKind::UnexpectedEob { requested, remaining };
             Err(error.into())
@@ -59,12 +59,12 @@ impl<'a> SliceInputSource<'a> {
 
 impl<'a> InputSource<'a> for SliceInputSource<'a> {
     fn peek_byte(&mut self) -> Result<u8> {
-        self.ensure_source_has_at_least(1)?;
+        self.does_buffer_have_at_least(1)?;
 
         // SAFETY: the necessary bounds checking is performed by the above function call.
         unsafe {
-            debug_assert!(self.source.get(self.pos).is_some());
-            Ok(*self.source.get_unchecked(self.pos))
+            debug_assert!(self.buffer.get(self.pos).is_some());
+            Ok(*self.buffer.get_unchecked(self.pos))
         }
     }
 
@@ -91,13 +91,13 @@ impl<'a> InputSource<'a> for SliceInputSource<'a> {
     }
 
     fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&'a [u8]> {
-        self.ensure_source_has_at_least(count)?;
+        self.does_buffer_have_at_least(count)?;
 
         // SAFETY: the necessary bounds checking is performed by the above function call.
         unsafe {
             let end = self.pos + count;
-            debug_assert!(self.source.get(self.pos..end).is_some());
-            Ok(self.source.get_unchecked(self.pos..end))
+            debug_assert!(self.buffer.get(self.pos..end).is_some());
+            Ok(self.buffer.get_unchecked(self.pos..end))
         }
     }
 
@@ -127,7 +127,7 @@ impl<'a, T> From<&'a T> for SliceInputSource<'a>
     /// Creates a new [`SliceInputSource`] that wraps the provided buffer.
     fn from(value: &'a T) -> Self {
         Self {
-            source: value.borrow(),
+            buffer: value.borrow(),
             pos: 0,
         }
     }
@@ -147,30 +147,30 @@ mod tests {
         fn peeking_a_byte_does_not_advance_the_position() {
             // Arrange
             let buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-            let mut source = SliceInputSource::from(&buffer);
-            assert_eq!(source.pos, 0);
+            let mut input = SliceInputSource::from(&buffer);
+            assert_eq!(input.pos, 0);
 
             // Act
-            let _ = source.peek_byte().unwrap();
+            let _ = input.peek_byte().unwrap();
 
             // Assert
-            assert_eq!(source.pos, 0);
+            assert_eq!(input.pos, 0);
         }
 
         #[test_matrix([0, 1, 4, 7])]
         fn peeking_a_single_byte_returns_the_correct_value(bytes_to_skip: usize) {
             // Arrange
             let buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-            let mut source = SliceInputSource::from(&buffer);
-            assert_eq!(source.read_byte_slice_exact(bytes_to_skip).unwrap(), &buffer[..bytes_to_skip]);
-            assert_eq!(source.pos, bytes_to_skip);
+            let mut input = SliceInputSource::from(&buffer);
+            assert_eq!(input.read_byte_slice_exact(bytes_to_skip).unwrap(), &buffer[..bytes_to_skip]);
+            assert_eq!(input.pos, bytes_to_skip);
 
             // Act
-            let result = source.peek_byte().unwrap();
+            let result = input.peek_byte().unwrap();
 
             // Assert
             assert_eq!(result, bytes_to_skip as u8);
-            assert_eq!(source.pos, bytes_to_skip);
+            assert_eq!(input.pos, bytes_to_skip);
         }
     }
 }
