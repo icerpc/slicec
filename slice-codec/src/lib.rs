@@ -2,6 +2,8 @@
 
 //! TODO write a doc comment explaining this crate.
 
+#![no_std]
+
 // If the 'alloc' feature is set, pull in [`alloc`](https://doc.rust-lang.org/alloc) as an external crate.
 #[cfg(feature = "alloc")]
 extern crate alloc;
@@ -22,12 +24,14 @@ pub mod slice1;
 
 pub mod buffer;
 pub mod decoder;
-pub mod decoding;
 pub mod encoder;
-pub mod encoding;
 pub mod try_decode;
 pub mod try_encode;
 
 // Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
 mod error;
 pub use error::*;
+
+// These modules are private because they don't export any types, just implementations.
+mod decoding;
+mod encoding;

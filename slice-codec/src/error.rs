@@ -4,6 +4,9 @@ use core::fmt::{Display, Formatter};
 use core::ops::Range;
 use core::write;
 
+#[cfg(feature = "std")]
+use alloc::boxed::Box;
+
 /// A specialized [`Result`](core::result::Result) type for encoding and decoding functions which may produce errors.
 ///
 /// This typedef is a convenience to avoid repetitively specifying [`Error`] as the error type, and is otherwise a

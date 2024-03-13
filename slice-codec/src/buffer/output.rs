@@ -12,6 +12,8 @@ use core::{debug_assert, debug_assert_eq};
 use crate::Error;
 #[cfg(feature = "alloc")]
 use core::mem::MaybeUninit;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// A trait for types that can be written to by a [Slice encoder](crate::encoder::Encoder).
 pub trait OutputTarget<'a> {
