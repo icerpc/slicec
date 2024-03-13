@@ -5,7 +5,6 @@
 use crate::{ErrorKind, Result};
 
 use core::borrow::Borrow;
-use core::convert::From;
 use core::{debug_assert, debug_assert_eq};
 
 /// A trait for types that can be read from by a [Slice decoder](crate::decoder::Decoder).

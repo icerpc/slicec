@@ -5,7 +5,6 @@
 use crate::{ErrorKind, Result};
 
 use core::borrow::BorrowMut;
-use core::convert::From;
 use core::ops::Range;
 use core::{debug_assert, debug_assert_eq};
 

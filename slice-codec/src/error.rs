@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use core::convert::From;
 use core::fmt::{Display, Formatter};
 use core::ops::Range;
 use core::write;
