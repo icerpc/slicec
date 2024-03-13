@@ -9,6 +9,8 @@ set -e
 # This line can be enabled and disabled to treat warnings as errors.
 # export RUSTFLAGS=-Dwarnings
 
+# Build the crate with each combination of features.
+
 cargo build --no-default-features
 cargo build --no-default-features --features alloc
 cargo build --no-default-features --features std
@@ -42,6 +44,8 @@ cargo build --no-default-features --features slice1,slice2,std,bytes
 echo
 echo
 echo
+
+# Lint the crate with each combination of features.
 
 cargo clippy --all-targets --no-default-features
 cargo clippy --all-targets --no-default-features --features alloc
@@ -77,63 +81,8 @@ echo
 echo
 echo
 
-cargo test --no-default-features
-cargo test --no-default-features --features alloc
-cargo test --no-default-features --features std
-cargo test --no-default-features --features bytes
-cargo test --no-default-features --features std,bytes
-
-echo
-
-cargo test --no-default-features --features slice2
-cargo test --no-default-features --features slice2,alloc
-cargo test --no-default-features --features slice2,std
-cargo test --no-default-features --features slice2,bytes
-cargo test --no-default-features --features slice2,std,bytes
-
-echo
-
-cargo test --no-default-features --features slice1
-cargo test --no-default-features --features slice1,alloc
-cargo test --no-default-features --features slice1,std
-cargo test --no-default-features --features slice1,bytes
-cargo test --no-default-features --features slice1,std,bytes
-
-echo
-
-cargo test --no-default-features --features slice1,slice2
-cargo test --no-default-features --features slice1,slice2,alloc
-cargo test --no-default-features --features slice1,slice2,std
-cargo test --no-default-features --features slice1,slice2,bytes
-cargo test --no-default-features --features slice1,slice2,std,bytes
-
-echo
-echo
-echo
-
-cargo +nightly miri test --no-default-features
-cargo +nightly miri test --no-default-features --features alloc
-cargo +nightly miri test --no-default-features --features std
-cargo +nightly miri test --no-default-features --features bytes
-cargo +nightly miri test --no-default-features --features std,bytes
-
-echo
-
-cargo +nightly miri test --no-default-features --features slice2
-cargo +nightly miri test --no-default-features --features slice2,alloc
-cargo +nightly miri test --no-default-features --features slice2,std
-cargo +nightly miri test --no-default-features --features slice2,bytes
-cargo +nightly miri test --no-default-features --features slice2,std,bytes
-
-echo
-
-cargo +nightly miri test --no-default-features --features slice1
-cargo +nightly miri test --no-default-features --features slice1,alloc
-cargo +nightly miri test --no-default-features --features slice1,std
-cargo +nightly miri test --no-default-features --features slice1,bytes
-cargo +nightly miri test --no-default-features --features slice1,std,bytes
-
-echo
+# We use miri to run the tests, to catch memory issues.
+# We always set the 'slice1' and 'slice2' features to save time testing, and because these tests are already isolated.
 
 cargo +nightly miri test --no-default-features --features slice1,slice2
 cargo +nightly miri test --no-default-features --features slice1,slice2,alloc
@@ -145,4 +94,34 @@ echo
 echo
 echo
 
+# Generate the docs with each combination of features to ensure we aren't incorrectly linking to feature gated things.
+
+cargo doc --document-private-items --no-default-features
+cargo doc --document-private-items --no-default-features --features alloc
+cargo doc --document-private-items --no-default-features --features std
+cargo doc --document-private-items --no-default-features --features bytes
+cargo doc --document-private-items --no-default-features --features std,bytes
+
+echo
+
+cargo doc --document-private-items --no-default-features --features slice2
+cargo doc --document-private-items --no-default-features --features slice2,alloc
+cargo doc --document-private-items --no-default-features --features slice2,std
+cargo doc --document-private-items --no-default-features --features slice2,bytes
+cargo doc --document-private-items --no-default-features --features slice2,std,bytes
+
+echo
+
+cargo doc --document-private-items --no-default-features --features slice1
+cargo doc --document-private-items --no-default-features --features slice1,alloc
+cargo doc --document-private-items --no-default-features --features slice1,std
+cargo doc --document-private-items --no-default-features --features slice1,bytes
+cargo doc --document-private-items --no-default-features --features slice1,std,bytes
+
+echo
+
+cargo doc --document-private-items --no-default-features --features slice1,slice2
+cargo doc --document-private-items --no-default-features --features slice1,slice2,alloc
+cargo doc --document-private-items --no-default-features --features slice1,slice2,std
+cargo doc --document-private-items --no-default-features --features slice1,slice2,bytes
 cargo doc --document-private-items --no-default-features --features slice1,slice2,std,bytes
