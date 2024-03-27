@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2024-3-27
+### Enhancements
+- Input files are now loaded and parsed in the order they're passed ([694]).
+
 ## [0.3.0] - 2024-2-7
 ### Added
 - Added a new built-in generic type: `Result<S, F>` ([687]).
@@ -47,6 +51,7 @@
 ## [0.1.0] - 2023-9-6
 Initial public release!
 
+[694]: https://github.com/icerpc/slicec/pull/694
 [689]: https://github.com/icerpc/slicec/pull/689
 [688]: https://github.com/icerpc/slicec/pull/688
 [687]: https://github.com/icerpc/slicec/pull/687
@@ -62,6 +67,7 @@ Initial public release!
 [662]: https://github.com/icerpc/slicec/pull/662
 [659]: https://github.com/icerpc/slicec/pull/659
 
+[0.3.1]: https://github.com/icerpc/slicec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/icerpc/slicec/releases/tag/v0.3.0
 [0.2.1]: https://github.com/icerpc/slicec/releases/tag/v0.2.1
 [0.2.0]: https://github.com/icerpc/slicec/releases/tag/v0.2.0
