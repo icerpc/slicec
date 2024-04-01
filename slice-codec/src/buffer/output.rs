@@ -53,6 +53,7 @@ pub trait OutputTarget<'a> {
 /// Represents a span of bytes that have been reserved in an [`OutputTarget`].
 /// See [`OutputTarget::reserve_space`].
 #[derive(Debug)]
+#[must_use]
 pub struct Reservation(Range<usize>);
 
 impl Reservation {
