@@ -16,7 +16,7 @@ use core::mem::MaybeUninit;
 use alloc::vec::Vec;
 
 /// A trait for types that can be written to by a [Slice encoder](crate::encoder::Encoder).
-pub trait OutputTarget<'a> {
+pub trait OutputTarget {
     /// Attempts to write the provided bytes into this target.
     ///
     /// This function will not return until either all the provided bytes have been written, or an unrecoverable error
@@ -84,7 +84,7 @@ impl<'a> SliceOutputTarget<'a> {
     }
 }
 
-impl<'a> OutputTarget<'a> for SliceOutputTarget<'a> {
+impl OutputTarget for SliceOutputTarget<'_> {
     fn write_bytes_exact(&mut self, bytes: &[u8]) -> Result<()> {
         self.does_buffer_have_at_least(bytes.len())?;
 
@@ -179,7 +179,7 @@ impl<'a> VecOutputTarget<'a> {
 }
 
 #[cfg(feature = "alloc")]
-impl<'a> OutputTarget<'a> for VecOutputTarget<'a> {
+impl OutputTarget for VecOutputTarget<'_> {
     fn write_bytes_exact(&mut self, bytes: &[u8]) -> Result<()> {
         let count = bytes.len();
         self.ensure_buffer_has_at_least(count)?;
