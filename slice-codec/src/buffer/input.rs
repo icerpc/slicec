@@ -8,7 +8,7 @@ use core::borrow::Borrow;
 use core::{debug_assert, debug_assert_eq};
 
 /// A trait for types that can be read from by a [Slice decoder](crate::decoder::Decoder).
-pub trait InputSource<'a> {
+pub trait InputSource {
     /// Returns the next byte of input from this source, without consuming it.
     ///
     /// If there no more bytes available from this source, an [`ErrorKind::UnexpectedEob`] error is returned instead.
@@ -21,11 +21,11 @@ pub trait InputSource<'a> {
 
     // TODO these 4 functions need comments.
     // TODO remove any of these functions that don't end up being used anywhere.
-    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&'a [u8; N]>;
-    fn read_bytes_exact<const N: usize>(&mut self) -> Result<&'a [u8; N]>;
+    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]>;
+    fn read_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]>;
 
-    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&'a [u8]>;
-    fn read_byte_slice_exact(&mut self, count: usize) -> Result<&'a [u8]>;
+    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]>;
+    fn read_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]>;
 
     /// Reads bytes from this source into the provided buffer, and advances past them (consuming them).
     ///
@@ -54,9 +54,31 @@ impl<'a> SliceInputSource<'a> {
             Ok(())
         }
     }
+
+    fn peek_bytes_exact_impl<const N: usize>(&self) -> Result<&'a [u8; N]> {
+        let bytes = self.peek_byte_slice_exact_impl(N)?;
+
+        // SAFETY: `peek_byte_slice_exact_impl` is guaranteed to return exactly 'N' bytes, which means it's safe to
+        // convert, since `&[u8; N]` has the same layout as an `&[u8]` over 'N' bytes.
+        unsafe {
+            debug_assert_eq!(bytes.len(), N);
+            Ok(bytes.try_into().unwrap_unchecked())
+        }
+    }
+
+    fn peek_byte_slice_exact_impl(&self, count: usize) -> Result<&'a [u8]> {
+        self.does_buffer_have_at_least(count)?;
+
+        // SAFETY: the necessary bounds checking is performed by the above function call.
+        unsafe {
+            let end = self.pos + count;
+            debug_assert!(self.buffer.get(self.pos..end).is_some());
+            Ok(self.buffer.get_unchecked(self.pos..end))
+        }
+    }
 }
 
-impl<'a> InputSource<'a> for SliceInputSource<'a> {
+impl InputSource for SliceInputSource<'_> {
     fn peek_byte(&mut self) -> Result<u8> {
         self.does_buffer_have_at_least(1)?;
 
@@ -73,35 +95,22 @@ impl<'a> InputSource<'a> for SliceInputSource<'a> {
         Ok(byte)
     }
 
-    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&'a [u8; N]> {
-        let bytes = self.peek_byte_slice_exact(N)?;
-
-        // SAFETY: `peek_byte_slice_exact` is guaranteed to return exactly N bytes, so bytes is equivalent to `[u8; N]`.
-        unsafe {
-            debug_assert_eq!(bytes.len(), N);
-            Ok(bytes.try_into().unwrap_unchecked())
-        }
+    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]> {
+        self.peek_bytes_exact_impl()
     }
 
-    fn read_bytes_exact<const N: usize>(&mut self) -> Result<&'a [u8; N]> {
-        let bytes = self.peek_bytes_exact()?;
+    fn read_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]> {
+        let bytes = self.peek_bytes_exact_impl()?;
         self.pos += N;
         Ok(bytes)
     }
 
-    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&'a [u8]> {
-        self.does_buffer_have_at_least(count)?;
-
-        // SAFETY: the necessary bounds checking is performed by the above function call.
-        unsafe {
-            let end = self.pos + count;
-            debug_assert!(self.buffer.get(self.pos..end).is_some());
-            Ok(self.buffer.get_unchecked(self.pos..end))
-        }
+    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]> {
+        self.peek_byte_slice_exact_impl(count)
     }
 
-    fn read_byte_slice_exact(&mut self, count: usize) -> Result<&'a [u8]> {
-        let byte_slice = self.peek_byte_slice_exact(count)?;
+    fn read_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]> {
+        let byte_slice = self.peek_byte_slice_exact_impl(count)?;
         self.pos += count;
         Ok(byte_slice)
     }
