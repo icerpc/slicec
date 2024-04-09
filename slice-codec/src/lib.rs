@@ -9,7 +9,7 @@
 extern crate alloc;
 
 // If the 'std' feature is set, pull in [`std`](https://doc.rust-lang.org/std) as an external crate.
-// Note that the [`prelude`](https://doc.rust-lang.org/std/prelude) is still disabled (for safety),
+// Note that even with this feature, parts of the [`prelude`](https://doc.rust-lang.org/std/prelude) are still disabled,
 // so we need to fully qualify (or explicitly `use`) types that normally would be pulled in automatically.
 #[cfg(feature = "std")]
 extern crate std;
@@ -23,15 +23,15 @@ pub mod slice2;
 pub mod slice1;
 
 pub mod buffer;
+pub mod decode_from;
 pub mod decoder;
+pub mod encode_into;
 pub mod encoder;
-pub mod try_decode;
-pub mod try_encode;
-
-// Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
-mod error;
-pub use error::*;
 
 // These modules are private because they don't export any types, just implementations.
 mod decoding;
 mod encoding;
+
+// Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
+mod error;
+pub use error::*;
