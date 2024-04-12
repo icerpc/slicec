@@ -9,8 +9,8 @@ use alloc::boxed::Box;
 
 /// A specialized [`Result`](core::result::Result) type for encoding and decoding functions which may produce errors.
 ///
-/// This typedef is a convenience to avoid repetitively specifying [`Error`] as the error type, and is otherwise a
-/// direct mapping to [`core::result::Result`].
+/// This typedef is a convenience to avoid repetitively specifying [`Error`] as the error type, and is a direct mapping
+/// to a [`core::result::Result`] with an `Err` type of [`Error`].
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// The error type for encoding and decoding functions.
