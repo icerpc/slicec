@@ -35,3 +35,9 @@ mod encoding;
 // Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
 mod error;
 pub use error::*;
+
+/// A marker for types which represent a specific version/implementation of a Slice encoding.
+///
+/// Types which implement this trait can be used to specialize implementations of the [`DecodeFrom`] and [`EncodeInto`]
+/// traits, and as a type argument for [`Encoders`](Encoder) and [`Decoders`](Decoder).
+pub trait Encoding: Sized {}
