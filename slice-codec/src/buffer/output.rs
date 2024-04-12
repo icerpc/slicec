@@ -17,6 +17,17 @@ use alloc::vec::Vec;
 
 /// A trait for types that can be written to by a [Slice encoder](crate::encoder::Encoder).
 pub trait OutputTarget {
+    /// Returns the number of unwritten bytes currently remaining in the target.
+    ///
+    /// Note: some implementations are capable of growing their underlying buffers as needed. For these implementations,
+    /// this function returns how many bytes can be written _without needing to grow_ ie. "... currently remaining ...".
+    /// For these types, it's generally safe to write more than `remaining()` bytes to the target, since it will simply
+    /// grow as needed. But these writes can still fail if an allocation error occurs.
+    fn remaining(&self) -> usize;
+
+    /// Attempts to write the provided byte into this target.
+    fn write_byte(&mut self, byte: u8) -> Result<()>;
+
     /// Attempts to write the provided bytes into this target.
     ///
     /// This function will not return until either all the provided bytes have been written, or an unrecoverable error
@@ -73,8 +84,12 @@ pub struct SliceOutputTarget<'a> {
 }
 
 impl<'a> SliceOutputTarget<'a> {
+    /// Checks whether there are at least `requested` unwritten bytes left in the buffer.
+    /// If there are, this returns `Ok`, and if there aren't this returns an [`ErrorKind::UnexpectedEob`] error.
+    ///
+    /// This function is only used internally to ensure a particular write operation is safe to attempt.
     fn does_buffer_have_at_least(&self, requested: usize) -> Result<()> {
-        let remaining = self.buffer.len() - self.pos;
+        let remaining = self.remaining();
         if remaining < requested {
             let error = ErrorKind::UnexpectedEob { requested, remaining };
             Err(error.into())
@@ -85,18 +100,35 @@ impl<'a> SliceOutputTarget<'a> {
 }
 
 impl OutputTarget for SliceOutputTarget<'_> {
+    fn remaining(&self) -> usize {
+        self.buffer.len() - self.pos
+    }
+
+    fn write_byte(&mut self, byte: u8) -> Result<()> {
+        self.does_buffer_have_at_least(1)?;
+
+        // SAFETY: the above function call guarantees there's enough space in `self.buffer` to write a single byte.
+        unsafe {
+            debug_assert!(self.buffer.get_mut(self.pos).is_some());
+            *self.buffer.get_unchecked_mut(self.pos) = byte;
+            self.pos += 1;
+            Ok(())
+        }
+    }
+
     fn write_bytes_exact(&mut self, bytes: &[u8]) -> Result<()> {
-        self.does_buffer_have_at_least(bytes.len())?;
+        let count = bytes.len();
+        self.does_buffer_have_at_least(count)?;
 
         // SAFETY: the above function call guarantees there's enough space in `self.buffer` to write `bytes`,
         // and we know the slices cannot overlap because the mutable borrow of `self` guarantees exclusive access.
         unsafe {
-            let end = self.pos + bytes.len();
+            let end = self.pos + count;
             debug_assert!(self.buffer.get_mut(self.pos..end).is_some());
             let target_slice = self.buffer.get_unchecked_mut(self.pos..end);
-            debug_assert_eq!(target_slice.len(), bytes.len());
+            debug_assert_eq!(target_slice.len(), count);
 
-            core::ptr::copy_nonoverlapping(bytes.as_ptr(), target_slice.as_mut_ptr(), bytes.len());
+            core::ptr::copy_nonoverlapping(bytes.as_ptr(), target_slice.as_mut_ptr(), count);
             self.pos = end;
             Ok(())
         }
@@ -162,11 +194,20 @@ pub struct VecOutputTarget<'a> {
 
 #[cfg(feature = "alloc")]
 impl<'a> VecOutputTarget<'a> {
+    /// Attempts to ensure there are at least `requested` unwritten bytes available in the buffer.
+    ///
+    /// If there is already `requested`-many bytes in the underlying Vec's spare capacity, this is no-op.
+    /// Otherwise, it will attempt to allocate (at least) `requested`-many bytes of additional capacity.
+    ///
+    /// If there was insufficient capacity, and the allocation failed, this will return an [`ErrorKind::UnexpectedEob`]
+    /// error. Otherwise it will return `Ok`.
+    ///
+    /// This function is only used internally to ensure there is enough capacity before attempting a write operation.
     fn ensure_buffer_has_at_least(&mut self, requested: usize) -> Result<()> {
         // Use `try_reserve` to ensure there is sufficient space in the buffer. It will re-allocate if necessary.
         self.buffer.try_reserve(requested).map_err(|_err| {
             // If an error occurred, we wrap it in our own `UnexpectedEob` error and return it.
-            let remaining = self.buffer.capacity() - self.buffer.len();
+            let remaining = self.remaining();
             let kind = ErrorKind::UnexpectedEob { requested, remaining };
 
             // Remove this feature gate when the `Error` trait is moved; https://github.com/icerpc/slice-rust/issues/1.
@@ -180,6 +221,25 @@ impl<'a> VecOutputTarget<'a> {
 
 #[cfg(feature = "alloc")]
 impl OutputTarget for VecOutputTarget<'_> {
+    fn remaining(&self) -> usize {
+        self.buffer.capacity() - self.buffer.len()
+    }
+
+    fn write_byte(&mut self, byte: u8) -> Result<()> {
+        self.ensure_buffer_has_at_least(1)?;
+
+        // SAFETY: the above function call guarantees there's enough space in `self.buffer` to write a single byte.
+        unsafe {
+            debug_assert!(self.buffer.spare_capacity_mut().get_mut(0).is_some());
+            let target = self.buffer.spare_capacity_mut().get_unchecked_mut(0);
+            target.write(byte);
+
+            let old_length = self.buffer.len();
+            self.buffer.set_len(old_length + 1);
+            Ok(())
+        }
+    }
+
     fn write_bytes_exact(&mut self, bytes: &[u8]) -> Result<()> {
         let count = bytes.len();
         self.ensure_buffer_has_at_least(count)?;

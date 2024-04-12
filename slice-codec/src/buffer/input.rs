@@ -9,6 +9,9 @@ use core::{debug_assert, debug_assert_eq};
 
 /// A trait for types that can be read from by a [Slice decoder](crate::decoder::Decoder).
 pub trait InputSource {
+    /// Returns the number of unread bytes currently remaining in the source.
+    fn remaining(&self) -> usize;
+
     /// Returns the next byte of input from this source, without consuming it.
     ///
     /// If there no more bytes available from this source, an [`ErrorKind::UnexpectedEob`] error is returned instead.
@@ -45,8 +48,12 @@ pub struct SliceInputSource<'a> {
 }
 
 impl<'a> SliceInputSource<'a> {
+    /// Checks whether there are at least `requested` unread bytes left in the buffer.
+    /// If there are, this returns `Ok`, and if there aren't this returns an [`ErrorKind::UnexpectedEob`] error.
+    ///
+    /// This function is only used internally to ensure a particular read operation is safe to attempt.
     fn does_buffer_have_at_least(&self, requested: usize) -> Result<()> {
-        let remaining = self.buffer.len() - self.pos;
+        let remaining = self.remaining();
         if remaining < requested {
             let error = ErrorKind::UnexpectedEob { requested, remaining };
             Err(error.into())
@@ -55,6 +62,11 @@ impl<'a> SliceInputSource<'a> {
         }
     }
 
+    /// The implementation used by `peek_bytes_exact` and `read_bytes_exact`.
+    /// It's implemented as a separate function so we can return a different lifetime than what the trait demands.
+    ///
+    /// The trait function requires we return a lifetime bound to `self`, whereas this function returns a lifetime
+    /// bound to the underlying buffer (`'a`). Returning a narrower lifetime lets us mutate other fields of `self`.
     fn peek_bytes_exact_impl<const N: usize>(&self) -> Result<&'a [u8; N]> {
         let bytes = self.peek_byte_slice_exact_impl(N)?;
 
@@ -66,6 +78,11 @@ impl<'a> SliceInputSource<'a> {
         }
     }
 
+    /// The implementation used by `peek_byte_slice_exact` and `read_byte_slice_exact`.
+    /// It's implemented as a separate function so we can return a different lifetime than what the trait demands.
+    ///
+    /// The trait function requires we return a lifetime bound to `self`, whereas this function returns a lifetime
+    /// bound to the underlying buffer (`'a`). Returning a narrower lifetime lets us mutate other fields of `self`.
     fn peek_byte_slice_exact_impl(&self, count: usize) -> Result<&'a [u8]> {
         self.does_buffer_have_at_least(count)?;
 
@@ -79,6 +96,10 @@ impl<'a> SliceInputSource<'a> {
 }
 
 impl InputSource for SliceInputSource<'_> {
+    fn remaining(&self) -> usize {
+        self.buffer.len() - self.pos
+    }
+
     fn peek_byte(&mut self) -> Result<u8> {
         self.does_buffer_have_at_least(1)?;
 
