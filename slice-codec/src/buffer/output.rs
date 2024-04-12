@@ -4,7 +4,6 @@
 
 use crate::{ErrorKind, Result};
 
-use core::borrow::BorrowMut;
 use core::ops::Range;
 use core::{debug_assert, debug_assert_eq};
 
@@ -170,13 +169,21 @@ impl OutputTarget for SliceOutputTarget<'_> {
     }
 }
 
-impl<'a, T> From<&'a mut T> for SliceOutputTarget<'a>
-    where T: BorrowMut<[u8]> + ?Sized
-{
+impl<'a> From<&'a mut [u8]> for SliceOutputTarget<'a> {
     /// Creates a new [`SliceOutputTarget`] that wraps the provided buffer.
-    fn from(value: &'a mut T) -> Self {
+    fn from(value: &'a mut [u8]) -> Self {
         Self {
-            buffer: value.borrow_mut(),
+            buffer: value,
+            pos: 0,
+        }
+    }
+}
+
+impl<'a, const N: usize> From<&'a mut [u8; N]> for SliceOutputTarget<'a> {
+    /// Creates a new [`SliceOutputTarget`] that wraps the provided array.
+    fn from(value: &'a mut [u8; N]) -> Self {
+        Self {
+            buffer: value.as_mut_slice(),
             pos: 0,
         }
     }
