@@ -28,10 +28,6 @@ pub mod decoder;
 pub mod encode_into;
 pub mod encoder;
 
-// These modules are private because they don't export any types, just implementations.
-mod decoding;
-mod encoding;
-
 // Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
 mod error;
 pub use error::*;
