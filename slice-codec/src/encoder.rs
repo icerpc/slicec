@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::buffer::output::OutputTarget;
-use crate::Encoding;
+use crate::encode_into::EncodeInto;
+use crate::{Encoding, Result};
 
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
@@ -46,6 +47,11 @@ impl<O: OutputTarget, E: Encoding> Encoder<O, E> {
     /// TODO
     pub fn set_encoding<EPrime: Encoding>(self) -> Encoder<O, EPrime> {
         Encoder::new_with_inferred_encoding(self.output)
+    }
+
+    /// Attempts to encode the provided value into this encoder's underlying output-target.
+    pub fn encode<T: EncodeInto<E>>(&mut self, value: T) -> Result<()> {
+        value.encode_into(self)
     }
 }
 

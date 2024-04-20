@@ -1,7 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::buffer::input::InputSource;
-use crate::Encoding;
+use crate::decode_from::DecodeFrom;
+use crate::{Encoding, Result};
 
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
@@ -46,6 +47,11 @@ impl<I: InputSource, E: Encoding> Decoder<I, E> {
     /// TODO
     pub fn set_encoding<EPrime: Encoding>(self) -> Decoder<I, EPrime> {
         Decoder::new_with_inferred_encoding(self.input)
+    }
+
+    /// Attempts to decode a value of the specified type from this decoder's underlying input-source.
+    pub fn decode<T: DecodeFrom<E>>(&mut self) -> Result<T> {
+        T::decode_from(self)
     }
 }
 
