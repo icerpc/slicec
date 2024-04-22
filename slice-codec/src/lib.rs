@@ -9,8 +9,8 @@
 extern crate alloc;
 
 // If the 'std' feature is set, pull in [`std`](https://doc.rust-lang.org/std) as an external crate.
-// Note that even with this feature, parts of the [`prelude`](https://doc.rust-lang.org/std/prelude) are still disabled,
-// so we need to fully qualify (or explicitly `use`) types that normally would be pulled in automatically.
+// Even with this feature, parts of the [`prelude`](https://doc.rust-lang.org/std/prelude) are still disabled,
+// so we need to fully qualify (or explicitly `use`) some types that would normally be pulled in automatically.
 #[cfg(feature = "std")]
 extern crate std;
 
