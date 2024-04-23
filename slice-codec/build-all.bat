@@ -15,9 +15,9 @@ cargo build --no-default-features --features alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo build --no-default-features --features std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features bytes
+cargo build --no-default-features --features tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features std,bytes
+cargo build --no-default-features --features std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -28,9 +28,9 @@ cargo build --no-default-features --features slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo build --no-default-features --features slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice2,bytes
+cargo build --no-default-features --features slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice2,std,bytes
+cargo build --no-default-features --features slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -41,9 +41,9 @@ cargo build --no-default-features --features slice1,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo build --no-default-features --features slice1,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice1,bytes
+cargo build --no-default-features --features slice1,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice1,std,bytes
+cargo build --no-default-features --features slice1,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -54,9 +54,9 @@ cargo build --no-default-features --features slice1,slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo build --no-default-features --features slice1,slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice1,slice2,bytes
+cargo build --no-default-features --features slice1,slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo build --no-default-features --features slice1,slice2,std,bytes
+cargo build --no-default-features --features slice1,slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -71,9 +71,9 @@ cargo clippy --all-targets --no-default-features --features alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo clippy --all-targets --no-default-features --features std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features bytes
+cargo clippy --all-targets --no-default-features --features tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features std,bytes
+cargo clippy --all-targets --no-default-features --features std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -84,9 +84,9 @@ cargo clippy --all-targets --no-default-features --features slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo clippy --all-targets --no-default-features --features slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice2,bytes
+cargo clippy --all-targets --no-default-features --features slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice2,std,bytes
+cargo clippy --all-targets --no-default-features --features slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -97,9 +97,9 @@ cargo clippy --all-targets --no-default-features --features slice1,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo clippy --all-targets --no-default-features --features slice1,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice1,bytes
+cargo clippy --all-targets --no-default-features --features slice1,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice1,std,bytes
+cargo clippy --all-targets --no-default-features --features slice1,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -110,9 +110,9 @@ cargo clippy --all-targets --no-default-features --features slice1,slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo clippy --all-targets --no-default-features --features slice1,slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice1,slice2,bytes
+cargo clippy --all-targets --no-default-features --features slice1,slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo clippy --all-targets --no-default-features --features slice1,slice2,std,bytes
+cargo clippy --all-targets --no-default-features --features slice1,slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -128,9 +128,9 @@ cargo +nightly miri test --no-default-features --features slice1,slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo +nightly miri test --no-default-features --features slice1,slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo +nightly miri test --no-default-features --features slice1,slice2,bytes
+cargo +nightly miri test --no-default-features --features slice1,slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo +nightly miri test --no-default-features --features slice1,slice2,std,bytes
+cargo +nightly miri test --no-default-features --features slice1,slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -145,9 +145,9 @@ cargo doc --document-private-items --no-default-features --features alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo doc --document-private-items --no-default-features --features std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features bytes
+cargo doc --document-private-items --no-default-features --features tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features std,bytes
+cargo doc --document-private-items --no-default-features --features std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -158,9 +158,9 @@ cargo doc --document-private-items --no-default-features --features slice2,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo doc --document-private-items --no-default-features --features slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice2,bytes
+cargo doc --document-private-items --no-default-features --features slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice2,std,bytes
+cargo doc --document-private-items --no-default-features --features slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -171,9 +171,9 @@ cargo doc --document-private-items --no-default-features --features slice1,alloc
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo doc --document-private-items --no-default-features --features slice1,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice1,bytes
+cargo doc --document-private-items --no-default-features --features slice1,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice1,std,bytes
+cargo doc --document-private-items --no-default-features --features slice1,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
 
 ECHO.
@@ -184,7 +184,7 @@ cargo doc --document-private-items --no-default-features --features slice1,slice
 if %ERRORLEVEL% NEQ 0 EXIT
 cargo doc --document-private-items --no-default-features --features slice1,slice2,std
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice1,slice2,bytes
+cargo doc --document-private-items --no-default-features --features slice1,slice2,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
-cargo doc --document-private-items --no-default-features --features slice1,slice2,std,bytes
+cargo doc --document-private-items --no-default-features --features slice1,slice2,std,tokio
 if %ERRORLEVEL% NEQ 0 EXIT
