@@ -3,7 +3,6 @@
 use crate::buffer::InputSource;
 use crate::decode_from::DecodeFrom;
 use crate::{Encoding, Result};
-
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 

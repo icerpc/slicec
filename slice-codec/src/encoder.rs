@@ -3,7 +3,6 @@
 use crate::buffer::OutputTarget;
 use crate::encode_into::EncodeInto;
 use crate::{Encoding, Result};
-
 use core::marker::PhantomData;
 use core::ops::{Deref, DerefMut};
 
