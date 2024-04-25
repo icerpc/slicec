@@ -34,6 +34,7 @@ pub use error::*;
 
 /// A marker for types which represent a specific version/implementation of a Slice encoding.
 ///
-/// Types which implement this trait can be used to specialize implementations of the [`DecodeFrom`] and [`EncodeInto`]
-/// traits, and as a type argument for [`Encoders`](Encoder) and [`Decoders`](Decoder).
+/// Types which implement this trait can be used to specialize implementations of the
+/// [`DecodeFrom`](decode_from::DecodeFrom) and [`EncodeInto`](encode_into::EncodeInto) traits,
+/// and as a type argument for [`Encoders`](encoder::Encoder) and [`Decoders`](decoder::Decoder).
 pub trait Encoding: Sized {}
