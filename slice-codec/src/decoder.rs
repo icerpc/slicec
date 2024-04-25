@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::input::InputSource;
+use crate::buffer::InputSource;
 use crate::decode_from::DecodeFrom;
 use crate::{Encoding, Result};
 
