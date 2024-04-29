@@ -4,6 +4,11 @@ use core::fmt::{Display, Formatter};
 use core::ops::Range;
 use core::write;
 
+#[cfg(feature = "alloc")]
+use alloc::collections::TryReserveError;
+#[cfg(feature = "alloc")]
+use alloc::string::FromUtf8Error;
+
 #[cfg(feature = "std")]
 use alloc::boxed::Box;
 
@@ -76,10 +81,10 @@ impl std::error::Error for Error {
     }
 }
 
-impl From<ErrorKind> for Error {
+impl<T: Into<ErrorKind>> From<T> for Error {
     /// Creates a new [`Error`] from the provided [`ErrorKind`], with no underlying source.
-    fn from(value: ErrorKind) -> Self {
-        Self::new(value)
+    fn from(value: T) -> Self {
+        Self::new(value.into())
     }
 }
 
@@ -99,26 +104,83 @@ pub enum ErrorKind {
     },
 
     /// A buffer reservation did not fit within its buffer.
-    /// Receiving this error represents a serious problem in the implementation, or intentional tampering by callers.
-    /// See [`write_bytes_exact_into_reserved`](crate::buffer::output::OutputTarget::write_bytes_into_reserved_exact).
+    /// This error represents a serious problem in the implementation, or intentional tampering by callers.
+    /// See [`write_bytes_exact_into_reserved`](crate::buffer::OutputTarget::write_bytes_into_reserved_exact).
     InvalidReservation {
         /// The length of the buffer.
         buffer_len: usize,
         /// The range (pair of indices) in the buffer which were reserved invalidly.
         reserved_range: Range<usize>,
     },
+
+    /// The system failed to allocate memory.
+    /// Unlike [`ErrorKind::AllocationLimitReached`], 
+    ///
+    /// Most probably, this happened when a decoder attempted to allocate space for a string or collection.
+    #[cfg(feature = "alloc")]
+    AllocationError(TryReserveError),
+
+    /// Hello
+    AllocationLimitReached {
+        requested: usize,
+
+        remaining: usize,
+    },
+
+    InvalidData(InvalidDataErrorKind),
 }
 
 impl Display for ErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::UnexpectedEob { requested, remaining } => {
-                write!(f, "unexpected end of buffer: attempted to read '{requested}' bytes from buffer with only '{remaining}' bytes remaining")
+                write!(f, "unexpected end of buffer: attempted to read '{requested}' bytes from a buffer with only '{remaining}' bytes remaining")
             }
             Self::InvalidReservation { buffer_len, reserved_range } => {
                 let Range { start, end } = reserved_range;
                 write!(f, "invalid reservation: range '[{start}..{end})' does not fit within buffer of length '{buffer_len}'")
             }
+            Self::OutOfRange { value, min, max, typename } => {
+                write!(f, "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]")
+            }
+            _ => todo!(),
         }
+    }
+}
+
+#[derive(Debug)]
+#[non_exhaustive]
+enum InvalidDataErrorKind {
+    /// TODO
+    IllegalValue {
+        desc: &'static str,
+        value: Option<i128>,
+    },
+
+    /// TODO
+    /// A malformed string (one whose bytes aren't valid UTF8) was encountered.
+    #[cfg(feature = "alloc")]
+    InvalidString(FromUtf8Error),
+
+    /// TODO
+    OutOfRange {
+        value: i128,
+        min: i128,
+        max: i128,
+        typename: &'static str,
+    },
+}
+
+#[cfg(feature = "alloc")]
+impl From<TryReserveError> for Error {
+    fn from(value: TryReserveError) -> Self {
+        Error::from(ErrorKind::AllocationError(value))
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<FromUtf8Error> for Error {
+    fn from(value: FromUtf8Error) -> Self {
+        Error::from(ErrorKind::InvalidString(value))
     }
 }
