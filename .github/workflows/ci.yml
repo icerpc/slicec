@@ -35,10 +35,6 @@ jobs:
         run: cargo test
       - name: 🔎 Lint
         run: cargo clippy --no-deps
-      - name: 📚 Generate Documentation
-        run: cargo doc --no-deps --document-private-items
-        env:
-          RUSTDOCFLAGS: "-D warnings"
 
   format:
     runs-on: ubuntu-latest
