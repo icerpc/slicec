@@ -4,15 +4,15 @@ use super::*;
 use crate::buffer::InputSource;
 use crate::decode_from::*;
 use crate::decoder::Decoder;
-use crate::{Error, ErrorKind, Result};
+use crate::{Error, InvalidDataErrorKind, Result};
 
 // We only support `String`, `Vec`, and `BTreeMap` if the `alloc` crate is available through the `alloc` feature flag.
+#[cfg(feature = "alloc")]
+use alloc::collections::BTreeMap;
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-#[cfg(feature = "alloc")]
-use alloc::collections::BTreeMap;
 
 // We only support `HashMap` if the standard library is available through the `std` feature flag.
 #[cfg(feature = "std")]
@@ -26,7 +26,7 @@ use std::hash::Hash;
 
 /// TODO
 fn illegal_bool_error(value: u8) -> Error {
-    let error = ErrorKind::IllegalValue {
+    let error = InvalidDataErrorKind::IllegalValue {
         desc: "bools can only have a numeric value of either '0' or '1'",
         value: Some(value as i128),
     };
@@ -83,7 +83,7 @@ implement_decode_from_on_numeric_primitive_type! {f64, Slice2, "Decodes a [`f64`
 fn varint_range_error<T>(value: i64) -> Error {
     let size = core::mem::size_of::<T>() as u32;
     let shift_count = i128::BITS - (size * 8);
-    let error = ErrorKind::OutOfRange {
+    let error = InvalidDataErrorKind::OutOfRange {
         value: value as i128,
         min: i128::MIN >> shift_count,
         max: i128::MAX >> shift_count,
@@ -98,7 +98,7 @@ fn varint_range_error<T>(value: i64) -> Error {
 fn varuint_range_error<T>(value: u64) -> Error {
     let size = core::mem::size_of::<T>() as u32;
     let shift_count = u128::BITS - (size * 8);
-    let error = ErrorKind::OutOfRange {
+    let error = InvalidDataErrorKind::OutOfRange {
         value: value as i128,
         min: 0,
         max: (u128::MAX >> shift_count) as i128,
@@ -205,7 +205,7 @@ impl DecodeFrom<Slice2> for String {
 
 #[cfg(feature = "alloc")]
 impl<T> DecodeFrom<Slice2> for Vec<T>
-    where T: DecodeFrom<Slice2>,
+where T: DecodeFrom<Slice2>
 {
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {

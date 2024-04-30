@@ -46,7 +46,7 @@ macro_rules! decode_dictionary_entries {
         for _ in 0..$length {
             let key = $decoder.decode()?;
             let value = $decoder.decode()?;
-            if let Some(duplicate) = $map.insert(key, value) {
+            if let Some(_duplicate) = $map.insert(key, value) {
                 // TODO
                 // If you insert a duplicate key into the map, it will return the old key.
                 // So, if we hit this, we return  an error, because dictionary keys must be unique.

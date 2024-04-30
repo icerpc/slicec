@@ -114,7 +114,7 @@ pub enum ErrorKind {
     },
 
     /// The system failed to allocate memory.
-    /// Unlike [`ErrorKind::AllocationLimitReached`], 
+    /// Unlike [`ErrorKind::AllocationLimitReached`],
     ///
     /// Most probably, this happened when a decoder attempted to allocate space for a string or collection.
     #[cfg(feature = "alloc")]
@@ -140,22 +140,17 @@ impl Display for ErrorKind {
                 let Range { start, end } = reserved_range;
                 write!(f, "invalid reservation: range '[{start}..{end})' does not fit within buffer of length '{buffer_len}'")
             }
-            Self::OutOfRange { value, min, max, typename } => {
-                write!(f, "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]")
-            }
+            Self::InvalidData(inner) => inner.fmt(f),
             _ => todo!(),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
-enum InvalidDataErrorKind {
+pub enum InvalidDataErrorKind {
     /// TODO
-    IllegalValue {
-        desc: &'static str,
-        value: Option<i128>,
-    },
+    IllegalValue { desc: &'static str, value: Option<i128> },
 
     /// TODO
     /// A malformed string (one whose bytes aren't valid UTF8) was encountered.
@@ -171,6 +166,38 @@ enum InvalidDataErrorKind {
     },
 }
 
+impl Display for InvalidDataErrorKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::IllegalValue { desc, value } => {
+                if let Some(value) = value {
+                    write!(f, "illegal value: {desc} (value: {value})")
+                } else {
+                    write!(f, "illegal value: {desc}")
+                }
+            }
+            Self::OutOfRange {
+                value,
+                min,
+                max,
+                typename,
+            } => {
+                write!(
+                    f,
+                    "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]"
+                )
+            }
+            _ => todo!(),
+        }
+    }
+}
+
+impl From<InvalidDataErrorKind> for ErrorKind {
+    fn from(value: InvalidDataErrorKind) -> Self {
+        ErrorKind::InvalidData(value)
+    }
+}
+
 #[cfg(feature = "alloc")]
 impl From<TryReserveError> for Error {
     fn from(value: TryReserveError) -> Self {
@@ -181,6 +208,6 @@ impl From<TryReserveError> for Error {
 #[cfg(feature = "alloc")]
 impl From<FromUtf8Error> for Error {
     fn from(value: FromUtf8Error) -> Self {
-        Error::from(ErrorKind::InvalidString(value))
+        Error::from(InvalidDataErrorKind::InvalidString(value))
     }
 }

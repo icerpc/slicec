@@ -4,7 +4,7 @@ use super::*;
 use crate::buffer::OutputTarget;
 use crate::encode_into::*;
 use crate::encoder::Encoder;
-use crate::{Error, ErrorKind, Result};
+use crate::{Error, InvalidDataErrorKind, Result};
 
 // We only support `BTreeMap` if the `alloc` crate is available through the `alloc` feature flag.
 #[cfg(feature = "alloc")]
@@ -59,7 +59,7 @@ implement_encode_into_on_numeric_primitive_type! {f64, Slice2, "Encodes this [`f
 
 /// TODO
 fn varint_range_error(value: impl Into<i128>) -> Error {
-    let error = ErrorKind::OutOfRange {
+    let error = InvalidDataErrorKind::OutOfRange {
         value: value.into(),
         min: VARINT62_MIN as i128,
         max: VARINT62_MAX as i128,
@@ -70,7 +70,7 @@ fn varint_range_error(value: impl Into<i128>) -> Error {
 
 /// TODO
 fn varuint_range_error(value: impl Into<i128>) -> Error {
-    let error = ErrorKind::OutOfRange {
+    let error = InvalidDataErrorKind::OutOfRange {
         value: value.into(),
         min: VARUINT62_MIN as i128,
         max: VARUINT62_MAX as i128,
@@ -171,7 +171,7 @@ impl EncodeInto<Slice2> for &str {
 
 /// TODO
 impl<'a, T> EncodeInto<Slice2> for &'a [T]
-    where &'a T: EncodeInto<Slice2>,
+where &'a T: EncodeInto<Slice2>
 {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
         encoder.encode(self.len())?;
