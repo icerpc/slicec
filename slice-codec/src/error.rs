@@ -87,7 +87,7 @@ impl From<ErrorKind> for Error {
 /// It is typically held by an [`Error`].
 ///
 /// This list may grow over time, so it is not recommended to exhaustively match against it.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// A function attempted to read past the end of a buffer.

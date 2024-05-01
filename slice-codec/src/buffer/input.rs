@@ -168,38 +168,103 @@ mod tests {
 
     mod slice_input_source {
         use super::*;
-        use test_case::test_matrix;
 
-        // TODO we need to write more comprehensive tests
-
+        /// Verifies that [`does_buffer_have_at_least`] returns the correct number of remaining bytes in the buffer
+        /// when the remaining bytes number are greater than or equal to the number of requested bytes.
         #[test]
-        fn peeking_a_byte_does_not_advance_the_position() {
+        fn does_buffer_has_at_least_returns_ok() {
             // Arrange
-            let buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-            let mut input = SliceInputSource::from(&buffer);
-            assert_eq!(input.pos, 0);
+            let buffer = [115, 108, 105, 99, 101];
+            let source = SliceInputSource::from(&buffer);
 
             // Act
-            let _ = input.peek_byte().unwrap();
+            let result = source.does_buffer_have_at_least(5);
 
             // Assert
-            assert_eq!(input.pos, 0);
+            assert!(result.is_ok());
         }
 
-        #[test_matrix([0, 1, 4, 7])]
-        fn peeking_a_single_byte_returns_the_correct_value(bytes_to_skip: usize) {
+        /// Verifies that [`does_buffer_have_at_least`] returns an error when the remaining bytes number are less than
+        /// the number of requested bytes.
+        #[test]
+        fn does_buffer_have_at_least_returns_error() {
             // Arrange
-            let buffer = [0, 1, 2, 3, 4, 5, 6, 7];
-            let mut input = SliceInputSource::from(&buffer);
-            assert_eq!(input.read_byte_slice_exact(bytes_to_skip).unwrap(), &buffer[..bytes_to_skip]);
-            assert_eq!(input.pos, bytes_to_skip);
+            let source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
 
             // Act
-            let result = input.peek_byte().unwrap();
+            let result = source.does_buffer_have_at_least(6);
 
             // Assert
-            assert_eq!(result, bytes_to_skip as u8);
-            assert_eq!(input.pos, bytes_to_skip);
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+                requested: 6,
+                remaining: 5,
+            });
+        }
+
+        /// Verifies that [`peek_byte`] returns the correct byte from the buffer without consuming it.
+        #[test]
+        fn peek_byte_returns_correct_byte() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.peek_byte();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 115);
+            assert_eq!(source.pos, 0);
+            assert_eq!(source.remaining(), 5);
+        }
+
+        /// Verifies that [`read_byte`] returns the correct byte from the buffer and consumes it.
+        #[test]
+        fn read_byte_returns_correct_byte() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.read_byte();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 115);
+            assert_eq!(source.pos, 1);
+            assert_eq!(source.remaining(), 4);
+        }
+
+        /// Verifies that [`peek_bytes_exact`] returns the correct number of bytes from the buffer without consuming
+        /// them.
+        #[test]
+        fn peek_bytes_exact_returns_correct_bytes() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.peek_bytes_exact::<3>();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), &[115, 108, 105]);
+            assert_eq!(source.pos, 0);
+            assert_eq!(source.remaining(), 5);
+        }
+
+        /// Verifies that [`read_bytes_exact`] returns the correct number of bytes from the buffer and consumes them.
+        #[test]
+        fn read_bytes_exact_returns_correct_bytes() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.read_bytes_exact::<3>();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), &[115, 108, 105]);
+            assert_eq!(source.pos, 3);
+            assert_eq!(source.remaining(), 2);
         }
     }
 }

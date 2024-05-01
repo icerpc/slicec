@@ -62,7 +62,7 @@ pub trait OutputTarget {
 
 /// Represents a span of bytes that have been reserved in an [`OutputTarget`].
 /// See [`OutputTarget::reserve_space`].
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 #[must_use]
 pub struct Reservation(Range<usize>);
 
@@ -326,87 +326,240 @@ impl<'a> From<&'a mut Vec<u8>> for VecOutputTarget<'a> {
     }
 }
 
-// TODO we need to write more comprehensive tests
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    mod slice_output_target {}
+    mod slice_output_target {
+
+        use super::*;
+
+        /// Verifies that [`does_buffer_have_at_least`] returns the correct number of remaining bytes in the buffer
+        /// when the remaining bytes number are greater than or equal to the number of requested bytes.
+        #[test]
+        fn does_buffer_has_at_least_returns_ok() {
+            // Arrange
+            let mut buffer = [115, 108, 105, 99, 101];
+            let target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.does_buffer_have_at_least(5);
+
+            // Assert
+            assert!(result.is_ok());
+        }
+
+        /// Verifies that [`does_buffer_have_at_least`] returns an error when the remaining bytes number are less than
+        /// the number of requested bytes.
+        #[test]
+        fn does_buffer_have_at_least_returns_error() {
+            // Arrange
+            let mut buffer = [115, 108, 105, 99, 101];
+            let target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.does_buffer_have_at_least(6);
+
+            // Assert
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+                requested: 6,
+                remaining: 5,
+            });
+        }
+
+        /// Verifies that [`write_byte`] writes the correct byte to the buffer and advances the position.
+        #[test]
+        fn write_byte_writes_correct_byte() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.write_byte(115);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 0, 0, 0, 0]);
+            assert_eq!(target.pos, 1);
+            assert_eq!(target.remaining(), 4);
+        }
+
+        /// Verifies that [`write_bytes_exact`] writes the correct bytes to the buffer and advances the position.
+        #[test]
+        fn write_bytes_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.write_bytes_exact(&[115, 108, 105, 99, 101]);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 108, 105, 99, 101]);
+            assert_eq!(target.pos, 5);
+            assert_eq!(target.remaining(), 0);
+        }
+
+        /// Verifies that [`reserve_space`] reserves the correct number of bytes in the buffer and advances the
+        /// position past the reserved space so that the next write operation will not write into the reserved space.
+        #[test]
+        fn reserve_space_reserves_correct_space() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let reserve_result = target.reserve_space(3);
+            let write_result = target.write_byte(99);
+
+            // Assert
+            assert!(reserve_result.is_ok());
+            assert!(write_result.is_ok());
+
+            assert_eq!(reserve_result.unwrap().0, 0..3);
+            assert_eq!(target.pos, 4);
+            assert_eq!(target.remaining(), 1);
+            assert_eq!(target.buffer, [0, 0, 0, 99, 0]);
+        }
+
+        /// Verifies that [`write_bytes_into_reserved_exact`] writes the correct bytes to the reserved space in the
+        /// buffer and does not advance the position past the reserved space.
+        #[test]
+        fn write_bytes_into_reserved_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Should advance the position to 3.
+            let mut reservation = target.reserve_space(3).unwrap();
+
+            // Write a byte to ensure the position is advanced.
+            let _ = target.write_bytes_exact(&[99]);
+
+            // Act
+            let result = target.write_bytes_into_reserved_exact(&mut reservation, &[115, 108, 105]);
+
+            // Write a byte to ensure the position was not advanced.
+            let _ = target.write_byte(101);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 108, 105, 99, 101]);
+            assert_eq!(target.pos, 5);
+            assert_eq!(target.remaining(), 0);
+        }
+    }
 
     #[cfg(feature = "alloc")]
     mod vec_output_target {
+
         use super::*;
+        use alloc::vec;
 
-        // TODO test the case where `ensure_target_has_at_least` fails when the `Allocator` API is stabilized.
-        // See https://github.com/icerpc-slice-rust/issues/2
-
+        /// Verifies that [`ensure_buffer_has_at_least`] returns the correct number of remaining bytes in the buffer
+        /// when the remaining bytes number are greater than or equal to the number of requested bytes.
         #[test]
-        fn write_bytes_exact() {
-            let mut buffer = Vec::with_capacity(8);
-            let mut output = VecOutputTarget::from(&mut buffer);
-            assert_eq!(output.buffer.len(), 0);
-            assert_eq!(output.buffer.capacity(), 8);
+        fn ensure_buffer_has_at_least_returns_ok() {
+            // Arrange
+            let mut buffer = vec![115, 108, 105, 99, 101];
+            let mut target = VecOutputTarget::from(&mut buffer);
 
-            output.write_bytes_exact(&[8, 5, 3, 100]).unwrap();
-            assert_eq!(output.buffer.len(), 4);
-            assert_eq!(output.buffer.capacity(), 8);
-            assert_eq!(output.buffer.as_slice(), &[8, 5, 3, 100]);
+            // Act
+            let result = target.ensure_buffer_has_at_least(5);
 
-            output.write_bytes_exact(&[1, 2, 3, 4, 5, 6]).unwrap();
-            let new_capacity = output.buffer.capacity();
-            assert_eq!(output.buffer.len(), 10);
-            assert!(new_capacity >= 10); // We don't know how much it'll grow.
-            assert_eq!(output.buffer.as_slice(), &[8, 5, 3, 100, 1, 2, 3, 4, 5, 6]);
-
-            output.write_bytes_exact(&[]).unwrap();
-            assert_eq!(output.buffer.len(), 10);
-            assert_eq!(output.buffer.capacity(), new_capacity);
-            assert_eq!(output.buffer.as_slice(), &[8, 5, 3, 100, 1, 2, 3, 4, 5, 6]);
+            // Assert
+            assert!(result.is_ok());
         }
 
+        /// Verifies that [`ensure_buffer_has_at_least`] returns an error when the remaining bytes number are less
+        /// than the number of requested bytes.
         #[test]
-        fn write_bytes_exact_into_reserved() {
-            let mut buffer = Vec::with_capacity(8);
-            let mut output = VecOutputTarget::from(&mut buffer);
-            assert_eq!(output.buffer.len(), 0);
-            assert_eq!(output.buffer.capacity(), 8);
+        #[ignore = "TODO: See https://github.com/icerpc/slice-rust/issues/3"]
+        fn ensure_buffer_has_at_least_returns_error() {}
 
-            // Reserve some space at the start of the buffer we'll write to later.
-            let mut reservation = output.reserve_space(6).unwrap();
-            assert_eq!(output.buffer.len(), 6);
-            assert_eq!(output.buffer.capacity(), 8);
-            assert_eq!(output.buffer.as_slice(), &[0, 0, 0, 0, 0, 0]);
-            assert_eq!(reservation.0.start, 0);
-            assert_eq!(reservation.0.end, 6);
+        /// Verifies that [`write_byte`] writes the correct byte to the buffer.
+        #[test]
+        fn write_byte_writes_correct_byte() {
+            // Arrange
+            let mut buffer = Vec::new();
+            let mut target = VecOutputTarget::from(&mut buffer);
 
-            // Continue writing past the reserved section.
-            output.write_bytes_exact(&[79, 79]).unwrap();
-            assert_eq!(output.buffer.len(), 8);
-            assert_eq!(output.buffer.capacity(), 8);
-            assert_eq!(output.buffer.as_slice(), &[0, 0, 0, 0, 0, 0, 79, 79]);
+            // Act
+            let result = target.write_byte(115);
 
-            // Update the first 4 bytes of the reservation.
-            output.write_bytes_into_reserved_exact(&mut reservation, &[1, 2, 3, 4]).unwrap();
-            assert_eq!(output.buffer.len(), 8);
-            assert_eq!(output.buffer.capacity(), 8);
-            assert_eq!(output.buffer.as_slice(), &[1, 2, 3, 4, 0, 0, 79, 79]);
-            assert_eq!(reservation.0.start, 4);
-            assert_eq!(reservation.0.end, 6);
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, &[115]);
+            assert_eq!(target.remaining(), buffer.capacity() - 1);
+        }
 
-            // Write more stuff to the end.
-            output.write_bytes_exact(&[0, 1, 0, 1]).unwrap();
-            let new_capacity = output.buffer.capacity(); // We don't know how much it'll grow.
-            assert_eq!(output.buffer.len(), 12);
-            assert!(output.buffer.capacity() >= 12);
-            assert_eq!(output.buffer.as_slice(), &[1, 2, 3, 4, 0, 0, 79, 79, 0, 1, 0, 1]);
+        /// Verifies that [`write_bytes_exact`] writes the correct bytes to the buffer.
+        #[test]
+        fn write_bytes_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = Vec::new();
+            let mut target = VecOutputTarget::from(&mut buffer);
 
-            // Finish writing the reservation.
-            output.write_bytes_into_reserved_exact(&mut reservation, &[0, 6]).unwrap();
-            assert_eq!(output.buffer.len(), 12);
-            assert_eq!(output.buffer.capacity(), new_capacity);
-            assert_eq!(output.buffer.as_slice(), &[1, 2, 3, 4, 0, 6, 79, 79, 0, 1, 0, 1]);
-            assert_eq!(reservation.0.start, 6);
-            assert_eq!(reservation.0.end, 6);
+            // Act
+            let result = target.write_bytes_exact(&[115, 108, 105, 99, 101]);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, &[115, 108, 105, 99, 101]);
+            assert_eq!(target.buffer.len(), 5);
+            assert_eq!(target.remaining(), target.buffer.capacity() - 5);
+        }
+
+        /// Verifies that [`reserve_space`] reserves the correct number of bytes in the buffer and advances the
+        /// position past the reserved space so that the next write operation will not write into the reserved
+        /// space.
+        #[test]
+        fn reserve_space_reserves_correct_space() {
+            // Arrange
+            let mut buffer = Vec::new();
+            let mut target = VecOutputTarget::from(&mut buffer);
+
+            // Act
+            let reserve_result = target.reserve_space(3);
+            let write_result = target.write_byte(99);
+
+            // Assert
+            assert!(reserve_result.is_ok());
+            assert!(write_result.is_ok());
+
+            assert_eq!(reserve_result.unwrap(), Reservation(0..3));
+            assert_eq!(target.buffer.len(), 4);
+            assert_eq!(target.remaining(), target.buffer.capacity() - 4);
+            assert_eq!(buffer, [0, 0, 0, 99]);
+        }
+
+        /// Verifies that [`write_bytes_into_reserved_exact`] writes the correct bytes to the reserved space in the
+        /// buffer and does not advance the position past the reserved space.
+        #[test]
+        fn write_bytes_into_reserved_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = Vec::new();
+            let mut target = VecOutputTarget::from(&mut buffer);
+
+            // Should advance the position to 3.
+            let mut reservation = target.reserve_space(3).unwrap();
+
+            // Write a byte to ensure the position is advanced.
+            let _ = target.write_bytes_exact(&[99]);
+
+            // Act
+            let result = target.write_bytes_into_reserved_exact(&mut reservation, &[115, 108, 105]);
+
+            // Write a byte to ensure the position was not advanced.
+            let _ = target.write_byte(101);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, &[115, 108, 105, 99, 101]);
+            assert_eq!(target.buffer.len(), 5);
+            assert_eq!(target.remaining(), target.buffer.capacity() - 5);
         }
     }
 }
