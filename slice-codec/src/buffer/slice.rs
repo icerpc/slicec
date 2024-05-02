@@ -120,8 +120,7 @@ impl InputSource for SliceInputSource<'_> {
 }
 
 impl<'a, T> From<&'a T> for SliceInputSource<'a>
-where
-    T: Borrow<[u8]> + ?Sized,
+where T: Borrow<[u8]> + ?Sized
 {
     /// Creates a new [`SliceInputSource`] that wraps the provided buffer.
     fn from(value: &'a T) -> Self {
@@ -136,8 +135,7 @@ where
 // without needing to construct an intermediate [`SliceInputSource`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::decoder::Decoder<SliceInputSource<'a>>
-where
-    T: Into<SliceInputSource<'a>>,
+where T: Into<SliceInputSource<'a>>
 {
     fn from(value: T) -> Self {
         crate::decoder::Decoder::new_with_inferred_encoding(value.into())
@@ -261,8 +259,7 @@ impl<'a, const N: usize> From<&'a mut [u8; N]> for SliceOutputTarget<'a> {
 // without needing to construct an intermediate [`SliceOutputTarget`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::encoder::Encoder<SliceOutputTarget<'a>>
-where
-    T: Into<SliceOutputTarget<'a>>,
+where T: Into<SliceOutputTarget<'a>>
 {
     fn from(value: T) -> Self {
         crate::encoder::Encoder::new_with_inferred_encoding(value.into())
