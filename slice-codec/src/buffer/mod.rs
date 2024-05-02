@@ -15,16 +15,16 @@ pub trait InputSource {
     /// Returns the number of unread bytes currently remaining in the source.
     fn remaining(&self) -> usize;
 
-    /// Returns the next byte of input from this source, without consuming it.
+    /// Returns the next byte available from this source without consuming it.
     ///
-    /// If there no more bytes available from this source, an [`UnexpectedEob`] error is returned instead.
+    /// If there are no more bytes available from this source, an [`UnexpectedEob`] error is returned instead.
     ///
     /// [`UnexpectedEob`]: crate::ErrorKind::UnexpectedEob
     fn peek_byte(&mut self) -> Result<u8>;
 
-    /// Returns the next byte of input from this source, and advances past it (consuming it).
+    /// Returns the next byte available from this source, and advances past it (consuming it).
     ///
-    /// If there no more bytes available from this source, an [`UnexpectedEob`] error is returned instead.
+    /// If there are no more bytes available from this source, an [`UnexpectedEob`] error is returned instead.
     ///
     /// [`UnexpectedEob`]: crate::ErrorKind::UnexpectedEob
     fn read_byte(&mut self) -> Result<u8>;
@@ -42,7 +42,7 @@ pub trait InputSource {
     /// This function reads exactly `dest.len()`-many bytes, or if it's unable to, returns an error instead.
     /// If such an error occurs, no guarantees are made about how many bytes were read from the source, except that it
     /// is less than `dest.len()`.
-    fn read_bytes_into_exact(&mut self, dest: &mut [u8]) -> Result<()>;
+    fn read_bytes_into_buffer(&mut self, dest: &mut [u8]) -> Result<()>;
 }
 
 /// A trait for types that can be written to by a [Slice encoder](crate::encoder::Encoder).
