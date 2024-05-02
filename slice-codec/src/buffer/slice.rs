@@ -120,7 +120,8 @@ impl InputSource for SliceInputSource<'_> {
 }
 
 impl<'a, T> From<&'a T> for SliceInputSource<'a>
-    where T: Borrow<[u8]> + ?Sized
+where
+    T: Borrow<[u8]> + ?Sized,
 {
     /// Creates a new [`SliceInputSource`] that wraps the provided buffer.
     fn from(value: &'a T) -> Self {
@@ -135,7 +136,8 @@ impl<'a, T> From<&'a T> for SliceInputSource<'a>
 // without needing to construct an intermediate [`SliceInputSource`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::decoder::Decoder<SliceInputSource<'a>>
-    where T: Into<SliceInputSource<'a>>,
+where
+    T: Into<SliceInputSource<'a>>,
 {
     fn from(value: T) -> Self {
         crate::decoder::Decoder::new_with_inferred_encoding(value.into())
@@ -241,10 +243,7 @@ impl OutputTarget for SliceOutputTarget<'_> {
 impl<'a> From<&'a mut [u8]> for SliceOutputTarget<'a> {
     /// Creates a new [`SliceOutputTarget`] that wraps the provided buffer.
     fn from(value: &'a mut [u8]) -> Self {
-        Self {
-            buffer: value,
-            pos: 0,
-        }
+        Self { buffer: value, pos: 0 }
     }
 }
 
@@ -262,9 +261,239 @@ impl<'a, const N: usize> From<&'a mut [u8; N]> for SliceOutputTarget<'a> {
 // without needing to construct an intermediate [`SliceOutputTarget`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::encoder::Encoder<SliceOutputTarget<'a>>
-    where T: Into<SliceOutputTarget<'a>>,
+where
+    T: Into<SliceOutputTarget<'a>>,
 {
     fn from(value: T) -> Self {
         crate::encoder::Encoder::new_with_inferred_encoding(value.into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod slice_input_source {
+        use super::*;
+
+        /// Verifies that [`does_buffer_have_at_least`] returns the correct number of remaining bytes in the buffer
+        /// when the remaining bytes number are greater than or equal to the number of requested bytes.
+        #[test]
+        fn does_buffer_has_at_least_returns_ok() {
+            // Arrange
+            let buffer = [115, 108, 105, 99, 101];
+            let source = SliceInputSource::from(&buffer);
+
+            // Act
+            let result = source.does_buffer_have_at_least(5);
+
+            // Assert
+            assert!(result.is_ok());
+        }
+
+        /// Verifies that [`does_buffer_have_at_least`] returns an error when the remaining bytes number are less than
+        /// the number of requested bytes.
+        #[test]
+        fn does_buffer_have_at_least_returns_error() {
+            // Arrange
+            let source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.does_buffer_have_at_least(6);
+
+            // Assert
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+                requested: 6,
+                remaining: 5,
+            });
+        }
+
+        /// Verifies that [`peek_byte`] returns the correct byte from the buffer without consuming it.
+        #[test]
+        fn peek_byte_returns_correct_byte() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.peek_byte();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 115);
+            assert_eq!(source.pos, 0);
+            assert_eq!(source.remaining(), 5);
+        }
+
+        /// Verifies that [`read_byte`] returns the correct byte from the buffer and consumes it.
+        #[test]
+        fn read_byte_returns_correct_byte() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.read_byte();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 115);
+            assert_eq!(source.pos, 1);
+            assert_eq!(source.remaining(), 4);
+        }
+
+        /// Verifies that [`peek_bytes_exact`] returns the correct number of bytes from the buffer without consuming
+        /// them.
+        #[test]
+        fn peek_bytes_exact_returns_correct_bytes() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.peek_bytes_exact::<3>();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), &[115, 108, 105]);
+            assert_eq!(source.pos, 0);
+            assert_eq!(source.remaining(), 5);
+        }
+
+        /// Verifies that [`read_bytes_exact`] returns the correct number of bytes from the buffer and consumes them.
+        #[test]
+        fn read_bytes_exact_returns_correct_bytes() {
+            // Arrange
+            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
+
+            // Act
+            let result = source.read_bytes_exact::<3>();
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), &[115, 108, 105]);
+            assert_eq!(source.pos, 3);
+            assert_eq!(source.remaining(), 2);
+        }
+    }
+
+    mod slice_output_target {
+
+        use super::*;
+
+        /// Verifies that [`does_buffer_have_at_least`] returns the correct number of remaining bytes in the buffer
+        /// when the remaining bytes number are greater than or equal to the number of requested bytes.
+        #[test]
+        fn does_buffer_has_at_least_returns_ok() {
+            // Arrange
+            let mut buffer = [115, 108, 105, 99, 101];
+            let target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.does_buffer_have_at_least(5);
+
+            // Assert
+            assert!(result.is_ok());
+        }
+
+        /// Verifies that [`does_buffer_have_at_least`] returns an error when the remaining bytes number are less than
+        /// the number of requested bytes.
+        #[test]
+        fn does_buffer_have_at_least_returns_error() {
+            // Arrange
+            let mut buffer = [115, 108, 105, 99, 101];
+            let target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.does_buffer_have_at_least(6);
+
+            // Assert
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+                requested: 6,
+                remaining: 5,
+            });
+        }
+
+        /// Verifies that [`write_byte`] writes the correct byte to the buffer and advances the position.
+        #[test]
+        fn write_byte_writes_correct_byte() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.write_byte(115);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 0, 0, 0, 0]);
+            assert_eq!(target.pos, 1);
+            assert_eq!(target.remaining(), 4);
+        }
+
+        /// Verifies that [`write_bytes_exact`] writes the correct bytes to the buffer and advances the position.
+        #[test]
+        fn write_bytes_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let result = target.write_bytes_exact(&[115, 108, 105, 99, 101]);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 108, 105, 99, 101]);
+            assert_eq!(target.pos, 5);
+            assert_eq!(target.remaining(), 0);
+        }
+
+        /// Verifies that [`reserve_space`] reserves the correct number of bytes in the buffer and advances the
+        /// position past the reserved space so that the next write operation will not write into the reserved space.
+        #[test]
+        fn reserve_space_reserves_correct_space() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Act
+            let reserve_result = target.reserve_space(3);
+            let write_result = target.write_byte(99);
+
+            // Assert
+            assert!(reserve_result.is_ok());
+            assert!(write_result.is_ok());
+
+            assert_eq!(reserve_result.unwrap().0, 0..3);
+            assert_eq!(target.pos, 4);
+            assert_eq!(target.remaining(), 1);
+            assert_eq!(target.buffer, [0, 0, 0, 99, 0]);
+        }
+
+        /// Verifies that [`write_bytes_into_reserved_exact`] writes the correct bytes to the reserved space in the
+        /// buffer and does not advance the position past the reserved space.
+        #[test]
+        fn write_bytes_into_reserved_exact_writes_correct_bytes() {
+            // Arrange
+            let mut buffer = [0; 5];
+            let mut target = SliceOutputTarget::from(buffer.as_mut_slice());
+
+            // Should advance the position to 3.
+            let mut reservation = target.reserve_space(3).unwrap();
+
+            // Write a byte to ensure the position is advanced.
+            let _ = target.write_bytes_exact(&[99]);
+
+            // Act
+            let result = target.write_bytes_into_reserved_exact(&mut reservation, &[115, 108, 105]);
+
+            // Write a byte to ensure the position was not advanced.
+            let _ = target.write_byte(101);
+
+            // Assert
+            assert!(result.is_ok());
+            assert_eq!(target.buffer, [115, 108, 105, 99, 101]);
+            assert_eq!(target.pos, 5);
+            assert_eq!(target.remaining(), 0);
+        }
     }
 }
