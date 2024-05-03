@@ -163,26 +163,6 @@ impl<I: InputSource> Decoder<I, Slice2> {
     }
 }
 
-impl DecodeFrom<Slice2> for isize {
-    /// Decodes an [`isize`] as a [varint62] using the [`Decoder::decode_varint`] function. If the decoded value does
-    /// not fit within the allowed range for [`isize`], an [`ErrorKind::OutOfRange`] error is returned instead.
-    ///
-    /// [varint62]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
-        decoder.decode_varint()
-    }
-}
-
-impl DecodeFrom<Slice2> for usize {
-    /// Decodes a [`usize`] as a [varuint62] using the [`Decoder::decode_varuint`] function. If the decoded value does
-    /// not fit within the allowed range for [`usize`], an [`ErrorKind::OutOfRange`] error is returned instead.
-    ///
-    /// [varuint62]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
-        decoder.decode_varuint()
-    }
-}
-
 // =============================================================================
 // Sequence type implementations
 // =============================================================================
@@ -192,7 +172,7 @@ impl DecodeFrom<Slice2> for usize {
 impl DecodeFrom<Slice2> for String {
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
         // Decode how many bytes are in this string, and attempt to allocate a vec with the necessary capacity.
-        let length = decoder.decode::<usize>()?;
+        let length = decoder.decode_varuint()?;
         let mut vector = Vec::new();
         vector.try_reserve_exact(length)?;
 
@@ -216,7 +196,7 @@ where T: DecodeFrom<Slice2>
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
         // Decode how many elements are in this sequence, and attempt to allocate a vec with the necessary capacity.
-        let length = decoder.decode::<usize>()?;
+        let length = decoder.decode_varuint()?;
         let mut vector = Vec::new();
         vector.try_reserve_exact(length)?;
 
@@ -242,7 +222,7 @@ where
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
-        let length = decoder.decode::<usize>()?;
+        let length = decoder.decode_varuint()?;
         let mut map = HashMap::new();
         map.try_reserve(length)?;
 
@@ -261,7 +241,7 @@ where
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
-        let length = decoder.decode::<usize>()?;
+        let length = decoder.decode_varuint()?;
         let mut map = BTreeMap::new();
 
         // Decode 'length'-many entries into the map.

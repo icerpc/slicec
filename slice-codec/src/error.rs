@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use core::fmt::{Display, Formatter};
+use core::num::TryFromIntError;
 use core::ops::Range;
 use core::write;
 
@@ -195,6 +196,15 @@ impl Display for InvalidDataErrorKind {
 impl From<InvalidDataErrorKind> for ErrorKind {
     fn from(value: InvalidDataErrorKind) -> Self {
         ErrorKind::InvalidData(value)
+    }
+}
+
+impl From<TryFromIntError> for Error {
+    fn from(_: TryFromIntError) -> Self {
+        Error::from(InvalidDataErrorKind::IllegalValue {
+            desc: "failed to convert integer",
+            value: None,
+        })
     }
 }
 

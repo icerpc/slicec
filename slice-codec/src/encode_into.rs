@@ -67,7 +67,8 @@ macro_rules! impl_encode_into_on_dictionary_type {
         {
             #[doc = $doc_text]
             fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, $encoding>) -> Result<()> {
-                encoder.encode(self.len())?;
+                let size = u64::try_from(self.len())?;
+                encoder.encode_varuint(size)?;
                 for (key, value) in self {
                     encoder.encode(key)?;
                     encoder.encode(value)?;

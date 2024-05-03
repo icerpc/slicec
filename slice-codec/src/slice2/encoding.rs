@@ -133,30 +133,6 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
     }
 }
 
-impl EncodeInto<Slice2> for isize {
-    /// Encodes this [`isize`] as a 'varint62' using the [`Encoder::encode_varint`] function. If the value does not
-    /// fit within the allowed range for 'varint62's, an [`ErrorKind::OutOfRange`] error is returned instead.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
-        // Try to convert the `isize` to an `i64`. This is fallible because Rust supports 128-bit platforms.
-        match i64::try_from(self) {
-            Ok(i64_value) => encoder.encode_varint(i64_value),
-            Err(_) => Err(varint_range_error(self as i128)),
-        }
-    }
-}
-
-impl EncodeInto<Slice2> for usize {
-    /// Encodes this [`usize`] as a 'varuint62' using the [`Encoder::encode_varuint`] function. If the value does not
-    /// fit within the allowed range for 'varuint62's, an [`ErrorKind::OutOfRange`] error is returned instead.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
-        // Try to convert the `usize` to an `u64`. This is fallible because Rust supports 128-bit platforms.
-        match u64::try_from(self) {
-            Ok(u64_value) => encoder.encode_varuint(u64_value),
-            Err(_) => Err(varint_range_error(self as i128)),
-        }
-    }
-}
-
 // =============================================================================
 // Sequence type implementations
 // =================x============================================================
@@ -164,7 +140,8 @@ impl EncodeInto<Slice2> for usize {
 /// TODO
 impl EncodeInto<Slice2> for &str {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
-        encoder.encode(self.len())?;
+        let size = u64::try_from(self.len())?;
+        encoder.encode_varuint(size)?;
         encoder.write_bytes_exact(self.as_bytes())
     }
 }
@@ -174,7 +151,8 @@ impl<'a, T> EncodeInto<Slice2> for &'a [T]
 where &'a T: EncodeInto<Slice2>
 {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
-        encoder.encode(self.len())?;
+        let size = u64::try_from(self.len())?;
+        encoder.encode_varuint(size)?;
         for element in self {
             encoder.encode(element)?;
         }
