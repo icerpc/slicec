@@ -131,6 +131,11 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
             63.. => Err(varuint_range_error(value)),
         }
     }
+
+    // An alias for `[encode_varint]` to increase readability.
+    pub fn encode_size(&mut self, value: impl Into<u64>) -> Result<()> {
+        self.encode_varuint(value)
+    }
 }
 
 // =============================================================================
@@ -141,7 +146,7 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
 impl EncodeInto<Slice2> for &str {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
         let size = u64::try_from(self.len())?;
-        encoder.encode_varuint(size)?;
+        encoder.encode_size(size)?;
         encoder.write_bytes_exact(self.as_bytes())
     }
 }
@@ -152,7 +157,7 @@ where &'a T: EncodeInto<Slice2>
 {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
         let size = u64::try_from(self.len())?;
-        encoder.encode_varuint(size)?;
+        encoder.encode_size(size)?;
         for element in self {
             encoder.encode(element)?;
         }

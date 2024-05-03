@@ -161,6 +161,11 @@ impl<I: InputSource> Decoder<I, Slice2> {
         // Try to convert the decoded value to the requested type.
         T::try_from(value).map_err(|_| varuint_range_error::<T>(value))
     }
+
+    /// An alias for `[decode_varint]` to increase readability.
+    pub fn decode_size<T: TryFrom<u64>>(&mut self) -> Result<T> {
+        self.decode_varuint()
+    }
 }
 
 // =============================================================================
