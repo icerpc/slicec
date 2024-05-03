@@ -197,7 +197,13 @@ impl DecodeFrom<Slice2> for String {
         vector.try_reserve_exact(length)?;
 
         // Read 'length'-many bytes into the vector, and attempt to decode them as a utf-8 string.
-        decoder.read_bytes_into_buffer(&mut vector)?;
+        unsafe {
+            debug_assert_eq!(vector.len(), 0);
+            let bytes = core::mem::transmute(vector.spare_capacity_mut());
+            decoder.read_bytes_into_buffer(bytes)?;
+            vector.set_len(length);
+        }
+
         let string = String::from_utf8(vector)?;
         Ok(string)
     }
