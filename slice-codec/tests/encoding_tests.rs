@@ -140,9 +140,13 @@ mod fixed_sized {
 mod variable_sized {
     use super::*;
 
+    #[cfg(test)]
+    #[cfg(feature = "alloc")]
+    #[cfg(feature = "slice2")]
     mod encoding_of {
 
         use super::*;
+
         use slice_codec::buffer::vec::VecOutputTarget;
         use slice_codec::slice2::{VARINT62_MIN, VARUINT62_MAX};
         use test_case::test_case;
@@ -233,12 +237,39 @@ mod variable_sized {
             // Assert
             assert!(result.is_err());
         }
+
+        #[test_case(""; "empty_string")]
+        #[test_case("Lorem ipsum dolor sit amet, no explicari repudiare vis, an dicant legimus ponderum sit.")]
+        #[test_case("국민경제의 발전을 위한 중요정책의 수립에 관하여 대통령의 자문에 응하기 위하여 국민경제자문회의를 둘 수 있다"; "Korean")]
+        #[test_case(
+            "旅ロ京青利セムレ弱改フヨス波府かばぼ意送でぼ調掲察たス日西重ケアナ住橋ユムミク順待ふかんぼ人奨貯鏡すびそ"
+        ; "Japanese")]
+        #[test_case("😁😂😃😄😅😆😉😊😋😌😍😏😒😓😔😖")]
+        fn string(str: &str) {
+            // Arrange
+            let mut buffer = vec![];
+            let output_target = VecOutputTarget::from(&mut buffer);
+            let mut encoder = Encoder::new_with_inferred_encoding(output_target);
+            let utf8_byte_count = str.as_bytes().len();
+
+            // Act
+            encoder.encode(str).expect("failed to encode string");
+
+            // Assert
+            let written_bytes = buffer.as_slice();
+            let utf8_bytes = &written_bytes[(written_bytes.len() - utf8_byte_count)..];
+
+            assert_eq!(str, String::from_utf8(utf8_bytes.to_vec()).unwrap());
+        }
     }
 
     #[cfg(test)]
+    #[cfg(feature = "alloc")]
+    #[cfg(feature = "slice2")]
     mod decoding_of {
 
         use super::*;
+        use slice_codec::buffer::vec::VecOutputTarget;
         use test_case::test_case;
 
         #[test_case(&[0x0], 0_u32 ; "min_u32_one_byte")]
@@ -299,6 +330,50 @@ mod variable_sized {
                 expected,
                 "Decoding result did not match expected value."
             );
+        }
+
+        #[test_case(""; "empty_string")]
+        #[test_case("Lorem ipsum dolor sit amet, no explicari repudiare vis, an dicant legimus ponderum sit.")]
+        #[test_case("국민경제의 발전을 위한 중요정책의 수립에 관하여 대통령의 자문에 응하기 위하여 국민경제자문회의를 둘 수 있다"; "Korean")]
+        #[test_case(
+            "旅ロ京青利セムレ弱改フヨス波府かばぼ意送でぼ調掲察たス日西重ケアナ住橋ユムミク順待ふかんぼ人奨貯鏡すびそ"
+        ; "Japanese")]
+        #[test_case("😁😂😃😄😅😆😉😊😋😌😍😏😒😓😔😖")]
+        fn string(str: &str) {
+            // Arrange
+            let mut buffer = vec![];
+            let output_target = VecOutputTarget::from(&mut buffer);
+            let mut encoder = Encoder::new_with_inferred_encoding(output_target);
+            encoder.encode(str).expect("failed to encode string");
+
+            let buffer_two = buffer.clone();
+            let input_source = SliceInputSource::from(&buffer_two);
+            let mut decoder = Decoder::new_with_inferred_encoding(input_source);
+
+            // Act
+            let decoded = decoder.decode::<String>();
+
+            // Assert
+            assert!(decoded.is_ok());
+            assert_eq!(decoded.unwrap(), str);
+        }
+
+        #[test]
+        fn non_utf8_string() {
+            // Arrange
+            let buffer = vec![0x08, 0xFD, 0xFF];
+            let input_source = SliceInputSource::from(&buffer);
+            let mut decoder = Decoder::new_with_inferred_encoding(input_source);
+
+            // Act
+            let decoded = decoder.decode::<String>();
+
+            // Assert
+            assert!(decoded.is_err());
+            assert!(matches!(
+                decoded.err().unwrap().kind(),
+                slice_codec::ErrorKind::InvalidData(slice_codec::InvalidDataErrorKind::InvalidString(_))
+            ));
         }
     }
 }
