@@ -184,7 +184,8 @@ impl DecodeFrom<Slice2> for String {
         // Read 'length'-many bytes into the vector, and attempt to decode them as a utf-8 string.
         unsafe {
             debug_assert_eq!(vector.len(), 0);
-            let bytes = core::mem::transmute(vector.spare_capacity_mut());
+            let bytes =
+                core::mem::transmute::<&mut [core::mem::MaybeUninit<u8>], &mut [u8]>(vector.spare_capacity_mut());
             decoder.read_bytes_into_buffer(bytes)?;
             vector.set_len(length);
         }
