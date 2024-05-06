@@ -1,4 +1,4 @@
-name: ci
+name: CI
 
 on:
   push:
@@ -13,8 +13,25 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
+    strategy:
+      fail-fast: false
+      matrix:
+        features:
+          [
+            "",
+            "alloc",
+            "std",
+            "tokio",
+            "std,tokio",
+            "slice2",
+            "slice2,alloc",
+            "slice2,std",
+            "slice2,tokio",
+            "slice2,std,tokio",
+          ]
     steps:
+      - name: 📦 Setup
+        run: echo "FEATURES=${{ matrix.features && '--features ' || '' }}${{ matrix.features }}" >> $GITHUB_ENV
       - uses: actions/checkout@v4
       - name: 📦 Cache
         uses: actions/cache@v3
@@ -29,12 +46,19 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+      - name: 📦 Install
+        run: |
+          rustup toolchain install nightly
+          rustup component add clippy
+          rustup component add miri --toolchain nightly
       - name: 🔨 Build
-        run: cargo build
+        run: cargo build --no-default-features $FEATURES
       - name: 🧪 Test
-        run: cargo test
+        run: cargo +nightly miri test --no-default-features $FEATURES
+      - name: 📚 Docs
+        run: cargo doc --no-deps --no-default-features --document-private-items $FEATURES
       - name: 🔎 Lint
-        run: cargo clippy --no-deps
+        run: cargo clippy --all-targets --no-default-features $FEATURES --no-deps
 
   format:
     runs-on: ubuntu-latest
