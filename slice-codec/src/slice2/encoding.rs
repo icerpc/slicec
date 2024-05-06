@@ -98,13 +98,13 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
             true => i64::BITS - value.leading_ones() + 1,
         };
         // We have to shift the value up by 2 bits to make room for the size prefix.
-        let shifted_value = value << 2;
+        let shifted_value: i64 = value << 2;
 
         match required_bits {
-            0..=6   => self.encode(shifted_value as i8  | 0b00),
+            0..=6   => self.encode(shifted_value as i8),
             7..=14  => self.encode(shifted_value as i16 | 0b01),
             15..=30 => self.encode(shifted_value as i32 | 0b10),
-            31..=62 => self.encode(shifted_value as i64 | 0b11),
+            31..=62 => self.encode(shifted_value | 0b11),
             63.. => Err(varint_range_error(value)),
         }
     }
@@ -121,13 +121,13 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
         // Compute how many bits are required to encode this value.
         let required_bits = u64::BITS - value.leading_zeros();
         // We have to shift the value up by 2 bits to make room for the size prefix.
-        let shifted_value = value << 2;
+        let shifted_value: u64 = value << 2;
 
         match required_bits {
-            0..=6   => self.encode(shifted_value as u8  | 0b00),
+            0..=6   => self.encode(shifted_value as u8),
             7..=14  => self.encode(shifted_value as u16 | 0b01),
             15..=30 => self.encode(shifted_value as u32 | 0b10),
-            31..=62 => self.encode(shifted_value as u64 | 0b11),
+            31..=62 => self.encode(shifted_value | 0b11),
             63.. => Err(varuint_range_error(value)),
         }
     }
