@@ -1,6 +1,6 @@
 {
   "version": "0.2",
-  "language": "en",
+  "language": "en, lorem",
   "words": [
     "attributables",
     "bools",
@@ -11,18 +11,23 @@
     "Commentable",
     "deduped",
     "deque",
+    "dicant",
     "downcasted",
     "downcasting",
     "encodable",
+    "explicari",
     "grcov",
     "Hashable",
     "Hasher",
     "icerpc",
     "lalrpop",
+    "legimus",
     "MSRV",
     "nonoverlapping",
     "nonterminal",
     "peekable",
+    "ponderum",
+    "repudiare",
     "rfind",
     "rsplit",
     "RUSTDOCFLAGS",
@@ -49,6 +54,7 @@
     "misc",
     "en_US",
     "rust",
-    "softwareTerms"
+    "softwareTerms",
+    "lorem"
   ]
 }
