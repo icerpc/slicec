@@ -59,6 +59,7 @@ mod fixed_sized {
     fn encoding_of<const N: usize, T>(value: T, expected: [u8; N])
     where T: EncodeInto<Slice2> {
         // Arrange: create a buffer to encode the value into, and an encoder over that buffer.
+        // Note: This test uses an array so it can run without needing the 'alloc' feature.
         let mut buffer = [0; N];
         let output_target = SliceOutputTarget::from(&mut buffer);
         let mut encoder = Encoder::new(output_target);
