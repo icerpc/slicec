@@ -145,7 +145,7 @@ mod variable_sized {
 
         use super::*;
 
-        use slice_codec::slice2::VARINT62_MIN;
+        use slice_codec::slice2::{VARINT62_MAX, VARINT62_MIN};
         use test_case::test_case;
 
         #[test_case(0_u32, &[0x0]; "min_u32_one_byte")]
@@ -197,18 +197,18 @@ mod variable_sized {
 
         #[test_case(0_i32, &[0]; "min_i32_one_byte")]
         #[test_case(0_i64, &[0]; "min_i64_one_byte")]
-        #[test_case(2_i32.pow(6) - 1, &[252]; "max_i32_one_byte")]
-        #[test_case(2_i64.pow(6) - 1, &[252]; "max_i64_one_byte")]
+        #[test_case(2_i32.pow(6) - 1, &[253]; "max_i32_one_byte")]
+        #[test_case(2_i64.pow(6) - 1, &[253]; "max_i64_one_byte")]
         #[test_case(2_i32.pow(6), &[1, 1]; "min_i32_two_bytes")]
         #[test_case(2_i64.pow(6), &[1, 1]; "min_i64_two_bytes")]
-        #[test_case(2_i64.pow(14) - 1, &[253, 255]; "max_i32_two_bytes")]
-        #[test_case(2_i64.pow(14) - 1, &[253, 255]; "max_i64_two_bytes")]
+        #[test_case(2_i64.pow(14) - 1, &[254, 255]; "max_i32_two_bytes")]
+        #[test_case(2_i64.pow(14) - 1, &[254, 255]; "max_i64_two_bytes")]
         #[test_case(2_i32.pow(14), &[2, 0, 1, 0]; "min_i32_four_bytes")]
         #[test_case(2_i64.pow(14), &[2, 0, 1, 0]; "min_i64_four_bytes")]
-        #[test_case(2_i32.pow(30) - 1, &[254, 255, 255, 255]; "max_i32_four_bytes")]
-        #[test_case(2_i64.pow(30) - 1, &[254, 255, 255, 255]; "max_i64_four_bytes")]
+        #[test_case(2_i32.pow(30) - 1, &[255, 255, 255, 255]; "max_i32_four_bytes")]
+        #[test_case(2_i64.pow(30) - 1, &[255, 255, 255, 255]; "max_i64_four_bytes")]
         #[test_case(2_i64.pow(30), &[3, 0, 0, 0, 1, 0, 0, 0]; "min_i64_eight_bytes")]
-        #[test_case(2_i64.pow(62) - 1, &[255, 255, 255, 255, 255, 255, 255, 255]; "max_i64_eight_bytes_max")]
+        #[test_case(VARINT62_MAX, &[255, 255, 255, 255, 255, 255, 255, 127]; "max_i64_eight_bytes_max")]
         fn varint<T: PartialEq + Debug>(value: T, expected: &[u8])
         where i64: From<T> {
             // Arrange
@@ -221,7 +221,7 @@ mod variable_sized {
             let result = encoder.encode_varint(value);
 
             // Assert
-            assert!(result.is_ok());
+            assert!(result.is_ok(), "Encoding failed with error: {:?}", result.err());
             assert_eq!(&buffer[0..expected.len()], expected);
         }
 
