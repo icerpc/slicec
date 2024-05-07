@@ -225,8 +225,7 @@ mod variable_sized {
             assert_eq!(&buffer[0..expected.len()], expected);
         }
 
-        // TODO: The max value being exceeded is not being caught causing an error to be emitted.
-        // #[test_case(VARINT62_MAX + 1; "maximum out of range")]
+        #[test_case(VARINT62_MAX + 1; "maximum out of range")]
         #[test_case(VARINT62_MIN - 1; "minimum out of range")]
         fn varint_out_of_range(value: i64) {
             // Arrange

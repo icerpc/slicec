@@ -91,12 +91,13 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
         // See: https://docs.icerpc.dev/slice2/encoding/primitive-types#variable-size-integral-types.
 
         // Compute how many bits are required to encode this value.
-        let required_bits = match value.is_negative() {
+        let mut required_bits = i64::BITS - match value.is_negative() {
             // If the value is non-negative, we can ignore any leading `0` bits.
-            false => i64::BITS - value.leading_zeros(),
-            // If the value is negative, we can ignore any leading `1` bits, except the sign bit (hence the '+1').
-            true => i64::BITS - value.leading_ones() + 1,
+            false => value.leading_zeros(),
+            // If the value is negative, we can ignore any leading `1` bits.
+            true => value.leading_ones(),
         };
+        required_bits += 1; // Add '1' to account for the sign bit.
         // We have to shift the value up by 2 bits to make room for the size prefix.
         let shifted_value: i64 = value << 2;
 
