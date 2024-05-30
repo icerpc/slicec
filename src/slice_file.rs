@@ -4,6 +4,7 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Display, Write};
 
@@ -165,6 +166,19 @@ impl SliceFile {
         }
 
         formatted_snippet + &line_prefix
+    }
+
+    /// Hash the combination of the filename, relative path, and raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a vector of bytes.
+    pub fn compute_sha256_hash(&self) -> Vec<u8> {
+        Sha256::new()
+            .chain_update(self.filename.as_bytes())
+            .chain_update(self.relative_path.as_bytes())
+            .chain_update(self.raw_text.as_bytes())
+            .finalize()
+            .to_vec()
     }
 }
 
