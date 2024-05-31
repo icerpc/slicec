@@ -181,26 +181,64 @@ impl SliceFile {
     }
 }
 
-pub trait SliceFileCollectionExt {
-    /// Hashes all the slice files in the collection using a SHA-256 hash and returns the hexadecimal representation.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a hexadecimal string.
-    fn hash_all(&self) -> String;
+pub trait SliceFileHashable {
+    /// Hashes the SliceFile using a SHA-256 hash and returns the 32-byte array.
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32];
+
+    /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
+    fn compute_sha256_hash(&self) -> String;
 }
 
-impl SliceFileCollectionExt for &[SliceFile] {
-    fn hash_all(&self) -> String {
-        format!(
-            "{:032x}",
-            self.into_iter()
-                .map(|slice_file| slice_file.compute_sha256_hash())
-                .fold(Sha256::new(), |mut hasher, file_hash| {
-                    hasher.update(file_hash);
-                    hasher
-                })
-                .finalize()
-        )
+impl SliceFileHashable for SliceFile {
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a 32-byte array.
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
+        Sha256::new()
+            .chain_update(self.filename.as_bytes())
+            .chain_update(self.raw_text.as_bytes())
+            .finalize()
+            .into()
+    }
+
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a hex string.
+    fn compute_sha256_hash(&self) -> String {
+        self.compute_sha256_hash_as_bytes()
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect()
+    }
+}
+
+impl SliceFileHashable for &[SliceFile] {
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a 32-byte array.
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
+        self.iter()
+            .map(|slice_file| slice_file.compute_sha256_hash_as_bytes())
+            .fold(Sha256::new(), |mut hasher, file_hash| {
+                hasher.update(file_hash);
+                hasher
+            })
+            .finalize()
+            .into()
+    }
+
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a hex string.
+    fn compute_sha256_hash(&self) -> String {
+        self.compute_sha256_hash_as_bytes()
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect()
     }
 }
 
