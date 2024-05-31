@@ -4,6 +4,7 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Display, Write};
 
@@ -165,6 +166,52 @@ impl SliceFile {
         }
 
         formatted_snippet + &line_prefix
+    }
+}
+
+pub trait SliceFileHashable {
+    /// Hashes the SliceFile using a SHA-256 hash and returns the 32-byte array.
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32];
+
+    /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
+    fn compute_sha256_hash(&self) -> String {
+        self.compute_sha256_hash_as_bytes()
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect()
+    }
+}
+
+impl SliceFileHashable for SliceFile {
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a 32-byte array.
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
+        Sha256::new()
+            .chain_update(self.filename.as_bytes())
+            .chain_update(self.raw_text.as_bytes())
+            .finalize()
+            .into()
+    }
+}
+
+impl SliceFileHashable for &[SliceFile] {
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
+        // Sort the slice files by their filename before hashing them.
+        let mut sorted = self.iter().collect::<Vec<_>>();
+        sorted.sort_by(|a, b| a.filename.cmp(&b.filename));
+
+        // Hash the sorted slice files.
+        sorted
+            .iter()
+            .map(|slice_file| slice_file.compute_sha256_hash_as_bytes())
+            .fold(Sha256::new(), |mut hasher, file_hash| {
+                hasher.update(file_hash);
+                hasher
+            })
+            .finalize()
+            .into()
     }
 }
 
