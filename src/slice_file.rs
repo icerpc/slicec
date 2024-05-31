@@ -196,7 +196,7 @@ impl SliceFileHashable for SliceFile {
     }
 }
 
-impl SliceFileHashable for &[&SliceFile] {
+impl SliceFileHashable for &[SliceFile] {
     fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
         // Sort the slice files by their filename before hashing them.
         let mut sorted = self.iter().collect::<Vec<_>>();
@@ -212,16 +212,6 @@ impl SliceFileHashable for &[&SliceFile] {
             })
             .finalize()
             .into()
-    }
-}
-
-impl SliceFileHashable for &[SliceFile] {
-    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
-        // Use the `SliceFileHashable` implementation for slices of references.
-        self.iter()
-            .collect::<Vec<_>>()
-            .as_slice()
-            .compute_sha256_hash_as_bytes()
     }
 }
 
