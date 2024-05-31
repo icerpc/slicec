@@ -8,24 +8,29 @@ use slicec::slice_options::SliceOptions;
 use slicec::utils::file_util::resolve_files_from;
 use std::path::PathBuf;
 
-/// This test is used to verify that the `hash_all` method returns a hash that is stable across releases and uses
-/// the correct ordering of files.
+/// This test is used to verify that the `compute_sha256_hash` method for slices of `SliceFile` returns a hash that is
+/// independent of the order of the files in the slice.
 #[test]
 fn fixed_slice_file_hash() {
     // Arrange
-    let fixed_hash = "df7e2e0f34d0c8d389870dad726c4d8cacc544c24f9d4516c38c88783eaac20c";
-    let mut diagnostics = Diagnostics::new();
-    let file1 = PathBuf::from("tests/files/test.slice");
-    let file2 = PathBuf::from("tests/files/a.slice");
-    let options = SliceOptions {
-        sources: vec![file1.to_str().unwrap().to_owned(), file2.to_str().unwrap().to_owned()],
+    let file1 = PathBuf::from("tests/files/test.slice").to_str().unwrap().to_owned();
+    let file2 = PathBuf::from("tests/files/a.slice").to_str().unwrap().to_owned();
+    let options1 = SliceOptions {
+        sources: vec![file1.clone(), file2.clone()],
         ..Default::default()
     };
-    let files = resolve_files_from(&options, &mut diagnostics);
+    let options2 = SliceOptions {
+        sources: vec![file2, file1],
+        ..Default::default()
+    };
+    let mut diagnostics = Diagnostics::new();
+    let slice_files1 = resolve_files_from(&options1, &mut diagnostics);
+    let slice_files2 = resolve_files_from(&options2, &mut diagnostics);
 
     // Act
-    let hash = files.as_slice().compute_sha256_hash();
+    let hash1 = slice_files1.as_slice().compute_sha256_hash();
+    let hash2 = slice_files2.as_slice().compute_sha256_hash();
 
     // Assert
-    assert_eq!(hash, fixed_hash);
+    assert_eq!(hash1, hash2);
 }

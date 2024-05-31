@@ -174,7 +174,12 @@ pub trait SliceFileHashable {
     fn compute_sha256_hash_as_bytes(&self) -> [u8; 32];
 
     /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
-    fn compute_sha256_hash(&self) -> String;
+    fn compute_sha256_hash(&self) -> String {
+        self.compute_sha256_hash_as_bytes()
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect()
+    }
 }
 
 impl SliceFileHashable for SliceFile {
@@ -189,26 +194,17 @@ impl SliceFileHashable for SliceFile {
             .finalize()
             .into()
     }
-
-    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a hex string.
-    fn compute_sha256_hash(&self) -> String {
-        self.compute_sha256_hash_as_bytes()
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect()
-    }
 }
 
-impl SliceFileHashable for &[SliceFile] {
-    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a 32-byte array.
+impl SliceFileHashable for &[&SliceFile] {
     fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
-        self.iter()
+        // Sort the slice files by their filename before hashing them.
+        let mut sorted = self.iter().collect::<Vec<_>>();
+        sorted.sort_by(|a, b| a.filename.cmp(&b.filename));
+
+        // Hash the sorted slice files.
+        sorted
+            .iter()
             .map(|slice_file| slice_file.compute_sha256_hash_as_bytes())
             .fold(Sha256::new(), |mut hasher, file_hash| {
                 hasher.update(file_hash);
@@ -217,16 +213,15 @@ impl SliceFileHashable for &[SliceFile] {
             .finalize()
             .into()
     }
+}
 
-    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a hex string.
-    fn compute_sha256_hash(&self) -> String {
-        self.compute_sha256_hash_as_bytes()
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect()
+impl SliceFileHashable for &[SliceFile] {
+    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
+        // Use the `SliceFileHashable` implementation for slices of references.
+        self.iter()
+            .collect::<Vec<_>>()
+            .as_slice()
+            .compute_sha256_hash_as_bytes()
     }
 }
 
