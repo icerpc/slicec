@@ -167,18 +167,6 @@ impl SliceFile {
 
         formatted_snippet + &line_prefix
     }
-
-    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a 32-byte array.
-    pub fn compute_sha256_hash(&self) -> [u8; 32] {
-        Sha256::new()
-            .chain_update(self.filename.as_bytes())
-            .chain_update(self.raw_text.as_bytes())
-            .finalize()
-            .into()
-    }
 }
 
 pub trait SliceFileHashable {
