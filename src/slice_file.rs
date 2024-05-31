@@ -168,17 +168,39 @@ impl SliceFile {
         formatted_snippet + &line_prefix
     }
 
-    /// Hash the combination of the filename, relative path, and raw text using a SHA-256 hash.
+    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
     ///
     /// # Returns
-    /// The SHA-256 hash as a vector of bytes.
-    pub fn compute_sha256_hash(&self) -> Vec<u8> {
+    /// The SHA-256 hash as a 32-byte array.
+    pub fn compute_sha256_hash(&self) -> [u8; 32] {
         Sha256::new()
             .chain_update(self.filename.as_bytes())
-            .chain_update(self.relative_path.as_bytes())
             .chain_update(self.raw_text.as_bytes())
             .finalize()
-            .to_vec()
+            .into()
+    }
+}
+
+pub trait SliceFileCollectionExt {
+    /// Hashes all the slice files in the collection using a SHA-256 hash and returns the hexadecimal representation.
+    ///
+    /// # Returns
+    /// The SHA-256 hash as a hexadecimal string.
+    fn hash_all(&self) -> String;
+}
+
+impl SliceFileCollectionExt for &[SliceFile] {
+    fn hash_all(&self) -> String {
+        format!(
+            "{:032x}",
+            self.into_iter()
+                .map(|slice_file| slice_file.compute_sha256_hash())
+                .fold(Sha256::new(), |mut hasher, file_hash| {
+                    hasher.update(file_hash);
+                    hasher
+                })
+                .finalize()
+        )
     }
 }
 
