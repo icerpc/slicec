@@ -167,19 +167,20 @@ impl SliceFile {
 
         formatted_snippet + &line_prefix
     }
+
+    /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
+    pub fn compute_sha256_hash(files: &[SliceFile]) -> String {
+        files
+            .compute_sha256_hash_as_bytes()
+            .iter()
+            .map(|byte| format!("{:02x}", byte))
+            .collect()
+    }
 }
 
 pub trait SliceFileHashable {
     /// Hashes the SliceFile using a SHA-256 hash and returns the 32-byte array.
     fn compute_sha256_hash_as_bytes(&self) -> [u8; 32];
-
-    /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
-    fn compute_sha256_hash(&self) -> String {
-        self.compute_sha256_hash_as_bytes()
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect()
-    }
 }
 
 impl SliceFileHashable for SliceFile {
