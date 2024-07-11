@@ -27,9 +27,13 @@ fn fixed_slice_file_hash() {
     let slice_files1 = resolve_files_from(&options1, &mut diagnostics);
     let slice_files2 = resolve_files_from(&options2, &mut diagnostics);
 
+    // Convert slices to slices of references
+    let slice_files1_refs: Vec<&SliceFile> = slice_files1.iter().collect();
+    let slice_files2_refs: Vec<&SliceFile> = slice_files2.iter().collect();
+
     // Act
-    let hash1 = SliceFile::compute_sha256_hash(slice_files1.as_slice());
-    let hash2 = SliceFile::compute_sha256_hash(slice_files2.as_slice());
+    let hash1 = SliceFile::compute_sha256_hash(slice_files1_refs.as_slice());
+    let hash2 = SliceFile::compute_sha256_hash(slice_files2_refs.as_slice());
 
     // Assert
     assert_eq!(hash1, hash2);

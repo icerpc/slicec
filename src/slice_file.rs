@@ -169,7 +169,7 @@ impl SliceFile {
     }
 
     /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
-    pub fn compute_sha256_hash(files: &[SliceFile]) -> String {
+    pub fn compute_sha256_hash(files: &[&SliceFile]) -> String {
         files
             .compute_sha256_hash_as_bytes()
             .iter()
@@ -197,7 +197,7 @@ impl SliceFileHashable for SliceFile {
     }
 }
 
-impl SliceFileHashable for &[SliceFile] {
+impl SliceFileHashable for &[&SliceFile] {
     fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
         // Sort the slice files by their filename before hashing them.
         let mut sorted = self.iter().collect::<Vec<_>>();
