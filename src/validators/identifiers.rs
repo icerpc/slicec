@@ -46,7 +46,15 @@ pub fn check_for_redefinitions(ast: &Ast, diagnostics: &mut Diagnostics) {
     // and if we try to add an entry but see it's already occupied, that means we've found a redefinition.
     let mut slice_definitions: HashMap<String, &dyn NamedSymbol> = HashMap::new();
 
-    for node in ast.as_slice() {
+    // A list of all the 'scoped_identifier's we've issued redefinition errors for.
+    // This is to avoid emitting errors for children of redefined containers.
+    // NOTE: These entries must all end in "::" to avoid false matches between things like "foo" and "foobar".
+    let mut redefinitions: Vec<String> = Vec::new();
+
+    // Iterate through the nodes in reverse. This is important because our parser is 'bottom-up', meaning we create
+    // fields before we create the struct that holds them. So, by iterating in reverse, we'll see the containers before
+    // we see their children elements.
+    for node in ast.as_slice().iter().rev() {
         // Only check nodes that have identifiers, everything else is irrelevant.
         if let Ok(definition) = <&dyn NamedSymbol>::try_from(node) {
             let scoped_identifier = definition.parser_scoped_identifier();
@@ -54,8 +62,14 @@ pub fn check_for_redefinitions(ast: &Ast, diagnostics: &mut Diagnostics) {
                 // If we've already seen a node with this identifier, there's a name collision.
                 // This is fine for modules (since they can be re-opened), but for any other type, we report an error.
                 Some(other_definition) => {
-                    if !(is_module(definition) && is_module(*other_definition)) {
+                    let are_both_modules = is_module(definition) && is_module(*other_definition);
+                    let parent_is_redefined = redefinitions.iter().any(|redefined_parent_id| {
+                        scoped_identifier.contains(redefined_parent_id) && scoped_identifier != *redefined_parent_id
+                    });
+
+                    if !are_both_modules && !parent_is_redefined {
                         report_redefinition_error(definition, *other_definition, diagnostics);
+                        redefinitions.push(scoped_identifier + "::");
                     }
                 }
 

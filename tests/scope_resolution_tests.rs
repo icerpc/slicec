@@ -206,4 +206,92 @@ mod scope_resolution {
         });
         check_diagnostics(diagnostics, [expected]);
     }
+
+    #[test]
+    fn redefinitions_of_the_same_type_are_disallowed() {
+        // Arrange
+        let slice = "
+            mode = Slice1 // Just so we can compare `struct`s and `class`s.
+
+            module A
+
+            compact struct C {
+                i: int32
+            }
+
+            class C {
+                i: int8
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::Redefinition {
+            identifier: "C".to_string(),
+        })
+        .add_note("'C' was previously defined here", None);
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefinitions_of_different_types_are_disallowed() {
+        // Arrange
+        let slice = "
+            module A
+
+            struct C {
+                i: int32
+            }
+
+            struct C {
+                i: int32
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::new(Error::Redefinition {
+            identifier: "C".to_string(),
+        })
+        .add_note("'C' was previously defined here", None);
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn multiple_definitions_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct A {
+                i: int32
+            }
+
+            enum A {
+                i
+            }
+
+            struct A {
+                b: bool
+                i: int64
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = [
+            Diagnostic::new(Error::Redefinition { identifier: "A".to_string() }),
+            Diagnostic::new(Error::Redefinition { identifier: "A".to_string() }),
+        ];
+
+        check_diagnostics(diagnostics, expected);
+    }
 }
