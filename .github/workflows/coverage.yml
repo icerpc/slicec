@@ -1,0 +1,28 @@
+name: coverage
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov
+
+      - name: 🔨 Build
+        run: cargo build
+
+      - name: Generate HTML coverage
+        run: cargo llvm-cov --html
+
+      - name: Upload coverage
+        run: aws s3 sync ./target/llvm-cov/html s3://${{ secrets.AWS_S3_BUCKET }}/slicec/main/coverage --delete
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
