@@ -3,7 +3,7 @@
 mod io;
 
 use slicec::diagnostics::Diagnostics;
-use slicec::slice_file::SliceFile;
+use slicec::slice_file::compute_sha256_hash_of_source_files;
 use slicec::slice_options::SliceOptions;
 use slicec::utils::file_util::resolve_files_from;
 use std::path::PathBuf;
@@ -27,13 +27,9 @@ fn fixed_slice_file_hash() {
     let slice_files1 = resolve_files_from(&options1, &mut diagnostics);
     let slice_files2 = resolve_files_from(&options2, &mut diagnostics);
 
-    // Convert slices to slices of references
-    let slice_files1_refs: Vec<&SliceFile> = slice_files1.iter().collect();
-    let slice_files2_refs: Vec<&SliceFile> = slice_files2.iter().collect();
-
     // Act
-    let hash1 = SliceFile::compute_sha256_hash(slice_files1_refs.as_slice());
-    let hash2 = SliceFile::compute_sha256_hash(slice_files2_refs.as_slice());
+    let hash1 = compute_sha256_hash_of_source_files(&slice_files1);
+    let hash2 = compute_sha256_hash_of_source_files(&slice_files2);
 
     // Assert
     assert_eq!(hash1, hash2);
