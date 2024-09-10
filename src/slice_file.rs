@@ -4,7 +4,6 @@ use crate::grammar::*;
 use crate::utils::ptr_util::WeakPtr;
 use console::style;
 use serde::Serialize;
-use sha2::{Digest, Sha256};
 use std::cmp::{max, min, Ordering};
 use std::fmt::{Display, Write};
 
@@ -167,53 +166,26 @@ impl SliceFile {
 
         formatted_snippet + &line_prefix
     }
-
-    /// Hashes the SliceFile using a SHA-256 hash and returns the hash as a hex string.
-    pub fn compute_sha256_hash(files: &[&SliceFile]) -> String {
-        files
-            .compute_sha256_hash_as_bytes()
-            .iter()
-            .map(|byte| format!("{:02x}", byte))
-            .collect()
-    }
 }
 
-pub trait SliceFileHashable {
-    /// Hashes the SliceFile using a SHA-256 hash and returns the 32-byte array.
-    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32];
-}
+pub fn compute_sha256_hash_of_source_files(files: &[SliceFile]) -> String {
+    use sha2::{Digest, Sha256};
 
-impl SliceFileHashable for SliceFile {
-    /// Hash the combination of the filename and the raw text using a SHA-256 hash.
-    ///
-    /// # Returns
-    /// The SHA-256 hash as a 32-byte array.
-    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
-        Sha256::new()
-            .chain_update(self.filename.as_bytes())
-            .chain_update(self.raw_text.as_bytes())
-            .finalize()
-            .into()
+    // Filter out any reference files, and sort the source files which remain.
+    let mut sorted_sources: Vec<&SliceFile> = files.iter().filter(|f| f.is_source).collect();
+    sorted_sources.sort_by(|a, b| a.filename.cmp(&b.filename));
+
+    // Hash the sorted source files.
+    // Included in the hash are the files' names (no path, just filenames), and their raw (unparsed) content.
+    let mut hash_engine = Sha256::new();
+    for file in sorted_sources {
+        hash_engine.update(&file.filename);
+        hash_engine.update(&file.raw_text);
     }
-}
 
-impl SliceFileHashable for &[&SliceFile] {
-    fn compute_sha256_hash_as_bytes(&self) -> [u8; 32] {
-        // Sort the slice files by their filename before hashing them.
-        let mut sorted = self.iter().collect::<Vec<_>>();
-        sorted.sort_by(|a, b| a.filename.cmp(&b.filename));
-
-        // Hash the sorted slice files.
-        sorted
-            .iter()
-            .map(|slice_file| slice_file.compute_sha256_hash_as_bytes())
-            .fold(Sha256::new(), |mut hasher, file_hash| {
-                hasher.update(file_hash);
-                hasher
-            })
-            .finalize()
-            .into()
-    }
+    // Return the hash engine's final result, formatted as a lowercase-hexadecimal string.
+    // The hash engine guarantees that this string will have 64 chars (representing 32 bytes, or 256 bits).
+    format!("{:x}", hash_engine.finalize())
 }
 
 implement_Attributable_for!(SliceFile);
