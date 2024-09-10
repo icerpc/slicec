@@ -4,7 +4,7 @@ use crate::ast::Ast;
 use crate::diagnostic_emitter::{emit_totals, DiagnosticEmitter};
 use crate::diagnostics::{get_totals, Diagnostic, Diagnostics};
 use crate::slice_file::SliceFile;
-use crate::slice_options::SliceOptions;
+use crate::slice_options::{DiagnosticFormat, SliceOptions};
 
 #[derive(Debug, Default)]
 pub struct CompilationState {
@@ -54,7 +54,11 @@ impl CompilationState {
         let mut stderr = console::Term::stderr();
         let mut emitter = DiagnosticEmitter::new(&mut stderr, options, &self.files);
         DiagnosticEmitter::emit_diagnostics(&mut emitter, diagnostics).expect("failed to emit diagnostics");
-        emit_totals(total_warnings, total_errors).expect("failed to emit totals");
+
+        // Only emit the summary message if we're writing human-readable output.
+        if options.diagnostic_format == DiagnosticFormat::Human {
+            emit_totals(total_warnings, total_errors).expect("failed to emit totals");
+        }
 
         total_errors != 0
     }
