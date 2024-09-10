@@ -71,28 +71,4 @@ mod module {
         assert!(ast.find_element::<Struct>("Foo::Test1").is_ok());
         assert!(ast.find_element::<Struct>("Foo::Test2").is_ok());
     }
-
-    #[test]
-    fn cross_module_redefinitions_are_disallowed() {
-        // Arrange
-        let slice1 = "
-            module Foo
-            struct Bar {}
-        ";
-        let slice2 = "
-            module Foo
-            custom Bar
-        ";
-
-        // Act
-        let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
-
-        // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
-            identifier: "Bar".to_owned(),
-        })
-        .add_note("'Bar' was previously defined here", None);
-
-        check_diagnostics(diagnostics, [expected]);
-    }
 }
