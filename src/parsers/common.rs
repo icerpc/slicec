@@ -6,6 +6,7 @@ use crate::slice_file::Location;
 
 /// Stores a reference to a block of source code in a Slice file.
 #[derive(Clone, Copy, Debug)]
+#[allow(dead_code)] // The `end` field isn't used, but is very useful for debugging, so we keep it.
 pub struct SourceBlock<'input> {
     /// The raw text contained in the block, taken directly from the input.
     pub content: &'input str,

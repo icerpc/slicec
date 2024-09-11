@@ -42,45 +42,98 @@ fn check_for_shadowing(
 }
 
 pub fn check_for_redefinitions(ast: &Ast, diagnostics: &mut Diagnostics) {
-    // A map storing `(scoped_identifier, named_symbol)` pairs. We iterate through the AST and build up this map,
-    // and if we try to add an entry but see it's already occupied, that means we've found a redefinition.
-    let mut slice_definitions: HashMap<String, &dyn NamedSymbol> = HashMap::new();
+    RedefinitionChecker { diagnostics }.check_for_redefinitions(ast);
+}
 
-    for node in ast.as_slice() {
-        // Only check nodes that have identifiers, everything else is irrelevant.
-        if let Ok(definition) = <&dyn NamedSymbol>::try_from(node) {
-            let scoped_identifier = definition.parser_scoped_identifier();
-            match slice_definitions.get(&scoped_identifier) {
-                // If we've already seen a node with this identifier, there's a name collision.
-                // This is fine for modules (since they can be re-opened), but for any other type, we report an error.
-                Some(other_definition) => {
-                    if !(is_module(definition) && is_module(*other_definition)) {
-                        report_redefinition_error(definition, *other_definition, diagnostics);
+struct RedefinitionChecker<'a> {
+    diagnostics: &'a mut Diagnostics,
+}
+
+impl<'a> RedefinitionChecker<'a> {
+    fn check_for_redefinitions(&mut self, ast: &'a Ast) {
+        // Stores all the _module-scoped_ Slice definitions we've seen so far.
+        // Keys are the definition's fully-scoped identifiers, and values are references to the definitions themselves.
+        let mut seen_definitions = HashMap::new();
+
+        for node in ast.as_slice() {
+            // We only check `Entity`s so as to exclude any Slice elements which don't have names (and hence cannot be
+            // redefined), and also to exclude modules (which are reopened, not redefined).
+            let Ok(definition) = <&dyn Entity>::try_from(node) else { continue };
+
+            match definition.concrete_entity() {
+                Entities::Struct(struct_def) => {
+                    self.check_if_redefined(struct_def, &mut seen_definitions);
+                    self.check_contents_for_redefinitions(struct_def.contents());
+                }
+                Entities::Class(class_def) => {
+                    self.check_if_redefined(class_def, &mut seen_definitions);
+                    self.check_contents_for_redefinitions(class_def.contents());
+                }
+                Entities::Exception(exception_def) => {
+                    self.check_if_redefined(exception_def, &mut seen_definitions);
+                    self.check_contents_for_redefinitions(exception_def.contents());
+                }
+                Entities::Interface(interface_def) => {
+                    self.check_if_redefined(interface_def, &mut seen_definitions);
+                    self.check_contents_for_redefinitions(interface_def.contents());
+
+                    for operation in interface_def.operations() {
+                        self.check_contents_for_redefinitions(operation.parameters());
+                        self.check_contents_for_redefinitions(operation.return_members());
                     }
                 }
-
-                // If we haven't seen a node with this identifier before, add it to the map and continue checking.
-                None => {
-                    slice_definitions.insert(scoped_identifier, definition);
+                Entities::Enum(enum_def) => {
+                    self.check_if_redefined(enum_def, &mut seen_definitions);
+                    self.check_contents_for_redefinitions(enum_def.contents());
                 }
+                Entities::CustomType(custom_type) => {
+                    self.check_if_redefined(custom_type, &mut seen_definitions);
+                }
+                Entities::TypeAlias(type_alias) => {
+                    self.check_if_redefined(type_alias, &mut seen_definitions);
+                }
+
+                // No need to check `Field`, `Enumerator`, `Operation`, or `Parameter`; We just check their containers.
+                Entities::Field(_) | Entities::Enumerator(_) | Entities::Operation(_) | Entities::Parameter(_) => {}
             }
         }
     }
-}
 
-// TODO improve this function.
-fn is_module(definition: &dyn NamedSymbol) -> bool {
-    definition.kind() == "module"
-}
+    fn check_contents_for_redefinitions<T: NamedSymbol>(&mut self, contents: Vec<&T>) {
+        // We create a separate hashmap, so redefinitions are isolated to just the container we're checking.
+        let mut seen_definitions = HashMap::new();
+        for element in contents {
+            self.check_if_redefined(element, &mut seen_definitions);
+        }
+    }
 
-fn report_redefinition_error(new: &dyn NamedSymbol, original: &dyn NamedSymbol, diagnostics: &mut Diagnostics) {
-    Diagnostic::new(Error::Redefinition {
-        identifier: new.identifier().to_owned(),
-    })
-    .set_span(new.raw_identifier().span())
-    .add_note(
-        format!("'{}' was previously defined here", original.identifier()),
-        Some(original.raw_identifier().span()),
-    )
-    .push_into(diagnostics);
+    /// Checks if the provided `definition` already has an entry in the `already_seen` map. If it does, we report a
+    /// redefinition error, otherwise, we just add it to the map and return.
+    fn check_if_redefined<'b>(
+        &mut self,
+        definition: &'b impl NamedSymbol,
+        already_seen: &mut HashMap<String, &'b dyn NamedSymbol>,
+    ) {
+        let scoped_identifier = definition.parser_scoped_identifier();
+
+        if let Some(other_definition) = already_seen.get(&scoped_identifier) {
+            // We found a name collision; report an error.
+            self.report_redefinition_error(definition, *other_definition);
+        } else {
+            // This is the first time we've seen this identifier, so we add it to the map.
+            already_seen.insert(scoped_identifier, definition);
+        }
+    }
+
+    fn report_redefinition_error(&mut self, new: &dyn NamedSymbol, original: &dyn NamedSymbol) {
+        Diagnostic::new(Error::Redefinition {
+            identifier: new.identifier().to_owned(),
+        })
+        .set_span(new.raw_identifier().span())
+        .add_note(
+            format!("'{}' was previously defined here", original.identifier()),
+            Some(original.raw_identifier().span()),
+        )
+        .push_into(self.diagnostics);
+    }
 }
