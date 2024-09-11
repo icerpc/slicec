@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2] - 2024-9-11
+### Added
+- Added support for computing source-hashes of Slice files, for tools to utilize ([696]).
+### Fixed
+- Fixed redefinition errors on containers triggering false-positives for their contents ([700]).
+### Changed
+- The compiler no longer emits a build summary message when using JSON formatted output ([702]).
+
 ## [0.3.1] - 2024-3-27
 ### Enhancements
 - Input files are now loaded and parsed in the order they're passed ([694]).
@@ -18,7 +26,7 @@
 ### Breaking
 - Enums with fields can no longer be used as dictionary keys ([685]).
 - `CompilationState` no longer implements `Send` (so we have greater freedom to evolve it).
-### Changes
+### Changed
 - The files `code_gen_util.rs` and `code_block.rs` were moved out of this crate (into `slicec-cs`).
 
 ## [0.2.1] - 2023-11-29
@@ -51,6 +59,9 @@
 ## [0.1.0] - 2023-9-6
 Initial public release!
 
+[702]: https://github.com/icerpc/slicec/pull/702
+[700]: https://github.com/icerpc/slicec/pull/700
+[696]: https://github.com/icerpc/slicec/pull/696
 [694]: https://github.com/icerpc/slicec/pull/694
 [689]: https://github.com/icerpc/slicec/pull/689
 [688]: https://github.com/icerpc/slicec/pull/688
@@ -67,6 +78,7 @@ Initial public release!
 [662]: https://github.com/icerpc/slicec/pull/662
 [659]: https://github.com/icerpc/slicec/pull/659
 
+[0.3.2]: https://github.com/icerpc/slicec/releases/tag/v0.3.2
 [0.3.1]: https://github.com/icerpc/slicec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/icerpc/slicec/releases/tag/v0.3.0
 [0.2.1]: https://github.com/icerpc/slicec/releases/tag/v0.2.1
