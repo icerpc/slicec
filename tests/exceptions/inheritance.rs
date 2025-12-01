@@ -44,7 +44,7 @@ fn does_not_support_multiple_inheritance() {
 
     // Assert
     let expected = Diagnostic::new(Error::Syntax {
-        message: "expected one of '{', but found ','".to_owned(),
+        message: "expected '{', but found ','".to_owned(),
     })
     .set_span(&Span::new((9, 26).into(), (9, 27).into(), "string-0"));
 

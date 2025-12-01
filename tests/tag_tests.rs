@@ -235,7 +235,7 @@ mod tags {
 
         // Assert
         let expected = Diagnostic::new(Error::Syntax {
-            message: "expected one of '-' or 'integer literal', but found 'test string'".to_owned(),
+            message: "expected one of 'integer literal' or '-', but found 'test string'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

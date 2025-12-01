@@ -126,7 +126,7 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
 
     let expected_message = match &keyword[..] {
         [] => "expected no tokens".to_owned(),
-        [first] => format!("expected one of {first}"),
+        [first] => format!("expected {first}"),
         [first, second] => format!("expected one of {first} or {second}"),
         many => {
             let (last, others) = many.split_last().unwrap();

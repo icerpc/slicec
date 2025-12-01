@@ -34,7 +34,7 @@ macro_rules! generate_entities_wrapper {
 
         $(
         impl AsEntities for $variant {
-            fn concrete_entity(&self) -> Entities {
+            fn concrete_entity(&self) -> Entities<'_> {
                 Entities::$variant(self)
             }
         }
@@ -43,7 +43,7 @@ macro_rules! generate_entities_wrapper {
 }
 
 pub trait AsEntities {
-    fn concrete_entity(&self) -> Entities;
+    fn concrete_entity(&self) -> Entities<'_>;
 }
 
 generate_entities_wrapper!(
@@ -59,7 +59,7 @@ macro_rules! generate_attributables_wrapper {
 
         $(
         impl AsAttributables for $variant {
-            fn concrete_attributable(&self) -> Attributables {
+            fn concrete_attributable(&self) -> Attributables<'_> {
                 Attributables::$variant(self)
             }
         }
@@ -68,7 +68,7 @@ macro_rules! generate_attributables_wrapper {
 }
 
 pub trait AsAttributables {
-    fn concrete_attributable(&self) -> Attributables;
+    fn concrete_attributable(&self) -> Attributables<'_>;
 }
 
 generate_attributables_wrapper!(
@@ -85,7 +85,7 @@ macro_rules! generate_types_wrapper {
 
         $(
         impl AsTypes for $variant {
-            fn concrete_type(&self) -> Types {
+            fn concrete_type(&self) -> Types<'_> {
                 Types::$variant(self)
             }
         }
@@ -109,7 +109,7 @@ macro_rules! generate_types_wrapper {
 }
 
 pub trait AsTypes {
-    fn concrete_type(&self) -> Types;
+    fn concrete_type(&self) -> Types<'_>;
 }
 
 generate_types_wrapper!(Struct, Class, Enum, CustomType, ResultType, Sequence, Dictionary, Primitive);

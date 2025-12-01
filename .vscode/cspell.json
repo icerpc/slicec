@@ -5,6 +5,7 @@
     "attributables",
     "canonicalize",
     "canonicalized",
+    "ccase",
     "codepoints",
     "Commentable",
     "deduped",
@@ -46,8 +47,5 @@
     "en_US",
     "rust",
     "softwareTerms"
-  ],
-  "enableFiletypes": [
-    "slice"
   ]
 }

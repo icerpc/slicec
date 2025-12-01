@@ -6,7 +6,7 @@ use super::LookupError;
 use crate::downgrade_as;
 use crate::grammar::*;
 use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
-use convert_case::{Case, Casing};
+use convert_case::ccase;
 use std::fmt;
 
 // Helper macro for generating `TryFrom` conversion functions to unwrap `Node`s to concrete types, when the type of
@@ -25,8 +25,8 @@ macro_rules! generate_try_from_node_impl {
                     Ok($convert(x))
                 } else {
                     Err(LookupError::TypeMismatch {
-                        expected: stringify!($variant).to_case(Case::Lower),
-                        actual: node.to_string().to_case(Case::Lower),
+                        expected: ccase!(lower, stringify!($variant)),
+                        actual: ccase!(lower, node.to_string()),
                         is_concrete: true,
                     })
                 }
@@ -106,7 +106,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
             _ => Err(LookupError::TypeMismatch {
                 expected: "type".to_owned(),
-                actual: node.to_string().to_case(Case::Lower),
+                actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),
         }
@@ -133,7 +133,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Type {
             Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
             _ => Err(LookupError::TypeMismatch {
                 expected: "type".to_owned(),
-                actual: node.to_string().to_case(Case::Lower),
+                actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),
         }
@@ -163,7 +163,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
             _ => Err(LookupError::TypeMismatch {
                 expected: "named symbol".to_owned(),
-                actual: node.to_string().to_case(Case::Lower),
+                actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),
         }
@@ -192,7 +192,7 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
             Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Entity)),
             _ => Err(LookupError::TypeMismatch {
                 expected: "entity".to_owned(),
-                actual: node.to_string().to_case(Case::Lower),
+                actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),
         }
@@ -221,7 +221,7 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
             Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
             _ => Err(LookupError::TypeMismatch {
                 expected: "entity".to_owned(),
-                actual: node.to_string().to_case(Case::Lower),
+                actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),
         }

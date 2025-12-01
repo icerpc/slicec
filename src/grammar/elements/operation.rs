@@ -88,19 +88,19 @@ impl Operation {
     }
 
     pub fn compress_arguments(&self) -> bool {
-        self.find_attribute::<Compress>().map_or(false, |a| a.compress_args)
+        self.find_attribute::<Compress>().is_some_and(|a| a.compress_args)
     }
 
     pub fn compress_return(&self) -> bool {
-        self.find_attribute::<Compress>().map_or(false, |a| a.compress_return)
+        self.find_attribute::<Compress>().is_some_and(|a| a.compress_return)
     }
 
     pub fn slice_classes_in_arguments(&self) -> bool {
-        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_args)
+        self.find_attribute::<SlicedFormat>().is_some_and(|a| a.sliced_args)
     }
 
     pub fn slice_classes_in_return(&self) -> bool {
-        self.find_attribute::<SlicedFormat>().map_or(false, |a| a.sliced_return)
+        self.find_attribute::<SlicedFormat>().is_some_and(|a| a.sliced_return)
     }
 }
 

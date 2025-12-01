@@ -382,10 +382,10 @@ fn preprocessor_recovers_at_end_of_line() {
     // Assert
     let expected = [
         Diagnostic::new(Error::Syntax {
-            message: "expected one of directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
+            message: "expected directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
         }),
         Diagnostic::new(Error::Syntax {
-            message: r#"expected one of "&&", ")", or "||", but found 'DirectiveEnd'"#.to_owned(),
+            message: r#"expected one of "&&", "||", or ")", but found 'DirectiveEnd'"#.to_owned(),
         }),
     ];
     check_diagnostics(diagnostics, expected);

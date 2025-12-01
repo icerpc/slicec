@@ -17,7 +17,7 @@ pub struct TypeAlias {
 }
 
 impl AsTypes for TypeAlias {
-    fn concrete_type(&self) -> Types {
+    fn concrete_type(&self) -> Types<'_> {
         self.underlying.concrete_type()
     }
 }

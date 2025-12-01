@@ -757,7 +757,7 @@ mod attributes {
 
             // Assert
             let expected = Diagnostic::new(Error::Syntax {
-                message: format!("expected one of 'identifier', but found '{found}'"),
+                message: format!("expected 'identifier', but found '{found}'"),
             });
 
             check_diagnostics(diagnostics, [expected]);

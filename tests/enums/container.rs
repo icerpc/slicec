@@ -5,7 +5,7 @@ use slicec::diagnostics::{Diagnostic, Error};
 use slicec::grammar::*;
 use test_case::test_case;
 
-#[test_case("10", "expected one of '[', '}', 'doc comment', or 'identifier', but found '10'"; "numeric identifier")]
+#[test_case("10", "expected one of 'identifier', 'doc comment', '[', or '}', but found '10'"; "numeric identifier")]
 #[test_case("😊", "unknown symbol '😊'"; "unicode identifier")]
 fn enumerator_invalid_identifiers(identifier: &str, expected_message: &str) {
     // Arrange

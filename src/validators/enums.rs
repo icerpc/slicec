@@ -75,18 +75,15 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
 
 /// Validate that the backing type (if present) is an integral type.
 fn allowed_underlying_types(enum_def: &Enum, diagnostics: &mut Diagnostics) {
-    match &enum_def.underlying {
-        Some(underlying_type) => {
-            if !underlying_type.is_integral() {
-                Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
-                    enum_identifier: enum_def.identifier().to_owned(),
-                    kind: Some(underlying_type.definition().kind().to_owned()),
-                })
-                .set_span(enum_def.span())
-                .push_into(diagnostics);
-            }
+    if let Some(underlying_type) = &enum_def.underlying {
+        if !underlying_type.is_integral() {
+            Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
+                enum_identifier: enum_def.identifier().to_owned(),
+                kind: Some(underlying_type.definition().kind().to_owned()),
+            })
+            .set_span(enum_def.span())
+            .push_into(diagnostics);
         }
-        None => (), // No underlying type, the default is varint32 for Slice2 which is integral.
     }
 }
 

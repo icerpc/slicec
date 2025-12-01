@@ -184,7 +184,7 @@ where
 
     /// Checks if an identifier corresponds to a Slice keyword. If it does,
     /// return the keyword's token. Otherwise, return an `[TokenKind::Identifier]` token.
-    fn check_if_keyword(identifier: &str) -> TokenKind {
+    fn check_if_keyword(identifier: &str) -> TokenKind<'_> {
         debug_assert!(identifier.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
         debug_assert!(!identifier.is_empty());
 

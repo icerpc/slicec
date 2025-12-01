@@ -254,7 +254,9 @@ fn disallowed_optional_suggestion(
     type_ref: &TypeRef<impl Type + ?Sized>,
     container: Option<&dyn Entity>,
 ) -> Option<Note> {
-    let identifier = match container?.concrete_entity() {
+    let container = container?;
+
+    let identifier = match container.concrete_entity() {
         Entities::Field(field) => match field.parent().concrete_entity() {
             // If the field's parent is a class or exception, recommend using a tag.
             Entities::Class(..) | Entities::Exception(..) => Some(field.identifier()),

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.3] - 2025-11-28
+### Changed
+- Updated dependencies and bumped MSRV to 1.82 ([704]).
+
 ## [0.3.2] - 2024-9-11
 ### Added
 - Added support for computing source-hashes of Slice files, for tools to utilize ([696]).
@@ -59,6 +63,7 @@
 ## [0.1.0] - 2023-9-6
 Initial public release!
 
+[704]: https://github.com/icerpc/slicec/pull/704
 [702]: https://github.com/icerpc/slicec/pull/702
 [700]: https://github.com/icerpc/slicec/pull/700
 [696]: https://github.com/icerpc/slicec/pull/696
@@ -78,6 +83,7 @@ Initial public release!
 [662]: https://github.com/icerpc/slicec/pull/662
 [659]: https://github.com/icerpc/slicec/pull/659
 
+[0.3.3]: https://github.com/icerpc/slicec/releases/tag/v0.3.3
 [0.3.2]: https://github.com/icerpc/slicec/releases/tag/v0.3.2
 [0.3.1]: https://github.com/icerpc/slicec/releases/tag/v0.3.1
 [0.3.0]: https://github.com/icerpc/slicec/releases/tag/v0.3.0
