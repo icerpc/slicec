@@ -18,6 +18,7 @@ and converting them into a typed AST. It also exposes APIs for traversing and se
 any warnings / errors discovered in the parsed Slice definitions.
 
 Crates can include the `slicec` library by listing it as a dependency:
+
 ```toml
 slicec = "0.3.3"
 ```
@@ -28,11 +29,13 @@ The `slicec` binary is a command-line tool which accepts Slice files (in additio
 AST using the library, then writes a Slice-encoded version of the AST to `stdout`, for other tools to consume.
 
 The `slicec` binary can be installed with:
+
 ```shell
 cargo install slicec
 ```
 
 It can also be run directly from source with:
+
 ```shell
 cargo run
 ```

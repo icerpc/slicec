@@ -16,7 +16,7 @@ fn main() {
     let updated_diagnostics = diagnostics.into_updated(&ast, &files, &slice_options);
     let totals = slicec::diagnostics::get_totals(&updated_diagnostics);
 
-    // Dump stuff to stdout.
+    // Print output to stdout.
     print!("Diagnostics: ");
     println!("{totals:?}");
     for diagnostic in updated_diagnostics {
