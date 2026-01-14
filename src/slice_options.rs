@@ -10,7 +10,7 @@ use clap::{Parser, ValueEnum};
 /// This struct is responsible for parsing the command line options common to all slice compilers.
 /// The option parsing capabilities are generated on the struct by the `clap` macro.
 #[derive(Debug, Default, Hash, Parser)]
-#[command(rename_all = "kebab-case")]
+#[command(author, version, about, long_about=DESCRIPTION, rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of Slice files to compile.
     #[arg(required = true)]
@@ -45,6 +45,12 @@ pub struct SliceOptions {
     #[arg(long)]
     pub disable_color: bool,
 }
+
+/// Short description of slicec that is displayed in its help dialogue.
+const DESCRIPTION: &str = "\
+The Slice compiler.
+Parses Slice files into a typed Abstract Syntax Tree (AST) describing the provided Slice definitions.
+This AST is then encoded with Slice and written to stdout, to be consumed by other tools.";
 
 /// This enum is used to specify the format for emitted diagnostics.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, ValueEnum)]
