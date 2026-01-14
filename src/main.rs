@@ -4,7 +4,7 @@ use clap::Parser;
 use slicec::slice_options::SliceOptions;
 use slicec::compilation_state::CompilationState;
 
-pub fn main() {
+fn main() {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
 
