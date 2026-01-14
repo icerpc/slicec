@@ -1,4 +1,3 @@
-
 # Building from source
 
 Run the following command to build `slicec` (the library and the binary) and its dependencies:
