@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
+// cspell:ignore Lorem, ipsum, dolor, sit, amet, no, explicari, repudiare, vis, an, dicant, legimus, ponderum
+
 use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
 use slice_codec::buffer::{InputSource, OutputTarget};
 use slice_codec::decode_from::DecodeFrom;

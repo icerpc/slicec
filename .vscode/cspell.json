@@ -19,6 +19,7 @@
     "Hasher",
     "icerpc",
     "lalrpop",
+    "nonoverlapping",
     "MSRV",
     "nonterminal",
     "peekable",
