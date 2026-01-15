@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "bools",
     "attributables",
     "canonicalize",
     "canonicalized",
@@ -35,6 +36,7 @@
     "typeref",
     "uncasted",
     "Undelimited",
+    "uninit",
     "unprefixed",
     "Unsize",
     "unthrowable",
