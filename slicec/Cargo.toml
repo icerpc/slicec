@@ -11,10 +11,10 @@ keywords = ["slice", "ice", "icerpc"]
 rust-version = "1.82"
 
 # Get these crate fields from the top-level workspace 'Cargo.toml'.
-version.workspace = true;
-authors.workspace = true;
-license.workspace = true;
-edition.workspace = true;
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
 
 [dependencies]
 slice-codec = { path = "../slice-codec", version = "0.1.0" }
