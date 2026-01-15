@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
 use clap::Parser;
-use slicec::slice_options::SliceOptions;
 use slicec::compilation_state::CompilationState;
+use slicec::slice_options::SliceOptions;
 
 fn main() {
     // Parse the command-line input.
@@ -10,7 +10,11 @@ fn main() {
 
     // Perform the compilation.
     let compilation_state = slicec::compile_from_options(&slice_options, |_| {}, |_| {});
-    let CompilationState { ast, diagnostics, files } = compilation_state;
+    let CompilationState {
+        ast,
+        diagnostics,
+        files
+    } = compilation_state;
 
     // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
     let updated_diagnostics = diagnostics.into_updated(&ast, &files, &slice_options);
