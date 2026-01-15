@@ -46,9 +46,9 @@ implement_encode_into_on_borrowed_type!(i8, Slice2);
 
 implement_encode_into_on_numeric_primitive_type! {u16, Slice2, "Encodes this [`u16`] on 2 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i16, Slice2, "Encodes this [`i16`] on 2 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u32, Slice2, "Encodes this [`u32`] on 2 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {u32, Slice2, "Encodes this [`u32`] on 4 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i32, Slice2, "Encodes this [`i32`] on 4 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u64, Slice2, "Encodes this [`u64`] on 2 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {u64, Slice2, "Encodes this [`u64`] on 8 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i64, Slice2, "Encodes this [`i64`] on 8 bytes (little endian) in two's complement form."}
 implement_encode_into_on_numeric_primitive_type! {f32, Slice2, "Encodes this [`f32`] on 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
 implement_encode_into_on_numeric_primitive_type! {f64, Slice2, "Encodes this [`f64`] on 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
