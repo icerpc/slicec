@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "slicec",
+]
+exclude = [".github", ".vscode"]
+resolver = "3"
