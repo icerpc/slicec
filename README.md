@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
+  <img src="https://github.com/icerpc/slicec/raw/0.3.x/.github/assets/slicec-banner.svg" height="100" width="100" />
 </p>
 
 # The Slice compiler library (slicec)
@@ -57,5 +57,5 @@ cargo llvm-cov --open
 ```
 
 [ci-home]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
-[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
+[license]: https://github.com/icerpc/slicec/blob/0.3.x/LICENSE
 [slice]: https://docs.icerpc.dev/slice2
