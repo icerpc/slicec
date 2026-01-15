@@ -1,7 +1,5 @@
 [package]
 name = "slicec"
-version = "0.3.3"
-authors = ["ZeroC Inc."]
 description = """
 The Slice parser and other core components for Slice compilers.
 """
@@ -10,12 +8,16 @@ documentation = "https://docs.rs/slicec"
 repository = "https://github.com/icerpc/slicec/slicec"
 readme = "README.md"
 keywords = ["slice", "ice", "icerpc"]
-license = "Apache-2.0"
-edition = "2021"
 rust-version = "1.82"
-exclude = [".github/*", ".vscode/*"]
+
+# Get these crate fields from the top-level workspace 'Cargo.toml'.
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
 
 [dependencies]
+slice-codec = { path = "../slice-codec", version = "0.4.0" }
 # derive feature allows structs to derive Parser automatically
 clap = { version = "4.5.53", features = ["derive"] }
 console = "0.16.1"
