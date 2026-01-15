@@ -64,9 +64,7 @@ fn disallowed_primitive_types(key_type: &str, mode: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyTypeNotSupported {
-        kind: key_type.to_owned(),
-    });
+    let expected = Diagnostic::new(Error::KeyTypeNotSupported { kind: key_type.to_owned() });
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -85,9 +83,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyTypeNotSupported {
-        kind: key_kind.to_owned(),
-    });
+    let expected = Diagnostic::new(Error::KeyTypeNotSupported { kind: key_kind.to_owned() });
     check_diagnostics(diagnostics, [expected]);
 }
 

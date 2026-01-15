@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "bools",
     "attributables",
     "canonicalize",
     "canonicalized",
@@ -18,6 +19,7 @@
     "Hasher",
     "icerpc",
     "lalrpop",
+    "nonoverlapping",
     "MSRV",
     "nonterminal",
     "peekable",
@@ -35,6 +37,7 @@
     "typeref",
     "uncasted",
     "Undelimited",
+    "uninit",
     "unprefixed",
     "Unsize",
     "unthrowable",

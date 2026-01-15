@@ -1,5 +1,14 @@
 [package]
 name = "slice-codec"
+description = """
+Library for encoding and decoding Slice types.
+"""
+homepage = "https://docs.icerpc.dev/slice2"
+documentation = "https://docs.rs/slice-codec"
+repository = "https://github.com/icerpc/slicec/slice-codec"
+readme = "README.md"
+keywords = ["slice", "ice", "icerpc"]
+rust-version = "1.73"
 
 # Get these crate fields from the top-level workspace 'Cargo.toml'.
 version.workspace = true
@@ -10,3 +19,34 @@ edition.workspace = true
 [lib]
 name = "slice_codec"
 path = "src/lib.rs"
+
+[dependencies]
+tokio = { version = "1.37.0", optional = true }
+bytes = { version = "1.6.0", optional = true }
+
+[dev-dependencies]
+test-case = "3.3.1"
+
+[features]
+default = ["slice2", "std"]
+
+# Provides support for the Slice2 encoding.
+slice2 = []
+
+# Provides support for the Slice1 encoding.
+slice1 = []
+
+# Provides implementations for encoding and decoding common standard library types like `String`, `Vec`, `HashMap`, etc.
+# Introduces a dependency on the Rust standard library. This flag should be disabled for 'no-std' projects.
+std = ["alloc"]
+
+# Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
+# This is typically used in no-std environments which have configured their own global allocators.
+alloc = []
+
+# Provides support for constructing encoders and decoders over various types from the tokio ecosystem.
+# Most notable are `Buf` & `BufMut` from the `bytes` crate, and `AsyncRead` & `AsyncWrite` from the `tokio` crate.
+tokio = ["dep:tokio", "dep:bytes", "std"]
+
+[package.metadata.docs.rs]
+all-features = true

@@ -209,10 +209,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: "bool".to_owned(),
-            })
-            .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"));
+            let expected = Diagnostic::new(Error::OptionalsNotSupported { kind: "bool".to_owned() })
+                .set_span(&Span::new((5, 33).into(), (5, 38).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -235,10 +233,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: "uint8".to_owned(),
-            })
-            .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"));
+            let expected = Diagnostic::new(Error::OptionalsNotSupported { kind: "uint8".to_owned() })
+                .set_span(&Span::new((5, 35).into(), (5, 41).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -258,10 +254,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: "int32".to_owned(),
-            })
-            .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"));
+            let expected = Diagnostic::new(Error::OptionalsNotSupported { kind: "int32".to_owned() })
+                .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -302,10 +296,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: "bool".to_owned(),
-            })
-            .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"));
+            let expected = Diagnostic::new(Error::OptionalsNotSupported { kind: "bool".to_owned() })
+                .set_span(&Span::new((5, 27).into(), (5, 32).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
@@ -373,10 +365,8 @@ mod optional {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::OptionalsNotSupported {
-                kind: "bool".to_owned(),
-            })
-            .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"));
+            let expected = Diagnostic::new(Error::OptionalsNotSupported { kind: "bool".to_owned() })
+                .set_span(&Span::new((5, 24).into(), (5, 29).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
         }
