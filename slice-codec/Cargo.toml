@@ -1,0 +1,7 @@
+[package]
+name = "slice-codec"
+version = "0.1.0"
+
+[lib]
+name = "slice_codec"
+path = "src/lib.rs"

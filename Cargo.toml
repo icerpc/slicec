@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "slicec",
+    "slice-codec",
 ]
 exclude = [".github", ".vscode"]
 resolver = "3"
