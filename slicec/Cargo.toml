@@ -17,7 +17,7 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-slice-codec = { path = "../slice-codec", version = "0.1.0" }
+slice-codec = { path = "../slice-codec", version = "0.4.0" }
 # derive feature allows structs to derive Parser automatically
 clap = { version = "4.5.53", features = ["derive"] }
 console = "0.16.1"
