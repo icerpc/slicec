@@ -13,7 +13,7 @@ fn main() {
     let CompilationState {
         ast,
         diagnostics,
-        files
+        files,
     } = compilation_state;
 
     // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
