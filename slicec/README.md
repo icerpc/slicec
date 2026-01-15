@@ -41,4 +41,4 @@ cargo run
 ```
 
 [ci-home]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
-[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
+[license]: https://github.com/icerpc/slicec/slicec/blob/main/LICENSE

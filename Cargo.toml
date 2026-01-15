@@ -1,43 +1,6 @@
-[package]
-name = "slicec"
-version = "0.3.3"
-authors = ["ZeroC Inc."]
-description = """
-The Slice parser and other core components for Slice compilers.
-"""
-homepage = "https://docs.icerpc.dev/slice2"
-documentation = "https://docs.rs/slicec"
-repository = "https://github.com/icerpc/slicec"
-readme = "README.md"
-keywords = ["slice", "ice", "icerpc"]
-license = "Apache-2.0"
-edition = "2021"
-rust-version = "1.82"
-exclude = [".github/*", ".vscode/*"]
-
-[dependencies]
-# derive feature allows structs to derive Parser automatically
-clap = { version = "4.5.53", features = ["derive"] }
-console = "0.16.1"
-convert_case = "0.10.0"
-in_definite = "1.1.2"
-lalrpop-util = "0.22.2"
-# derive feature allows structs to derive Serialize automatically
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
-sha2 = "0.10.9"
-
-[build-dependencies]
-# The default features enable a built-in lexer. We supply our own lexer so we don't need these.
-lalrpop = { version = "0.22.2", default-features = false }
-
-[dev-dependencies]
-test-case = "3.3.1"
-
-[lib]
-name = "slicec"
-path = "src/lib.rs"
-
-[[bin]]
-name = "slicec"
-path = "src/main.rs"
+[workspace]
+members = [
+    "slicec",
+]
+exclude = [".github", ".vscode"]
+resolver = "3"
