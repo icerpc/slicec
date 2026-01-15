@@ -74,7 +74,7 @@ impl OutputTarget for VecOutputTarget<'_> {
             let target_slice = self.buffer.spare_capacity_mut().get_unchecked_mut(..count);
 
             debug_assert_eq!(target_slice.len(), count);
-            // SAFETY: `MaybeUnit<T>` is guaranteed to have the same memory layout as `T`.
+            // SAFETY: `MaybeUninit<T>` is guaranteed to have the same memory layout as `T`.
             let source: &[MaybeUninit<u8>] = core::mem::transmute(bytes);
 
             core::ptr::copy_nonoverlapping(source.as_ptr(), target_slice.as_mut_ptr(), count);
