@@ -57,7 +57,9 @@ mod fixed_sized {
     #[test_case(0_f64, [0, 0, 0, 0, 0, 0, 0, 0]; "zero_f64")]
     #[test_case(f64::MAX, [255, 255, 255, 255, 255, 255, 239, 127]; "max_f64")]
     fn encoding_of<const N: usize, T>(value: T, expected: [u8; N])
-    where T: EncodeInto<Slice2> {
+    where
+        T: EncodeInto<Slice2>,
+    {
         // Arrange: create a buffer to encode the value into, and an encoder over that buffer.
         // Note: This test uses an array so it can run without needing the 'alloc' feature.
         let mut buffer = [0; N];
@@ -122,7 +124,9 @@ mod fixed_sized {
     #[test_case(0_f64, [0, 0, 0, 0, 0, 0, 0, 0]; "zero_f64")]
     #[test_case(f64::MAX, [255, 255, 255, 255, 255, 255, 239, 127]; "max_f64")]
     fn decoding_of<const N: usize, T>(expected: T, bytes: [u8; N])
-    where T: DecodeFrom<Slice2> + Debug + PartialEq {
+    where
+        T: DecodeFrom<Slice2> + Debug + PartialEq,
+    {
         // Arrange: create a decoder over the provided bytes.
         let input_source = SliceInputSource::from(&bytes);
         let mut decoder = Decoder::new(input_source);
@@ -162,7 +166,9 @@ mod variable_sized {
         #[test_case(2_u64.pow(30), &[0x3, 0x0, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0]; "min_u64_eight_bytes")]
         #[test_case(2_u64.pow(62) - 1, &[0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]; "max_u64_eight_bytes")]
         fn varuint<T: PartialEq + Debug>(value: T, expected: &[u8])
-        where u64: From<T> {
+        where
+            u64: From<T>,
+        {
             // Arrange
             // Note: This test uses an array so it can run without needing the 'alloc' feature.
             // 8 bytes is enough to hold any varuint. The actual size will be less so we can slice away the trailing
@@ -210,7 +216,9 @@ mod variable_sized {
         #[test_case(2_i64.pow(30), &[3, 0, 0, 0, 1, 0, 0, 0]; "min_i64_eight_bytes")]
         #[test_case(VARINT62_MAX, &[255, 255, 255, 255, 255, 255, 255, 127]; "max_i64_eight_bytes_max")]
         fn varint<T: PartialEq + Debug>(value: T, expected: &[u8])
-        where i64: From<T> {
+        where
+            i64: From<T>,
+        {
             // Arrange
             // Note: This test uses an array so it can run without needing the 'alloc' feature.
             let mut buffer = [0; 8];

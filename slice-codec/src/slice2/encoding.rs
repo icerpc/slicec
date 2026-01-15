@@ -84,7 +84,6 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
     ///
     /// [varint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
     #[rustfmt::skip] // To keep the arms of `match required_bits` aligned for readability.
-
     pub fn encode_varint(&mut self, value: impl Into<i64>) -> Result<()> {
         let value: i64 = value.into();
 
@@ -154,7 +153,8 @@ impl EncodeInto<Slice2> for &str {
 
 /// TODO
 impl<'a, T> EncodeInto<Slice2> for &'a [T]
-where &'a T: EncodeInto<Slice2>
+where
+    &'a T: EncodeInto<Slice2>,
 {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
         let size = u64::try_from(self.len())?;

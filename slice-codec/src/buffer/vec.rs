@@ -145,7 +145,8 @@ impl<'a> From<&'a mut Vec<u8>> for VecOutputTarget<'a> {
 // without needing to construct an intermediate [`VecOutputTarget`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::encoder::Encoder<VecOutputTarget<'a>>
-where T: Into<VecOutputTarget<'a>>
+where
+    T: Into<VecOutputTarget<'a>>,
 {
     fn from(value: T) -> Self {
         crate::encoder::Encoder::new_with_inferred_encoding(value.into())

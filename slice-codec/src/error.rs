@@ -183,12 +183,7 @@ impl Display for InvalidDataErrorKind {
                     write!(f, "illegal value: {desc}")
                 }
             }
-            Self::OutOfRange {
-                value,
-                min,
-                max,
-                typename,
-            } => {
+            Self::OutOfRange { value, min, max, typename } => {
                 write!(
                     f,
                     "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]"

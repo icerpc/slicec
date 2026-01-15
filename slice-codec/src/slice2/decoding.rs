@@ -197,7 +197,8 @@ impl DecodeFrom<Slice2> for String {
 
 #[cfg(feature = "alloc")]
 impl<T> DecodeFrom<Slice2> for Vec<T>
-where T: DecodeFrom<Slice2>
+where
+    T: DecodeFrom<Slice2>,
 {
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
