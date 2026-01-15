@@ -20,7 +20,7 @@ any warnings / errors discovered in the parsed Slice definitions.
 Crates can include the `slicec` library by listing it as a dependency:
 
 ```toml
-slicec = "0.3.3"
+slicec = "0.4.0"
 ```
 
 ### `slicec` Binary

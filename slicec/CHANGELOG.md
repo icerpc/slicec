@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.4.0] - TBD
+
 ## [0.3.3] - 2025-11-28
 ### Changed
 - Updated dependencies and bumped MSRV to 1.82 ([704]).
