@@ -156,7 +156,7 @@ struct DictionaryType {
     value_type: TypeRef,
 }
 
-compact enum Primitive : u8 {
+compact enum Primitive : uint8 {
     Bool,
     Int8,
     UInt8,
