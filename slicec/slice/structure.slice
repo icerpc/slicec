@@ -4,14 +4,14 @@ module SliceC
 
 struct SliceFile {
     filename: string,
-    relative_path: string,
+    relativePath: string,
 
-    compilation_mode: FileCompilationMode?,
-    module_declaration: AstPointer?,
+    compilationMode: FileCompilationMode?,
+    moduleDeclaration: AstPointer?,
     attributes: Sequence<AstPointer>,
     contents: Sequence<AstPointer>,
 
-    is_source: bool,
+    isSource: bool,
 }
 
 struct Ast {

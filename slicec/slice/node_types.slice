@@ -16,12 +16,12 @@ struct Module {
 struct Struct {
     identifier: Identifier,
     fields: Sequence<AstPointer>,
-    is_compact: bool,
+    isCompact: bool,
     scope: Scope,
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Class {
@@ -33,7 +33,7 @@ struct Class {
     attributes: Sequence<AstPointer>,
     comment: DocComment?
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Exception {
@@ -44,7 +44,7 @@ struct Exception {
     attributes: Sequence<AstPointer>,
     comment: DocComment?
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Field {
@@ -66,7 +66,7 @@ struct Interface {
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Operation {
@@ -104,7 +104,7 @@ struct Enum {
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Enumerator {
@@ -129,7 +129,7 @@ struct CustomType {
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct TypeAlias {
@@ -139,7 +139,7 @@ struct TypeAlias {
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
-    supported_encodings: Sequence<Encoding>,
+    supportedEncodings: Sequence<Encoding>,
 }
 
 struct ResultType {

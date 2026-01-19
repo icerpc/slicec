@@ -24,18 +24,18 @@ struct ReturnsTag {
 }
 
 struct ThrowsTag {
-    thrown_type: AstPointer
+    thrownType: AstPointer
     message: Message,
     span: Span,
 }
 
 struct SeeTag {
-    link_to: AstPointer
+    linkTo: AstPointer
     span: Span,
 }
 
 struct LinkTag {
-    link_to: AstPointer
+    linkTo: AstPointer
     span: Span,
 }
 
