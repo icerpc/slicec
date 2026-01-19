@@ -1,0 +1,195 @@
+// Copyright (c) ZeroC, Inc.
+
+module SliceC
+
+struct FileCompilationMode {
+    encoding: Encoding,
+    span: Span,
+}
+
+struct Module {
+    identifier: Identifier,
+    attributes: Sequence<AstPointer>,
+    span: Span,
+}
+
+struct Struct {
+    identifier: Identifier,
+    fields: Sequence<AstPointer>,
+    is_compact: bool,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct Class {
+    identifier: Identifier,
+    fields: Sequence<AstPointer>,
+    compact_id: Integer?,
+    base: TypeRef?
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct Exception {
+    identifier: Identifier,
+    fields: Sequence<AstPointer>,
+    base: TypeRef?
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct Field {
+    identifier: Identifier,
+    data_type: TypeRef,
+    \tag: Integer?
+    parent: AstPointer,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+}
+
+struct Interface {
+    identifier: Identifier,
+    operations: Sequence<AstPointer>,
+    bases: Sequence<TypeRef>,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct Operation {
+    identifier: Identifier,
+    parameters: Sequence<AstPointer>,
+    return_type: Sequence<AstPointer>,
+    exception_specification: Sequence<TypeRef>,
+    is_idempotent: bool,
+    encoding: Encoding,
+    parent: AstPointer,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span
+}
+
+struct Parameter {
+    identifier: Identifier,
+    data_type: TypeRef,
+    \tag: Integer?,
+    is_streamed: bool,
+    parent: AstPointer,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    span: Span,
+}
+
+struct Enum {
+    identifier: Identifier,
+    enumerators: Sequence<AstPointer>,
+    underlying: TypeRef?,
+    is_compact: bool,
+    is_unchecked: bool,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct Enumerator {
+    identifier: Identifier,
+    value: EnumeratorValue,
+    fields: Sequence<AstPointer>?,
+    parent: AstPointer,
+    scope: Scope,
+    attributes: Sequence<Attribute>,
+    comment: DocComment?,
+    span: Span,
+}
+
+compact enum EnumeratorValue {
+    Implicit(v: int128), // TODO slice doesn't support int128,
+    Explicit(v: Integer),
+}
+
+struct CustomType {
+    identifier: Identifier,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct TypeAlias {
+    identifier: Identifier,
+    underlying: TypeRef,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    comment: DocComment?,
+    span: Span,
+    supported_encodings: Sequence<Encoding>,
+}
+
+struct ResultType {
+    success_type: TypeRef,
+    failure_type: TypeRef,
+}
+
+struct SequenceType {
+    element_type: TypeRef,
+}
+
+struct DictionaryType {
+    key_type: TypeRef,
+    value_type: TypeRef,
+}
+
+compact enum Primitive : u8 {
+    Bool,
+    Int8,
+    UInt8,
+    Int16,
+    UInt16,
+    Int32,
+    UInt32,
+    VarInt32,
+    VarUInt32,
+    Int64,
+    UInt64,
+    VarInt62,
+    VarUInt62,
+    Float32,
+    Float64,
+    String,
+    \AnyClass,
+}
+
+struct Attribute {
+    directive: string,
+    args: Sequence<string>,
+}
+
+struct TypeRef {
+    value: AstPointer,
+    is_optional: bool,
+    scope: Scope,
+    attributes: Sequence<AstPointer>,
+    span: Span,
+}
+
+struct Scope {
+    value: string,
+    containing_module: AstPointer,
+}

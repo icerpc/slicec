@@ -1,0 +1,50 @@
+// Copyright (c) ZeroC, Inc.
+
+module SliceC
+
+struct DocComment {
+    overview: Message?,
+    params: Sequence<ParamTag>,
+    returns: Sequence<ReturnsTag>,
+    \throws: Sequence<ThrowsTag>,
+    see: Sequence<SeeTag>,
+    span: Span,
+}
+
+struct ParamTag {
+    identifier: Identifier,
+    message: Message,
+    span: Span,
+}
+
+struct ReturnsTag {
+    identifier: Identifier?,
+    message: Message,
+    span: Span,
+}
+
+struct ThrowsTag {
+    thrown_type: AstPointer
+    message: Message,
+    span: Span,
+}
+
+struct SeeTag {
+    link_to: AstPointer
+    span: Span,
+}
+
+struct LinkTag {
+    link_to: AstPointer
+    span: Span,
+}
+
+enum MessageComponent {
+    Text(v: string),
+    Link(v: LinkTag),
+}
+
+struct Message {
+    value: Sequence<MessageComponent>,
+    span: Span,
+}

@@ -1,0 +1,39 @@
+// Copyright (c) ZeroC, Inc.
+
+module SliceC
+
+struct SliceFile {
+    filename: string,
+    relative_path: string,
+
+    compilation_mode: FileCompilationMode?,
+    module_declaration: AstPointer?,
+    attributes: Sequence<AstPointer>,
+    contents: Sequence<AstPointer>,
+
+    is_source: bool,
+}
+
+struct Ast {
+    elements: Sequence<Node>,
+}
+
+unchecked compact enum Node { // TODO: we currently don't support 'unchecked compact'
+    Module(v: Module) = 0,
+    Struct(v: Struct) = 1,
+    Class(v: Class) = 2,
+    Exception(v: Exception) = 3,
+    Field(v: Field) = 4,
+    Interface(v: Interface) = 5,
+    Operation(v: Operation) = 6,
+    Parameter(v: Parameter) = 7,
+    Enum(v: Enum) = 8,
+    Enumerator(v: Enumerator) = 9,
+    CustomType(v: CustomType) = 10,
+    TypeAlias(v: TypeAlias) = 11,
+    ResultType(v: ResultType) = 12,
+    SequenceType(v: SequenceType) = 13,
+    DictionaryType(v: DictionaryType) = 14,
+    Primitive(v: Primitive) = 15,
+    Attribute(v: Attribute) = 16,
+}

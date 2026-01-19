@@ -1,0 +1,32 @@
+// Copyright (c) ZeroC, Inc.
+
+module SliceC
+
+compact struct Location {
+    row: varuint62,
+    col: varuint62,
+}
+
+compact struct Span {
+    start: Location,
+    end: Location,
+    file: string,
+}
+
+compact struct Integer {
+    value: int128, // TODO: slice doesn't support int128
+    span: Span,
+}
+
+compact struct Identifier {
+    value: string,
+    span: Span,
+}
+
+compact enum Encoding : uint8 {
+    Slice1 = 1,
+    Slice2 = 2,
+}
+
+// TODO should this be a custom type instead? We would still encode it as a varuint62 though.
+typealias AstPointer = varuint62
