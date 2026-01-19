@@ -27,11 +27,11 @@ struct Struct {
 struct Class {
     identifier: Identifier,
     fields: Sequence<AstPointer>,
-    compact_id: Integer?,
-    base: TypeRef?
+    compactId: Integer?,
+    base: TypeRef?,
     scope: Scope,
     attributes: Sequence<AstPointer>,
-    comment: DocComment?
+    comment: DocComment?,
     span: Span,
     supportedEncodings: Sequence<Encoding>,
 }
@@ -39,18 +39,18 @@ struct Class {
 struct Exception {
     identifier: Identifier,
     fields: Sequence<AstPointer>,
-    base: TypeRef?
+    base: TypeRef?,
     scope: Scope,
     attributes: Sequence<AstPointer>,
-    comment: DocComment?
+    comment: DocComment?,
     span: Span,
     supportedEncodings: Sequence<Encoding>,
 }
 
 struct Field {
     identifier: Identifier,
-    data_type: TypeRef,
-    \tag: Integer?
+    dataType: TypeRef,
+    \tag: Integer?,
     parent: AstPointer,
     scope: Scope,
     attributes: Sequence<AstPointer>,
@@ -72,9 +72,9 @@ struct Interface {
 struct Operation {
     identifier: Identifier,
     parameters: Sequence<AstPointer>,
-    return_type: Sequence<AstPointer>,
-    exception_specification: Sequence<TypeRef>,
-    is_idempotent: bool,
+    returnType: Sequence<AstPointer>,
+    exceptionSpecification: Sequence<TypeRef>,
+    isIdempotent: bool,
     encoding: Encoding,
     parent: AstPointer,
     scope: Scope,
@@ -85,9 +85,9 @@ struct Operation {
 
 struct Parameter {
     identifier: Identifier,
-    data_type: TypeRef,
+    dataType: TypeRef,
     \tag: Integer?,
-    is_streamed: bool,
+    isStreamed: bool,
     parent: AstPointer,
     scope: Scope,
     attributes: Sequence<AstPointer>,
@@ -98,8 +98,8 @@ struct Enum {
     identifier: Identifier,
     enumerators: Sequence<AstPointer>,
     underlying: TypeRef?,
-    is_compact: bool,
-    is_unchecked: bool,
+    isCompact: bool,
+    isUnchecked: bool,
     scope: Scope,
     attributes: Sequence<AstPointer>,
     comment: DocComment?,
@@ -113,7 +113,7 @@ struct Enumerator {
     fields: Sequence<AstPointer>?,
     parent: AstPointer,
     scope: Scope,
-    attributes: Sequence<Attribute>,
+    attributes: Sequence<AstPointer>,
     comment: DocComment?,
     span: Span,
 }
@@ -143,17 +143,17 @@ struct TypeAlias {
 }
 
 struct ResultType {
-    success_type: TypeRef,
-    failure_type: TypeRef,
+    successType: TypeRef,
+    failureType: TypeRef,
 }
 
 struct SequenceType {
-    element_type: TypeRef,
+    elementType: TypeRef,
 }
 
 struct DictionaryType {
-    key_type: TypeRef,
-    value_type: TypeRef,
+    keyType: TypeRef,
+    valueType: TypeRef,
 }
 
 compact enum Primitive : uint8 {
@@ -183,7 +183,7 @@ struct Attribute {
 
 struct TypeRef {
     value: AstPointer,
-    is_optional: bool,
+    isOptional: bool,
     scope: Scope,
     attributes: Sequence<AstPointer>,
     span: Span,
@@ -191,5 +191,5 @@ struct TypeRef {
 
 struct Scope {
     value: string,
-    containing_module: AstPointer,
+    containingModule: AstPointer,
 }
