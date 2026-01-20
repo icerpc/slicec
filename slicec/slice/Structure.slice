@@ -4,7 +4,7 @@ module Slice::Compiler
 
 interface CodeGenerator {
     generateCode(inputFiles: Sequence<InputFile>)
-        -> (outputFiles: Sequence<GeneratedCode>, diagnostics: Sequence<Diagnostic>);
+        -> (outputFiles: Sequence<GeneratedCode>, diagnostics: Sequence<Diagnostic>)
 }
 
 struct InputFile {
@@ -28,7 +28,7 @@ struct Definition {
     supportedEncodings: Sequence<Encoding>,
 }
 
-unchecked compact enum DefinitionKind { // TODO: we currently don't support 'unchecked compact'
+compact unchecked enum DefinitionKind { // TODO: we currently don't support 'unchecked compact'
     Struct(v: Struct) = 0,
     Class(v: Class) = 1,
     Exception(v: Exception) = 2,
