@@ -93,14 +93,14 @@ struct Enum {
 
 struct Enumerator {
     identifier: Identifier,
-    value: EnumeratorValue,
+    value: Discriminant,
     fields: Sequence<Field>?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
 }
 
-compact enum EnumeratorValue {
+compact enum Discriminant {
     Implicit(v: int128), // TODO slice doesn't support int128,
     Explicit(v: Integer),
 }
