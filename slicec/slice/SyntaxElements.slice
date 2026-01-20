@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-module SliceC
+module Slice::Compiler
 
 struct FileCompilationMode {
     encoding: Encoding,
@@ -9,76 +9,64 @@ struct FileCompilationMode {
 
 struct Module {
     identifier: Identifier,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     span: Span,
 }
 
 struct Struct {
     identifier: Identifier,
-    fields: Sequence<AstPointer>,
+    fields: Sequence<Field>,
     isCompact: bool,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Class {
     identifier: Identifier,
-    fields: Sequence<AstPointer>,
+    fields: Sequence<Field>,
     compactId: Integer?,
     base: TypeRef?,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Exception {
     identifier: Identifier,
-    fields: Sequence<AstPointer>,
+    fields: Sequence<Field>,
     base: TypeRef?,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Field {
     identifier: Identifier,
     dataType: TypeRef,
     \tag: Integer?,
-    parent: AstPointer,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
 }
 
 struct Interface {
     identifier: Identifier,
-    operations: Sequence<AstPointer>,
+    operations: Sequence<Operation>,
     bases: Sequence<TypeRef>,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Operation {
     identifier: Identifier,
-    parameters: Sequence<AstPointer>,
-    returnType: Sequence<AstPointer>,
+    parameters: Sequence<Parameter>,
+    returnType: Sequence<Parameter>,
     exceptionSpecification: Sequence<TypeRef>,
     isIdempotent: bool,
     encoding: Encoding,
-    parent: AstPointer,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
 }
@@ -88,32 +76,26 @@ struct Parameter {
     dataType: TypeRef,
     \tag: Integer?,
     isStreamed: bool,
-    parent: AstPointer,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     span: Span,
 }
 
 struct Enum {
     identifier: Identifier,
-    enumerators: Sequence<AstPointer>,
+    enumerators: Sequence<Enumerator>,
     underlying: TypeRef?,
     isCompact: bool,
     isUnchecked: bool,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct Enumerator {
     identifier: Identifier,
     value: EnumeratorValue,
-    fields: Sequence<AstPointer>?,
-    parent: AstPointer,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    fields: Sequence<Field>?,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
 }
@@ -125,21 +107,17 @@ compact enum EnumeratorValue {
 
 struct CustomType {
     identifier: Identifier,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct TypeAlias {
     identifier: Identifier,
     underlying: TypeRef,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>,
     comment: DocComment?,
     span: Span,
-    supportedEncodings: Sequence<Encoding>,
 }
 
 struct ResultType {
@@ -182,14 +160,16 @@ struct Attribute {
 }
 
 struct TypeRef {
-    value: AstPointer,
+    value: TypeRefDefinition,
     isOptional: bool,
-    scope: Scope,
-    attributes: Sequence<AstPointer>,
+    attributes: Sequence<Attribute>, /* We'll need to duplicate the attributes during encoding. */
     span: Span,
 }
 
-struct Scope {
-    value: string,
-    containingModule: AstPointer,
+enum TypeRefDefinition {
+    Definition(v: SliceId),
+    Primitive(v: Primitive),
+    SequenceType(v: SequenceType),
+    DictionaryType(v: DictionaryType),
+    ResultType(v: ResultType),
 }

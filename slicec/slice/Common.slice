@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-module SliceC
+module Slice::Compiler
 
 compact struct Location {
     row: varuint62,
@@ -28,5 +28,4 @@ compact enum Encoding : uint8 {
     Slice2 = 2,
 }
 
-// TODO should this be a custom type instead? We would still encode it as a varuint62 though.
-typealias AstPointer = varuint62
+typealias SliceId = string

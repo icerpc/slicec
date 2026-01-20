@@ -1,0 +1,29 @@
+// Copyright (c) ZeroC, Inc.
+
+module Slice::Compiler
+
+struct SliceFile {
+    relativePath: string,
+
+    compilationMode: FileCompilationMode?,
+    moduleDeclaration: Module?,
+    attributes: Sequence<Attribute>,
+    contents: Sequence<Definition>,
+
+    isSource: bool,
+}
+
+struct Definition {
+    value: DefinitionKind,
+    supportedEncodings: Sequence<Encoding>,
+}
+
+unchecked compact enum DefinitionKind { // TODO: we currently don't support 'unchecked compact'
+    Struct(v: Struct) = 0,
+    Class(v: Class) = 1,
+    Exception(v: Exception) = 2,
+    Interface(v: Interface) = 3,
+    Enum(v: Enum) = 4,
+    CustomType(v: CustomType) = 5,
+    TypeAlias(v: TypeAlias) = 6,
+}

@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-module SliceC
+module Slice::Compiler
 
 struct DocComment {
     overview: Message?,
@@ -24,18 +24,18 @@ struct ReturnsTag {
 }
 
 struct ThrowsTag {
-    thrownType: AstPointer,
+    thrownType: SliceId,
     message: Message,
     span: Span,
 }
 
 struct SeeTag {
-    linkTo: AstPointer,
+    linkTo: SliceId,
     span: Span,
 }
 
 struct LinkTag {
-    linkTo: AstPointer,
+    linkTo: SliceId,
     span: Span,
 }
 
