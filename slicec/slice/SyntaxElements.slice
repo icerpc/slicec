@@ -19,7 +19,6 @@ struct Struct {
     isCompact: bool,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Class {
@@ -29,7 +28,6 @@ struct Class {
     base: TypeRef?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Exception {
@@ -38,7 +36,6 @@ struct Exception {
     base: TypeRef?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Field {
@@ -47,7 +44,6 @@ struct Field {
     \tag: Integer?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Interface {
@@ -56,7 +52,6 @@ struct Interface {
     bases: Sequence<TypeRef>,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Operation {
@@ -68,7 +63,6 @@ struct Operation {
     encoding: Encoding,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Parameter {
@@ -77,7 +71,6 @@ struct Parameter {
     \tag: Integer?,
     isStreamed: bool,
     attributes: Sequence<Attribute>,
-    span: Span,
 }
 
 struct Enum {
@@ -88,7 +81,6 @@ struct Enum {
     isUnchecked: bool,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct Enumerator {
@@ -97,7 +89,6 @@ struct Enumerator {
     fields: Sequence<Field>?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 compact enum Discriminant {
@@ -109,7 +100,6 @@ struct CustomType {
     identifier: Identifier,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct TypeAlias {
@@ -117,7 +107,6 @@ struct TypeAlias {
     underlying: TypeRef,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
-    span: Span,
 }
 
 struct ResultType {
@@ -154,16 +143,11 @@ compact enum Primitive : uint8 {
     \AnyClass,
 }
 
-struct Attribute {
-    directive: string,
-    args: Sequence<string>,
-}
-
 struct TypeRef {
     value: TypeRefDefinition,
     isOptional: bool,
     attributes: Sequence<Attribute>, /* We'll need to duplicate the attributes during encoding. */
-    span: Span,
+    span: Span, // Useful to report bad types (i.e. A Slice1 type is used and this is the Rust plugin).
 }
 
 enum TypeRefDefinition {
@@ -172,4 +156,15 @@ enum TypeRefDefinition {
     SequenceType(v: SequenceType),
     DictionaryType(v: DictionaryType),
     ResultType(v: ResultType),
+}
+
+struct Attribute {
+    directive: string,
+    args: Sequence<AttributeArgument>,
+    span: Span, // Useful to report bad attributes.
+}
+
+struct AttributeArgument {
+    value: string,
+    span: Span, // Useful to report bad arguments.
 }

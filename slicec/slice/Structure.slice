@@ -41,8 +41,9 @@ compact unchecked enum DefinitionKind { // TODO: we currently don't support 'unc
 struct Diagnostic {
     level: DiagnosticLevel,
     message: string,
-    span: Span?,
-    sliceId: SliceId?,
+    sliceId: SliceId?, // The SliceId of the thing that caused the diagnostic.
+    span: Span?, // Or, if no SliceId, the exact location of the diagnostic.
+    scope: SliceId?, // Needed for 'allow'/'warn' attributes on modules.
 }
 
 unchecked enum DiagnosticLevel : uint8 {
