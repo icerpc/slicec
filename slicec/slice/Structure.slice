@@ -2,7 +2,12 @@
 
 module Slice::Compiler
 
-struct SliceFile {
+interface CodeGenerator {
+    generateCode(inputFiles: Sequence<InputFile>)
+        -> (outputFiles: Sequence<GeneratedCode>, diagnostics: Sequence<Diagnostic>);
+}
+
+struct InputFile {
     relativePath: string,
 
     compilationMode: FileCompilationMode?,
@@ -11,6 +16,11 @@ struct SliceFile {
     contents: Sequence<Definition>,
 
     isSource: bool,
+}
+
+struct GeneratedCode {
+    relativePath: string,
+    contents: string,
 }
 
 struct Definition {
@@ -26,4 +36,17 @@ unchecked compact enum DefinitionKind { // TODO: we currently don't support 'unc
     Enum(v: Enum) = 4,
     CustomType(v: CustomType) = 5,
     TypeAlias(v: TypeAlias) = 6,
+}
+
+struct Diagnostic {
+    level: DiagnosticLevel,
+    message: string,
+    span: Span?,
+    sliceId: SliceId?,
+}
+
+unchecked enum DiagnosticLevel : uint8 {
+    Info = 0,
+    Warning = 1,
+    Error = 2,
 }
