@@ -6,7 +6,7 @@ module Slice::Compiler
 /// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
 ///
 /// Special cases:
-/// - Attributes are addressable by SliceId by specifying the SliceIf of the element they're applied to,
+/// - Attributes are addressable by SliceId by specifying the SliceId of the element they're applied to,
 ///   followed by '$attribute::INDEX', where 'INDEX' is the zero-based index of the attribute in the element's attribute list.
 ///   Similarly, the arguments to an attribute can be specified via index. For example:
 ///   'MyModule::MyStruct::$attribute::2::1' refers to the 2nd argument of the 3rd attribute applied to 'MyStruct'.
