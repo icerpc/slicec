@@ -9,13 +9,11 @@ interface CodeGenerator {
 
 struct InputFile {
     relativePath: string,
-
-    compilationMode: FileCompilationMode?,
+    \mode: CompilationMode,
     moduleDeclaration: Module?,
     attributes: Sequence<Attribute>,
     contents: Sequence<Definition>,
-
-    isSource: bool,
+    category: FileCategory,
 }
 
 struct GeneratedCode {
@@ -23,12 +21,11 @@ struct GeneratedCode {
     contents: string,
 }
 
-struct Definition {
-    value: DefinitionKind,
-    supportedEncodings: Sequence<Encoding>,
-}
+compact enum CompilationMode : uint8 { Slice1, Slice2 }
 
-compact unchecked enum DefinitionKind { // TODO: we currently don't support 'unchecked compact'
+compact enum FileCategory : uint8 { Source, Reference }
+
+unchecked enum Definition {
     Struct(v: Struct) = 0,
     Class(v: Class) = 1,
     Exception(v: Exception) = 2,
@@ -41,9 +38,7 @@ compact unchecked enum DefinitionKind { // TODO: we currently don't support 'unc
 struct Diagnostic {
     level: DiagnosticLevel,
     message: string,
-    sliceId: SliceId?, // The SliceId of the thing that caused the diagnostic.
-    span: Span?, // Or, if no SliceId, the exact location of the diagnostic.
-    scope: SliceId?, // Needed for 'allow'/'warn' attributes on modules.
+    sliceId: SliceId?,
 }
 
 unchecked enum DiagnosticLevel : uint8 {

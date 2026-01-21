@@ -2,36 +2,41 @@
 
 module Slice::Compiler
 
-struct FileCompilationMode {
-    encoding: Encoding,
-    span: Span,
-}
+/// A unique identifier for a Slice element, typically a fully-scoped identifier.
+/// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
+///
+/// Special cases:
+/// - Attributes are addressable by SliceId by specifying the SliceIf of the element they're applied to,
+///   followed by '$attribute::INDEX', where 'INDEX' is the zero-based index of the attribute in the element's attribute list.
+///   Similarly, the arguments to an attribute can be specified via index. For example:
+///   'MyModule::MyStruct::$attribute::2::1' refers to the 2nd argument of the 3rd attribute applied to 'MyStruct'.
+typealias SliceId = string
 
 struct Module {
-    identifier: Identifier,
+    identifier: string,
     attributes: Sequence<Attribute>,
-    span: Span,
 }
 
 struct Struct {
-    identifier: Identifier,
+    identifier: string,
     fields: Sequence<Field>,
     isCompact: bool,
+    isSlice1Only: bool,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
 struct Class {
-    identifier: Identifier,
+    identifier: string,
     fields: Sequence<Field>,
-    compactId: Integer?,
+    compactId: uint32?,
     base: TypeRef?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
 struct Exception {
-    identifier: Identifier,
+    identifier: string,
     fields: Sequence<Field>,
     base: TypeRef?,
     attributes: Sequence<Attribute>,
@@ -39,15 +44,15 @@ struct Exception {
 }
 
 struct Field {
-    identifier: Identifier,
+    identifier: string,
     dataType: TypeRef,
-    \tag: Integer?,
+    \tag: uint32?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
 struct Interface {
-    identifier: Identifier,
+    identifier: string,
     operations: Sequence<Operation>,
     bases: Sequence<TypeRef>,
     attributes: Sequence<Attribute>,
@@ -55,26 +60,25 @@ struct Interface {
 }
 
 struct Operation {
-    identifier: Identifier,
+    identifier: string,
     parameters: Sequence<Parameter>,
     returnType: Sequence<Parameter>,
     exceptionSpecification: Sequence<TypeRef>,
     isIdempotent: bool,
-    encoding: Encoding,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
 struct Parameter {
-    identifier: Identifier,
+    identifier: string,
     dataType: TypeRef,
-    \tag: Integer?,
+    \tag: uint32?,
     isStreamed: bool,
     attributes: Sequence<Attribute>,
 }
 
 struct Enum {
-    identifier: Identifier,
+    identifier: string,
     enumerators: Sequence<Enumerator>,
     underlying: TypeRef?,
     isCompact: bool,
@@ -84,26 +88,29 @@ struct Enum {
 }
 
 struct Enumerator {
-    identifier: Identifier,
+    identifier: string,
     value: Discriminant,
     fields: Sequence<Field>?,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
-compact enum Discriminant {
-    Implicit(v: int128), // TODO slice doesn't support int128,
-    Explicit(v: Integer),
+struct Discriminant {
+    absoluteValue: u64
+    sign: NumberSign,
 }
 
+// I think adding an extra type to be decoded and mapped is over the top here.
+compact enum NumberSign : uint8 { Negative, Positive }
+
 struct CustomType {
-    identifier: Identifier,
+    identifier: string,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
 }
 
 struct TypeAlias {
-    identifier: Identifier,
+    identifier: string,
     underlying: TypeRef,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
@@ -123,7 +130,7 @@ struct DictionaryType {
     valueType: TypeRef,
 }
 
-compact enum Primitive : uint8 {
+unchecked enum Primitive : uint8 {
     Bool,
     Int8,
     UInt8,
@@ -146,8 +153,7 @@ compact enum Primitive : uint8 {
 struct TypeRef {
     value: TypeRefDefinition,
     isOptional: bool,
-    attributes: Sequence<Attribute>, /* We'll need to duplicate the attributes during encoding. */
-    span: Span, // Useful to report bad types (i.e. A Slice1 type is used and this is the Rust plugin).
+    attributes: Sequence<Attribute>, /* TODO: We'll need to duplicate the attributes during encoding. */
 }
 
 enum TypeRefDefinition {
@@ -160,11 +166,5 @@ enum TypeRefDefinition {
 
 struct Attribute {
     directive: string,
-    args: Sequence<AttributeArgument>,
-    span: Span, // Useful to report bad attributes.
-}
-
-struct AttributeArgument {
-    value: string,
-    span: Span, // Useful to report bad arguments.
+    args: Sequence<string>,
 }

@@ -3,40 +3,34 @@
 module Slice::Compiler
 
 struct DocComment {
-    overview: Message?,
+    overview: Message,
     params: Sequence<ParamTag>,
     returns: Sequence<ReturnsTag>,
     \throws: Sequence<ThrowsTag>,
     see: Sequence<SeeTag>,
-    span: Span,
 }
 
 struct ParamTag {
-    identifier: Identifier,
+    identifier: string,
     message: Message,
-    span: Span,
 }
 
 struct ReturnsTag {
-    identifier: Identifier?,
+    identifier: string?,
     message: Message,
-    span: Span,
 }
 
 struct ThrowsTag {
     thrownType: SliceId,
     message: Message,
-    span: Span,
 }
 
 struct SeeTag {
     linkTo: SliceId,
-    span: Span,
 }
 
 struct LinkTag {
     linkTo: SliceId,
-    span: Span,
 }
 
 enum MessageComponent {
@@ -44,7 +38,4 @@ enum MessageComponent {
     Link(v: LinkTag),
 }
 
-struct Message {
-    value: Sequence<MessageComponent>,
-    span: Span,
-}
+typealias Message = Sequence<MessageComponent>
