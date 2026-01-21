@@ -96,7 +96,7 @@ struct Enumerator {
 }
 
 struct Discriminant {
-    absoluteValue: uint64
+    absoluteValue: uint64,
     sign: NumberSign,
 }
 
