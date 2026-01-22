@@ -13,158 +13,158 @@ module Slice::Compiler
 typealias SliceId = string
 
 struct Module {
-    identifier: string,
-    attributes: Sequence<Attribute>,
+    identifier: string
+    attributes: Sequence<Attribute>
 }
 
 struct Struct {
-    identifier: string,
-    fields: Sequence<Field>,
-    isCompact: bool,
-    isSlice1Only: bool,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    fields: Sequence<Field>
+    isCompact: bool
+    isSlice1Only: bool
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Class {
-    identifier: string,
-    fields: Sequence<Field>,
-    compactId: uint32?,
-    base: TypeRef?,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    fields: Sequence<Field>
+    compactId: uint32?
+    base: TypeRef?
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Exception {
-    identifier: string,
-    fields: Sequence<Field>,
-    base: TypeRef?,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    fields: Sequence<Field>
+    base: TypeRef?
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Field {
-    identifier: string,
-    dataType: TypeRef,
-    \tag: uint32?,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    dataType: TypeRef
+    \tag: uint32?
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Interface {
-    identifier: string,
-    operations: Sequence<Operation>,
-    bases: Sequence<TypeRef>,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    operations: Sequence<Operation>
+    bases: Sequence<TypeRef>
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Operation {
-    identifier: string,
-    parameters: Sequence<Parameter>,
-    returnType: Sequence<Parameter>,
-    exceptionSpecification: Sequence<TypeRef>,
-    isIdempotent: bool,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    parameters: Sequence<Parameter>
+    returnType: Sequence<Parameter>
+    exceptionSpecification: Sequence<TypeRef>
+    isIdempotent: bool
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Parameter {
-    identifier: string,
-    dataType: TypeRef,
-    \tag: uint32?,
-    isStreamed: bool,
-    attributes: Sequence<Attribute>,
+    identifier: string
+    dataType: TypeRef
+    \tag: uint32?
+    isStreamed: bool
+    attributes: Sequence<Attribute>
 }
 
 struct Enum {
-    identifier: string,
-    enumerators: Sequence<Enumerator>,
-    underlying: TypeRef?,
-    isCompact: bool,
-    isUnchecked: bool,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    enumerators: Sequence<Enumerator>
+    underlying: TypeRef?
+    isCompact: bool
+    isUnchecked: bool
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Enumerator {
-    identifier: string,
-    value: Discriminant,
-    fields: Sequence<Field>?,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    value: Discriminant
+    fields: Sequence<Field>?
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct Discriminant {
-    absoluteValue: uint64,
-    sign: NumberSign,
+    absoluteValue: uint64
+    sign: NumberSign
 }
 
 // I think adding an extra type to be decoded and mapped is over the top here.
-compact enum NumberSign : uint8 { Negative, Positive }
+enum NumberSign : uint8 { Negative, Positive }
 
 struct CustomType {
-    identifier: string,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct TypeAlias {
-    identifier: string,
-    underlying: TypeRef,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    underlying: TypeRef
+    attributes: Sequence<Attribute>
+    comment: DocComment?
 }
 
 struct ResultType {
-    successType: TypeRef,
-    failureType: TypeRef,
+    successType: TypeRef
+    failureType: TypeRef
 }
 
 struct SequenceType {
-    elementType: TypeRef,
+    elementType: TypeRef
 }
 
 struct DictionaryType {
-    keyType: TypeRef,
-    valueType: TypeRef,
+    keyType: TypeRef
+    valueType: TypeRef
 }
 
 unchecked enum Primitive : uint8 {
-    Bool,
-    Int8,
-    UInt8,
-    Int16,
-    UInt16,
-    Int32,
-    UInt32,
-    VarInt32,
-    VarUInt32,
-    Int64,
-    UInt64,
-    VarInt62,
-    VarUInt62,
-    Float32,
-    Float64,
-    String,
-    \AnyClass,
+    Bool
+    Int8
+    UInt8
+    Int16
+    UInt16
+    Int32
+    UInt32
+    VarInt32
+    VarUInt32
+    Int64
+    UInt64
+    VarInt62
+    VarUInt62
+    Float32
+    Float64
+    String
+    \AnyClass
 }
 
 struct TypeRef {
-    value: TypeRefDefinition,
-    isOptional: bool,
-    attributes: Sequence<Attribute>, /* TODO: We'll need to duplicate the attributes during encoding. */
+    value: TypeRefDefinition
+    isOptional: bool
+    attributes: Sequence<Attribute> /* TODO: We'll need to duplicate the attributes during encoding. */
 }
 
 enum TypeRefDefinition {
-    Definition(v: SliceId),
-    Primitive(v: Primitive),
-    SequenceType(v: SequenceType),
-    DictionaryType(v: DictionaryType),
-    ResultType(v: ResultType),
+    Definition(v: SliceId)
+    Primitive(v: Primitive)
+    SequenceType(v: SequenceType)
+    DictionaryType(v: DictionaryType)
+    ResultType(v: ResultType)
 }
 
 struct Attribute {
-    directive: string,
-    args: Sequence<string>,
+    directive: string
+    args: Sequence<string>
 }

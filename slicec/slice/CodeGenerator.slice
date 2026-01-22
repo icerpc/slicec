@@ -21,9 +21,9 @@ struct GeneratedCode {
     contents: string,
 }
 
-compact enum CompilationMode : uint8 { Slice1, Slice2 }
+enum CompilationMode : uint8 { Slice1, Slice2 }
 
-compact enum FileCategory : uint8 { Source, Reference }
+enum FileCategory : uint8 { Source, Reference }
 
 unchecked enum Definition {
     Struct(v: Struct) = 0,
