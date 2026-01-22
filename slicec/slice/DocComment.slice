@@ -3,39 +3,19 @@
 module Slice::Compiler
 
 struct DocComment {
-    overview: Message,
-    params: Sequence<ParamTag>,
-    returns: Sequence<ReturnsTag>,
-    \throws: Sequence<ThrowsTag>,
-    see: Sequence<SeeTag>,
+    overview: Sequence<MessageComponent>
+    paramTags: Sequence<NamedTag>
+    returnTags: Sequence<NamedTag>
+    throwsTags: Sequence<NamedTag>
+    seeTags: Sequence<SliceId>
 }
 
-struct ParamTag {
-    identifier: string,
-    message: Message,
-}
-
-struct ReturnsTag {
-    identifier: string?,
-    message: Message,
-}
-
-struct ThrowsTag {
-    thrownType: SliceId,
-    message: Message,
-}
-
-struct SeeTag {
-    linkTo: SliceId,
-}
-
-struct LinkTag {
-    linkTo: SliceId,
+struct NamedTag {
+    identifier: string // is a SliceId when this is a '@throws' tag.
+    message: Sequence<MessageComponent>
 }
 
 enum MessageComponent {
-    Text(v: string),
-    Link(v: LinkTag),
+    Text(v: string)
+    Link(linkTo: SliceId)
 }
-
-typealias Message = Sequence<MessageComponent>

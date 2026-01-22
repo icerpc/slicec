@@ -3,46 +3,37 @@
 module Slice::Compiler
 
 interface CodeGenerator {
-    generateCode(inputFiles: Sequence<InputFile>)
+    generateCode(sources: Sequence<InputFile>, references: Sequence<InputFile>)
         -> (outputFiles: Sequence<GeneratedCode>, diagnostics: Sequence<Diagnostic>)
 }
 
 struct InputFile {
-    relativePath: string,
-    \mode: CompilationMode,
-    moduleDeclaration: Module?,
-    attributes: Sequence<Attribute>,
-    contents: Sequence<Definition>,
-    category: FileCategory,
+    relativePath: string
+    compilationMode: uint8
+    moduleDeclaration: ElementInfo
+    attributes: Sequence<Attribute>
+    contents: Sequence<Definition>
 }
 
 struct GeneratedCode {
-    relativePath: string,
-    contents: string,
+    relativePath: string
+    contents: string
 }
 
-compact enum CompilationMode : uint8 { Slice1, Slice2 }
-
-compact enum FileCategory : uint8 { Source, Reference }
-
 unchecked enum Definition {
-    Struct(v: Struct) = 0,
-    Class(v: Class) = 1,
-    Exception(v: Exception) = 2,
-    Interface(v: Interface) = 3,
-    Enum(v: Enum) = 4,
-    CustomType(v: CustomType) = 5,
-    TypeAlias(v: TypeAlias) = 6,
+    Struct(info: FieldContainerInfo, isCompact: bool)
+    Class(info: FieldContainerInfo, compactId: uint32?)
+    Exception(info: FieldContainerInfo)
+    Interface(info: InterfaceInfo)
+    Enum(info: EnumInfo)
+    CustomType(info: ElementInfo)
+    TypeAlias(info: ElementInfo, underlying: TypeRef)
 }
 
 struct Diagnostic {
-    level: DiagnosticLevel,
-    message: string,
-    sliceId: SliceId?,
+    level: DiagnosticLevel
+    message: string
+    sliceId: SliceId?
 }
 
-unchecked enum DiagnosticLevel : uint8 {
-    Info = 0,
-    Warning = 1,
-    Error = 2,
-}
+enum DiagnosticLevel { Info, Warning, Error}
