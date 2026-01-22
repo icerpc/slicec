@@ -116,9 +116,10 @@ struct TypeAlias {
     comment: DocComment?
 }
 
-struct ResultType {
-    successType: TypeRef
-    failureType: TypeRef
+enum AnonymousType {
+    SequenceType(v: SequenceType)
+    DictionaryType(v: DictionaryType)
+    ResultType(v: ResultType)
 }
 
 struct SequenceType {
@@ -128,6 +129,11 @@ struct SequenceType {
 struct DictionaryType {
     keyType: TypeRef
     valueType: TypeRef
+}
+
+struct ResultType {
+    successType: TypeRef
+    failureType: TypeRef
 }
 
 unchecked enum Primitive : uint8 {
@@ -159,9 +165,7 @@ struct TypeRef {
 enum TypeRefDefinition {
     Definition(v: SliceId)
     Primitive(v: Primitive)
-    SequenceType(v: SequenceType)
-    DictionaryType(v: DictionaryType)
-    ResultType(v: ResultType)
+    Anonymous(v: varuint62) /* TODO: need to make sure anonymous types are copied locally */
 }
 
 struct Attribute {
