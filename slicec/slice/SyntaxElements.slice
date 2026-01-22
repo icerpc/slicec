@@ -114,9 +114,9 @@ struct TypeAlias {
 }
 
 enum AnonymousType {
-    SequenceType(v: SequenceType)
-    DictionaryType(v: DictionaryType)
-    ResultType(v: ResultType)
+    SequenceType(v: SequenceType) = 0
+    DictionaryType(v: DictionaryType) = 1
+    ResultType(v: ResultType) = 2
 }
 
 struct SequenceType {
@@ -162,7 +162,7 @@ struct TypeRef {
 enum TypeRefDefinition {
     Definition(v: SliceId)
     Primitive(v: Primitive)
-    Anonymous(v: varuint62) /* TODO: need to make sure anonymous types are copied locally */
+    Anonymous(v: varuint62)
 }
 
 struct Attribute {

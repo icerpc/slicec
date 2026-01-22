@@ -8,9 +8,9 @@ interface CodeGenerator {
 }
 
 struct InputFile {
-    relativePath: string
-    \mode: CompilationMode
-    moduleDeclaration: Module?
+    path: string
+    compilationMode: CompilationMode
+    moduleDeclaration: Module
     attributes: Sequence<Attribute>
     contents: Sequence<Definition>
     anonymousTypes: Sequence<AnonymousType>
@@ -18,7 +18,7 @@ struct InputFile {
 }
 
 struct GeneratedCode {
-    relativePath: string
+    path: string
     contents: string
 }
 
