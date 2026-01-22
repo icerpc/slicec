@@ -97,11 +97,8 @@ struct Enumerator {
 
 struct Discriminant {
     absoluteValue: uint64
-    sign: NumberSign
+    isPositive: bool
 }
-
-// I think adding an extra type to be decoded and mapped is over the top here.
-enum NumberSign : uint8 { Negative, Positive }
 
 struct CustomType {
     identifier: string

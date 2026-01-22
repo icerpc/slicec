@@ -14,7 +14,7 @@ struct InputFile {
     attributes: Sequence<Attribute>
     contents: Sequence<Definition>
     anonymousTypes: Sequence<AnonymousType>
-    category: FileCategory
+    isSource: bool
 }
 
 struct GeneratedCode {
@@ -23,8 +23,6 @@ struct GeneratedCode {
 }
 
 enum CompilationMode : uint8 { Slice1, Slice2 }
-
-enum FileCategory : uint8 { Source, Reference }
 
 unchecked enum Definition {
     Struct(v: Struct) = 0
