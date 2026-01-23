@@ -29,8 +29,8 @@ struct Struct {
 struct Class {
     identifier: string
     fields: Sequence<Field>
-    compactId: uint32?
-    base: TypeRef?
+    compactId: int32?
+    base: SliceId?
     attributes: Sequence<Attribute>
     comment: DocComment?
 }
@@ -38,7 +38,7 @@ struct Class {
 struct Exception {
     identifier: string
     fields: Sequence<Field>
-    base: TypeRef?
+    base: SliceId?
     attributes: Sequence<Attribute>
     comment: DocComment?
 }
@@ -46,7 +46,7 @@ struct Exception {
 struct Field {
     identifier: string
     dataType: TypeRef
-    \tag: uint32?
+    \tag: varint32?
     attributes: Sequence<Attribute>
     comment: DocComment?
 }
@@ -63,7 +63,7 @@ struct Operation {
     identifier: string
     parameters: Sequence<Parameter>
     returnType: Sequence<Parameter>
-    exceptionSpecification: Sequence<TypeRef>
+    exceptionSpecification: Sequence<SliceId>
     isIdempotent: bool
     attributes: Sequence<Attribute>
     comment: DocComment?
@@ -72,7 +72,7 @@ struct Operation {
 struct Parameter {
     identifier: string
     dataType: TypeRef
-    \tag: uint32?
+    \tag: varint32?
     isStreamed: bool
     attributes: Sequence<Attribute>
 }
@@ -80,7 +80,7 @@ struct Parameter {
 struct Enum {
     identifier: string
     enumerators: Sequence<Enumerator>
-    underlying: TypeRef?
+    underlying: Primitive?
     isCompact: bool
     isUnchecked: bool
     attributes: Sequence<Attribute>
