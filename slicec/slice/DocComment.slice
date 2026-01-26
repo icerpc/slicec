@@ -4,20 +4,8 @@ module Slice::Compiler
 
 struct DocComment {
     overview: Message
-    params: Sequence<ParamTag>
-    returns: Sequence<ReturnsTag>
     \throws: Sequence<ThrowsTag>
     see: Sequence<SeeTag>
-}
-
-struct ParamTag {
-    identifier: string
-    message: Message
-}
-
-struct ReturnsTag {
-    identifier: string?
-    message: Message
 }
 
 struct ThrowsTag {

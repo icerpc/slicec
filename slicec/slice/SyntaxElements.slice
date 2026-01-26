@@ -12,87 +12,71 @@ module Slice::Compiler
 ///   'MyModule::MyStruct::$attribute::2::1' refers to the 2nd argument of the 3rd attribute applied to 'MyStruct'.
 typealias SliceId = string
 
+struct SyntaxElementInfo {
+    identifier: string,
+    attributes: Sequence<Attribute>,
+    comment: DocComment?,
+}
+
 struct Module {
     identifier: string
     attributes: Sequence<Attribute>
 }
 
 struct Struct {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     fields: Sequence<Field>
     isCompact: bool
     isSlice1Only: bool
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Class {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     fields: Sequence<Field>
     compactId: int32?
     base: SliceId?
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Exception {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     fields: Sequence<Field>
     base: SliceId?
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Field {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     dataType: TypeRef
     \tag: varint32?
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Interface {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     operations: Sequence<Operation>
     bases: Sequence<TypeRef>
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Operation {
-    identifier: string
-    parameters: Sequence<Parameter>
-    returnType: Sequence<Parameter>
+    elementInfo: SyntaxElementInfo
+    parameters: Sequence<Field>
+    hasStreamedParameter: bool
+    returnType: Sequence<Field>
+    hasStreamedReturn: bool
     exceptionSpecification: Sequence<SliceId>
     isIdempotent: bool
-    attributes: Sequence<Attribute>
-    comment: DocComment?
-}
-
-struct Parameter {
-    identifier: string
-    dataType: TypeRef
-    \tag: varint32?
-    isStreamed: bool
-    attributes: Sequence<Attribute>
 }
 
 struct Enum {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     enumerators: Sequence<Enumerator>
     underlying: Primitive?
     isCompact: bool
     isUnchecked: bool
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Enumerator {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     value: Discriminant
     fields: Sequence<Field>?
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 struct Discriminant {
@@ -101,22 +85,18 @@ struct Discriminant {
 }
 
 struct CustomType {
-    identifier: string
-    attributes: Sequence<Attribute>
-    comment: DocComment?
+    elementInfo: SyntaxElementInfo
 }
 
 struct TypeAlias {
-    identifier: string
+    elementInfo: SyntaxElementInfo
     underlying: TypeRef
-    attributes: Sequence<Attribute>
-    comment: DocComment?
 }
 
 enum AnonymousType {
-    SequenceType(v: SequenceType) = 0
-    DictionaryType(v: DictionaryType) = 1
-    ResultType(v: ResultType) = 2
+    SequenceType(v: SequenceType)
+    DictionaryType(v: DictionaryType)
+    ResultType(v: ResultType)
 }
 
 struct SequenceType {

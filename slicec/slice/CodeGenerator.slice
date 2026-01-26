@@ -25,13 +25,13 @@ struct GeneratedCode {
 enum CompilationMode : uint8 { Slice1, Slice2 }
 
 unchecked enum Definition {
-    Struct(v: Struct) = 0
-    Class(v: Class) = 1
-    Exception(v: Exception) = 2
-    Interface(v: Interface) = 3
-    Enum(v: Enum) = 4
-    CustomType(v: CustomType) = 5
-    TypeAlias(v: TypeAlias) = 6
+    Interface(v: Interface)
+    Enum(v: Enum)
+    Struct(v: Struct)
+    Class(v: Class)
+    Exception(v: Exception)
+    CustomType(v: CustomType)
+    TypeAlias(v: TypeAlias)
 }
 
 struct Diagnostic {
@@ -41,7 +41,7 @@ struct Diagnostic {
 }
 
 unchecked enum DiagnosticLevel : uint8 {
-    Info = 0
-    Warning = 1
-    Error = 2
+    Info
+    Warning
+    Error
 }
