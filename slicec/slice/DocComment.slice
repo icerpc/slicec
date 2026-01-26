@@ -9,16 +9,16 @@ struct DocComment {
 }
 
 struct ThrowsTag {
-    thrownType: SliceId
+    thrownType: SliceElementId
     message: Message
 }
 
 struct SeeTag {
-    linkTo: SliceId
+    linkTo: SliceElementId
 }
 
 struct LinkTag {
-    linkTo: SliceId
+    linkTo: SliceElementId
 }
 
 enum MessageComponent {

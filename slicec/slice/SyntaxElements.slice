@@ -6,13 +6,13 @@ module Slice::Compiler
 /// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
 ///
 /// Special cases:
-/// - Attributes are addressable by SliceId by specifying the SliceId of the element they're applied to,
+/// - Attributes are addressable by SliceElementId by specifying the id of the element they're applied to,
 ///   followed by '$attribute::INDEX', where 'INDEX' is the zero-based index of the attribute in the element's attribute list.
 ///   Similarly, the arguments to an attribute can be specified via index. For example:
 ///   'MyModule::MyStruct::$attribute::2::1' refers to the 2nd argument of the 3rd attribute applied to 'MyStruct'.
-typealias SliceId = string
+typealias SliceElementId = string
 
-struct SyntaxElementInfo {
+struct SliceElementInfo {
     identifier: string,
     attributes: Sequence<Attribute>,
     comment: DocComment?,
@@ -24,49 +24,49 @@ struct Module {
 }
 
 struct Struct {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     fields: Sequence<Field>
     isCompact: bool
     isSlice1Only: bool
 }
 
 struct Class {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     fields: Sequence<Field>
     compactId: int32?
-    base: SliceId?
+    base: SliceElementId?
 }
 
 struct Exception {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     fields: Sequence<Field>
-    base: SliceId?
+    base: SliceElementId?
 }
 
 struct Field {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     dataType: TypeRef
     \tag: varint32?
 }
 
 struct Interface {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     operations: Sequence<Operation>
-    bases: Sequence<TypeRef>
+    bases: Sequence<SliceElementId>
 }
 
 struct Operation {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     parameters: Sequence<Field>
     hasStreamedParameter: bool
     returnType: Sequence<Field>
     hasStreamedReturn: bool
-    exceptionSpecification: Sequence<SliceId>
+    exceptionSpecification: Sequence<SliceElementId>
     isIdempotent: bool
 }
 
 struct Enum {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     enumerators: Sequence<Enumerator>
     underlying: Primitive?
     isCompact: bool
@@ -74,7 +74,7 @@ struct Enum {
 }
 
 struct Enumerator {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     value: Discriminant
     fields: Sequence<Field>?
 }
@@ -85,11 +85,11 @@ struct Discriminant {
 }
 
 struct CustomType {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
 }
 
 struct TypeAlias {
-    elementInfo: SyntaxElementInfo
+    elementInfo: SliceElementInfo
     underlying: TypeRef
 }
 
@@ -136,11 +136,11 @@ unchecked enum Primitive : uint8 {
 struct TypeRef {
     value: TypeRefDefinition
     isOptional: bool
-    attributes: Sequence<Attribute> /* TODO: We'll need to duplicate the attributes during encoding. */
+    attributes: Sequence<Attribute>
 }
 
 enum TypeRefDefinition {
-    Definition(v: SliceId)
+    Definition(v: SliceElementId)
     Primitive(v: Primitive)
     Anonymous(v: varuint62)
 }

@@ -37,7 +37,7 @@ unchecked enum Definition {
 struct Diagnostic {
     level: DiagnosticLevel
     message: string
-    sliceId: SliceId?
+    source: SliceElementId?
 }
 
 unchecked enum DiagnosticLevel : uint8 {
