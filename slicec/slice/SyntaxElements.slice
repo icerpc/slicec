@@ -13,14 +13,14 @@ module Slice::Compiler
 typealias SliceElementId = string
 
 struct SliceElementInfo {
-    identifier: string,
-    attributes: Sequence<Attribute>,
-    comment: DocComment?,
+    identifier: string
+    tag(0) attributes: Sequence<Attribute>
+    tag(1) comment: DocComment?
 }
 
 struct Module {
     identifier: string
-    attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>
 }
 
 struct Struct {
@@ -136,7 +136,7 @@ unchecked enum Primitive : uint8 {
 struct TypeRef {
     value: TypeRefDefinition
     isOptional: bool
-    attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>
 }
 
 enum TypeRefDefinition {
