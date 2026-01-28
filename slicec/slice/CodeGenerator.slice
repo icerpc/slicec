@@ -1,0 +1,47 @@
+// Copyright (c) ZeroC, Inc.
+
+module Slice::Compiler
+
+interface CodeGenerator {
+    generateCode(sliceFiles: Sequence<SliceFile>)
+        -> (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
+}
+
+struct SliceFile {
+    path: string
+    compilationMode: CompilationMode
+    moduleDeclaration: Module
+    tag(0) attributes: Sequence<Attribute>?
+    contents: Sequence<Definition>
+    anonymousTypes: Sequence<AnonymousType>
+    isSource: bool
+}
+
+struct GeneratedFile {
+    path: string
+    contents: string
+}
+
+enum CompilationMode : uint8 { Slice1, Slice2 }
+
+unchecked enum Definition {
+    Interface(v: Interface)
+    Enum(v: Enum)
+    Struct(v: Struct)
+    Class(v: Class)
+    Exception(v: Exception)
+    CustomType(v: CustomType)
+    TypeAlias(v: TypeAlias)
+}
+
+struct Diagnostic {
+    level: DiagnosticLevel
+    message: string
+    source: string?
+}
+
+unchecked enum DiagnosticLevel : uint8 {
+    Info
+    Warning
+    Error
+}
