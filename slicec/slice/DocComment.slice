@@ -1,0 +1,29 @@
+// Copyright (c) ZeroC, Inc.
+
+module Slice::Compiler
+
+struct DocComment {
+    overview: Message
+    \throws: Sequence<ThrowsTag>
+    see: Sequence<SeeTag>
+}
+
+struct ThrowsTag {
+    thrownType: EntityId
+    message: Message
+}
+
+struct SeeTag {
+    linkTo: EntityId
+}
+
+struct LinkTag {
+    linkTo: EntityId
+}
+
+enum MessageComponent {
+    Text(v: string)
+    Link(v: LinkTag)
+}
+
+typealias Message = Sequence<MessageComponent>
