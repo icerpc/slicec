@@ -3,21 +3,21 @@
 module Slice::Compiler
 
 interface CodeGenerator {
-    generateCode(inputFiles: Sequence<InputFile>)
-        -> (outputFiles: Sequence<GeneratedCode>, diagnostics: Sequence<Diagnostic>)
+    generateCode(sliceFiles: Sequence<SliceFile>)
+        -> (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
 }
 
-struct InputFile {
+struct SliceFile {
     path: string
     compilationMode: CompilationMode
     moduleDeclaration: Module
-    attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>?
     contents: Sequence<Definition>
     anonymousTypes: Sequence<AnonymousType>
     isSource: bool
 }
 
-struct GeneratedCode {
+struct GeneratedFile {
     path: string
     contents: string
 }
@@ -37,7 +37,7 @@ unchecked enum Definition {
 struct Diagnostic {
     level: DiagnosticLevel
     message: string
-    source: SliceElementId?
+    source: string?
 }
 
 unchecked enum DiagnosticLevel : uint8 {

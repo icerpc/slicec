@@ -2,71 +2,65 @@
 
 module Slice::Compiler
 
-/// A unique identifier for a Slice element, typically a fully-scoped identifier.
+/// A unique identifier for a Slice entity, typically a fully-scoped identifier.
 /// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
-///
-/// Special cases:
-/// - Attributes are addressable by SliceElementId by specifying the id of the element they're applied to,
-///   followed by '$attribute::INDEX', where 'INDEX' is the zero-based index of the attribute in the element's attribute list.
-///   Similarly, the arguments to an attribute can be specified via index. For example:
-///   'MyModule::MyStruct::$attribute::2::1' refers to the 2nd argument of the 3rd attribute applied to 'MyStruct'.
-typealias SliceElementId = string
+typealias EntityId = string
 
-struct SliceElementInfo {
+struct EntityInfo {
     identifier: string
-    tag(0) attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>?
     tag(1) comment: DocComment?
 }
 
 struct Module {
     identifier: string
-    tag(0) attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>?
 }
 
 struct Struct {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     fields: Sequence<Field>
     isCompact: bool
     isSlice1Only: bool
 }
 
 struct Class {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     fields: Sequence<Field>
     compactId: int32?
-    base: SliceElementId?
+    base: EntityId?
 }
 
 struct Exception {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     fields: Sequence<Field>
-    base: SliceElementId?
+    base: EntityId?
 }
 
 struct Field {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     dataType: TypeRef
     \tag: varint32?
 }
 
 struct Interface {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     operations: Sequence<Operation>
-    bases: Sequence<SliceElementId>
+    bases: Sequence<EntityId>
 }
 
 struct Operation {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     parameters: Sequence<Field>
     hasStreamedParameter: bool
     returnType: Sequence<Field>
     hasStreamedReturn: bool
-    exceptionSpecification: Sequence<SliceElementId>
+    exceptionSpecification: Sequence<EntityId>
     isIdempotent: bool
 }
 
 struct Enum {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     enumerators: Sequence<Enumerator>
     underlying: Primitive?
     isCompact: bool
@@ -74,7 +68,7 @@ struct Enum {
 }
 
 struct Enumerator {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     value: Discriminant
     fields: Sequence<Field>?
 }
@@ -85,11 +79,11 @@ struct Discriminant {
 }
 
 struct CustomType {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
 }
 
 struct TypeAlias {
-    elementInfo: SliceElementInfo
+    entityInfo: EntityInfo
     underlying: TypeRef
 }
 
@@ -136,11 +130,11 @@ unchecked enum Primitive : uint8 {
 struct TypeRef {
     value: TypeRefDefinition
     isOptional: bool
-    tag(0) attributes: Sequence<Attribute>
+    tag(0) attributes: Sequence<Attribute>?
 }
 
 enum TypeRefDefinition {
-    Definition(v: SliceElementId)
+    Definition(v: EntityId)
     Primitive(v: Primitive)
     Anonymous(v: varuint62)
 }
