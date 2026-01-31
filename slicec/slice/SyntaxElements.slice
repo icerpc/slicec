@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-module Slice::Compiler
+[cs::namespace("ZeroC.Slice.Compiler")]
+module Compiler
 
 /// A unique identifier for a Slice entity, typically a fully-scoped identifier.
 /// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
