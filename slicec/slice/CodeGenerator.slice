@@ -1,10 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-module Slice::Compiler
+[cs::namespace("ZeroC.Slice.Compiler")]
+module Compiler
 
 interface CodeGenerator {
-    generateCode(sliceFiles: Sequence<SliceFile>)
-        -> (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
+    generateCode(sourceFiles: Sequence<SliceFile>, referenceFiles: Sequence<SliceFile>) ->
+        (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
 }
 
 struct SliceFile {
@@ -14,7 +15,6 @@ struct SliceFile {
     tag(0) attributes: Sequence<Attribute>?
     contents: Sequence<Definition>
     anonymousTypes: Sequence<AnonymousType>
-    isSource: bool
 }
 
 struct GeneratedFile {
