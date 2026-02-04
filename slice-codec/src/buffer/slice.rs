@@ -105,7 +105,7 @@ impl InputSource for SliceInputSource<'_> {
         Ok(byte_slice)
     }
 
-    fn read_bytes_into_buffer(&mut self, dst: &mut [u8]) -> Result<()> {
+    fn read_bytes_into_exact(&mut self, dst: &mut [u8]) -> Result<()> {
         let src = self.read_byte_slice_exact(dst.len())?;
 
         // SAFETY: `read_byte_slice_exact` is guaranteed to return exactly `dst.len()` bytes, so there is enough space
