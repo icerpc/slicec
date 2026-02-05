@@ -46,9 +46,9 @@ implement_encode_into_on_borrowed_type!(i8, Slice2);
 
 implement_encode_into_on_numeric_primitive_type! {u16, Slice2, "Encodes this [`u16`] on 2 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i16, Slice2, "Encodes this [`i16`] on 2 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u32, Slice2, "Encodes this [`u32`] on 2 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {u32, Slice2, "Encodes this [`u32`] on 4 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i32, Slice2, "Encodes this [`i32`] on 4 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u64, Slice2, "Encodes this [`u64`] on 2 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {u64, Slice2, "Encodes this [`u64`] on 8 bytes (little endian)."}
 implement_encode_into_on_numeric_primitive_type! {i64, Slice2, "Encodes this [`i64`] on 8 bytes (little endian) in two's complement form."}
 implement_encode_into_on_numeric_primitive_type! {f32, Slice2, "Encodes this [`f32`] on 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
 implement_encode_into_on_numeric_primitive_type! {f64, Slice2, "Encodes this [`f64`] on 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
@@ -84,7 +84,6 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
     ///
     /// [varint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
     #[rustfmt::skip] // To keep the arms of `match required_bits` aligned for readability.
-
     pub fn encode_varint(&mut self, value: impl Into<i64>) -> Result<()> {
         let value: i64 = value.into();
 
@@ -154,7 +153,8 @@ impl EncodeInto<Slice2> for &str {
 
 /// TODO
 impl<'a, T> EncodeInto<Slice2> for &'a [T]
-where &'a T: EncodeInto<Slice2>
+where
+    &'a T: EncodeInto<Slice2>,
 {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
         let size = u64::try_from(self.len())?;

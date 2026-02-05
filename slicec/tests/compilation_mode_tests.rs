@@ -28,9 +28,7 @@ mod compilation_mode {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InvalidCompilationMode {
-            mode: "Slice3".to_owned(),
-        });
+        let expected = Diagnostic::new(Error::InvalidCompilationMode { mode: "Slice3".to_owned() });
         check_diagnostics(diagnostics, [expected]);
     }
 

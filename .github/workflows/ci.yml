@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -7,68 +7,81 @@ on:
     branches: [main]
 
 env:
+  WARNINGS_AS_ERRORS: yes
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
+  slicec:
+    strategy:
+      fail-fast: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    steps:
+      - name: 📐 Setup
+        run: rustup component add clippy
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
+      - name: 🔨 Build
+        run: cargo build --all-targets -p slicec
+      - name: 🧪 Test
+        run: cargo test -p slicec
+      - name: 🔎 Lint
+        run: cargo clippy --all-targets --no-deps -p slicec
+      - name: 📚 Generate Documentation
+        run: cargo doc --document-private-items --no-deps -p slicec
+        env:
+          RUSTDOCFLAGS: "-D warnings"
+
+  slice-codec:
     strategy:
       fail-fast: false
       matrix:
-        features:
-          [
-            "",
-            "alloc",
-            "std",
-            "tokio",
-            "std,tokio",
-            "slice2",
-            "slice2,alloc",
-            "slice2,std",
-            "slice2,tokio",
-            "slice2,std,tokio",
-          ]
+        features: [
+          "",
+          "alloc",
+          "std",
+          "tokio",
+          "slice2",
+          "slice2,alloc",
+          "slice2,std",
+          "slice2,tokio",
+        ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     steps:
-      - name: 📦 Setup
-        run: echo "FEATURES=${{ matrix.features && '--features ' || '' }}${{ matrix.features }}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
-      - name: 📦 Cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-            Cargo.lock
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-      - name: 📦 Install
+      - name: 📐 Setup
         run: |
+          echo "FEATURES=${{ matrix.features && '--features ' || '' }}${{ matrix.features }}" >> $GITHUB_ENV
           rustup toolchain install nightly
           rustup component add clippy
           rustup component add miri --toolchain nightly
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
       - name: 🔨 Build
-        run: cargo build --no-default-features $FEATURES
+        run: cargo build --all-targets --no-default-features $FEATURES -p slice-codec
       - name: 🧪 Test
-        run: cargo +nightly miri test --no-default-features $FEATURES
-      - name: 📚 Docs
-        run: cargo doc --no-deps --no-default-features --document-private-items $FEATURES
+        run: cargo test --no-default-features $FEATURES -p slice-codec
+      - name: 📋 Check Soundness
+        run: cargo +nightly miri test --no-default-features $FEATURES -p slice-codec
       - name: 🔎 Lint
-        run: cargo clippy --all-targets --no-default-features $FEATURES --no-deps
+        run: cargo clippy --all-targets --no-default-features $FEATURES --no-deps -p slice-codec
+      - name: 📚 Generate Documentation
+        run: cargo doc --document-private-items --no-deps --no-default-features $FEATURES -p slice-codec
+        env:
+          RUSTDOCFLAGS: "-D warnings"
 
   format:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v3
-      - name: 📦 Install nightly toolchain
+      - name: 📂 Checkout Repository
+        uses: actions/checkout@v4
+      - name: 📐 Setup
         run: |
           rustup toolchain install nightly
           rustup component add rustfmt --toolchain nightly
-      - name: 🔎 Format using rustfmt
+      - name: 🔎 Check Formatting
         run: cargo +nightly fmt --check

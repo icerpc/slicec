@@ -74,7 +74,7 @@ impl OutputTarget for VecOutputTarget<'_> {
             let target_slice = self.buffer.spare_capacity_mut().get_unchecked_mut(..count);
 
             debug_assert_eq!(target_slice.len(), count);
-            // SAFETY: `MaybeUnit<T>` is guaranteed to have the same memory layout as `T`.
+            // SAFETY: `MaybeUninit<T>` is guaranteed to have the same memory layout as `T`.
             let source: &[MaybeUninit<u8>] = core::mem::transmute(bytes);
 
             core::ptr::copy_nonoverlapping(source.as_ptr(), target_slice.as_mut_ptr(), count);
@@ -145,7 +145,8 @@ impl<'a> From<&'a mut Vec<u8>> for VecOutputTarget<'a> {
 // without needing to construct an intermediate [`VecOutputTarget`].
 #[cfg(feature = "slice2")]
 impl<'a, T> From<T> for crate::encoder::Encoder<VecOutputTarget<'a>>
-where T: Into<VecOutputTarget<'a>>
+where
+    T: Into<VecOutputTarget<'a>>,
 {
     fn from(value: T) -> Self {
         crate::encoder::Encoder::new_with_inferred_encoding(value.into())

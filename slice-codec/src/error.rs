@@ -137,9 +137,15 @@ impl Display for ErrorKind {
             Self::UnexpectedEob { requested, remaining } => {
                 write!(f, "unexpected end of buffer: attempted to read '{requested}' bytes from a buffer with only '{remaining}' bytes remaining")
             }
-            Self::InvalidReservation { buffer_len, reserved_range } => {
+            Self::InvalidReservation {
+                buffer_len,
+                reserved_range,
+            } => {
                 let Range { start, end } = reserved_range;
-                write!(f, "invalid reservation: range '[{start}..{end})' does not fit within buffer of length '{buffer_len}'")
+                write!(
+                    f,
+                    "invalid reservation: range '[{start}..{end})' does not fit within buffer of length '{buffer_len}'"
+                )
             }
             Self::InvalidData(inner) => inner.fmt(f),
             _ => todo!(),
@@ -177,12 +183,7 @@ impl Display for InvalidDataErrorKind {
                     write!(f, "illegal value: {desc}")
                 }
             }
-            Self::OutOfRange {
-                value,
-                min,
-                max,
-                typename,
-            } => {
+            Self::OutOfRange { value, min, max, typename } => {
                 write!(
                     f,
                     "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]"

@@ -66,9 +66,9 @@ impl DecodeFrom<Slice2> for i8 {
 
 implement_decode_from_on_numeric_primitive_type! {u16, Slice2, "Decodes a [`u16`] from 2 bytes (little endian)."}
 implement_decode_from_on_numeric_primitive_type! {i16, Slice2, "Decodes a [`i16`] from 2 bytes (little endian) in two's complement form."}
-implement_decode_from_on_numeric_primitive_type! {u32, Slice2, "Decodes a [`u32`] from 2 bytes (little endian)."}
+implement_decode_from_on_numeric_primitive_type! {u32, Slice2, "Decodes a [`u32`] from 4 bytes (little endian)."}
 implement_decode_from_on_numeric_primitive_type! {i32, Slice2, "Decodes a [`i32`] from 4 bytes (little endian) in two's complement form."}
-implement_decode_from_on_numeric_primitive_type! {u64, Slice2, "Decodes a [`u64`] from 2 bytes (little endian)."}
+implement_decode_from_on_numeric_primitive_type! {u64, Slice2, "Decodes a [`u64`] from 8 bytes (little endian)."}
 implement_decode_from_on_numeric_primitive_type! {i64, Slice2, "Decodes a [`i64`] from 8 bytes (little endian) in two's complement form."}
 implement_decode_from_on_numeric_primitive_type! {f32, Slice2, "Decodes a [`f32`] from 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
 implement_decode_from_on_numeric_primitive_type! {f64, Slice2, "Decodes a [`f64`] from 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
@@ -197,7 +197,8 @@ impl DecodeFrom<Slice2> for String {
 
 #[cfg(feature = "alloc")]
 impl<T> DecodeFrom<Slice2> for Vec<T>
-where T: DecodeFrom<Slice2>
+where
+    T: DecodeFrom<Slice2>,
 {
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {

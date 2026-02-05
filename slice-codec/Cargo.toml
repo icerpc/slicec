@@ -1,12 +1,11 @@
 [package]
 name = "slice-codec"
-
 description = """
 Library for encoding and decoding Slice types.
 """
 homepage = "https://docs.icerpc.dev/slice2"
 documentation = "https://docs.rs/slice-codec"
-repository = "https://github.com/icerpc/slice-rust"
+repository = "https://github.com/icerpc/slicec/slice-codec"
 readme = "README.md"
 keywords = ["slice", "ice", "icerpc"]
 rust-version = "1.73"
