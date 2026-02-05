@@ -18,10 +18,6 @@ extern crate std;
 #[cfg(feature = "slice2")]
 pub mod slice2;
 
-// Only include the `slice1` module if the corresponding feature is set.
-#[cfg(feature = "slice1")]
-pub mod slice1;
-
 pub mod buffer;
 pub mod decode_from;
 pub mod decoder;
