@@ -33,12 +33,7 @@ impl<'a> VecOutputTarget<'a> {
             // If an error occurred, we wrap it in our own `UnexpectedEob` error and return it.
             let remaining = self.remaining();
             let kind = ErrorKind::UnexpectedEob { requested, remaining };
-
-            // Remove this feature gate when the `Error` trait is moved; https://github.com/icerpc/slice-rust/issues/1.
-            #[cfg(feature = "std")]
-            return Error::new_with_source(kind, _err);
-            #[cfg(not(feature = "std"))]
-            return Error::new(kind);
+            Error::new_with_source(kind, _err)
         })
     }
 }

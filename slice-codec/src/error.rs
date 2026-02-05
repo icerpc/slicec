@@ -6,12 +6,11 @@ use core::ops::Range;
 use core::write;
 
 #[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+#[cfg(feature = "alloc")]
 use alloc::collections::TryReserveError;
 #[cfg(feature = "alloc")]
 use alloc::string::FromUtf8Error;
-
-#[cfg(feature = "std")]
-use alloc::boxed::Box;
 
 /// A specialized [`Result`](core::result::Result) type for encoding and decoding functions which may produce errors.
 ///
@@ -26,9 +25,8 @@ pub struct Error {
     kind: ErrorKind,
 
     /// The underlying cause of this error, if any exist.
-    // Until `Error` is moved from `std` into `core`, we need a feature; https://github.com/icerpc/slice-rust/issues/1.
-    #[cfg(feature = "std")]
-    source: Option<Box<dyn std::error::Error + 'static>>,
+    #[cfg(feature = "alloc")]
+    source: Option<Box<dyn core::error::Error + 'static>>,
 }
 
 impl Error {
@@ -36,15 +34,14 @@ impl Error {
     pub fn new(kind: ErrorKind) -> Self {
         Self {
             kind,
-            #[cfg(feature = "std")]
+            #[cfg(feature = "alloc")]
             source: None,
         }
     }
 
     /// Creates a new error of the specified kind, which was logically caused by the provided source.
-    // Until `Error` is moved from `std` into `core`, we need a feature; https://github.com/icerpc/slice-rust/issues/1.
-    #[cfg(feature = "std")]
-    pub fn new_with_source(kind: ErrorKind, source: impl std::error::Error + 'static) -> Self {
+    #[cfg(feature = "alloc")]
+    pub fn new_with_source(kind: ErrorKind, source: impl core::error::Error + 'static) -> Self {
         Self {
             kind,
             source: Some(Box::new(source)),
@@ -62,8 +59,7 @@ impl Display for Error {
         // Write this error's underlying `ErrorKind`.
         self.kind.fmt(f)?;
 
-        // Until `Error` is moved from `std` into `core`, we need a feature; https://github.com/icerpc/slice-rust/issues/1.
-        #[cfg(feature = "std")]
+        #[cfg(feature = "alloc")]
         // If this error was caused by another error, also write that source error.
         if let Some(source) = &self.source {
             f.write_str("\nError was caused by:\n")?;
@@ -74,10 +70,9 @@ impl Display for Error {
     }
 }
 
-// Until `Error` is moved from `std` into `core`, we need a feature; https://github.com/icerpc/slice-rust/issues/1.
-#[cfg(feature = "std")]
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+#[cfg(feature = "alloc")]
+impl core::error::Error for Error {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         self.source.as_deref()
     }
 }
