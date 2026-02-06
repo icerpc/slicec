@@ -33,9 +33,6 @@ default = ["slice2", "std"]
 # Provides support for the Slice2 encoding.
 slice2 = []
 
-# Provides support for the Slice1 encoding.
-slice1 = []
-
 # Provides implementations for encoding and decoding common standard library types like `String`, `Vec`, `HashMap`, etc.
 # Introduces a dependency on the Rust standard library. This flag should be disabled for 'no-std' projects.
 std = ["alloc"]
