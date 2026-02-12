@@ -64,7 +64,7 @@ jobs:
       - name: 🧪 Test
         run: cargo test --no-default-features $FEATURES -p slice-codec
       - name: 📋 Check Soundness
-        run: cargo +nightly miri test --no-default-features $FEATURES -p slice-codec
+        run: CARGO_TARGET_DIR=miri-target cargo +nightly miri test --no-default-features $FEATURES -p slice-codec
       - name: 🔎 Lint
         run: cargo clippy --all-targets --no-default-features $FEATURES --no-deps -p slice-codec
       - name: 📚 Generate Documentation
