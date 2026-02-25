@@ -523,7 +523,7 @@ implement_diagnostic_functions!(
     (
         "E047",
         InfiniteSizeCycle,
-        format!("disallowed type cycle; type {type_id} references itself: {cycle}"),
+        format!("type {type_id} illegally references itself: {cycle}"),
         type_id, cycle
     ),
     (
