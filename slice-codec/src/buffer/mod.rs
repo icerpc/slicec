@@ -42,7 +42,7 @@ pub trait InputSource {
     /// This function reads exactly `dest.len()`-many bytes, or if it's unable to, returns an error instead.
     /// If such an error occurs, no guarantees are made about how many bytes were read from the source, except that it
     /// is less than `dest.len()`.
-    fn read_bytes_into_buffer(&mut self, dest: &mut [u8]) -> Result<()>;
+    fn read_bytes_into_exact(&mut self, dest: &mut [u8]) -> Result<()>;
 }
 
 /// A trait for types that can be written to by a [Slice encoder](crate::encoder::Encoder).
@@ -93,7 +93,7 @@ pub trait OutputTarget {
 
 /// Represents a span of bytes that have been reserved in an [`OutputTarget`].
 /// See [`OutputTarget::reserve_space`].
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 #[must_use]
 pub struct Reservation(Range<usize>);
 

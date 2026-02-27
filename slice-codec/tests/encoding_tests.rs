@@ -2,22 +2,21 @@
 
 // cspell:ignore Lorem, ipsum, dolor, sit, amet, no, explicari, repudiare, vis, an, dicant, legimus, ponderum
 
-use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
-use slice_codec::buffer::{InputSource, OutputTarget};
-use slice_codec::decode_from::DecodeFrom;
-use slice_codec::decoder::Decoder;
-use slice_codec::encode_into::EncodeInto;
-use slice_codec::encoder::Encoder;
-
-use core::fmt::Debug;
-
 #[cfg(test)]
 #[cfg(feature = "slice2")]
-mod fixed_sized {
+mod fixed_size {
 
-    use super::*;
+    use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
+    use slice_codec::buffer::{InputSource, OutputTarget};
+    use slice_codec::decode_from::DecodeFrom;
+    use slice_codec::decoder::Decoder;
+    use slice_codec::encode_into::EncodeInto;
+    use slice_codec::encoder::Encoder;
     use slice_codec::slice2::Slice2;
+
     use test_case::test_case;
+
+    use core::fmt::Debug;
 
     // bool
     #[test_case(false, [0]; "false_bool")]
@@ -145,7 +144,11 @@ mod fixed_sized {
 #[cfg(test)]
 #[cfg(feature = "slice2")]
 mod variable_sized {
-    use super::*;
+    use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
+    use slice_codec::decoder::Decoder;
+    use slice_codec::encoder::Encoder;
+
+    use core::fmt::Debug;
 
     mod encoding_of {
 

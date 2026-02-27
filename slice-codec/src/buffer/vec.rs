@@ -225,7 +225,7 @@ mod tests {
         assert!(reserve_result.is_ok());
         assert!(write_result.is_ok());
 
-        assert_eq!(reserve_result.unwrap(), Reservation(0..3));
+        assert_eq!(reserve_result.unwrap().range(), 0..3);
         assert_eq!(target.buffer.len(), 4);
         assert_eq!(target.remaining(), target.buffer.capacity() - 4);
         assert_eq!(buffer, [0, 0, 0, 99]);

@@ -105,7 +105,7 @@ impl InputSource for SliceInputSource<'_> {
         Ok(byte_slice)
     }
 
-    fn read_bytes_into_buffer(&mut self, dst: &mut [u8]) -> Result<()> {
+    fn read_bytes_into_exact(&mut self, dst: &mut [u8]) -> Result<()> {
         let src = self.read_byte_slice_exact(dst.len())?;
 
         // SAFETY: `read_byte_slice_exact` is guaranteed to return exactly `dst.len()` bytes, so there is enough space
@@ -303,10 +303,10 @@ mod tests {
 
             // Assert
             assert!(result.is_err());
-            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+            assert!(matches!(result.unwrap_err().kind(), ErrorKind::UnexpectedEob {
                 requested: 6,
-                remaining: 5,
-            });
+                remaining: 5
+            }));
         }
 
         /// Verifies that [`peek_byte`] returns the correct byte from the buffer without consuming it.
@@ -407,10 +407,10 @@ mod tests {
 
             // Assert
             assert!(result.is_err());
-            assert_eq!(result.unwrap_err().kind(), &ErrorKind::UnexpectedEob {
+            assert!(matches!(result.unwrap_err().kind(), ErrorKind::UnexpectedEob {
                 requested: 6,
-                remaining: 5,
-            });
+                remaining: 5
+            }));
         }
 
         /// Verifies that [`write_byte`] writes the correct byte to the buffer and advances the position.
