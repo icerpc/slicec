@@ -88,7 +88,7 @@ impl<T: Into<ErrorKind>> From<T> for Error {
 /// It is typically held by an [`Error`].
 ///
 /// This list may grow over time, so it is not recommended to exhaustively match against it.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// A function attempted to read past the end of a buffer.
@@ -148,7 +148,7 @@ impl Display for ErrorKind {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 #[non_exhaustive]
 pub enum InvalidDataErrorKind {
     /// TODO

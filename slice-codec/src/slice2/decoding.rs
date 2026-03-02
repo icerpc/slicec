@@ -186,7 +186,7 @@ impl DecodeFrom<Slice2> for String {
             debug_assert_eq!(vector.len(), 0);
             let bytes =
                 core::mem::transmute::<&mut [core::mem::MaybeUninit<u8>], &mut [u8]>(vector.spare_capacity_mut());
-            decoder.read_bytes_into_buffer(bytes)?;
+            decoder.read_bytes_into_exact(bytes)?;
             vector.set_len(length);
         }
 
