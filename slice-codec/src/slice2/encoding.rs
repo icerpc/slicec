@@ -6,9 +6,14 @@ use crate::encode_into::*;
 use crate::encoder::Encoder;
 use crate::{Error, InvalidDataErrorKind, Result};
 
-// We only support `BTreeMap` if the `alloc` crate is available through the `alloc` feature flag.
+// We only support 'owned' sequence/dictionary types if the `alloc` crate is available through the `alloc` feature flag.
+// Note that we always support encoding views into these types (which don't require allocating memory).
 #[cfg(feature = "alloc")]
 use alloc::collections::BTreeMap;
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 // We only support `HashMap` if the standard library is available through the `std` feature flag.
 #[cfg(feature = "std")]
@@ -151,6 +156,13 @@ impl EncodeInto<Slice2> for &str {
     }
 }
 
+#[cfg(feature = "alloc")]
+impl EncodeInto<Slice2> for &String {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+        self.as_str().encode_into(encoder)
+    }
+}
+
 /// TODO
 impl<'a, T> EncodeInto<Slice2> for &'a [T]
 where
@@ -163,6 +175,16 @@ where
             encoder.encode(element)?;
         }
         Ok(())
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<'a, T> EncodeInto<Slice2> for &'a Vec<T>
+where
+    &'a T: EncodeInto<Slice2>,
+{
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+        self.as_slice().encode_into(encoder)
     }
 }
 
