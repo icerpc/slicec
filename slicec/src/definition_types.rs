@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 //! This module contains the handwritten encoding code for the Slice-compiler definitions.
-//! After bootstrapping has been completed, this file will be deleted, and we will use generated definitions instead.
+//! After rust-codegen has been implemented, this file will be deleted, and we will use generated definitions instead.
 
 use slice_codec::slice2::Slice2;
 
@@ -13,11 +13,7 @@ use slice_codec::Result;
 /// TAG_END_MARKER must be encoded at the end of every non-compact type.
 const TAG_END_MARKER: i32 = -1;
 
-/// These aliases are for consistency with the aliases in the Slice compiler definition.
-pub type EntityId = String;
-pub type TypeId = String;
-
-/// This macro implements `EncodeInto<Slice2>` for a Rust struct (that represents a non-compact Slice struct).
+/// This macro implements `EncodeInto<Slice2>` for a Rust struct (which is mapped from a non-compact Slice struct).
 /// It encodes all the struct's fields (in definition order), followed by `TAG_END_MARKER`.
 ///
 /// It uses macro-function-syntax, and should be called like:
@@ -34,28 +30,28 @@ macro_rules! implement_encode_into_for_struct {
     }
 }
 
-// TODO implement tag encoding, so we can send DocComments along. (Doing this requires thought about the encoder API)
-// This should probably be moved into the encoder anyways.
-fn encode_tagged<T>(tag: i32, value: &Option<T>, size: u64, encoder: &mut Encoder<impl OutputTarget>) -> Result<()>
-where
-    for<'a> &'a T : EncodeInto<Slice2>,
-{
-    if let Some(v) = value {
-        encoder.encode_varint(tag)?;
-
-        // TODO: Reserve space to write the size after the fact.
-        //let size_reservation = encoder.reserve_space(4);
-        encoder.encode_varuint(size)?;
-
-        // Write the actual value.
-        encoder.encode(v)?;
-    }
-    Ok(())
-}
-
 // ================= //
 // Hand-mapped types //
 // ================= //
+
+pub type EntityId = String;
+pub type TypeId = String;
+pub type Message = Vec<MessageComponent>;
+
+#[derive(Clone, Debug)]
+pub struct Attribute {
+    pub directive: String,
+    pub args: Vec<String>,
+}
+implement_encode_into_for_struct!(Attribute, directive, args);
+
+#[derive(Clone, Debug)]
+pub struct TypeRef {
+    pub type_id: TypeId,
+    pub is_optional: bool,
+    pub type_attributes: Vec<Attribute>,
+}
+implement_encode_into_for_struct!(TypeRef, type_id, is_optional, type_attributes);
 
 #[derive(Clone, Debug)]
 pub struct EntityInfo {
@@ -67,7 +63,7 @@ impl EncodeInto<Slice2> for &EntityInfo {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         encoder.encode(&self.identifier)?;
         encoder.encode(&self.attributes)?;
-        // encoder.encode_tagged(0, &self.comment, X)?; TODO add doc-comment support
+        // encoder.encode_tagged(0, &self.comment)?; TODO add doc-comments after adding tag encoding support.
         encoder.encode_varint(TAG_END_MARKER)?;
         Ok(())
     }
@@ -101,8 +97,8 @@ impl EncodeInto<Slice2> for &Field {
 
         // Encode the actual fields.
         encoder.encode(&self.entity_info)?;
-        if let Some(tag_value) = &self.tag {
-            encoder.encode(tag_value)?;
+        if let Some(tag_value) = self.tag {
+            encoder.encode_varint(tag_value)?;
         }
         encoder.encode(&self.data_type)?;
         encoder.encode_varint(TAG_END_MARKER)?;
@@ -113,7 +109,7 @@ impl EncodeInto<Slice2> for &Field {
 #[derive(Clone, Debug)]
 pub struct Interface {
     pub entity_info: EntityInfo,
-    pub bases: Vec<TypeId>,
+    pub bases: Vec<EntityId>,
     pub operations: Vec<Operation>,
 }
 implement_encode_into_for_struct!(Interface, entity_info, bases, operations);
@@ -204,23 +200,8 @@ pub struct ResultType {
 implement_encode_into_for_struct!(ResultType, success_type, failure_type);
 
 #[derive(Clone, Debug)]
-pub struct TypeRef {
-    pub type_id: TypeId,
-    pub is_optional: bool,
-    pub type_attributes: Vec<Attribute>,
-}
-implement_encode_into_for_struct!(TypeRef, type_id, is_optional, type_attributes);
-
-#[derive(Clone, Debug)]
-pub struct Attribute {
-    pub directive: String,
-    pub args: Vec<String>,
-}
-implement_encode_into_for_struct!(Attribute, directive, args);
-
-#[derive(Clone, Debug)]
 pub struct DocComment {
-    pub overview: Vec<MessageComponent>,
+    pub overview: Message,
     pub see_tags: Vec<EntityId>,
 }
 implement_encode_into_for_struct!(DocComment, overview, see_tags);
@@ -229,13 +210,13 @@ implement_encode_into_for_struct!(DocComment, overview, see_tags);
 #[derive(Clone, Debug)]
 pub enum MessageComponent {
     Text(String) = 0,
-    LinkTag(EntityId) = 1,
+    Link(EntityId) = 1,
 }
 impl EncodeInto<Slice2> for &MessageComponent {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Write the discriminant value.
-        // SAFETY: this cast is guaranteed to be safe because the enum is marked with `repr(u8)`, which means we know
-        // the first 'field' of this type's data layout must be a u8. This lets us read without offsetting the pointer.
+        // SAFETY: this cast is guaranteed to be safe because the enum is marked with `repr(u8)`, so it's safe to cast
+        // it directly to a `u8`.
         unsafe {
             let discriminant = *<*const _>::from(self).cast::<u8>();
             encoder.encode_varint(discriminant)?;
@@ -244,7 +225,7 @@ impl EncodeInto<Slice2> for &MessageComponent {
         // Encode the actual value.
         match self {
             MessageComponent::Text(v) => encoder.encode(v)?,
-            MessageComponent::LinkTag(v) => encoder.encode(v)?,
+            MessageComponent::Link(v) => encoder.encode(v)?,
         }
         Ok(())
     }
@@ -275,7 +256,7 @@ pub enum Symbol {
     CustomType(CustomType) = 3,
     SequenceType(SequenceType) = 4,
     DictionaryType(DictionaryType) = 5,
-    ResultType(ResultType) = 6,
+    ResultType(ResultType) = 6, // TODO make result come before dictionary!
     TypeAlias(TypeAlias) = 7,
 }
 impl EncodeInto<Slice2> for &Symbol {

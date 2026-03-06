@@ -4,8 +4,8 @@ use clap::Parser;
 use slicec::compilation_state::CompilationState;
 use slicec::slice_options::SliceOptions;
 
-pub mod definition_encoder;
 pub mod definition_types;
+pub mod slice_file_converter;
 
 fn main() {
     // Parse the command-line input.
