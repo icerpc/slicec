@@ -19,7 +19,7 @@ const TAG_END_MARKER: i32 = -1;
 /// It uses macro-function-syntax, and should be called like:
 /// `implement_encode_into_for_struct!(struct_type_name, field1, field2, ...);`
 macro_rules! implement_encode_into_for_struct {
-    ($type_name:ty$(, $field_name:ident)*) => {
+    ($type_name:ty$(, $field_name:ident)*$(,)?) => {
         impl EncodeInto<Slice2> for &$type_name {
             fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
                 $(encoder.encode(&self.$field_name)?;)*
@@ -123,7 +123,15 @@ pub struct Operation {
     pub return_type: Vec<Field>,
     pub has_streamed_return: bool,
 }
-implement_encode_into_for_struct!(Operation, entity_info, is_idempotent, parameters, has_streamed_parameter, return_type, has_streamed_return);
+implement_encode_into_for_struct!(
+    Operation,
+    entity_info,
+    is_idempotent,
+    parameters,
+    has_streamed_parameter,
+    return_type,
+    has_streamed_return,
+);
 
 #[derive(Clone, Debug)]
 pub struct Enum {
@@ -140,8 +148,8 @@ impl EncodeInto<Slice2> for &Enum {
 
         // Encode the actual fields.
         encoder.encode(&self.entity_info)?;
-        encoder.encode(&self.is_compact)?;
-        encoder.encode(&self.is_unchecked)?;
+        encoder.encode(self.is_compact)?;
+        encoder.encode(self.is_unchecked)?;
         if let Some(underlying_value) = &self.underlying {
             encoder.encode(underlying_value)?;
         }

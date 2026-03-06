@@ -1,10 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-// Pull in all the mapped compiler-definition types.
-use crate::definition_types::*;
-
-// Pull in the core compiler types, using aliases to disambiguate.
-// Any type that starts with 'Compiler' is a compiler type, not a mapped type.
+// Pull in the core compiler types using aliases to disambiguate them from the Slice-compiler definitions.
+// Any type that starts with 'Compiler' is a compiler type, not a mapped Slice-compiler definition type.
+#![cfg_attr(rustfmt, rustfmt_skip)] // skip the `use ... as ...` to keep them one-per-line.
 use slicec::grammar::Attribute as CompilerAttribute;
 use slicec::grammar::CustomType as CompilerCustomType;
 use slicec::grammar::Definition as CompilerDefinition;
@@ -24,29 +22,16 @@ use slicec::grammar::Struct as CompilerStruct;
 use slicec::grammar::Types as CompilerTypes;
 use slicec::grammar::TypeAlias as CompilerTypeAlias;
 use slicec::grammar::TypeRef as CompilerTypeRef;
-use slicec::grammar::attributes::Allow;
-use slicec::grammar::attributes::Compress;
-use slicec::grammar::attributes::Deprecated;
-use slicec::grammar::attributes::Oneway;
-use slicec::grammar::attributes::SlicedFormat;
-use slicec::grammar::attributes::Unparsed;
 use slicec::slice_file::SliceFile as CompilerSliceFile;
 
+// Pull in all the mapped compiler-definition types.
+use crate::definition_types::*;
 // Pull in traits from 'slicec' so we can call their functions.
-use slicec::grammar::Attributable;
-use slicec::grammar::Commentable;
-use slicec::grammar::Contained;
-use slicec::grammar::Entity;
-use slicec::grammar::Member;
-use slicec::grammar::NamedSymbol;
-use slicec::grammar::Type;
+use slicec::grammar::{Attributable, Commentable, Contained, Entity, Member, NamedSymbol, Type};
+// Pull in the attribute types without aliases, since they're not ambiguous.
+use slicec::grammar::attributes::{Allow, Compress, Deprecated, Oneway, SlicedFormat, Unparsed};
 
-
-
-
-
-
-
+/// Returns an [EntityInfo] describing the provided element.
 fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
     EntityInfo {
         identifier: element.identifier().to_owned(),
@@ -55,6 +40,10 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
     }
 }
 
+/// Returns a [`DocComment`] describing the provided parameter if one is present.
+///
+/// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' tag applied to an enclosing
+/// operation. But this is an implementation detail of the language, not something code-generators should deal with.
 fn get_doc_comment_for_parameter(parameter: &CompilerParameter) -> Option<DocComment> {
     let operation_comment = parameter.parent().comment()?;
 
@@ -65,16 +54,21 @@ fn get_doc_comment_for_parameter(parameter: &CompilerParameter) -> Option<DocCom
     operation_comment.params.iter()
         .find(|param_tag| param_tag.identifier.value == parameter.identifier())
         .map(|param_tag| param_tag.message.value.iter().map(Into::into).collect())
-        .map(|message| DocComment { overview: message, see_tags: Vec::new() })
+        .map(|message| DocComment {
+            overview: message,
+            see_tags: Vec::new(),
+        })
 }
 
-fn convert_doc_comment_link(link_result: Result<&dyn Entity, &CompilerIdentifier>) -> String {
+/// Helper function to convert the result of `tag.linked_entity()` into an [`EntityId`].
+fn convert_doc_comment_link(link_result: Result<&dyn Entity, &CompilerIdentifier>) -> EntityId {
     match link_result {
         Ok(entity) => entity.parser_scoped_identifier(),
         Err(identifier) => identifier.value.clone(),
     }
 }
 
+/// Helper function to convert a [`Vec`] of compiler-attributes to mapped-attributes.
 fn get_attributes_from(attributes: Vec<&CompilerAttribute>) -> Vec<Attribute> {
     attributes.into_iter().map(|attribute| Attribute {
         directive: attribute.kind.directive().to_owned(),
@@ -110,7 +104,7 @@ fn get_attribute_args(attribute: &CompilerAttribute) -> Vec<String> {
         return deprecated.reason.iter().cloned().collect();
     }
 
-    if let Some(_) = attribute.downcast::<Oneway>() {
+    if attribute.downcast::<Oneway>().is_some() {
         return Vec::new();
     }
 
@@ -128,12 +122,9 @@ fn get_attribute_args(attribute: &CompilerAttribute) -> Vec<String> {
     panic!("Impossible attribute encountered")
 }
 
-
-
-
-
-
-
+// =========================== //
+// Direct conversion functions //
+// =========================== //
 
 impl From<&CompilerSliceFile> for SliceFile {
     fn from(slice_file: &CompilerSliceFile) -> Self {
@@ -182,26 +173,26 @@ impl From<&CompilerMessageComponent> for MessageComponent {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
+/// This struct exposes a function ([`SliceFileContentsConverter::convert`]) that converts the contents of a Slice file
+/// from their AST representation, to a representation that let's them be encoded (with the Slice encoding).
 #[derive(Debug)]
 pub struct SliceFileContentsConverter {
     converted_contents: Vec<Symbol>,
 }
 
 impl SliceFileContentsConverter {
+    /// Converts the contents of SliceFile from their representation in the AST (as [`CompilerDefinition`]s), to their
+    /// representation in the `Compiler` Slice module (as [`Symbol`]s).
+    ///
+    /// Specifically, this iterates through the top-level definitions of a Slice-file (in definition order) converting
+    /// and storing them. In addition to top-level definitions, the returned [`Vec`] also contains [`Symbol`]s for each
+    /// anonymous type encountered while iterating. Anonymous types always appear in the returned contents _before_
+    /// the [`Symbol`]s that referenced them.
     pub fn convert(contents: &[CompilerDefinition]) -> Vec<Symbol> {
         // Create a new converter.
-        let mut converter = SliceFileContentsConverter { converted_contents: Vec::new() };
+        let mut converter = SliceFileContentsConverter {
+            converted_contents: Vec::new()
+        };
 
         // Iterate through the provided file's contents, and convert each of it's top-level definitions.
         for definition in contents {
@@ -293,7 +284,7 @@ impl SliceFileContentsConverter {
         let entity_info = get_entity_info_for(enumerator);
         let raw_value = enumerator.value();
         let value = Discriminant {
-            absolute_value: raw_value.abs() as u64,
+            absolute_value: raw_value.unsigned_abs() as u64,
             is_positive: raw_value.is_positive(),
         };
         let fields = enumerator.fields().into_iter().map(|e| self.convert_field(e)).collect();
@@ -302,7 +293,9 @@ impl SliceFileContentsConverter {
     }
 
     fn convert_custom_type(&mut self, custom_type: &CompilerCustomType) -> CustomType {
-        CustomType { entity_info: get_entity_info_for(custom_type) }
+        CustomType {
+            entity_info: get_entity_info_for(custom_type)
+        }
     }
 
     fn convert_type_alias(&mut self, type_alias: &CompilerTypeAlias) -> TypeAlias {
@@ -332,7 +325,12 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn get_type_id_for(&mut self, type_ref: &CompilerTypeRef) -> String {
+    /// Returns a [TypeId] for the provided `type_ref`. This is a fully-scoped identifier for user-defined types,
+    /// the corresponding keyword for primitive types, and for anonymous types, we do the following:
+    /// 1) Recursively convert the anonymous type (and any nested types) to the mapped definition types.
+    /// 2) Add these directly to [Self::converted_contents] (so these types appear in the contents before their users)
+    /// 3) Returns its index in [Self::converted_contents] as a numeric TypeId.
+    fn get_type_id_for(&mut self, type_ref: &CompilerTypeRef) -> TypeId {
         match type_ref.concrete_type() {
             CompilerTypes::Struct(v) => v.module_scoped_identifier(),
             CompilerTypes::Enum(v) => v.module_scoped_identifier(),
@@ -342,17 +340,17 @@ impl SliceFileContentsConverter {
                 let converted_symbol = Symbol::ResultType(self.convert_result_type(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
-            },
+            }
             CompilerTypes::Sequence(v) => {
                 let converted_symbol = Symbol::SequenceType(self.convert_sequence(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
-            },
+            }
             CompilerTypes::Dictionary(v) => {
                 let converted_symbol = Symbol::DictionaryType(self.convert_dictionary(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
-            },
+            }
 
             CompilerTypes::Class(_) => panic!("TODO: remove classes!"),
         }
