@@ -1,11 +1,11 @@
 # slicec
 
-To build slice-rust you must have Rust and Cargo installed.
+To build slicec you must have Rust and Cargo installed.
 To install these, we recommend reading the following [guide](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
 ## Building
 
-Run the following command to build slice-rust and its dependencies:
+Run the following command to build slicec and its dependencies:
 
 ```shell
 cargo build
@@ -21,7 +21,7 @@ cargo test
 
 ## Generating documentation
 
-To generate documentation for slice-rust, run the following command:
+To generate documentation for slicec, run the following command:
 
 ```shell
 cargo doc --no-deps --document-private-items
