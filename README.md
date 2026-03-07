@@ -1,4 +1,4 @@
-# slice-rust
+# slicec
 
 To build slice-rust you must have Rust and Cargo installed.
 To install these, we recommend reading the following [guide](https://doc.rust-lang.org/cargo/getting-started/installation.html).
