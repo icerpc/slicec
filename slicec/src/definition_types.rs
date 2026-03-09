@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 //! This module contains the handwritten encoding code for the Slice-compiler definitions.
-//! After rust-codegen has been implemented, this file will be deleted, and we will use generated definitions instead.
+//! After rust code-gen has been implemented, this file will be deleted, and we will use generated definitions instead.
 
 use slice_codec::slice2::Slice2;
 

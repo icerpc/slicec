@@ -23,6 +23,7 @@
     "nonoverlapping",
     "nonterminal",
     "peekable",
+    "repr",
     "rfind",
     "rsplit",
     "RUSTDOCFLAGS",
