@@ -129,6 +129,7 @@ fn get_attribute_args(attribute: &CompilerAttribute) -> Vec<String> {
 impl From<&CompilerSliceFile> for SliceFile {
     fn from(slice_file: &CompilerSliceFile) -> Self {
         // Convert the slice_file's module declaration.
+        // TODO this crashes on an empty Slice file, we need to filter out empty files at an earlier stage.
         let module = slice_file.module.as_ref().unwrap().borrow();
         let converted_module = Module {
             identifier: module.identifier().to_owned(),
@@ -174,7 +175,7 @@ impl From<&CompilerMessageComponent> for MessageComponent {
 }
 
 /// This struct exposes a function ([`SliceFileContentsConverter::convert`]) that converts the contents of a Slice file
-/// from their AST representation, to a representation that let's them be encoded (with the Slice encoding).
+/// from their AST representation, to a representation that can be encoded with the Slice encoding.
 #[derive(Debug)]
 pub struct SliceFileContentsConverter {
     converted_contents: Vec<Symbol>,
@@ -329,7 +330,7 @@ impl SliceFileContentsConverter {
     /// the corresponding keyword for primitive types, and for anonymous types, we do the following:
     /// 1) Recursively convert the anonymous type (and any nested types) to the mapped definition types.
     /// 2) Add these directly to [Self::converted_contents] (so these types appear in the contents before their users)
-    /// 3) Returns its index in [Self::converted_contents] as a numeric TypeId.
+    /// 3) Return its index in [Self::converted_contents] as a numeric TypeId.
     fn get_type_id_for(&mut self, type_ref: &CompilerTypeRef) -> TypeId {
         match type_ref.concrete_type() {
             CompilerTypes::Struct(v) => v.module_scoped_identifier(),

@@ -16,9 +16,9 @@ pub mod slice_file_converter;
 /// If the encoding succeeds, this returns `Ok` with the encoded bytes,
 /// otherwise this returns `Err` with an error describing the failure.
 fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) -> Result<Vec<u8>, slice_codec::Error> {
-    // Create a buffer to encode into, and encoder over-top of it.
+    // Create a buffer to encode into, and an encoder over-top of it.
     let mut encoding_buffer: Vec<u8> = Vec::new();
-    let mut slice_encoder: Encoder<_> = (&mut encoding_buffer).into();
+    let mut slice_encoder = Encoder::from(&mut encoding_buffer);
 
     // Encode the 'operation name'.
     slice_encoder.encode("generateCode")?;
@@ -29,7 +29,7 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     let mut reference_files = Vec::new();
     for parsed_file in parsed_files {
         // Convert the Slice file from AST representation to Slice representation.
-        let converted_file: crate::definition_types::SliceFile = parsed_file.into();
+        let converted_file = crate::definition_types::SliceFile::from(parsed_file);
         // Determine whether this is a source or reference file and place it accordingly.
         match parsed_file.is_source {
             true => source_files.push(converted_file),
@@ -77,7 +77,7 @@ fn main() {
             }
         };
 
-        // Obtain an exclusive handle to 'stdout'.
+        // Obtain an exclusive handle to 'stdout', and write the encoded bytes to it.
         let mut stdout = std::io::stdout().lock();
         match stdout.write_all(&encoded_bytes) {
             Ok(_) => {}
