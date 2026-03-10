@@ -235,6 +235,8 @@ impl EncodeInto<Slice2> for &MessageComponent {
             MessageComponent::Text(v) => encoder.encode(v)?,
             MessageComponent::Link(v) => encoder.encode(v)?,
         }
+
+        encoder.encode_varint(TAG_END_MARKER)?;
         Ok(())
     }
 }
@@ -288,6 +290,8 @@ impl EncodeInto<Slice2> for &Symbol {
             Symbol::ResultType(v) => encoder.encode(v)?,
             Symbol::TypeAlias(v) => encoder.encode(v)?,
         }
+
+        encoder.encode_varint(TAG_END_MARKER)?;
         Ok(())
     }
 }
