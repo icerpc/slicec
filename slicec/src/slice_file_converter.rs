@@ -177,6 +177,11 @@ impl From<&GrammarMessageComponent> for MessageComponent {
 
 /// This struct exposes a function ([`SliceFileContentsConverter::convert`]) that converts the contents of a Slice file
 /// from their AST representation, to a representation that can be encoded with the Slice encoding.
+//
+// This struct is necessary due to anonymous types, which need their own symbols. So, when you convert a `Field`, that
+// may need just a `Field` symbol, but it might also need a `Field`, `Sequence`, and `Dictionary` symbol if the field's
+// type uses a sequence of dictionaries. To handle this, we need to keep some state (`converted_contents`), which
+// symbols can be pushed into at any time. Since there's no way to know how many symbols a definition will need upfront.
 #[derive(Debug)]
 pub struct SliceFileContentsConverter {
     converted_contents: Vec<Symbol>,
