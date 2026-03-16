@@ -1,6 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use std::io::Write;
+use std::process::ExitCode;
 
 use clap::Parser;
 
@@ -45,7 +46,7 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
-fn main() {
+fn main() -> ExitCode {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
 
@@ -60,7 +61,8 @@ fn main() {
     // TODO: replace this by forking a code-gen plugin once they exist.
     // For now, if there are any diagnostics, we emit those and NOT the encoded definitions.
     // Code-generators can tell if it's okay to decode or not by the presence of the `"generateCode"` string.
-    if totals.0 + totals.1 > 0 {
+    let (warnings, errors) = totals;
+    if warnings + errors > 0 {
         // If there were diagnostics, print them to 'stdout' and don't encode the Slice definitions.
         print!("Diagnostics: ");
         println!("{totals:?}");
@@ -73,7 +75,7 @@ fn main() {
             Ok(bytes) => bytes,
             Err(error) => {
                 eprintln!("{error:?}");
-                std::process::exit(11);
+                return ExitCode::from(11);
             }
         };
 
@@ -83,11 +85,11 @@ fn main() {
             Ok(_) => {}
             Err(error) => {
                 eprintln!("{error:?}");
-                std::process::exit(12);
+                return ExitCode::from(12);
             }
         }
     }
 
     // Success.
-    std::process::exit(0);
+    ExitCode::from(0)
 }

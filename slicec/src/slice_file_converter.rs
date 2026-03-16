@@ -1,35 +1,36 @@
 // Copyright (c) ZeroC, Inc.
 
-// Pull in the core compiler types using aliases to disambiguate them from the Slice-compiler definitions.
-// Any type that starts with 'Compiler' is a compiler type, not a mapped Slice-compiler definition type.
-#![cfg_attr(rustfmt, rustfmt_skip)] // skip the `use ... as ...` to keep them one-per-line.
-use slicec::grammar::Attribute as CompilerAttribute;
-use slicec::grammar::CustomType as CompilerCustomType;
-use slicec::grammar::Definition as CompilerDefinition;
-use slicec::grammar::Dictionary as CompilerDictionary;
-use slicec::grammar::DocComment as CompilerDocComment;
-use slicec::grammar::Enum as CompilerEnum;
-use slicec::grammar::Enumerator as CompilerEnumerator;
-use slicec::grammar::Field as CompilerField;
-use slicec::grammar::Identifier as CompilerIdentifier;
-use slicec::grammar::Interface as CompilerInterface;
-use slicec::grammar::MessageComponent as CompilerMessageComponent;
-use slicec::grammar::Operation as CompilerOperation;
-use slicec::grammar::Parameter as CompilerParameter;
-use slicec::grammar::ResultType as CompilerResultType;
-use slicec::grammar::Sequence as CompilerSequence;
-use slicec::grammar::Struct as CompilerStruct;
-use slicec::grammar::Types as CompilerTypes;
-use slicec::grammar::TypeAlias as CompilerTypeAlias;
-use slicec::grammar::TypeRef as CompilerTypeRef;
-use slicec::slice_file::SliceFile as CompilerSliceFile;
+// Pull in the core 'slicec' types using aliases to disambiguate them from the Slice-compiler definitions.
+// Any type that starts with 'Grammar' is a slicec type, not a Slice-compiler definition type.
+#![cfg_attr(rustfmt, rustfmt_skip)] // Keep the `use ... as ...` one-per-line.
+use slicec::grammar::Attribute as GrammarAttribute;
+use slicec::grammar::CustomType as GrammarCustomType;
+use slicec::grammar::Definition as GrammarDefinition;
+use slicec::grammar::Dictionary as GrammarDictionary;
+use slicec::grammar::DocComment as GrammarDocComment;
+use slicec::grammar::Enum as GrammarEnum;
+use slicec::grammar::Enumerator as GrammarEnumerator;
+use slicec::grammar::Field as GrammarField;
+use slicec::grammar::Identifier as GrammarIdentifier;
+use slicec::grammar::Interface as GrammarInterface;
+use slicec::grammar::MessageComponent as GrammarMessageComponent;
+use slicec::grammar::Operation as GrammarOperation;
+use slicec::grammar::Parameter as GrammarParameter;
+use slicec::grammar::ResultType as GrammarResultType;
+use slicec::grammar::Sequence as GrammarSequence;
+use slicec::grammar::Struct as GrammarStruct;
+use slicec::grammar::Types as GrammarTypes;
+use slicec::grammar::TypeAlias as GrammarTypeAlias;
+use slicec::grammar::TypeRef as GrammarTypeRef;
+use slicec::slice_file::SliceFile as GrammarSliceFile;
 
-// Pull in all the mapped compiler-definition types.
-use crate::definition_types::*;
 // Pull in traits from 'slicec' so we can call their functions.
 use slicec::grammar::{Attributable, Commentable, Contained, Entity, Member, NamedSymbol, Type};
 // Pull in the attribute types without aliases, since they're not ambiguous.
 use slicec::grammar::attributes::{Allow, Compress, Deprecated, Oneway, SlicedFormat, Unparsed};
+
+// Pull in all the mapped Slice-compiler definition types.
+use crate::definition_types::*;
 
 /// Returns an [EntityInfo] describing the provided element.
 fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
@@ -44,7 +45,7 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
 ///
 /// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' tag applied to an enclosing
 /// operation. But this is an implementation detail of the language, not something code-generators should deal with.
-fn get_doc_comment_for_parameter(parameter: &CompilerParameter) -> Option<DocComment> {
+fn get_doc_comment_for_parameter(parameter: &GrammarParameter) -> Option<DocComment> {
     let operation_comment = parameter.parent().comment()?;
 
     // We get the parameter's doc-comment in 3 steps:
@@ -61,7 +62,7 @@ fn get_doc_comment_for_parameter(parameter: &CompilerParameter) -> Option<DocCom
 }
 
 /// Helper function to convert the result of `tag.linked_entity()` into an [`EntityId`].
-fn convert_doc_comment_link(link_result: Result<&dyn Entity, &CompilerIdentifier>) -> EntityId {
+fn convert_doc_comment_link(link_result: Result<&dyn Entity, &GrammarIdentifier>) -> EntityId {
     match link_result {
         Ok(entity) => entity.parser_scoped_identifier(),
         Err(identifier) => identifier.value.clone(),
@@ -69,7 +70,7 @@ fn convert_doc_comment_link(link_result: Result<&dyn Entity, &CompilerIdentifier
 }
 
 /// Helper function to convert a [`Vec`] of compiler-attributes to mapped-attributes.
-fn get_attributes_from(attributes: Vec<&CompilerAttribute>) -> Vec<Attribute> {
+fn get_attributes_from(attributes: Vec<&GrammarAttribute>) -> Vec<Attribute> {
     attributes.into_iter().map(|attribute| Attribute {
         directive: attribute.kind.directive().to_owned(),
         args: get_attribute_args(attribute),
@@ -80,7 +81,7 @@ fn get_attributes_from(attributes: Vec<&CompilerAttribute>) -> Vec<Attribute> {
 // TODO this is a temporary hack because we know all the possible attributes.
 // The `Attribute` API doesn't offer a way to convert parsed-arguments back to a string.
 // And this entire API will be rewritten after porting slicec-cs, so no point changing it now.
-fn get_attribute_args(attribute: &CompilerAttribute) -> Vec<String> {
+fn get_attribute_args(attribute: &GrammarAttribute) -> Vec<String> {
     if let Some(unparsed) = attribute.downcast::<Unparsed>() {
         return unparsed.args.clone();
     }
@@ -126,8 +127,8 @@ fn get_attribute_args(attribute: &CompilerAttribute) -> Vec<String> {
 // Direct conversion functions //
 // =========================== //
 
-impl From<&CompilerSliceFile> for SliceFile {
-    fn from(slice_file: &CompilerSliceFile) -> Self {
+impl From<&GrammarSliceFile> for SliceFile {
+    fn from(slice_file: &GrammarSliceFile) -> Self {
         // Convert the slice_file's module declaration.
         // TODO this crashes on an empty Slice file, we need to filter out empty files at an earlier stage.
         let module = slice_file.module.as_ref().unwrap().borrow();
@@ -146,8 +147,8 @@ impl From<&CompilerSliceFile> for SliceFile {
     }
 }
 
-impl From<&CompilerDocComment> for DocComment {
-    fn from(doc_comment: &CompilerDocComment) -> Self {
+impl From<&GrammarDocComment> for DocComment {
+    fn from(doc_comment: &GrammarDocComment) -> Self {
         let overview = doc_comment.overview.as_ref().map(|message| {
             message.value.iter().map(Into::into)
         });
@@ -163,11 +164,11 @@ impl From<&CompilerDocComment> for DocComment {
     }
 }
 
-impl From<&CompilerMessageComponent> for MessageComponent {
-    fn from(component: &CompilerMessageComponent) -> Self {
+impl From<&GrammarMessageComponent> for MessageComponent {
+    fn from(component: &GrammarMessageComponent) -> Self {
         match component {
-            CompilerMessageComponent::Text(text) => MessageComponent::Text(text.clone()),
-            CompilerMessageComponent::Link(tag) => {
+            GrammarMessageComponent::Text(text) => MessageComponent::Text(text.clone()),
+            GrammarMessageComponent::Link(tag) => {
                 MessageComponent::Link(convert_doc_comment_link(tag.linked_entity()))
             }
         }
@@ -182,14 +183,14 @@ pub struct SliceFileContentsConverter {
 }
 
 impl SliceFileContentsConverter {
-    /// Converts the contents of SliceFile from their representation in the AST (as [`CompilerDefinition`]s), to their
+    /// Converts the contents of SliceFile from their representation in the AST (as [`GrammarDefinition`]s), to their
     /// representation in the `Compiler` Slice module (as [`Symbol`]s).
     ///
     /// Specifically, this iterates through the top-level definitions of a Slice-file (in definition order) converting
     /// and storing them. In addition to top-level definitions, the returned [`Vec`] also contains [`Symbol`]s for each
     /// anonymous type encountered while iterating. Anonymous types always appear in the returned contents _before_
     /// the [`Symbol`]s that referenced them.
-    pub fn convert(contents: &[CompilerDefinition]) -> Vec<Symbol> {
+    pub fn convert(contents: &[GrammarDefinition]) -> Vec<Symbol> {
         // Create a new converter.
         let mut converter = SliceFileContentsConverter {
             converted_contents: Vec::new()
@@ -198,11 +199,11 @@ impl SliceFileContentsConverter {
         // Iterate through the provided file's contents, and convert each of it's top-level definitions.
         for definition in contents {
             let converted = match definition {
-                CompilerDefinition::Struct(v) => Symbol::Struct(converter.convert_struct(v.borrow())),
-                CompilerDefinition::Interface(v) => Symbol::Interface(converter.convert_interface(v.borrow())),
-                CompilerDefinition::Enum(v) => Symbol::Enum(converter.convert_enum(v.borrow())),
-                CompilerDefinition::CustomType(v) => Symbol::CustomType(converter.convert_custom_type(v.borrow())),
-                CompilerDefinition::TypeAlias(v) => Symbol::TypeAlias(converter.convert_type_alias(v.borrow())),
+                GrammarDefinition::Struct(v) => Symbol::Struct(converter.convert_struct(v.borrow())),
+                GrammarDefinition::Interface(v) => Symbol::Interface(converter.convert_interface(v.borrow())),
+                GrammarDefinition::Enum(v) => Symbol::Enum(converter.convert_enum(v.borrow())),
+                GrammarDefinition::CustomType(v) => Symbol::CustomType(converter.convert_custom_type(v.borrow())),
+                GrammarDefinition::TypeAlias(v) => Symbol::TypeAlias(converter.convert_type_alias(v.borrow())),
                 _ => panic!("TODO: remove classes and exceptions"),
             };
             converter.converted_contents.push(converted);
@@ -212,7 +213,7 @@ impl SliceFileContentsConverter {
         converter.converted_contents
     }
 
-    fn convert_type_ref(&mut self, type_ref: &CompilerTypeRef) -> TypeRef {
+    fn convert_type_ref(&mut self, type_ref: &GrammarTypeRef) -> TypeRef {
         TypeRef {
             type_id: self.get_type_id_for(type_ref),
             is_optional: type_ref.is_optional,
@@ -220,7 +221,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_struct(&mut self, struct_def: &CompilerStruct) -> Struct {
+    fn convert_struct(&mut self, struct_def: &GrammarStruct) -> Struct {
         Struct {
             entity_info: get_entity_info_for(struct_def),
             is_compact: struct_def.is_compact,
@@ -228,7 +229,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_field(&mut self, field: &CompilerField) -> Field {
+    fn convert_field(&mut self, field: &GrammarField) -> Field {
         Field {
             entity_info: get_entity_info_for(field),
             tag: field.tag.as_ref().map(|integer| integer.value as i32),
@@ -236,7 +237,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_interface(&mut self, interface_def: &CompilerInterface) -> Interface {
+    fn convert_interface(&mut self, interface_def: &GrammarInterface) -> Interface {
         let bases = interface_def.base_interfaces();
 
         Interface {
@@ -246,7 +247,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_operation(&mut self, operation: &CompilerOperation) -> Operation {
+    fn convert_operation(&mut self, operation: &GrammarOperation) -> Operation {
         Operation {
             entity_info: get_entity_info_for(operation),
             is_idempotent: operation.is_idempotent,
@@ -257,7 +258,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_parameter(&mut self, parameter: &CompilerParameter) -> Field {
+    fn convert_parameter(&mut self, parameter: &GrammarParameter) -> Field {
         let parameter_info = EntityInfo {
             identifier: parameter.identifier().to_owned(),
             attributes: get_attributes_from(parameter.attributes()),
@@ -271,7 +272,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_enum(&mut self, enum_def: &CompilerEnum) -> Enum {
+    fn convert_enum(&mut self, enum_def: &GrammarEnum) -> Enum {
         Enum {
             entity_info: get_entity_info_for(enum_def),
             is_compact: enum_def.is_compact,
@@ -281,7 +282,7 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_enumerator(&mut self, enumerator: &CompilerEnumerator) -> Enumerator {
+    fn convert_enumerator(&mut self, enumerator: &GrammarEnumerator) -> Enumerator {
         let entity_info = get_entity_info_for(enumerator);
         let raw_value = enumerator.value();
         let value = Discriminant {
@@ -293,33 +294,33 @@ impl SliceFileContentsConverter {
         Enumerator { entity_info, value, fields }
     }
 
-    fn convert_custom_type(&mut self, custom_type: &CompilerCustomType) -> CustomType {
+    fn convert_custom_type(&mut self, custom_type: &GrammarCustomType) -> CustomType {
         CustomType {
             entity_info: get_entity_info_for(custom_type)
         }
     }
 
-    fn convert_type_alias(&mut self, type_alias: &CompilerTypeAlias) -> TypeAlias {
+    fn convert_type_alias(&mut self, type_alias: &GrammarTypeAlias) -> TypeAlias {
         TypeAlias {
             entity_info: get_entity_info_for(type_alias),
             underlying_type: self.convert_type_ref(&type_alias.underlying),
         }
     }
 
-    fn convert_sequence(&mut self, sequence: &CompilerSequence) -> SequenceType {
+    fn convert_sequence(&mut self, sequence: &GrammarSequence) -> SequenceType {
         SequenceType {
             element_type: self.convert_type_ref(&sequence.element_type),
         }
     }
 
-    fn convert_dictionary(&mut self, dictionary: &CompilerDictionary) -> DictionaryType {
+    fn convert_dictionary(&mut self, dictionary: &GrammarDictionary) -> DictionaryType {
         DictionaryType {
             key_type: self.convert_type_ref(&dictionary.key_type),
             value_type: self.convert_type_ref(&dictionary.value_type),
         }
     }
 
-    fn convert_result_type(&mut self, result_type: &CompilerResultType) -> ResultType {
+    fn convert_result_type(&mut self, result_type: &GrammarResultType) -> ResultType {
         ResultType {
             success_type: self.convert_type_ref(&result_type.success_type),
             failure_type: self.convert_type_ref(&result_type.failure_type),
@@ -331,29 +332,29 @@ impl SliceFileContentsConverter {
     /// 1) Recursively convert the anonymous type (and any nested types) to the mapped definition types.
     /// 2) Add these directly to [Self::converted_contents] (so these types appear in the contents before their users)
     /// 3) Return its index in [Self::converted_contents] as a numeric TypeId.
-    fn get_type_id_for(&mut self, type_ref: &CompilerTypeRef) -> TypeId {
+    fn get_type_id_for(&mut self, type_ref: &GrammarTypeRef) -> TypeId {
         match type_ref.concrete_type() {
-            CompilerTypes::Struct(v) => v.module_scoped_identifier(),
-            CompilerTypes::Enum(v) => v.module_scoped_identifier(),
-            CompilerTypes::CustomType(v) => v.module_scoped_identifier(),
-            CompilerTypes::Primitive(v) => v.type_string(),
-            CompilerTypes::ResultType(v) => {
+            GrammarTypes::Struct(v) => v.module_scoped_identifier(),
+            GrammarTypes::Enum(v) => v.module_scoped_identifier(),
+            GrammarTypes::CustomType(v) => v.module_scoped_identifier(),
+            GrammarTypes::Primitive(v) => v.type_string(),
+            GrammarTypes::ResultType(v) => {
                 let converted_symbol = Symbol::ResultType(self.convert_result_type(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
             }
-            CompilerTypes::Sequence(v) => {
+            GrammarTypes::Sequence(v) => {
                 let converted_symbol = Symbol::SequenceType(self.convert_sequence(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
             }
-            CompilerTypes::Dictionary(v) => {
+            GrammarTypes::Dictionary(v) => {
                 let converted_symbol = Symbol::DictionaryType(self.convert_dictionary(v));
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
             }
 
-            CompilerTypes::Class(_) => panic!("TODO: remove classes!"),
+            GrammarTypes::Class(_) => panic!("TODO: remove classes!"),
         }
     }
 }
