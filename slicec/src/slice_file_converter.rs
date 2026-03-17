@@ -133,7 +133,7 @@ impl From<&GrammarSliceFile> for SliceFile {
         // TODO this crashes on an empty Slice file, we need to filter out empty files at an earlier stage.
         let module = slice_file.module.as_ref().unwrap().borrow();
         let converted_module = Module {
-            identifier: module.identifier().to_owned(),
+            identifier: module.nested_module_identifier().to_owned(),
             attributes: get_attributes_from(module.attributes()),
         };
 
