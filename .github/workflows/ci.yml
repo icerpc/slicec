@@ -12,16 +12,13 @@ env:
 
 jobs:
   slicec:
-    strategy:
-      fail-fast: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
       - name: 📐 Setup
         run: rustup component add clippy
       - name: 📂 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: 🔨 Build
         run: cargo build --all-targets -p slicec
       - name: 🧪 Test
@@ -58,7 +55,7 @@ jobs:
           rustup component add clippy
           rustup component add miri --toolchain nightly
       - name: 📂 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: 🔨 Build
         run: cargo build --all-targets --no-default-features $FEATURES -p slice-codec
       - name: 🧪 Test
@@ -78,7 +75,7 @@ jobs:
 
     steps:
       - name: 📂 Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: 📐 Setup
         run: |
           rustup toolchain install nightly
