@@ -170,9 +170,9 @@ implement_encode_into_for_struct!(Enumerator, entity_info, value, fields);
 #[derive(Clone, Debug)]
 pub struct Discriminant {
     pub absolute_value: u64,
-    pub is_positive: bool,
+    pub is_negative: bool,
 }
-implement_encode_into_for_struct!(Discriminant, absolute_value, is_positive);
+implement_encode_into_for_struct!(Discriminant, absolute_value, is_negative);
 
 #[derive(Clone, Debug)]
 pub struct CustomType {

@@ -50,7 +50,7 @@ fn get_doc_comment_for_parameter(parameter: &GrammarParameter) -> Option<DocComm
 
     // We get the parameter's doc-comment in 3 steps:
     // 1) Try to find a matching '@param' tag on the operation's doc-comment.
-    // 2) If one was present, extract just it's `Message` field, and convert it to the mapped type.
+    // 2) If one was present, extract just its `Message` field, and convert it to the mapped type.
     // 3) Construct a mapped `DocComment` which contains the mapped message.
     operation_comment.params.iter()
         .find(|param_tag| param_tag.identifier.value == parameter.identifier())
@@ -292,7 +292,7 @@ impl SliceFileContentsConverter {
         let raw_value = enumerator.value();
         let value = Discriminant {
             absolute_value: raw_value.unsigned_abs() as u64,
-            is_positive: raw_value.is_positive(),
+            is_negative: raw_value.is_negative(),
         };
         let fields = enumerator.fields().into_iter().map(|e| self.convert_field(e)).collect();
 
