@@ -1,0 +1,107 @@
+// Copyright (c) ZeroC, Inc.
+
+[cs::namespace("ZeroC.Slice.Compiler")]
+module Compiler
+
+/// A unique identifier for a Slice entity. This is always a fully-scoped identifier.
+/// For example: 'MyOuterModule::MyInnerModule::MyInterface::MyOperation::MyParameter'.
+typealias EntityId = string
+
+/// A unique identifier for a Slice type or type alias.
+///
+/// For user-defined types, this is the type's fully-scoped identifier. For example: 'OuterModule::InnerModule::Foo'.
+/// For built-in primitive types, this is just the primitive's keyword; for example: 'int32' or 'string'.
+/// For anonymous types (sequences, dictionaries, and results), this is a numeric ID corresponding to the type's index
+/// in {@link SliceFile::contents} (indices start from '0'). These IDs are scoped to the file they're defined in.
+typealias TypeId = string
+
+struct Attribute {
+    directive: string
+    args: Sequence<string>
+}
+
+struct TypeRef {
+    typeId: TypeId
+    isOptional: bool
+    typeAttributes: Sequence<Attribute>
+}
+
+struct EntityInfo {
+    identifier: string
+    attributes: Sequence<Attribute>
+    tag(1) comment: DocComment?
+}
+
+struct Module {
+    identifier: string
+    attributes: Sequence<Attribute>
+}
+
+struct Struct {
+    entityInfo: EntityInfo
+    isCompact: bool
+    fields: Sequence<Field>
+}
+
+struct Field {
+    entityInfo: EntityInfo
+    \tag: varint32?
+    dataType: TypeRef
+}
+
+struct Interface {
+    entityInfo: EntityInfo
+    bases: Sequence<EntityId>
+    operations: Sequence<Operation>
+}
+
+struct Operation {
+    entityInfo: EntityInfo
+    isIdempotent: bool
+    parameters: Sequence<Field>
+    hasStreamedParameter: bool
+    returnType: Sequence<Field>
+    hasStreamedReturn: bool
+}
+
+struct Enum {
+    entityInfo: EntityInfo
+    isCompact: bool
+    isUnchecked: bool
+    underlying: TypeId?
+    enumerators: Sequence<Enumerator>
+}
+
+struct Enumerator {
+    entityInfo: EntityInfo
+    value: Discriminant
+    fields: Sequence<Field>
+}
+
+struct Discriminant {
+    absoluteValue: uint64
+    isPositive: bool
+}
+
+struct CustomType {
+    entityInfo: EntityInfo
+}
+
+struct TypeAlias {
+    entityInfo: EntityInfo
+    underlyingType: TypeRef // Can never be optional.
+}
+
+struct SequenceType {
+    elementType: TypeRef
+}
+
+struct DictionaryType {
+    keyType: TypeRef // Can never be optional.
+    valueType: TypeRef
+}
+
+struct ResultType {
+    successType: TypeRef
+    failureType: TypeRef
+}
