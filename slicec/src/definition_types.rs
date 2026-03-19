@@ -8,9 +8,9 @@ use slice_codec::slice2::Slice2;
 use slice_codec::buffer::{InputSource, OutputTarget};
 use slice_codec::decode_from::DecodeFrom;
 use slice_codec::decoder::Decoder;
-use slice_codec::{InvalidDataErrorKind, encode_into::*};
+use slice_codec::encode_into::EncodeInto;
 use slice_codec::encoder::Encoder;
-use slice_codec::Result;
+use slice_codec::{InvalidDataErrorKind, Result};
 
 /// TAG_END_MARKER must be encoded at the end of every non-compact type.
 const TAG_END_MARKER: i32 = -1;
@@ -69,8 +69,8 @@ impl EncodeInto<Slice2> for &EntityInfo {
         // Encode the actual fields.
         encoder.encode(&self.identifier)?;
         encoder.encode(&self.attributes)?;
-        if let Some(comment_value) = self.comment {
-            encoder.encode_varint(comment_value)?;
+        if let Some(comment_value) = &self.comment {
+            encoder.encode(comment_value)?;
         }
         encoder.encode_varint(TAG_END_MARKER)?;
         Ok(())
