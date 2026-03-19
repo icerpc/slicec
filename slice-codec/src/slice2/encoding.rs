@@ -137,7 +137,7 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
         }
     }
 
-    // An alias for `[encode_varint]` to increase readability.
+    // An alias for `[encode_varuint]` to increase readability.
     pub fn encode_size(&mut self, value: impl Into<u64>) -> Result<()> {
         self.encode_varuint(value)
     }

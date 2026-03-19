@@ -162,7 +162,7 @@ impl<I: InputSource> Decoder<I, Slice2> {
         T::try_from(value).map_err(|_| varuint_range_error::<T>(value))
     }
 
-    /// An alias for `[decode_varint]` to increase readability.
+    /// An alias for `[decode_varuint]` to increase readability.
     pub fn decode_size(&mut self) -> Result<usize> {
         self.decode_varuint()
     }
