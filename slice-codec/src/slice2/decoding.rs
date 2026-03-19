@@ -163,8 +163,20 @@ impl<I: InputSource> Decoder<I, Slice2> {
     }
 
     /// An alias for `[decode_varint]` to increase readability.
-    pub fn decode_size<T: TryFrom<u64>>(&mut self) -> Result<T> {
+    pub fn decode_size(&mut self) -> Result<usize> {
         self.decode_varuint()
+    }
+
+    /// Skips any remaining tagged fields.
+    pub fn skip_tagged_fields(&mut self) -> Result<()> {
+        // Continue decoding tags until we hit '-1' (the TAG_END_MARKER).
+        while self.decode_varint::<i32>()? != -1 {
+            // Skip over the tagged field.
+            let field_size = self.decode_size()?;
+            self.read_byte_slice_exact(field_size)?;
+        }
+
+        Ok(())
     }
 }
 

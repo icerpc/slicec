@@ -5,8 +5,10 @@
 
 use slice_codec::slice2::Slice2;
 
-use slice_codec::buffer::OutputTarget;
-use slice_codec::encode_into::*;
+use slice_codec::buffer::{InputSource, OutputTarget};
+use slice_codec::decode_from::DecodeFrom;
+use slice_codec::decoder::Decoder;
+use slice_codec::{InvalidDataErrorKind, encode_into::*};
 use slice_codec::encoder::Encoder;
 use slice_codec::Result;
 
@@ -61,9 +63,15 @@ pub struct EntityInfo {
 }
 impl EncodeInto<Slice2> for &EntityInfo {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
+        // Encode the bit-sequence. With only one optional, this is just a bool.
+        encoder.encode(self.comment.is_some())?;
+
+        // Encode the actual fields.
         encoder.encode(&self.identifier)?;
         encoder.encode(&self.attributes)?;
-        // encoder.encode_tagged(0, &self.comment)?; TODO add doc-comments after adding tag encoding support.
+        if let Some(comment_value) = self.comment {
+            encoder.encode_varint(comment_value)?;
+        }
         encoder.encode_varint(TAG_END_MARKER)?;
         Ok(())
     }
@@ -250,13 +258,6 @@ pub struct SliceFile {
 }
 implement_encode_into_for_struct!(SliceFile, path, module_declaration, attributes, contents);
 
-#[derive(Clone, Debug)]
-pub struct GeneratedFile {
-    pub path: String,
-    pub contents: String,
-}
-implement_encode_into_for_struct!(GeneratedFile, path, contents);
-
 #[repr(u8)]
 #[derive(Clone, Debug)]
 pub enum Symbol {
@@ -297,36 +298,64 @@ impl EncodeInto<Slice2> for &Symbol {
 }
 
 #[derive(Clone, Debug)]
+pub struct GeneratedFile {
+    pub path: String,
+    pub contents: String,
+}
+impl DecodeFrom<Slice2> for GeneratedFile {
+    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+        let path = decoder.decode()?;
+        let contents = decoder.decode()?;
+
+        decoder.skip_tagged_fields()?;
+
+        Ok(GeneratedFile { path, contents })
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct Diagnostic {
     pub level: DiagnosticLevel,
     pub message: String,
     pub source: Option<String>,
 }
-impl EncodeInto<Slice2> for &Diagnostic {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
-        // Encode the bit-sequence. With only one optional, this is just a bool.
-        encoder.encode(self.source.is_some())?;
+impl DecodeFrom<Slice2> for Diagnostic {
+    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+        // Decode the bit-sequence. With only one optional, this is just a bool.
+        let has_source = decoder.decode::<bool>()?;
 
-        // Encode the actual fields.
-        encoder.encode(&self.level)?;
-        encoder.encode(&self.message)?;
-        if let Some(source_value) = &self.source {
-            encoder.encode(source_value)?;
-        }
-        encoder.encode_varint(TAG_END_MARKER)?;
-        Ok(())
+        // Decode the actual fields.
+        let level = decoder.decode()?;
+        let message = decoder.decode()?;
+        let source = has_source.then(|| decoder.decode()).transpose()?;
+
+        decoder.skip_tagged_fields()?;
+
+        Ok(Diagnostic { level, message, source })
     }
 }
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 pub enum DiagnosticLevel {
-    Info,
-    Warning,
-    Error,
+    Info = 0,
+    Warning = 1,
+    Error = 2,
 }
-impl EncodeInto<Slice2> for &DiagnosticLevel {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
-        encoder.encode(*self as u8)
+impl DecodeFrom<Slice2> for DiagnosticLevel {
+    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+        let value = decoder.decode::<u8>()?;
+        match value {
+            0 => Ok(DiagnosticLevel::Info),
+            1 => Ok(DiagnosticLevel::Warning),
+            2 => Ok(DiagnosticLevel::Error),
+            _ => {
+                let error = InvalidDataErrorKind::IllegalValue {
+                    desc: "DiagnosticLevel",
+                    value: Some(value.into()),
+                };
+                Err(error.into())
+            }
+        }
     }
 }
