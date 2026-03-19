@@ -2,5 +2,10 @@
   "rust-analyzer.rustfmt.extraArgs": ["+nightly"],
   "[rust]": {
     "editor.rulers": [120]
-  }
+  },
+  "slice.configurations": [
+    {
+      "paths": ["slice/"],
+    }
+  ]
 }
