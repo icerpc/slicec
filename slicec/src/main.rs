@@ -1,10 +1,11 @@
 // Copyright (c) ZeroC, Inc.
 
-use std::io::Write;
-use std::process::ExitCode;
+use std::io::{Error, ErrorKind, Write};
+use std::process::{Command, ExitCode, Stdio};
 
 use clap::Parser;
 
+use slice_codec::decoder::Decoder;
 use slice_codec::encoder::Encoder;
 
 use slicec::compilation_state::CompilationState;
@@ -46,6 +47,59 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
+fn decode_generate_code_response(payload: &[u8]) {
+    // Create a decoder over the response's payload.
+    let mut slice_decoder = Decoder::from(payload);
+
+    // Decode the response as 2 sequences, one for generated files, and one for diagnostics.
+    let generatedFiles = slice_decoder.decode::<Vec<crate::definition_types::GeneratedFile>>();
+    let diagnostics = slice_decoder.decode::<Vec<crate::definition_types::Diagnostic>>();
+}
+
+fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Vec<u8>> {
+    // Spawn a new process and setup pipes for all of its streams.
+    let mut process = Command::new(command)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+
+    // Write the encoded Slice definitions to the process's 'stdin'.
+    let stdin = process.stdin.as_mut().ok_or_else(|| Error::other("failed to access 'stdin'"))?;
+    // We require that plugins must read the entire payload from 'stdin' before writing to 'stdout' or 'stderr',
+    // so there's no concern of deadlock due to the pipe buffer filling up.
+    stdin.write_all(slice_payload)?;
+
+    // Wait until the process finishes, then retrieve its output.
+    let output = process.wait_with_output()?;
+
+    // If the process wrote anything to its 'stderr', we consider this a failure and don't generate any code.
+    if !output.stderr.is_empty() {
+        // Obtain an exclusive handle to this process's 'stderr'.
+        let mut stderr = std::io::stderr().lock();
+
+        // Pipe the output from the subprocess's 'stderr' to this process's 'stderr', and then return.
+        let error = match stderr.write_all(&output.stderr) {
+            Ok(_) => Error::other("errors reported on 'stderr'"),
+            Err(err) => Error::new(ErrorKind::BrokenPipe, err),
+        };
+        return Err(error);
+    }
+    
+    // Otherwise, check the process's status code to determine success.
+    match output.status.code() {
+        // If the process exited with a status code of 0, all is good and we return the encoded response from 'stdout'.
+        Some(0) => Ok(output.stdout),
+
+        // If the process exited with a non-zero status code, we consider this a failure and don't generate any code.
+        // TODO: we treat non-zero codes as terminal errors. Should we?
+        Some(code) => Err(Error::other(format!("failed with status code '{code}'"))),
+
+        // If the process did not exit with a status code, it means it was interrupted by a signal.
+        None => Err(Error::from(ErrorKind::Interrupted)),
+    }
+}
+
 fn main() -> ExitCode {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
@@ -79,15 +133,7 @@ fn main() -> ExitCode {
             }
         };
 
-        // Obtain an exclusive handle to 'stdout', and write the encoded bytes to it.
-        let mut stdout = std::io::stdout().lock();
-        match stdout.write_all(&encoded_bytes) {
-            Ok(_) => {}
-            Err(error) => {
-                eprintln!("{error:?}");
-                return ExitCode::from(12);
-            }
-        }
+        let command_string = "echo";
     }
 
     // Success.
