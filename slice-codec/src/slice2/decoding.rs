@@ -20,6 +20,9 @@ use std::collections::HashMap;
 #[cfg(feature = "std")]
 use std::hash::Hash;
 
+/// TAG_END_MARKER must be encoded at the end of every non-compact type.
+const TAG_END_MARKER: i32 = -1;
+
 // =============================================================================
 // Fixed-length type implementations
 // =============================================================================
@@ -162,9 +165,21 @@ impl<I: InputSource> Decoder<I, Slice2> {
         T::try_from(value).map_err(|_| varuint_range_error::<T>(value))
     }
 
-    /// An alias for `[decode_varint]` to increase readability.
-    pub fn decode_size<T: TryFrom<u64>>(&mut self) -> Result<T> {
+    /// An alias for `[decode_varuint]` to increase readability.
+    pub fn decode_size(&mut self) -> Result<usize> {
         self.decode_varuint()
+    }
+
+    /// Skips any remaining tagged fields.
+    pub fn skip_tagged_fields(&mut self) -> Result<()> {
+        // Continue decoding tags until we hit 'TAG_END_MARKER'.
+        while self.decode_varint::<i32>()? != TAG_END_MARKER {
+            // Skip over the tagged field.
+            let field_size = self.decode_size()?;
+            self.read_byte_slice_exact(field_size)?;
+        }
+
+        Ok(())
     }
 }
 
