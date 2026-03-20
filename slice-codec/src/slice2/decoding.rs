@@ -20,6 +20,9 @@ use std::collections::HashMap;
 #[cfg(feature = "std")]
 use std::hash::Hash;
 
+/// TAG_END_MARKER must be encoded at the end of every non-compact type.
+const TAG_END_MARKER: i32 = -1;
+
 // =============================================================================
 // Fixed-length type implementations
 // =============================================================================
@@ -169,8 +172,8 @@ impl<I: InputSource> Decoder<I, Slice2> {
 
     /// Skips any remaining tagged fields.
     pub fn skip_tagged_fields(&mut self) -> Result<()> {
-        // Continue decoding tags until we hit '-1' (the TAG_END_MARKER).
-        while self.decode_varint::<i32>()? != -1 {
+        // Continue decoding tags until we hit 'TAG_END_MARKER'.
+        while self.decode_varint::<i32>()? != TAG_END_MARKER {
             // Skip over the tagged field.
             let field_size = self.decode_size()?;
             self.read_byte_slice_exact(field_size)?;
