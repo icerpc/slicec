@@ -29,6 +29,13 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Ensure Cargo.lock Exists (required for version extraction)
+        shell: bash
+        run: |
+          if [ ! -f Cargo.lock ]; then
+            cargo build -p slicec
+          fi
+
       - name: Get slicec Version
         id: get-version
         shell: bash
