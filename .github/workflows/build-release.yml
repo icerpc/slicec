@@ -63,9 +63,6 @@ jobs:
           - runner: windows-2025
             target: x86_64-pc-windows-msvc
             artifact: slicec.exe
-          - runner: windows-2025
-            target: aarch64-pc-windows-msvc
-            artifact: slicec.exe
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 10
@@ -98,13 +95,14 @@ jobs:
         with:
           pattern: slicec-*
           skip-decompress: true
+          merge-multiple: true
           path: ./artifacts
 
       - name: Rename Nightly Artifacts
         if: inputs.quality == 'nightly'
         run: |
             shopt -s nullglob
-            for file in ./artifacts/slicec-*.zip; do
+            for file in ./artifacts/*/slicec-*.zip; do
               old_name="${file%.zip}"
               new_name="${old_name}-${{ needs.metadata.outputs.version }}-nightly"
               echo "Renaming $file to $new_name.zip"
@@ -119,6 +117,6 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
             shopt -s nullglob
-            for file in ./artifacts/slicec-*.zip; do
+            for file in ./artifacts/*/slicec-*.zip; do
               aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
             done
