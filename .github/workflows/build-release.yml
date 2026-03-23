@@ -47,14 +47,12 @@ jobs:
           echo "version=$version_major_minor" >> "$GITHUB_OUTPUT"
 
   build:
+    needs: metadata
     strategy:
       matrix:
         include:
           - runner: macos-26
             target: aarch64-apple-darwin
-            artifact: slicec
-          - runner: macos-26
-            target: x86_64-apple-darwin
             artifact: slicec
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
@@ -87,7 +85,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: slicec-${{ matrix.target }}
+          name: slicec-${{ matrix.target }}-${{ needs.metadata.outputs.version }}
           path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
 
 
@@ -118,7 +116,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
+          AWS_DEFAULT_REGION: us-east-1
         run: |
             shopt -s nullglob
             for file in ./artifacts/slicec-*.zip; do
