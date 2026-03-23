@@ -1,0 +1,119 @@
+name: Build Release
+
+on:
+  workflow_call:
+    inputs:
+      quality:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: "Release quality (e.g., stable, nightly, RC)"
+        required: true
+        default: "nightly"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Get slicec Version
+        id: get-version
+        shell: bash
+        run: |
+          pkgid="$(cargo pkgid -p slicec)"
+          version="${pkgid##*#}"
+          IFS='.' read -r major minor _ <<< "$version"
+          version_major_minor="$major.$minor"
+          echo "version=$version_major_minor" >> "$GITHUB_OUTPUT"
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-13
+            target: x86_64-apple-darwin
+            artifact: slicec
+          - runner: macos-14
+            target: aarch64-apple-darwin
+            artifact: slicec
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact: slicec
+          - runner: ubuntu-24.04
+            target: aarch64-unknown-linux-gnu
+            artifact: slicec
+          - runner: windows-2025
+            target: x86_64-pc-windows-msvc
+            artifact: slicec.exe
+          - runner: windows-2025
+            target: aarch64-pc-windows-msvc
+            artifact: slicec.exe
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build slicec binary
+        run: cargo build --release --target ${{ matrix.target }} -p slicec
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: slicec-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
+
+
+  upload:
+    needs: [metadata, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: slicec-*
+          skip-decompress: true
+          path: ./artifacts
+
+      - name: Rename Nightly Artifacts
+        if: inputs.quality == 'nightly'
+        run: |
+            shopt -s nullglob
+            for file in ./artifacts/slicec-*.zip; do
+              old_name="${file%.zip}"
+              new_name="${old_name}-${{ needs.metadata.outputs.version }}-nightly"
+              echo "Renaming $file to $new_name.zip"
+              mv "$file" "$new_name.zip"
+            done
+
+      - name: Upload to S3
+        if: inputs.quality == 'nightly'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+        run: |
+            shopt -s nullglob
+            for file in ./artifacts/slicec-*.zip; do
+              aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
+            done
