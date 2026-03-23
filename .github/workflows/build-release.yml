@@ -52,7 +52,7 @@ jobs:
           - runner: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             artifact: slicec
-          - runner: ubuntu-24.04
+          - runner: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
             artifact: slicec
           - runner: windows-2025
