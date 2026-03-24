@@ -13,8 +13,6 @@ use slicec::compilation_state::CompilationState;
 use slicec::diagnostic_emitter::DiagnosticEmitter;
 use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
-use crate::definition_types::GeneratedFile;
-
 pub mod definition_types;
 pub mod slice_file_converter;
 
@@ -51,18 +49,6 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
-fn decode_generate_code_response(
-    payload: &[u8],
-) -> Result<(Vec<definition_types::GeneratedFile>, Vec<definition_types::Diagnostic>), slice_codec::Error> {
-    // Create a decoder over the response's payload.
-    let mut slice_decoder = Decoder::from(payload);
-
-    // Decode the response as 2 sequences, one for generated files, and one for diagnostics.
-    let generated_files = slice_decoder.decode()?;
-    let diagnostics = slice_decoder.decode()?;
-    Ok((generated_files, diagnostics))
-}
-
 fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Vec<u8>> {
     // Spawn a new subprocess and setup pipes for all of its streams.
     let mut subprocess = Command::new(command)
@@ -72,7 +58,7 @@ fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Ve
         .spawn()?;
 
     // Write the encoded Slice definitions to the subprocess's 'stdin'.
-    let stdin = subprocess.stdin.as_mut().ok_or_else(|| Error::other("no stdin pipe"))?;
+    let stdin = subprocess.stdin.as_mut().ok_or_else(|| ErrorKind::BrokenPipe)?;
     // We require that plugins must read the entire payload from 'stdin' before writing to 'stdout' or 'stderr',
     // so there's no concern of deadlock due to the pipe buffer filling up.
     stdin.write_all(slice_payload)?;
@@ -106,7 +92,7 @@ fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Ve
     }
 }
 
-fn write_generated_file(generated_file: GeneratedFile) -> std::io::Result<()> {
+fn write_generated_file(generated_file: definition_types::GeneratedFile) -> std::io::Result<()> {
     let mut file = File::create(generated_file.path)?;
     file.write_all(generated_file.contents.as_bytes())?;
     Ok(())
@@ -130,8 +116,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         {
             // Invoke the provided plugin, and retrieve it's output from stdout (if it ran successfully).
             let encoded_response = run_plugin_process("ZeroC.Slice.Generator.exe", &encoded_request)?;
-            // Decode the plugin's response.
-            let (generated_files, plugin_diagnostics) = decode_generate_code_response(&encoded_response)?;
+
+            // Decode the plugin's response. It consists of 2 sequences, one of generated files and one of diagnostics.
+            let mut slice_decoder = Decoder::from(&encoded_response);
+            let generated_files: Vec<definition_types::GeneratedFile> = slice_decoder.decode()?;
+            let plugin_diagnostics: Vec<definition_types::Diagnostic> = slice_decoder.decode()?;
+
             // TODO: convert diagnostics to a form slicec can handle, and apply allow/deny alterations to them.
             if plugin_diagnostics.is_empty() {
                 for generated_file in generated_files {
