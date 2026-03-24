@@ -100,7 +100,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          aws s3 cp ./artifacts/slicec-*.zip "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
+          for file in artifacts/slicec-*.zip; do
+            aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/"
+          done
 
       - name: Invalidate CloudFront Cache
         env:
