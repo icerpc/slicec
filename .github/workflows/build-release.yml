@@ -29,21 +29,15 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Ensure Cargo.lock Exists (required for version extraction)
-        shell: bash
-        run: |
-          if [ ! -f Cargo.lock ]; then
-            cargo build -p slicec
-          fi
 
       - name: Get slicec Version
         id: get-version
         shell: bash
         run: |
-          pkgid="$(cargo pkgid -p slicec)"
-          version="${pkgid##*#}"
-          IFS='.' read -r major minor _ <<< "$version"
-          version_major_minor="$major.$minor"
+          version="$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "slicec") | .version')"
+
+          version_major_minor="${version%.*}"
           echo "version=$version_major_minor" >> "$GITHUB_OUTPUT"
 
   build:
@@ -89,6 +83,7 @@ jobs:
 
   upload:
     needs: [metadata, build]
+    if: inputs.quality == 'nightly' && github.repository == 'icerpc/slicec'
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifacts
@@ -99,25 +94,18 @@ jobs:
           merge-multiple: true
           path: ./artifacts
 
-      - name: Rename Nightly Artifacts
-        if: inputs.quality == 'nightly'
-        run: |
-            shopt -s nullglob
-            for file in ./artifacts/slicec-*.zip; do
-              old_name="${file%.zip}"
-              new_name="${old_name}-${{ needs.metadata.outputs.version }}-nightly"
-              echo "Renaming $file to $new_name.zip"
-              mv "$file" "$new_name.zip"
-            done
-
       - name: Upload to S3
-        if: inputs.quality == 'nightly' && github.repository == 'icerpc/slicec'
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-            shopt -s nullglob
-            for file in ./artifacts/slicec-*.zip; do
-              aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
-            done
+          aws s3 cp ./artifacts/slicec-*.zip "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
+
+      - name: Invalidate CloudFront Cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ZEROC_DOWNLOAD_DISTRIBUTION_ID }} --paths "/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/*"

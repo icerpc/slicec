@@ -22,7 +22,7 @@ jobs:
 
       - name: Upload coverage
         if: github.repository == 'icerpc/slicec'
-        run: aws s3 sync ./target/llvm-cov/html s3://${{ secrets.AWS_S3_BUCKET }}/slicec/${{ github.ref_name }}/coverage --delete
+        run: aws s3 sync ./target/llvm-cov/html s3://${{ secrets.AWS_S3_CODE_BUCKET }}/slicec/${{ github.ref_name }}/coverage --delete
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
