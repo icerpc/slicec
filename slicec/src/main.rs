@@ -2,7 +2,7 @@
 
 use std::fs::File;
 use std::io::{Error, ErrorKind, Write};
-use std::process::{Command, ExitCode, Stdio};
+use std::process::{Command, Stdio};
 
 use clap::Parser;
 
@@ -112,8 +112,7 @@ fn write_generated_file(generated_file: GeneratedFile) -> std::io::Result<()> {
     Ok(())
 }
 
-// TODO update this to use a Result type instead.
-fn main() -> ExitCode {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
 
@@ -121,48 +120,33 @@ fn main() -> ExitCode {
     let compilation_state = slicec::compile_from_options(&slice_options, |_| {}, |_| {});
     let CompilationState { ast, diagnostics, files } = compilation_state;
 
-    // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
-    let mut updated_diagnostics = diagnostics.into_updated(&ast, &files, &slice_options);
-    let (mut warning_count, mut error_count) = slicec::diagnostics::get_totals(&updated_diagnostics);
-
     // Only invoke the plugins if there were no errors in the Slice files.
-    if error_count == 0 {
-        // TODO START refactor this to be better.
-        let encoded_response = match encode_generate_code_request(&files) {
-            Ok(bytes) => bytes,
-            Err(error) => {
-                eprintln!("{error:?}");
-                return ExitCode::from(11);
-            }
-        };
-        let encoded_response = match run_plugin_process("slicec-cs", &encoded_response) {
-            Ok(bytes) => bytes,
-            Err(error) => {
-                eprintln!("{error:?}");
-                return ExitCode::from(12);
-            }
-        };
-        let (generated_files, diagnostics) = match decode_generate_code_response(&encoded_response) {
-            Ok(data) => data,
-            Err(error) => {
-                eprintln!("{error:?}");
-                return ExitCode::from(13);
-            }
-        };
+    if !diagnostics.has_errors() {
+        // Encode the request which will be sent to each of the code-generation plugins.
+        let encoded_request = encode_generate_code_request(&files)?;
 
-        // TODO update the number of diagnostics. Then conditionally generate the code in the right place.
-
-        for generated_file in generated_files {
-            let mut file_handle = match write_generated_file(generated_file) {
-                Ok(_) => {},
-                Err(error) => {
-                    eprintln!("{error:?}");
-                    return ExitCode::from(14);
+        // TODO: add a CLI to choose which plugin is run; and add support for running multiple plugins at once.
+        {
+            // Invoke the provided plugin, and retrieve it's output from stdout (if it ran successfully).
+            let encoded_response = run_plugin_process("D:/Code/Workspace/icerpc-csharp/src/ZeroC.Slice.Generator/bin/Debug/net10.0/ZeroC.Slice.Generator.exe", &encoded_request)?;
+            // Decode the plugin's response.
+            let (generated_files, plugin_diagnostics) = decode_generate_code_response(&encoded_response)?;
+            // TODO convert the diagnostics to a form slicec can handle, and apply the appropriate allow/deny alterations to them.
+            if plugin_diagnostics.is_empty() {
+                for generated_file in generated_files {
+                    write_generated_file(generated_file)?;
                 }
-            };
+            } else {
+                for plugin_diagnostic in plugin_diagnostics {
+                    println!("{plugin_diagnostic:?}");
+                }
+            }
         }
-        // TODO END refactor this to be better.
     }
+
+    // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
+    let updated_diagnostics = diagnostics.into_updated(&ast, &files, &slice_options);
+    let (warning_count, error_count) = slicec::diagnostics::get_totals(&updated_diagnostics);
 
     // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
     let mut stderr = console::Term::stderr();
@@ -175,5 +159,5 @@ fn main() -> ExitCode {
     }
 
     // Finished.
-    ExitCode::from(error_count)
+    Ok(())
 }
