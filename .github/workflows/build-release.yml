@@ -1,0 +1,111 @@
+name: Build Release
+
+on:
+  workflow_call:
+    inputs:
+      quality:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      quality:
+        description: "Release quality (e.g., stable, nightly, RC)"
+        required: true
+        default: "nightly"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+
+      - name: Get slicec Version
+        id: get-version
+        shell: bash
+        run: |
+          version="$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "slicec") | .version')"
+
+          version_major_minor="${version%.*}"
+          echo "version=$version_major_minor" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: metadata
+    name: slicec-${{ matrix.target }}
+    strategy:
+      matrix:
+        include:
+          - runner: macos-26
+            target: aarch64-apple-darwin
+            artifact: slicec
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact: slicec
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            artifact: slicec
+          - runner: windows-2025
+            target: x86_64-pc-windows-msvc
+            artifact: slicec.exe
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build slicec binary
+        run: cargo build --release --target ${{ matrix.target }} -p slicec
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: slicec-${{ needs.metadata.outputs.version }}-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.artifact }}
+
+
+  upload:
+    needs: [metadata, build]
+    if: inputs.quality == 'nightly' && github.repository == 'icerpc/slicec'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: slicec-*
+          skip-decompress: true
+          merge-multiple: true
+          path: ./artifacts
+
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws s3 cp ./artifacts/slicec-*.zip "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/$(basename "$file")"
+
+      - name: Invalidate CloudFront Cache
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ZEROC_DOWNLOAD_DISTRIBUTION_ID }} --paths "/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/*"
