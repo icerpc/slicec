@@ -51,9 +51,9 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
-fn decode_generate_code_response(payload: &[u8])
-    -> Result<(Vec<definition_types::GeneratedFile>, Vec<definition_types::Diagnostic>), slice_codec::Error>
-{
+fn decode_generate_code_response(
+    payload: &[u8],
+) -> Result<(Vec<definition_types::GeneratedFile>, Vec<definition_types::Diagnostic>), slice_codec::Error> {
     // Create a decoder over the response's payload.
     let mut slice_decoder = Decoder::from(payload);
 
@@ -72,7 +72,7 @@ fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Ve
         .spawn()?;
 
     // Write the encoded Slice definitions to the subprocess's 'stdin'.
-    let stdin = subprocess.stdin.as_mut().ok_or_else(|| Error::other("failed to access 'stdin'"))?;
+    let stdin = subprocess.stdin.as_mut().ok_or_else(|| Error::other("no stdin pipe"))?;
     // We require that plugins must read the entire payload from 'stdin' before writing to 'stdout' or 'stderr',
     // so there's no concern of deadlock due to the pipe buffer filling up.
     stdin.write_all(slice_payload)?;
@@ -126,12 +126,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let encoded_request = encode_generate_code_request(&files)?;
 
         // TODO: add a CLI to choose which plugin is run; and add support for running multiple plugins at once.
+        // Instead of right now, where we've hard-coded the C# generator for simplicity.
         {
             // Invoke the provided plugin, and retrieve it's output from stdout (if it ran successfully).
-            let encoded_response = run_plugin_process("D:/Code/Workspace/icerpc-csharp/src/ZeroC.Slice.Generator/bin/Debug/net10.0/ZeroC.Slice.Generator.exe", &encoded_request)?;
+            let encoded_response = run_plugin_process("ZeroC.Slice.Generator.exe", &encoded_request)?;
             // Decode the plugin's response.
             let (generated_files, plugin_diagnostics) = decode_generate_code_response(&encoded_response)?;
-            // TODO convert the diagnostics to a form slicec can handle, and apply the appropriate allow/deny alterations to them.
+            // TODO: convert diagnostics to a form slicec can handle, and apply allow/deny alterations to them.
             if plugin_diagnostics.is_empty() {
                 for generated_file in generated_files {
                     write_generated_file(generated_file)?;

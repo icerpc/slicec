@@ -307,10 +307,6 @@ impl DecodeFrom<Slice2> for GeneratedFile {
         let path = decoder.decode()?;
         let contents = decoder.decode()?;
 
-        println!("WE HAVE ALMOST FINISHED DECODING THIS ONE!");
-        println!("{path}");
-        println!("{contents}");
-
         decoder.skip_tagged_fields()?;
 
         Ok(GeneratedFile { path, contents })
