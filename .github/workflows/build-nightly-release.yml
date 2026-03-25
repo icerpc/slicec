@@ -4,6 +4,9 @@ on:
     # Run every day at 2:00 AM
     - cron: "0 2 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   build-nightly-release:
     if: github.repository == 'icerpc/slicec'
