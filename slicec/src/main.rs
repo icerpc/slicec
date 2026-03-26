@@ -165,6 +165,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let encoded_request = encode_generate_code_request(&files)?;
 
         // TODO: add a CLI to choose which plugins are run, instead of hard-coding them here.
+        #[cfg(target_os = "windows")]
+        let plugins = ["ZeroC.Slice.Generator.exe", "IceRpc.Slice.Generator.exe"];
+        #[cfg(not(target_os = "windows"))]
         let plugins = ["ZeroC.Slice.Generator", "IceRpc.Slice.Generator"];
 
         // Start each of the plugins in parallel.
