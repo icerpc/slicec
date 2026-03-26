@@ -142,45 +142,38 @@ implement_encode_into_for_struct!(
 );
 
 #[derive(Clone, Debug)]
-pub struct Enum {
+pub struct BasicEnum {
     pub entity_info: EntityInfo,
-    pub is_compact: bool,
     pub is_unchecked: bool,
-    pub underlying: Option<TypeId>,
+    pub underlying: TypeId,
     pub enumerators: Vec<Enumerator>,
 }
-impl EncodeInto<Slice2> for &Enum {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
-        // Encode the bit-sequence. With only one optional, this is just a bool.
-        encoder.encode(self.underlying.is_some())?;
-
-        // Encode the actual fields.
-        encoder.encode(&self.entity_info)?;
-        encoder.encode(self.is_compact)?;
-        encoder.encode(self.is_unchecked)?;
-        if let Some(underlying_value) = &self.underlying {
-            encoder.encode(underlying_value)?;
-        }
-        encoder.encode(&self.enumerators)?;
-        encoder.encode_varint(TAG_END_MARKER)?;
-        Ok(())
-    }
-}
+implement_encode_into_for_struct!(BasicEnum, entity_info, is_unchecked, underlying, enumerators);
 
 #[derive(Clone, Debug)]
 pub struct Enumerator {
     pub entity_info: EntityInfo,
-    pub value: Discriminant,
-    pub fields: Vec<Field>,
+    pub absolute_value: u64,
+    pub has_negative_value: bool,
 }
-implement_encode_into_for_struct!(Enumerator, entity_info, value, fields);
+implement_encode_into_for_struct!(Enumerator, entity_info, absolute_value, has_negative_value);
 
 #[derive(Clone, Debug)]
-pub struct Discriminant {
-    pub absolute_value: u64,
-    pub is_negative: bool,
+pub struct VariantEnum {
+    pub entity_info: EntityInfo,
+    pub is_compact: bool,
+    pub is_unchecked: bool,
+    pub variants: Vec<Variant>,
 }
-implement_encode_into_for_struct!(Discriminant, absolute_value, is_negative);
+implement_encode_into_for_struct!(VariantEnum, entity_info, is_compact, is_unchecked, variants);
+
+#[derive(Clone, Debug)]
+pub struct Variant {
+    pub entity_info: EntityInfo,
+    pub discriminant: i32,
+    pub fields: Vec<Field>,
+}
+implement_encode_into_for_struct!(Variant, entity_info, discriminant, fields);
 
 #[derive(Clone, Debug)]
 pub struct CustomType {
@@ -262,13 +255,14 @@ implement_encode_into_for_struct!(SliceFile, path, module_declaration, attribute
 #[derive(Clone, Debug)]
 pub enum Symbol {
     Interface(Interface) = 0,
-    Enum(Enum) = 1,
-    Struct(Struct) = 2,
-    CustomType(CustomType) = 3,
-    SequenceType(SequenceType) = 4,
-    DictionaryType(DictionaryType) = 5,
-    ResultType(ResultType) = 6, // TODO make result come before dictionary!
-    TypeAlias(TypeAlias) = 7,
+    BasicEnum(BasicEnum) = 1,
+    VariantEnum(VariantEnum) = 2,
+    Struct(Struct) = 3,
+    CustomType(CustomType) = 4,
+    SequenceType(SequenceType) = 5,
+    DictionaryType(DictionaryType) = 6,
+    ResultType(ResultType) = 7, // TODO make result come before dictionary!
+    TypeAlias(TypeAlias) = 8,
 }
 impl EncodeInto<Slice2> for &Symbol {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
@@ -283,7 +277,8 @@ impl EncodeInto<Slice2> for &Symbol {
         // Encode the actual value.
         match self {
             Symbol::Interface(v) => encoder.encode(v)?,
-            Symbol::Enum(v) => encoder.encode(v)?,
+            Symbol::BasicEnum(v) => encoder.encode(v)?,
+            Symbol::VariantEnum(v) => encoder.encode(v)?,
             Symbol::Struct(v) => encoder.encode(v)?,
             Symbol::CustomType(v) => encoder.encode(v)?,
             Symbol::SequenceType(v) => encoder.encode(v)?,
