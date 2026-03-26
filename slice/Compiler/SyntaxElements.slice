@@ -86,7 +86,7 @@ struct VariantEnum {
 
 struct Variant {
     entityInfo: EntityInfo
-    discriminant: int32 // always positive
+    discriminant: int32 // always non-negative
     fields: Sequence<Field>
 }
 
