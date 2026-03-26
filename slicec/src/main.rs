@@ -202,5 +202,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Finished.
-    Ok(())
+    match error_count {
+        0 => Ok(()),
+        _ => Err("".into()),
+    }
 }
