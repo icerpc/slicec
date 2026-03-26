@@ -51,7 +51,7 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
 }
 
 fn spawn_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Child> {
-    // Spawn a new subprocess and setup pipes for all of its streams.
+    // Spawn a new subprocess and set up pipes for all of its streams.
     let mut subprocess = Command::new(command)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -114,8 +114,9 @@ fn handle_plugin_response(response_payload: Vec<u8>) -> std::io::Result<Diagnost
     // If no errors were reported, attempt to generate the files in the response.
     if !diagnostics.has_errors() {
         for generated_file in &generated_files {
-            // If an error occurred during writing the file, create a diagnostic that slicec can report.
+            // Try to write the generated file to disk.
             if let Err(io_error) = write_generated_file(generated_file) {
+                // If an error occurred during writing the file, create a diagnostic that slicec can report.
                 let diagnostic = slicec::diagnostics::Error::IO {
                     action: "write generated file",
                     path: generated_file.path.to_owned(),
