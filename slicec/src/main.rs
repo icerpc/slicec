@@ -64,6 +64,7 @@ fn spawn_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<
     // so there's no concern of deadlock due to the pipe buffer filling up.
     stdin.write_all(slice_payload)?;
 
+    // Return a handle to the subprocess so we can wait on it to complete.
     Ok(subprocess)
 }
 
@@ -125,7 +126,7 @@ fn handle_plugin_response(response_payload: Vec<u8>) -> std::io::Result<Diagnost
         }
     }
 
-    // Return any decoded diagnostics, so they can be processed and emitted.
+    // Return any decoded diagnostics, so slicec can emit them at the end.
     Ok(diagnostics)
 }
 
