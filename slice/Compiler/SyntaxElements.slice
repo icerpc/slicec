@@ -63,6 +63,7 @@ struct Operation {
     returnType: Sequence<Field>
     hasStreamedReturn: bool
 }
+
 struct BasicEnum {
     entityInfo: EntityInfo
     isUnchecked: bool
