@@ -6,6 +6,9 @@ use core::ops::Range;
 use core::write;
 
 #[cfg(feature = "alloc")]
+use core::marker::{Send, Sync};
+
+#[cfg(feature = "alloc")]
 use alloc::boxed::Box;
 #[cfg(feature = "alloc")]
 use alloc::collections::TryReserveError;
@@ -26,7 +29,7 @@ pub struct Error {
 
     /// The underlying cause of this error, if any exist.
     #[cfg(feature = "alloc")]
-    source: Option<Box<dyn core::error::Error + 'static>>,
+    source: Option<Box<dyn core::error::Error + Send + Sync + 'static>>,
 }
 
 impl Error {
@@ -41,7 +44,7 @@ impl Error {
 
     /// Creates a new error of the specified kind, which was logically caused by the provided source.
     #[cfg(feature = "alloc")]
-    pub fn new_with_source(kind: ErrorKind, source: impl core::error::Error + 'static) -> Self {
+    pub fn new_with_source(kind: ErrorKind, source: impl core::error::Error + Send + Sync + 'static) -> Self {
         Self {
             kind,
             source: Some(Box::new(source)),
@@ -73,7 +76,8 @@ impl Display for Error {
 #[cfg(feature = "alloc")]
 impl core::error::Error for Error {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
-        self.source.as_deref()
+        // TODO, this should coerce automatically: see https://github.com/rust-lang/rust/issues/88001.
+        self.source.as_deref().map(|e| e as &(dyn core::error::Error + 'static))
     }
 }
 
@@ -215,5 +219,12 @@ impl From<TryReserveError> for Error {
 impl From<FromUtf8Error> for Error {
     fn from(value: FromUtf8Error) -> Self {
         Error::from(InvalidDataErrorKind::InvalidString(value))
+    }
+}
+
+#[cfg(feature = "std")]
+impl From<Error> for std::io::Error {
+    fn from(value: Error) -> Self {
+        std::io::Error::other(value)
     }
 }

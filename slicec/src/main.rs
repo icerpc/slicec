@@ -2,7 +2,7 @@
 
 use std::fs::File;
 use std::io::{Error, ErrorKind, Write};
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 
 use clap::Parser;
 
@@ -11,6 +11,7 @@ use slice_codec::encoder::Encoder;
 
 use slicec::compilation_state::CompilationState;
 use slicec::diagnostic_emitter::DiagnosticEmitter;
+use slicec::diagnostics::Diagnostics;
 use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
 pub mod definition_types;
@@ -49,7 +50,7 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
-fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Vec<u8>> {
+fn spawn_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Child> {
     // Spawn a new subprocess and setup pipes for all of its streams.
     let mut subprocess = Command::new(command)
         .stdin(Stdio::piped())
@@ -58,11 +59,15 @@ fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Ve
         .spawn()?;
 
     // Write the encoded Slice definitions to the subprocess's 'stdin'.
-    let stdin = subprocess.stdin.as_mut().ok_or_else(|| ErrorKind::BrokenPipe)?;
+    let stdin = subprocess.stdin.as_mut().ok_or(ErrorKind::BrokenPipe)?;
     // We require that plugins must read the entire payload from 'stdin' before writing to 'stdout' or 'stderr',
     // so there's no concern of deadlock due to the pipe buffer filling up.
     stdin.write_all(slice_payload)?;
 
+    Ok(subprocess)
+}
+
+fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     // Wait until the subprocess finishes, then retrieve its output.
     let output = subprocess.wait_with_output()?;
 
@@ -92,10 +97,54 @@ fn run_plugin_process(command: &str, slice_payload: &[u8]) -> std::io::Result<Ve
     }
 }
 
-fn write_generated_file(generated_file: definition_types::GeneratedFile) -> std::io::Result<()> {
-    let mut file = File::create(generated_file.path)?;
+fn handle_plugin_response(response_payload: Vec<u8>) -> std::io::Result<Diagnostics> {
+    // Decode the plugin's response. It consists of 2 sequences, one of generated files and one of diagnostics.
+    let mut slice_decoder = Decoder::from(&response_payload);
+    let generated_files: Vec<definition_types::GeneratedFile> = slice_decoder.decode()?;
+    let plugin_diagnostics: Vec<definition_types::Diagnostic> = slice_decoder.decode()?;
+
+    // TODO: Convert the diagnostics we decode from the plugin, into diagnostics that slicec can handle.
+    //       To do this requires re-working the diagnostic API fairly substantially.
+    for plugin_diagnostic in plugin_diagnostics {
+        println!("{}", plugin_diagnostic.message);
+    }
+    let mut diagnostics = Diagnostics::new();
+
+    // If no errors were reported, attempt to generate the files in the response.
+    if !diagnostics.has_errors() {
+        for generated_file in &generated_files {
+            // If an error occurred during writing the file, create a diagnostic that slicec can report.
+            if let Err(io_error) = write_generated_file(generated_file) {
+                let diagnostic = slicec::diagnostics::Error::IO {
+                    action: "write generated file",
+                    path: generated_file.path.to_owned(),
+                    error: io_error,
+                };
+                slicec::diagnostics::Diagnostic::new(diagnostic).push_into(&mut diagnostics);
+            }
+        }
+    }
+
+    // Return any decoded diagnostics, so they can be processed and emitted.
+    Ok(diagnostics)
+}
+
+fn write_generated_file(generated_file: &definition_types::GeneratedFile) -> std::io::Result<()> {
+    let mut file = File::create(&generated_file.path)?;
     file.write_all(generated_file.contents.as_bytes())?;
     Ok(())
+}
+
+fn convert_plugin_error_to_diagnostic(plugin_name: &str, plugin_error: std::io::Error) -> Diagnostics {
+    let mapped_io_error = slicec::diagnostics::Error::IO {
+        action: "run code-generator plugin",
+        path: plugin_name.to_owned(),
+        error: plugin_error,
+    };
+
+    let mut diagnostics = Diagnostics::new();
+    slicec::diagnostics::Diagnostic::new(mapped_io_error).push_into(&mut diagnostics);
+    diagnostics
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -104,34 +153,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Perform the compilation.
     let compilation_state = slicec::compile_from_options(&slice_options, |_| {}, |_| {});
-    let CompilationState { ast, diagnostics, files } = compilation_state;
+    let CompilationState {
+        ast,
+        mut diagnostics,
+        files,
+    } = compilation_state;
 
     // Only invoke the plugins if there were no errors in the Slice files.
     if !diagnostics.has_errors() {
         // Encode the request which will be sent to each of the code-generation plugins.
         let encoded_request = encode_generate_code_request(&files)?;
 
-        // TODO: add a CLI to choose which plugin is run; and add support for running multiple plugins at once.
-        // Instead of right now, where we've hard-coded the C# generator for simplicity.
-        {
-            // Invoke the provided plugin, and retrieve it's output from stdout (if it ran successfully).
-            let encoded_response = run_plugin_process("ZeroC.Slice.Generator.exe", &encoded_request)?;
+        // TODO: add a CLI to choose which plugins are run, instead of hard-coding them here.
+        let plugins = ["ZeroC.Slice.Generator", "IceRpc.Slice.Generator"];
 
-            // Decode the plugin's response. It consists of 2 sequences, one of generated files and one of diagnostics.
-            let mut slice_decoder = Decoder::from(&encoded_response);
-            let generated_files: Vec<definition_types::GeneratedFile> = slice_decoder.decode()?;
-            let plugin_diagnostics: Vec<definition_types::Diagnostic> = slice_decoder.decode()?;
+        // Start each of the plugins in parallel.
+        let plugin_processes = plugins.map(|plugin| (plugin, spawn_plugin_process(plugin, &encoded_request)));
 
-            // TODO: convert diagnostics to a form slicec can handle, and apply allow/deny alterations to them.
-            if plugin_diagnostics.is_empty() {
-                for generated_file in generated_files {
-                    write_generated_file(generated_file)?;
-                }
-            } else {
-                for plugin_diagnostic in plugin_diagnostics {
-                    println!("{plugin_diagnostic:?}");
-                }
-            }
+        // Block on each plugin process until they're finished. If a plugin completes successfully,
+        // we get the response payload from it, write any generated files in the payload, and store any diagnostics
+        // the plugin reported so we can emit them at the end along with all the others.
+        for (plugin_name, plugin_process) in plugin_processes {
+            let plugin_diagnostics = plugin_process
+                .and_then(collect_plugin_output) // Returns the response payload if the plugin ran successfully.
+                .and_then(handle_plugin_response) // Returns plugin diagnostics if the payload was decoded successfully.
+                .unwrap_or_else(|err| convert_plugin_error_to_diagnostic(plugin_name, err));
+
+            diagnostics.extend(plugin_diagnostics); // Store the plugin diagnostics for later emission.
         }
     }
 
