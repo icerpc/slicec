@@ -316,12 +316,6 @@ Tag: Integer<u32> = {
     },
 }
 
-CompactId: Integer<u32> = {
-    "(" <i: SignedInteger> ")" => {
-        parse_compact_id_value(parser, i)
-    },
-}
-
 Prelude: (Vec<(&'input str, Span)>, Vec<WeakPtr<Attribute>>) = {
     => (Vec::new(), Vec::new()),
     <mut prelude: Prelude> <l: @L> <comment: doc_comment> <r: @R> => {

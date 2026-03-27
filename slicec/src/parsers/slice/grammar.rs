@@ -551,19 +551,6 @@ fn parse_tag_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     Integer { value, span: i.span }
 }
 
-fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
-    // Verify that the provided integer is a valid compact id.
-    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
-        let diagnostic = Diagnostic::new(Error::CompactIdOutOfBounds).set_span(&i.span);
-        diagnostic.push_into(parser.diagnostics);
-    }
-
-    // Cast the integer to a `u32` since it most closely matches the allowed range of compact ids.
-    // It's fine if the value doesn't fit, the cast will just give us a dummy value.
-    let value = i.value as u32;
-    Integer { value, span: i.span }
-}
-
 fn parse_doc_comment(parser: &mut Parser, identifier: &str, raw_comment: RawDocComment) -> Option<DocComment> {
     if raw_comment.is_empty() {
         // If the doc comment had 0 lines, that just means there is no doc comment.
