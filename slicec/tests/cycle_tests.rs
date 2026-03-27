@@ -9,22 +9,6 @@ mod container {
     use super::*;
 
     #[test]
-    fn classes_can_contain_cycles() {
-        // Arrange
-        let slice = "
-            mode = Slice1
-            module Test
-
-            class C {
-                c: C
-            }
-        ";
-
-        // Act/Assert
-        assert_parses(slice)
-    }
-
-    #[test]
     fn direct_cycles_are_disallowed() {
         // Arrange
         let slice = "

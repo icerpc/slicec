@@ -40,10 +40,6 @@ impl Type for Sequence {
         None
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         match self.element_type.fixed_wire_size() {
             Some(1) => Some(TagFormat::OptimizedVSize),

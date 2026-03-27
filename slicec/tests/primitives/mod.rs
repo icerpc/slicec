@@ -1,7 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-mod mode_compatibility;
-
 use crate::test_helpers::*;
 use slicec::grammar::*;
 use test_case::test_case;
@@ -22,7 +20,6 @@ use test_case::test_case;
 #[test_case("float32", Primitive::Float32, "Slice2"; "float32")]
 #[test_case("float64", Primitive::Float64, "Slice2"; "float64")]
 #[test_case("string", Primitive::String, "Slice2"; "string")]
-#[test_case("AnyClass", Primitive::AnyClass, "Slice1"; "AnyClass")]
 fn type_parses(slice_component: &str, expected: Primitive, mode: &str) {
     // Arrange
     let slice = format!(

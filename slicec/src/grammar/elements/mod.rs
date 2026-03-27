@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 mod attribute;
-mod class;
 mod compilation_mode;
 mod custom_type;
 mod dictionary;
@@ -24,7 +23,6 @@ mod type_ref;
 
 // Re-export the grammar elements directly into this module so consumers don't need to think about submodule structure).
 pub use self::attribute::*;
-pub use self::class::*;
 pub use self::compilation_mode::*;
 pub use self::custom_type::*;
 pub use self::dictionary::*;

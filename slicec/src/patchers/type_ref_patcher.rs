@@ -28,12 +28,6 @@ impl TypeRefPatcher<'_> {
     fn compute_patches(&mut self, ast: &Ast) {
         for node in ast.as_slice() {
             let patch = match node {
-                Node::Class(class_ptr) => class_ptr
-                    .borrow()
-                    .base
-                    .as_ref()
-                    .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                    .map(PatchKind::BaseClass),
                 Node::Exception(exception_ptr) => exception_ptr
                     .borrow()
                     .base
@@ -105,11 +99,6 @@ impl TypeRefPatcher<'_> {
         // patching, then we patch in its definition and any attributes it might of picked up from type aliases.
         for (patch, element) in self.type_ref_patches.into_iter().zip(elements) {
             match patch {
-                PatchKind::BaseClass((base_class_ptr, attributes)) => {
-                    let class_ptr: &mut OwnedPtr<Class> = element.try_into().unwrap();
-                    let base_class_ref = class_ptr.borrow_mut().base.as_mut().unwrap();
-                    base_class_ref.patch(base_class_ptr, attributes);
-                }
                 PatchKind::BaseException((base_exception_ptr, attributes)) => {
                     let exception_ptr: &mut OwnedPtr<Exception> = element.try_into().unwrap();
                     let base_exception_ref = exception_ptr.borrow_mut().base.as_mut().unwrap();
@@ -336,7 +325,6 @@ type Patch<T> = (WeakPtr<T>, Vec<WeakPtr<Attribute>>);
 enum PatchKind {
     #[default]
     None,
-    BaseClass(Patch<Class>),
     BaseException(Patch<Exception>),
     BaseInterfaces(Vec<Patch<Interface>>),
     FieldType(Patch<dyn Type>),

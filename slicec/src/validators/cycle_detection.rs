@@ -92,9 +92,6 @@ impl<'a> CycleDetector<'a> {
                 self.check_field_type_for_cycles(&dictionary.value_type, origin);
             }
 
-            // Classes always break cycles since they use reference semantics.
-            Types::Class(_) => {}
-
             // Primitive and custom types are terminal since they can't reference any other types.
             Types::Primitive(_) | Types::CustomType(_) => {}
         }

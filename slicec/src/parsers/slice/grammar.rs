@@ -168,36 +168,6 @@ fn construct_exception(
     exception_ptr
 }
 
-fn construct_class(
-    parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
-    identifier: Identifier,
-    compact_id: Option<Integer<u32>>,
-    base_type: Option<TypeRef>,
-    fields: Vec<OwnedPtr<Field>>,
-    span: Span,
-) -> OwnedPtr<Class> {
-    let base = base_type.map(|type_ref| type_ref.downcast::<Class>().unwrap());
-    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-
-    let mut class_ptr = OwnedPtr::new(Class {
-        identifier,
-        fields: Vec::new(),
-        compact_id,
-        base,
-        scope: parser.current_scope.clone(),
-        attributes,
-        comment,
-        span,
-        supported_encodings: None, // Patched by the encoding patcher.
-    });
-
-    // Add all the fields to the class.
-    set_fields_for!(class_ptr, fields, parser);
-
-    class_ptr
-}
-
 pub fn construct_field(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
@@ -576,19 +546,6 @@ fn parse_tag_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     }
 
     // Cast the integer to a `u32` since it most closely matches the allowed range of tags.
-    // It's fine if the value doesn't fit, the cast will just give us a dummy value.
-    let value = i.value as u32;
-    Integer { value, span: i.span }
-}
-
-fn parse_compact_id_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
-    // Verify that the provided integer is a valid compact id.
-    if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
-        let diagnostic = Diagnostic::new(Error::CompactIdOutOfBounds).set_span(&i.span);
-        diagnostic.push_into(parser.diagnostics);
-    }
-
-    // Cast the integer to a `u32` since it most closely matches the allowed range of compact ids.
     // It's fine if the value doesn't fit, the cast will just give us a dummy value.
     let value = i.value as u32;
     Integer { value, span: i.span }

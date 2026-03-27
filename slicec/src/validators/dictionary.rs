@@ -62,7 +62,6 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
             true
         }
 
-        Types::Class(_) => false,
         Types::CustomType(_) => true,
         Types::ResultType(_) => false,
         Types::Sequence(_) => false,
@@ -85,7 +84,6 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 
 fn formatted_kind(definition: &dyn Type) -> String {
     match definition.concrete_type() {
-        Types::Class(class_def) => format!("class '{}'", class_def.identifier()),
         Types::Enum(enum_def) => format!("enum '{}'", enum_def.identifier()),
         _ => definition.kind().to_owned(),
     }

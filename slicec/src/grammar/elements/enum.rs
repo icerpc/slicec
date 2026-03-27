@@ -46,10 +46,6 @@ impl Type for Enum {
         self.underlying.as_ref().and_then(TypeRef::fixed_wire_size)
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         self.underlying.as_ref().map_or(
             Some(TagFormat::Size),              // Default value if `underlying` == None

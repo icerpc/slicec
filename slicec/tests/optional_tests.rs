@@ -59,27 +59,6 @@ mod optional {
         use super::*;
         use test_case::test_case;
 
-        #[test_case("AnyClass")]
-        fn optional_builtin_types_are_allowed(type_name: &str) {
-            // Arrange
-            let slice = format!(
-                "
-                mode = Slice1
-                module Test
-                exception E {{
-                    a: {type_name}?
-                }}
-                "
-            );
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
-            assert!(field.data_type.is_optional);
-        }
-
         #[test_case("bool")]
         #[test_case("int8")]
         #[test_case("uint8")]
@@ -124,7 +103,6 @@ mod optional {
             check_diagnostics(diagnostics, [expected]);
         }
 
-        #[test_case("class Foo {}"; "class")]
         #[test_case("custom Foo"; "custom type")]
         fn optional_user_defined_types_are_allowed(definition: &str) {
             // Arrange
@@ -172,26 +150,6 @@ mod optional {
             .set_span(&Span::new((6, 24).into(), (6, 28).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
-        }
-
-        #[test]
-        fn sequences_of_optionals_are_allowed() {
-            // Arrange
-            let slice = "
-                mode = Slice1
-                module Test
-                exception E {
-                    a: Sequence<AnyClass?>
-                }
-            ";
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
-            let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
-            assert!(sequence.element_type.is_optional);
         }
 
         #[test]
@@ -258,27 +216,6 @@ mod optional {
                 .set_span(&Span::new((5, 43).into(), (5, 49).into(), "string-0"));
 
             check_diagnostics(diagnostics, [expected]);
-        }
-
-        #[test]
-        fn dictionaries_with_optional_values_are_allowed() {
-            // Arrange
-            let slice = "
-                mode = Slice1
-                module Test
-                exception E {
-                    a: Dictionary<string, AnyClass?>
-                }
-            ";
-
-            // Act
-            let ast = parse_for_ast(slice);
-
-            // Assert
-            let field = ast.find_element::<Field>("Test::E::a").unwrap();
-            let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
-            assert!(!dictionary.key_type.is_optional);
-            assert!(dictionary.value_type.is_optional);
         }
 
         #[test]

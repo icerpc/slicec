@@ -22,10 +22,6 @@ impl Type for ResultType {
         None
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         unreachable!("tag format was called on a Slice2 only type!")
     }

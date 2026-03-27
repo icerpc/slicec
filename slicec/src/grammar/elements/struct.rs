@@ -40,10 +40,6 @@ impl Type for Struct {
             .map(|size: u32| size + u32::from(!self.is_compact))
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         if self.fixed_wire_size().is_some() {
             Some(TagFormat::VSize)

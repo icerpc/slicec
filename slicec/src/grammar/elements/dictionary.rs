@@ -22,10 +22,6 @@ impl Type for Dictionary {
         None
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         if self.key_type.fixed_wire_size().is_some() && self.value_type.fixed_wire_size().is_some() {
             Some(TagFormat::VSize)
