@@ -2,7 +2,7 @@
 
 use std::fs::File;
 use std::io::{Error, ErrorKind, Write};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Command, ExitCode, Stdio};
 
 use clap::Parser;
 
@@ -132,8 +132,19 @@ fn handle_plugin_response(response_payload: Vec<u8>) -> std::io::Result<Diagnost
 }
 
 fn write_generated_file(generated_file: &definition_types::GeneratedFile) -> std::io::Result<()> {
+    let generated_file_bytes = generated_file.contents.as_bytes();
+
+    // If the generated file already exists on disk, and is identical to what we want to write,
+    // we don't overwrite the file, and instead return immediately.
+    if let Ok(current_contents) = std::fs::read(&generated_file.path) {
+        if current_contents == generated_file_bytes {
+            return Ok(());
+        }
+    }
+
+    // Write the generated file to disk.
     let mut file = File::create(&generated_file.path)?;
-    file.write_all(generated_file.contents.as_bytes())?;
+    file.write_all(generated_file_bytes)?;
     Ok(())
 }
 
@@ -149,7 +160,7 @@ fn convert_plugin_error_to_diagnostic(plugin_name: &str, plugin_error: std::io::
     diagnostics
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> ExitCode {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
 
@@ -164,7 +175,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Only invoke the plugins if there were no errors in the Slice files.
     if !diagnostics.has_errors() {
         // Encode the request which will be sent to each of the code-generation plugins.
-        let encoded_request = encode_generate_code_request(&files)?;
+        let encoded_request = match encode_generate_code_request(&files) {
+            Ok(result) => result,
+            Err(error) => {
+                eprintln!("Critical error: failed to encode request payload!\n{error:?}");
+                return ExitCode::from(79);
+            }
+        };
 
         // TODO: add a CLI to choose which plugins are run, instead of hard-coding them here.
         //       See https://github.com/icerpc/slicec/issues/747
@@ -204,8 +221,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Finished.
-    match error_count {
-        0 => Ok(()),
-        _ => Err("".into()),
+    match error_count == 0 {
+        true => ExitCode::SUCCESS,
+        false => ExitCode::FAILURE,
     }
 }
