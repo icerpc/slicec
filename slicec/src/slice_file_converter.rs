@@ -206,7 +206,7 @@ impl SliceFileContentsConverter {
             let converted = match definition {
                 GrammarDefinition::Struct(v) => Symbol::Struct(converter.convert_struct(v.borrow())),
                 GrammarDefinition::Interface(v) => Symbol::Interface(converter.convert_interface(v.borrow())),
-                GrammarDefinition::Enum(v) => Symbol::Enum(converter.convert_enum(v.borrow())),
+                GrammarDefinition::Enum(v) => converter.convert_enum(v.borrow()),
                 GrammarDefinition::CustomType(v) => Symbol::CustomType(converter.convert_custom_type(v.borrow())),
                 GrammarDefinition::TypeAlias(v) => Symbol::TypeAlias(converter.convert_type_alias(v.borrow())),
                 _ => panic!("TODO: remove classes and exceptions"),
@@ -277,26 +277,39 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_enum(&mut self, enum_def: &GrammarEnum) -> Enum {
-        Enum {
-            entity_info: get_entity_info_for(enum_def),
-            is_compact: enum_def.is_compact,
-            is_unchecked: enum_def.is_unchecked,
-            underlying: enum_def.underlying.as_ref().map(|type_ref| type_ref.type_string()),
-            enumerators: enum_def.enumerators().into_iter().map(|e| self.convert_enumerator(e)).collect(), 
+    // This returns a `Symbol` because the `enum` grammar construct can map to either a `BasicEnum` or a `VariantEnum`.
+    fn convert_enum(&mut self, enum_def: &GrammarEnum) -> Symbol {
+        if let Some(underlying_type) = enum_def.underlying.as_ref() {
+            Symbol::BasicEnum(BasicEnum {
+                entity_info: get_entity_info_for(enum_def),
+                is_unchecked: enum_def.is_unchecked,
+                underlying: underlying_type.type_string(),
+                enumerators: enum_def.enumerators().into_iter().map(|e| self.convert_enumerator(e)).collect(),
+            })
+        } else {
+            Symbol::VariantEnum(VariantEnum {
+                entity_info: get_entity_info_for(enum_def),
+                is_compact: enum_def.is_compact,
+                is_unchecked: enum_def.is_unchecked,
+                variants: enum_def.enumerators().into_iter().map(|e| self.convert_variant(e)).collect(),
+            })
         }
     }
 
     fn convert_enumerator(&mut self, enumerator: &GrammarEnumerator) -> Enumerator {
         let entity_info = get_entity_info_for(enumerator);
-        let raw_value = enumerator.value();
-        let value = Discriminant {
-            absolute_value: raw_value.unsigned_abs() as u64,
-            is_negative: raw_value.is_negative(),
-        };
+        let absolute_value = enumerator.value().unsigned_abs() as u64;
+        let has_negative_value = enumerator.value().is_negative();
+
+        Enumerator { entity_info, absolute_value, has_negative_value }
+    }
+
+    fn convert_variant(&mut self, enumerator: &GrammarEnumerator) -> Variant {
+        let entity_info = get_entity_info_for(enumerator);
+        let discriminant = enumerator.value().try_into().unwrap();
         let fields = enumerator.fields().into_iter().map(|e| self.convert_field(e)).collect();
 
-        Enumerator { entity_info, value, fields }
+        Variant { entity_info, discriminant, fields }
     }
 
     fn convert_custom_type(&mut self, custom_type: &GrammarCustomType) -> CustomType {
