@@ -218,7 +218,6 @@ mod optional {
             check_diagnostics(diagnostics, [expected]);
         }
 
-
         #[test]
         fn untagged_optional_parameters_are_disallowed() {
             // Arrange

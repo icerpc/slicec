@@ -174,9 +174,7 @@ impl EncodingPatcher<'_> {
                 supported_encodings.intersect_with(&value_encodings);
                 supported_encodings
             }
-            Types::Primitive(primitive) => {
-                primitive.supported_encodings()
-            }
+            Types::Primitive(primitive) => primitive.supported_encodings(),
         };
 
         // Optional types cannot be used in Slice1 mode (with some exceptions).
