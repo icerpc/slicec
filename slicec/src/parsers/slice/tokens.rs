@@ -33,7 +33,6 @@ pub enum TokenKind<'input> {
     ModuleKeyword,    // "module"
     StructKeyword,    // "struct"
     ExceptionKeyword, // "exception"
-    ClassKeyword,     // "class"
     InterfaceKeyword, // "interface"
     EnumKeyword,      // "enum"
     CustomKeyword,    // "custom"
@@ -61,7 +60,6 @@ pub enum TokenKind<'input> {
     Float32Keyword,   // "float32"
     Float64Keyword,   // "float64"
     StringKeyword,    // "string"
-    AnyClassKeyword,  // "AnyClass"
 
     // Other keywords
     CompactKeyword,    // "compact"
@@ -106,7 +104,6 @@ impl fmt::Display for TokenKind<'_> {
             Self::ModuleKeyword => "module",
             Self::StructKeyword => "struct",
             Self::ExceptionKeyword => "exception",
-            Self::ClassKeyword => "class",
             Self::InterfaceKeyword => "interface",
             Self::EnumKeyword => "enum",
             Self::CustomKeyword => "custom",
@@ -130,7 +127,6 @@ impl fmt::Display for TokenKind<'_> {
             Self::Float32Keyword => "float32",
             Self::Float64Keyword => "float64",
             Self::StringKeyword => "string",
-            Self::AnyClassKeyword => "AnyClass",
             Self::CompactKeyword => "compact",
             Self::IdempotentKeyword => "idempotent",
             Self::ModeKeyword => "mode",

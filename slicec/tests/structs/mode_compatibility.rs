@@ -36,34 +36,6 @@ mod slice1 {
 mod slice2 {
 
     use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error};
-    use slicec::grammar::CompilationMode;
-
-    /// Verifies using the slice parser with Slice2 will emit errors when parsing
-    /// structs that contain Slice1 types.
-    #[test]
-    fn slice1_types_fail() {
-        // Arrange
-        let slice = "
-            module Test
-
-            struct A {
-                c: AnyClass
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::UnsupportedType {
-            kind: "AnyClass".to_owned(),
-            mode: CompilationMode::Slice2,
-        })
-        .add_note("this file's compilation mode is Slice2 by default", None);
-
-        check_diagnostics(diagnostics, [expected]);
-    }
 
     /// Verifies using the slice parser with Slice2 will not emit errors when parsing
     /// structs that contain Slice2 types.

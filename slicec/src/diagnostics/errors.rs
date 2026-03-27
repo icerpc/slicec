@@ -147,18 +147,6 @@ pub enum Error {
         identifier: String,
     },
 
-    /// Cannot tag a class.
-    CannotTagClass {
-        /// The identifier of the tagged member.
-        identifier: String,
-    },
-
-    /// Cannot tag a member that contains a class.
-    CannotTagContainingClass {
-        /// The identifier of the tagged member.
-        identifier: String,
-    },
-
     /// A tag value was not in the expected range, 0 .. i32::MAX.
     TagValueOutOfBounds,
 
@@ -383,18 +371,6 @@ implement_diagnostic_functions!(
     ),
     (
         "E020",
-        CannotTagClass,
-        format!("invalid tag on member '{identifier}': tagged members cannot be classes"),
-        identifier
-    ),
-    (
-        "E021",
-        CannotTagContainingClass,
-        format!("invalid tag on member '{identifier}': tagged members cannot contain classes"),
-        identifier
-    ),
-    (
-        "E022",
         TypeMismatch,
         format!(
             "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
@@ -411,18 +387,18 @@ implement_diagnostic_functions!(
         is_concrete
     ),
     (
-        "E024",
+        "E021",
         CompactStructCannotBeEmpty,
         "compact structs must be non-empty"
     ),
     (
-        "E025",
+        "E022",
         SelfReferentialTypeAliasNeedsConcreteType,
         format!("self-referential type alias '{identifier}' has no concrete type"),
         identifier
     ),
     (
-        "E026",
+        "E023",
         EnumeratorValueOutOfBounds,
         format!(
             "invalid enumerator '{enumerator_identifier}': enumerator value '{value}' is out of bounds. The value must be between '{min}..{max}', inclusive",
@@ -430,132 +406,132 @@ implement_diagnostic_functions!(
         enumerator_identifier, value, min, max
     ),
     (
-        "E027",
+        "E024",
         TagValueOutOfBounds,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        "E028",
+        "E025",
         DuplicateEnumeratorValue,
         format!("enumerator values must be unique; the value '{enumerator_value}' is already in use"),
         enumerator_value
     ),
     (
-        "E029",
+        "E026",
         NotSupportedInCompilationMode,
         format!("{kind} '{identifier}' cannot be defined in {mode} mode"),
         kind, identifier, mode
     ),
     (
-        "E030",
+        "E027",
         UnsupportedType,
         format!("the type '{kind}' cannot be used in {mode} mode"),
         kind,
         mode
     ),
     (
-        "E032",
+        "E028",
         OptionalsNotSupported,
         format!("optionals of type '{kind}' cannot be used in Slice1 mode"),
         kind
     ),
     (
-        "E033",
+        "E029",
         StreamedParametersNotSupported,
         "streamed parameters cannot be used in Slice1 mode"
     ),
     (
-        "E034",
+        "E030",
         UnexpectedAttribute,
         format!("unexpected attribute '{attribute}'"),
         attribute
     ),
     (
-        "E035",
+        "E031",
         MissingRequiredArgument,
         format!("missing required argument '{argument}'"),
         argument
     ),
     (
-        "E036",
+        "E032",
         TooManyArguments,
         format!("too many arguments, expected '{expected}'"),
         expected
     ),
     (
-        "E037",
+        "E033",
         MissingRequiredAttribute,
         format!("missing required attribute '{attribute}'"),
         attribute
     ),
     (
-        "E038",
+        "E034",
         MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E039",
+        "E035",
         CompactIdOutOfBounds,
         "compact IDs must be within the range 0 <= ID <= 2147483647"
     ),
     (
-        "E040",
+        "E036",
         IntegerLiteralOverflows,
         "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
-        "E041",
+        "E037",
         InvalidIntegerLiteral,
         format!("integer literal contains illegal characters for base-{base}"),
         base
     ),
     (
-        "E042",
+        "E038",
         InvalidCompilationMode,
         format!("'{mode}' is not a valid Slice compilation mode"),
         mode
     ),
     (
-        "E043",
+        "E039",
         MultipleCompilationModes,
         "the compilation mode can only be specified once per file"
     ),
     (
-        "E047",
+        "E040",
         InfiniteSizeCycle,
         format!("type {type_id} illegally references itself: {cycle}"),
         type_id, cycle
     ),
     (
-        "E049",
+        "E041",
         DoesNotExist,
         format!("no element with identifier '{identifier}' exists"),
         identifier
     ),
     (
-        "E050",
+        "E042",
         AttributeIsNotRepeatable,
         format!("duplicate attribute '{attribute}'"),
         attribute
     ),
     (
-        "E051",
+        "E043",
         TypeAliasOfOptional,
         "optional types cannot be aliased"
     ),
     (
-        "E052",
+        "E044",
         ExceptionSpecificationNotSupported,
         "exceptions can only be thrown by operations defined in Slice1 mode"
     ),
     (
-        "E054",
+        "E045",
         EnumeratorCannotContainFields,
         format!("invalid enumerator '{enumerator_identifier}': fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
     ),
     (
-        "E055",
+        "E046",
         CannotBeCompact,
         format!("'{kind}' '{identifier}' cannot be marked compact"),
         kind, identifier

@@ -52,30 +52,6 @@ fn does_not_support_multiple_inheritance() {
 }
 
 #[test]
-fn must_inherit_from_exception() {
-    // Arrange
-    let slice = "
-        mode = Slice1
-        module Test
-
-        class C {}
-
-        exception E : C {}
-    ";
-
-    // Act
-    let diagnostics = parse_for_diagnostics(slice);
-
-    // Assert
-    let expected = Diagnostic::new(Error::TypeMismatch {
-        expected: "exception".to_owned(),
-        actual: "class".to_owned(),
-        is_concrete: true,
-    });
-    check_diagnostics(diagnostics, [expected]);
-}
-
-#[test]
 fn field_shadowing_is_disallowed() {
     // Arrange
     let slice = "

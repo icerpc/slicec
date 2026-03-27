@@ -168,36 +168,6 @@ fn construct_exception(
     exception_ptr
 }
 
-fn construct_class(
-    parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
-    identifier: Identifier,
-    compact_id: Option<Integer<u32>>,
-    base_type: Option<TypeRef>,
-    fields: Vec<OwnedPtr<Field>>,
-    span: Span,
-) -> OwnedPtr<Class> {
-    let base = base_type.map(|type_ref| type_ref.downcast::<Class>().unwrap());
-    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-
-    let mut class_ptr = OwnedPtr::new(Class {
-        identifier,
-        fields: Vec::new(),
-        compact_id,
-        base,
-        scope: parser.current_scope.clone(),
-        attributes,
-        comment,
-        span,
-        supported_encodings: None, // Patched by the encoding patcher.
-    });
-
-    // Add all the fields to the class.
-    set_fields_for!(class_ptr, fields, parser);
-
-    class_ptr
-}
-
 pub fn construct_field(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),

@@ -24,10 +24,6 @@ impl Type for CustomType {
         None
     }
 
-    fn is_class_type(&self) -> bool {
-        false
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         Some(TagFormat::FSize)
     }

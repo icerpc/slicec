@@ -60,7 +60,6 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             "module_keyword" => tokens::TokenKind::ModuleKeyword.to_string(),
             "struct_keyword" => tokens::TokenKind::StructKeyword.to_string(),
             "exception_keyword" => tokens::TokenKind::ExceptionKeyword.to_string(),
-            "class_keyword" => tokens::TokenKind::ClassKeyword.to_string(),
             "interface_keyword" => tokens::TokenKind::InterfaceKeyword.to_string(),
             "enum_keyword" => tokens::TokenKind::EnumKeyword.to_string(),
             "custom_keyword" => tokens::TokenKind::CustomKeyword.to_string(),
@@ -88,7 +87,6 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             "float32_keyword" => tokens::TokenKind::Float32Keyword.to_string(),
             "float64_keyword" => tokens::TokenKind::Float64Keyword.to_string(),
             "string_keyword" => tokens::TokenKind::StringKeyword.to_string(),
-            "any_class_keyword" => tokens::TokenKind::AnyClassKeyword.to_string(),
 
             // Other keywords
             "compact_keyword" => tokens::TokenKind::CompactKeyword.to_string(),

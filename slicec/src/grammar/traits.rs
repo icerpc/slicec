@@ -100,7 +100,6 @@ pub trait Commentable: Entity {
 pub trait Type: Element + AsTypes {
     fn type_string(&self) -> String;
     fn fixed_wire_size(&self) -> Option<u32>;
-    fn is_class_type(&self) -> bool;
     fn tag_format(&self) -> Option<TagFormat>;
     fn supported_encodings(&self) -> SupportedEncodings;
 }

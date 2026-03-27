@@ -5,7 +5,6 @@ use crate::grammar::*;
 
 pub fn validate_members(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     tags_have_optional_types(members.clone(), diagnostics);
-    tagged_members_cannot_use_classes(members.clone(), diagnostics);
     tags_are_unique(members.clone(), diagnostics);
 }
 
@@ -47,36 +46,6 @@ fn tags_have_optional_types(members: Vec<&impl Member>, diagnostics: &mut Diagno
             })
             .set_span(member.span())
             .push_into(diagnostics);
-        }
-    }
-}
-
-fn tagged_members_cannot_use_classes(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
-    // Helper function that recursively checks if a type is a class, or contains classes.
-    // Infinite cycles are impossible because only classes can contain cycles, and we don't recurse on classes.
-    fn uses_classes(typeref: &TypeRef) -> bool {
-        match typeref.definition().concrete_type() {
-            Types::Struct(struct_def) => struct_def.fields().iter().any(|m| uses_classes(&m.data_type)),
-            Types::Class(_) => true,
-            Types::Enum(_) => false,
-            Types::CustomType(_) => false,
-            Types::ResultType(_) => false, // 'Result' is Slice2 only, and classes are Slice1 only.
-            Types::Sequence(sequence) => uses_classes(&sequence.element_type),
-            // It is disallowed for key types to use classes, so we only need to check the value type.
-            Types::Dictionary(dictionary) => uses_classes(&dictionary.value_type),
-            Types::Primitive(primitive) => matches!(primitive, Primitive::AnyClass),
-        }
-    }
-
-    for member in members {
-        if member.is_tagged() && uses_classes(member.data_type()) {
-            let identifier = member.identifier().to_owned();
-            let error = if member.data_type().is_class_type() {
-                Error::CannotTagClass { identifier }
-            } else {
-                Error::CannotTagContainingClass { identifier }
-            };
-            Diagnostic::new(error).set_span(member.span()).push_into(diagnostics);
         }
     }
 }

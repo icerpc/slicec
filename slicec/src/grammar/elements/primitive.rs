@@ -21,7 +21,6 @@ pub enum Primitive {
     Float32,
     Float64,
     String,
-    AnyClass,
 }
 
 impl Primitive {
@@ -116,12 +115,7 @@ impl Type for Primitive {
             Self::Float32 => Some(4),
             Self::Float64 => Some(8),
             Self::String => None,
-            Self::AnyClass => None,
         }
-    }
-
-    fn is_class_type(&self) -> bool {
-        matches!(self, Self::AnyClass)
     }
 
     fn tag_format(&self) -> Option<TagFormat> {
@@ -142,7 +136,6 @@ impl Type for Primitive {
             Self::Float32 => Some(TagFormat::F4),
             Self::Float64 => Some(TagFormat::F8),
             Self::String => Some(TagFormat::OptimizedVSize),
-            Self::AnyClass => Some(TagFormat::Class),
         }
     }
 
@@ -164,7 +157,6 @@ impl Type for Primitive {
             Self::Float32 => vec![Encoding::Slice1, Encoding::Slice2],
             Self::Float64 => vec![Encoding::Slice1, Encoding::Slice2],
             Self::String => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::AnyClass => vec![Encoding::Slice1],
         })
     }
 }
@@ -188,7 +180,6 @@ impl Element for Primitive {
             Self::Float32 => "float32",
             Self::Float64 => "float64",
             Self::String => "string",
-            Self::AnyClass => "AnyClass",
         }
     }
 }

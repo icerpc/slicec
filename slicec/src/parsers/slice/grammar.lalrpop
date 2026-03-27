@@ -31,7 +31,6 @@ extern {
         module_keyword => TokenKind::ModuleKeyword,
         struct_keyword => TokenKind::StructKeyword,
         exception_keyword => TokenKind::ExceptionKeyword,
-        class_keyword => TokenKind::ClassKeyword,
         interface_keyword => TokenKind::InterfaceKeyword,
         enum_keyword => TokenKind::EnumKeyword,
         custom_keyword => TokenKind::CustomKeyword,
@@ -59,7 +58,6 @@ extern {
         float32_keyword => TokenKind::Float32Keyword,
         float64_keyword => TokenKind::Float64Keyword,
         string_keyword => TokenKind::StringKeyword,
-        any_class_keyword => TokenKind::AnyClassKeyword,
 
         // Other keywords
         compact_keyword => TokenKind::CompactKeyword,
@@ -124,7 +122,6 @@ Module: OwnedPtr<Module> = {
 Definition: Definition = {
     Struct => Definition::Struct(parser.ast.add_named_element(<>)),
     Exception => Definition::Exception(parser.ast.add_named_element(<>)),
-    Class => Definition::Class(parser.ast.add_named_element(<>)),
     Interface => Definition::Interface(parser.ast.add_named_element(<>)),
     Enum => Definition::Enum(parser.ast.add_named_element(<>)),
     CustomType => Definition::CustomType(parser.ast.add_named_element(<>)),
@@ -141,13 +138,6 @@ Struct: OwnedPtr<Struct> = {
 Exception: OwnedPtr<Exception> = {
     <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
-    },
-}
-
-Class: OwnedPtr<Class> = {
-    <p: Prelude> <l: @L> class_keyword <i: ContainerIdentifier> <r1: @R> <ci: CompactId?> <r2: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
-        let r = if ci.is_some() { r2 } else { r1 };
-        construct_class(parser, p, i, ci, tr, dms, Span::new(l, r, parser.file_name))
     },
 }
 
@@ -254,7 +244,6 @@ Primitive: Primitive = {
     float32_keyword => Primitive::Float32,
     float64_keyword => Primitive::Float64,
     string_keyword => Primitive::String,
-    any_class_keyword => Primitive::AnyClass,
 }
 
 TypeRef: TypeRef = {

@@ -49,7 +49,6 @@ fn allowed_primitive_types(key_type: &str) {
 
 #[test_case("float32", "Slice2"; "float32")]
 #[test_case("float64", "Slice2"; "float64")]
-#[test_case("AnyClass", "Slice1"; "AnyClass")]
 fn disallowed_primitive_types(key_type: &str, mode: &str) {
     // Arrange
     let slice = format!(
@@ -107,7 +106,6 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
 #[test_case("MyEnum", "enum MyEnum { A }", "enum", "Slice2" ; "enums")]
 #[test_case("MyEnum", "compact enum MyEnum { A }", "enum", "Slice2" ; "compact enums")]
 #[test_case("MyEnum", "unchecked enum MyEnum {}", "enum", "Slice2" ; "unchecked enums")]
-#[test_case("MyClass", "class MyClass {}", "class", "Slice1"; "classes")]
 fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str, mode: &str) {
     // Arrange
     let slice = format!(
