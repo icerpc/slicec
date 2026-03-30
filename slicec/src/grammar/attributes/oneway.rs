@@ -16,7 +16,7 @@ impl Oneway {
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if let Attributables::Operation(operation) = applied_on {
-            // If the operation can return, it can't be marked oneway.
+            // If the operation can return data, it can't be marked oneway.
             if !operation.return_type.is_empty() {
                 let note = "operations that return data cannot be marked oneway";
                 report_unexpected_attribute(self, span, Some(note), diagnostics);
