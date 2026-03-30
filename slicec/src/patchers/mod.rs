@@ -3,7 +3,6 @@
 //! TODO write a doc comment for the module.
 
 pub mod comment_link_patcher;
-pub mod encoding_patcher;
 pub mod type_ref_patcher;
 
 use crate::ast::node::Node;
@@ -25,7 +24,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     let attribute_patcher = crate::patch_attributes!("", Allow, Compress, Deprecated, Oneway, SlicedFormat);
     compilation_state.apply_unsafe(attribute_patcher);
     compilation_state.apply_unsafe(type_ref_patcher::patch_ast);
-    compilation_state.apply_unsafe(encoding_patcher::patch_ast);
     compilation_state.apply_unsafe(comment_link_patcher::patch_ast);
 }
 

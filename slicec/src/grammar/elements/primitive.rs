@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Primitive {
@@ -116,48 +115,6 @@ impl Type for Primitive {
             Self::Float64 => Some(8),
             Self::String => None,
         }
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        match self {
-            Self::Bool => Some(TagFormat::F1),
-            Self::Int8 => None,
-            Self::UInt8 => Some(TagFormat::F1),
-            Self::Int16 => Some(TagFormat::F2),
-            Self::UInt16 => None,
-            Self::Int32 => Some(TagFormat::F4),
-            Self::UInt32 => None,
-            Self::VarInt32 => None,
-            Self::VarUInt32 => None,
-            Self::Int64 => Some(TagFormat::F8),
-            Self::UInt64 => None,
-            Self::VarInt62 => None,
-            Self::VarUInt62 => None,
-            Self::Float32 => Some(TagFormat::F4),
-            Self::Float64 => Some(TagFormat::F8),
-            Self::String => Some(TagFormat::OptimizedVSize),
-        }
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        SupportedEncodings::new(match self {
-            Self::Bool => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Int8 => vec![Encoding::Slice2],
-            Self::UInt8 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Int16 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt16 => vec![Encoding::Slice2],
-            Self::Int32 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt32 => vec![Encoding::Slice2],
-            Self::VarInt32 => vec![Encoding::Slice2],
-            Self::VarUInt32 => vec![Encoding::Slice2],
-            Self::Int64 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::UInt64 => vec![Encoding::Slice2],
-            Self::VarInt62 => vec![Encoding::Slice2],
-            Self::VarUInt62 => vec![Encoding::Slice2],
-            Self::Float32 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::Float64 => vec![Encoding::Slice1, Encoding::Slice2],
-            Self::String => vec![Encoding::Slice1, Encoding::Slice2],
-        })
     }
 }
 

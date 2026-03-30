@@ -2,7 +2,6 @@
 
 use super::super::*;
 use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -13,7 +12,6 @@ pub struct TypeAlias {
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
-    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl AsTypes for TypeAlias {
@@ -29,14 +27,6 @@ impl Type for TypeAlias {
 
     fn fixed_wire_size(&self) -> Option<u32> {
         self.underlying.fixed_wire_size()
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        self.underlying.tag_format()
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.supported_encodings.clone().unwrap()
     }
 }
 

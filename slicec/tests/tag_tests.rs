@@ -35,7 +35,6 @@ mod tags {
     fn tagged_parameters_must_be_optional() {
         // Arrange
         let slice = "
-            mode = Slice1
             module Test
             interface I {
                 op(tag(10) myParam: int32)
@@ -56,7 +55,6 @@ mod tags {
     fn tagged_parameters_can_be_in_any_order() {
         // Arrange
         let slice = "
-            mode = Slice1
             module Test
             interface I {
                 op(p1: int32, tag(10) p2: int32?, p3: int32, p4: int32, tag(20) p5: int32?)

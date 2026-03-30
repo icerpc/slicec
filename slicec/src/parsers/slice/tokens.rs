@@ -63,7 +63,6 @@ pub enum TokenKind<'input> {
     // Other keywords
     CompactKeyword,    // "compact"
     IdempotentKeyword, // "idempotent"
-    ModeKeyword,       // "mode"
     StreamKeyword,     // "stream"
     TagKeyword,        // "tag"
     UncheckedKeyword,  // "unchecked"
@@ -126,7 +125,6 @@ impl fmt::Display for TokenKind<'_> {
             Self::StringKeyword => "string",
             Self::CompactKeyword => "compact",
             Self::IdempotentKeyword => "idempotent",
-            Self::ModeKeyword => "mode",
             Self::StreamKeyword => "stream",
             Self::TagKeyword => "tag",
             Self::UncheckedKeyword => "unchecked",

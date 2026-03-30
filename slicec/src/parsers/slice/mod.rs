@@ -90,7 +90,6 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             // Other keywords
             "compact_keyword" => tokens::TokenKind::CompactKeyword.to_string(),
             "idempotent_keyword" => tokens::TokenKind::IdempotentKeyword.to_string(),
-            "mode_keyword" => tokens::TokenKind::ModeKeyword.to_string(),
             "stream_keyword" => tokens::TokenKind::StreamKeyword.to_string(),
             "tag_keyword" => tokens::TokenKind::TagKeyword.to_string(),
             "unchecked_keyword" => tokens::TokenKind::UncheckedKeyword.to_string(),

@@ -595,91 +595,10 @@ mod underlying_type {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    mod slice1 {
-
-        use crate::test_helpers::*;
-        use slicec::diagnostics::{Diagnostic, Error};
-
-        #[test]
-        fn enumerators_cannot_contain_negative_values() {
-            // Arrange
-            let slice = "
-                mode = Slice1
-                module Test
-
-                enum E {
-                    A = -1
-                    B = -2
-                    C = -3
-                }
-            ";
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            const MAX_VALUE: i128 = i32::MAX as i128;
-            let expected = [
-                Diagnostic::new(Error::EnumeratorValueOutOfBounds {
-                    enumerator_identifier: "A".to_owned(),
-                    value: -1,
-                    min: 0,
-                    max: MAX_VALUE,
-                }),
-                Diagnostic::new(Error::EnumeratorValueOutOfBounds {
-                    enumerator_identifier: "B".to_owned(),
-                    value: -2,
-                    min: 0,
-                    max: MAX_VALUE,
-                }),
-                Diagnostic::new(Error::EnumeratorValueOutOfBounds {
-                    enumerator_identifier: "C".to_owned(),
-                    value: -3,
-                    min: 0,
-                    max: MAX_VALUE,
-                }),
-            ];
-            check_diagnostics(diagnostics, expected);
-        }
-
-        #[test]
-        fn enumerators_cannot_contain_out_of_bound_values() {
-            // Arrange
-            let value = i32::MAX as i128 + 1;
-            let slice = format!(
-                "
-                    mode = Slice1
-                    module Test
-
-                    enum E {{
-                        A = {value}
-                    }}
-                "
-            );
-
-            // Act
-            let diagnostics = parse_for_diagnostics(slice);
-
-            // Assert
-            let expected = Diagnostic::new(Error::EnumeratorValueOutOfBounds {
-                enumerator_identifier: "A".to_owned(),
-                value,
-                min: 0,
-                max: i32::MAX as i128,
-            });
-            check_diagnostics(diagnostics, [expected]);
-        }
-    }
-
-    mod slice2 {
-
-        use crate::test_helpers::*;
-        use slicec::grammar::*;
-
-        #[test]
-        fn enumerators_can_contain_negative_values() {
-            // Arrange
-            let slice = "
+    #[test]
+    fn enumerators_can_contain_negative_values() {
+        // Arrange
+        let slice = "
                 module Test
 
                 enum E : int32 {
@@ -689,14 +608,14 @@ mod underlying_type {
                 }
             ";
 
-            // Act/Assert
-            assert_parses(slice);
-        }
+        // Act/Assert
+        assert_parses(slice);
+    }
 
-        #[test]
-        fn enumerators_can_contain_values() {
-            // Arrange
-            let slice = "
+    #[test]
+    fn enumerators_can_contain_values() {
+        // Arrange
+        let slice = "
                 module Test
 
                 enum E : int16 {
@@ -706,29 +625,29 @@ mod underlying_type {
                 }
             ";
 
-            // Act
-            let ast = parse_for_ast(slice);
+        // Act
+        let ast = parse_for_ast(slice);
 
-            // Assert
-            let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
-            let enumerators = enum_def.enumerators();
+        // Assert
+        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enumerators = enum_def.enumerators();
 
-            assert_eq!(enumerators.len(), 3);
-            assert_eq!(enumerators[0].identifier(), "A");
-            assert_eq!(enumerators[1].identifier(), "B");
-            assert_eq!(enumerators[2].identifier(), "C");
-            assert_eq!(enumerators[0].value(), 1);
-            assert_eq!(enumerators[1].value(), 2);
-            assert_eq!(enumerators[2].value(), 3);
-            assert!(matches!(
-                enum_def.underlying.as_ref().unwrap().definition(),
-                Primitive::Int16,
-            ));
-        }
+        assert_eq!(enumerators.len(), 3);
+        assert_eq!(enumerators[0].identifier(), "A");
+        assert_eq!(enumerators[1].identifier(), "B");
+        assert_eq!(enumerators[2].identifier(), "C");
+        assert_eq!(enumerators[0].value(), 1);
+        assert_eq!(enumerators[1].value(), 2);
+        assert_eq!(enumerators[2].value(), 3);
+        assert!(matches!(
+            enum_def.underlying.as_ref().unwrap().definition(),
+            Primitive::Int16,
+        ));
+    }
 
-        #[test]
-        fn explicit_enumerator_value_kinds() {
-            let slice = "
+    #[test]
+    fn explicit_enumerator_value_kinds() {
+        let slice = "
             module Test
 
             enum A : uint8 {
@@ -738,16 +657,15 @@ mod underlying_type {
             }
             ";
 
-            // Act
-            let ast = parse_for_ast(slice);
+        // Act
+        let ast = parse_for_ast(slice);
 
-            // Assert
-            let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
-            let enumerators_a = enum_def_a.enumerators();
+        // Assert
+        let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
+        let enumerators_a = enum_def_a.enumerators();
 
-            assert!(matches!(enumerators_a[0].value, EnumeratorValue::Explicit(..)));
-            assert!(matches!(enumerators_a[1].value, EnumeratorValue::Explicit(..)));
-            assert!(matches!(enumerators_a[2].value, EnumeratorValue::Explicit(..)));
-        }
+        assert!(matches!(enumerators_a[0].value, EnumeratorValue::Explicit(..)));
+        assert!(matches!(enumerators_a[1].value, EnumeratorValue::Explicit(..)));
+        assert!(matches!(enumerators_a[2].value, EnumeratorValue::Explicit(..)));
     }
 }

@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 mod container;
-mod mode_compatibility;
 
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};

@@ -3,10 +3,9 @@
 use super::attributes::AttributeKind;
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, Module, TypeRef};
-use super::util::{Scope, TagFormat};
+use super::util::Scope;
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
 
 pub trait Element: std::fmt::Debug {
     fn kind(&self) -> &'static str;
@@ -100,8 +99,6 @@ pub trait Commentable: Entity {
 pub trait Type: Element + AsTypes {
     fn type_string(&self) -> String;
     fn fixed_wire_size(&self) -> Option<u32>;
-    fn tag_format(&self) -> Option<TagFormat>;
-    fn supported_encodings(&self) -> SupportedEncodings;
 }
 
 macro_rules! implement_Element_for {

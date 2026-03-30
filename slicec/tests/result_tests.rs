@@ -5,7 +5,6 @@ mod test_helpers;
 mod results {
 
     use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error};
     use slicec::grammar::*;
     use slicec::slice_file::Span;
 
@@ -83,27 +82,5 @@ mod results {
             inner_result_type.failure_type.concrete_type(),
             Types::Primitive(Primitive::String),
         ));
-    }
-
-    #[test]
-    fn are_disallowed_in_slice1_mode() {
-        // Arrange
-        let slice = "
-            mode = Slice1
-            module Test
-
-            typealias R = Result<string, bool>
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::UnsupportedType {
-            kind: "Result<string, bool>".to_owned(),
-            mode: Encoding::Slice1,
-        })
-        .add_note("'Result' can only be used in Slice2 mode", None);
-        check_diagnostics(diagnostics, [expected]);
     }
 }

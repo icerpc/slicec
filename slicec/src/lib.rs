@@ -7,7 +7,6 @@ pub mod diagnostics;
 pub mod grammar;
 pub mod slice_file;
 pub mod slice_options;
-pub mod supported_encodings;
 pub mod test_helpers;
 pub mod utils;
 pub mod visitor;

@@ -6,15 +6,12 @@ mod custom {
 
     use crate::test_helpers::*;
     use slicec::grammar::*;
-    use test_case::test_case;
 
-    #[test_case("Slice1")]
-    #[test_case("Slice2")]
-    fn type_parses(mode: &str) {
+    #[test]
+    fn type_parses() {
         // Arrange
         let slice = format!(
             "
-                mode = {mode}
                 module Test
                 custom ACustomType
             "

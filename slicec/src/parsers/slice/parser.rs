@@ -37,7 +37,6 @@ pub struct Parser<'a> {
     pub(super) ast: &'a mut Ast,
     pub(super) diagnostics: &'a mut Diagnostics,
     pub(super) current_scope: Scope,
-    pub(super) compilation_mode: CompilationMode,
     pub(super) previous_enumerator_value: Option<i128>,
 }
 
@@ -45,12 +44,7 @@ impl<'a> Parser<'a> {
     implement_parse_function!(
         parse_slice_file,
         SliceFileParser,
-        (
-            Option<FileCompilationMode>,
-            Vec<WeakPtr<Attribute>>,
-            Option<OwnedPtr<Module>>,
-            Vec<Definition>,
-        ),
+        (Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>,),
     );
 
     pub fn new(file_name: &'a str, ast: &'a mut Ast, diagnostics: &'a mut Diagnostics) -> Self {
@@ -58,7 +52,6 @@ impl<'a> Parser<'a> {
             file_name,
             ast,
             diagnostics,
-            compilation_mode: CompilationMode::default(),
             current_scope: Scope::default(),
             previous_enumerator_value: None,
         }

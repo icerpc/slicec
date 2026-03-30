@@ -11,7 +11,6 @@ pub struct Operation {
     pub parameters: Vec<WeakPtr<Parameter>>,
     pub return_type: Vec<WeakPtr<Parameter>>,
     pub is_idempotent: bool,
-    pub encoding: Encoding,
     pub parent: WeakPtr<Interface>,
     pub scope: Scope,
     pub attributes: Vec<WeakPtr<Attribute>>,

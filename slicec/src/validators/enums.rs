@@ -14,61 +14,41 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     check_compact_modifier(enum_def, diagnostics);
     compact_enums_cannot_contain_tags(enum_def, diagnostics);
 
-    // Fields in Slice1 files are already rejected by `encoding_patcher`.
-    if enum_def.underlying.is_some() && !enum_def.supported_encodings().supports(Encoding::Slice1) {
+    if enum_def.underlying.is_some() {
         cannot_contain_fields(enum_def, diagnostics);
     }
 }
 
 /// Validate that the enumerators are within the bounds of the specified underlying type.
 fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
-    if enum_def.supported_encodings().supports(Encoding::Slice1) {
-        // Enum was defined in a Slice1 file, so it's underlying type is int32 and its enumerators must be positive.
-        for enumerator in enum_def.enumerators() {
-            let value = enumerator.value();
-            if value < 0 || value > i32::MAX as i128 {
-                Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+    fn check_bounds(enum_def: &Enum, (min, max): (i128, i128), diagnostics: &mut Diagnostics) {
+        enum_def
+            .enumerators()
+            .iter()
+            .filter(|enumerator| enumerator.value() < min || enumerator.value() > max)
+            .for_each(|enumerator| {
+                let error = Error::EnumeratorValueOutOfBounds {
                     enumerator_identifier: enumerator.identifier().to_owned(),
-                    value,
-                    min: 0,
-                    max: i32::MAX as i128,
-                })
-                .set_span(enumerator.span())
-                .push_into(diagnostics);
+                    value: enumerator.value(),
+                    min,
+                    max,
+                };
+                Diagnostic::new(error)
+                    .set_span(enumerator.span())
+                    .push_into(diagnostics);
+            });
+    }
+    match &enum_def.underlying {
+        Some(underlying_type) => {
+            // Non-integral underlying types are rejected by the `allowed_underlying_types` check.
+            if let Some(bounds) = underlying_type.numeric_bounds() {
+                check_bounds(enum_def, bounds, diagnostics);
             }
         }
-    } else {
-        // Enum was defined in a Slice2 file.
-
-        fn check_bounds(enum_def: &Enum, (min, max): (i128, i128), diagnostics: &mut Diagnostics) {
-            enum_def
-                .enumerators()
-                .iter()
-                .filter(|enumerator| enumerator.value() < min || enumerator.value() > max)
-                .for_each(|enumerator| {
-                    let error = Error::EnumeratorValueOutOfBounds {
-                        enumerator_identifier: enumerator.identifier().to_owned(),
-                        value: enumerator.value(),
-                        min,
-                        max,
-                    };
-                    Diagnostic::new(error)
-                        .set_span(enumerator.span())
-                        .push_into(diagnostics);
-                });
-        }
-        match &enum_def.underlying {
-            Some(underlying_type) => {
-                // Non-integral underlying types are rejected by the `allowed_underlying_types` check.
-                if let Some(bounds) = underlying_type.numeric_bounds() {
-                    check_bounds(enum_def, bounds, diagnostics);
-                }
-            }
-            None => {
-                // For enumerators in Slice2, values must fit within varint32 and be positive.
-                const VARINT32_MAX: i128 = i32::MAX as i128;
-                check_bounds(enum_def, (0, VARINT32_MAX), diagnostics);
-            }
+        None => {
+            // For enumerators in Slice2, values must fit within varint32 and be positive.
+            const VARINT32_MAX: i128 = i32::MAX as i128;
+            check_bounds(enum_def, (0, VARINT32_MAX), diagnostics);
         }
     }
 }

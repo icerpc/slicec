@@ -4,29 +4,27 @@ use crate::test_helpers::*;
 use slicec::grammar::*;
 use test_case::test_case;
 
-#[test_case("bool", Primitive::Bool, "Slice2"; "bool")]
-#[test_case("int8", Primitive::Int8, "Slice2"; "int8")]
-#[test_case("uint8", Primitive::UInt8, "Slice2"; "uint8")]
-#[test_case("int16", Primitive::Int16, "Slice2"; "int16")]
-#[test_case("uint16", Primitive::UInt16, "Slice2"; "uint16")]
-#[test_case("int32", Primitive::Int32, "Slice2"; "int32")]
-#[test_case("uint32", Primitive::UInt32, "Slice2"; "uint32")]
-#[test_case("varint32", Primitive::VarInt32, "Slice2"; "varint32")]
-#[test_case("varuint32", Primitive::VarUInt32, "Slice2"; "varuint32")]
-#[test_case("int64", Primitive::Int64, "Slice2"; "int64")]
-#[test_case("uint64", Primitive::UInt64, "Slice2"; "uint64")]
-#[test_case("varint62", Primitive::VarInt62, "Slice2"; "varint62")]
-#[test_case("varuint62", Primitive::VarUInt62, "Slice2"; "varuint62")]
-#[test_case("float32", Primitive::Float32, "Slice2"; "float32")]
-#[test_case("float64", Primitive::Float64, "Slice2"; "float64")]
-#[test_case("string", Primitive::String, "Slice2"; "string")]
-fn type_parses(slice_component: &str, expected: Primitive, mode: &str) {
+#[test_case("bool", Primitive::Bool; "bool")]
+#[test_case("int8", Primitive::Int8; "int8")]
+#[test_case("uint8", Primitive::UInt8; "uint8")]
+#[test_case("int16", Primitive::Int16; "int16")]
+#[test_case("uint16", Primitive::UInt16; "uint16")]
+#[test_case("int32", Primitive::Int32; "int32")]
+#[test_case("uint32", Primitive::UInt32; "uint32")]
+#[test_case("varint32", Primitive::VarInt32; "varint32")]
+#[test_case("varuint32", Primitive::VarUInt32; "varuint32")]
+#[test_case("int64", Primitive::Int64; "int64")]
+#[test_case("uint64", Primitive::UInt64; "uint64")]
+#[test_case("varint62", Primitive::VarInt62; "varint62")]
+#[test_case("varuint62", Primitive::VarUInt62; "varuint62")]
+#[test_case("float32", Primitive::Float32; "float32")]
+#[test_case("float64", Primitive::Float64; "float64")]
+#[test_case("string", Primitive::String; "string")]
+fn type_parses(slice_component: &str, expected: Primitive) {
     // Arrange
     let slice = format!(
         "
-            mode = {mode}
             module Test
-
             typealias P = {slice_component}
         "
     );

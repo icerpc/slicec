@@ -72,7 +72,6 @@ pub struct SliceFile {
     pub relative_path: String,
     pub raw_text: String,
 
-    pub mode: Option<FileCompilationMode>,
     pub module: Option<WeakPtr<Module>>,
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub contents: Vec<Definition>,
@@ -94,23 +93,11 @@ impl SliceFile {
             filename,
             relative_path,
             raw_text,
-            mode: None,
             module: None,
             attributes: Vec::new(),
             contents: Vec::new(),
             is_source,
         }
-    }
-
-    /// Returns the compilation mode used by this file.
-    ///
-    /// If a mode wasn't explicitly stated, it returns the default mode.
-    ///
-    /// See [CompilationMode::default()](crate::grammar::CompilationMode::default)
-    pub fn compilation_mode(&self) -> CompilationMode {
-        self.mode
-            .as_ref()
-            .map_or(CompilationMode::default(), |mode| mode.version)
     }
 
     /// Retrieves a formatted snippet from the slice file.

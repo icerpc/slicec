@@ -2,7 +2,6 @@
 
 use super::super::*;
 use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -16,7 +15,6 @@ pub struct Enum {
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
-    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Enum {
@@ -44,17 +42,6 @@ impl Type for Enum {
 
     fn fixed_wire_size(&self) -> Option<u32> {
         self.underlying.as_ref().and_then(TypeRef::fixed_wire_size)
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        self.underlying.as_ref().map_or(
-            Some(TagFormat::Size),              // Default value if `underlying` == None
-            |data_type| data_type.tag_format(), // Expression to evaluate otherwise
-        )
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.supported_encodings.clone().unwrap()
     }
 }
 
