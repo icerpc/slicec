@@ -46,7 +46,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
             }
         }
         None => {
-            // For enumerators in Slice2, values must fit within varint32 and be positive.
+            // Values must fit within varint32 and be positive.
             const VARINT32_MAX: i128 = i32::MAX as i128;
             check_bounds(enum_def, (0, VARINT32_MAX), diagnostics);
         }
