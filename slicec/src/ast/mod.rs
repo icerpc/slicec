@@ -231,7 +231,7 @@ impl Ast {
     /// assert!(fake_element.is_err());
     ///
     /// // If an element exists but has the wrong type, `Err` is also returned.
-    /// let wrong_type = ast.find_element::<dyn Entity>("bool");
+    /// let wrong_type = ast.find_element::<Struct>("bool");
     /// assert!(wrong_type.is_err());
     /// ```
     pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, LookupError>
