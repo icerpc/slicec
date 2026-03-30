@@ -28,12 +28,6 @@ impl TypeRefPatcher<'_> {
     fn compute_patches(&mut self, ast: &Ast) {
         for node in ast.as_slice() {
             let patch = match node {
-                Node::Exception(exception_ptr) => exception_ptr
-                    .borrow()
-                    .base
-                    .as_ref()
-                    .and_then(|type_ref| self.resolve_definition(type_ref, ast))
-                    .map(PatchKind::BaseException),
                 Node::Field(field_ptr) => {
                     let type_ref = &field_ptr.borrow().data_type;
                     self.resolve_definition(type_ref, ast).map(PatchKind::FieldType)
@@ -43,12 +37,6 @@ impl TypeRefPatcher<'_> {
                         .map(|type_ref| self.resolve_definition(type_ref, ast))
                         .collect::<Option<Vec<_>>>() // None if any of the bases couldn't be resolved.
                         .map(PatchKind::BaseInterfaces)
-                }
-                Node::Operation(operation_ptr) => {
-                    operation_ptr.borrow().exception_specification.iter()
-                        .map(|type_ref| self.resolve_definition(type_ref, ast))
-                        .collect::<Option<Vec<_>>>() // None if any of the exceptions couldn't be resolved.
-                        .map(PatchKind::ExceptionSpecification)
                 }
                 Node::Parameter(parameter_ptr) => {
                     let type_ref = &parameter_ptr.borrow().data_type;
@@ -99,11 +87,6 @@ impl TypeRefPatcher<'_> {
         // patching, then we patch in its definition and any attributes it might of picked up from type aliases.
         for (patch, element) in self.type_ref_patches.into_iter().zip(elements) {
             match patch {
-                PatchKind::BaseException((base_exception_ptr, attributes)) => {
-                    let exception_ptr: &mut OwnedPtr<Exception> = element.try_into().unwrap();
-                    let base_exception_ref = exception_ptr.borrow_mut().base.as_mut().unwrap();
-                    base_exception_ref.patch(base_exception_ptr, attributes);
-                }
                 PatchKind::BaseInterfaces(base_interface_patches) => {
                     let interface_ptr: &mut OwnedPtr<Interface> = element.try_into().unwrap();
                     // Ensure the number of patches is equal to the number of base interfaces.
@@ -125,19 +108,6 @@ impl TypeRefPatcher<'_> {
                     let parameter_ptr: &mut OwnedPtr<Parameter> = element.try_into().unwrap();
                     let parameter_type_ref = &mut parameter_ptr.borrow_mut().data_type;
                     parameter_type_ref.patch(parameter_type_ptr, attributes);
-                }
-                PatchKind::ExceptionSpecification(exception_patches) => {
-                    let operation_ptr: &mut OwnedPtr<Operation> = element.try_into().unwrap();
-                    let exception_specification = &mut operation_ptr.borrow_mut().exception_specification;
-                    // Ensure the number of patches is equal to the number of exceptions.
-                    debug_assert_eq!(exception_specification.len(), exception_patches.len());
-
-                    // Iterate through and patch each exception type.
-                    for (j, patch) in exception_patches.into_iter().enumerate() {
-                        let (exception_type_ptr, attributes) = patch;
-                        let exception_type_ref = &mut exception_specification[j];
-                        exception_type_ref.patch(exception_type_ptr, attributes);
-                    }
                 }
                 PatchKind::EnumUnderlyingType((enum_underlying_type_ptr, attributes)) => {
                     let enum_ptr: &mut OwnedPtr<Enum> = element.try_into().unwrap();
@@ -325,11 +295,9 @@ type Patch<T> = (WeakPtr<T>, Vec<WeakPtr<Attribute>>);
 enum PatchKind {
     #[default]
     None,
-    BaseException(Patch<Exception>),
     BaseInterfaces(Vec<Patch<Interface>>),
     FieldType(Patch<dyn Type>),
     ParameterType(Patch<dyn Type>),
-    ExceptionSpecification(Vec<Patch<Exception>>),
     EnumUnderlyingType(Patch<Primitive>),
     TypeAliasUnderlyingType(Patch<dyn Type>),
     ResultTypes(Option<Patch<dyn Type>>, Option<Patch<dyn Type>>),

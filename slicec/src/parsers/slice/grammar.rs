@@ -140,34 +140,6 @@ fn construct_struct(
     struct_ptr
 }
 
-fn construct_exception(
-    parser: &mut Parser,
-    (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
-    identifier: Identifier,
-    base_type: Option<TypeRef>,
-    fields: Vec<OwnedPtr<Field>>,
-    span: Span,
-) -> OwnedPtr<Exception> {
-    let base = base_type.map(|type_ref| type_ref.downcast::<Exception>().unwrap());
-    let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
-
-    let mut exception_ptr = OwnedPtr::new(Exception {
-        identifier,
-        fields: Vec::new(),
-        base,
-        scope: parser.current_scope.clone(),
-        attributes,
-        comment,
-        span,
-        supported_encodings: None, // Patched by the encoding patcher.
-    });
-
-    // Add all the fields to the exception.
-    set_fields_for!(exception_ptr, fields, parser);
-
-    exception_ptr
-}
-
 pub fn construct_field(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
@@ -229,18 +201,10 @@ fn construct_operation(
     identifier: Identifier,
     parameters: Vec<OwnedPtr<Parameter>>,
     return_type: Option<Vec<OwnedPtr<Parameter>>>,
-    throws_clause: Option<Vec<TypeRef>>,
     span: Span,
 ) -> OwnedPtr<Operation> {
     // If no return type was provided set the return type to an empty Vec.
     let return_type = return_type.unwrap_or_default();
-
-    // If no throws clause was present, set the exception specification to an empty Vec.
-    let throws_clause = throws_clause.unwrap_or_default();
-    let exception_specification = throws_clause
-        .into_iter()
-        .map(|type_ref| type_ref.downcast::<Exception>().unwrap())
-        .collect();
 
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
@@ -248,7 +212,6 @@ fn construct_operation(
         identifier,
         parameters: Vec::new(),
         return_type: Vec::new(),
-        exception_specification,
         is_idempotent,
         encoding: parser.compilation_mode,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.

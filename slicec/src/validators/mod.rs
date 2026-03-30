@@ -88,15 +88,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_members(enumerator.contents(), self.diagnostics);
     }
 
-    fn visit_exception(&mut self, exception: &Exception) {
-        validate_common_doc_comments(exception, self.diagnostics);
-        validate_attributes(exception, self.diagnostics);
-
-        validate_members(exception.fields(), self.diagnostics);
-
-        validate_inherited_identifiers(exception.fields(), exception.all_inherited_fields(), self.diagnostics);
-    }
-
     fn visit_interface(&mut self, interface: &Interface) {
         validate_common_doc_comments(interface, self.diagnostics);
         validate_attributes(interface, self.diagnostics);

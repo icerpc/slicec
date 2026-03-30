@@ -26,7 +26,7 @@ pub enum Lint {
     MalformedDocComment { message: String },
 
     /// A doc comment contains an incorrect tag. Either:
-    /// - The tag itself is incorrect. Ex: using `@throws` on an element that can't or doesn't throw an exception.
+    /// - The tag itself is incorrect. Ex: using `@returns` when the operation doesn't return anything.
     /// - The tag describes something incorrect. Ex: specifying `@param foo` when no parameter named "foo" exists.
     IncorrectDocComment { message: String },
 

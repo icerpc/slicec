@@ -82,7 +82,7 @@ macro_rules! generate_node_enum {
 
 // generate the `Node` enum with variants for every type allowed to be in the AST.
 generate_node_enum! {
-    Module, Struct, Exception, Field, Interface, Operation, Parameter, Enum,
+    Module, Struct, Field, Interface, Operation, Parameter, Enum,
     Enumerator, CustomType, TypeAlias, ResultType, Sequence, Dictionary, Primitive, Attribute
 }
 
@@ -149,7 +149,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
         match node {
             Node::Module(module_ptr) => Ok(module_ptr.borrow()),
             Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
-            Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
             Node::Field(field_ptr) => Ok(field_ptr.borrow()),
             Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
             Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
@@ -177,7 +176,6 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
     fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Entity>, Self::Error> {
         match node {
             Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
-            Node::Exception(exception_ptr) => Ok(downgrade_as!(exception_ptr, dyn Entity)),
             Node::Field(field_ptr) => Ok(downgrade_as!(field_ptr, dyn Entity)),
             Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Entity)),
             Node::Operation(operation_ptr) => Ok(downgrade_as!(operation_ptr, dyn Entity)),
@@ -205,7 +203,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
     fn try_from(node: &'a Node) -> Result<&'a dyn Entity, Self::Error> {
         match node {
             Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
-            Node::Exception(exception_ptr) => Ok(exception_ptr.borrow()),
             Node::Field(field_ptr) => Ok(field_ptr.borrow()),
             Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
             Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
@@ -240,7 +237,6 @@ macro_rules! impl_into_node_for {
 // Implement the `Into<Node>` trait for [OwnedPtr]s of the following types:
 impl_into_node_for!(Module);
 impl_into_node_for!(Struct);
-impl_into_node_for!(Exception);
 impl_into_node_for!(Field);
 impl_into_node_for!(Interface);
 impl_into_node_for!(Operation);

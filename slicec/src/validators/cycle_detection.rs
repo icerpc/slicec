@@ -17,9 +17,7 @@ pub(super) fn detect_cycles(ast: &Ast, diagnostics: &mut Diagnostics) {
     for node in ast.as_slice() {
         let candidate: &dyn CycleCandidate = match node {
             // Only structs and enums need to be checked for cycles.
-            // Classes can safely contain cycles since they use reference semantics,
-            // exceptions can't cause cycles since they cannot be used as types,
-            // and type-alias cycles are caught during the type-patching phase.
+            // Typealias cycles are caught during the type-patching phase.
             Node::Struct(struct_def) => struct_def.borrow(),
             Node::Enum(enum_def) => enum_def.borrow(),
             _ => continue,

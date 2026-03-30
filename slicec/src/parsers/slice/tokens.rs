@@ -32,7 +32,6 @@ pub enum TokenKind<'input> {
     // Definition keywords
     ModuleKeyword,    // "module"
     StructKeyword,    // "struct"
-    ExceptionKeyword, // "exception"
     InterfaceKeyword, // "interface"
     EnumKeyword,      // "enum"
     CustomKeyword,    // "custom"
@@ -67,7 +66,6 @@ pub enum TokenKind<'input> {
     ModeKeyword,       // "mode"
     StreamKeyword,     // "stream"
     TagKeyword,        // "tag"
-    ThrowsKeyword,     // "throws"
     UncheckedKeyword,  // "unchecked"
 
     // Brackets
@@ -103,7 +101,6 @@ impl fmt::Display for TokenKind<'_> {
             // Keywords
             Self::ModuleKeyword => "module",
             Self::StructKeyword => "struct",
-            Self::ExceptionKeyword => "exception",
             Self::InterfaceKeyword => "interface",
             Self::EnumKeyword => "enum",
             Self::CustomKeyword => "custom",
@@ -132,7 +129,6 @@ impl fmt::Display for TokenKind<'_> {
             Self::ModeKeyword => "mode",
             Self::StreamKeyword => "stream",
             Self::TagKeyword => "tag",
-            Self::ThrowsKeyword => "throws",
             Self::UncheckedKeyword => "unchecked",
 
             // Symbols

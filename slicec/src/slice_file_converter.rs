@@ -209,7 +209,6 @@ impl SliceFileContentsConverter {
                 GrammarDefinition::Enum(v) => converter.convert_enum(v.borrow()),
                 GrammarDefinition::CustomType(v) => Symbol::CustomType(converter.convert_custom_type(v.borrow())),
                 GrammarDefinition::TypeAlias(v) => Symbol::TypeAlias(converter.convert_type_alias(v.borrow())),
-                _ => panic!("TODO: remove exceptions"),
             };
             converter.converted_contents.push(converted);
         }

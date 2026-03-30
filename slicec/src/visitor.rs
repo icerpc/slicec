@@ -38,12 +38,6 @@ pub trait Visitor {
     /// This shouldn't be called by users. To visit a struct, use `[Struct::visit_with]`.
     fn visit_struct(&mut self, struct_def: &Struct) {}
 
-    /// This function is called by the visitor when it begins visiting an [Exception],
-    /// before it visits through the exception's contents.
-    ///
-    /// This shouldn't be called by users. To visit an exception, use `[Exception::visit_with]`.
-    fn visit_exception(&mut self, exception_def: &Exception) {}
-
     /// This function is called by the visitor when it begins visiting an [Interface],
     /// before it visits through the interface's contents.
     ///
@@ -109,7 +103,6 @@ impl SliceFile {
         for definition in &self.contents {
             match definition {
                 Definition::Struct(struct_def) => struct_def.borrow().visit_with(visitor),
-                Definition::Exception(exception_def) => exception_def.borrow().visit_with(visitor),
                 Definition::Interface(interface_def) => interface_def.borrow().visit_with(visitor),
                 Definition::Enum(enum_def) => enum_def.borrow().visit_with(visitor),
                 Definition::CustomType(custom_type) => custom_type.borrow().visit_with(visitor),
@@ -135,19 +128,6 @@ impl Struct {
     /// the contents of the struct.
     pub fn visit_with(&self, visitor: &mut impl Visitor) {
         visitor.visit_struct(self);
-        for field in &self.fields {
-            field.borrow().visit_with(visitor);
-        }
-    }
-}
-
-impl Exception {
-    /// Visits the [Exception] with the provided `visitor`.
-    ///
-    /// This function first calls `visitor.visit_exception`, then recursively visits
-    /// the contents of the exception.
-    pub fn visit_with(&self, visitor: &mut impl Visitor) {
-        visitor.visit_exception(self);
         for field in &self.fields {
             field.borrow().visit_with(visitor);
         }

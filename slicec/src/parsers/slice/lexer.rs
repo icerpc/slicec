@@ -191,7 +191,6 @@ where
         match identifier {
             "module" => TokenKind::ModuleKeyword,
             "struct" => TokenKind::StructKeyword,
-            "exception" => TokenKind::ExceptionKeyword,
             "interface" => TokenKind::InterfaceKeyword,
             "enum" => TokenKind::EnumKeyword,
             "custom" => TokenKind::CustomKeyword,
@@ -220,7 +219,6 @@ where
             "mode" => TokenKind::ModeKeyword,
             "stream" => TokenKind::StreamKeyword,
             "tag" => TokenKind::TagKeyword,
-            "throws" => TokenKind::ThrowsKeyword,
             "unchecked" => TokenKind::UncheckedKeyword,
             ident => TokenKind::Identifier(ident),
         }

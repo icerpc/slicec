@@ -119,10 +119,6 @@ pub enum Error {
         kind: Option<String>,
     },
 
-    // ----------------  Exception Errors ---------------- //
-    /// Exception specifications can only be used in Slice1 mode.
-    ExceptionSpecificationNotSupported,
-
     // ----------------  Operation Errors ---------------- //
     /// A streamed parameter was not the last parameter in the operation.
     StreamedMembersMustBeLast {
@@ -513,17 +509,12 @@ implement_diagnostic_functions!(
     ),
     (
         "E041",
-        ExceptionSpecificationNotSupported,
-        "exceptions can only be thrown by operations defined in Slice1 mode"
-    ),
-    (
-        "E042",
         EnumeratorCannotContainFields,
         format!("invalid enumerator '{enumerator_identifier}': fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
     ),
     (
-        "E043",
+        "E042",
         CannotBeCompact,
         format!("'{kind}' '{identifier}' cannot be marked compact"),
         kind, identifier

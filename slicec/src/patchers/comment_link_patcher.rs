@@ -20,7 +20,7 @@ macro_rules! patch_link {
 macro_rules! patch_element {
     ($element_ptr:expr, $patcher:expr) => {{
         let element_ref = $element_ptr.borrow_mut();
-        $patcher.apply_patches(&element_ref.parser_scoped_identifier(), &mut element_ref.comment);
+        $patcher.apply_patches(&mut element_ref.comment);
     }};
 }
 
@@ -34,7 +34,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     for node in compilation_state.ast.as_slice() {
         match node {
             Node::Struct(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
-            Node::Exception(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Field(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Interface(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Operation(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
@@ -50,7 +49,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     for node in compilation_state.ast.as_mut_slice() {
         match node {
             Node::Struct(ptr) => patch_element!(ptr, patcher),
-            Node::Exception(ptr) => patch_element!(ptr, patcher),
             Node::Field(ptr) => patch_element!(ptr, patcher),
             Node::Interface(ptr) => patch_element!(ptr, patcher),
             Node::Operation(ptr) => patch_element!(ptr, patcher),
@@ -80,10 +78,6 @@ impl CommentLinkPatcher<'_> {
             }
             for returns_tag in &comment.returns {
                 self.resolve_links_in(&returns_tag.message, commentable, ast);
-            }
-            for throws_tag in &comment.throws {
-                self.resolve_link(&throws_tag.thrown_type, commentable, ast);
-                self.resolve_links_in(&throws_tag.message, commentable, ast);
             }
             for see_tag in &comment.see {
                 self.resolve_link(&see_tag.link, commentable, ast);
@@ -141,7 +135,7 @@ impl CommentLinkPatcher<'_> {
         });
     }
 
-    fn apply_patches(&mut self, scope: &str, comment: &mut Option<DocComment>) {
+    fn apply_patches(&mut self, comment: &mut Option<DocComment>) {
         if let Some(comment) = comment {
             if let Some(overview) = &mut comment.overview {
                 self.patch_links_in(overview);
@@ -151,10 +145,6 @@ impl CommentLinkPatcher<'_> {
             }
             for returns_tag in &mut comment.returns {
                 self.patch_links_in(&mut returns_tag.message);
-            }
-            for throws_tag in &mut comment.throws {
-                self.patch_thrown_type(scope, throws_tag);
-                self.patch_links_in(&mut throws_tag.message);
             }
             for see_tag in &mut comment.see {
                 patch_link!(self, see_tag);
@@ -166,47 +156,6 @@ impl CommentLinkPatcher<'_> {
         for component in &mut message.value {
             if let MessageComponent::Link(link_tag) = component {
                 patch_link!(self, link_tag);
-            }
-        }
-    }
-
-    fn patch_thrown_type(&mut self, scope: &str, tag: &mut ThrowsTag) {
-        // Get the next patch out of the queue and apply it to the tag.
-        if let Some(patch) = self.link_patches.pop_front().unwrap() {
-            // If the linked-to type isn't an exception report a lint violation and leave the link unpatched.
-            match patch.downcast::<Exception>() {
-                Ok(converted_patch) => {
-                    tag.thrown_type = TypeRefDefinition::Patched(converted_patch);
-                }
-                Err(original_patch) => {
-                    let entity = original_patch.borrow();
-                    let kind = entity.kind();
-                    let note = format!(
-                        "'{identifier}' is {a} {kind}",
-                        identifier = entity.identifier(),
-                        a = crate::utils::string_util::indefinite_article(kind),
-                    );
-
-                    Diagnostic::new(Lint::IncorrectDocComment {
-                        message: format!(
-                            "comment has a 'throws' tag for '{}', but it is not a throwable type",
-                            entity.identifier(),
-                        ),
-                    })
-                    .add_note(
-                        format!(
-                            "{} '{}' was defined here: ",
-                            entity.kind().to_owned(),
-                            entity.identifier()
-                        ),
-                        Some(entity.span()),
-                    )
-                    .add_note("operations can only throw exceptions", None)
-                    .add_note(note, Some(entity.span()))
-                    .set_span(tag.span())
-                    .set_scope(scope)
-                    .push_into(self.diagnostics);
-                }
             }
         }
     }

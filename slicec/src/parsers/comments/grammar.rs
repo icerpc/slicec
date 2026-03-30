@@ -46,7 +46,6 @@ fn create_doc_comment(overview: Option<Message>, start: Location, file: &str) ->
         overview,
         params: Vec::new(),
         returns: Vec::new(),
-        throws: Vec::new(),
         see: Vec::new(),
         span,
     }

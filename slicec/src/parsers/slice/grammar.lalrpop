@@ -30,7 +30,6 @@ extern {
         // Definition keywords
         module_keyword => TokenKind::ModuleKeyword,
         struct_keyword => TokenKind::StructKeyword,
-        exception_keyword => TokenKind::ExceptionKeyword,
         interface_keyword => TokenKind::InterfaceKeyword,
         enum_keyword => TokenKind::EnumKeyword,
         custom_keyword => TokenKind::CustomKeyword,
@@ -65,7 +64,6 @@ extern {
         mode_keyword => TokenKind::ModeKeyword,
         stream_keyword => TokenKind::StreamKeyword,
         tag_keyword => TokenKind::TagKeyword,
-        throws_keyword => TokenKind::ThrowsKeyword,
         unchecked_keyword => TokenKind::UncheckedKeyword,
 
         // Brackets
@@ -121,7 +119,6 @@ Module: OwnedPtr<Module> = {
 
 Definition: Definition = {
     Struct => Definition::Struct(parser.ast.add_named_element(<>)),
-    Exception => Definition::Exception(parser.ast.add_named_element(<>)),
     Interface => Definition::Interface(parser.ast.add_named_element(<>)),
     Enum => Definition::Enum(parser.ast.add_named_element(<>)),
     CustomType => Definition::CustomType(parser.ast.add_named_element(<>)),
@@ -132,12 +129,6 @@ Struct: OwnedPtr<Struct> = {
     <p: Prelude> <l1: @L> <ck: compact_keyword?> <l2: @L> struct_keyword <i: ContainerIdentifier> <r: @R> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
         let l = if ck.is_some() { l1 } else { l2 };
         construct_struct(parser, p, ck.is_some(), i, dms, Span::new(l, r, parser.file_name))
-    },
-}
-
-Exception: OwnedPtr<Exception> = {
-    <p: Prelude> <l: @L> exception_keyword <i: ContainerIdentifier> <r: @R> <tr: (":" <TypeRef>)?> "{" <dms: UndelimitedList<Field>> "}" ContainerEnd => {
-        construct_exception(parser, p, i, tr, dms, Span::new(l, r, parser.file_name))
     },
 }
 
@@ -155,10 +146,9 @@ Interface: OwnedPtr<Interface> = {
 }
 
 Operation: OwnedPtr<Operation> = {
-    <p: Prelude> <l1: @L> <ik: idempotent_keyword?> <l2: @L> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ReturnType?> <r1: @R> <es: ExceptionSpecification?> <r2: @R> ContainerEnd => {
+    <p: Prelude> <l1: @L> <ik: idempotent_keyword?> <l2: @L> <i: ContainerIdentifier> "(" <ps: UndelimitedList<Parameter>> ")" <rt: ReturnType?> <r: @R> ContainerEnd => {
         let l = if ik.is_some() { l1 } else { l2 };
-        let r = if es.is_some() { r2 } else { r1 };
-        construct_operation(parser, p, ik.is_some(), i, ps, rt, es, Span::new(l, r, parser.file_name))
+        construct_operation(parser, p, ik.is_some(), i, ps, rt, Span::new(l, r, parser.file_name))
     },
 }
 
@@ -177,11 +167,6 @@ ReturnType: Vec<OwnedPtr<Parameter>> = {
         check_return_tuple(parser, &ps, Span::new(l, r, parser.file_name));
         ps
     },
-}
-
-ExceptionSpecification: Vec<TypeRef> = {
-    throws_keyword <TypeRef> => vec![<>],
-    throws_keyword "(" <NonEmptyCommaList<TypeRef>> ")" => <>,
 }
 
 Enum: OwnedPtr<Enum> = {

@@ -25,7 +25,6 @@ extern {
         // Tag keywords
         param_keyword => TokenKind::ParamKeyword,
         returns_keyword => TokenKind::ReturnsKeyword,
-        throws_keyword => TokenKind::ThrowsKeyword,
         see_keyword => TokenKind::SeeKeyword,
         link_keyword => TokenKind::LinkKeyword,
 
@@ -47,9 +46,6 @@ pub DocComment: DocComment = {
     <mut comment: DocComment> <returns_block: ReturnsBlock> => {
         append_tag_to_comment!(comment, returns, returns_block)
     },
-    <mut comment: DocComment> <throws_block: ThrowsBlock> => {
-        append_tag_to_comment!(comment, throws, throws_block)
-    },
     <mut comment: DocComment> <see_block: SeeBlock> => {
         append_tag_to_comment!(comment, see, see_block)
     },
@@ -66,14 +62,6 @@ ReturnsBlock: ReturnsTag = {
     <l: @L> returns_keyword <identifier: Identifier?> <r: @R> <message: Section> => {
         let span = Span::new(l, r, comment_parser.file_name);
         ReturnsTag { identifier, message, span }
-    },
-}
-
-ThrowsBlock: ThrowsTag = {
-    <l: @L> throws_keyword <identifier: ScopedIdentifier> <r: @R> <message: Section> => {
-        let span = Span::new(l, r, comment_parser.file_name);
-        let thrown_type = TypeRefDefinition::Unpatched(identifier);
-        ThrowsTag { thrown_type, message, span }
     },
 }
 
