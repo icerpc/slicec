@@ -242,18 +242,6 @@ impl EncodeInto for &MessageComponent {
     }
 }
 
-pub struct Arguments(pub Vec<(String, String)>);
-impl EncodeInto<Slice2> for Arguments {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
-        encoder.encode_size(self.0.len())?;
-        for (e1, e2) in &self.0 {
-            encoder.encode(e1)?;
-            encoder.encode(e2)?;
-        }
-        Ok(())
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct SliceFile {
     pub path: String,
