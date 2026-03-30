@@ -59,7 +59,6 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             // Definition keywords
             "module_keyword" => tokens::TokenKind::ModuleKeyword.to_string(),
             "struct_keyword" => tokens::TokenKind::StructKeyword.to_string(),
-            "exception_keyword" => tokens::TokenKind::ExceptionKeyword.to_string(),
             "interface_keyword" => tokens::TokenKind::InterfaceKeyword.to_string(),
             "enum_keyword" => tokens::TokenKind::EnumKeyword.to_string(),
             "custom_keyword" => tokens::TokenKind::CustomKeyword.to_string(),
@@ -94,7 +93,6 @@ fn generate_message(expected: &[String], found: impl std::fmt::Display) -> Strin
             "mode_keyword" => tokens::TokenKind::ModeKeyword.to_string(),
             "stream_keyword" => tokens::TokenKind::StreamKeyword.to_string(),
             "tag_keyword" => tokens::TokenKind::TagKeyword.to_string(),
-            "throws_keyword" => tokens::TokenKind::ThrowsKeyword.to_string(),
             "unchecked_keyword" => tokens::TokenKind::UncheckedKeyword.to_string(),
 
             // Brackets

@@ -8,7 +8,6 @@ pub struct DocComment {
     pub overview: Option<Message>,
     pub params: Vec<ParamTag>,
     pub returns: Vec<ReturnsTag>,
-    pub throws: Vec<ThrowsTag>,
     pub see: Vec<SeeTag>,
     pub span: Span,
 }
@@ -25,22 +24,6 @@ pub struct ReturnsTag {
     pub identifier: Option<Identifier>,
     pub message: Message,
     pub span: Span,
-}
-
-#[derive(Debug)]
-pub struct ThrowsTag {
-    pub thrown_type: TypeRefDefinition<Exception>,
-    pub message: Message,
-    pub span: Span,
-}
-
-impl ThrowsTag {
-    pub fn thrown_type(&self) -> Result<&Exception, &Identifier> {
-        match &self.thrown_type {
-            TypeRefDefinition::Patched(ptr) => Ok(ptr.borrow()),
-            TypeRefDefinition::Unpatched(identifier) => Err(identifier),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -91,8 +74,6 @@ implement_Element_for!(ParamTag, "param tag");
 implement_Symbol_for!(ParamTag);
 implement_Element_for!(ReturnsTag, "returns tag");
 implement_Symbol_for!(ReturnsTag);
-implement_Element_for!(ThrowsTag, "throws tag");
-implement_Symbol_for!(ThrowsTag);
 implement_Element_for!(SeeTag, "see tag");
 implement_Symbol_for!(SeeTag);
 implement_Element_for!(LinkTag, "link tag");

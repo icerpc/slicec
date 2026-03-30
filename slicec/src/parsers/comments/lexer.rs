@@ -121,7 +121,6 @@ impl<'input> Lexer<'input> {
         let token = match ident {
             "param" => Ok((start_location, TokenKind::ParamKeyword, self.cursor)),
             "returns" => Ok((start_location, TokenKind::ReturnsKeyword, self.cursor)),
-            "throws" => Ok((start_location, TokenKind::ThrowsKeyword, self.cursor)),
             "see" => Ok((start_location, TokenKind::SeeKeyword, self.cursor)),
             "link" => Ok((start_location, TokenKind::LinkKeyword, self.cursor)),
             "" => Err((start_location, ErrorKind::MissingTag, self.cursor)),
@@ -133,10 +132,7 @@ impl<'input> Lexer<'input> {
         if let Ok((start, token_kind, end)) = &token {
             let is_valid = match token_kind {
                 // These tags are never valid inline.
-                TokenKind::ParamKeyword
-                | TokenKind::ReturnsKeyword
-                | TokenKind::ThrowsKeyword
-                | TokenKind::SeeKeyword => !is_inline,
+                TokenKind::ParamKeyword | TokenKind::ReturnsKeyword | TokenKind::SeeKeyword => !is_inline,
 
                 // These tags are only valid inline.
                 TokenKind::LinkKeyword => is_inline,

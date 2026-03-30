@@ -24,7 +24,6 @@ pub enum TokenKind<'input> {
     // Tag keywords
     ParamKeyword,   // "@param"
     ReturnsKeyword, // "@returns"
-    ThrowsKeyword,  // "@throws"
     SeeKeyword,     // "@see"
     LinkKeyword,    // "@link"
 

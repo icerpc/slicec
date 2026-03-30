@@ -10,7 +10,6 @@ pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: 
 
     only_operations_have_parameters(comment, commentable, diagnostics);
     only_operations_can_return(comment, commentable, diagnostics);
-    only_operations_can_throw(comment, commentable, diagnostics);
 }
 
 fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
@@ -26,14 +25,6 @@ fn only_operations_can_return(comment: &DocComment, entity: &dyn Commentable, di
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for returns_tag in &comment.returns {
             report_only_operation_error(returns_tag, returns_tag.message.span(), entity, diagnostics);
-        }
-    }
-}
-
-fn only_operations_can_throw(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
-    if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
-        for throws_tag in &comment.throws {
-            report_only_operation_error(throws_tag, throws_tag.message.span(), entity, diagnostics);
         }
     }
 }
@@ -57,7 +48,6 @@ fn report_only_operation_error(
     let action_phrase = match tag_kind {
         "param" => "have parameters",
         "returns" => "return",
-        "throws" => "throw",
         _ => unreachable!("'report_only_operation_error' was called with unsupported tag '{tag_kind}'"),
     };
 

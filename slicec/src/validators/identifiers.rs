@@ -65,10 +65,6 @@ impl<'a> RedefinitionChecker<'a> {
                     self.check_if_redefined(struct_def, &mut seen_definitions);
                     self.check_contents_for_redefinitions(struct_def.contents());
                 }
-                Entities::Exception(exception_def) => {
-                    self.check_if_redefined(exception_def, &mut seen_definitions);
-                    self.check_contents_for_redefinitions(exception_def.contents());
-                }
                 Entities::Interface(interface_def) => {
                     self.check_if_redefined(interface_def, &mut seen_definitions);
                     self.check_contents_for_redefinitions(interface_def.contents());

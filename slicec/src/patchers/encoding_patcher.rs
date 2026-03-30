@@ -27,10 +27,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
                 let encodings = patcher.get_supported_encodings_for(struct_ptr.borrow());
                 struct_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
-            Node::Exception(exception_ptr) => {
-                let encodings = patcher.get_supported_encodings_for(exception_ptr.borrow());
-                exception_ptr.borrow_mut().supported_encodings = Some(encodings);
-            }
             Node::Interface(interface_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(interface_ptr.borrow());
                 interface_ptr.borrow_mut().supported_encodings = Some(encodings);
@@ -244,11 +240,6 @@ fn disallowed_optional_suggestion(
     let container = container?;
 
     let identifier = match container.concrete_entity() {
-        Entities::Field(field) => match field.parent().concrete_entity() {
-            // If the field's parent is a exception, recommend using a tag.
-            Entities::Exception(..) => Some(field.identifier()),
-            _ => None,
-        },
         // If container is an operation parameter, recommend using a tag.
         Entities::Parameter(parameter) => Some(parameter.identifier()),
         _ => None,
@@ -304,32 +295,6 @@ impl ComputeSupportedEncodings for Struct {
             }
         }
         None
-    }
-}
-
-impl ComputeSupportedEncodings for Exception {
-    fn compute_supported_encodings(
-        &self,
-        patcher: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        compilation_mode: CompilationMode,
-    ) -> Option<&'static str> {
-        // Exceptions only support encodings that all its fields also support (including inherited ones).
-        for field in self.all_fields() {
-            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                field.data_type(),
-                compilation_mode,
-                field.is_tagged(),
-                Some(field),
-            ));
-        }
-
-        supported_encodings.disable(Encoding::Slice2);
-        if compilation_mode != CompilationMode::Slice1 {
-            Some("exceptions can only be defined in Slice1 mode")
-        } else {
-            None
-        }
     }
 }
 
