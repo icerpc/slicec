@@ -209,7 +209,7 @@ impl SliceFileContentsConverter {
                 GrammarDefinition::Enum(v) => converter.convert_enum(v.borrow()),
                 GrammarDefinition::CustomType(v) => Symbol::CustomType(converter.convert_custom_type(v.borrow())),
                 GrammarDefinition::TypeAlias(v) => Symbol::TypeAlias(converter.convert_type_alias(v.borrow())),
-                _ => panic!("TODO: remove classes and exceptions"),
+                _ => panic!("TODO: remove exceptions"),
             };
             converter.converted_contents.push(converted);
         }
@@ -259,7 +259,7 @@ impl SliceFileContentsConverter {
             parameters: operation.parameters().into_iter().map(|e| self.convert_parameter(e)).collect(),
             has_streamed_parameter: operation.streamed_parameter().is_some(),
             return_type: operation.return_members().into_iter().map(|e| self.convert_parameter(e)).collect(),
-            has_streamed_return: operation.streamed_return_member().is_some(), 
+            has_streamed_return: operation.streamed_return_member().is_some(),
         }
     }
 
@@ -371,8 +371,6 @@ impl SliceFileContentsConverter {
                 self.converted_contents.push(converted_symbol);
                 (self.converted_contents.len() - 1).to_string()
             }
-
-            GrammarTypes::Class(_) => panic!("TODO: remove classes!"),
         }
     }
 }

@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 mod inheritance;
-mod mode_compatibility;
 mod operations;
 
 use crate::test_helpers::*;

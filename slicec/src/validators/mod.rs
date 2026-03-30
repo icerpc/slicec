@@ -69,15 +69,6 @@ impl<'a> Visitor for ValidatorVisitor<'a> {
         validate_attributes(module_def, self.diagnostics);
     }
 
-    fn visit_class(&mut self, class: &Class) {
-        validate_common_doc_comments(class, self.diagnostics);
-        validate_attributes(class, self.diagnostics);
-
-        validate_members(class.fields(), self.diagnostics);
-
-        validate_inherited_identifiers(class.fields(), class.all_inherited_fields(), self.diagnostics);
-    }
-
     fn visit_enum(&mut self, enum_def: &Enum) {
         validate_common_doc_comments(enum_def, self.diagnostics);
         validate_attributes(enum_def, self.diagnostics);

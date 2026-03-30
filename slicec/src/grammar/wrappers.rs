@@ -23,7 +23,7 @@ macro_rules! generate_definition_wrapper {
     };
 }
 
-generate_definition_wrapper!(Struct, Class, Exception, Interface, Enum, CustomType, TypeAlias);
+generate_definition_wrapper!(Struct, Exception, Interface, Enum, CustomType, TypeAlias);
 
 macro_rules! generate_entities_wrapper {
     ($($variant:ident),*) => {
@@ -47,7 +47,7 @@ pub trait AsEntities {
 }
 
 generate_entities_wrapper!(
-    Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias
+    Struct, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias
 );
 
 macro_rules! generate_attributables_wrapper {
@@ -72,7 +72,7 @@ pub trait AsAttributables {
 }
 
 generate_attributables_wrapper!(
-    Module, Struct, Class, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias,
+    Module, Struct, Exception, Field, Interface, Operation, Parameter, Enum, Enumerator, CustomType, TypeAlias,
     TypeRef, SliceFile
 );
 
@@ -112,4 +112,4 @@ pub trait AsTypes {
     fn concrete_type(&self) -> Types<'_>;
 }
 
-generate_types_wrapper!(Struct, Class, Enum, CustomType, ResultType, Sequence, Dictionary, Primitive);
+generate_types_wrapper!(Struct, Enum, CustomType, ResultType, Sequence, Dictionary, Primitive);

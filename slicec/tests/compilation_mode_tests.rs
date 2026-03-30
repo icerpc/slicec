@@ -44,7 +44,7 @@ mod compilation_mode {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax{message: "expected one of 'doc comment', 'struct', 'exception', 'class', 'interface', 'enum', 'custom', 'typealias', 'compact', 'unchecked', '[', or '::', but found 'mode'".to_owned()});
+        let expected = Diagnostic::new(Error::Syntax{message: "expected one of 'doc comment', 'struct', 'exception', 'interface', 'enum', 'custom', 'typealias', 'compact', 'unchecked', '[', or '::', but found 'mode'".to_owned()});
         check_diagnostics(diagnostics, [expected]);
     }
 }

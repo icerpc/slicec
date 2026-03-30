@@ -13,9 +13,8 @@ mod tags {
     fn tagged_fields_must_be_optional() {
         // Arrange
         let slice = "
-            mode = Slice1
             module Test
-            class C {
+            struct C {
                 i: int32
                 s: string
                 tag(10) b: bool
@@ -66,58 +65,6 @@ mod tags {
 
         // Act/Assert
         assert_parses(slice);
-    }
-
-    #[test]
-    fn cannot_tag_a_class() {
-        // Arrange
-        let slice = "
-            mode = Slice1
-            module Test
-
-            class C {}
-
-            interface I {
-                op(tag(1) c: C?)
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::CannotTagClass {
-            identifier: "c".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test]
-    fn cannot_tag_a_container_that_contains_a_class() {
-        // Arrange
-        let slice = "
-            mode = Slice1
-            module Test
-
-            class C {}
-
-            compact struct S {
-                c: C
-            }
-
-            interface I {
-                op(tag(1) s: S?)
-            }
-        ";
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::CannotTagContainingClass {
-            identifier: "s".to_owned(),
-        });
-        check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]

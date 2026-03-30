@@ -11,7 +11,6 @@ mod typealias {
     use test_case::test_case;
 
     #[test_case("struct S {}", "S", "Slice2"; "structs")]
-    #[test_case("class C {}", "C", "Slice1"; "classes")]
     #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
     #[test_case("custom C", "C", "Slice2"; "custom types")]
     #[test_case("", "bool", "Slice2"; "primitives")]
@@ -140,7 +139,6 @@ mod typealias {
     }
 
     #[test_case("Slice1", "uint32"; "Slice1")]
-    #[test_case("Slice2", "AnyClass"; "Slice2")]
     fn reject_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
         // Arrange
         let slice = format!(
@@ -166,7 +164,6 @@ mod typealias {
         check_diagnostics(diagnostics, [expected]);
     }
 
-    #[test_case("Slice1", "AnyClass"; "Slice1")]
     #[test_case("Slice2", "uint32"; "Slice2")]
     fn allow_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
         // Arrange

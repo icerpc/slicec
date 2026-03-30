@@ -70,12 +70,11 @@ fn supports_multiple_inheritance() {
 fn must_inherit_from_interface() {
     // Arrange
     let slice = "
-        mode = Slice1
         module Test
 
-        class C {}
+        struct S {}
 
-        interface I : C {}
+        interface I : S {}
     ";
 
     // Act
@@ -84,7 +83,7 @@ fn must_inherit_from_interface() {
     // Assert
     let expected = Diagnostic::new(Error::TypeMismatch {
         expected: "interface".to_owned(),
-        actual: "class".to_owned(),
+        actual: "struct".to_owned(),
         is_concrete: true,
     });
     check_diagnostics(diagnostics, [expected]);

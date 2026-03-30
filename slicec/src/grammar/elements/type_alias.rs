@@ -31,10 +31,6 @@ impl Type for TypeAlias {
         self.underlying.fixed_wire_size()
     }
 
-    fn is_class_type(&self) -> bool {
-        self.underlying.is_class_type()
-    }
-
     fn tag_format(&self) -> Option<TagFormat> {
         self.underlying.tag_format()
     }

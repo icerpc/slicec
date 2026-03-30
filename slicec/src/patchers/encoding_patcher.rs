@@ -27,10 +27,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
                 let encodings = patcher.get_supported_encodings_for(struct_ptr.borrow());
                 struct_ptr.borrow_mut().supported_encodings = Some(encodings);
             }
-            Node::Class(class_ptr) => {
-                let encodings = patcher.get_supported_encodings_for(class_ptr.borrow());
-                class_ptr.borrow_mut().supported_encodings = Some(encodings);
-            }
             Node::Exception(exception_ptr) => {
                 let encodings = patcher.get_supported_encodings_for(exception_ptr.borrow());
                 exception_ptr.borrow_mut().supported_encodings = Some(encodings);
@@ -133,10 +129,6 @@ impl EncodingPatcher<'_> {
 
         let mut supported_encodings = match type_ref.concrete_type() {
             Types::Struct(struct_def) => self.get_supported_encodings_for(struct_def),
-            Types::Class(class_def) => {
-                allow_nullable_with_slice_1 = true;
-                self.get_supported_encodings_for(class_def)
-            }
             Types::Enum(enum_def) => self.get_supported_encodings_for(enum_def),
             Types::CustomType(custom_type) => {
                 allow_nullable_with_slice_1 = true;
@@ -182,12 +174,7 @@ impl EncodingPatcher<'_> {
                 supported_encodings.intersect_with(&value_encodings);
                 supported_encodings
             }
-            Types::Primitive(primitive) => {
-                if *primitive == Primitive::AnyClass {
-                    allow_nullable_with_slice_1 = true;
-                }
-                primitive.supported_encodings()
-            }
+            Types::Primitive(primitive) => primitive.supported_encodings(),
         };
 
         // Optional types cannot be used in Slice1 mode (with some exceptions).
@@ -258,8 +245,8 @@ fn disallowed_optional_suggestion(
 
     let identifier = match container.concrete_entity() {
         Entities::Field(field) => match field.parent().concrete_entity() {
-            // If the field's parent is a class or exception, recommend using a tag.
-            Entities::Class(..) | Entities::Exception(..) => Some(field.identifier()),
+            // If the field's parent is a exception, recommend using a tag.
+            Entities::Exception(..) => Some(field.identifier()),
             _ => None,
         },
         // If container is an operation parameter, recommend using a tag.
@@ -317,39 +304,6 @@ impl ComputeSupportedEncodings for Struct {
             }
         }
         None
-    }
-}
-
-impl ComputeSupportedEncodings for Class {
-    fn compute_supported_encodings(
-        &self,
-        patcher: &mut EncodingPatcher,
-        supported_encodings: &mut SupportedEncodings,
-        compilation_mode: CompilationMode,
-    ) -> Option<&'static str> {
-        // Insert a dummy entry for the class into the cache to prevent infinite lookup cycles.
-        // Cycles are allowed with classes, but the only encoding that supports classes is Slice1,
-        // so using this approach to break cycles will still yield the correct supported encodings.
-        patcher
-            .supported_encodings_cache
-            .insert(self.parser_scoped_identifier(), SupportedEncodings::dummy());
-        // Classes only support encodings that all its fields also support
-        // (including inherited ones).
-        for field in self.all_fields() {
-            supported_encodings.intersect_with(&patcher.get_supported_encodings_for_type_ref(
-                field.data_type(),
-                compilation_mode,
-                field.is_tagged(),
-                Some(field),
-            ));
-        }
-
-        supported_encodings.disable(Encoding::Slice2);
-        if compilation_mode != CompilationMode::Slice1 {
-            Some("classes can only be defined in Slice1 mode")
-        } else {
-            None
-        }
     }
 }
 

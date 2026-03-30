@@ -34,7 +34,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     for node in compilation_state.ast.as_slice() {
         match node {
             Node::Struct(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
-            Node::Class(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Exception(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Field(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
             Node::Interface(ptr) => patcher.compute_patches_for(ptr.borrow(), &compilation_state.ast),
@@ -51,7 +50,6 @@ pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
     for node in compilation_state.ast.as_mut_slice() {
         match node {
             Node::Struct(ptr) => patch_element!(ptr, patcher),
-            Node::Class(ptr) => patch_element!(ptr, patcher),
             Node::Exception(ptr) => patch_element!(ptr, patcher),
             Node::Field(ptr) => patch_element!(ptr, patcher),
             Node::Interface(ptr) => patch_element!(ptr, patcher),
