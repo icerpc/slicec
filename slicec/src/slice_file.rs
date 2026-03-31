@@ -155,26 +155,6 @@ impl SliceFile {
     }
 }
 
-pub fn compute_sha256_hash_of_source_files(files: &[SliceFile]) -> String {
-    use sha2::{Digest, Sha256};
-
-    // Filter out any reference files, and sort the source files which remain.
-    let mut sorted_sources: Vec<&SliceFile> = files.iter().filter(|f| f.is_source).collect();
-    sorted_sources.sort_by(|a, b| a.filename.cmp(&b.filename));
-
-    // Hash the sorted source files.
-    // Included in the hash are the files' names (no path, just filenames), and their raw (unparsed) content.
-    let mut hash_engine = Sha256::new();
-    for file in sorted_sources {
-        hash_engine.update(&file.filename);
-        hash_engine.update(&file.raw_text);
-    }
-
-    // Return the hash engine's final result, formatted as a lowercase-hexadecimal string.
-    // The hash engine guarantees that this string will have 64 chars (representing 32 bytes, or 256 bits).
-    format!("{:x}", hash_engine.finalize())
-}
-
 implement_Attributable_for!(SliceFile);
 
 fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> String {

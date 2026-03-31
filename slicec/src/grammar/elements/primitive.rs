@@ -23,26 +23,6 @@ pub enum Primitive {
 }
 
 impl Primitive {
-    pub fn is_numeric(&self) -> bool {
-        matches!(
-            self,
-            Self::Int8
-                | Self::UInt8
-                | Self::Int16
-                | Self::UInt16
-                | Self::Int32
-                | Self::UInt32
-                | Self::VarInt32
-                | Self::VarUInt32
-                | Self::Int64
-                | Self::UInt64
-                | Self::VarInt62
-                | Self::VarUInt62
-                | Self::Float32
-                | Self::Float64
-        )
-    }
-
     pub fn is_integral(&self) -> bool {
         matches!(
             self,
@@ -58,13 +38,6 @@ impl Primitive {
                 | Self::UInt64
                 | Self::VarInt62
                 | Self::VarUInt62
-        )
-    }
-
-    pub fn is_unsigned_numeric(&self) -> bool {
-        matches!(
-            self,
-            Self::UInt8 | Self::UInt16 | Self::UInt32 | Self::VarUInt32 | Self::UInt64 | Self::VarUInt62
         )
     }
 
@@ -94,27 +67,6 @@ impl Primitive {
 impl Type for Primitive {
     fn type_string(&self) -> String {
         self.kind().to_owned()
-    }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        match self {
-            Self::Bool => Some(1),
-            Self::Int8 => Some(1),
-            Self::UInt8 => Some(1),
-            Self::Int16 => Some(2),
-            Self::UInt16 => Some(2),
-            Self::Int32 => Some(4),
-            Self::UInt32 => Some(4),
-            Self::VarInt32 => None,
-            Self::VarUInt32 => None,
-            Self::Int64 => Some(8),
-            Self::UInt64 => Some(8),
-            Self::VarInt62 => None,
-            Self::VarUInt62 => None,
-            Self::Float32 => Some(4),
-            Self::Float64 => Some(8),
-            Self::String => None,
-        }
     }
 }
 

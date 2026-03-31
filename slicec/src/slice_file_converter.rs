@@ -183,7 +183,7 @@ impl From<&GrammarMessageComponent> for MessageComponent {
 // type uses a sequence of dictionaries. To handle this, we need to keep some state (`converted_contents`), which
 // symbols can be pushed into at any time. Since there's no way to know how many symbols a definition will need upfront.
 #[derive(Debug)]
-pub struct SliceFileContentsConverter {
+struct SliceFileContentsConverter {
     converted_contents: Vec<Symbol>,
 }
 
@@ -195,7 +195,7 @@ impl SliceFileContentsConverter {
     /// and storing them. In addition to top-level definitions, the returned [`Vec`] also contains [`Symbol`]s for each
     /// anonymous type encountered while iterating. Anonymous types always appear in the returned contents _before_
     /// the [`Symbol`]s that referenced them.
-    pub fn convert(contents: &[GrammarDefinition]) -> Vec<Symbol> {
+    fn convert(contents: &[GrammarDefinition]) -> Vec<Symbol> {
         // Create a new converter.
         let mut converter = SliceFileContentsConverter {
             converted_contents: Vec::new()
@@ -256,9 +256,15 @@ impl SliceFileContentsConverter {
             entity_info: get_entity_info_for(operation),
             is_idempotent: operation.is_idempotent,
             parameters: operation.parameters().into_iter().map(|e| self.convert_parameter(e)).collect(),
-            has_streamed_parameter: operation.streamed_parameter().is_some(),
+            has_streamed_parameter: operation
+                .parameters
+                .last()
+                .is_some_and(|parameter| parameter.borrow().is_streamed),
             return_type: operation.return_members().into_iter().map(|e| self.convert_parameter(e)).collect(),
-            has_streamed_return: operation.streamed_return_member().is_some(),
+            has_streamed_return: operation
+                .return_type
+                .last()
+                .is_some_and(|parameter| parameter.borrow().is_streamed),
         }
     }
 

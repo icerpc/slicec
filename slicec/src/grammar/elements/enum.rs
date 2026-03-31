@@ -21,27 +21,11 @@ impl Enum {
     pub fn enumerators(&self) -> Vec<&Enumerator> {
         self.contents()
     }
-
-    pub fn get_min_max_values(&self) -> Option<(i128, i128)> {
-        let values = self.enumerators.iter().map(|enumerator| enumerator.borrow().value());
-
-        // There might not be a minimum value if the enum is empty.
-        values.clone().min().map(|min| {
-            (
-                min,
-                values.max().unwrap(), // A 'min' guarantees a 'max' exists too, so unwrap is safe.
-            )
-        })
-    }
 }
 
 impl Type for Enum {
     fn type_string(&self) -> String {
         self.identifier().to_owned()
-    }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        self.underlying.as_ref().and_then(TypeRef::fixed_wire_size)
     }
 }
 

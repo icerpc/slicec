@@ -27,7 +27,6 @@ lalrpop-util = "0.22.2"
 # derive feature allows structs to derive Serialize automatically
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
-sha2 = "0.10.9"
 
 [build-dependencies]
 # The default features enable a built-in lexer. We supply our own lexer so we don't need these.

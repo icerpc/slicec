@@ -3,6 +3,8 @@
 //! This module contains the handwritten encoding code for the Slice-compiler definitions.
 //! After rust code-gen has been implemented, this file will be deleted, and we will use generated definitions instead.
 
+#![allow(dead_code)]
+
 use slice_codec::slice2::Slice2;
 
 use slice_codec::buffer::{InputSource, OutputTarget};

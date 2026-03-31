@@ -17,10 +17,6 @@ impl Type for CustomType {
     fn type_string(&self) -> String {
         self.identifier().to_owned()
     }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        None
-    }
 }
 
 implement_Element_for!(CustomType, "custom type");

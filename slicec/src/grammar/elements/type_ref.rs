@@ -57,15 +57,6 @@ impl<T: Type + ?Sized> TypeRef<T> {
         }
         s
     }
-
-    // This intentionally shadows the trait method of the same name on `Type`.
-    pub fn fixed_wire_size(&self) -> Option<u32> {
-        if self.is_optional {
-            None
-        } else {
-            T::fixed_wire_size(self)
-        }
-    }
 }
 
 impl<T: Element + ?Sized> std::ops::Deref for TypeRef<T> {

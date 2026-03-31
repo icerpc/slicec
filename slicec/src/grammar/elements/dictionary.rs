@@ -16,10 +16,6 @@ impl Type for Dictionary {
             self.value_type.type_string(),
         )
     }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        None
-    }
 }
 
 implement_Element_for!(Dictionary, "dictionary");

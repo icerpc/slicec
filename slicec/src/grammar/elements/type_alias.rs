@@ -24,10 +24,6 @@ impl Type for TypeAlias {
     fn type_string(&self) -> String {
         self.identifier().to_owned()
     }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        self.underlying.fixed_wire_size()
-    }
 }
 
 implement_Element_for!(TypeAlias, "type alias");

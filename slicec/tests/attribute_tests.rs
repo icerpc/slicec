@@ -159,9 +159,10 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let attribute = operation.find_attribute::<SlicedFormat>().unwrap();
 
-            assert!(operation.slice_classes_in_arguments());
-            assert!(operation.slice_classes_in_return());
+            assert!(attribute.sliced_args);
+            assert!(attribute.sliced_return);
         }
 
         #[test]
@@ -417,9 +418,10 @@ mod attributes {
 
             // Assert
             let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let attribute = operation.find_attribute::<Compress>().unwrap();
 
-            assert!(operation.compress_arguments());
-            assert!(operation.compress_return());
+            assert!(attribute.compress_args);
+            assert!(attribute.compress_return);
         }
 
         #[test]

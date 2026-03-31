@@ -49,9 +49,6 @@ pub trait AttributeFunctions {
     /// Returns the first attribute of the specified type that is applied to this element.
     /// If no attributes of the specified type can be found, this returns `None`.
     fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T>;
-
-    /// Returns all the attributes applied to this element that are of the specified type.
-    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T>;
 }
 
 // Blanket impl to ensure that everything implementing `Attributable` also gets `AttributeFunctions` for free.
@@ -62,10 +59,6 @@ impl<A: Attributable + ?Sized> AttributeFunctions for A {
 
     fn find_attribute<T: AttributeKind + 'static>(&self) -> Option<&T> {
         self.attributes().into_iter().find_map(Attribute::downcast)
-    }
-
-    fn find_attributes<T: AttributeKind + 'static>(&self) -> Vec<&T> {
-        self.attributes().into_iter().filter_map(Attribute::downcast).collect()
     }
 }
 
@@ -98,7 +91,6 @@ pub trait Commentable: Entity {
 
 pub trait Type: Element + AsTypes {
     fn type_string(&self) -> String;
-    fn fixed_wire_size(&self) -> Option<u32>;
 }
 
 macro_rules! implement_Element_for {
