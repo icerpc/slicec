@@ -216,7 +216,6 @@ where
             "string" => TokenKind::StringKeyword,
             "compact" => TokenKind::CompactKeyword,
             "idempotent" => TokenKind::IdempotentKeyword,
-            "mode" => TokenKind::ModeKeyword,
             "stream" => TokenKind::StreamKeyword,
             "tag" => TokenKind::TagKeyword,
             "unchecked" => TokenKind::UncheckedKeyword,

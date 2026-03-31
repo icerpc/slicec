@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct ResultType {
@@ -20,17 +19,6 @@ impl Type for ResultType {
 
     fn fixed_wire_size(&self) -> Option<u32> {
         None
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        unreachable!("tag format was called on a Slice2 only type!")
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        let mut encodings = self.success_type.supported_encodings();
-        encodings.intersect_with(&self.failure_type.supported_encodings());
-        encodings.disable(Encoding::Slice1);
-        encodings
     }
 }
 

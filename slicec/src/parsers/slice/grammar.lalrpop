@@ -61,7 +61,6 @@ extern {
         // Other keywords
         compact_keyword => TokenKind::CompactKeyword,
         idempotent_keyword => TokenKind::IdempotentKeyword,
-        mode_keyword => TokenKind::ModeKeyword,
         stream_keyword => TokenKind::StreamKeyword,
         tag_keyword => TokenKind::TagKeyword,
         unchecked_keyword => TokenKind::UncheckedKeyword,
@@ -91,25 +90,11 @@ extern {
 
 // Grammar Rules
 
-// TODO we can probably allow module to come before or after the compilation mode now.
-pub SliceFile: (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>) = {
-    <sfp: SliceFilePrelude> <m: Module?> <ds: Definition*> => (sfp.0, sfp.1, m, ds),
+pub SliceFile: (Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definition>) = {
+    <sfp: SliceFilePrelude> <m: Module?> <ds: Definition*> => (sfp, m, ds),
 }
 
-SliceFilePrelude: (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>) = {
-    => (None, Vec::new()),
-    <sfp: SliceFilePrelude> <fe: FileCompilationMode> => handle_file_compilation_mode(parser, sfp, fe),
-    <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
-        sfp.1.push(fa);
-        sfp
-    },
-}
-
-FileCompilationMode: FileCompilationMode = {
-    <l: @L> mode_keyword "=" <i: Identifier> <r: @R> => {
-        construct_file_compilation_mode(parser, i, Span::new(l, r, parser.file_name))
-    },
-}
+SliceFilePrelude = <FileAttribute*>;
 
 Module: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: RelativeIdentifier> <r: @R> => {

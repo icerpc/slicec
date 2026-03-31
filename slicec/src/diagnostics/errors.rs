@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::grammar::CompilationMode;
 use crate::implement_diagnostic_functions;
 use crate::utils::string_util::indefinite_article;
 
@@ -35,37 +34,6 @@ pub enum Error {
 
     /// Structs must be compact to be used as a dictionary key type.
     StructKeyMustBeCompact,
-
-    // ----------------  Compilation Mode Errors ---------------- //
-    /// The user specified the compilation mode multiple times in a single Slice file.
-    MultipleCompilationModes,
-
-    /// A Slice construct was defined in a compilation mode that it isn't supported by.
-    NotSupportedInCompilationMode {
-        /// The kind that is not supported.
-        kind: String,
-        /// The identifier of the kind that is not supported.
-        identifier: String,
-        /// The compilation mode the construct was defined in.
-        mode: CompilationMode,
-    },
-
-    /// Optionals of this kind cannot be used in Slice1 mode.
-    OptionalsNotSupported {
-        /// The kind that is not supported.
-        kind: String,
-    },
-
-    /// Streamed parameters cannot be used in Slice1 mode.
-    StreamedParametersNotSupported,
-
-    /// A slice type was used in a compilation mode that it isn't supported by.
-    UnsupportedType {
-        /// The kind that was used.
-        kind: String,
-        /// The compilation mode the type was used in.
-        mode: CompilationMode,
-    },
 
     // ----------------  Enum Errors ---------------- //
     /// Enumerator values must be unique.
@@ -194,12 +162,6 @@ pub enum Error {
     InvalidIntegerLiteral {
         /// The base of the integer literal; Ex: 16 (hex), 10 (dec).
         base: u32,
-    },
-
-    /// An invalid compilation mode was specified.
-    InvalidCompilationMode {
-        /// The compilation mode that was specified.
-        mode: String,
     },
 
     /// An self-referential type had an infinite size cycle.
@@ -411,110 +373,75 @@ implement_diagnostic_functions!(
     ),
     (
         "E024",
-        NotSupportedInCompilationMode,
-        format!("{kind} '{identifier}' cannot be defined in {mode} mode"),
-        kind, identifier, mode
-    ),
-    (
-        "E025",
-        UnsupportedType,
-        format!("the type '{kind}' cannot be used in {mode} mode"),
-        kind,
-        mode
-    ),
-    (
-        "E026",
-        OptionalsNotSupported,
-        format!("optionals of type '{kind}' cannot be used in Slice1 mode"),
-        kind
-    ),
-    (
-        "E027",
-        StreamedParametersNotSupported,
-        "streamed parameters cannot be used in Slice1 mode"
-    ),
-    (
-        "E028",
         UnexpectedAttribute,
         format!("unexpected attribute '{attribute}'"),
         attribute
     ),
     (
-        "E029",
+        "E025",
         MissingRequiredArgument,
         format!("missing required argument '{argument}'"),
         argument
     ),
     (
-        "E030",
+        "E026",
         TooManyArguments,
         format!("too many arguments, expected '{expected}'"),
         expected
     ),
     (
-        "E031",
+        "E027",
         MissingRequiredAttribute,
         format!("missing required attribute '{attribute}'"),
         attribute
     ),
     (
-        "E032",
+        "E028",
         MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E033",
+        "E029",
         IntegerLiteralOverflows,
         "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
-        "E034",
+        "E030",
         InvalidIntegerLiteral,
         format!("integer literal contains illegal characters for base-{base}"),
         base
     ),
     (
-        "E035",
-        InvalidCompilationMode,
-        format!("'{mode}' is not a valid Slice compilation mode"),
-        mode
-    ),
-    (
-        "E036",
-        MultipleCompilationModes,
-        "the compilation mode can only be specified once per file"
-    ),
-    (
-        "E037",
+        "E031",
         InfiniteSizeCycle,
         format!("type {type_id} illegally references itself: {cycle}"),
         type_id, cycle
     ),
     (
-        "E038",
+        "E032",
         DoesNotExist,
         format!("no element with identifier '{identifier}' exists"),
         identifier
     ),
     (
-        "E039",
+        "E033",
         AttributeIsNotRepeatable,
         format!("duplicate attribute '{attribute}'"),
         attribute
     ),
     (
-        "E040",
+        "E034",
         TypeAliasOfOptional,
         "optional types cannot be aliased"
     ),
     (
-        "E041",
+        "E035",
         EnumeratorCannotContainFields,
         format!("invalid enumerator '{enumerator_identifier}': fields cannot be declared within enums that specify an underlying type"),
         enumerator_identifier
     ),
     (
-        "E042",
+        "E036",
         CannotBeCompact,
         format!("'{kind}' '{identifier}' cannot be marked compact"),
         kind, identifier

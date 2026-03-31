@@ -2,7 +2,6 @@
 
 use super::super::*;
 use crate::slice_file::Span;
-use crate::supported_encodings::SupportedEncodings;
 use crate::utils::ptr_util::WeakPtr;
 
 #[derive(Debug)]
@@ -14,7 +13,6 @@ pub struct Struct {
     pub attributes: Vec<WeakPtr<Attribute>>,
     pub comment: Option<DocComment>,
     pub span: Span,
-    pub(crate) supported_encodings: Option<SupportedEncodings>,
 }
 
 impl Struct {
@@ -38,18 +36,6 @@ impl Type for Struct {
             .collect::<Option<Vec<u32>>>() // ensure all fields are of fixed size; will return none if any are not
             .map(|sizes| sizes.iter().sum())
             .map(|size: u32| size + u32::from(!self.is_compact))
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        if self.fixed_wire_size().is_some() {
-            Some(TagFormat::VSize)
-        } else {
-            Some(TagFormat::FSize)
-        }
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.supported_encodings.clone().unwrap()
     }
 }
 

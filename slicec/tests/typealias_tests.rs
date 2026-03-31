@@ -10,19 +10,18 @@ mod typealias {
     use slicec::slice_file::Span;
     use test_case::test_case;
 
-    #[test_case("struct S {}", "S", "Slice2"; "structs")]
-    #[test_case("enum E { Foo }", "E", "Slice1"; "enums")]
-    #[test_case("custom C", "C", "Slice2"; "custom types")]
-    #[test_case("", "bool", "Slice2"; "primitives")]
-    #[test_case("", "Sequence<bool>", "Slice2"; "sequences")]
-    #[test_case("", "Dictionary<bool, bool>", "Slice2"; "dictionaries")]
-    #[test_case("typealias T = bool", "T", "Slice2"; "type aliases")]
-    #[test_case("", "Result<bool, string>", "Slice2"; "result types")]
-    fn can_have_type_alias_of(definition: &str, identifier: &str, mode: &str) {
+    #[test_case("struct S {}", "S"; "structs")]
+    #[test_case("enum E { Foo }", "E"; "enums")]
+    #[test_case("custom C", "C"; "custom types")]
+    #[test_case("", "bool"; "primitives")]
+    #[test_case("", "Sequence<bool>"; "sequences")]
+    #[test_case("", "Dictionary<bool, bool>"; "dictionaries")]
+    #[test_case("typealias T = bool", "T"; "type aliases")]
+    #[test_case("", "Result<bool, string>"; "result types")]
+    fn can_have_type_alias_of(definition: &str, identifier: &str) {
         // Arrange
         let slice = format!(
             "
-                mode = {mode}
                 module Test
                 {definition}
                 typealias Alias = {identifier}
@@ -113,7 +112,7 @@ mod typealias {
     }
 
     #[test]
-    fn cannot_be_optional() {
+    fn underlying_type_cannot_be_optional() {
         // Arrange
         let slice = "
             module Test
@@ -136,50 +135,5 @@ mod typealias {
             );
 
         check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test_case("Slice1", "uint32"; "Slice1")]
-    fn reject_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
-        // Arrange
-        let slice = format!(
-            "
-            mode = {mode}
-            module Test
-            typealias Foo = {underlying_type}
-            "
-        );
-
-        // Act
-        let diagnostics = parse_for_diagnostics(slice);
-
-        // Assert
-        let expected = Diagnostic::new(Error::UnsupportedType {
-            kind: underlying_type.to_owned(),
-            mode: match mode {
-                "Slice1" => CompilationMode::Slice1,
-                "Slice2" => CompilationMode::Slice2,
-                _ => panic!(),
-            },
-        });
-        check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test_case("Slice2", "uint32"; "Slice2")]
-    fn allow_underlying_types_based_on_mode(mode: &str, underlying_type: &str) {
-        // Arrange
-        let slice = format!(
-            "
-            mode = {mode}
-            module Test
-            typealias Foo = {underlying_type}
-            "
-        );
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let type_alias = ast.find_element::<TypeAlias>("Test::Foo").unwrap();
-        assert_eq!(type_alias.underlying.type_string(), underlying_type);
     }
 }

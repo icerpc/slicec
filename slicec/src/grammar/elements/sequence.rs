@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
 use super::super::*;
-use crate::supported_encodings::SupportedEncodings;
 
 #[derive(Debug)]
 pub struct Sequence {
@@ -38,18 +37,6 @@ impl Type for Sequence {
 
     fn fixed_wire_size(&self) -> Option<u32> {
         None
-    }
-
-    fn tag_format(&self) -> Option<TagFormat> {
-        match self.element_type.fixed_wire_size() {
-            Some(1) => Some(TagFormat::OptimizedVSize),
-            Some(_) => Some(TagFormat::VSize),
-            None => Some(TagFormat::FSize),
-        }
-    }
-
-    fn supported_encodings(&self) -> SupportedEncodings {
-        self.element_type.supported_encodings()
     }
 }
 

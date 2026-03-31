@@ -47,13 +47,12 @@ fn allowed_primitive_types(key_type: &str) {
     assert_parses(slice);
 }
 
-#[test_case("float32", "Slice2"; "float32")]
-#[test_case("float64", "Slice2"; "float64")]
-fn disallowed_primitive_types(key_type: &str, mode: &str) {
+#[test_case("float32")]
+#[test_case("float64")]
+fn disallowed_primitive_types(key_type: &str) {
     // Arrange
     let slice = format!(
         "
-            mode = {mode}
             module Test
             typealias Dict = Dictionary<{key_type}, uint8>
         "
@@ -103,16 +102,14 @@ fn allowed_constructed_types(key_type: &str, key_type_def: &str) {
     assert_parses(slice);
 }
 
-#[test_case("MyEnum", "enum MyEnum { A }", "enum", "Slice2" ; "enums")]
-#[test_case("MyEnum", "compact enum MyEnum { A }", "enum", "Slice2" ; "compact enums")]
-#[test_case("MyEnum", "unchecked enum MyEnum {}", "enum", "Slice2" ; "unchecked enums")]
-fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str, mode: &str) {
+#[test_case("MyEnum", "enum MyEnum { A }", "enum"; "enums")]
+#[test_case("MyEnum", "compact enum MyEnum { A }", "enum"; "compact enums")]
+#[test_case("MyEnum", "unchecked enum MyEnum {}", "enum"; "unchecked enums")]
+fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &str) {
     // Arrange
     let slice = format!(
         "
-            mode = {mode}
             module Test
-
             {key_type_def}
             typealias Dict = Dictionary<{key_type}, uint8>
         "

@@ -58,38 +58,6 @@ type RawDocComment<'a> = Vec<(&'a str, Span)>;
 
 // Grammar Rule Functions
 
-fn handle_file_compilation_mode(
-    parser: &mut Parser,
-    (previous_mode, attributes): (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>),
-    mode: FileCompilationMode,
-) -> (Option<FileCompilationMode>, Vec<WeakPtr<Attribute>>) {
-    // Compilation mode can only be set once per file.
-    if let Some(previous_file_mode) = previous_mode {
-        let span = previous_file_mode.span();
-        Diagnostic::new(Error::MultipleCompilationModes)
-            .set_span(span)
-            .add_note("the compilation mode was previously specified here", Some(span))
-            .push_into(parser.diagnostics);
-    }
-    parser.compilation_mode = mode.version;
-    (Some(mode), attributes)
-}
-
-fn construct_file_compilation_mode(parser: &mut Parser, i: Identifier, span: Span) -> FileCompilationMode {
-    let version = match i.value.as_str() {
-        "Slice1" => CompilationMode::Slice1,
-        "Slice2" => CompilationMode::Slice2,
-        _ => {
-            Diagnostic::new(Error::InvalidCompilationMode { mode: i.value })
-                .set_span(&i.span)
-                .add_note("must be 'Slice1' or 'Slice2'", None)
-                .push_into(parser.diagnostics);
-            CompilationMode::default() // Dummy
-        }
-    };
-    FileCompilationMode { version, span }
-}
-
 fn construct_module(
     parser: &mut Parser,
     (raw_comment, attributes): (RawDocComment, Vec<WeakPtr<Attribute>>),
@@ -131,7 +99,6 @@ fn construct_struct(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the fields to the struct.
@@ -184,7 +151,6 @@ fn construct_interface(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the operations to the interface.
@@ -213,7 +179,6 @@ fn construct_operation(
         parameters: Vec::new(),
         return_type: Vec::new(),
         is_idempotent,
-        encoding: parser.compilation_mode,
         parent: WeakPtr::create_uninitialized(), // Patched by its container.
         scope: parser.current_scope.clone(),
         attributes,
@@ -316,7 +281,6 @@ fn construct_enum(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
     });
 
     // Add all the enumerators to the enum.
@@ -387,7 +351,6 @@ fn construct_custom_type(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 
@@ -406,7 +369,6 @@ fn construct_type_alias(
         attributes,
         comment,
         span,
-        supported_encodings: None, // Patched by the encoding patcher.
     })
 }
 
