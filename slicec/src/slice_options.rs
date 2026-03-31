@@ -20,7 +20,13 @@ pub struct SliceOptions {
     #[arg(short = 'R', num_args = 1, action = Append, value_name = "REFERENCE")]
     pub references: Vec<String>,
 
-    #[arg(short = 'G', num_args = 1, action = Append, value_name = "GENERATOR", value_parser = plugin_parser)]
+    /// Specify a code-generator plugin that should be run after parsing and validation complete (if successful).
+    ///   Ex: '--generator /path/to/my/plugin'
+    ///
+    /// Each code-generator can be provided with arbitrary string arguments using the following syntax:
+    ///   '/path/to/my/plugin;arg1=value1;arg2 = value2;arg3;...'
+    /// Leading and trailing whitespace is stripped from arguments and their values. Argument values are optional.
+    #[arg(short = 'G', long = "generator", num_args = 1, action = Append, value_name = "GENERATOR", value_parser = plugin_parser, verbatim_doc_comment)]
     pub generators: Vec<Plugin>,
 
     /// Set the output directory for the generated code. Defaults to the current working directory.
@@ -55,7 +61,7 @@ The Slice compiler.
 Parses Slice files into a typed Abstract Syntax Tree (AST) describing the provided Slice definitions.
 This AST is encoded with Slice, and then output, to be consumed by other tools.";
 
-fn plugin_parser(s: &str) -> Result<Plugin, String> {
+fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
     // Helper enum to track what element the parser is currently parsing.
     #[derive(PartialEq, Eq)]
     enum State { Path, Key, Value }
@@ -65,6 +71,7 @@ fn plugin_parser(s: &str) -> Result<Plugin, String> {
     let mut plugin_path = String::new();
     let mut plugin_args = Vec::<(String, String)>::new();
 
+    // State for our little value parser.
     let mut string_buffer = &mut plugin_path;
     let mut state = State::Path;
 
@@ -75,7 +82,7 @@ fn plugin_parser(s: &str) -> Result<Plugin, String> {
             // The next character after this is being escaped, add it directly to the buffer without parsing.
             '\\' => match char_iter.next() {
                 Some(escaped_char) => string_buffer.push(escaped_char),
-                None => return Err("unterminated escape sequence (for a literal '\\' character, use '\\\\')".into()),
+                None => return Err("unterminated escape sequence (for a literal '\\' character, use '\\\\')"),
             },
 
             ';' => {
@@ -92,10 +99,10 @@ fn plugin_parser(s: &str) -> Result<Plugin, String> {
                 State::Path => string_buffer.push('='), // '=' has no special meaning in the plugin path.
                 State::Key => {
                     if string_buffer.is_empty() {
-                        return Err("missing argument key (ex: 'PATH;KEY=VALUE')".into());
+                        return Err("missing argument key (ex: 'PATH;KEY=VALUE')");
                     }
                     if matches!(char_iter.peek(), None | Some(';')) {
-                        return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY)".into());
+                        return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY)");
                     }
 
                     // Re-target `string_buffer` to point at the argument value's buffer (instead of the key).
@@ -103,7 +110,7 @@ fn plugin_parser(s: &str) -> Result<Plugin, String> {
                     state = State::Value;
                 }
                 State::Value => {
-                    return Err("'=' can only appear once per argument (for a literal '=' character, use '\\=')".into())
+                    return Err("'=' can only appear once per argument (for a literal '=' character, use '\\=')")
                 }
             },
 
