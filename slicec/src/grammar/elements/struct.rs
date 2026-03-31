@@ -25,18 +25,6 @@ impl Type for Struct {
     fn type_string(&self) -> String {
         self.identifier().to_owned()
     }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        // Return `None` if any of the struct's fields aren't of fixed size.
-        // Otherwise the fixed size of the struct is equal to the fixed size of its fields added together,
-        // plus 1 if the struct isn't compact (to encode TagEndMarker).
-        self.fields()
-            .into_iter()
-            .map(|field| field.data_type.fixed_wire_size())
-            .collect::<Option<Vec<u32>>>() // ensure all fields are of fixed size; will return none if any are not
-            .map(|sizes| sizes.iter().sum())
-            .map(|size: u32| size + u32::from(!self.is_compact))
-    }
 }
 
 implement_Element_for!(Struct, "struct");

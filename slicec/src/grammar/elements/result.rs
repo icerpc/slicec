@@ -16,10 +16,6 @@ impl Type for ResultType {
             self.failure_type.type_string(),
         )
     }
-
-    fn fixed_wire_size(&self) -> Option<u32> {
-        None
-    }
 }
 
 implement_Element_for!(ResultType, "result");

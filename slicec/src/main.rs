@@ -14,8 +14,9 @@ use slicec::diagnostic_emitter::DiagnosticEmitter;
 use slicec::diagnostics::Diagnostics;
 use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
-pub mod definition_types;
-pub mod slice_file_converter;
+#[allow(dead_code)]
+mod definition_types;
+mod slice_file_converter;
 
 /// Attempts to encode a set of parsed Slice files into a byte-buffer.
 /// If the encoding succeeds, this returns `Ok` with the encoded bytes,

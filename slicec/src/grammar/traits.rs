@@ -98,7 +98,6 @@ pub trait Commentable: Entity {
 
 pub trait Type: Element + AsTypes {
     fn type_string(&self) -> String;
-    fn fixed_wire_size(&self) -> Option<u32>;
 }
 
 macro_rules! implement_Element_for {
