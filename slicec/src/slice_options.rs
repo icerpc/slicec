@@ -102,7 +102,7 @@ fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
                         return Err("missing argument key (ex: 'PATH;KEY=VALUE')");
                     }
                     if matches!(char_iter.peek(), None | Some(';')) {
-                        return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY)");
+                        return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY')");
                     }
 
                     // Re-target `string_buffer` to point at the argument value's buffer (instead of the key).
