@@ -14,7 +14,6 @@ use slicec::diagnostic_emitter::DiagnosticEmitter;
 use slicec::diagnostics::Diagnostics;
 use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
-#[allow(dead_code)]
 mod definition_types;
 mod slice_file_converter;
 
