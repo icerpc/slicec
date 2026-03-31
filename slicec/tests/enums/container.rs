@@ -599,14 +599,14 @@ mod underlying_type {
     fn enumerators_can_contain_negative_values() {
         // Arrange
         let slice = "
-                module Test
+            module Test
 
-                enum E : int32 {
-                    A = -1
-                    B = -2
-                    C = -3
-                }
-            ";
+            enum E : int32 {
+                A = -1
+                B = -2
+                C = -3
+            }
+        ";
 
         // Act/Assert
         assert_parses(slice);
@@ -616,13 +616,13 @@ mod underlying_type {
     fn enumerators_can_contain_values() {
         // Arrange
         let slice = "
-                module Test
+            module Test
 
-                enum E : int16 {
-                    A = 1
-                    B = 2
-                    C = 3
-                }
+            enum E : int16 {
+                A = 1
+                B = 2
+                C = 3
+            }
             ";
 
         // Act

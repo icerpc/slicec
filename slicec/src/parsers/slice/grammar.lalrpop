@@ -94,13 +94,7 @@ pub SliceFile: (Vec<WeakPtr<Attribute>>, Option<OwnedPtr<Module>>, Vec<Definitio
     <sfp: SliceFilePrelude> <m: Module?> <ds: Definition*> => (sfp, m, ds),
 }
 
-SliceFilePrelude: Vec<WeakPtr<Attribute>> = {
-    => Vec::new(),
-    <mut sfp: SliceFilePrelude> <fa: FileAttribute> => {
-        sfp.push(fa);
-        sfp
-    },
-}
+SliceFilePrelude = <FileAttribute*>;
 
 Module: OwnedPtr<Module> = {
     <p: Prelude> <l: @L> module_keyword <i: RelativeIdentifier> <r: @R> => {

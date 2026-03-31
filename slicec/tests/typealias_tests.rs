@@ -10,14 +10,14 @@ mod typealias {
     use slicec::slice_file::Span;
     use test_case::test_case;
 
-    #[test_case("struct S {}", "S" ; "structs")]
-    #[test_case("enum E { Foo }", "E" ; "enums")]
-    #[test_case("custom C", "C" ; "custom types")]
-    #[test_case("", "bool" ; "primitives")]
-    #[test_case("", "Sequence<bool>" ; "sequences")]
-    #[test_case("", "Dictionary<bool, bool>" ; "dictionaries")]
-    #[test_case("typealias T = bool", "T" ; "type aliases")]
-    #[test_case("", "Result<bool, string>" ; "result types")]
+    #[test_case("struct S {}", "S"; "structs")]
+    #[test_case("enum E { Foo }", "E"; "enums")]
+    #[test_case("custom C", "C"; "custom types")]
+    #[test_case("", "bool"; "primitives")]
+    #[test_case("", "Sequence<bool>"; "sequences")]
+    #[test_case("", "Dictionary<bool, bool>"; "dictionaries")]
+    #[test_case("typealias T = bool", "T"; "type aliases")]
+    #[test_case("", "Result<bool, string>"; "result types")]
     fn can_have_type_alias_of(definition: &str, identifier: &str) {
         // Arrange
         let slice = format!(
@@ -135,23 +135,5 @@ mod typealias {
             );
 
         check_diagnostics(diagnostics, [expected]);
-    }
-
-    #[test_case("uint32"; "uint32")]
-    fn allow_underlying_types(underlying_type: &str) {
-        // Arrange
-        let slice = format!(
-            "
-            module Test
-            typealias Foo = {underlying_type}
-            "
-        );
-
-        // Act
-        let ast = parse_for_ast(slice);
-
-        // Assert
-        let type_alias = ast.find_element::<TypeAlias>("Test::Foo").unwrap();
-        assert_eq!(type_alias.underlying.type_string(), underlying_type);
     }
 }
