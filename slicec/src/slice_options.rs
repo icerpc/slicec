@@ -86,8 +86,16 @@ fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
             },
 
             ';' => {
-                // We only handle ';' if there's meaningful characters after it. If it's a trailing ';' we ignore it.
-                if matches!(char_iter.peek(), Some(&c2) if c2 != ';') {
+                if string_buffer.is_empty() {
+                    match state {
+                        State::Path => return Err("missing plugin path (ex: 'PATH;KEY=VALUE')"),
+                        State::Key => return Err("missing argument key (ex: 'PATH;KEY=VALUE')"),
+                        State::Value => return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY)"),
+                    }
+                }
+
+                // We only handle ';' if there's more characters after it. If it's a trailing ';' we ignore it.
+                if char_iter.peek().is_some() {
                     // Add a '(key=value)' argument pair, and re-target `string_buffer` to point at the key's buffer.
                     plugin_args.push(Default::default());
                     string_buffer = &mut plugin_args.last_mut().unwrap().0;

@@ -213,7 +213,7 @@ fn main() -> ExitCode {
                     .and_then(handle_generator_response) // Returns any diagnostics if the payload successfully decoded.
                     .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
 
-                diagnostics.extend(generator_diagnostics); // Store the plugin's diagnostics for later emission.
+                diagnostics.extend(generator_diagnostics); // Store the generator's diagnostics for later emission.
             }
         }
     }
