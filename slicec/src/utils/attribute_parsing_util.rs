@@ -52,17 +52,6 @@ pub fn check_that_at_most_one_argument_was_provided(
     }
 }
 
-/// Reports an error if the provided list of arguments doesn't have exactly 1 element.
-pub fn check_that_exactly_one_argument_was_provided(
-    arguments: &[String],
-    directive: &str,
-    span: &Span,
-    diagnostics: &mut Diagnostics,
-) {
-    check_that_arguments_were_provided(arguments, directive, span, diagnostics);
-    check_that_at_most_one_argument_was_provided(arguments, directive, span, diagnostics);
-}
-
 /// Used to report an error when an attribute is applied to something it shouldn't be.
 /// This is only called by attributes in their `validate_on` functions.
 pub fn report_unexpected_attribute(
