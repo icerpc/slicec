@@ -68,7 +68,7 @@ fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Resul
     // Encode and write any plugin arguments to the subprocess's 'stdin'.
     let mut arguments_payload = Vec::new();
     let mut slice_encoder = Encoder::from(&mut arguments_payload);
-    slice_encoder.encode(&plugin.args)?;
+    slice_encoder.encode(definition_types::Arguments(plugin.args.clone()))?;
     stdin.write_all(&arguments_payload)?;
 
     // Return a handle to the subprocess so we can wait on it to complete.

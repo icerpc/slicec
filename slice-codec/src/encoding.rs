@@ -57,19 +57,6 @@ implement_encode_into_on_numeric_primitive_type! {i64, "Encodes this [`i64`] on 
 implement_encode_into_on_numeric_primitive_type! {f32, "Encodes this [`f32`] on 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
 implement_encode_into_on_numeric_primitive_type! {f64, "Encodes this [`f64`] on 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
 
-// TODO use a macro to support tuples of higher sizes than just 2.
-impl<'a, A, B> EncodeInto<Slice2> for &'a (A, B)
-where
-    &'a A: EncodeInto<Slice2>,
-    &'a B: EncodeInto<Slice2>,
-{
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
-        encoder.encode(&self.0)?;
-        encoder.encode(&self.1)?;
-        Ok(())
-    }
-}
-
 // =============================================================================
 // Variable-length integer type implementations
 // =============================================================================
