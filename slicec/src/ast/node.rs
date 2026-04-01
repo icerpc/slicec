@@ -166,33 +166,6 @@ impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
     }
 }
 
-impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Entity> {
-    type Error = LookupError;
-
-    /// Attempts to unwrap a node to a [`WeakPtr`] of a Slice [Entity].
-    ///
-    /// If the Slice element held by the node implements [Entity], this succeeds and returns a typed pointer,
-    /// otherwise this fails and returns an error message.
-    fn try_from(node: &'a Node) -> Result<WeakPtr<dyn Entity>, Self::Error> {
-        match node {
-            Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
-            Node::Field(field_ptr) => Ok(downgrade_as!(field_ptr, dyn Entity)),
-            Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Entity)),
-            Node::Operation(operation_ptr) => Ok(downgrade_as!(operation_ptr, dyn Entity)),
-            Node::Parameter(parameter_ptr) => Ok(downgrade_as!(parameter_ptr, dyn Entity)),
-            Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Entity)),
-            Node::Enumerator(enumerator_ptr) => Ok(downgrade_as!(enumerator_ptr, dyn Entity)),
-            Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Entity)),
-            Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Entity)),
-            _ => Err(LookupError::TypeMismatch {
-                expected: "entity".to_owned(),
-                actual: ccase!(lower, node.to_string()),
-                is_concrete: false,
-            }),
-        }
-    }
-}
-
 impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
     type Error = LookupError;
 
