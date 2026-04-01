@@ -17,7 +17,7 @@ use crate::grammar::Symbol;
 /// So, after parsing is complete, we modify the AST in place, 'patching' in the information that can only now be
 /// computed, in the following order:
 /// 1. References to other Slice types are verified and resolved.
-/// 2. Compute and store the Slice encodings that each element can be used with.
+/// 2. Doc-comment links are patched after type resolution succeeds.
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {

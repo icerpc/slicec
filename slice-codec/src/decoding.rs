@@ -1,6 +1,5 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::*;
 use crate::buffer::InputSource;
 use crate::decode_from::*;
 use crate::decoder::Decoder;
@@ -14,7 +13,7 @@ use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-// We only support `HashMap` if the standard library is available through the `std` feature flag.
+// We only support `HashMap` if the standard  library is available through the `std` feature flag.
 #[cfg(feature = "std")]
 use std::collections::HashMap;
 #[cfg(feature = "std")]
@@ -36,10 +35,10 @@ fn illegal_bool_error(value: u8) -> Error {
     error.into()
 }
 
-impl DecodeFrom<Slice2> for bool {
+impl DecodeFrom for bool {
     /// Reads a single byte from the buffer and returns `false` if it is `0` or `true` if it is `1`.
     /// If the byte has any other value, an error is returned instead.
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> crate::Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> crate::Result<Self> {
         let byte = decoder.read_byte()?;
 
         // We strictly enforce the Slice spec; A bool _must_ be encoded as either `0` or `1`.
@@ -50,16 +49,16 @@ impl DecodeFrom<Slice2> for bool {
     }
 }
 
-impl DecodeFrom<Slice2> for u8 {
+impl DecodeFrom for u8 {
     /// Reads a single byte directly from the buffer and returns it, as is.
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> crate::Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> crate::Result<Self> {
         decoder.read_byte()
     }
 }
 
-impl DecodeFrom<Slice2> for i8 {
+impl DecodeFrom for i8 {
     /// Reads a single byte directly from the buffer and returns it, as-if it was an `i8`.
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> crate::Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> crate::Result<Self> {
         // In Rust, signed-integers are guaranteed to use a two's complement representation in memory.
         // Casting between `u8` and `i8` is no-op, and doesn't change this representation, or the sign bit.
         let byte = decoder.read_byte()?;
@@ -67,14 +66,14 @@ impl DecodeFrom<Slice2> for i8 {
     }
 }
 
-implement_decode_from_on_numeric_primitive_type! {u16, Slice2, "Decodes a [`u16`] from 2 bytes (little endian)."}
-implement_decode_from_on_numeric_primitive_type! {i16, Slice2, "Decodes a [`i16`] from 2 bytes (little endian) in two's complement form."}
-implement_decode_from_on_numeric_primitive_type! {u32, Slice2, "Decodes a [`u32`] from 4 bytes (little endian)."}
-implement_decode_from_on_numeric_primitive_type! {i32, Slice2, "Decodes a [`i32`] from 4 bytes (little endian) in two's complement form."}
-implement_decode_from_on_numeric_primitive_type! {u64, Slice2, "Decodes a [`u64`] from 8 bytes (little endian)."}
-implement_decode_from_on_numeric_primitive_type! {i64, Slice2, "Decodes a [`i64`] from 8 bytes (little endian) in two's complement form."}
-implement_decode_from_on_numeric_primitive_type! {f32, Slice2, "Decodes a [`f32`] from 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
-implement_decode_from_on_numeric_primitive_type! {f64, Slice2, "Decodes a [`f64`] from 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
+implement_decode_from_on_numeric_primitive_type! {u16, "Decodes a [`u16`] from 2 bytes (little endian)."}
+implement_decode_from_on_numeric_primitive_type! {i16, "Decodes a [`i16`] from 2 bytes (little endian) in two's complement form."}
+implement_decode_from_on_numeric_primitive_type! {u32, "Decodes a [`u32`] from 4 bytes (little endian)."}
+implement_decode_from_on_numeric_primitive_type! {i32, "Decodes a [`i32`] from 4 bytes (little endian) in two's complement form."}
+implement_decode_from_on_numeric_primitive_type! {u64, "Decodes a [`u64`] from 8 bytes (little endian)."}
+implement_decode_from_on_numeric_primitive_type! {i64, "Decodes a [`i64`] from 8 bytes (little endian) in two's complement form."}
+implement_decode_from_on_numeric_primitive_type! {f32, "Decodes a [`f32`] from 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
+implement_decode_from_on_numeric_primitive_type! {f64, "Decodes a [`f64`] from 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
 
 // =============================================================================
 // Variable-length integer type implementations
@@ -110,7 +109,7 @@ fn varuint_range_error<T>(value: u64) -> Error {
     error.into()
 }
 
-impl<I: InputSource> Decoder<I, Slice2> {
+impl<I: InputSource> Decoder<I> {
     /// Reads between 1 and 8 bytes from the buffer and decodes a single signed integer from them.
     /// This integer must of been encoded in the variable length '[varint]' format.
     ///
@@ -189,8 +188,8 @@ impl<I: InputSource> Decoder<I, Slice2> {
 
 #[cfg(feature = "alloc")]
 /// TODO
-impl DecodeFrom<Slice2> for String {
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+impl DecodeFrom for String {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many bytes are in this string, and attempt to allocate a vec with the necessary capacity.
         let length = decoder.decode_varuint()?;
         let mut vector = Vec::new();
@@ -211,12 +210,12 @@ impl DecodeFrom<Slice2> for String {
 }
 
 #[cfg(feature = "alloc")]
-impl<T> DecodeFrom<Slice2> for Vec<T>
+impl<T> DecodeFrom for Vec<T>
 where
-    T: DecodeFrom<Slice2>,
+    T: DecodeFrom,
 {
     /// TODO
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many elements are in this sequence, and attempt to allocate a vec with the necessary capacity.
         let length = decoder.decode_varuint()?;
         let mut vector = Vec::new();
@@ -236,13 +235,13 @@ where
 // =============================================================================
 
 #[cfg(feature = "std")]
-impl<K, V> DecodeFrom<Slice2> for HashMap<K, V>
+impl<K, V> DecodeFrom for HashMap<K, V>
 where
-    K: DecodeFrom<Slice2> + Eq + Hash,
-    V: DecodeFrom<Slice2>,
+    K: DecodeFrom + Eq + Hash,
+    V: DecodeFrom,
 {
     /// TODO
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
         let mut map = HashMap::new();
@@ -255,13 +254,13 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<K, V> DecodeFrom<Slice2> for BTreeMap<K, V>
+impl<K, V> DecodeFrom for BTreeMap<K, V>
 where
-    K: DecodeFrom<Slice2> + Ord,
-    V: DecodeFrom<Slice2>,
+    K: DecodeFrom + Ord,
+    V: DecodeFrom,
 {
     /// TODO
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
         let mut map = BTreeMap::new();

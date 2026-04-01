@@ -1,10 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::*;
 use crate::buffer::OutputTarget;
 use crate::encode_into::*;
 use crate::encoder::Encoder;
-use crate::{Error, InvalidDataErrorKind, Result};
+use crate::{Error, InvalidDataErrorKind, Result, VARINT62_MAX, VARINT62_MIN, VARUINT62_MAX, VARUINT62_MIN};
 
 // We only support 'owned' sequence/dictionary types if the `alloc` crate is available through the `alloc` feature flag.
 // Note that we always support encoding views into these types (which don't require allocating memory).
@@ -23,40 +22,40 @@ use std::collections::HashMap;
 // Fixed-length type implementations
 // =============================================================================
 
-impl EncodeInto<Slice2> for bool {
+impl EncodeInto for bool {
     /// Encodes a value of `0` for `false` or a value of `1` for true, on a single byte.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // In memory, bools are guaranteed to be `0` for `false` and `1` for `true`.
         encoder.write_byte(self as u8)
     }
 }
-implement_encode_into_on_borrowed_type!(bool, Slice2);
+implement_encode_into_on_borrowed_type!(bool);
 
-impl EncodeInto<Slice2> for u8 {
+impl EncodeInto for u8 {
     /// Writes this byte directly to the buffer, as is.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         encoder.write_byte(self)
     }
 }
-implement_encode_into_on_borrowed_type!(u8, Slice2);
+implement_encode_into_on_borrowed_type!(u8);
 
-impl EncodeInto<Slice2> for i8 {
+impl EncodeInto for i8 {
     /// Writes this `i8` directly to the buffer, treating it as-if it was a `u8`.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Casting between two integers of the same size (`u8` and `i8`) is no-op in Rust.
         encoder.write_byte(self as u8)
     }
 }
-implement_encode_into_on_borrowed_type!(i8, Slice2);
+implement_encode_into_on_borrowed_type!(i8);
 
-implement_encode_into_on_numeric_primitive_type! {u16, Slice2, "Encodes this [`u16`] on 2 bytes (little endian)."}
-implement_encode_into_on_numeric_primitive_type! {i16, Slice2, "Encodes this [`i16`] on 2 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u32, Slice2, "Encodes this [`u32`] on 4 bytes (little endian)."}
-implement_encode_into_on_numeric_primitive_type! {i32, Slice2, "Encodes this [`i32`] on 4 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {u64, Slice2, "Encodes this [`u64`] on 8 bytes (little endian)."}
-implement_encode_into_on_numeric_primitive_type! {i64, Slice2, "Encodes this [`i64`] on 8 bytes (little endian) in two's complement form."}
-implement_encode_into_on_numeric_primitive_type! {f32, Slice2, "Encodes this [`f32`] on 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
-implement_encode_into_on_numeric_primitive_type! {f64, Slice2, "Encodes this [`f64`] on 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
+implement_encode_into_on_numeric_primitive_type! {u16, "Encodes this [`u16`] on 2 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {i16, "Encodes this [`i16`] on 2 bytes (little endian) in two's complement form."}
+implement_encode_into_on_numeric_primitive_type! {u32, "Encodes this [`u32`] on 4 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {i32, "Encodes this [`i32`] on 4 bytes (little endian) in two's complement form."}
+implement_encode_into_on_numeric_primitive_type! {u64, "Encodes this [`u64`] on 8 bytes (little endian)."}
+implement_encode_into_on_numeric_primitive_type! {i64, "Encodes this [`i64`] on 8 bytes (little endian) in two's complement form."}
+implement_encode_into_on_numeric_primitive_type! {f32, "Encodes this [`f32`] on 4 bytes (little endian) using the \"binary32\" representation defined in IEEE 754-2008."}
+implement_encode_into_on_numeric_primitive_type! {f64, "Encodes this [`f64`] on 8 bytes (little endian) using the \"binary64\" representation defined in IEEE 754-2008."}
 
 // =============================================================================
 // Variable-length integer type implementations
@@ -84,7 +83,7 @@ fn varuint_range_error(value: impl Into<i128>) -> Error {
     error.into()
 }
 
-impl<O: OutputTarget> Encoder<O, Slice2> {
+impl<O: OutputTarget> Encoder<O> {
     /// Encodes a signed integer on between 1 and 8 bytes in the variable length '[varint]' format.
     ///
     /// [varint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
@@ -149,26 +148,26 @@ impl<O: OutputTarget> Encoder<O, Slice2> {
 // =============================================================================
 
 /// TODO
-impl EncodeInto<Slice2> for &str {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+impl EncodeInto for &str {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         encoder.encode_size(self.len())?;
         encoder.write_bytes_exact(self.as_bytes())
     }
 }
 
 #[cfg(feature = "alloc")]
-impl EncodeInto<Slice2> for &String {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+impl EncodeInto for &String {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         self.as_str().encode_into(encoder)
     }
 }
 
 /// TODO
-impl<'a, T> EncodeInto<Slice2> for &'a [T]
+impl<'a, T> EncodeInto for &'a [T]
 where
-    &'a T: EncodeInto<Slice2>,
+    &'a T: EncodeInto,
 {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         encoder.encode_size(self.len())?;
         for element in self {
             encoder.encode(element)?;
@@ -178,11 +177,11 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<'a, T> EncodeInto<Slice2> for &'a Vec<T>
+impl<'a, T> EncodeInto for &'a Vec<T>
 where
-    &'a T: EncodeInto<Slice2>,
+    &'a T: EncodeInto,
 {
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, Slice2>) -> Result<()> {
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         self.as_slice().encode_into(encoder)
     }
 }
@@ -192,9 +191,9 @@ where
 // =============================================================================
 
 #[cfg(feature = "alloc")]
-impl_encode_into_on_dictionary_type!(BTreeMap, Slice2, "TODO");
+impl_encode_into_on_dictionary_type!(BTreeMap, "TODO");
 
 #[cfg(feature = "std")]
-impl_encode_into_on_dictionary_type!(HashMap, Slice2, "TODO");
+impl_encode_into_on_dictionary_type!(HashMap, "TODO");
 
 // TODO add support for optional sequences and dictionaries
