@@ -13,7 +13,6 @@ use clap::{Parser, ValueEnum};
 #[command(author, version, about, long_about = DESCRIPTION, rename_all = "kebab-case")]
 pub struct SliceOptions {
     /// List of Slice files to compile.
-    #[arg(required = true)]
     pub sources: Vec<String>,
 
     /// Add a directory or Slice file to the list of references.
@@ -21,10 +20,10 @@ pub struct SliceOptions {
     pub references: Vec<String>,
 
     /// Specify a code-generator plugin that should be run after parsing and validation complete (if successful).
-    ///   Ex: '--generator /path/to/my/plugin'
+    ///   Ex: '--generator /path/to/my/generator'
     ///
     /// Each code-generator can be provided with arbitrary string arguments using the following syntax:
-    ///   '/path/to/my/plugin;arg1=value1;arg2 = value2;arg3;...'
+    ///   '/path/to/my/generator;arg1=value1;arg2 = value2;arg3;...'
     /// Leading and trailing whitespace is stripped from arguments and their values. Argument values are optional.
     #[arg(short = 'G', long = "generator", num_args = 1, action = Append, value_name = "GENERATOR", value_parser = plugin_parser, verbatim_doc_comment)]
     pub generators: Vec<Plugin>,
