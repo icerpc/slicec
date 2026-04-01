@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::implement_diagnostic_functions;
+use super::implement_diagnostic_functions;
 use crate::utils::string_util::indefinite_article;
 
 #[derive(Debug)]

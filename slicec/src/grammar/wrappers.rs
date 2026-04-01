@@ -87,21 +87,6 @@ macro_rules! generate_types_wrapper {
             }
         }
         )*
-
-        #[derive(Debug)]
-        pub enum TypeRefs {
-            $($variant(TypeRef<$variant>),)*
-        }
-
-        impl<T: Type + ?Sized> TypeRef<T> {
-            pub fn concrete_typeref(&self) -> TypeRefs {
-                match self.definition().concrete_type() {
-                    $(Types::$variant(_) => TypeRefs::$variant(
-                        self.downcast::<$variant>().ok().unwrap(),
-                    ),)*
-                }
-            }
-        }
     };
 }
 

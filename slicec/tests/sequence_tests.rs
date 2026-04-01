@@ -21,14 +21,14 @@ mod sequences {
 
         // Assert
         let seq_def = ast.find_element::<TypeAlias>("Test::Seq").unwrap();
-        let seq_type = seq_def.underlying.concrete_typeref();
+        let seq_type = seq_def.underlying.concrete_type();
 
         match seq_type {
-            TypeRefs::Sequence(seq) => assert!(matches!(
+            Types::Sequence(seq) => assert!(matches!(
                 &seq.element_type.concrete_type(),
                 Types::Primitive(Primitive::Int8)
             )),
-            _ => panic!("Expected TypeRefs<Sequence>"),
+            _ => panic!("Expected Types<Sequence>"),
         }
     }
 

@@ -3,9 +3,8 @@
 //! TODO write a doc comment for the module.
 
 use super::LookupError;
-use crate::downgrade_as;
 use crate::grammar::*;
-use crate::utils::ptr_util::{OwnedPtr, WeakPtr};
+use crate::utils::ptr_util::{downgrade_as, OwnedPtr, WeakPtr};
 use convert_case::ccase;
 use std::fmt;
 
@@ -105,60 +104,6 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
             Node::Primitive(primitive_ptr) => Ok(downgrade_as!(primitive_ptr, dyn Type)),
             _ => Err(LookupError::TypeMismatch {
                 expected: "type".to_owned(),
-                actual: ccase!(lower, node.to_string()),
-                is_concrete: false,
-            }),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a Node> for &'a dyn Type {
-    type Error = LookupError;
-
-    /// Attempts to unwrap a node to a dynamically typed reference of a Slice [Type].
-    ///
-    /// If the Slice element held by the node implements [Type], this succeeds and returns a typed reference,
-    /// otherwise this fails and returns an error message.
-    fn try_from(node: &'a Node) -> Result<&'a dyn Type, Self::Error> {
-        match node {
-            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
-            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
-            Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
-            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            Node::ResultType(result_ptr) => Ok(result_ptr.borrow()),
-            Node::Sequence(sequence_ptr) => Ok(sequence_ptr.borrow()),
-            Node::Dictionary(dictionary_ptr) => Ok(dictionary_ptr.borrow()),
-            Node::Primitive(primitive_ptr) => Ok(primitive_ptr.borrow()),
-            _ => Err(LookupError::TypeMismatch {
-                expected: "type".to_owned(),
-                actual: ccase!(lower, node.to_string()),
-                is_concrete: false,
-            }),
-        }
-    }
-}
-
-impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
-    type Error = LookupError;
-
-    /// Attempts to unwrap a node to a dynamically typed reference of a Slice [NamedSymbol].
-    ///
-    /// If the Slice element held by the node implements [NamedSymbol], this succeeds and returns a typed reference,
-    /// otherwise this fails and returns an error message.
-    fn try_from(node: &'a Node) -> Result<&'a dyn NamedSymbol, Self::Error> {
-        match node {
-            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
-            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
-            Node::Field(field_ptr) => Ok(field_ptr.borrow()),
-            Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
-            Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
-            Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
-            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
-            Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
-            Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
-            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
-            _ => Err(LookupError::TypeMismatch {
-                expected: "named symbol".to_owned(),
                 actual: ccase!(lower, node.to_string()),
                 is_concrete: false,
             }),

@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
+use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Diagnostics, Lint};
 use slicec::slice_options::SliceOptions;
-use slicec::test_helpers::check_diagnostics;
 use slicec::utils::file_util::resolve_files_from;
 use std::path::PathBuf;
 
@@ -134,7 +134,7 @@ fn compilation_preserves_order() {
     };
 
     // Act
-    let state = slicec::compile_from_options(&options, |_| {}, |_| {});
+    let state = slicec::compile_from_options(&options);
 
     // Assert
     assert!(state.diagnostics.is_empty());
