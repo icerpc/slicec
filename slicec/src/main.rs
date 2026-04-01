@@ -191,30 +191,21 @@ fn main() -> ExitCode {
         };
 
         let generators = &slice_options.generators;
-        if generators.is_empty() {
-            // If no generators were provided, we write the encoded Slice definitions to 'stdout'.
-            let mut stdout = std::io::stdout().lock();
-            if let Err(error) = stdout.write_all(&encoded_request) {
-                eprintln!("{error}");
-                return ExitCode::from(28);
-            }
-        } else {
-            // Start each of the generators in parallel.
-            let generator_processes = generators
-                .iter()
-                .map(|generator| (generator, spawn_plugin_process(generator, &encoded_request)));
+        // Start each of the generators in parallel.
+        let generator_processes = generators
+            .iter()
+            .map(|generator| (generator, spawn_plugin_process(generator, &encoded_request)));
 
-            // Block on each generator process until they're finished. If a generator completes successfully,
-            // we get the response payload from it, write any generated files in the payload, and store any diagnostics
-            // the generator reported so we can emit them at the end along with all the others.
-            for (generator, generator_process) in generator_processes {
-                let generator_diagnostics = generator_process
-                    .and_then(collect_plugin_output) // Returns the response payload if the generator ran successfully.
-                    .and_then(handle_generator_response) // Returns any diagnostics if the payload successfully decoded.
-                    .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
+        // Block on each generator process until they're finished. If a generator completes successfully,
+        // we get the response payload from it, write any generated files in the payload, and store any diagnostics
+        // the generator reported so we can emit them at the end along with all the others.
+        for (generator, generator_process) in generator_processes {
+            let generator_diagnostics = generator_process
+                .and_then(collect_plugin_output) // Returns the response payload if the generator ran successfully.
+                .and_then(handle_generator_response) // Returns any diagnostics if the payload successfully decoded.
+                .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
 
-                diagnostics.extend(generator_diagnostics); // Store the generator's diagnostics for later emission.
-            }
+            diagnostics.extend(generator_diagnostics); // Store the generator's diagnostics for later emission.
         }
     }
 
