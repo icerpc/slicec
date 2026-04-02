@@ -2,12 +2,12 @@
 
 use crate::buffer::OutputTarget;
 use crate::encoder::Encoder;
-use crate::{Encoding, Result};
+use crate::Result;
 
 /// TODO
-pub trait EncodeInto<E: Encoding>: Sized {
+pub trait EncodeInto: Sized {
     /// Encodes a value of this type with the provided encoder.
-    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, E>) -> Result<()>;
+    fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()>;
 }
 
 // =============================================================================
@@ -19,11 +19,11 @@ pub trait EncodeInto<E: Encoding>: Sized {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! implement_encode_into_on_borrowed_type {
-    ($ty:ty, $encoding:ident) => {
-        impl EncodeInto<$encoding> for &$ty {
+    ($ty:ty) => {
+        impl EncodeInto for &$ty {
             // TODO: this generated broken links. [https://github.com/rust-lang/rust/issues/54172]
             #[doc = concat!("Delegates to [", stringify!($ty), "::encode_into].")]
-            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, $encoding>) -> Result<()> {
+            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
                 (*self).encode_into(encoder)
             }
         }
@@ -40,15 +40,15 @@ pub use implement_encode_into_on_borrowed_type; // Re-export the macro so it can
 #[doc(hidden)]
 #[macro_export]
 macro_rules! implement_encode_into_on_numeric_primitive_type {
-    ($ty:ty, $encoding:ident, $doc_text:literal) => {
-        impl EncodeInto<$encoding> for $ty {
+    ($ty:ty, $doc_text:literal) => {
+        impl EncodeInto for $ty {
             #[doc = $doc_text]
-            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, $encoding>) -> Result<()> {
+            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
                 let bytes = self.to_le_bytes();
                 encoder.write_bytes_exact(&bytes)
             }
         }
-        implement_encode_into_on_borrowed_type!($ty, $encoding);
+        implement_encode_into_on_borrowed_type!($ty);
     };
 }
 pub use implement_encode_into_on_numeric_primitive_type; // Re-export the macro so it can be used in other modules.
@@ -59,14 +59,14 @@ pub use implement_encode_into_on_numeric_primitive_type; // Re-export the macro 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! impl_encode_into_on_dictionary_type {
-    ($ty:ident, $encoding:ident, $doc_text:literal) => {
-        impl<'a, K, V> EncodeInto<$encoding> for &'a $ty<K, V>
+    ($ty:ident, $doc_text:literal) => {
+        impl<'a, K, V> EncodeInto for &'a $ty<K, V>
         where
-            &'a K: EncodeInto<$encoding>,
-            &'a V: EncodeInto<$encoding>,
+            &'a K: EncodeInto,
+            &'a V: EncodeInto,
         {
             #[doc = $doc_text]
-            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget, $encoding>) -> Result<()> {
+            fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
                 encoder.encode_size(self.len())?;
                 for (key, value) in self {
                     encoder.encode(key)?;

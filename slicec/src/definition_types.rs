@@ -5,8 +5,6 @@
 
 #![allow(dead_code)]
 
-use slice_codec::slice2::Slice2;
-
 use slice_codec::buffer::{InputSource, OutputTarget};
 use slice_codec::decode_from::DecodeFrom;
 use slice_codec::decoder::Decoder;
@@ -17,14 +15,14 @@ use slice_codec::{InvalidDataErrorKind, Result};
 /// TAG_END_MARKER must be encoded at the end of every non-compact type.
 const TAG_END_MARKER: i32 = -1;
 
-/// This macro implements `EncodeInto<Slice2>` for a Rust struct (which is mapped from a non-compact Slice struct).
+/// This macro implements `EncodeInto` for a Rust struct (which is mapped from a non-compact Slice struct).
 /// It encodes all the struct's fields (in definition order), followed by `TAG_END_MARKER`.
 ///
 /// It uses macro-function-syntax, and should be called like:
 /// `implement_encode_into_for_struct!(struct_type_name, field1, field2, ...);`
 macro_rules! implement_encode_into_for_struct {
     ($type_name:ty$(, $field_name:ident)*$(,)?) => {
-        impl EncodeInto<Slice2> for &$type_name {
+        impl EncodeInto for &$type_name {
             fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
                 $(encoder.encode(&self.$field_name)?;)*
                 encoder.encode_varint(TAG_END_MARKER)?;
@@ -63,7 +61,7 @@ pub struct EntityInfo {
     pub attributes: Vec<Attribute>,
     pub comment: Option<DocComment>,
 }
-impl EncodeInto<Slice2> for &EntityInfo {
+impl EncodeInto for &EntityInfo {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Encode the bit-sequence. With only one optional, this is just a bool.
         encoder.encode(self.comment.is_some())?;
@@ -100,7 +98,7 @@ pub struct Field {
     pub tag: Option<i32>, // TODO: varint32 isn't a real type?
     pub data_type: TypeRef,
 }
-impl EncodeInto<Slice2> for &Field {
+impl EncodeInto for &Field {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Encode the bit-sequence. With only one optional, this is just a bool.
         encoder.encode(self.tag.is_some())?;
@@ -223,7 +221,7 @@ pub enum MessageComponent {
     Text(String) = 0,
     Link(EntityId) = 1,
 }
-impl EncodeInto<Slice2> for &MessageComponent {
+impl EncodeInto for &MessageComponent {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Write the discriminant value.
         // SAFETY: this cast is guaranteed to be safe because the enum is marked with `repr(u8)`, so it's safe to cast
@@ -266,7 +264,7 @@ pub enum Symbol {
     ResultType(ResultType) = 7, // TODO make result come before dictionary!
     TypeAlias(TypeAlias) = 8,
 }
-impl EncodeInto<Slice2> for &Symbol {
+impl EncodeInto for &Symbol {
     fn encode_into(self, encoder: &mut Encoder<impl OutputTarget>) -> Result<()> {
         // Write the discriminant value.
         // SAFETY: this cast is guaranteed to be safe because the enum is marked with `repr(u8)`, which means we know
@@ -299,8 +297,8 @@ pub struct GeneratedFile {
     pub path: String,
     pub contents: String,
 }
-impl DecodeFrom<Slice2> for GeneratedFile {
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+impl DecodeFrom for GeneratedFile {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         let path = decoder.decode()?;
         let contents = decoder.decode()?;
 
@@ -316,8 +314,8 @@ pub struct Diagnostic {
     pub message: String,
     pub source: Option<String>,
 }
-impl DecodeFrom<Slice2> for Diagnostic {
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+impl DecodeFrom for Diagnostic {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode the bit-sequence. With only one optional, this is just a bool.
         let has_source = decoder.decode::<bool>()?;
 
@@ -339,8 +337,8 @@ pub enum DiagnosticLevel {
     Warning = 1,
     Error = 2,
 }
-impl DecodeFrom<Slice2> for DiagnosticLevel {
-    fn decode_from(decoder: &mut Decoder<impl InputSource, Slice2>) -> Result<Self> {
+impl DecodeFrom for DiagnosticLevel {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         let value = decoder.decode::<u8>()?;
         match value {
             0 => Ok(DiagnosticLevel::Info),

@@ -42,10 +42,6 @@ jobs:
           "alloc",
           "std",
           "tokio",
-          "slice2",
-          "slice2,alloc",
-          "slice2,std",
-          "slice2,tokio",
         ]
     runs-on: ubuntu-latest
     timeout-minutes: 10
