@@ -4,9 +4,8 @@ use crate::ast::node::Node;
 use crate::ast::{Ast, LookupError};
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
-use crate::downgrade_as;
 use crate::grammar::*;
-use crate::utils::ptr_util::WeakPtr;
+use crate::utils::ptr_util::{downgrade_as, WeakPtr};
 use std::collections::VecDeque;
 
 macro_rules! patch_link {
