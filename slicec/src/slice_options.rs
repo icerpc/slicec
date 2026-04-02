@@ -63,7 +63,11 @@ This AST is encoded with Slice, and then output, to be consumed by other tools."
 fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
     // Helper enum to track what element the parser is currently parsing.
     #[derive(PartialEq, Eq)]
-    enum State { Path, Key, Value }
+    enum State {
+        Path,
+        Key,
+        Value,
+    }
 
     assert!(!s.is_empty());
 
