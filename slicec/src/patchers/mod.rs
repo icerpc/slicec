@@ -65,9 +65,7 @@ macro_rules! patch_attributes {
 /// things to be determined during parsing (as it's a sequential process).
 ///
 /// So, after parsing is complete, we modify the AST in place, 'patching' in the information that can only now be
-/// computed, in the following order:
-/// 1. References to other Slice types are verified and resolved.
-/// 2. Compute and store the Slice encodings that each element can be used with.
+/// computed.
 ///
 /// This function fails fast, so if any phase of patching fails, we skip any remaining phases.
 pub unsafe fn patch_ast(compilation_state: &mut CompilationState) {
