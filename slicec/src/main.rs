@@ -165,7 +165,7 @@ fn main() -> ExitCode {
     let slice_options = SliceOptions::parse();
 
     // Perform the compilation.
-    let compilation_state = slicec::compile_from_options(&slice_options, |_| {}, |_| {});
+    let compilation_state = slicec::compile_from_options(&slice_options);
     let CompilationState {
         ast,
         mut diagnostics,
