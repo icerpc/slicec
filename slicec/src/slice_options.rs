@@ -89,7 +89,7 @@ fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
                     match state {
                         State::Path => return Err("missing plugin path (ex: 'PATH;KEY=VALUE')"),
                         State::Key => return Err("missing argument key (ex: 'PATH;KEY=VALUE')"),
-                        State::Value => return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY)"),
+                        State::Value => return Err("missing argument value (ex: 'PATH;KEY=VALUE' or 'PATH;KEY')"),
                     }
                 }
 

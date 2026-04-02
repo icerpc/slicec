@@ -190,11 +190,11 @@ fn main() -> ExitCode {
             }
         };
 
-        let generators = &slice_options.generators;
         // Start each of the generators in parallel.
+        let generators = slice_options.generators.iter();
         let generator_processes = generators
-            .iter()
-            .map(|generator| (generator, spawn_plugin_process(generator, &encoded_request)));
+            .map(|generator| (generator, spawn_plugin_process(generator, &encoded_request)))
+            .collect::<Vec<_>>();
 
         // Block on each generator process until they're finished. If a generator completes successfully,
         // we get the response payload from it, write any generated files in the payload, and store any diagnostics

@@ -147,8 +147,8 @@ fn plugins_can_have_multiple_arguments() {
     assert_eq!(generator_plugin.args[2].1, "val3");
 }
 
-#[test_case("foo;arg="; "trailing equals")]
-#[test_case("foo;arg1=;arg2"; "trailing semicolon")]
+#[test_case("foo;arg="; "without trailing argument")]
+#[test_case("foo;arg1=;arg2"; "with trailing argument")]
 fn argument_value_must_appear_after_equals(generator_arg: &str) {
     // Arrange
     let input = ["", "--generator", generator_arg];
