@@ -167,28 +167,20 @@ unsafe impl<T: ?Sized + Sync> Sync for WeakPtr<T> {}
 // impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<OwnedPtr<U>> for OwnedPtr<T> {}
 // impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<WeakPtr<U>> for WeakPtr<T> {}
 
-#[macro_export]
 macro_rules! downgrade_as {
     ($owned:expr, $new_type:ty) => {
-        $crate::upcast_weak_as!($owned.downgrade(), $new_type)
+        $crate::utils::ptr_util::upcast_weak_as!($owned.downgrade(), $new_type)
     };
 }
+pub(crate) use downgrade_as;
 
-#[macro_export]
-macro_rules! upcast_owned_as {
-    ($owned:expr, $new_type:ty) => {{
-        let (data, type_id) = $owned.into_inner();
-        OwnedPtr::from_inner((data as Box<$new_type>, type_id))
-    }};
-}
-
-#[macro_export]
 macro_rules! upcast_weak_as {
     ($weak:expr, $new_type:ty) => {{
         let (data, type_id) = $weak.into_inner();
         WeakPtr::from_inner((data.map(|ptr| ptr as *const $new_type), type_id))
     }};
 }
+pub(crate) use upcast_weak_as;
 
 impl<'a, T: ?Sized, U: ?Sized> PartialEq<&'a T> for OwnedPtr<U> {
     /// Returns true if this pointer and the provided reference both point to the same memory address.

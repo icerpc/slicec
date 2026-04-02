@@ -220,10 +220,6 @@ impl Ast {
     /// assert!(int32_def.is_ok());
     /// assert_eq!(int32_def.unwrap().kind(), "int32");
     ///
-    /// // Look up something implementing `Type`.
-    /// let string_def = ast.find_element::<dyn Type>("string");
-    /// assert!(string_def.is_ok());
-    ///
     /// // TODO add more examples once parsing is easier.
     ///
     /// // If an element doesn't exist with the specified identifier, `Err` is returned.

@@ -14,9 +14,9 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-// Only include the `slice2` module if the corresponding feature is set.
-#[cfg(feature = "slice2")]
-pub mod slice2;
+// These modules are private because they don't export any types, just implementations.
+mod decoding;
+mod encoding;
 
 pub mod buffer;
 pub mod decode_from;
@@ -28,9 +28,19 @@ pub mod encoder;
 mod error;
 pub use error::*;
 
-/// A marker for types which represent a specific version/implementation of a Slice encoding.
-///
-/// Types which implement this trait can be used to specialize implementations of the
-/// [`DecodeFrom`](decode_from::DecodeFrom) and [`EncodeInto`](encode_into::EncodeInto) traits,
-/// and as a type argument for [`Encoders`](encoder::Encoder) and [`Decoders`](decoder::Decoder).
-pub trait Encoding: Sized {}
+/// The smallest value that can be represented as a `varint32`.
+pub const VARINT32_MIN: i32 = i32::MIN;
+/// The largest value that can be represented as a `varint32`.
+pub const VARINT32_MAX: i32 = i32::MAX;
+/// The smallest value that can be represented as a `varuint32`.
+pub const VARUINT32_MIN: u32 = u32::MIN;
+/// The largest value that can be represented as a `varuint32`.
+pub const VARUINT32_MAX: u32 = u32::MAX;
+/// The smallest value that can be represented as a `varint62`.
+pub const VARINT62_MIN: i64 = i64::MIN >> 2;
+/// The largest value that can be represented as a `varint62`.
+pub const VARINT62_MAX: i64 = i64::MAX >> 2;
+/// The smallest value that can be represented as a `varuint62`.
+pub const VARUINT62_MIN: u64 = u64::MIN >> 2;
+/// The largest value that can be represented as a `varuint62`.
+pub const VARUINT62_MAX: u64 = u64::MAX >> 2;

@@ -2,12 +2,12 @@
 
 use crate::buffer::InputSource;
 use crate::decoder::Decoder;
-use crate::{Encoding, Result};
+use crate::Result;
 
 /// TODO
-pub trait DecodeFrom<E: Encoding>: Sized {
+pub trait DecodeFrom: Sized {
     /// Decodes a value of this type from the provided decoder.
-    fn decode_from(decoder: &mut Decoder<impl InputSource, E>) -> Result<Self>;
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self>;
 }
 
 // =============================================================================
@@ -23,10 +23,10 @@ pub trait DecodeFrom<E: Encoding>: Sized {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! implement_decode_from_on_numeric_primitive_type {
-    ($ty:ty, $encoding:ident, $doc_text:literal) => {
-        impl DecodeFrom<$encoding> for $ty {
+    ($ty:ty, $doc_text:literal) => {
+        impl DecodeFrom for $ty {
             #[doc = $doc_text]
-            fn decode_from(decoder: &mut Decoder<impl InputSource, $encoding>) -> Result<Self> {
+            fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
                 let bytes = decoder.read_bytes_exact()?;
                 Ok(Self::from_le_bytes(*bytes))
             }

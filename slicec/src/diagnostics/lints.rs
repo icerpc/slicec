@@ -1,7 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::DiagnosticLevel;
-use crate::implement_diagnostic_functions;
+use super::{implement_diagnostic_functions, DiagnosticLevel};
 
 #[derive(Debug)]
 pub enum Lint {

@@ -24,7 +24,6 @@ pub trait AttributeKind: std::fmt::Debug {
     fn directive(&self) -> &str;
 }
 
-#[macro_export] // We export this macro so languages can implement their own attributes.
 macro_rules! implement_attribute_kind_for {
     ($type:ty, $directive:literal, $is_repeatable:literal) => {
         impl $type {
@@ -52,8 +51,7 @@ macro_rules! implement_attribute_kind_for {
         }
     };
 }
-
-pub use implement_attribute_kind_for;
+pub(crate) use implement_attribute_kind_for;
 
 #[derive(Debug)]
 pub struct Unparsed {

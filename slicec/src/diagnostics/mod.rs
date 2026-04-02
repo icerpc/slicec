@@ -19,7 +19,6 @@ pub struct Note {
 }
 
 /// A macro that implements the `code` and `message` functions for [Lint] and [Error] enums.
-#[macro_export]
 macro_rules! implement_diagnostic_functions {
     (Lint, $(($kind:ident, $message:expr $(, $variant:ident)* )),*) => {
         impl Lint {
@@ -84,3 +83,4 @@ macro_rules! implement_diagnostic_functions {
         $kind{$($variant),*}
     };
 }
+pub(crate) use implement_diagnostic_functions;

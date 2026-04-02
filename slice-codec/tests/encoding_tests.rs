@@ -3,7 +3,6 @@
 // cspell:ignore Lorem, ipsum, dolor, sit, amet, no, explicari, repudiare, vis, an, dicant, legimus, ponderum
 
 #[cfg(test)]
-#[cfg(feature = "slice2")]
 mod fixed_size {
 
     use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
@@ -12,7 +11,6 @@ mod fixed_size {
     use slice_codec::decoder::Decoder;
     use slice_codec::encode_into::EncodeInto;
     use slice_codec::encoder::Encoder;
-    use slice_codec::slice2::Slice2;
 
     use test_case::test_case;
 
@@ -59,7 +57,7 @@ mod fixed_size {
     #[test_case(f64::MAX, [255, 255, 255, 255, 255, 255, 239, 127]; "max_f64")]
     fn encoding_of<const N: usize, T>(value: T, expected: [u8; N])
     where
-        T: EncodeInto<Slice2>,
+        T: EncodeInto,
     {
         // Arrange: create a buffer to encode the value into, and an encoder over that buffer.
         // Note: This test uses an array so it can run without needing the 'alloc' feature.
@@ -126,7 +124,7 @@ mod fixed_size {
     #[test_case(f64::MAX, [255, 255, 255, 255, 255, 255, 239, 127]; "max_f64")]
     fn decoding_of<const N: usize, T>(expected: T, bytes: [u8; N])
     where
-        T: DecodeFrom<Slice2> + Debug + PartialEq,
+        T: DecodeFrom + Debug + PartialEq,
     {
         // Arrange: create a decoder over the provided bytes.
         let input_source = SliceInputSource::from(&bytes);
@@ -142,7 +140,6 @@ mod fixed_size {
 }
 
 #[cfg(test)]
-#[cfg(feature = "slice2")]
 mod variable_sized {
     use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
     use slice_codec::decoder::Decoder;
@@ -154,7 +151,7 @@ mod variable_sized {
 
         use super::*;
 
-        use slice_codec::slice2::{VARINT62_MAX, VARINT62_MIN};
+        use slice_codec::{VARINT62_MAX, VARINT62_MIN};
         use test_case::test_case;
 
         #[test_case(0_u32, &[0x0]; "min_u32_one_byte")]
