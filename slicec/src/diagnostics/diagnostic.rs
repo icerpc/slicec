@@ -165,7 +165,7 @@ impl Diagnostics {
 
         // Helper function that checks whether a lint is allowed by attributes on the provided entity.
         fn is_lint_allowed_by_attributes(attributable: &(impl Attributable + ?Sized), lint: &Lint) -> bool {
-            let attributes = attributable.all_attributes().concat().into_iter();
+            let attributes = attributable.all_attributes().into_iter();
             let mut allowed = attributes.filter_map(|a| a.downcast::<attributes::Allow>());
             allowed.any(|allow| is_lint_allowed_by(allow.allowed_lints.iter(), lint))
         }

@@ -708,7 +708,6 @@ mod attributes {
             let parameter = ast.find_element::<Parameter>("A::I::op::s").unwrap();
             let parent_attributes = parameter
                 .all_attributes()
-                .concat()
                 .into_iter()
                 .map(|a| a.downcast::<Unparsed>().unwrap())
                 .collect::<Vec<_>>();

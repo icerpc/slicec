@@ -34,7 +34,7 @@ pub trait Attributable {
     fn attributes(&self) -> Vec<&Attribute>;
 
     /// Returns all the attributes of the element and its parents.
-    fn all_attributes(&self) -> Vec<Vec<&Attribute>>;
+    fn all_attributes(&self) -> Vec<&Attribute>;
 }
 
 // These functions are declared in a separate trait because they have type parameters, making them not 'object-safe'.
@@ -167,8 +167,8 @@ macro_rules! implement_Attributable_for {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }
 
-            fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-                vec![self.attributes()]
+            fn all_attributes(&self) -> Vec<&Attribute> {
+                self.attributes()
             }
         }
     };
@@ -178,8 +178,8 @@ macro_rules! implement_Attributable_for {
                 self.attributes.iter().map(WeakPtr::borrow).collect()
             }
 
-            fn all_attributes(&self) -> Vec<Vec<&Attribute>> {
-                let mut attributes_list = vec![self.attributes()];
+            fn all_attributes(&self) -> Vec<&Attribute> {
+                let mut attributes_list = self.attributes();
                 attributes_list.extend(self.parent().all_attributes());
                 attributes_list
             }
