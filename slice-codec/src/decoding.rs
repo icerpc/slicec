@@ -13,7 +13,7 @@ use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 
-// We only support `HashMap` if the standard  library is available through the `std` feature flag.
+// We only support `HashMap` if the standard library is available through the `std` feature flag.
 #[cfg(feature = "std")]
 use std::collections::HashMap;
 #[cfg(feature = "std")]
