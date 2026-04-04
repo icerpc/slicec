@@ -5,7 +5,7 @@ use crate::ast::{Ast, LookupError};
 use crate::compilation_state::CompilationState;
 use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
 use crate::grammar::*;
-use crate::utils::ptr_util::WeakPtr;
+use crate::utils::ptr_util::{downgrade_as, WeakPtr};
 use std::collections::VecDeque;
 
 macro_rules! patch_link {
@@ -105,27 +105,16 @@ impl CommentLinkPatcher<'_> {
         // Look up the linked-to entity in the AST.
         let result = ast
             .find_node_with_scope(&identifier.value, &commentable.parser_scoped_identifier())
-            .and_then(<WeakPtr<dyn Entity>>::try_from);
+            .map_err(|lookup_error| match lookup_error {
+                LookupError::DoesNotExist { identifier } => format!("no element named '{identifier}' exists in scope"),
+                _ => unreachable!("`find_node_with_scope` reported an error other than `DoesNotExist`"),
+            })
+            .and_then(convert_node_to_entity_ptr);
 
         // If the lookup succeeded, store the result, otherwise report a lint violation and store `None` as a dummy.
         self.link_patches.push_back(match result {
             Ok(ptr) => Some(ptr),
-            Err(error) => {
-                let message = match error {
-                    LookupError::DoesNotExist { identifier } => {
-                        format!("no element named '{identifier}' exists in scope")
-                    }
-                    LookupError::TypeMismatch { actual, .. } => {
-                        let type_string = match actual.as_str() {
-                            "primitive" => "primitive types",
-                            "module" => "modules",
-
-                            // Only primitive types and modules have names but cannot be linked to.
-                            _ => unreachable!(),
-                        };
-                        type_string.to_owned() + " cannot be linked to"
-                    }
-                };
+            Err(message) => {
                 Diagnostic::new(Lint::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(commentable.parser_scoped_identifier())
@@ -158,5 +147,24 @@ impl CommentLinkPatcher<'_> {
                 patch_link!(self, link_tag);
             }
         }
+    }
+}
+
+fn convert_node_to_entity_ptr(node: &Node) -> Result<WeakPtr<dyn Entity>, String> {
+    match node {
+        Node::Struct(struct_ptr) => Ok(downgrade_as!(struct_ptr, dyn Entity)),
+        Node::Field(field_ptr) => Ok(downgrade_as!(field_ptr, dyn Entity)),
+        Node::Interface(interface_ptr) => Ok(downgrade_as!(interface_ptr, dyn Entity)),
+        Node::Operation(operation_ptr) => Ok(downgrade_as!(operation_ptr, dyn Entity)),
+        Node::Enum(enum_ptr) => Ok(downgrade_as!(enum_ptr, dyn Entity)),
+        Node::Enumerator(enumerator_ptr) => Ok(downgrade_as!(enumerator_ptr, dyn Entity)),
+        Node::CustomType(custom_type_ptr) => Ok(downgrade_as!(custom_type_ptr, dyn Entity)),
+        Node::TypeAlias(type_alias_ptr) => Ok(downgrade_as!(type_alias_ptr, dyn Entity)),
+
+        Node::Module(_) => Err("modules cannot be linked to".to_owned()),
+        Node::Parameter(_) => Err("parameters cannot be linked to".to_owned()), // TODO improve for return members.
+        Node::Primitive(_) => Err("primitive types cannot be linked to".to_owned()),
+
+        _ => unreachable!("`convert_node_to_entity_ptr` was called on an anonymous type or attribute"),
     }
 }
