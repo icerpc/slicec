@@ -369,11 +369,16 @@ mod comments {
 
     #[test_case("bool", "primitive types"; "primitive")]
     #[test_case("tests", "modules"; "module")]
+    #[test_case("Foo::op::a", "parameters"; "parameter")]
     fn doc_comment_links_to_invalid_element(link_identifier: &str, kind: &str) {
         // Arrange
         let slice = format!(
             "
             module tests
+
+            interface Foo {{
+                op(a: string)
+            }}
 
             /// A test struct, should probably use {{@link {link_identifier}}}.
             struct TestStruct {{}}
