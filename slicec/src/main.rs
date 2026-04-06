@@ -105,7 +105,7 @@ fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     }
 }
 
-fn handle_generator_response(response_payload: Vec<u8>) -> std::io::Result<Diagnostics> {
+fn handle_generator_response(response_payload: Vec<u8>, output_dir: &Option<String>) -> std::io::Result<Diagnostics> {
     // Decode the generator's response. It consists of 2 sequences, one of generated files and one of diagnostics.
     let mut slice_decoder = Decoder::from(&response_payload);
     let generated_files: Vec<definition_types::GeneratedFile> = slice_decoder.decode()?;
@@ -122,7 +122,7 @@ fn handle_generator_response(response_payload: Vec<u8>) -> std::io::Result<Diagn
     if !diagnostics.has_errors() {
         for generated_file in &generated_files {
             // Try to write the generated file to disk.
-            if let Err(io_error) = write_generated_file(generated_file) {
+            if let Err(io_error) = write_generated_file(generated_file, output_dir) {
                 // If an error occurred during writing the file, create a diagnostic that slicec can report.
                 let diagnostic = slicec::diagnostics::Error::IO {
                     action: "write generated file",
@@ -138,19 +138,28 @@ fn handle_generator_response(response_payload: Vec<u8>) -> std::io::Result<Diagn
     Ok(diagnostics)
 }
 
-fn write_generated_file(generated_file: &definition_types::GeneratedFile) -> std::io::Result<()> {
+fn write_generated_file(
+    generated_file: &definition_types::GeneratedFile,
+    output_dir: &Option<String>,
+) -> std::io::Result<()> {
     let generated_file_bytes = generated_file.contents.as_bytes();
+
+    // Compute the output path. If an output directory was specified, prepend it to the generated file's relative path.
+    let generated_file_path = match output_dir {
+        Some(dir) => std::path::PathBuf::from(dir).join(&generated_file.path),
+        None => std::path::PathBuf::from(&generated_file.path),
+    };
 
     // If the generated file already exists on disk, and is identical to what we want to write,
     // we don't overwrite the file, and instead return immediately.
-    if let Ok(current_contents) = std::fs::read(&generated_file.path) {
+    if let Ok(current_contents) = std::fs::read(&generated_file_path) {
         if current_contents == generated_file_bytes {
             return Ok(());
         }
     }
 
     // Write the generated file to disk.
-    let mut file = File::create(&generated_file.path)?;
+    let mut file = File::create(&generated_file_path)?;
     file.write_all(generated_file_bytes)?;
     Ok(())
 }
@@ -202,7 +211,7 @@ fn main() -> ExitCode {
         for (generator, generator_process) in generator_processes {
             let generator_diagnostics = generator_process
                 .and_then(collect_plugin_output) // Returns the response payload if the generator ran successfully.
-                .and_then(handle_generator_response) // Returns any diagnostics if the payload successfully decoded.
+                .and_then(|payload| handle_generator_response(payload, &slice_options.output_dir)) // Returns any diagnostics if the payload successfully decoded.
                 .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
 
             diagnostics.extend(generator_diagnostics); // Store the generator's diagnostics for later emission.
