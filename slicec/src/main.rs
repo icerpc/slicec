@@ -2,6 +2,7 @@
 
 use std::fs::File;
 use std::io::{Error, ErrorKind, Write};
+use std::path::PathBuf;
 use std::process::{Child, Command, ExitCode, Stdio};
 
 use clap::Parser;
@@ -146,8 +147,8 @@ fn write_generated_file(
 
     // Compute the output path. If an output directory was specified, prepend it to the generated file's relative path.
     let generated_file_path = match output_dir {
-        Some(dir) => std::path::PathBuf::from(dir).join(&generated_file.path),
-        None => std::path::PathBuf::from(&generated_file.path),
+        Some(dir) => PathBuf::from(dir).join(&generated_file.path),
+        None => PathBuf::from(&generated_file.path),
     };
 
     // If the generated file already exists on disk, and is identical to what we want to write,
