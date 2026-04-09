@@ -191,6 +191,24 @@ fn plugins_can_have_multiple_arguments() {
     assert_eq!(generator_plugin.args[2].1, "val3");
 }
 
+#[test_case("    "; "without trailing equals")]
+#[test_case("   ,"; "with trailing separator")]
+#[test_case(","; "only trailing separator")]
+fn plugin_path_must_be_present(generator_arg: &str) {
+    // Arrange
+    let input = ["", "--generator", generator_arg];
+
+    // Act
+    let result = SliceOptions::try_parse_from(input);
+
+    // Assert
+    let parsing_error = result.unwrap_err();
+    assert_eq!(parsing_error.kind(), ErrorKind::ValueValidation);
+
+    let error_message = parsing_error.source().unwrap().to_string();
+    assert_eq!(error_message, "missing plugin path (ex: 'PATH,KEY=VALUE')");
+}
+
 #[test_case("foo,="; "trailing equals")]
 #[test_case("foo,=val"; "trailing equals with value")]
 #[test_case("foo,,"; "trailing separator")]
