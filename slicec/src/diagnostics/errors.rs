@@ -3,6 +3,8 @@
 use super::implement_diagnostic_functions;
 use crate::utils::string_util::indefinite_article;
 
+use std::ops::Range;
+
 #[derive(Debug)]
 pub enum Error {
     // ----------------  Generic Errors ---------------- //
@@ -179,33 +181,52 @@ pub enum Error {
     },
 
     // ----------------  Attribute Errors ---------------- //
-    /// An invalid argument was provided to an attribute directive.
-    ArgumentNotSupported {
-        /// The argument that was provided.
-        argument: String,
-        /// The directive it was provided to.
+    /// An attribute was invalidly applied to a Slice element.
+    /// For example: applying `[oneway]` to a struct ('oneway' is only allowed on operations).
+    InvalidAttribute {
+        /// the directive of the invalid attribute.
         directive: String,
     },
 
-    // The following are errors that are needed to report cs attribute errors.
-    MissingRequiredArgument {
+    /// An unknown attribute was encountered, which uses a known language prefix.
+    /// For example: if a C# code-generator encountered the following attribute: `[cs::foobar]`.
+    UnknownAttribute {
+        /// The directive of the unknown attribute.
+        directive: String,
+    },
+
+    /// An element requires a specific attribute to be applied to it, but not was supplied.
+    /// For example: custom types must have their mapped type specified with a `[xxx:type(...)]` attribute.
+    MissingRequiredAttribute {
+        /// The missing attribute; should include placeholder names for expected arguments too.
+        expected_attribute: String,
+    },
+
+    /// A non-repeatable attribute was applied to the same element multiple times.
+    /// For example: `[compress(Args)] [compress(Return)] myOperation()`
+    AttributeIsNotRepeatable {
+        /// The directive of the non-repeatable attribute.
+        directive: String,
+    },
+
+    /// An invalid argument was provided to an attribute which otherwise accepts arguments.
+    /// For example: `[compress(FooBar)] myOperation()` 'compress' accepts an argument but 'FooBar' is not a valid one.
+    InvalidAttributeArgument {
+        /// The directive of the attribute.
+        directive: String,
+        /// the invalid argument that was provided.
         argument: String,
     },
 
-    MissingRequiredAttribute {
-        attribute: String,
-    },
-
-    TooManyArguments {
-        expected: String,
-    },
-
-    UnexpectedAttribute {
-        attribute: String,
-    },
-
-    AttributeIsNotRepeatable {
-        attribute: String,
+    /// Too few or too many arguments were supplied to an otherwise valid attribute.
+    /// For example: `[oneway(FooBar)]` ('oneway' takes no arguments) or `[compress]` ('compress' takes 1 argument).
+    IncorrectAttributeArgumentCount {
+        /// The directive of the attribute.
+        directive: String,
+        /// A range representing the number of arguments this directive can be given.
+        expected_count: Range<usize>,
+        /// The number of arguments this directive was actually given.
+        actual_count: usize,
     },
 
     // ----------------  Type Alias Errors ---------------- //
@@ -231,47 +252,40 @@ implement_diagnostic_functions!(
     ),
     (
         "E003",
-        ArgumentNotSupported,
-        format!("'{argument}' is not a legal argument for the '{directive}' attribute"),
-        argument,
-        directive
-    ),
-    (
-        "E004",
         KeyMustBeNonOptional,
         "optional types are not valid dictionary key types"
     ),
     (
-        "E005",
+        "E004",
         StructKeyMustBeCompact,
         "structs must be compact to be used as a dictionary key type"
     ),
     (
-        "E006",
+        "E005",
         KeyTypeNotSupported,
         format!("invalid dictionary key type: {kind}"),
         kind
     ),
     (
-        "E007",
+        "E006",
         StructKeyContainsDisallowedType,
         format!("struct '{struct_identifier}' contains fields that are not a valid dictionary key types"),
         struct_identifier
     ),
     (
-        "E008",
+        "E007",
         CannotUseOptionalUnderlyingType,
         format!("invalid enum '{enum_identifier}': enums cannot have optional underlying types"),
         enum_identifier
     ),
     (
-        "E009",
+        "E008",
         MustContainEnumerators,
         format!("invalid enum '{enum_identifier}': enums must contain at least one enumerator"),
         enum_identifier
     ),
     (
-        "E010",
+        "E009",
         EnumUnderlyingTypeNotSupported,
         {
             if let Some(kind) = kind {
@@ -284,48 +298,48 @@ implement_diagnostic_functions!(
         kind
     ),
     (
-        "E011",
+        "E010",
         Redefinition,
         format!("redefinition of '{identifier}'"),
         identifier
     ),
     (
-        "E012",
+        "E011",
         Shadows,
         format!("'{identifier}' shadows another symbol"),
         identifier
     ),
     (
-        "E013",
+        "E012",
         CannotHaveDuplicateTag,
         format!("invalid tag on member '{identifier}': tags must be unique"),
         identifier
     ),
     (
-        "E014",
+        "E013",
         StreamedMembersMustBeLast,
         format!("invalid parameter '{parameter_identifier}': only the last parameter in an operation can use the stream modifier"),
         parameter_identifier
     ),
     (
-        "E015",
+        "E014",
         ReturnTuplesMustContainAtLeastTwoElements,
         "return tuples must have at least 2 elements"
     ),
     (
-        "E016",
+        "E015",
         CompactTypeCannotContainTaggedFields,
         format!("tagged fields are not supported in compact {kind}s; consider removing the tag, or making the {kind} non-compact"),
         kind
     ),
     (
-        "E017",
+        "E016",
         TaggedMemberMustBeOptional,
         format!("invalid tag on member '{identifier}': tagged members must be optional"),
         identifier
     ),
     (
-        "E018",
+        "E017",
         TypeMismatch,
         format!(
             "type mismatch: expected {} '{expected}' but found {} '{actual}'{}",
@@ -342,18 +356,18 @@ implement_diagnostic_functions!(
         is_concrete
     ),
     (
-        "E019",
+        "E018",
         CompactStructCannotBeEmpty,
         "compact structs must be non-empty"
     ),
     (
-        "E020",
+        "E019",
         SelfReferentialTypeAliasNeedsConcreteType,
         format!("self-referential type alias '{identifier}' has no concrete type"),
         identifier
     ),
     (
-        "E021",
+        "E020",
         EnumeratorValueOutOfBounds,
         format!(
             "invalid enumerator '{enumerator_identifier}': enumerator value '{value}' is out of bounds. The value must be between '{min}..{max}', inclusive",
@@ -361,73 +375,109 @@ implement_diagnostic_functions!(
         enumerator_identifier, value, min, max
     ),
     (
-        "E022",
+        "E021",
         TagValueOutOfBounds,
         "tag values must be within the range 0 <= value <= 2147483647"
     ),
     (
-        "E023",
+        "E022",
         DuplicateEnumeratorValue,
         format!("enumerator values must be unique; the value '{enumerator_value}' is already in use"),
         enumerator_value
     ),
     (
+        "E023",
+        InvalidAttribute,
+        format!("invalid attribute '{directive}'"),
+        directive
+    ),
+    (
         "E024",
-        UnexpectedAttribute,
-        format!("unexpected attribute '{attribute}'"),
-        attribute
+        UnknownAttribute,
+        format!("unknown attribute '{directive}'"),
+        directive
     ),
     (
         "E025",
-        MissingRequiredArgument,
-        format!("missing required argument '{argument}'"),
-        argument
+        MissingRequiredAttribute,
+        format!("missing required attribute '{expected_attribute}'"),
+        expected_attribute
     ),
     (
         "E026",
-        TooManyArguments,
-        format!("too many arguments, expected '{expected}'"),
-        expected
+        AttributeIsNotRepeatable,
+        format!("duplicate attribute '{directive}'"),
+        directive
     ),
     (
         "E027",
-        MissingRequiredAttribute,
-        format!("missing required attribute '{attribute}'"),
-        attribute
+        InvalidAttributeArgument,
+        format!("'{argument}' is not a valid argument to the '{directive}' attribute"),
+        argument,
+        directive
     ),
     (
         "E028",
+        IncorrectAttributeArgumentCount,
+        {
+            let args_provided = if *actual_count == 1 {
+                String::from("1 argument was provided")
+            } else {
+                format!("{actual_count} arguments were provided")
+            };
+            if expected_count.len() == 1 {
+                // If the range is only 1 element long, then this attribute requires an exact number of arguments.
+                let expected = expected_count.start;
+                if expected == 0 {
+                    format!("attribute '{directive}' does not take any arguments, but {args_provided}")
+                } else {
+                    let only = if expected > *actual_count { "only " } else { "" };
+                    let args = if expected == 1 { "argument" } else { "arguments" };
+                    format!("attribute '{directive}' takes exactly {expected} {args}, but {only}{args_provided}")
+                }
+            } else if expected_count.end == usize::MAX {
+                // If the range has no upper bound, then this attribute has only a minimum number of required arguments.
+                let expected = expected_count.start;
+                let args = if expected == 1 { "argument" } else { "arguments" };
+                format!("attribute '{directive}' requires at least {expected} {args}, but only {args_provided}")
+            } else {
+                // Otherwise, this attribute accepts a specific range of possible arguments.
+                let min = expected_count.start;
+                let max = expected_count.end - 1;
+                format!("attribute '{directive}' takes between {min} and {max} arguments (inclusive), but {args_provided}")
+            }
+        },
+        directive,
+        expected_count,
+        actual_count
+    ),
+    (
+        "E029",
         MultipleStreamedMembers,
         "cannot have multiple streamed members"
     ),
     (
-        "E029",
+        "E030",
         IntegerLiteralOverflows,
         "integer literal is outside the parsable range of -2^127 <= i <= 2^127 - 1"
     ),
     (
-        "E030",
+        "E031",
         InvalidIntegerLiteral,
         format!("integer literal contains illegal characters for base-{base}"),
         base
     ),
     (
-        "E031",
+        "E032",
         InfiniteSizeCycle,
         format!("type {type_id} illegally references itself: {cycle}"),
         type_id, cycle
     ),
     (
-        "E032",
+        "E033",
         DoesNotExist,
         format!("no element with identifier '{identifier}' exists"),
         identifier
-    ),
-    (
-        "E033",
-        AttributeIsNotRepeatable,
-        format!("duplicate attribute '{attribute}'"),
-        attribute
     ),
     (
         "E034",

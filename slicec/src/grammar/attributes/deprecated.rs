@@ -11,7 +11,7 @@ impl Deprecated {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, diagnostics: &mut Diagnostics) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        check_that_at_most_one_argument_was_provided(args, Self::directive(), span, diagnostics);
+        check_argument_count_is_within(0..2, args, Self::directive(), span, diagnostics);
 
         let reason = args.first().cloned();
         Deprecated { reason }

@@ -15,7 +15,8 @@ pub use sliced_format::*;
 use super::Attributables;
 use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::slice_file::Span;
-use crate::utils::attribute_parsing_util::*;
+
+use std::ops::Range;
 
 pub trait AttributeKind: std::fmt::Debug {
     fn is_repeatable(&self) -> bool;
@@ -73,5 +74,51 @@ impl AttributeKind for Unparsed {
 
     fn directive(&self) -> &str {
         &self.directive
+    }
+}
+
+/// Reports an error when an attribute is applied to something it shouldn't be.
+fn report_unexpected_attribute(
+    attribute: &impl AttributeKind,
+    span: &Span,
+    note: Option<&str>,
+    diagnostics: &mut Diagnostics,
+) {
+    let mut diagnostic = Diagnostic::new(Error::InvalidAttribute {
+        directive: attribute.directive().to_owned(),
+    })
+    .set_span(span);
+
+    if let Some(note) = note {
+        diagnostic = diagnostic.add_note(note, None);
+    }
+
+    diagnostic.push_into(diagnostics);
+}
+
+/// Reports an error if an incorrect number of attributes was provided to the specified attribute.
+///
+/// # Arguments
+///
+/// * `range` - Range containing the allowed number of arguments for the attribute
+/// * `arguments` - The arguments that were provided to the attribute
+/// * `directive` - The attribute's directive
+/// * `span` - The attribute's span
+/// * `diagnostics` - Diagnostics into which errors will be reported
+fn check_argument_count_is_within(
+    range: Range<usize>,
+    arguments: &[String],
+    directive: &str,
+    span: &Span,
+    diagnostics: &mut Diagnostics,
+) {
+    if !range.contains(&arguments.len()) {
+        Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+            directive: directive.to_owned(),
+            expected_count: range,
+            actual_count: arguments.len(),
+        })
+        .set_span(span)
+        .push_into(diagnostics);
     }
 }

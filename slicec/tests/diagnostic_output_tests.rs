@@ -40,7 +40,7 @@ mod output {
         let expected = concat!(
             r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":25},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
-            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E009"}"#,
+            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E008"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -88,7 +88,7 @@ warning [IncorrectDocComment]: comment has a 'param' tag for 'x', but operation 
 5 |             /// @param x: this is an x
   |                 --------
   |
-error [E017]: invalid tag on member 'x': tagged members must be optional
+error [E016]: invalid tag on member 'x': tagged members must be optional
  --> string-0:8:17
    |
 8  |             op2(tag(1)
@@ -98,7 +98,7 @@ error [E017]: invalid tag on member 'x': tagged members must be optional
 10 |                     int32, tag(2) y: bool?,
    | -------------------------
    |
-error [E009]: invalid enum 'E': enums must contain at least one enumerator
+error [E008]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:14:9
    |
 14 |         enum E : int8 {}
@@ -199,7 +199,7 @@ error [E009]: invalid enum 'E': enums must contain at least one enumerator
 
         // Assert
         let expected = "\
-error [E009]: invalid enum 'E': enums must contain at least one enumerator
+error [E008]: invalid enum 'E': enums must contain at least one enumerator
  --> string-0:2:4
   |
 2 |    enum

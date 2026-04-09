@@ -45,8 +45,8 @@ macro_rules! patch_attributes {
                                 // If the directive starts with the provided prefix, but didn't match a known attribute.
                                 let directive_prefix = directive.split_once("::").map_or("", |(p, _)| p);
                                 if $prefix == directive_prefix {
-                                    Diagnostic::new(Error::UnexpectedAttribute {
-                                        attribute: directive.to_owned(),
+                                    Diagnostic::new(Error::UnknownAttribute {
+                                        directive: directive.to_owned(),
                                     })
                                     .set_span(attribute.span())
                                     .push_into(diagnostics);
