@@ -188,29 +188,29 @@ pub enum Error {
         directive: String,
     },
 
-    /// An unknown attribute was encountered, which uses a known language prefix.
+    /// An unknown attribute was encountered, which uses a known prefix.
     /// For example: if a C# code-generator encountered the following attribute: `[cs::foobar]`.
     UnknownAttribute {
         /// The directive of the unknown attribute.
         directive: String,
     },
 
-    /// An element requires a specific attribute to be applied to it, but not was supplied.
+    /// An element requires a specific attribute to be applied to it, which is not present.
     /// For example: custom types must have their mapped type specified with a `[xxx:type(...)]` attribute.
     MissingRequiredAttribute {
-        /// The missing attribute; should include placeholder names for expected arguments too.
+        /// The missing attribute; should include placeholder names for expected arguments.
         expected_attribute: String,
     },
 
     /// A non-repeatable attribute was applied to the same element multiple times.
-    /// For example: `[compress(Args)] [compress(Return)] myOperation()`
+    /// For example: `[compress(Args)] [compress(Return)] myOperation()`; 'compress' is not repeatable.
     AttributeIsNotRepeatable {
         /// The directive of the non-repeatable attribute.
         directive: String,
     },
 
     /// An invalid argument was provided to an attribute which otherwise accepts arguments.
-    /// For example: `[compress(FooBar)] myOperation()` 'compress' accepts an argument but 'FooBar' is not a valid one.
+    /// For example: `[compress(FooBar)] myOperation()`; 'compress' accepts arguments but 'FooBar' is not a valid one.
     InvalidAttributeArgument {
         /// The directive of the attribute.
         directive: String,
@@ -219,7 +219,7 @@ pub enum Error {
     },
 
     /// Too few or too many arguments were supplied to an otherwise valid attribute.
-    /// For example: `[oneway(FooBar)]` ('oneway' takes no arguments) or `[compress]` ('compress' takes 1 argument).
+    /// For example: `[oneway(FooBar)]` ('oneway' takes no arguments) or `[compress]` ('compress' requires arguments).
     IncorrectAttributeArgumentCount {
         /// The directive of the attribute.
         directive: String,
