@@ -181,7 +181,7 @@ pub enum Error {
     },
 
     // ----------------  Attribute Errors ---------------- //
-    /// An attribute was invalidly applied to a Slice element.
+    /// An attribute was applied to a Slice element for which it's invalid.
     /// For example: applying `[oneway]` to a struct ('oneway' is only allowed on operations).
     InvalidAttribute {
         /// the directive of the invalid attribute.
@@ -223,9 +223,9 @@ pub enum Error {
     IncorrectAttributeArgumentCount {
         /// The directive of the attribute.
         directive: String,
-        /// A range representing the number of arguments this directive can be given.
+        /// A range representing the number of arguments this attribute can be given.
         expected_count: Range<usize>,
-        /// The number of arguments this directive was actually given.
+        /// The number of arguments this attribute was actually given.
         actual_count: usize,
     },
 
