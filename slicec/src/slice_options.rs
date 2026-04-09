@@ -23,7 +23,7 @@ pub struct SliceOptions {
     ///   Ex: '--generator /path/to/my/generator'
     ///
     /// Each code-generator can be provided with arbitrary string arguments using the following syntax:
-    ///   '/path/to/my/generator;arg1=value1;arg2 = value2;arg3;...'
+    ///   '/path/to/my/generator,arg1=value1,arg2 = value2,arg3,...'
     /// Leading and trailing whitespace is stripped from arguments and their values. Argument values are optional.
     #[arg(short = 'G', long = "generator", num_args = 1, action = Append, value_name = "GENERATOR", value_parser = plugin_parser, verbatim_doc_comment)]
     pub generators: Vec<Plugin>,
