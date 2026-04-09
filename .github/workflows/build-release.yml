@@ -95,9 +95,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ inputs.quality }}" == "stable" ]]; then
-            upload_path="slicec/${{ needs.metadata.outputs.channel }}"
+            upload_path="${{ needs.metadata.outputs.channel }}"
           else
-            upload_path="slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.channel }}"
+            upload_path="${{ inputs.quality }}/${{ needs.metadata.outputs.channel }}"
           fi
           echo "S3_PATH=$upload_path" >> "$GITHUB_ENV"
 
@@ -116,7 +116,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           for file in artifacts/slicec-*.zip; do
-            aws s3 cp "$file" "s3://zeroc-downloads/icerpc/${S3_PATH}/"
+            aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${S3_PATH}/"
           done
 
       - name: Invalidate CloudFront Cache
@@ -127,4 +127,4 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_ZEROC_DOWNLOAD_DISTRIBUTION_ID }} \
-            --paths "/icerpc/${S3_PATH}/*"
+            --paths "/icerpc/slicec/${S3_PATH}/*"
