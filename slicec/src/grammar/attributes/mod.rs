@@ -78,7 +78,7 @@ impl AttributeKind for Unparsed {
 }
 
 /// Reports an error when an attribute is applied to something it shouldn't be.
-fn report_unexpected_attribute(
+fn report_invalid_attribute(
     attribute: &impl AttributeKind,
     span: &Span,
     note: Option<&str>,

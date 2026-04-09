@@ -49,7 +49,7 @@ impl Allow {
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if matches!(applied_on, Attributables::Module(_) | Attributables::TypeRef(_)) {
-            report_unexpected_attribute(self, span, None, diagnostics);
+            report_invalid_attribute(self, span, None, diagnostics);
         }
     }
 }

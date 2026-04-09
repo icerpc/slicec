@@ -19,11 +19,11 @@ impl Oneway {
             // If the operation can return data, it can't be marked oneway.
             if !operation.return_type.is_empty() {
                 let note = "operations that return data cannot be marked oneway";
-                report_unexpected_attribute(self, span, Some(note), diagnostics);
+                report_invalid_attribute(self, span, Some(note), diagnostics);
             }
         } else {
             let note = "the oneway attribute can only be applied to operations";
-            report_unexpected_attribute(self, span, Some(note), diagnostics);
+            report_invalid_attribute(self, span, Some(note), diagnostics);
         }
     }
 }
