@@ -92,12 +92,14 @@ jobs:
 
     steps:
       - name: S3 Upload Path
-        run: echo "S3_PATH=slicec/${{ needs.metadata.outputs.channel }}" >> "$GITHUB_ENV"
-        if: inputs.quality == 'stable'
-
-      - name: S3 Upload Path
-        run: echo "S3_PATH=slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.channel }}" >> "$GITHUB_ENV"
-        if: inputs.quality != 'stable'
+        shell: bash
+        run: |
+          if [[ "${{ inputs.quality }}" == "stable" ]]; then
+            upload_path="slicec/${{ needs.metadata.outputs.channel }}"
+          else
+            upload_path="slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.channel }}"
+          fi
+          echo "S3_PATH=$upload_path" >> "$GITHUB_ENV"
 
       - name: Download Artifacts
         uses: actions/download-artifact@v8
