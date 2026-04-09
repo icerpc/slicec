@@ -125,7 +125,7 @@ fn plugin_parser<'a>(s: &str) -> Result<Plugin, &'a str> {
         return Err("missing plugin path (ex: 'PATH,KEY=VALUE')");
     }
     for arg in &args {
-        if arg.1.is_empty() {
+        if arg.0.is_empty() {
             return Err("missing argument key (ex: 'PATH,KEY=VALUE')");
         }
     }
