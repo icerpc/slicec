@@ -96,7 +96,7 @@ fn report_invalid_attribute(
     diagnostic.push_into(diagnostics);
 }
 
-/// Reports an error if an incorrect number of attributes was provided to the specified attribute.
+/// Reports an error if an incorrect number of arguments was provided to the specified attribute.
 ///
 /// # Arguments
 ///
