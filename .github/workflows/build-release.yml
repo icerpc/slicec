@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get-version.outputs.version }}
+      channel: ${{ steps.get-version.outputs.channel }}
 
     steps:
       - name: Checkout Repository
@@ -32,7 +33,6 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-
       - name: Get slicec Version
         id: get-version
         shell: bash
@@ -40,8 +40,9 @@ jobs:
           version="$(cargo metadata --no-deps --format-version 1 \
             | jq -r '.packages[] | select(.name == "slicec") | .version')"
 
-          version_major_minor="${version%.*}"
-          echo "version=$version_major_minor" >> "$GITHUB_OUTPUT"
+          channel="${version%.*}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "channel=$channel" >> "$GITHUB_OUTPUT"
 
   build:
     needs: metadata
@@ -86,9 +87,20 @@ jobs:
 
   upload:
     needs: [metadata, build]
-    if: inputs.quality == 'nightly' && github.repository == 'icerpc/slicec'
+    if: github.repository == 'icerpc/slicec'
     runs-on: ubuntu-latest
+
     steps:
+      - name: S3 Upload Path
+        shell: bash
+        run: |
+          if [[ "${{ inputs.quality }}" == "stable" ]]; then
+            upload_path="${{ needs.metadata.outputs.channel }}"
+          else
+            upload_path="${{ inputs.quality }}/${{ needs.metadata.outputs.channel }}"
+          fi
+          echo "S3_PATH=$upload_path" >> "$GITHUB_ENV"
+
       - name: Download Artifacts
         uses: actions/download-artifact@v8
         with:
@@ -104,7 +116,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
         run: |
           for file in artifacts/slicec-*.zip; do
-            aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/"
+            aws s3 cp "$file" "s3://zeroc-downloads/icerpc/slicec/${S3_PATH}/"
           done
 
       - name: Invalidate CloudFront Cache
@@ -113,4 +125,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-east-1
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ZEROC_DOWNLOAD_DISTRIBUTION_ID }} --paths "/icerpc/slicec/${{ inputs.quality }}/${{ needs.metadata.outputs.version }}/*"
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_ZEROC_DOWNLOAD_DISTRIBUTION_ID }} \
+            --paths "/icerpc/slicec/${S3_PATH}/*"
