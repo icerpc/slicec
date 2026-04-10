@@ -12,7 +12,7 @@ impl Compress {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, diagnostics: &mut Diagnostics) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        check_that_arguments_were_provided(args, Self::directive(), span, diagnostics);
+        check_argument_count_is_within(1..usize::MAX, args, Self::directive(), span, diagnostics);
 
         let (mut compress_args, mut compress_return) = (false, false);
         for arg in args {
@@ -20,9 +20,9 @@ impl Compress {
                 "Args" => compress_args = true,
                 "Return" => compress_return = true,
                 _ => {
-                    Diagnostic::new(Error::ArgumentNotSupported {
-                        argument: arg.clone(),
+                    Diagnostic::new(Error::InvalidAttributeArgument {
                         directive: Self::directive().to_owned(),
+                        argument: arg.clone(),
                     })
                     .set_span(span)
                     .add_note("'Args' and 'Return' are the only valid arguments", None)
@@ -40,7 +40,7 @@ impl Compress {
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if !matches!(applied_on, Attributables::Operation(_)) {
             let note = "the compress attribute can only be applied to operations";
-            report_unexpected_attribute(self, span, Some(note), diagnostics);
+            report_invalid_attribute(self, span, Some(note), diagnostics);
         }
     }
 }

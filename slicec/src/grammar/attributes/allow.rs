@@ -11,7 +11,7 @@ impl Allow {
     pub fn parse_from(Unparsed { directive, args }: &Unparsed, span: &Span, diagnostics: &mut Diagnostics) -> Self {
         debug_assert_eq!(directive, Self::directive());
 
-        check_that_arguments_were_provided(args, Self::directive(), span, diagnostics);
+        check_argument_count_is_within(1..usize::MAX, args, Self::directive(), span, diagnostics);
 
         for arg in args {
             let mut is_valid = Lint::ALLOWABLE_LINT_IDENTIFIERS.contains(&arg.as_str());
@@ -24,9 +24,9 @@ impl Allow {
             // Report an error if the argument wasn't valid.
             if !is_valid {
                 // TODO we should emit a link to the lint page when we write it!
-                let mut error = Diagnostic::new(Error::ArgumentNotSupported {
-                    argument: arg.to_owned(),
+                let mut error = Diagnostic::new(Error::InvalidAttributeArgument {
                     directive: "allow".to_owned(),
+                    argument: arg.to_owned(),
                 })
                 .set_span(span);
 
@@ -49,7 +49,7 @@ impl Allow {
 
     pub fn validate_on(&self, applied_on: Attributables, span: &Span, diagnostics: &mut Diagnostics) {
         if matches!(applied_on, Attributables::Module(_) | Attributables::TypeRef(_)) {
-            report_unexpected_attribute(self, span, None, diagnostics);
+            report_invalid_attribute(self, span, None, diagnostics);
         }
     }
 }

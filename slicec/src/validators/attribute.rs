@@ -30,7 +30,7 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostics: &mut
         match first_attribute_occurrence.entry(directive) {
             Occupied(entry) => {
                 Diagnostic::new(Error::AttributeIsNotRepeatable {
-                    attribute: directive.to_owned(),
+                    directive: directive.to_owned(),
                 })
                 .set_span(span)
                 .add_note("attribute was previously used here", Some(entry.get()))

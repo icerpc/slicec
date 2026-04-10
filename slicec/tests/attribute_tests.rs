@@ -43,9 +43,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::ArgumentNotSupported {
-                argument: "Fake".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
                 directive: "allow".to_owned(),
+                argument: "Fake".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -78,8 +78,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: "allow".to_owned(),
+            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+                directive: "allow".to_owned(),
+                expected_count: 1..usize::MAX,
+                actual_count: 0,
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -181,9 +183,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::ArgumentNotSupported {
-                argument: "Foo".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
                 directive: "slicedFormat".to_owned(),
+                argument: "Foo".to_owned(),
             })
             .add_note("'Args' and 'Return' are the only valid arguments", None);
 
@@ -206,8 +208,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "slicedFormat".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "slicedFormat".to_owned(),
             })
             .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
             .add_note("the slicedFormat attribute can only be applied to operations", None);
@@ -231,8 +233,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: "slicedFormat".to_owned(),
+            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+                directive: "slicedFormat".to_owned(),
+                expected_count: 1..usize::MAX,
+                actual_count: 0,
             })
             .set_span(&Span::new((5, 22).into(), (5, 34).into(), "string-0"));
 
@@ -274,8 +278,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "deprecated".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "deprecated".to_owned(),
             })
             .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
             .add_note("parameters cannot be individually deprecated", None);
@@ -346,8 +350,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "deprecated".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "deprecated".to_owned(),
             });
 
             check_diagnostics(diagnostics, [expected]);
@@ -440,9 +444,9 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::ArgumentNotSupported {
-                argument: "Foo".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
                 directive: "compress".to_owned(),
+                argument: "Foo".to_owned(),
             })
             .add_note("'Args' and 'Return' are the only valid arguments", None);
 
@@ -465,8 +469,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "compress".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "compress".to_owned(),
             })
             .set_span(&Span::new((4, 18).into(), (4, 32).into(), "string-0"))
             .add_note("the compress attribute can only be applied to operations", None);
@@ -490,8 +494,10 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::MissingRequiredArgument {
-                argument: "compress".to_owned(),
+            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+                directive: "compress".to_owned(),
+                expected_count: 1..usize::MAX,
+                actual_count: 0,
             })
             .set_span(&Span::new((5, 22).into(), (5, 30).into(), "string-0"));
 
@@ -516,7 +522,7 @@ mod attributes {
 
             // Assert
             let expected = Diagnostic::new(Error::AttributeIsNotRepeatable {
-                attribute: "compress".to_owned(),
+                directive: "compress".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
         }
@@ -535,8 +541,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "oneway".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "oneway".to_owned(),
             });
 
             check_diagnostics(diagnostics, [expected]);
@@ -556,8 +562,8 @@ mod attributes {
 
             let diagnostics = parse_for_diagnostics(slice);
 
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: "deprecated".to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: "deprecated".to_owned(),
             });
 
             check_diagnostics(diagnostics, [expected]);
@@ -576,8 +582,8 @@ mod attributes {
 
             let diagnostics = parse_for_diagnostics(slice);
 
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: attribute.to_owned(),
+            let expected = Diagnostic::new(Error::InvalidAttribute {
+                directive: attribute.to_owned(),
             });
 
             check_diagnostics(diagnostics, [expected]);
@@ -734,8 +740,8 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnexpectedAttribute {
-                attribute: directive.to_owned(),
+            let expected = Diagnostic::new(Error::UnknownAttribute {
+                directive: directive.to_owned(),
             });
 
             check_diagnostics(diagnostics, [expected]);
