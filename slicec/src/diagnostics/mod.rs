@@ -31,8 +31,8 @@ pub enum DiagnosticLevel {
     /// Diagnostics with the `Warning` level will be emitted, but will not influence the exit code of the compiler.
     Warning,
 
-    /// Diagnostics with the `Suppressed` level are ignored by the compiler and will not emit any message.
-    Suppressed,
+    /// Diagnostics with the `Allowed` level are ignored by the compiler and will not emit any message.
+    Allowed,
 }
 
 /// Stores additional information about a diagnostic.
