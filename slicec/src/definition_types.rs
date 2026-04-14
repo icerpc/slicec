@@ -189,6 +189,13 @@ pub struct TypeAlias {
 implement_encode_into_for_struct!(TypeAlias, entity_info, underlying_type);
 
 #[derive(Clone, Debug)]
+pub struct ResultType {
+    pub success_type: TypeRef,
+    pub failure_type: TypeRef,
+}
+implement_encode_into_for_struct!(ResultType, success_type, failure_type);
+
+#[derive(Clone, Debug)]
 pub struct SequenceType {
     pub element_type: TypeRef,
 }
@@ -200,13 +207,6 @@ pub struct DictionaryType {
     pub value_type: TypeRef,
 }
 implement_encode_into_for_struct!(DictionaryType, key_type, value_type);
-
-#[derive(Clone, Debug)]
-pub struct ResultType {
-    pub success_type: TypeRef,
-    pub failure_type: TypeRef,
-}
-implement_encode_into_for_struct!(ResultType, success_type, failure_type);
 
 #[derive(Clone, Debug)]
 pub struct DocComment {
@@ -271,9 +271,9 @@ pub enum Symbol {
     VariantEnum(VariantEnum) = 2,
     Struct(Struct) = 3,
     CustomType(CustomType) = 4,
-    SequenceType(SequenceType) = 5,
-    DictionaryType(DictionaryType) = 6,
-    ResultType(ResultType) = 7, // TODO make result come before dictionary!
+    ResultType(ResultType) = 5,
+    SequenceType(SequenceType) = 6,
+    DictionaryType(DictionaryType) = 7,
     TypeAlias(TypeAlias) = 8,
 }
 impl EncodeInto for &Symbol {
@@ -293,9 +293,9 @@ impl EncodeInto for &Symbol {
             Symbol::VariantEnum(v) => encoder.encode(v)?,
             Symbol::Struct(v) => encoder.encode(v)?,
             Symbol::CustomType(v) => encoder.encode(v)?,
+            Symbol::ResultType(v) => encoder.encode(v)?,
             Symbol::SequenceType(v) => encoder.encode(v)?,
             Symbol::DictionaryType(v) => encoder.encode(v)?,
-            Symbol::ResultType(v) => encoder.encode(v)?,
             Symbol::TypeAlias(v) => encoder.encode(v)?,
         }
 
