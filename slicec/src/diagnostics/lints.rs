@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use super::{implement_diagnostic_functions, DiagnosticLevel};
+use super::DiagnosticLevel;
 
 #[derive(Debug)]
 pub enum Lint {
@@ -36,8 +36,9 @@ pub enum Lint {
 }
 
 impl Lint {
-    /// Returns the default diagnostic level this lint should use when reporting violations.
-    pub fn get_default_level(&self) -> DiagnosticLevel {
+    /// Returns the default [`DiagnosticLevel`] this lint violation should be reported with unless affected by
+    /// attributes (like '[allow(...)]'), or command-line options (like '--allow').
+    pub fn default_diagnostic_level(&self) -> DiagnosticLevel {
         match self {
             Self::DuplicateFile { .. } => DiagnosticLevel::Warning,
             Self::Deprecated { .. } => DiagnosticLevel::Warning,
@@ -46,26 +47,36 @@ impl Lint {
             Self::IncorrectDocComment { .. } => DiagnosticLevel::Warning,
         }
     }
-}
 
-implement_diagnostic_functions!(
-    Lint,
-    (
-        DuplicateFile,
-        format!("slice file was provided more than once: '{path}'"),
-        path
-    ),
-    (
-        Deprecated,
-        if let Some(reason) = reason {
-            format!("'{identifier}' is deprecated: {reason}")
-        } else {
-            format!("'{identifier}' is deprecated")
-        },
-        identifier,
-        reason
-    ),
-    (MalformedDocComment, message, message),
-    (IncorrectDocComment, message, message),
-    (BrokenDocLink, message, message)
-);
+    /// Returns the name of the lint which was violated.
+    pub fn lint_name(&self) -> &'static str {
+        match self {
+            Self::DuplicateFile { .. } => "DuplicateFile",
+            Self::Deprecated { .. } => "Deprecated",
+            Self::MalformedDocComment { .. } => "MalformedDocComment",
+            Self::IncorrectDocComment { .. } => "IncorrectDocComment",
+            Self::BrokenDocLink { .. } => "BrokenDocLink",
+        }
+    }
+
+    /// Returns a message describing this lint violation in detail.
+    pub fn message(&self) -> String {
+        match self {
+            Self::DuplicateFile { path } => format!("slice file was provided more than once: '{path}'"),
+
+            Self::Deprecated { identifier, reason } => {
+                if let Some(reason) = reason {
+                    format!("'{identifier}' is deprecated: {reason}")
+                } else {
+                    format!("'{identifier}' is deprecated")
+                }
+            }
+
+            Self::MalformedDocComment { message } => format!("malformed doc comment: {message}"),
+
+            Self::IncorrectDocComment { message } => format!("incorrect doc comment: {message}"),
+
+            Self::BrokenDocLink { message } => format!("broken doc link: {message}"),
+        }
+    }
+}
