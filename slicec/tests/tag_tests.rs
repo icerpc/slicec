@@ -25,7 +25,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::TaggedMemberMustBeOptional {
+        let expected = Diagnostic::error(Error::TaggedMemberMustBeOptional {
             identifier: "b".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -45,7 +45,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::TaggedMemberMustBeOptional {
+        let expected = Diagnostic::error(Error::TaggedMemberMustBeOptional {
             identifier: "myParam".to_string(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -100,7 +100,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::CannotHaveDuplicateTag {
+        let expected = Diagnostic::error(Error::CannotHaveDuplicateTag {
             identifier: "b".to_owned(),
         })
         .add_note("The tag '1' is already being used by member 'a'", None);
@@ -143,7 +143,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::TagValueOutOfBounds);
+        let expected = Diagnostic::error(Error::TagValueOutOfBounds);
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -161,7 +161,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::TagValueOutOfBounds);
+        let expected = Diagnostic::error(Error::TagValueOutOfBounds);
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -179,7 +179,7 @@ mod tags {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax {
+        let expected = Diagnostic::error(Error::Syntax {
             message: "expected one of 'integer literal' or '-', but found 'test string'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

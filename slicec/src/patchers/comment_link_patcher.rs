@@ -115,7 +115,7 @@ impl CommentLinkPatcher<'_> {
         self.link_patches.push_back(match result {
             Ok(ptr) => Some(ptr),
             Err(message) => {
-                Diagnostic::new(Lint::BrokenDocLink { message })
+                Diagnostic::lint(Lint::BrokenDocLink { message })
                     .set_span(identifier.span())
                     .set_scope(commentable.parser_scoped_identifier())
                     .push_into(self.diagnostics);

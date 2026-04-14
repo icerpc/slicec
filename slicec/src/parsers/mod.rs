@@ -2,15 +2,15 @@
 
 //! TODO write a comment about how parsing works in Slice.
 
-// We only export the parsers and keep all the other logic private.
-pub use self::comments::parser::CommentParser;
-pub use self::preprocessor::parser::Preprocessor;
-pub use self::slice::parser::Parser;
-
 mod comments;
 mod common;
 mod preprocessor;
 mod slice;
+
+// We only export the parsers and keep all the other logic private.
+pub use self::comments::parser::CommentParser;
+pub use self::preprocessor::parser::Preprocessor;
+pub use self::slice::parser::Parser;
 
 use crate::ast::Ast;
 use crate::compilation_state::CompilationState;
@@ -25,7 +25,7 @@ pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
         parse_file(file, &mut state.ast, &mut diagnostics, symbols.clone());
 
         // Store any diagnostics that were emitted during parsing.
-        state.diagnostics.extend(diagnostics);
+        state.diagnostics.extend(diagnostics.into_inner());
     }
 }
 
@@ -40,7 +40,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Diagnostics
 
     // Issue a syntax error if the user had definitions but forgot to declare a module.
     if !definitions.is_empty() && module.is_none() {
-        Diagnostic::new(Error::Syntax {
+        Diagnostic::error(Error::Syntax {
             // TODO improve this message, see: #348
             message: "module declaration is required".to_owned(),
         })

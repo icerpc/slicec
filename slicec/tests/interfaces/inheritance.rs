@@ -81,7 +81,7 @@ fn must_inherit_from_interface() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::TypeMismatch {
+    let expected = Diagnostic::error(Error::TypeMismatch {
         expected: "interface".to_owned(),
         actual: "struct".to_owned(),
         is_concrete: true,
@@ -108,7 +108,7 @@ fn operation_shadowing_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Shadows {
+    let expected = Diagnostic::error(Error::Shadows {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);

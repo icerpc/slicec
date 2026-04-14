@@ -33,7 +33,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
                     min,
                     max,
                 };
-                Diagnostic::new(error)
+                Diagnostic::error(error)
                     .set_span(enumerator.span())
                     .push_into(diagnostics);
             });
@@ -57,7 +57,7 @@ fn backing_type_bounds(enum_def: &Enum, diagnostics: &mut Diagnostics) {
 fn allowed_underlying_types(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     if let Some(underlying_type) = &enum_def.underlying {
         if !underlying_type.is_integral() {
-            Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
+            Diagnostic::error(Error::EnumUnderlyingTypeNotSupported {
                 enum_identifier: enum_def.identifier().to_owned(),
                 kind: Some(underlying_type.definition().kind().to_owned()),
             })
@@ -74,7 +74,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostics: &mut Diagnostics) 
         // If the value is already in the map, another enumerator already used it. Get that enumerator from the map
         // and report an error. Otherwise add the enumerator and its value to the map.
         if let Some(alt_enum) = value_to_enumerator_map.get(&enumerator.value()) {
-            Diagnostic::new(Error::DuplicateEnumeratorValue {
+            Diagnostic::error(Error::DuplicateEnumeratorValue {
                 enumerator_value: enumerator.value(),
             })
             .set_span(enumerator.span())
@@ -93,7 +93,7 @@ fn enumerator_values_are_unique(enum_def: &Enum, diagnostics: &mut Diagnostics) 
 fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     if let Some(ref typeref) = enum_def.underlying {
         if typeref.is_optional {
-            Diagnostic::new(Error::CannotUseOptionalUnderlyingType {
+            Diagnostic::error(Error::CannotUseOptionalUnderlyingType {
                 enum_identifier: enum_def.identifier().to_owned(),
             })
             .set_span(enum_def.span())
@@ -105,7 +105,7 @@ fn underlying_type_cannot_be_optional(enum_def: &Enum, diagnostics: &mut Diagnos
 /// Validate that a checked enum must not be empty.
 fn nonempty_if_checked(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     if !enum_def.is_unchecked && enum_def.enumerators.is_empty() {
-        Diagnostic::new(Error::MustContainEnumerators {
+        Diagnostic::error(Error::MustContainEnumerators {
             enum_identifier: enum_def.identifier().to_owned(),
         })
         .set_span(enum_def.span())
@@ -120,7 +120,7 @@ fn cannot_contain_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
 
     for enumerator in enum_def.enumerators() {
         if enumerator.fields.is_some() {
-            Diagnostic::new(Error::EnumeratorCannotContainFields {
+            Diagnostic::error(Error::EnumeratorCannotContainFields {
                 enumerator_identifier: enumerator.identifier().to_owned(),
             })
             .set_span(enumerator.span())
@@ -137,7 +137,7 @@ fn cannot_contain_fields(enum_def: &Enum, diagnostics: &mut Diagnostics) {
 fn check_compact_modifier(enum_def: &Enum, diagnostics: &mut Diagnostics) {
     if enum_def.is_compact {
         if let Some(underlying) = &enum_def.underlying {
-            Diagnostic::new(Error::CannotBeCompact {
+            Diagnostic::error(Error::CannotBeCompact {
                 kind: enum_def.kind(),
                 identifier: enum_def.identifier().to_owned(),
             })
@@ -150,7 +150,7 @@ fn check_compact_modifier(enum_def: &Enum, diagnostics: &mut Diagnostics) {
         }
 
         if enum_def.is_unchecked {
-            Diagnostic::new(Error::CannotBeCompact {
+            Diagnostic::error(Error::CannotBeCompact {
                 kind: enum_def.kind(),
                 identifier: enum_def.identifier().to_owned(),
             })
@@ -170,7 +170,7 @@ fn compact_enums_cannot_contain_tags(enum_def: &Enum, diagnostics: &mut Diagnost
         for enumerator in enum_def.enumerators() {
             for field in enumerator.fields() {
                 if field.is_tagged() {
-                    Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: enum_def.kind() })
+                    Diagnostic::error(Error::CompactTypeCannotContainTaggedFields { kind: enum_def.kind() })
                         .set_span(field.span())
                         .add_note(
                             format!("enum '{}' is declared compact here", enum_def.identifier()),

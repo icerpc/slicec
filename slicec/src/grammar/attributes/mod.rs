@@ -13,7 +13,7 @@ pub use oneway::*;
 pub use sliced_format::*;
 
 use super::Attributables;
-use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error};
 use crate::slice_file::Span;
 
 use std::ops::Range;
@@ -84,7 +84,7 @@ fn report_invalid_attribute(
     note: Option<&str>,
     diagnostics: &mut Diagnostics,
 ) {
-    let mut diagnostic = Diagnostic::new(Error::InvalidAttribute {
+    let mut diagnostic = Diagnostic::error(Error::InvalidAttribute {
         directive: attribute.directive().to_owned(),
     })
     .set_span(span);
@@ -113,7 +113,7 @@ fn check_argument_count_is_within(
     diagnostics: &mut Diagnostics,
 ) {
     if !range.contains(&arguments.len()) {
-        Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+        Diagnostic::error(Error::IncorrectAttributeArgumentCount {
             directive: directive.to_owned(),
             expected_count: range,
             actual_count: arguments.len(),

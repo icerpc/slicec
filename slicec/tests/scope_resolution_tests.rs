@@ -178,7 +178,7 @@ mod scope_resolution {
         let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
-        let expected = Diagnostic::new(Error::TypeMismatch {
+        let expected = Diagnostic::error(Error::TypeMismatch {
             expected: "type".to_string(),
             actual: "module".to_string(),
             is_concrete: false,
@@ -201,7 +201,7 @@ mod scope_resolution {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::DoesNotExist {
+        let expected = Diagnostic::error(Error::DoesNotExist {
             identifier: "Nested::C".to_string(),
         });
         check_diagnostics(diagnostics, [expected]);

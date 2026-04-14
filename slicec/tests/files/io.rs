@@ -45,7 +45,7 @@ fn duplicate_source_files_ignored_with_warning() {
     // Assert
     assert_eq!(files.len(), 1);
 
-    let expected = Diagnostic::new(Lint::DuplicateFile {
+    let expected = Diagnostic::lint(Lint::DuplicateFile {
         path: "tests/files/../files/test.slice".to_owned(),
     });
     check_diagnostics(diagnostics.into_inner(), [expected]);
@@ -71,7 +71,7 @@ fn duplicate_reference_files_ignored_with_warning() {
     // Assert
     assert_eq!(files.len(), 1);
 
-    let expected = Diagnostic::new(Lint::DuplicateFile {
+    let expected = Diagnostic::lint(Lint::DuplicateFile {
         path: "tests/files/../files/test.slice".to_owned(),
     });
     check_diagnostics(diagnostics.into_inner(), [expected]);

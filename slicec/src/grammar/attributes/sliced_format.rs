@@ -20,7 +20,7 @@ impl SlicedFormat {
                 "Args" => sliced_args = true,
                 "Return" => sliced_return = true,
                 _ => {
-                    Diagnostic::new(Error::InvalidAttributeArgument {
+                    Diagnostic::error(Error::InvalidAttributeArgument {
                         directive: Self::directive().to_owned(),
                         argument: arg.clone(),
                     })

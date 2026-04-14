@@ -49,7 +49,7 @@ fn string_literals_cannot_contain_newlines() {
 
     // Assert
     let span = Span::new((2, 14).into(), (2, 24).into(), "string-0");
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: "unterminated string literal".to_owned(),
     })
     .set_span(&span);
@@ -112,10 +112,10 @@ fn files_are_parsed_independently() {
     // Assert
     let expected_message = "expected one of 'doc comment', 'struct', 'interface', 'enum', 'custom', 'typealias', 'compact', 'unchecked', '[', or '::', but found '-'";
     let expected = [
-        Diagnostic::new(Error::Syntax {
+        Diagnostic::error(Error::Syntax {
             message: expected_message.to_owned(),
         }),
-        Diagnostic::new(Error::Syntax {
+        Diagnostic::error(Error::Syntax {
             message: expected_message.to_owned(),
         }),
     ];

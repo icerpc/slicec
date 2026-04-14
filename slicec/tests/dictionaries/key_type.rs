@@ -16,7 +16,7 @@ fn optional_keys_are_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyMustBeNonOptional);
+    let expected = Diagnostic::error(Error::KeyMustBeNonOptional);
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -62,7 +62,7 @@ fn disallowed_primitive_types(key_type: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyTypeNotSupported { kind: key_type.to_owned() });
+    let expected = Diagnostic::error(Error::KeyTypeNotSupported { kind: key_type.to_owned() });
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -81,7 +81,7 @@ fn collections_are_disallowed(key_type: &str, key_kind: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyTypeNotSupported { kind: key_kind.to_owned() });
+    let expected = Diagnostic::error(Error::KeyTypeNotSupported { kind: key_kind.to_owned() });
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -119,7 +119,7 @@ fn disallowed_constructed_types(key_type: &str, key_type_def: &str, key_kind: &s
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::KeyTypeNotSupported {
+    let expected = Diagnostic::error(Error::KeyTypeNotSupported {
         kind: format!("{key_kind} '{key_type}'"),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -140,7 +140,7 @@ fn non_compact_structs_are_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::StructKeyMustBeCompact);
+    let expected = Diagnostic::error(Error::StructKeyMustBeCompact);
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -190,7 +190,7 @@ fn compact_struct_with_disallowed_fields_is_disallowed() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::StructKeyContainsDisallowedType {
+    let expected = Diagnostic::error(Error::StructKeyContainsDisallowedType {
         struct_identifier: "Outer".to_owned(),
     })
     .add_note("invalid dictionary key type: sequence", None)

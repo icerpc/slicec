@@ -10,7 +10,7 @@ pub fn validate_struct(struct_def: &Struct, diagnostics: &mut Diagnostics) {
 fn validate_compact_struct_not_empty(struct_def: &Struct, diagnostics: &mut Diagnostics) {
     // Compact structs must be non-empty.
     if struct_def.is_compact && struct_def.fields().is_empty() {
-        Diagnostic::new(Error::CompactStructCannotBeEmpty)
+        Diagnostic::error(Error::CompactStructCannotBeEmpty)
             .set_span(struct_def.span())
             .push_into(diagnostics);
     }
@@ -21,7 +21,7 @@ fn compact_structs_cannot_contain_tags(struct_def: &Struct, diagnostics: &mut Di
     if struct_def.is_compact {
         for field in struct_def.fields() {
             if field.is_tagged() {
-                Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: struct_def.kind() })
+                Diagnostic::error(Error::CompactTypeCannotContainTaggedFields { kind: struct_def.kind() })
                     .set_span(field.span())
                     .add_note(
                         format!("struct '{}' is declared compact here", struct_def.identifier()),

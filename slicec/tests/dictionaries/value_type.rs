@@ -19,10 +19,10 @@ fn invalid_dictionary_values_produce_error() {
 
     // Assert
     let expected = [
-        Diagnostic::new(Error::KeyTypeNotSupported {
+        Diagnostic::error(Error::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         }),
-        Diagnostic::new(Error::KeyTypeNotSupported {
+        Diagnostic::error(Error::KeyTypeNotSupported {
             kind: "float64".to_owned(),
         }),
     ];

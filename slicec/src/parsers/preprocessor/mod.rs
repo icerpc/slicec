@@ -27,7 +27,7 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
             let converted = Error::Syntax {
                 message: parse_error_kind.to_string(),
             };
-            Diagnostic::new(converted).set_span(&Span::new(start, end, file_name))
+            Diagnostic::error(converted).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser encountered a token that didn't fit any grammar rule.
@@ -36,13 +36,13 @@ fn construct_error_from(parse_error: ParseError, file_name: &str) -> Diagnostic 
             expected,
         } => {
             let message = generate_message(&expected, token_kind);
-            Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(start, end, file_name))
+            Diagnostic::error(Error::Syntax { message }).set_span(&Span::new(start, end, file_name))
         }
 
         // The parser hit EOF in the middle of a grammar rule.
         ParseError::UnrecognizedEof { location, expected } => {
             let message = generate_message(&expected, "EOF");
-            Diagnostic::new(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
+            Diagnostic::error(Error::Syntax { message }).set_span(&Span::new(location, location, file_name))
         }
 
         // Only the built-in lexer emits 'InvalidToken' errors. We use our own lexer so this is impossible.

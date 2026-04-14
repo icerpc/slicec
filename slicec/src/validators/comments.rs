@@ -51,7 +51,7 @@ fn report_only_operation_error(
         _ => unreachable!("'report_only_operation_error' was called with unsupported tag '{tag_kind}'"),
     };
 
-    Diagnostic::new(Lint::IncorrectDocComment {
+    Diagnostic::lint(Lint::IncorrectDocComment {
         message: format!("comment has a '{tag_kind}' tag, but only operations can {action_phrase}"),
     })
     .set_span(&(tag.span() + message_span))

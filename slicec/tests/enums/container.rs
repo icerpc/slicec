@@ -22,7 +22,7 @@ fn enumerator_invalid_identifiers(identifier: &str, expected_message: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: expected_message.to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -64,7 +64,7 @@ mod associated_fields {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::CompactTypeCannotContainTaggedFields { kind: "enum" })
+        let expected = Diagnostic::error(Error::CompactTypeCannotContainTaggedFields { kind: "enum" })
             .add_note("enum 'E' is declared compact here", None);
 
         check_diagnostics(diagnostics, [expected]);
@@ -125,25 +125,25 @@ mod associated_fields {
 
         // Arrange
         let expected = [
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "ExplicitNegative".to_owned(),
                 value: -3,
                 min: 0,
                 max: i32::MAX as i128,
             }),
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "ImplicitNegative".to_owned(),
                 value: -2,
                 min: 0,
                 max: i32::MAX as i128,
             }),
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "ImplicitOverflow".to_owned(),
                 value: 2_147_483_648,
                 min: 0,
                 max: i32::MAX as i128,
             }),
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "ExplicitOverflow".to_owned(),
                 value: 0x686921203A7629,
                 min: 0,
@@ -241,7 +241,7 @@ mod associated_fields {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::MustContainEnumerators {
+        let expected = Diagnostic::error(Error::MustContainEnumerators {
             enum_identifier: "E".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -277,7 +277,7 @@ mod associated_fields {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "A".to_string(),
         })
         .add_note("'A' was previously defined here", None);
@@ -306,7 +306,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::EnumeratorCannotContainFields {
+        let expected = Diagnostic::error(Error::EnumeratorCannotContainFields {
             enumerator_identifier: "B".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -372,13 +372,13 @@ mod underlying_type {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "B".to_owned(),
                 value: i128::MAX,
                 min: -2147483648,
                 max: 2147483647,
             }),
-            Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+            Diagnostic::error(Error::EnumeratorValueOutOfBounds {
                 enumerator_identifier: "C".to_owned(),
                 value: i128::MIN,
                 min: -2147483648,
@@ -420,7 +420,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::EnumeratorValueOutOfBounds {
+        let expected = Diagnostic::error(Error::EnumeratorValueOutOfBounds {
             enumerator_identifier: "A".to_owned(),
             value: out_of_bounds_value,
             min: -32768_i128,
@@ -464,7 +464,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::DuplicateEnumeratorValue { enumerator_value: 1 })
+        let expected = Diagnostic::error(Error::DuplicateEnumeratorValue { enumerator_value: 1 })
             .add_note("the value was previously used by 'A' here:", None);
 
         check_diagnostics(diagnostics, [expected]);
@@ -505,7 +505,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::MustContainEnumerators {
+        let expected = Diagnostic::error(Error::MustContainEnumerators {
             enum_identifier: "E".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -568,7 +568,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::DuplicateEnumeratorValue { enumerator_value: 79 });
+        let expected = Diagnostic::error(Error::DuplicateEnumeratorValue { enumerator_value: 79 });
         check_diagnostics(diagnostics, [expected]);
     }
 
@@ -587,7 +587,7 @@ mod underlying_type {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "A".to_string(),
         })
         .add_note("'A' was previously defined here", None);

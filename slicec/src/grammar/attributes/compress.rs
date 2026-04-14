@@ -20,7 +20,7 @@ impl Compress {
                 "Args" => compress_args = true,
                 "Return" => compress_return = true,
                 _ => {
-                    Diagnostic::new(Error::InvalidAttributeArgument {
+                    Diagnostic::error(Error::InvalidAttributeArgument {
                         directive: Self::directive().to_owned(),
                         argument: arg.clone(),
                     })

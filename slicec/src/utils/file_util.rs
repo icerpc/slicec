@@ -42,7 +42,7 @@ fn remove_duplicate_file_paths(file_paths: Vec<FilePath>, diagnostics: &mut Diag
     for file_path in file_paths {
         if deduped_file_paths.contains(&file_path) {
             let lint = Lint::DuplicateFile { path: file_path.path };
-            Diagnostic::new(lint).push_into(diagnostics);
+            Diagnostic::lint(lint).push_into(diagnostics);
         } else {
             deduped_file_paths.push(file_path);
         }
@@ -73,7 +73,7 @@ pub fn resolve_files_from(options: &SliceOptions, diagnostics: &mut Diagnostics)
     for file_path in file_paths {
         match fs::read_to_string(&file_path.path) {
             Ok(raw_text) => files.push(SliceFile::new(file_path.path, raw_text, file_path.is_source)),
-            Err(error) => Diagnostic::new(Error::IO {
+            Err(error) => Diagnostic::error(Error::IO {
                 action: "read",
                 path: file_path.path,
                 error,
@@ -94,7 +94,7 @@ fn find_slice_files(paths: &[String], are_source_files: bool, diagnostics: &mut 
 
         // If the path does not exist, report an error and continue.
         if !path_buf.exists() {
-            Diagnostic::new(Error::IO {
+            Diagnostic::error(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io::ErrorKind::NotFound.into(),
@@ -110,7 +110,7 @@ fn find_slice_files(paths: &[String], are_source_files: bool, diagnostics: &mut 
                 io::ErrorKind::InvalidFilename,
                 "Slice files must end with a '.slice' extension",
             );
-            Diagnostic::new(Error::IO {
+            Diagnostic::error(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io_error,
@@ -126,7 +126,7 @@ fn find_slice_files(paths: &[String], are_source_files: bool, diagnostics: &mut 
                 io::ErrorKind::InvalidFilename,
                 "Expected a Slice file but found a directory.",
             );
-            Diagnostic::new(Error::IO {
+            Diagnostic::error(Error::IO {
                 action: "read",
                 path: path.to_owned(),
                 error: io_error,
@@ -144,7 +144,7 @@ fn find_slice_files(paths: &[String], are_source_files: bool, diagnostics: &mut 
         .filter_map(|path| match FilePath::try_create(&path, are_source_files) {
             Ok(file_path) => Some(file_path),
             Err(error) => {
-                Diagnostic::new(Error::IO {
+                Diagnostic::error(Error::IO {
                     action: "read",
                     path,
                     error,
@@ -162,7 +162,7 @@ fn find_slice_files_in_path(path: PathBuf, diagnostics: &mut Diagnostics) -> Vec
         // Recurse into the directory.
         match find_slice_files_in_directory(&path, diagnostics) {
             Ok(child_paths) => paths.extend(child_paths),
-            Err(error) => Diagnostic::new(Error::IO {
+            Err(error) => Diagnostic::error(Error::IO {
                 action: "read",
                 path: path.display().to_string(),
                 error,
@@ -188,7 +188,7 @@ fn find_slice_files_in_directory(path: &Path, diagnostics: &mut Diagnostics) -> 
             Ok(child) => paths.extend(find_slice_files_in_path(child.path(), diagnostics)),
             Err(error) => {
                 // If we cannot read the directory entry, report an error and continue.
-                Diagnostic::new(Error::IO {
+                Diagnostic::error(Error::IO {
                     action: "read",
                     path: path.display().to_string(),
                     error,

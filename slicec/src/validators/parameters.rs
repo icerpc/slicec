@@ -15,7 +15,7 @@ fn at_most_one_stream_parameter(members: &[&Parameter], diagnostics: &mut Diagno
         .split_last() // Split at the last element, which is the one we do not want to report an error for.
         .unwrap().1 // All members before the split. Safe to unwrap since we know there are at least two members.
         .iter()
-        .for_each(|m| Diagnostic::new(Error::MultipleStreamedMembers).set_span(m.span()).push_into(diagnostics));
+        .for_each(|m| Diagnostic::error(Error::MultipleStreamedMembers).set_span(m.span()).push_into(diagnostics));
     }
 }
 
@@ -26,7 +26,7 @@ fn stream_parameter_is_last(members: &[&Parameter], diagnostics: &mut Diagnostic
         .into_iter()
         .filter(|m| m.is_streamed)
         .for_each(|m| {
-           Diagnostic::new(Error::StreamedMembersMustBeLast { parameter_identifier: m.identifier().to_owned() })
+           Diagnostic::error(Error::StreamedMembersMustBeLast { parameter_identifier: m.identifier().to_owned() })
                 .set_span(m.span())
                 .push_into(diagnostics);
         });

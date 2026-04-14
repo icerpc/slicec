@@ -27,7 +27,7 @@ fn check_for_shadowing(
     for identifier in identifiers {
         for inherited_identifier in &inherited_identifiers {
             if identifier.value == inherited_identifier.value {
-                Diagnostic::new(Error::Shadows {
+                Diagnostic::error(Error::Shadows {
                     identifier: identifier.value.clone(),
                 })
                 .set_span(identifier.span())
@@ -118,7 +118,7 @@ impl<'a> RedefinitionChecker<'a> {
     }
 
     fn report_redefinition_error(&mut self, new: &dyn NamedSymbol, original: &dyn NamedSymbol) {
-        Diagnostic::new(Error::Redefinition {
+        Diagnostic::error(Error::Redefinition {
             identifier: new.identifier().to_owned(),
         })
         .set_span(new.raw_identifier().span())

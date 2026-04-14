@@ -26,7 +26,7 @@ mod redefinition {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "S".to_owned(),
         })
         .set_span(&Span::new((8, 20).into(), (8, 21).into(), "string-0"))
@@ -55,7 +55,7 @@ mod redefinition {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "A".to_owned(),
         })
         .set_span(&Span::new((6, 20).into(), (6, 21).into(), "string-0"))
@@ -87,7 +87,7 @@ mod redefinition {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let i_error = Diagnostic::new(Error::Redefinition {
+        let i_error = Diagnostic::error(Error::Redefinition {
             identifier: "i".to_owned(),
         })
         .set_span(&Span::new((6, 17).into(), (6, 18).into(), "string-0"))
@@ -96,7 +96,7 @@ mod redefinition {
             Some(&Span::new((5, 17).into(), (5, 18).into(), "string-0")),
         );
 
-        let s_error = Diagnostic::new(Error::Redefinition {
+        let s_error = Diagnostic::error(Error::Redefinition {
             identifier: "A".to_owned(),
         })
         .set_span(&Span::new((9, 23).into(), (9, 24).into(), "string-0"))
@@ -137,37 +137,37 @@ mod redefinition {
         // Assert
         let expected = [
             // The struct fields
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "b".to_owned(),
             })
             .set_span(&Span::new((8, 17).into(), (8, 18).into(), "string-0")),
             // The interface
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "A".to_owned(),
             })
             .set_span(&Span::new((11, 23).into(), (11, 24).into(), "string-0")),
             // The operation
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "b".to_owned(),
             })
             .set_span(&Span::new((15, 17).into(), (15, 18).into(), "string-0")),
             // The parameter
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "b".to_owned(),
             })
             .set_span(&Span::new((12, 28).into(), (12, 29).into(), "string-0")),
             // The return member
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "b".to_owned(),
             })
             .set_span(&Span::new((12, 50).into(), (12, 51).into(), "string-0")),
             // The enum
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "A".to_owned(),
             })
             .set_span(&Span::new((18, 18).into(), (18, 19).into(), "string-0")),
             // The enumerator
-            Diagnostic::new(Error::Redefinition {
+            Diagnostic::error(Error::Redefinition {
                 identifier: "b".to_owned(),
             })
             .set_span(&Span::new((18, 28).into(), (18, 29).into(), "string-0")),
@@ -192,7 +192,7 @@ mod redefinition {
         let diagnostics = parse_multiple_for_diagnostics(&[slice1, slice2]);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "Bar".to_owned(),
         })
         .set_span(&Span::new((3, 20).into(), (3, 23).into(), "string-1"))

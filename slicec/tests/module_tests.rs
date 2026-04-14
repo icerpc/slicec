@@ -46,7 +46,7 @@ mod module {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax {
+        let expected = Diagnostic::error(Error::Syntax {
             message: "module declaration is required".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

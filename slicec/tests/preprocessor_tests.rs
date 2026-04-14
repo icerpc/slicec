@@ -69,7 +69,7 @@ fn identifiers_must_start_with_a_letter(identifier: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: format!("unknown symbol '{}'", identifier.chars().next().unwrap()),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -357,7 +357,7 @@ fn preprocessor_single_backslash_suggestion() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: "unknown symbol '/', try using '//' instead".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -381,10 +381,10 @@ fn preprocessor_recovers_at_end_of_line() {
 
     // Assert
     let expected = [
-        Diagnostic::new(Error::Syntax {
+        Diagnostic::error(Error::Syntax {
             message: "expected directive_end, but found 'Identifier(\"Bar\")'".to_owned(),
         }),
-        Diagnostic::new(Error::Syntax {
+        Diagnostic::error(Error::Syntax {
             message: r#"expected one of "&&", "||", or ")", but found 'DirectiveEnd'"#.to_owned(),
         }),
     ];

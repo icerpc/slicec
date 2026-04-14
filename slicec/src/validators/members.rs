@@ -17,7 +17,7 @@ fn tags_are_unique(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
     sorted_tagged_members.sort_by_key(|member| member.tag().expect("tagged member has no tag!"));
     sorted_tagged_members.windows(2).for_each(|window| {
         if window[0].tag() == window[1].tag() {
-            Diagnostic::new(Error::CannotHaveDuplicateTag {
+            Diagnostic::error(Error::CannotHaveDuplicateTag {
                 identifier: window[1].identifier().to_owned(),
             })
             .set_span(window[1].span())
@@ -41,7 +41,7 @@ fn tags_have_optional_types(members: Vec<&impl Member>, diagnostics: &mut Diagno
     // Validate that tagged members are optional.
     for member in tagged_members {
         if !member.data_type().is_optional {
-            Diagnostic::new(Error::TaggedMemberMustBeOptional {
+            Diagnostic::error(Error::TaggedMemberMustBeOptional {
                 identifier: member.identifier().to_owned(),
             })
             .set_span(member.span())

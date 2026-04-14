@@ -51,7 +51,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::EnumUnderlyingTypeNotSupported {
+    let expected = Diagnostic::error(Error::EnumUnderlyingTypeNotSupported {
         enum_identifier: "E".to_owned(),
         kind: Some(underlying_type.to_owned()),
     });
@@ -73,7 +73,7 @@ fn optional_underlying_types_fail() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::CannotUseOptionalUnderlyingType {
+    let expected = Diagnostic::error(Error::CannotUseOptionalUnderlyingType {
         enum_identifier: "E".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -118,7 +118,7 @@ fn compact_enums_cannot_have_underlying_types() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::CannotBeCompact {
+    let expected = Diagnostic::error(Error::CannotBeCompact {
         kind: "enum",
         identifier: "E".to_owned(),
     })
@@ -143,7 +143,7 @@ fn compact_enums_cannot_be_unchecked() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::CannotBeCompact {
+    let expected = Diagnostic::error(Error::CannotBeCompact {
         kind: "enum",
         identifier: "E".to_owned(),
     })

@@ -123,7 +123,7 @@ mod typealias {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::TypeAliasOfOptional)
+        let expected = Diagnostic::error(Error::TypeAliasOfOptional)
             .set_span(&Span::new((3, 13).into(), (3, 27).into(), "string-0"))
             .add_note(
                 "try removing the trailing `?` modifier from its definition",

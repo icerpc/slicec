@@ -53,7 +53,7 @@ fn must_start_with_a_letter() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: "unknown symbol '_'".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);
@@ -88,7 +88,7 @@ fn must_be_ascii_alphanumeric_characters() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Syntax {
+    let expected = Diagnostic::error(Error::Syntax {
         message: "unknown symbol '𒅋'".to_owned(),
     });
     check_diagnostics(diagnostics, [expected]);

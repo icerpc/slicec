@@ -43,7 +43,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
+            let expected = Diagnostic::error(Error::InvalidAttributeArgument {
                 directive: "allow".to_owned(),
                 argument: "Fake".to_owned(),
             });
@@ -78,7 +78,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+            let expected = Diagnostic::error(Error::IncorrectAttributeArgumentCount {
                 directive: "allow".to_owned(),
                 expected_count: 1..usize::MAX,
                 actual_count: 0,
@@ -113,14 +113,14 @@ mod attributes {
 
             // Assert
             let mut all_lints = vec![
-                Diagnostic::new(Lint::Deprecated {
+                Diagnostic::lint(Lint::Deprecated {
                     identifier: "S".to_owned(),
                     reason: Some("test".to_owned()),
                 }),
-                Diagnostic::new(Lint::BrokenDocLink {
+                Diagnostic::lint(Lint::BrokenDocLink {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
-                Diagnostic::new(Lint::IncorrectDocComment {
+                Diagnostic::lint(Lint::IncorrectDocComment {
                     message: "comment has a 'returns' tag, but only operations can return".to_owned(),
                 }),
             ];
@@ -183,7 +183,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
+            let expected = Diagnostic::error(Error::InvalidAttributeArgument {
                 directive: "slicedFormat".to_owned(),
                 argument: "Foo".to_owned(),
             })
@@ -208,7 +208,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "slicedFormat".to_owned(),
             })
             .set_span(&Span::new((4, 18).into(), (4, 36).into(), "string-0"))
@@ -233,7 +233,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+            let expected = Diagnostic::error(Error::IncorrectAttributeArgumentCount {
                 directive: "slicedFormat".to_owned(),
                 expected_count: 1..usize::MAX,
                 actual_count: 0,
@@ -278,7 +278,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "deprecated".to_owned(),
             })
             .set_span(&Span::new((5, 25).into(), (5, 35).into(), "string-0"))
@@ -329,7 +329,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Lint::Deprecated {
+            let expected = Diagnostic::lint(Lint::Deprecated {
                 identifier: "Bar".to_owned(),
                 reason: None,
             });
@@ -350,7 +350,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "deprecated".to_owned(),
             });
 
@@ -375,7 +375,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Lint::Deprecated {
+            let expected = Diagnostic::lint(Lint::Deprecated {
                 identifier: "A".to_owned(),
                 reason: Some("Message here".to_owned()),
             });
@@ -398,7 +398,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Lint::Deprecated {
+            let expected = Diagnostic::lint(Lint::Deprecated {
                 identifier: "A".to_owned(),
                 reason: None,
             });
@@ -444,7 +444,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttributeArgument {
+            let expected = Diagnostic::error(Error::InvalidAttributeArgument {
                 directive: "compress".to_owned(),
                 argument: "Foo".to_owned(),
             })
@@ -469,7 +469,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "compress".to_owned(),
             })
             .set_span(&Span::new((4, 18).into(), (4, 32).into(), "string-0"))
@@ -494,7 +494,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::IncorrectAttributeArgumentCount {
+            let expected = Diagnostic::error(Error::IncorrectAttributeArgumentCount {
                 directive: "compress".to_owned(),
                 expected_count: 1..usize::MAX,
                 actual_count: 0,
@@ -521,7 +521,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::AttributeIsNotRepeatable {
+            let expected = Diagnostic::error(Error::AttributeIsNotRepeatable {
                 directive: "compress".to_owned(),
             });
             check_diagnostics(diagnostics, [expected]);
@@ -541,7 +541,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "oneway".to_owned(),
             });
 
@@ -562,7 +562,7 @@ mod attributes {
 
             let diagnostics = parse_for_diagnostics(slice);
 
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: "deprecated".to_owned(),
             });
 
@@ -582,7 +582,7 @@ mod attributes {
 
             let diagnostics = parse_for_diagnostics(slice);
 
-            let expected = Diagnostic::new(Error::InvalidAttribute {
+            let expected = Diagnostic::error(Error::InvalidAttribute {
                 directive: attribute.to_owned(),
             });
 
@@ -740,7 +740,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::UnknownAttribute {
+            let expected = Diagnostic::error(Error::UnknownAttribute {
                 directive: directive.to_owned(),
             });
 
@@ -763,7 +763,7 @@ mod attributes {
             let diagnostics = parse_for_diagnostics(slice);
 
             // Assert
-            let expected = Diagnostic::new(Error::Syntax {
+            let expected = Diagnostic::error(Error::Syntax {
                 message: format!("expected 'identifier', but found '{found}'"),
             });
 

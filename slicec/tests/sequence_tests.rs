@@ -44,7 +44,7 @@ mod sequences {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::KeyTypeNotSupported {
+        let expected = Diagnostic::error(Error::KeyTypeNotSupported {
             kind: "float32".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

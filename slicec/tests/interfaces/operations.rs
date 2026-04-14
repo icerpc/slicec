@@ -190,7 +190,7 @@ fn cannot_redefine_parameters() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Redefinition {
+    let expected = Diagnostic::error(Error::Redefinition {
         identifier: "a".to_string(),
     })
     .add_note("'a' was previously defined here", None);
@@ -213,7 +213,7 @@ fn cannot_redefine_return_members() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::Redefinition {
+    let expected = Diagnostic::error(Error::Redefinition {
         identifier: "a".to_string(),
     })
     .add_note("'a' was previously defined here", None);
@@ -239,7 +239,7 @@ fn return_tuple_must_contain_two_or_more_elements(return_tuple: &str) {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::new(Error::ReturnTuplesMustContainAtLeastTwoElements);
+    let expected = Diagnostic::error(Error::ReturnTuplesMustContainAtLeastTwoElements);
     check_diagnostics(diagnostics, [expected]);
 }
 
@@ -287,10 +287,10 @@ mod streams {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::StreamedMembersMustBeLast {
+            Diagnostic::error(Error::StreamedMembersMustBeLast {
                 parameter_identifier: "s".to_owned(),
             }),
-            Diagnostic::new(Error::MultipleStreamedMembers),
+            Diagnostic::error(Error::MultipleStreamedMembers),
         ];
         check_diagnostics(diagnostics, expected);
     }
@@ -310,7 +310,7 @@ mod streams {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::StreamedMembersMustBeLast {
+        let expected = Diagnostic::error(Error::StreamedMembersMustBeLast {
             parameter_identifier: "s".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

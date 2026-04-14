@@ -16,7 +16,7 @@ fn validate_param_tags(comment: &DocComment, operation: &Operation, diagnostics:
     for param_tag in &comment.params {
         let tag_identifier = param_tag.identifier.value.as_str();
         if !parameters.contains(&tag_identifier) {
-            Diagnostic::new(Lint::IncorrectDocComment {
+            Diagnostic::lint(Lint::IncorrectDocComment {
                 message: format!(
                     "comment has a 'param' tag for '{tag_identifier}', but operation '{}' has no parameter with that name",
                     operation.identifier(),
@@ -49,7 +49,7 @@ fn validate_returns_tags_for_operation_with_no_return_type(
     diagnostics: &mut Diagnostics,
 ) {
     for returns_tag in returns_tags {
-        Diagnostic::new(Lint::IncorrectDocComment {
+        Diagnostic::lint(Lint::IncorrectDocComment {
             message: format!(
                 "comment has a 'returns' tag, but operation '{}' does not return anything",
                 operation.identifier(),
@@ -68,7 +68,7 @@ fn validate_returns_tags_for_operation_with_single_return(
 ) {
     for returns_tag in returns_tags {
         if let Some(tag_identifier) = &returns_tag.identifier {
-            Diagnostic::new(Lint::IncorrectDocComment {
+            Diagnostic::lint(Lint::IncorrectDocComment {
                 message: format!(
                     "comment has a 'returns' tag for '{}', but operation '{}' doesn't return anything with that name",
                     &tag_identifier.value,
@@ -99,7 +99,7 @@ fn validate_returns_tags_for_operation_with_return_tuple(
         if let Some(tag_identifier) = &returns_tag.identifier {
             let tag_identifier = tag_identifier.value.as_str();
             if !return_members.contains(&tag_identifier) {
-                Diagnostic::new(Lint::IncorrectDocComment {
+                Diagnostic::lint(Lint::IncorrectDocComment {
                     message: format!(
                         "comment has a 'returns' tag for '{tag_identifier}', but operation '{}' doesn't return anything with that name",
                         operation.identifier(),

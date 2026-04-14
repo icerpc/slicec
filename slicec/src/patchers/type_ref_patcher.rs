@@ -190,7 +190,7 @@ impl TypeRefPatcher<'_> {
                         is_concrete,
                     },
                 };
-                Diagnostic::new(mapped_error)
+                Diagnostic::error(mapped_error)
                     .set_span(identifier.span())
                     .push_into(self.diagnostics);
                 None
@@ -207,7 +207,7 @@ impl TypeRefPatcher<'_> {
                 // only check the first argument. If it's present, we attach it to the lint message.
                 let identifier = entity.identifier().to_owned();
                 let reason = deprecated.reason.clone();
-                Diagnostic::new(Lint::Deprecated { identifier, reason })
+                Diagnostic::lint(Lint::Deprecated { identifier, reason })
                     .set_span(type_ref.span())
                     .set_scope(type_ref.parser_scope())
                     .add_note(
@@ -243,7 +243,7 @@ impl TypeRefPatcher<'_> {
                 // an error for it. This check makes sure we don't report errors for type aliases that aren't cyclic,
                 // but use another type-alias which is. In this case, the chain contains it, but it won't be the first.
                 if type_alias_chain.first() == Some(&type_alias_id) {
-                    Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+                    Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                         identifier: current_type_alias.module_scoped_identifier(),
                     })
                     .set_span(current_type_alias.span())

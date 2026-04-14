@@ -166,7 +166,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Syntax {
+        let expected = Diagnostic::error(Error::Syntax {
             message: "doc comments cannot be applied to modules".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -196,10 +196,10 @@ mod comments {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::Syntax {
+            Diagnostic::error(Error::Syntax {
                 message: "doc comments cannot be applied to parameters".to_owned(),
             }),
-            Diagnostic::new(Error::Syntax {
+            Diagnostic::error(Error::Syntax {
                 // TODO: improve the message for return members, since they're not parameters.
                 // We need to find an umbrella term for return members and parameters.
                 message: "doc comments cannot be applied to parameters".to_owned(),
@@ -341,7 +341,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::MalformedDocComment {
+        let expected = Diagnostic::lint(Lint::MalformedDocComment {
             message: "unknown doc comment tag 'linked'".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -361,7 +361,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::BrokenDocLink {
+        let expected = Diagnostic::lint(Lint::BrokenDocLink {
             message: "no element named 'OtherStruct' exists in scope".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -389,7 +389,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::BrokenDocLink {
+        let expected = Diagnostic::lint(Lint::BrokenDocLink {
             message: format!("{kind} cannot be linked to"),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -411,7 +411,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'param' tag for 'foo', but operation 'op' has no parameter with that name"
                 .to_owned(),
         });
@@ -434,7 +434,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'param' tag for 'foo', but operation 'op' has no parameter with that name"
                 .to_owned(),
         });
@@ -460,7 +460,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'returns' tag, but operation 'op' does not return anything".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -482,7 +482,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'returns' tag for 'foo', but operation 'op' doesn't return anything with that name"
                 .to_owned(),
         });
@@ -505,7 +505,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'returns' tag for 'foo', but operation 'op' doesn't return anything with that name"
                 .to_owned(),
         });
@@ -526,7 +526,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'param' tag, but only operations can have parameters".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
@@ -546,7 +546,7 @@ mod comments {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Lint::IncorrectDocComment {
+        let expected = Diagnostic::lint(Lint::IncorrectDocComment {
             message: "comment has a 'returns' tag, but only operations can return".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);

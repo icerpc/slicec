@@ -23,7 +23,7 @@ mod container {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Container".to_owned(),
         });
@@ -49,7 +49,7 @@ mod container {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Inner -> Test::Container".to_owned(),
         });
@@ -75,7 +75,7 @@ mod container {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert: only `Container` should be marked as cyclic here.
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Container".to_owned(),
         });
@@ -99,7 +99,7 @@ mod container {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert: only one error is emitted, despite multiple cyclic paths existing.
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Container".to_owned(),
             cycle: "Test::Container -> Test::Container".to_owned(),
         });
@@ -122,19 +122,19 @@ mod container {
 
         // Assert: There are technically 18 cycles in the above Slice, but only 4 are unique cycles.
         let expected = [
-            Diagnostic::new(Error::InfiniteSizeCycle {
+            Diagnostic::error(Error::InfiniteSizeCycle {
                 type_id: "Test::A".to_owned(),
                 cycle: "Test::A -> Test::B -> Test::A".to_owned(),
             }),
-            Diagnostic::new(Error::InfiniteSizeCycle {
+            Diagnostic::error(Error::InfiniteSizeCycle {
                 type_id: "Test::A".to_owned(),
                 cycle: "Test::A -> Test::B -> Test::C -> Test::A".to_owned(),
             }),
-            Diagnostic::new(Error::InfiniteSizeCycle {
+            Diagnostic::error(Error::InfiniteSizeCycle {
                 type_id: "Test::A".to_owned(),
                 cycle: "Test::A -> Test::C -> Test::A".to_owned(),
             }),
-            Diagnostic::new(Error::InfiniteSizeCycle {
+            Diagnostic::error(Error::InfiniteSizeCycle {
                 type_id: "Test::B".to_owned(),
                 cycle: "Test::B -> Test::C -> Test::B".to_owned(),
             }),
@@ -162,7 +162,7 @@ mod builtin {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Foo".to_owned(),
             cycle: "Test::Foo -> Test::Foo".to_owned(),
         })
@@ -189,7 +189,7 @@ mod builtin {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Foo".to_owned(),
             cycle: "Test::Foo -> Test::Foo".to_owned(),
         })
@@ -216,7 +216,7 @@ mod builtin {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::InfiniteSizeCycle {
+        let expected = Diagnostic::error(Error::InfiniteSizeCycle {
             type_id: "Test::Foo".to_owned(),
             cycle: "Test::Foo -> Test::Foo".to_owned(),
         })
@@ -245,12 +245,12 @@ mod type_aliases {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+            Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-            Diagnostic::new(Error::DoesNotExist {
+            Diagnostic::error(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
         ];
@@ -273,20 +273,20 @@ mod type_aliases {
 
         // Assert
         let expected = [
-            Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+            Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Bar".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Bar -> Test::Foo -> Test::Bar".to_owned(), None),
-            Diagnostic::new(Error::DoesNotExist {
+            Diagnostic::error(Error::DoesNotExist {
                 identifier: "Test::Bar".to_owned(),
             }),
-            Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+            Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Bar -> Test::Foo".to_owned(), None),
-            Diagnostic::new(Error::DoesNotExist {
+            Diagnostic::error(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
         ];
@@ -308,20 +308,20 @@ mod type_aliases {
 
         // Assert: only `Foo` should be marked as cyclic here.
         let expected = [
-            Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+            Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-            Diagnostic::new(Error::DoesNotExist {
+            Diagnostic::error(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
-            Diagnostic::new(Error::SelfReferentialTypeAliasNeedsConcreteType {
+            Diagnostic::error(Error::SelfReferentialTypeAliasNeedsConcreteType {
                 identifier: "Test::Foo".to_owned(),
             })
             .add_note("failed to resolve type due to a cycle in its definition", None)
             .add_note("cycle: Test::Foo -> Test::Foo".to_owned(), None),
-            Diagnostic::new(Error::DoesNotExist {
+            Diagnostic::error(Error::DoesNotExist {
                 identifier: "Test::Foo".to_owned(),
             }),
         ];

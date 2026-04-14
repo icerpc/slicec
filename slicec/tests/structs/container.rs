@@ -78,7 +78,7 @@ mod structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::Redefinition {
+        let expected = Diagnostic::error(Error::Redefinition {
             identifier: "a".to_owned(),
         })
         .add_note("'a' was previously defined here", None);
@@ -106,7 +106,7 @@ mod compact_structs {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::new(Error::CompactStructCannotBeEmpty);
+        let expected = Diagnostic::error(Error::CompactStructCannotBeEmpty);
         check_diagnostics(diagnostics, [expected]);
     }
 }

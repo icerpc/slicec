@@ -29,7 +29,7 @@ pub fn validate_repeated_attributes(attributes: &[&Attribute], diagnostics: &mut
 
         match first_attribute_occurrence.entry(directive) {
             Occupied(entry) => {
-                Diagnostic::new(Error::AttributeIsNotRepeatable {
+                Diagnostic::error(Error::AttributeIsNotRepeatable {
                     directive: directive.to_owned(),
                 })
                 .set_span(span)
