@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::Lint;
+use crate::grammar::attributes::ALLOWABLE_LINT_IDENTIFIERS;
 use clap::ArgAction::Append;
 use clap::{Parser, ValueEnum};
 
@@ -38,7 +38,7 @@ pub struct SliceOptions {
 
     /// Instruct the compiler to allow the specified lint.
     // TODO add a link to the lint reference in this doc comment!
-    #[arg(short = 'A', long = "allow", num_args = 1, action = Append, value_name = "LINT_NAME", value_parser = Lint::ALLOWABLE_LINT_IDENTIFIERS, hide_possible_values = true, ignore_case = true)]
+    #[arg(short = 'A', long = "allow", num_args = 1, action = Append, value_name = "LINT_NAME", value_parser = ALLOWABLE_LINT_IDENTIFIERS, hide_possible_values = true, ignore_case = true)]
     pub allowed_lints: Vec<String>,
 
     /// Validate input files without generating code for them.

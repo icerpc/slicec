@@ -2,6 +2,16 @@
 
 use super::*;
 
+/// All the valid arguments that can be supplied to the `allow` metadata, or the `--allow` command line option.
+pub const ALLOWABLE_LINT_IDENTIFIERS: [&'static str; 6] = [
+    "All",
+    "DuplicateFile",
+    "Deprecated",
+    "MalformedDocComment",
+    "IncorrectDocComment",
+    "BrokenDocLink",
+];
+
 #[derive(Debug)]
 pub struct Allow {
     pub allowed_lints: Vec<String>,
@@ -14,7 +24,7 @@ impl Allow {
         check_argument_count_is_within(1..usize::MAX, args, Self::directive(), span, diagnostics);
 
         for arg in args {
-            let mut is_valid = Lint::ALLOWABLE_LINT_IDENTIFIERS.contains(&arg.as_str());
+            let mut is_valid = ALLOWABLE_LINT_IDENTIFIERS.contains(&arg.as_str());
 
             // The `DuplicateFile` lint can't be configured by attributes because it's a command-line specific lint.
             if arg == "DuplicateFile" {
@@ -24,14 +34,14 @@ impl Allow {
             // Report an error if the argument wasn't valid.
             if !is_valid {
                 // TODO we should emit a link to the lint page when we write it!
-                let mut error = Diagnostic::new(Error::InvalidAttributeArgument {
+                let mut error = Diagnostic::error(Error::InvalidAttributeArgument {
                     directive: "allow".to_owned(),
                     argument: arg.to_owned(),
                 })
                 .set_span(span);
 
                 // Check if the argument only differs in case from a valid one.
-                let suggestion = Lint::ALLOWABLE_LINT_IDENTIFIERS
+                let suggestion = ALLOWABLE_LINT_IDENTIFIERS
                     .iter()
                     .find(|identifier| identifier.eq_ignore_ascii_case(arg));
                 if let Some(identifier) = suggestion {
