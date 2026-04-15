@@ -130,7 +130,7 @@ fn handle_generator_response(response_payload: Vec<u8>, output_dir: &Option<Stri
                     path: generated_file.path.to_owned(),
                     error: io_error,
                 };
-                slicec::diagnostics::Diagnostic::error(diagnostic).push_into(&mut diagnostics);
+                slicec::diagnostics::Diagnostic::from_error(diagnostic).push_into(&mut diagnostics);
             }
         }
     }
@@ -173,7 +173,7 @@ fn convert_generator_error_to_diagnostic(generator: &Plugin, generator_error: st
     };
 
     let mut diagnostics = Diagnostics::new();
-    slicec::diagnostics::Diagnostic::error(mapped_io_error).push_into(&mut diagnostics);
+    slicec::diagnostics::Diagnostic::from_error(mapped_io_error).push_into(&mut diagnostics);
     diagnostics
 }
 

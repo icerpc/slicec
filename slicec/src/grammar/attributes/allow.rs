@@ -34,7 +34,7 @@ impl Allow {
             // Report an error if the argument wasn't valid.
             if !is_valid {
                 // TODO we should emit a link to the lint page when we write it!
-                let mut error = Diagnostic::error(Error::InvalidAttributeArgument {
+                let mut error = Diagnostic::from_error(Error::InvalidAttributeArgument {
                     directive: "allow".to_owned(),
                     argument: arg.to_owned(),
                 })

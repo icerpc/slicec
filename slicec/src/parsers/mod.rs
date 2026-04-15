@@ -40,7 +40,7 @@ fn parse_file(file: &mut SliceFile, ast: &mut Ast, diagnostics: &mut Diagnostics
 
     // Issue a syntax error if the user had definitions but forgot to declare a module.
     if !definitions.is_empty() && module.is_none() {
-        Diagnostic::error(Error::Syntax {
+        Diagnostic::from_error(Error::Syntax {
             // TODO improve this message, see: #348
             message: "module declaration is required".to_owned(),
         })

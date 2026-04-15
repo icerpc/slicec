@@ -64,10 +64,11 @@ fn construct_module(
     span: Span,
 ) -> OwnedPtr<Module> {
     if !raw_comment.is_empty() {
-        let error = Error::Syntax {
+        Diagnostic::from_error(Error::Syntax {
             message: "doc comments cannot be applied to modules".to_owned(),
-        };
-        Diagnostic::error(error).set_span(&span).push_into(parser.diagnostics);
+        })
+        .set_span(&span)
+        .push_into(parser.diagnostics);
     }
 
     let module_ptr = OwnedPtr::new(Module {
@@ -203,7 +204,7 @@ fn construct_parameter(
     span: Span,
 ) -> OwnedPtr<Parameter> {
     if !raw_comment.is_empty() {
-        Diagnostic::error(Error::Syntax {
+        Diagnostic::from_error(Error::Syntax {
             message: "doc comments cannot be applied to parameters".to_owned(),
         })
         .set_span(&span)
@@ -251,7 +252,7 @@ fn construct_single_return_type(
 
 fn check_return_tuple(parser: &mut Parser, return_tuple: &[OwnedPtr<Parameter>], span: Span) {
     if return_tuple.len() < 2 {
-        let diagnostic = Diagnostic::error(Error::ReturnTuplesMustContainAtLeastTwoElements).set_span(&span);
+        let diagnostic = Diagnostic::from_error(Error::ReturnTuplesMustContainAtLeastTwoElements).set_span(&span);
         diagnostic.push_into(parser.diagnostics);
     }
 }
@@ -454,7 +455,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
                 IntErrorKind::InvalidDigit => Error::InvalidIntegerLiteral { base },
                 _ => Error::IntegerLiteralOverflows,
             };
-            Diagnostic::error(e).set_span(&span).push_into(parser.diagnostics);
+            Diagnostic::from_error(e).set_span(&span).push_into(parser.diagnostics);
             0 // Dummy value
         }
     };
@@ -465,7 +466,7 @@ fn try_parse_integer(parser: &mut Parser, s: &str, span: Span) -> Integer<i128> 
 fn parse_tag_value(parser: &mut Parser, i: Integer<i128>) -> Integer<u32> {
     // Verify that the provided integer is a valid tag id.
     if !RangeInclusive::new(0, i32::MAX as i128).contains(&i.value) {
-        let diagnostic = Diagnostic::error(Error::TagValueOutOfBounds).set_span(&i.span);
+        let diagnostic = Diagnostic::from_error(Error::TagValueOutOfBounds).set_span(&i.span);
         diagnostic.push_into(parser.diagnostics);
     }
 

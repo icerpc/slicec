@@ -37,13 +37,13 @@ impl Diagnostic {
 
     /// Creates a new error `Diagnostic` from the provided [`Error`].
     /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
-    pub fn error(error: Error) -> Self {
+    pub fn from_error(error: Error) -> Self {
         Self::new(DiagnosticKind::Error(error))
     }
 
     /// Creates a new lint `Diagnostic` from the provided [`Lint`].
     /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
-    pub fn lint(lint: Lint) -> Self {
+    pub fn from_lint(lint: Lint) -> Self {
         Self::new(DiagnosticKind::Lint(lint))
     }
 

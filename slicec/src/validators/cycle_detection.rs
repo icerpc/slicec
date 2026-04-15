@@ -147,7 +147,7 @@ impl<'a> CycleDetector<'a> {
         let cycle_notes = self.dependency_stack.iter().map(|(_, field)| Self::get_note_for(field));
 
         // Report the error.
-        Diagnostic::error(Error::InfiniteSizeCycle { type_id, cycle })
+        Diagnostic::from_error(Error::InfiniteSizeCycle { type_id, cycle })
             .set_span(type_being_checked.1.span())
             .extend_notes(cycle_notes)
             .push_into(self.diagnostics);

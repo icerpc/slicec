@@ -81,7 +81,7 @@ fn cannot_redefine_operations() {
     let diagnostics = parse_for_diagnostics(slice);
 
     // Assert
-    let expected = Diagnostic::error(Error::Redefinition {
+    let expected = Diagnostic::from_error(Error::Redefinition {
         identifier: "op".to_owned(),
     })
     .add_note("'op' was previously defined here", None);
