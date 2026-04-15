@@ -16,7 +16,7 @@ fn has_allowed_key_type(dictionary: &Dictionary, diagnostics: &mut Diagnostics) 
 fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
     // Optional types cannot be used as dictionary keys.
     if type_ref.is_optional {
-        return Some(Diagnostic::new(Error::KeyMustBeNonOptional).set_span(type_ref.span()));
+        return Some(Diagnostic::from_error(Error::KeyMustBeNonOptional).set_span(type_ref.span()));
     }
 
     let definition = type_ref.definition();
@@ -24,7 +24,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
         Types::Struct(struct_def) => {
             // Only compact structs can be used for dictionary keys.
             if !struct_def.is_compact {
-                return Some(Diagnostic::new(Error::StructKeyMustBeCompact).set_span(type_ref.span()));
+                return Some(Diagnostic::from_error(Error::StructKeyMustBeCompact).set_span(type_ref.span()));
             }
 
             // Check that all the fields of the struct are also valid key types.
@@ -35,7 +35,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
                 .filter_map(|field| check_dictionary_key_type(field.data_type()))
                 .collect::<Vec<_>>();
             if !errors.is_empty() {
-                let mut error = Diagnostic::new(Error::StructKeyContainsDisallowedType {
+                let mut error = Diagnostic::from_error(Error::StructKeyContainsDisallowedType {
                     struct_identifier: struct_def.identifier().to_owned(),
                 })
                 .set_span(type_ref.span());
@@ -52,7 +52,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
         // Only enums with underlying types can be used as dictionary keys. Fields aren't allowed.
         Types::Enum(enum_def) => {
             if enum_def.underlying.is_none() {
-                let error = Diagnostic::new(Error::KeyTypeNotSupported {
+                let error = Diagnostic::from_error(Error::KeyTypeNotSupported {
                     kind: formatted_kind(definition),
                 })
                 .set_span(type_ref.span())
@@ -73,7 +73,7 @@ fn check_dictionary_key_type(type_ref: &TypeRef) -> Option<Diagnostic> {
 
     if !is_valid {
         return Some(
-            Diagnostic::new(Error::KeyTypeNotSupported {
+            Diagnostic::from_error(Error::KeyTypeNotSupported {
                 kind: formatted_kind(definition),
             })
             .set_span(type_ref.span()),

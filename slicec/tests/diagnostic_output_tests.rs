@@ -38,7 +38,7 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":25},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":25},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
             r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E008"}"#,
             "\n",
@@ -82,7 +82,7 @@ mod output {
 
         // Assert
         let expected = "\
-warning [IncorrectDocComment]: comment has a 'param' tag for 'x', but operation 'op1' has no parameter with that name
+warning [IncorrectDocComment]: incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op1' has no parameter with that name
  --> string-0:5:17
   |
 5 |             /// @param x: this is an x
@@ -172,7 +172,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
-            r#"{"message":"comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":29},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":29},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
