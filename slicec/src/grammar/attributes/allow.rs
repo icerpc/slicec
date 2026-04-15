@@ -3,7 +3,7 @@
 use super::*;
 
 /// All the valid arguments that can be supplied to the `allow` metadata, or the `--allow` command line option.
-pub const ALLOWABLE_LINT_IDENTIFIERS: [&'static str; 6] = [
+pub const ALLOWABLE_LINT_IDENTIFIERS: [&str; 6] = [
     "All",
     "DuplicateFile",
     "Deprecated",

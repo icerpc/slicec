@@ -25,7 +25,7 @@ pub fn parse_files(state: &mut CompilationState, symbols: &HashSet<String>) {
         parse_file(file, &mut state.ast, &mut diagnostics, symbols.clone());
 
         // Store any diagnostics that were emitted during parsing.
-        state.diagnostics.extend(diagnostics.into_inner());
+        state.diagnostics.extend(diagnostics);
     }
 }
 

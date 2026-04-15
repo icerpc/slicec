@@ -18,11 +18,12 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
-    pub fn new(kind: impl Into<DiagnosticKind>) -> Self {
-        let kind = kind.into();
+    /// Creates a new `Diagnostic` directly from a [`DiagnosticKind`].
+    /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
+    pub fn new(kind: DiagnosticKind) -> Self {
         let level = match &kind {
             DiagnosticKind::Error(_) => DiagnosticLevel::Error,
-            DiagnosticKind::Lint(lint) => lint.get_default_level(),
+            DiagnosticKind::Lint(lint) => lint.default_diagnostic_level(),
         };
 
         Diagnostic {
@@ -32,6 +33,18 @@ impl Diagnostic {
             scope: None,
             notes: Vec::new(),
         }
+    }
+
+    /// Creates a new error `Diagnostic` from the provided [`Error`].
+    /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
+    pub fn error(error: Error) -> Self {
+        Self::new(DiagnosticKind::Error(error))
+    }
+
+    /// Creates a new lint `Diagnostic` from the provided [`Lint`].
+    /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
+    pub fn lint(lint: Lint) -> Self {
+        Self::new(DiagnosticKind::Lint(lint))
     }
 
     /// Returns the message of this diagnostic.
@@ -45,8 +58,8 @@ impl Diagnostic {
     /// Returns this diagnostic's code. This is either the name of a lint or of the form `E###`.
     pub fn code(&self) -> &str {
         match &self.kind {
-            DiagnosticKind::Error(error) => error.code(),
-            DiagnosticKind::Lint(lint) => lint.code(),
+            DiagnosticKind::Error(error) => error.error_code(),
+            DiagnosticKind::Lint(lint) => lint.lint_name(),
         }
     }
 
@@ -160,7 +173,7 @@ impl Diagnostics {
     pub fn into_updated(mut self, ast: &Ast, files: &[SliceFile], options: &SliceOptions) -> Vec<Diagnostic> {
         // Helper function that checks whether a lint should be allowed according to the provided identifiers.
         fn is_lint_allowed_by<'b>(mut identifiers: impl Iterator<Item = &'b String>, lint: &Lint) -> bool {
-            identifiers.any(|identifier| identifier == "All" || identifier == lint.code())
+            identifiers.any(|identifier| identifier == "All" || identifier == lint.lint_name())
         }
 
         // Helper function that checks whether a lint is allowed by attributes on the provided entity.
