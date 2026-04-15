@@ -118,18 +118,6 @@ pub enum DiagnosticKind {
     Lint(Lint),
 }
 
-impl From<Error> for DiagnosticKind {
-    fn from(error: Error) -> Self {
-        DiagnosticKind::Error(error)
-    }
-}
-
-impl From<Lint> for DiagnosticKind {
-    fn from(lint: Lint) -> Self {
-        DiagnosticKind::Lint(lint)
-    }
-}
-
 /// Diagnostic levels describe the severity of a diagnostic, and how the compiler should react to their emission.
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum DiagnosticLevel {
