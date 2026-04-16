@@ -28,13 +28,13 @@ mod output {
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+        let diagnostics = state.get_updated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
 
         // Act
-        emitter.emit_diagnostics(diagnostics).unwrap();
+        emitter.emit_diagnostics(&diagnostics).unwrap();
 
         // Assert
         let expected = concat!(
@@ -72,13 +72,13 @@ mod output {
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+        let diagnostics = state.get_updated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
 
         // Act
-        emitter.emit_diagnostics(diagnostics).unwrap();
+        emitter.emit_diagnostics(&diagnostics).unwrap();
 
         // Assert
         let expected = "\
@@ -129,13 +129,13 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+        let diagnostics = state.get_updated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
 
         // Act
-        emitter.emit_diagnostics(diagnostics).unwrap();
+        emitter.emit_diagnostics(&diagnostics).unwrap();
 
         // Assert
         assert_eq!("", String::from_utf8(output).unwrap());
@@ -162,13 +162,13 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+        let diagnostics = state.get_updated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
 
         // Act
-        emitter.emit_diagnostics(diagnostics).unwrap();
+        emitter.emit_diagnostics(&diagnostics).unwrap();
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
@@ -189,13 +189,13 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         let state = parse(slice, Some(&options));
-        let diagnostics = state.diagnostics.into_updated(&state.ast, &state.files, &options);
+        let diagnostics = state.get_updated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options, &state.files);
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
 
         // Act
-        emitter.emit_diagnostics(diagnostics).unwrap();
+        emitter.emit_diagnostics(&diagnostics).unwrap();
 
         // Assert
         let expected = "\

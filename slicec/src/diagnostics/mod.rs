@@ -3,13 +3,14 @@
 mod diagnostic;
 mod errors;
 mod lints;
+mod reportable_diagnostic;
 
 pub use diagnostic::{Diagnostic, Diagnostics};
 pub use errors::Error;
 pub use lints::Lint;
+pub use reportable_diagnostic::*;
 
 use crate::slice_file::Span;
-use serde::Serialize;
 
 #[derive(Debug)]
 pub enum DiagnosticKind {
@@ -32,7 +33,7 @@ pub enum DiagnosticLevel {
 }
 
 /// Stores additional information about a diagnostic.
-#[derive(Serialize, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Note {
     pub message: String,
     pub span: Option<Span>,

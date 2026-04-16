@@ -10,7 +10,6 @@ use clap::Parser;
 use slice_codec::decoder::Decoder;
 use slice_codec::encoder::Encoder;
 
-use slicec::compilation_state::CompilationState;
 use slicec::diagnostic_emitter::DiagnosticEmitter;
 use slicec::diagnostics::Diagnostics;
 use slicec::slice_options::{DiagnosticFormat, Plugin, SliceOptions};
@@ -182,17 +181,13 @@ fn main() -> ExitCode {
     let slice_options = SliceOptions::parse();
 
     // Perform the compilation.
-    let compilation_state = slicec::compile_from_options(&slice_options);
-    let CompilationState {
-        ast,
-        mut diagnostics,
-        files,
-    } = compilation_state;
+    let mut compilation_state = slicec::compile_from_options(&slice_options);
+    let diagnostics = &mut compilation_state.diagnostics;
 
     // Only invoke the plugins if there were no errors in the Slice files.
     if !diagnostics.has_errors() {
         // Encode the request which will be sent to each of the code-generation plugins.
-        let encoded_request = match encode_generate_code_request(&files) {
+        let encoded_request = match encode_generate_code_request(&compilation_state.files) {
             Ok(result) => result,
             Err(error) => {
                 eprintln!("Critical error: failed to encode request payload!\n{error:?}");
@@ -215,22 +210,22 @@ fn main() -> ExitCode {
                 .and_then(|payload| handle_generator_response(payload, &slice_options.output_dir)) // Returns any diagnostics if the payload successfully decoded.
                 .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
 
-            diagnostics.extend(generator_diagnostics); // Store the generator's diagnostics for later emission.
+            diagnostics.extend(generator_diagnostics.into_inner()); // Store generator's diagnostics for later emission.
         }
     }
 
     // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
-    let updated_diagnostics = diagnostics.into_updated(&ast, &files, &slice_options);
-    let (warning_count, error_count) = slicec::diagnostics::get_totals(&updated_diagnostics);
+    let updated_diagnostics = compilation_state.get_updated_diagnostics(&slice_options);
 
     // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
     let mut stderr = console::Term::stderr();
-    let mut emitter = DiagnosticEmitter::new(&mut stderr, &slice_options, &files);
-    DiagnosticEmitter::emit_diagnostics(&mut emitter, updated_diagnostics).expect("failed to emit diagnostics");
+    let mut emitter = DiagnosticEmitter::new(&mut stderr, &slice_options);
+    emitter.emit_diagnostics(&updated_diagnostics).expect("failed to emit diagnostics");
+    let (warning_count, error_count) = DiagnosticEmitter::get_totals(&updated_diagnostics);
 
     // Only emit the summary message if we're writing human-readable output.
     if slice_options.diagnostic_format == DiagnosticFormat::Human {
-        slicec::diagnostic_emitter::emit_totals(warning_count, error_count).expect("failed to emit totals");
+        DiagnosticEmitter::emit_totals(warning_count, error_count).expect("failed to emit totals");
     }
 
     // Finished.
