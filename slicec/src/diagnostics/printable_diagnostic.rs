@@ -7,6 +7,8 @@ use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::SliceOptions;
 use serde::Serialize;
 
+/// A printable representation of a [`Diagnostic`], whose [`DiagnosticLevel`] has been computed (taking into account any
+/// 'allow' attributes or command-line flags), and that has pre-extracted text snippets to display alongside messages.
 #[derive(Debug, Clone)]
 pub struct PrintableDiagnostic {
     pub message: String,
@@ -35,6 +37,7 @@ impl Serialize for Snippet {
     }
 }
 
+/// Creates a [`PrintableDiagnostic`] from the provided [`Diagnostic`].
 pub fn convert_diagnostic(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
@@ -54,6 +57,7 @@ pub fn convert_diagnostic(
     }
 }
 
+/// Returns the [`DiagnosticLevel`] that the provided [`Diagnostic`] should be emitted with.
 fn get_diagnostic_level_for(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
@@ -104,6 +108,8 @@ fn get_diagnostic_level_for(
     lint.default_diagnostic_level()
 }
 
+/// If `span` is `Some`, this tries to extract a text snippet corresponding to the file & locations contained in the
+/// span. If `span` is `None` or if the text couldn't be extracted, this returns `None`.
 fn get_snippet(span: &Option<Span>, files: &[SliceFile]) -> Option<Snippet> {
     let span = span.clone()?;
     let snippet_file = files.iter().find(|file| file.relative_path == span.file)?;
