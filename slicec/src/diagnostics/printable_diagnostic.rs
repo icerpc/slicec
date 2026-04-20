@@ -8,16 +8,16 @@ use crate::slice_options::SliceOptions;
 use serde::Serialize;
 
 #[derive(Debug, Clone)]
-pub struct ReportableDiagnostic {
+pub struct PrintableDiagnostic {
     pub message: String,
     pub level: DiagnosticLevel,
     pub code: String,
     pub snippet: Option<Snippet>,
-    pub notes: Vec<ReportableNote>,
+    pub notes: Vec<PrintableNote>,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct ReportableNote {
+pub struct PrintableNote {
     pub message: String,
     #[serde(rename = "span")]
     pub snippet: Option<Snippet>,
@@ -39,13 +39,13 @@ pub fn convert_diagnostic(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
     compilation_state: &CompilationState,
-) -> ReportableDiagnostic {
-    let notes = diagnostic.notes.iter().map(|n| ReportableNote {
+) -> PrintableDiagnostic {
+    let notes = diagnostic.notes.iter().map(|n| PrintableNote {
         message: n.message.clone(),
         snippet: get_snippet(&n.span, &compilation_state.files),
     });
 
-    ReportableDiagnostic {
+    PrintableDiagnostic {
         message: diagnostic.message(),
         level: get_diagnostic_level_for(diagnostic, options, compilation_state),
         code: diagnostic.code().to_owned(),

@@ -3,7 +3,7 @@
 use super::{DiagnosticKind, Error, Lint, Note};
 use crate::slice_file::Span;
 
-/// A diagnostic is a message that is reported to the user during compilation.
+/// A message that is reported by the compiler to provide information and context for errors, warnings, or other issues.
 #[derive(Debug)]
 pub struct Diagnostic {
     pub kind: DiagnosticKind,
@@ -75,11 +75,12 @@ impl Diagnostic {
     }
 }
 
+/// Stores a collection of diagnostics.
 #[derive(Debug, Default)]
 pub struct Diagnostics(Vec<Diagnostic>);
 
 impl Diagnostics {
-    /// Creates a new diagnostics container that is empty.
+    /// Creates a new (empty) collection of diagnostics.
     pub fn new() -> Self {
         Self::default()
     }
@@ -90,8 +91,7 @@ impl Diagnostics {
         diagnostics.any(|diagnostic| matches!(diagnostic.kind, DiagnosticKind::Error(_)))
     }
 
-    /// Returns the diagnostics held by this without any updates or patches.
-    /// This should only be called by tests that want to bypass this behavior.
+    /// Consumes this [`Diagnostics`] and returns its inner collection of [`Diagnostic`]s.
     pub fn into_inner(self) -> Vec<Diagnostic> {
         self.0
     }
