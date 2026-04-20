@@ -216,12 +216,12 @@ fn main() -> ExitCode {
 
     // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
     let updated_diagnostics = compilation_state.get_printable_diagnostics(&slice_options);
+    let (warning_count, error_count) = DiagnosticEmitter::get_totals(&updated_diagnostics);
 
     // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
     let mut stderr = console::Term::stderr();
     let mut emitter = DiagnosticEmitter::new(&mut stderr, &slice_options);
     emitter.emit_diagnostics(&updated_diagnostics).expect("failed to emit");
-    let (warning_count, error_count) = DiagnosticEmitter::get_totals(&updated_diagnostics);
 
     // Only emit the summary message if we're writing human-readable output.
     if slice_options.diagnostic_format == DiagnosticFormat::Human {
