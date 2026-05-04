@@ -38,9 +38,9 @@ mod output {
 
         // Assert
         let expected = concat!(
-            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":5,"col":17},"end":{"row":5,"col":25},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","snippet":{"span":{"start":{"row":5,"col":17},"end":{"row":5,"col":25},"file":"string-0"},"text":"  |\n5 |             /// @param x: this is an x\n  |                 --------\n  |"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
-            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"notes":[],"error_code":"E008"}"#,
+            r#"{"message":"invalid enum 'E': enums must contain at least one enumerator","severity":"error","snippet":{"span":{"start":{"row":9,"col":9},"end":{"row":9,"col":15},"file":"string-0"},"text":"  |\n9 |         enum E : int8 {}\n  |         ------\n  |"},"notes":[],"error_code":"E008"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());
@@ -172,7 +172,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Assert: Only one of the two lints should be allowed.
         let expected = concat!(
-            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","span":{"start":{"row":6,"col":21},"end":{"row":6,"col":29},"file":"string-0"},"notes":[],"error_code":"IncorrectDocComment"}"#,
+            r#"{"message":"incorrect doc comment: comment has a 'param' tag for 'x', but operation 'op' has no parameter with that name","severity":"warning","snippet":{"span":{"start":{"row":6,"col":21},"end":{"row":6,"col":29},"file":"string-0"},"text":"  |\n6 |                 /// @param x: this is an x\n  |                     --------\n  |"},"notes":[],"error_code":"IncorrectDocComment"}"#,
             "\n",
         );
         assert_eq!(expected, String::from_utf8(output).unwrap());

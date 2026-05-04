@@ -21,20 +21,13 @@ pub struct PrintableDiagnostic {
 #[derive(Debug, Clone, Serialize)]
 pub struct PrintableNote {
     pub message: String,
-    #[serde(rename = "span")]
     pub snippet: Option<Snippet>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Snippet {
     pub span: Span,
     pub text: String,
-}
-// TODO should we send the text snippet in JSON diagnostic format? Or just the range?
-impl Serialize for Snippet {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.span.serialize(serializer)
-    }
 }
 
 /// Creates a [`PrintableDiagnostic`] from the provided [`Diagnostic`].

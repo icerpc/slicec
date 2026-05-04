@@ -109,7 +109,7 @@ impl<'a> DiagnosticEmitter<'a> {
             let mut state = serializer.serialize_struct("Diagnostic", 5)?;
             state.serialize_field("message", &diagnostic.message)?;
             state.serialize_field("severity", severity)?;
-            state.serialize_field("span", &diagnostic.snippet)?;
+            state.serialize_field("snippet", &diagnostic.snippet)?;
             state.serialize_field("notes", &diagnostic.notes)?;
             state.serialize_field("error_code", &diagnostic.code)?;
             state.end()?;
