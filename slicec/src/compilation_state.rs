@@ -1,10 +1,9 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostic_emitter::{emit_totals, DiagnosticEmitter};
-use crate::diagnostics::{get_totals, Diagnostic, Diagnostics};
+use crate::diagnostics::{Diagnostics, PrintableDiagnostic};
 use crate::slice_file::SliceFile;
-use crate::slice_options::{DiagnosticFormat, SliceOptions};
+use crate::slice_options::SliceOptions;
 
 #[derive(Debug, Default)]
 pub struct CompilationState {
@@ -43,29 +42,10 @@ impl CompilationState {
         }
     }
 
-    /// This function is the exit point of the compiler.
-    /// It emits diagnostics to the console, along with the total number of warning/errors emitted.
-    /// After this it returns whether any errors were emitted.
-    pub fn emit_diagnostics(self, options: &SliceOptions) -> bool {
-        let diagnostics = self.diagnostics.into_updated(&self.ast, &self.files, options);
-        let (total_warnings, total_errors) = get_totals(&diagnostics);
-
-        // Print any diagnostics to the console, along with the total number of warnings and errors emitted.
-        let mut stderr = console::Term::stderr();
-        let mut emitter = DiagnosticEmitter::new(&mut stderr, options, &self.files);
-        DiagnosticEmitter::emit_diagnostics(&mut emitter, diagnostics).expect("failed to emit diagnostics");
-
-        // Only emit the summary message if we're writing human-readable output.
-        if options.diagnostic_format == DiagnosticFormat::Human {
-            emit_totals(total_warnings, total_errors).expect("failed to emit totals");
-        }
-
-        total_errors != 0
-    }
-
-    /// Consumes this `CompilationState` and returns the diagnostics it contains.
-    /// This method exists to simplify the testing of diagnostic emission.
-    pub fn into_diagnostics(self, options: &SliceOptions) -> Vec<Diagnostic> {
-        self.diagnostics.into_updated(&self.ast, &self.files, options)
+    pub fn get_printable_diagnostics(&self, options: &SliceOptions) -> Vec<PrintableDiagnostic> {
+        self.diagnostics
+            .iter()
+            .map(|diagnostic| crate::diagnostics::convert_diagnostic(diagnostic, options, self))
+            .collect()
     }
 }

@@ -8,7 +8,7 @@
 use slicec::ast::Ast;
 use slicec::compilation_state::CompilationState;
 use slicec::compile_from_strings;
-use slicec::diagnostics::{Diagnostic, DiagnosticLevel};
+use slicec::diagnostics::Diagnostic;
 use slicec::slice_options::SliceOptions;
 
 /// This function parses the provided Slice file.
@@ -35,7 +35,7 @@ pub fn parse_for_ast(slice: impl Into<String>) -> Ast {
 #[must_use]
 pub fn parse_multiple_for_ast(slice: &[&str]) -> Ast {
     let compilation_state = compile_from_strings(slice, None);
-    if compilation_state.diagnostics.has_errors() {
+    if !compilation_state.diagnostics.is_empty() {
         panic!("{:?}", compilation_state.diagnostics);
     }
     compilation_state.ast
@@ -51,15 +51,10 @@ pub fn parse_for_diagnostics(slice: impl Into<String>) -> Vec<Diagnostic> {
 /// Each string is treated as a separate Slice file by the parser.
 #[must_use]
 pub fn parse_multiple_for_diagnostics(slice: &[&str]) -> Vec<Diagnostic> {
-    let compilation_state = compile_from_strings(slice, None);
-    let slice_options = SliceOptions::default();
-
-    let mut diagnostics = compilation_state.into_diagnostics(&slice_options);
-    diagnostics.retain(|diagnostic| diagnostic.level() != DiagnosticLevel::Allowed);
-    diagnostics
+    compile_from_strings(slice, None).diagnostics.into_inner()
 }
 
-/// Asserts that the provided slice parses okay, producing no errors.
+/// Asserts that the provided slice parses okay, producing no diagnostics.
 pub fn assert_parses(slice: impl Into<String>) {
     let diagnostics = parse_for_diagnostics(slice);
     let expected: [Diagnostic; 0] = []; // Compiler needs the type hint.
@@ -115,17 +110,25 @@ pub fn check_diagnostics<const L: usize>(diagnostics: Vec<Diagnostic>, expected:
         }
 
         // If a span was provided, check that it matches.
-        if expect.span().is_some() && expect.span() != diagnostic.span() {
+        if expect.span.is_some() && expect.span != diagnostic.span {
             eprintln!("diagnostic spans didn't match:");
-            eprintln!("\texpected: \"{:?}\"", expect.span());
-            eprintln!("\t but got: \"{:?}\"", diagnostic.span());
+            eprintln!("\texpected: \"{:?}\"", expect.span);
+            eprintln!("\t but got: \"{:?}\"", diagnostic.span);
+            failed = true;
+        }
+
+        // If a scope was provided, check that it matches.
+        if expect.scope.is_some() && expect.scope != diagnostic.scope {
+            eprintln!("diagnostic scopes didn't match:");
+            eprintln!("\texpected: \"{:?}\"", expect.scope);
+            eprintln!("\t but got: \"{:?}\"", diagnostic.scope);
             failed = true;
         }
 
         // If notes were provided, check that they match.
-        if !expect.notes().is_empty() {
-            let expected_notes = expect.notes();
-            let emitted_notes = diagnostic.notes();
+        if !expect.notes.is_empty() {
+            let expected_notes = expect.notes;
+            let emitted_notes = diagnostic.notes;
             if expected_notes.len() != emitted_notes.len() {
                 eprintln!(
                     "Expected {} notes, but got {}.",

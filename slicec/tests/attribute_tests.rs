@@ -4,11 +4,12 @@ mod test_helpers;
 
 mod attributes {
     use crate::test_helpers::*;
-    use slicec::diagnostics::{Diagnostic, Error, Lint};
+    use slicec::diagnostics::{Diagnostic, DiagnosticLevel, Error, Lint};
     use slicec::grammar::attributes::*;
 
     mod allow {
         use super::*;
+        use slicec::slice_options::SliceOptions;
         use test_case::test_case;
 
         #[test]
@@ -92,6 +93,7 @@ mod attributes {
         #[test_case("IncorrectDocComment", [0, 1]; "incorrect_doc_comment")]
         fn allow_only_specified_lints<const L: usize>(arguments: &str, expected_indexes: [usize; L]) {
             // Arrange
+            let options = SliceOptions::default();
             let slice = format!(
                 "
                 [[allow({arguments})]]
@@ -109,10 +111,10 @@ mod attributes {
             );
 
             // Act
-            let diagnostics = parse_for_diagnostics(slice);
+            let updated_diagnostics = parse(slice, Some(&options)).get_printable_diagnostics(&options);
 
             // Assert
-            let mut all_lints = vec![
+            let all_expected_lints = vec![
                 Diagnostic::from_lint(Lint::Deprecated {
                     identifier: "S".to_owned(),
                     reason: Some("test".to_owned()),
@@ -124,16 +126,17 @@ mod attributes {
                     message: "comment has a 'returns' tag, but only operations can return".to_owned(),
                 }),
             ];
-            // Filter out any lints that should be allowed by the supplied test arguments.
-            let mut index = 0;
-            all_lints.retain(|_| {
-                index += 1;
-                expected_indexes.contains(&(index - 1))
-            });
-            let expected: [Diagnostic; L] = all_lints.try_into().unwrap();
+            for (index, lint) in updated_diagnostics.iter().enumerate() {
+                assert!(lint.message == all_expected_lints[index].message());
+                assert!(lint.code == all_expected_lints[index].code());
 
-            // Check that only the correct warnings were emitted.
-            check_diagnostics(diagnostics, expected);
+                // Check that the correct lints were marked as `Warning` or `Allowed` accordingly.
+                let expected_level = match expected_indexes.contains(&index) {
+                    true => DiagnosticLevel::Warning,
+                    false => DiagnosticLevel::Allowed,
+                };
+                assert!(lint.level == expected_level);
+            }
         }
     }
 

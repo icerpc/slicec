@@ -24,6 +24,12 @@ pub fn compile_from_options(options: &SliceOptions) -> CompilationState {
     // Create an instance of `CompilationState` for holding all the compiler's state.
     let mut state = CompilationState::create();
 
+    // Disable colored output if the user requested we do so.
+    if options.disable_color {
+        console::set_colors_enabled(false);
+        console::set_colors_enabled_stderr(false);
+    }
+
     // Recursively resolve any Slice files contained in the paths specified by the user.
     state.files = file_util::resolve_files_from(options, &mut state.diagnostics);
 
@@ -37,6 +43,12 @@ pub fn compile_from_options(options: &SliceOptions) -> CompilationState {
 pub fn compile_from_strings(inputs: &[&str], options: Option<&SliceOptions>) -> CompilationState {
     // Create an instance of `CompilationState` for holding all the compiler's state.
     let mut state = CompilationState::create();
+
+    // Disable colored output if the user requested we do so.
+    if options.map(|opts| opts.disable_color).unwrap_or_default() {
+        console::set_colors_enabled(false);
+        console::set_colors_enabled_stderr(false);
+    }
 
     // Create a Slice file from each of the strings.
     for (i, &input) in inputs.iter().enumerate() {
