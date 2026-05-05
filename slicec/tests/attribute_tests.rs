@@ -111,7 +111,7 @@ mod attributes {
             );
 
             // Act
-            let updated_diagnostics = parse(slice, Some(&options)).get_printable_diagnostics(&options);
+            let updated_diagnostics = parse(slice, Some(&options)).get_annotated_diagnostics(&options);
 
             // Assert
             let all_expected_lints = vec![

@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostics, PrintableDiagnostic};
+use crate::diagnostics::{Diagnostics, AnnotatedDiagnostic};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
 
@@ -42,7 +42,7 @@ impl CompilationState {
         }
     }
 
-    pub fn get_printable_diagnostics(&self, options: &SliceOptions) -> Vec<PrintableDiagnostic> {
+    pub fn get_annotated_diagnostics(&self, options: &SliceOptions) -> Vec<AnnotatedDiagnostic> {
         self.diagnostics
             .iter()
             .map(|diagnostic| crate::diagnostics::convert_diagnostic(diagnostic, options, self))

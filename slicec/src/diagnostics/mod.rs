@@ -3,12 +3,12 @@
 mod diagnostic;
 mod errors;
 mod lints;
-mod printable_diagnostic;
+mod annotated_diagnostic;
 
 pub use diagnostic::{Diagnostic, Diagnostics};
 pub use errors::Error;
 pub use lints::Lint;
-pub use printable_diagnostic::*;
+pub use annotated_diagnostic::*;
 
 use crate::slice_file::Span;
 

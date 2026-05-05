@@ -28,7 +28,7 @@ mod output {
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.get_printable_diagnostics(&options);
+        let diagnostics = state.get_annotated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
         let mut emitter = DiagnosticEmitter::new(&mut output, &options);
@@ -72,7 +72,7 @@ mod output {
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.get_printable_diagnostics(&options);
+        let diagnostics = state.get_annotated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
         let mut emitter = DiagnosticEmitter::new(&mut output, &options);
@@ -129,7 +129,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.get_printable_diagnostics(&options);
+        let diagnostics = state.get_annotated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
         let mut emitter = DiagnosticEmitter::new(&mut output, &options);
@@ -162,7 +162,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Parse the Slice file.
         let state = parse(slice, Some(&options));
-        let diagnostics = state.get_printable_diagnostics(&options);
+        let diagnostics = state.get_annotated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
         let mut emitter = DiagnosticEmitter::new(&mut output, &options);
@@ -189,7 +189,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         };
 
         let state = parse(slice, Some(&options));
-        let diagnostics = state.get_printable_diagnostics(&options);
+        let diagnostics = state.get_annotated_diagnostics(&options);
 
         let mut output: Vec<u8> = Vec::new();
         let mut emitter = DiagnosticEmitter::new(&mut output, &options);

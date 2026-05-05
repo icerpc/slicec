@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{DiagnosticLevel, PrintableDiagnostic, Snippet};
+use crate::diagnostics::{DiagnosticLevel, AnnotatedDiagnostic, Snippet};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use serde::ser::SerializeStruct;
 use serde::Serializer;
@@ -22,7 +22,7 @@ impl<'a> DiagnosticEmitter<'a> {
         }
     }
 
-    pub fn get_totals(diagnostics: &[PrintableDiagnostic]) -> (usize, usize) {
+    pub fn get_totals(diagnostics: &[AnnotatedDiagnostic]) -> (usize, usize) {
         let (mut total_warnings, mut total_errors) = (0, 0);
 
         for diagnostic in diagnostics {
@@ -52,7 +52,7 @@ impl<'a> DiagnosticEmitter<'a> {
         Ok(())
     }
 
-    pub fn emit_diagnostics(&mut self, diagnostics: &[PrintableDiagnostic]) -> Result<()> {
+    pub fn emit_diagnostics(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
         // Emit the diagnostics in whatever form the user requested.
         match self.diagnostic_format {
             DiagnosticFormat::Human => self.emit_diagnostics_in_human(diagnostics),
@@ -60,7 +60,7 @@ impl<'a> DiagnosticEmitter<'a> {
         }
     }
 
-    fn emit_diagnostics_in_human(&mut self, diagnostics: &[PrintableDiagnostic]) -> Result<()> {
+    fn emit_diagnostics_in_human(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
         for diagnostic in diagnostics {
             // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
             // to the previously emitted diagnostic.
@@ -96,7 +96,7 @@ impl<'a> DiagnosticEmitter<'a> {
         Ok(())
     }
 
-    fn emit_diagnostics_in_json(&mut self, diagnostics: &[PrintableDiagnostic]) -> Result<()> {
+    fn emit_diagnostics_in_json(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
         // Write each diagnostic as a single line of JSON.
         for diagnostic in diagnostics {
             let severity = match diagnostic.level {

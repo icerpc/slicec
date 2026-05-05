@@ -215,7 +215,7 @@ fn main() -> ExitCode {
     }
 
     // Process the diagnostics (filter out allowed lints, and update diagnostic levels as necessary).
-    let updated_diagnostics = compilation_state.get_printable_diagnostics(&slice_options);
+    let updated_diagnostics = compilation_state.get_annotated_diagnostics(&slice_options);
     let (warning_count, error_count) = DiagnosticEmitter::get_totals(&updated_diagnostics);
 
     // Print any diagnostics to the console, along with the total number of warnings and errors emitted.

@@ -7,19 +7,19 @@ use crate::slice_file::{SliceFile, Span};
 use crate::slice_options::SliceOptions;
 use serde::Serialize;
 
-/// A printable representation of a [`Diagnostic`], whose [`DiagnosticLevel`] has been computed (taking into account any
+/// An annotated version of a [`Diagnostic`], whose [`DiagnosticLevel`] has been computed (taking into account any
 /// 'allow' attributes or command-line flags), and that has pre-extracted text snippets to display alongside messages.
 #[derive(Debug, Clone)]
-pub struct PrintableDiagnostic {
+pub struct AnnotatedDiagnostic {
     pub message: String,
     pub level: DiagnosticLevel,
     pub code: String,
     pub snippet: Option<Snippet>,
-    pub notes: Vec<PrintableNote>,
+    pub notes: Vec<AnnotatedNote>,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct PrintableNote {
+pub struct AnnotatedNote {
     pub message: String,
     pub snippet: Option<Snippet>,
 }
@@ -30,18 +30,18 @@ pub struct Snippet {
     pub text: String,
 }
 
-/// Creates a [`PrintableDiagnostic`] from the provided [`Diagnostic`].
+/// Creates an [`AnnotatedDiagnostic`] from the provided [`Diagnostic`].
 pub fn convert_diagnostic(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
     compilation_state: &CompilationState,
-) -> PrintableDiagnostic {
-    let notes = diagnostic.notes.iter().map(|n| PrintableNote {
+) -> AnnotatedDiagnostic {
+    let notes = diagnostic.notes.iter().map(|n| AnnotatedNote {
         message: n.message.clone(),
         snippet: get_snippet(&n.span, &compilation_state.files),
     });
 
-    PrintableDiagnostic {
+    AnnotatedDiagnostic {
         message: diagnostic.message(),
         level: get_diagnostic_level_for(diagnostic, options, compilation_state),
         code: diagnostic.code().to_owned(),
