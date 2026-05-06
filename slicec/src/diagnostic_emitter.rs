@@ -69,7 +69,7 @@ impl<'a> DiagnosticEmitter<'a> {
             let prefix = match &diagnostic.level {
                 DiagnosticLevel::Error => console::style(format!("error [{code}]")).red().bold(),
                 DiagnosticLevel::Warning => console::style(format!("warning [{code}]")).yellow().bold(),
-                DiagnosticLevel::Info => console::style(format!("info")).blue().bold(),
+                DiagnosticLevel::Info => console::style("info").blue().bold(),
                 DiagnosticLevel::Allowed => continue,
             };
 
