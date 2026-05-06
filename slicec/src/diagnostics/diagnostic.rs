@@ -6,9 +6,17 @@ use crate::slice_file::Span;
 /// A message that is reported by the compiler to provide information and context for errors, warnings, or other issues.
 #[derive(Debug)]
 pub struct Diagnostic {
+    /// The exact kind of diagnostic.
     pub kind: DiagnosticKind,
+
+    /// The section of a Slice file that this diagnostic is about.
+    /// If present, a snippet of text from this section will be reported alongside the diagnostic.
     pub span: Option<Span>,
+
+    /// The Slice scope that this diagnostic was emitted from (used to check for 'allow' metadata).
     pub scope: Option<String>,
+
+    /// Any additional information that should be reported alongside this diagnostic's main message.
     pub notes: Vec<Note>,
 }
 
@@ -36,11 +44,18 @@ impl Diagnostic {
         Self::new(DiagnosticKind::Lint(lint))
     }
 
-    /// Returns the message of this diagnostic.
+    /// Creates a new informational `Diagnostic` from the provided [`String`].
+    /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
+    pub fn info(info: impl Into<String>) -> Self {
+        Self::new(DiagnosticKind::Info(info.into()))
+    }
+
+    /// Returns this diagnostic's message.
     pub fn message(&self) -> String {
         match &self.kind {
             DiagnosticKind::Error(error) => error.message(),
             DiagnosticKind::Lint(lint) => lint.message(),
+            DiagnosticKind::Info(message) => message.clone(),
         }
     }
 
@@ -52,16 +67,21 @@ impl Diagnostic {
         }
     }
 
+    /// Sets this diagnostic's span to the provided value.
     pub fn set_span(mut self, span: &Span) -> Self {
+        assert!(self.span.is_none()); // Calling this function multiple times is probably a bug on our part.
         self.span = Some(span.to_owned());
         self
     }
 
+    /// Sets this diagnostic's scope to the provided value.
     pub fn set_scope(mut self, scope: impl Into<String>) -> Self {
+        assert!(self.scope.is_none()); // Calling this function multiple times is probably a bug on our part.
         self.scope = Some(scope.into());
         self
     }
 
+    /// Adds a [`Note`] to this diagnostic.
     pub fn add_note(mut self, message: impl Into<String>, span: Option<&Span>) -> Self {
         self.notes.push(Note {
             message: message.into(),
@@ -70,6 +90,7 @@ impl Diagnostic {
         self
     }
 
+    /// Moves this diagnostic into the provided [`Diagnostics`] collection.
     pub fn push_into(self, diagnostics: &mut Diagnostics) {
         diagnostics.0.push(self);
     }

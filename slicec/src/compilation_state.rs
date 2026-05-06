@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
 use crate::ast::Ast;
-use crate::diagnostics::{Diagnostics, AnnotatedDiagnostic};
+use crate::diagnostics::{AnnotatedDiagnostic, Diagnostics};
 use crate::slice_file::SliceFile;
 use crate::slice_options::SliceOptions;
 

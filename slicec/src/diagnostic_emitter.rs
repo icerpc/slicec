@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{DiagnosticLevel, AnnotatedDiagnostic, Snippet};
+use crate::diagnostics::{AnnotatedDiagnostic, DiagnosticLevel, Snippet};
 use crate::slice_options::{DiagnosticFormat, SliceOptions};
 use serde::ser::SerializeStruct;
 use serde::Serializer;
@@ -29,7 +29,7 @@ impl<'a> DiagnosticEmitter<'a> {
             match diagnostic.level {
                 DiagnosticLevel::Error => total_errors += 1,
                 DiagnosticLevel::Warning => total_warnings += 1,
-                DiagnosticLevel::Allowed => {}
+                DiagnosticLevel::Allowed | DiagnosticLevel::Info => {}
             }
         }
 
@@ -68,6 +68,7 @@ impl<'a> DiagnosticEmitter<'a> {
             let prefix = match &diagnostic.level {
                 DiagnosticLevel::Error => console::style(format!("error [{code}]")).red().bold(),
                 DiagnosticLevel::Warning => console::style(format!("warning [{code}]")).yellow().bold(),
+                DiagnosticLevel::Info => console::style(format!("info")).blue().bold(),
                 DiagnosticLevel::Allowed => continue,
             };
 
@@ -102,6 +103,7 @@ impl<'a> DiagnosticEmitter<'a> {
             let severity = match diagnostic.level {
                 DiagnosticLevel::Error => "error",
                 DiagnosticLevel::Warning => "warning",
+                DiagnosticLevel::Info => "info",
                 DiagnosticLevel::Allowed => continue,
             };
 
