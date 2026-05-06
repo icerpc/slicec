@@ -52,6 +52,7 @@ impl<'a> DiagnosticEmitter<'a> {
         Ok(())
     }
 
+    /// Emits the provided diagnostics to [`Self::output`].
     pub fn emit_diagnostics(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
         // Emit the diagnostics in whatever form the user requested.
         match self.diagnostic_format {

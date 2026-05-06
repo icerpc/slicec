@@ -59,11 +59,13 @@ impl Diagnostic {
         }
     }
 
-    /// Returns this diagnostic's code. This is either the name of a lint or of the form `E###`.
+    /// Returns this diagnostic's code, unless it's an informational diagnostic, in which case this returns `""`.
+    /// For errors, this is of the form `E###`; for lints this is the name of the lint;
     pub fn code(&self) -> &str {
         match &self.kind {
             DiagnosticKind::Error(error) => error.error_code(),
             DiagnosticKind::Lint(lint) => lint.lint_name(),
+            DiagnosticKind::Info(_) => "",
         }
     }
 
