@@ -44,7 +44,7 @@ impl Diagnostic {
         Self::new(DiagnosticKind::Lint(lint))
     }
 
-    /// Creates a new informational `Diagnostic` from the provided [`String`].
+    /// Creates a new informational `Diagnostic` from the provided string.
     /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
     pub fn info(info: impl Into<String>) -> Self {
         Self::new(DiagnosticKind::Info(info.into()))
