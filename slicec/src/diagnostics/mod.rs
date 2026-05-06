@@ -18,10 +18,10 @@ pub enum DiagnosticKind {
     /// An irrecoverable error; the compiler will terminate early at the end of the next phase.
     Error(Error),
 
-    /// A minor and recoverable mistake; has no effect on the compiler's execution pipe-line.
+    /// A minor and recoverable mistake; has no effect on the compiler's execution pipeline.
     Lint(Lint),
 
-    /// A purely informational comment; has no effect on the compiler's execution pipe-line.
+    /// A purely informational comment; has no effect on the compiler's execution pipeline.
     Info(String),
 }
 
