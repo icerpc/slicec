@@ -1,21 +1,28 @@
 // Copyright (c) ZeroC, Inc.
 
+mod annotated_diagnostic;
 mod diagnostic;
 mod errors;
 mod lints;
-mod annotated_diagnostic;
 
+pub use annotated_diagnostic::*;
 pub use diagnostic::{Diagnostic, Diagnostics};
 pub use errors::Error;
 pub use lints::Lint;
-pub use annotated_diagnostic::*;
 
 use crate::slice_file::Span;
 
+/// Wrapper enum for the 3 possible kinds of diagnostics.
 #[derive(Debug)]
 pub enum DiagnosticKind {
+    /// An irrecoverable error; the compiler will terminate early at the end of the next phase.
     Error(Error),
+
+    /// A minor and recoverable mistake; has no effect on the compiler's execution pipeline.
     Lint(Lint),
+
+    /// A purely informational comment; has no effect on the compiler's execution pipeline.
+    Info(String),
 }
 
 /// Diagnostic levels describe the severity of a diagnostic, and how the compiler should react to their emission.
@@ -30,6 +37,9 @@ pub enum DiagnosticLevel {
 
     /// Diagnostics with the `Allowed` level will be suppressed and will not emit any message.
     Allowed,
+
+    /// Diagnostics with the `Info` level will be emitted, but will not influence the exit code of the compiler.
+    Info,
 }
 
 /// Stores additional information about a diagnostic.

@@ -60,6 +60,7 @@ fn get_diagnostic_level_for(
     // For other kinds of diagnostics, we can immediately return their levels.
     let lint = match &diagnostic.kind {
         DiagnosticKind::Error(_) => return DiagnosticLevel::Error,
+        DiagnosticKind::Info(_) => return DiagnosticLevel::Info,
         DiagnosticKind::Lint(lint) => lint,
     };
 
