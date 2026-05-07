@@ -25,14 +25,14 @@ struct DiagnosticNote {
 }
 
 unchecked enum DiagnosticKind {
-    /// A general purpose diagnostic which should be emitted as an error.
-    Error(message: string)
+    /// A general purpose diagnostic which is purely informational.
+    Info(message: string)
 
     /// A general purpose diagnostic which should be emitted as a warning.
     Warning(message: string)
 
-    /// A general purpose diagnostic which is purely informational.
-    Info(message: string)
+    /// A general purpose diagnostic which should be emitted as an error.
+    Error(message: string)
 
     //
     // Attribute Diagnostics
