@@ -399,6 +399,7 @@ pub enum DiagnosticKind {
 
     Unknown {
         discriminant: usize,
+        fields_payload: Vec<u8>,
     },
 }
 impl DecodeFrom for DiagnosticKind {
@@ -437,7 +438,18 @@ impl DecodeFrom for DiagnosticKind {
                 actual_count: decoder.decode()?,
             },
 
-            n => Self::Unknown { discriminant: n },
+            n => {
+                // Read the unknown variant's fields payload.
+                // We don't what they are, but we at least know the length of the payload.
+                let payload_size = decoder.decode_size()?;
+                let mut fields_payload = vec![0; payload_size];
+                decoder.read_bytes_into_exact(&mut fields_payload)?;
+
+                Self::Unknown {
+                    discriminant: n,
+                    fields_payload,
+                }
+            }
         };
 
         decoder.skip_tagged_fields()?;
