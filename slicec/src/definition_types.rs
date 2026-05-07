@@ -10,7 +10,7 @@ use slice_codec::decode_from::DecodeFrom;
 use slice_codec::decoder::Decoder;
 use slice_codec::encode_into::EncodeInto;
 use slice_codec::encoder::Encoder;
-use slice_codec::{InvalidDataErrorKind, Result};
+use slice_codec::Result;
 
 /// TAG_END_MARKER must be encoded at the end of every non-compact type.
 const TAG_END_MARKER: i32 = -1;
@@ -322,9 +322,9 @@ impl DecodeFrom for GeneratedFile {
 
 #[derive(Clone, Debug)]
 pub struct Diagnostic {
-    pub level: DiagnosticLevel,
-    pub message: String,
+    pub kind: DiagnosticKind,
     pub source: Option<String>,
+    pub notes: Vec<DiagnosticNote>,
 }
 impl DecodeFrom for Diagnostic {
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
@@ -332,37 +332,115 @@ impl DecodeFrom for Diagnostic {
         let has_source = decoder.decode::<bool>()?;
 
         // Decode the actual fields.
-        let level = decoder.decode()?;
+        let kind = decoder.decode()?;
+        let source = has_source.then(|| decoder.decode()).transpose()?;
+        let notes = decoder.decode()?;
+
+        decoder.skip_tagged_fields()?;
+
+        Ok(Diagnostic { kind, source, notes })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct DiagnosticNote {
+    pub message: String,
+    pub source: Option<String>,
+}
+impl DecodeFrom for DiagnosticNote {
+    fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
+        // Decode the bit-sequence. With only one optional, this is just a bool.
+        let has_source = decoder.decode::<bool>()?;
+
+        // Decode the actual fields.
         let message = decoder.decode()?;
         let source = has_source.then(|| decoder.decode()).transpose()?;
 
         decoder.skip_tagged_fields()?;
 
-        Ok(Diagnostic { level, message, source })
+        Ok(DiagnosticNote { message, source })
     }
 }
 
-#[repr(u8)]
-#[derive(Clone, Copy, Debug)]
-pub enum DiagnosticLevel {
-    Info = 0,
-    Warning = 1,
-    Error = 2,
+#[repr(usize)]
+#[derive(Clone, Debug)]
+pub enum DiagnosticKind {
+    Info {
+        message: String,
+    } = 0,
+    Warning {
+        message: String,
+    } = 1,
+    Error {
+        message: String,
+    } = 2,
+    InvalidAttribute {
+        directive: String,
+    } = 3,
+    UnknownAttribute {
+        directive: String,
+    } = 4,
+    MissingRequiredAttribute {
+        expected_attribute: String,
+    } = 5,
+    AttributeIsNotRepeatable {
+        directive: String,
+    } = 6,
+    InvalidAttributeArgument {
+        directive: String,
+        argument: String,
+    } = 7,
+    IncorrectAttributeArgumentCount {
+        directive: String,
+        min_expected: u8,
+        max_expected: u8,
+        actual_count: u8,
+    } = 8,
+
+    Unknown {
+        discriminant: usize,
+    },
 }
-impl DecodeFrom for DiagnosticLevel {
+impl DecodeFrom for DiagnosticKind {
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
-        let value = decoder.decode::<u8>()?;
-        match value {
-            0 => Ok(DiagnosticLevel::Info),
-            1 => Ok(DiagnosticLevel::Warning),
-            2 => Ok(DiagnosticLevel::Error),
-            _ => {
-                let error = InvalidDataErrorKind::IllegalValue {
-                    desc: "DiagnosticLevel",
-                    value: Some(value.into()),
-                };
-                Err(error.into())
-            }
-        }
+        let value: usize = decoder.decode_varint()?;
+        let variant = match value {
+            0 => Self::Info {
+                message: decoder.decode()?,
+            },
+            1 => Self::Warning {
+                message: decoder.decode()?,
+            },
+            2 => Self::Error {
+                message: decoder.decode()?,
+            },
+            3 => Self::InvalidAttribute {
+                directive: decoder.decode()?,
+            },
+            4 => Self::UnknownAttribute {
+                directive: decoder.decode()?,
+            },
+            5 => Self::MissingRequiredAttribute {
+                expected_attribute: decoder.decode()?,
+            },
+            6 => Self::AttributeIsNotRepeatable {
+                directive: decoder.decode()?,
+            },
+            7 => Self::InvalidAttributeArgument {
+                directive: decoder.decode()?,
+                argument: decoder.decode()?,
+            },
+            8 => Self::IncorrectAttributeArgumentCount {
+                directive: decoder.decode()?,
+                min_expected: decoder.decode()?,
+                max_expected: decoder.decode()?,
+                actual_count: decoder.decode()?,
+            },
+
+            n => Self::Unknown { discriminant: n },
+        };
+
+        decoder.skip_tagged_fields()?;
+        Ok(variant)
     }
 }

@@ -7,6 +7,10 @@ use std::ops::Range;
 #[derive(Debug)]
 pub enum Error {
     // ----------------  Generic Errors ---------------- //
+    Other {
+        message: String,
+    },
+
     IO {
         action: &'static str,
         path: String,
@@ -183,7 +187,7 @@ pub enum Error {
     /// An attribute was applied to a Slice element for which it's invalid.
     /// For example: applying `[oneway]` to a struct ('oneway' is only allowed on operations).
     InvalidAttribute {
-        /// the directive of the invalid attribute.
+        /// The directive of the invalid attribute.
         directive: String,
     },
 
@@ -213,7 +217,7 @@ pub enum Error {
     InvalidAttributeArgument {
         /// The directive of the attribute.
         directive: String,
-        /// the invalid argument that was provided.
+        /// The invalid argument that was provided.
         argument: String,
     },
 
@@ -237,6 +241,7 @@ impl Error {
     /// Returns the error code corresponding to this particular [`Error`].
     pub fn error_code(&self) -> &'static str {
         match self {
+            Self::Other { .. } => "E000",
             Self::IO { .. } => "E001",
             Self::Syntax { .. } => "E002",
             Self::KeyMustBeNonOptional => "E003",
@@ -279,6 +284,8 @@ impl Error {
     /// Returns a message describing this [`Error`] in detail.
     pub fn message(&self) -> String {
         match self {
+            Self::Other { message } => message.clone(),
+
             Self::IO { action, path, error } => {
                 let message = match error.kind() {
                     std::io::ErrorKind::NotFound => "No such file or directory".to_owned(),

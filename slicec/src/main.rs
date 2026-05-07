@@ -114,7 +114,7 @@ fn handle_generator_response(response_payload: Vec<u8>, output_dir: &Option<Stri
     // TODO: Convert the diagnostics we decode from the generator, into diagnostics that slicec can handle.
     //       To do this requires re-working the diagnostic API fairly substantially.
     for generator_diagnostic in generator_diagnostics {
-        println!("{}", generator_diagnostic.message);
+        println!("{generator_diagnostic:?}");
     }
     let mut diagnostics = Diagnostics::new();
 

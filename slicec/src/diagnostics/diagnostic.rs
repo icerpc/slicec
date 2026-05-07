@@ -44,10 +44,10 @@ impl Diagnostic {
         Self::new(DiagnosticKind::Lint(lint))
     }
 
-    /// Creates a new informational `Diagnostic` from the provided string.
+    /// Creates a new informational `Diagnostic` from the provided message.
     /// The newly created `Diagnostic` has no `span`, `scope`, or `notes` set.
-    pub fn info(info: impl Into<String>) -> Self {
-        Self::new(DiagnosticKind::Info(info.into()))
+    pub fn from_info(message: impl Into<String>) -> Self {
+        Self::new(DiagnosticKind::Info(message.into()))
     }
 
     /// Returns this diagnostic's message.

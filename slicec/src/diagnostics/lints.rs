@@ -4,6 +4,10 @@ use super::DiagnosticLevel;
 
 #[derive(Debug)]
 pub enum Lint {
+    Other {
+        message: String,
+    },
+
     /// An input filename was provided multiple times.
     /// Note: it's valid to specify the same path as a source and reference file (ex: `slicec foo.slice -R foo.slice`).
     /// This is only triggered by specifying it multiple times in the same context: (ex: `slicec foo.slice foo.slice`).
@@ -22,17 +26,23 @@ pub enum Lint {
     },
 
     /// A syntactical mistake in a doc-comment.
-    MalformedDocComment { message: String },
+    MalformedDocComment {
+        message: String,
+    },
 
     /// A doc comment contains an incorrect tag. Either:
     /// - The tag itself is incorrect. Ex: using `@returns` on an operation doesn't return anything.
     /// - The tag describes something incorrect. Ex: specifying `@param foo` when no parameter named "foo" exists.
-    IncorrectDocComment { message: String },
+    IncorrectDocComment {
+        message: String,
+    },
 
     /// A link in a doc-comment couldn't be resolved. Either:
     /// - The link pointed to an un-linkable element, e.g. a module, result, sequence, dictionary, or primitive.
     /// - The link pointed to a non-existent element.
-    BrokenDocLink { message: String },
+    BrokenDocLink {
+        message: String,
+    },
 }
 
 impl Lint {
@@ -40,6 +50,7 @@ impl Lint {
     /// attributes (like '[allow(...)]'), or command-line options (like '--allow').
     pub fn default_diagnostic_level(&self) -> DiagnosticLevel {
         match self {
+            Self::Other { .. } => DiagnosticLevel::Warning,
             Self::DuplicateFile { .. } => DiagnosticLevel::Warning,
             Self::Deprecated { .. } => DiagnosticLevel::Warning,
             Self::MalformedDocComment { .. } => DiagnosticLevel::Warning,
@@ -51,6 +62,7 @@ impl Lint {
     /// Returns the name of the lint which was violated.
     pub fn lint_name(&self) -> &'static str {
         match self {
+            Self::Other { .. } => "Other",
             Self::DuplicateFile { .. } => "DuplicateFile",
             Self::Deprecated { .. } => "Deprecated",
             Self::MalformedDocComment { .. } => "MalformedDocComment",
@@ -62,6 +74,8 @@ impl Lint {
     /// Returns a message describing this lint violation in detail.
     pub fn message(&self) -> String {
         match self {
+            Self::Other { message } => message.clone(),
+
             Self::DuplicateFile { path } => format!("slice file was provided more than once: '{path}'"),
 
             Self::Deprecated { identifier, reason } => {
