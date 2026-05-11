@@ -10,8 +10,11 @@ use clap::Parser;
 use slice_codec::decoder::Decoder;
 use slice_codec::encoder::Encoder;
 
+use slicec::ast::Ast;
+use slicec::compilation_state::CompilationState;
 use slicec::diagnostic_emitter::DiagnosticEmitter;
 use slicec::diagnostics::Diagnostics;
+use slicec::slice_file::SliceFile;
 use slicec::slice_options::{DiagnosticFormat, Plugin, SliceOptions};
 
 mod definition_types;
@@ -50,6 +53,7 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
+/// Spawns (and starts) a subprocess to run the provided plugin, and writes the provided request payload to its 'stdin'.
 fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Result<Child> {
     // Spawn a new subprocess and set up pipes for all of its streams.
     let mut subprocess = Command::new(&plugin.path)
@@ -75,6 +79,11 @@ fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Resul
     Ok(subprocess)
 }
 
+/// Runs the provided subprocess to completion, handling any failures that may occur during its execution.
+///
+/// If the subprocess completes successfully, this returns `Ok` with it's response payload.
+/// Otherwise, if the subprocess failed to complete, completed with a non-zero status code, or write to 'stderr', this
+/// returns an `Err` describing the failure.
 fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     // Wait until the subprocess finishes, then retrieve its output.
     let output = subprocess.wait_with_output()?;
@@ -105,39 +114,33 @@ fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     }
 }
 
-fn handle_generator_response(response_payload: Vec<u8>, output_dir: &Option<String>) -> std::io::Result<Diagnostics> {
+/// Decodes a response from a code-generator plugin.
+///
+/// If the response could be successfully decoded, this returns the generated files and diagnostics contained in the
+/// response, converted to the form `slicec` expected them to be in. Otherwise this return an `Err` with the failure.
+fn decode_generator_response(
+    response_payload: Vec<u8>,
+    ast: &Ast,
+    files: &[SliceFile],
+) -> std::io::Result<(Vec<definition_types::GeneratedFile>, Diagnostics)> {
     // Decode the generator's response. It consists of 2 sequences, one of generated files and one of diagnostics.
     let mut slice_decoder = Decoder::from(&response_payload);
     let generated_files: Vec<definition_types::GeneratedFile> = slice_decoder.decode()?;
     let generator_diagnostics: Vec<definition_types::Diagnostic> = slice_decoder.decode()?;
 
-    // TODO: Convert the diagnostics we decode from the generator, into diagnostics that slicec can handle.
-    //       To do this requires re-working the diagnostic API fairly substantially.
+    // Take all of the decoded diagnostics from the generator, and convert them into diagnostics that slicec can handle.
+    let mut converted_diagnostics = Diagnostics::new();
     for generator_diagnostic in generator_diagnostics {
-        println!("{generator_diagnostic:?}");
-    }
-    let mut diagnostics = Diagnostics::new();
-
-    // If no errors were reported, attempt to generate the files in the response.
-    if !diagnostics.has_errors() {
-        for generated_file in &generated_files {
-            // Try to write the generated file to disk.
-            if let Err(io_error) = write_generated_file(generated_file, output_dir) {
-                // If an error occurred during writing the file, create a diagnostic that slicec can emit.
-                let diagnostic = slicec::diagnostics::Error::IO {
-                    action: "write generated file",
-                    path: generated_file.path.to_owned(),
-                    error: io_error,
-                };
-                slicec::diagnostics::Diagnostic::from_error(diagnostic).push_into(&mut diagnostics);
-            }
-        }
+        slice_file_converter::convert_diagnostic(generator_diagnostic, ast, files, &mut converted_diagnostics);
     }
 
-    // Return any decoded diagnostics, so slicec can emit them at the end.
-    Ok(diagnostics)
+    Ok((generated_files, converted_diagnostics))
 }
 
+/// Attempts to write a generated file to disk.
+///
+/// If an output directory was specified, the generated file will be written relative to it; Otherwise, the generated
+/// file will be written relative to the current working directory.
 fn write_generated_file(
     generated_file: &definition_types::GeneratedFile,
     output_dir: &Option<String>,
@@ -164,11 +167,24 @@ fn write_generated_file(
     Ok(())
 }
 
-fn convert_generator_error_to_diagnostic(generator: &Plugin, generator_error: std::io::Error) -> Diagnostics {
+/// Converts an [`std::io::Error`] that occurred while trying to write a generated file into a
+/// [Diagnostic](`slicec::diagnostics::Diagnostic`), and pushes it into the provided [`Diagnostics`] collection.
+fn report_file_writing_error(file_path: &String, io_error: std::io::Error, diagnostics: &mut Diagnostics) {
+    let diagnostic = slicec::diagnostics::Error::IO {
+        action: "write generated file",
+        path: file_path.to_owned(),
+        error: io_error,
+    };
+    slicec::diagnostics::Diagnostic::from_error(diagnostic).push_into(diagnostics);
+}
+
+/// Converts any [`std::io::Error`]s that occurred while trying to run a plugin into
+/// [Diagnostic](`slicec::diagnostics::Diagnostic`)s which can be emitted by the compiler.
+fn convert_generator_errors_to_diagnostics(generator: &Plugin, io_error: std::io::Error) -> Diagnostics {
     let mapped_io_error = slicec::diagnostics::Error::IO {
         action: "run code-generator",
         path: generator.path.clone(),
-        error: generator_error,
+        error: io_error,
     };
 
     let mut diagnostics = Diagnostics::new();
@@ -180,14 +196,14 @@ fn main() -> ExitCode {
     // Parse the command-line input.
     let slice_options = SliceOptions::parse();
 
-    // Perform the compilation.
+    // Compile the provided Slice files.
     let mut compilation_state = slicec::compile_from_options(&slice_options);
-    let diagnostics = &mut compilation_state.diagnostics;
+    let CompilationState { ref ast, ref mut diagnostics, ref files } = compilation_state;
 
     // Only invoke the plugins if there were no errors in the Slice files.
     if !diagnostics.has_errors() {
         // Encode the request which will be sent to each of the code-generation plugins.
-        let encoded_request = match encode_generate_code_request(&compilation_state.files) {
+        let encoded_request = match encode_generate_code_request(files) {
             Ok(result) => result,
             Err(error) => {
                 eprintln!("Critical error: failed to encode request payload!\n{error:?}");
@@ -205,12 +221,26 @@ fn main() -> ExitCode {
         // we get the response payload from it, write any generated files in the payload, and store any diagnostics
         // the generator reported so we can emit them at the end along with all the others.
         for (generator, generator_process) in generator_processes {
-            let generator_diagnostics = generator_process
-                .and_then(collect_plugin_output) // Returns the response payload if the generator ran successfully.
-                .and_then(|payload| handle_generator_response(payload, &slice_options.output_dir)) // Returns any diagnostics if the payload successfully decoded.
-                .unwrap_or_else(|err| convert_generator_error_to_diagnostic(generator, err));
+            let (generated_files, mut generator_diagnostics) = generator_process
+                // 'collect_plugin_output' returns the response payload if the generator ran successfully.
+                .and_then(collect_plugin_output)
+                // 'decode_generator_response' decodes the payload into a Vec<GeneratedFile> and a Vec<Diagnostic>.
+                .and_then(|payload| decode_generator_response(payload, ast, files))
+                // Convert any unexpected errors into reportable diagnostics.
+                .unwrap_or_else(|err| (Vec::new(), convert_generator_errors_to_diagnostics(generator, err)));
 
-            diagnostics.extend(generator_diagnostics.into_inner()); // Store generator's diagnostics for later emission.
+            // If the generator didn't report any errors, write the generated files.
+            if !generator_diagnostics.has_errors() {
+                for generated_file in &generated_files {
+                    if let Err(io_error) = write_generated_file(generated_file, &slice_options.output_dir) {
+                        // If an error occurred while writing the file, report the error as a slicec diagnostic.
+                        report_file_writing_error(&generated_file.path, io_error, &mut generator_diagnostics);
+                    }
+                }
+            }
+
+            // Store generator's diagnostics for later emission.
+            diagnostics.extend(generator_diagnostics.into_inner());
         }
     }
 

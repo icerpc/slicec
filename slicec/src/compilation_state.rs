@@ -45,7 +45,7 @@ impl CompilationState {
     pub fn get_annotated_diagnostics(&self, options: &SliceOptions) -> Vec<AnnotatedDiagnostic> {
         self.diagnostics
             .iter()
-            .map(|diagnostic| crate::diagnostics::convert_diagnostic(diagnostic, options, self))
+            .map(|diagnostic| crate::diagnostics::convert_diagnostic(diagnostic, options, &self.ast, &self.files))
             .collect()
     }
 }

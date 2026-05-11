@@ -178,19 +178,7 @@ impl TypeRefPatcher<'_> {
         match lookup_result {
             Ok(definition) => Some(definition),
             Err(err) => {
-                let mapped_error = match err {
-                    LookupError::DoesNotExist { identifier } => Error::DoesNotExist { identifier },
-                    LookupError::TypeMismatch {
-                        expected,
-                        actual,
-                        is_concrete,
-                    } => Error::TypeMismatch {
-                        expected,
-                        actual,
-                        is_concrete,
-                    },
-                };
-                Diagnostic::from_error(mapped_error)
+                Diagnostic::from_error(err.into())
                     .set_span(identifier.span())
                     .push_into(self.diagnostics);
                 None

@@ -22,7 +22,7 @@ pub trait ScopedSymbol: Symbol {
     fn get_raw_scope(&self) -> &Scope;
 }
 
-pub trait NamedSymbol: Symbol {
+pub trait NamedSymbol: Symbol + Attributable {
     fn identifier(&self) -> &str;
     fn raw_identifier(&self) -> &Identifier;
     fn module_scoped_identifier(&self) -> String;
