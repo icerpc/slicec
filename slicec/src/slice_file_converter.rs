@@ -55,8 +55,26 @@ const CRITICAL_FLAW_STRING: &str = "this indicates a critical flaw in the plugin
 /// container. This is because a single plugin-diagnostic may actually produce multiple compiler-diagnostics, for
 /// example, if a plugin emits a malformed or unknown diagnostic.
 pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSliceFile], output: &mut Diagnostics) {
-    // Perform the actual conversion between `DiagnosticKind` types.
-    let kind = match diagnostic.kind {
+    // Convert between `DiagnosticKind` types.
+    let kind = convert_diagnostic_kind(diagnostic.kind);
+
+    // Convert any provided notes.
+    let notes = diagnostic.notes.into_iter().map(|note| {
+        let DiagnosticNote {message, source} = note;
+        let (span, _) = convert_source(source.as_deref(), ast, files, output);
+        slicec::diagnostics::Note { message, span }
+    }).collect();
+
+    // If a 'source' was provided, convert it to a corresponding 'span' and 'scope'.
+    let (span, scope) = convert_source(diagnostic.source.as_deref(), ast, files, output);
+
+    // Construct and push the converted 'slicec' `Diagnostic`.
+    let converted_diagnostic = slicec::diagnostics::Diagnostic { kind, span, scope, notes };
+    output.push(converted_diagnostic);
+}
+
+fn convert_diagnostic_kind(kind: DiagnosticKind) -> SlicecDiagnosticKind {
+    match kind {
         DiagnosticKind::Info { message } => SlicecDiagnosticKind::Info(message),
 
         DiagnosticKind::Warning { message } => SlicecDiagnosticKind::Lint(SlicecLint::Other { message }),
@@ -95,21 +113,7 @@ pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSli
             }
             SlicecDiagnosticKind::Error(SlicecError::Other { message})
         }
-    };
-
-    // Convert any provided notes.
-    let notes = diagnostic.notes.into_iter().map(|note| {
-        let DiagnosticNote {message, source} = note;
-        let (span, _) = convert_source(source.as_deref(), ast, files, output);
-        slicec::diagnostics::Note { message, span }
-    }).collect();
-
-    // If a 'source' was provided, convert it to a corresponding 'span' and 'scope'.
-    let (span, scope) = convert_source(diagnostic.source.as_deref(), ast, files, output);
-
-    // Construct and push the converted 'slicec' `Diagnostic`.
-    let converted_diagnostic = slicec::diagnostics::Diagnostic { kind, span, scope, notes };
-    output.push(converted_diagnostic);
+    }
 }
 
 /// Parses a diagnostic 'source' string, and returns the corresponding 'span' and 'scope' for the referenced element.
@@ -118,6 +122,10 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
     let Some(source) = source else {
         return (None, None);
     };
+
+    let attributable: &dyn Attributable;
+    let scope: Option<String>;
+    let default_span: Option<Span>;
 
     // Otherwise, split the provided source into 'the scoped id of a symbol' and an 'optional extension'.
     // This optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol
@@ -142,25 +150,11 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
             }
         };
 
-        // Determine which 'span' to return based off the optional extension.
+        attributable = slice_file;
         // The 'scope' is always `None`, since files do not logically have a Slice scope like symbols do.
-        let scope = None;
-        let span = match extension {
-            // If there was no extension, this diagnostic is referencing the file itself.
-            // We return an empty span that just points to the start of the file in this case.
-            None => Some(Span::new((1, 1).into(), (1, 1).into(), &slice_file.relative_path)),
-
-            // If the extension starts with 'attributes::', then this diagnostic is referencing the file's attributes.
-            Some(ext) if ext.starts_with("attributes::") => get_attribute_span(slice_file, ext, output),
-
-            Some(unknown) => {
-                let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
-                let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
-                output.push(error);
-                None // There is no meaningful span to return.
-            }
-        };
-        (span, scope)
+        scope = None;
+        // If the diagnostic source is the file itself, we use an empty span that points to the start of the file.
+        default_span = Some(Span::new((1, 1).into(), (1, 1).into(), &slice_file.relative_path));
     } else {
         // Lookup the named symbol in the AST and if it doesn't exist, emit a diagnostic and return immediately.
         let named_symbol = match ast.find_element::<dyn NamedSymbol>(symbol_id) {
@@ -173,25 +167,31 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
             }
         };
 
-        // Determine which 'span' to return based off the optional extension.
-        // The 'scope' is always the fully-scoped identifier of the symbol, since meta-elements don't have Slice scopes.
-        let scope = Some(named_symbol.parser_scoped_identifier());
-        let span = match extension {
-            // If there was no extension, this diagnostic is referencing the named symbol itself.
-            None => Some(named_symbol.span().clone()),
-
-            // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
-            Some(ext) if ext.starts_with("attributes::") => get_attribute_span(named_symbol, ext, output),
-
-            Some(unknown) => {
-                let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
-                let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
-                output.push(error);
-                Some(named_symbol.span().clone()) // Fallback to using the symbol's span.
-            }
-        };
-        (span, scope)
+        attributable = named_symbol;
+        // The 'scope' is always the fully-scoped identifier of the symbol.
+        scope = Some(named_symbol.parser_scoped_identifier());
+        // If the diagnostic source is a Slice symbol, we just use the symbol's span.
+        default_span = Some(named_symbol.span().clone());
     }
+
+    // Handle any optional extensions on the source, to see if we need to drill into the spans of any meta-elements.
+    let span = match extension {
+        // If there was no extension, we just use the default span we already computed.
+        None => default_span,
+
+        // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
+        Some(ext) if ext.starts_with("attributes::") => get_attribute_span(attributable, ext, output),
+
+        // Otherwise this is an unknown extensions and we can't handle it. Report a diagnostic and use the default span.
+        Some(unknown) => {
+            let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
+            let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
+            output.push(error);
+            default_span
+        }
+    };
+
+    (span, scope)
 }
 
 fn get_attribute_span<T: Attributable + ?Sized>(symbol: &T, extension: &str, output: &mut Diagnostics) -> Option<Span> {
