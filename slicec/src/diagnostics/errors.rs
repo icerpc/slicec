@@ -387,9 +387,8 @@ impl Error {
                     if expected == 0 {
                         format!("attribute '{directive}' does not take any arguments, but {args_provided}")
                     } else {
-                        let only = if expected > *actual_count { "only " } else { "" };
                         let args = if expected == 1 { "argument" } else { "arguments" };
-                        format!("attribute '{directive}' takes exactly {expected} {args}, but {only}{args_provided}")
+                        format!("attribute '{directive}' takes exactly {expected} {args}, but {args_provided}")
                     }
                 } else if expected_count.end == usize::MAX {
                     // If the range has no upper bound, then this attribute only requires a minimum number of arguments.
