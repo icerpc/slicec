@@ -119,7 +119,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         return (None, None);
     };
 
-    // Otherwise, split the provided source into 'the scoped id of an symbol' and an 'optional extension'.
+    // Otherwise, split the provided source into 'the scoped id of a symbol' and an 'optional extension'.
     // This optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol
     // like attributes or doc-comments. For example: `"MyModule::MyClass::$attributes::1"` for attribute 1 on "MyClass".
     let (symbol_id, extension) = if let Some((symbol_id, extension)) = source.split_once("::$") {
@@ -146,21 +146,16 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         // The 'scope' is always `None`, since files do not logically have a Slice scope like symbols do.
         let scope = None;
         let span = match extension {
+            // If there was no extension, this diagnostic is referencing the file itself.
+            // We return an empty span that just points to the start of the file in this case.
+            None => Some(Span::new((1, 1).into(), (1, 1).into(), &slice_file.relative_path)),
+
             // If the extension starts with 'attributes::', then this diagnostic is referencing the file's attributes.
             Some(ext) if ext.starts_with("attributes::") => get_attribute_span(slice_file, ext, output),
 
             Some(unknown) => {
                 let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
                 let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
-                output.push(error);
-                None // There is no meaningful span to return.
-            }
-
-            None => {
-                let message = format!("the diagnostic source '{source}' is missing a required source extension");
-                let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
-                    .add_note(CRITICAL_FLAW_STRING, None)
-                    .add_note("file-sources must have an extension", None);
                 output.push(error);
                 None // There is no meaningful span to return.
             }

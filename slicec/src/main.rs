@@ -118,7 +118,7 @@ fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
 /// Decodes a response from a code-generator plugin.
 ///
 /// If the response could be successfully decoded, this returns the generated files and diagnostics contained in the
-/// response, converted to a form `slicec` can utilize. Otherwise this return an `Err` describing the failure.
+/// response, converted to a form `slicec` can utilize. Otherwise this returns an `Err` describing the failure.
 fn decode_generator_response(
     response_payload: Vec<u8>,
     ast: &Ast,
