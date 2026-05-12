@@ -121,14 +121,14 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
     // Otherwise, split the provided source into 'the scoped id of an symbol' and an 'optional extension'.
     // This optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol
     // like attributes or doc-comments. For example: `"MyModule::MyClass::$attributes::1"` for attribute 1 on "MyClass".
-    let (entity_id, extension) = if let Some((entity_id, extension)) = source.split_once("::$") {
-        (entity_id, Some(extension))
+    let (symbol_id, extension) = if let Some((symbol_id, extension)) = source.split_once("::$") {
+        (symbol_id, Some(extension))
     } else {
         (source, None)
     };
 
     // If the source starts with a '#', then it is referencing a file. Otherwise it is referencing a named symbol.
-    if let Some(diagnostic_file_path) = source.strip_prefix('#') {
+    if let Some(diagnostic_file_path) = symbol_id.strip_prefix('#') {
         // Lookup the file in the list of slice files and if it doesn't exist, emit a diagnostic and return immediately.
         let slice_file = match files.iter().find(|file| file.relative_path == diagnostic_file_path) {
             Some(file) => file,
@@ -145,8 +145,8 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         // The 'scope' is always `None`, since files do not logically have a Slice scope like symbols do.
         let scope = None;
         let span = match extension {
-            // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
-            Some("attributes::") => get_attribute_span(slice_file, extension.unwrap(), output),
+            // If the extension starts with 'attributes::', then this diagnostic is referencing the file's attributes.
+            Some(ext) if ext.starts_with("attributes::") => get_attribute_span(slice_file, ext, output),
 
             Some(unknown) => {
                 let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
@@ -167,7 +167,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         (span, scope)
     } else {
         // Lookup the named symbol in the AST and if it doesn't exist, emit a diagnostic and return immediately.
-        let named_symbol = match ast.find_element::<dyn NamedSymbol>(entity_id) {
+        let named_symbol = match ast.find_element::<dyn NamedSymbol>(symbol_id) {
             Ok(named_symbol) => named_symbol,
             Err(err) => {
                 SlicecDiagnostic::from_error(err.into())
@@ -185,7 +185,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
             None => Some(named_symbol.span().clone()),
 
             // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
-            Some("attributes::") => get_attribute_span(named_symbol, extension.unwrap(), output),
+            Some(ext) if ext.starts_with("attributes::") => get_attribute_span(named_symbol, ext, output),
 
             Some(unknown) => {
                 let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
