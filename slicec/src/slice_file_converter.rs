@@ -53,7 +53,7 @@ const CRITICAL_FLAW_STRING: &str = "this indicates a critical flaw in the plugin
 /// 
 /// Instead of directly returning the converted `Diagnostic`, this function pushes it into a provided `Diagnostics`
 /// container. This is because a single plugin-diagnostic may actually produce multiple compiler-diagnostics, for
-/// example, if a plugin emits a malformed diagnostic that references a non-existent source span.
+/// example, if a plugin emits a malformed or unknown diagnostic.
 pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSliceFile], output: &mut Diagnostics) {
     // Perform the actual conversion between `DiagnosticKind` types.
     let kind = match diagnostic.kind {
@@ -112,6 +112,7 @@ pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSli
     output.push(converted_diagnostic);
 }
 
+/// Parses a diagnostic 'source' string, and returns the corresponding 'span' and 'scope' for the referenced element.
 fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], output: &mut Diagnostics) -> (Option<Span>, Option<String>) {
     // If no source was provided, we can immediately return `(None, None)` since there's nothing to convert.
     let Some(source) = source else {
@@ -156,7 +157,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
             }
 
             None => {
-                let message = format!("the diagnostic source '{source}' is missing a required extension");
+                let message = format!("the diagnostic source '{source}' is missing a required source extension");
                 let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
                     .add_note(CRITICAL_FLAW_STRING, None)
                     .add_note("file-sources must have an extension", None);

@@ -83,8 +83,8 @@ fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Resul
 /// Runs the provided subprocess to completion, handling any failures that may occur during its execution.
 ///
 /// If the subprocess completes successfully, this returns `Ok` with its response payload.
-/// Otherwise, if the subprocess failed to complete, completed with a non-zero status code, or wrote to 'stderr', this
-/// returns an `Err` describing the failure.
+/// Otherwise, if the subprocess fails to complete, completed with a non-zero status code, or wrote to 'stderr',
+/// this returns an `Err` describing the failure.
 fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     // Wait until the subprocess finishes, then retrieve its output.
     let output = subprocess.wait_with_output()?;
