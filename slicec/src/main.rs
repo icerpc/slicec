@@ -53,7 +53,8 @@ fn encode_generate_code_request(parsed_files: &[slicec::slice_file::SliceFile]) 
     Ok(encoding_buffer)
 }
 
-/// Spawns (and starts) a subprocess to run the provided plugin, and writes the provided request payload to its 'stdin'.
+/// Spawns (and starts) a subprocess to run the provided plugin, and writes the provided payload to its 'stdin',
+/// followed by any plugin arguments.
 fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Result<Child> {
     // Spawn a new subprocess and set up pipes for all of its streams.
     let mut subprocess = Command::new(&plugin.path)
@@ -82,7 +83,7 @@ fn spawn_plugin_process(plugin: &Plugin, slice_payload: &[u8]) -> std::io::Resul
 /// Runs the provided subprocess to completion, handling any failures that may occur during its execution.
 ///
 /// If the subprocess completes successfully, this returns `Ok` with its response payload.
-/// Otherwise, if the subprocess failed to complete, completed with a non-zero status code, or write to 'stderr', this
+/// Otherwise, if the subprocess failed to complete, completed with a non-zero status code, or wrote to 'stderr', this
 /// returns an `Err` describing the failure.
 fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
     // Wait until the subprocess finishes, then retrieve its output.
@@ -117,7 +118,7 @@ fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
 /// Decodes a response from a code-generator plugin.
 ///
 /// If the response could be successfully decoded, this returns the generated files and diagnostics contained in the
-/// response, converted to the form `slicec` expected them to be in. Otherwise this return an `Err` with the failure.
+/// response, converted to a form `slicec` can utilize. Otherwise this return an `Err` describing the failure.
 fn decode_generator_response(
     response_payload: Vec<u8>,
     ast: &Ast,
@@ -168,7 +169,7 @@ fn write_generated_file(
 }
 
 /// Converts an [`std::io::Error`] that occurred while trying to write a generated file into a
-/// [Diagnostic](`slicec::diagnostics::Diagnostic`), and pushes it into the provided [`Diagnostics`] collection.
+/// [`Diagnostic`](slicec::diagnostics::Diagnostic), and pushes it into the provided [`Diagnostics`] collection.
 fn report_file_writing_error(file_path: &String, io_error: std::io::Error, diagnostics: &mut Diagnostics) {
     let diagnostic = slicec::diagnostics::Error::IO {
         action: "write generated file",
@@ -179,7 +180,7 @@ fn report_file_writing_error(file_path: &String, io_error: std::io::Error, diagn
 }
 
 /// Converts any [`std::io::Error`]s that occurred while trying to run a plugin into
-/// [Diagnostic](`slicec::diagnostics::Diagnostic`)s which can be emitted by the compiler.
+/// [`Diagnostic`](slicec::diagnostics::Diagnostic)s which can be emitted by the compiler.
 fn convert_generator_errors_to_diagnostics(generator: &Plugin, io_error: std::io::Error) -> Diagnostics {
     let mapped_io_error = slicec::diagnostics::Error::IO {
         action: "run code-generator",

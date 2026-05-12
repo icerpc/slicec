@@ -9,7 +9,7 @@ module Compiler
 /// - A reference to a Slice entity, written as its fully-scoped identifier; ex: 'MyModule::MyInterface::myOp'.
 /// - A reference to a Slice file, written as that file's relative path prefixed with '#'; ex: '#dir1/dir2/file.slice'.
 ///
-/// To reference an attribute on a Slice file or entity, you can place '$attributes' after the source, followed by the
+/// To reference an attribute on a Slice entity or file, you can use '$attributes' after the source, followed by the
 /// index of the attribute to reference, and optionally, the index of an argument to that attribute. For example:
 /// 'MyMod::MyEnum::$attributes::0' references the first attribute of 'MyEnum', and '#MyFile.slice::$attributes::0::1'
 /// references the second argument of the first attribute on 'MyFile.slice'.
