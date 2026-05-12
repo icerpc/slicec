@@ -371,8 +371,15 @@ impl From<LookupError> for crate::diagnostics::Error {
     fn from(error: LookupError) -> Self {
         match error {
             LookupError::DoesNotExist { identifier } => Self::DoesNotExist { identifier },
-            LookupError::TypeMismatch { expected, actual, is_concrete }
-                => Self::TypeMismatch { expected, actual, is_concrete },
+            LookupError::TypeMismatch {
+                expected,
+                actual,
+                is_concrete,
+            } => Self::TypeMismatch {
+                expected,
+                actual,
+                is_concrete,
+            },
         }
     }
 }

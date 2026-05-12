@@ -198,7 +198,11 @@ fn main() -> ExitCode {
 
     // Compile the provided Slice files.
     let mut compilation_state = slicec::compile_from_options(&slice_options);
-    let CompilationState { ref ast, ref mut diagnostics, ref files } = compilation_state;
+    let CompilationState {
+        ref ast,
+        ref mut diagnostics,
+        ref files,
+    } = compilation_state;
 
     // Only invoke the plugins if there were no errors in the Slice files.
     if !diagnostics.has_errors() {
