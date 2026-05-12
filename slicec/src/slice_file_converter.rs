@@ -128,8 +128,8 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
     let default_span: Option<Span>;
 
     // Otherwise, split the provided source into 'the scoped id of a symbol' and an 'optional extension'.
-    // This optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol
-    // like attributes or doc-comments. For example: `"MyModule::MyClass::$attributes::1"` for attribute 1 on "MyClass".
+    // The optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol.
+    // For example: `"MyModule::MyClass::$attributes::1"` refers to the 2nd attribute on "MyClass".
     let (symbol_id, extension) = if let Some((symbol_id, extension)) = source.split_once("::$") {
         (symbol_id, Some(extension))
     } else {
