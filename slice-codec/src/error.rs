@@ -188,7 +188,11 @@ impl Display for InvalidDataErrorKind {
                     "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]"
                 )
             }
-            _ => todo!(),
+
+            #[cfg(feature = "alloc")]
+            Self::InvalidString(utf8_error) => {
+                write!(f, "invalid string: {utf8_error}")
+            }
         }
     }
 }

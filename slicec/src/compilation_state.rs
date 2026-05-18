@@ -42,10 +42,21 @@ impl CompilationState {
         }
     }
 
+    /// Creates an [`AnnotatedDiagnostic`] for each (`Diagnostic`)[crate::diagnostics::Diagnostic] stored in this
+    /// `CompilationState`. This does not "use up" the diagnostics. Calling this function multiple times will yield the
+    /// same output.
+    ///
+    /// The returned diagnostics are also de-duplicated. Duplicates are expected when slicec calls multiple plugins
+    /// which may run identical validation. If multiple diagnostics are _exact_ duplicates, only the first will be
+    /// present in the returned [`Vec`].
     pub fn get_annotated_diagnostics(&self, options: &SliceOptions) -> Vec<AnnotatedDiagnostic> {
-        self.diagnostics
-            .iter()
-            .map(|diagnostic| crate::diagnostics::convert_diagnostic(diagnostic, options, self))
-            .collect()
+        let mut annotated_diagnostics = Vec::new();
+        for diagnostic in &*self.diagnostics {
+            let converted = crate::diagnostics::convert_diagnostic(diagnostic, options, self);
+            if !annotated_diagnostics.contains(&converted) {
+                annotated_diagnostics.push(converted);
+            }
+        }
+        annotated_diagnostics
     }
 }

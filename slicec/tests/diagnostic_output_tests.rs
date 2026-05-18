@@ -4,8 +4,9 @@ mod test_helpers;
 
 mod output {
     use crate::test_helpers::parse;
+    use slicec::compilation_state::CompilationState;
     use slicec::diagnostic_emitter::DiagnosticEmitter;
-    use slicec::diagnostics::AnnotatedDiagnostic;
+    use slicec::diagnostics::{Diagnostic, Error};
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
@@ -115,42 +116,50 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
     #[test]
     fn duplicate_diagnostics_are_filtered_out() {
         // Arrange
-        let diagnostic1 = AnnotatedDiagnostic {
+
+        // All of these diagnostics are equal.
+        let diagnostic1_1 = Diagnostic::from_error(Error::Other {
             message: "This is a test".to_owned(),
-            level: slicec::diagnostics::DiagnosticLevel::Error,
-            code: "Test".to_owned(),
-            snippet: None,
-            notes: Vec::new(),
-        };
-        let diagnostic2 = AnnotatedDiagnostic {
-            message: "This is also a test".to_owned(),
-            level: slicec::diagnostics::DiagnosticLevel::Error,
-            code: "Test".to_owned(),
-            snippet: None,
-            notes: Vec::new(),
-        };
-        let diagnostics = vec![diagnostic1.clone(), diagnostic2, diagnostic1];
+        });
+        let diagnostic1_2 = Diagnostic::from_error(Error::Other {
+            message: "This is a test".to_owned(),
+        });
+        let diagnostic1_3 = Diagnostic::from_error(Error::Other {
+            message: "This is a test".to_owned(),
+        });
+        // This diagnostic is unique, there should be no other diagnostics equal to it.
+        let diagnostic2_1 = Diagnostic::from_error(Error::Other {
+            message: "This is also test".to_owned(),
+        });
+        // These 2 diagnostics are equal.
+        let diagnostic3_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
+        let diagnostic3_2 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
+        // This diagnostic should not be equal to diagnostic 3, since this one has a note.
+        let diagnostic4_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty)
+            .add_note("This diagnostic is different because it has a note", None);
 
-        // Set the output format to JSON.
-        let options = SliceOptions {
-            diagnostic_format: DiagnosticFormat::Json,
-            ..Default::default()
-        };
-
-        let mut output: Vec<u8> = Vec::new();
-        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
+        // Manually set the diagnostics in our compilation state.
+        let mut state = CompilationState::create();
+        state.diagnostics.extend([
+            diagnostic1_1,
+            diagnostic1_2,
+            diagnostic2_1,
+            diagnostic3_1,
+            diagnostic4_1,
+            diagnostic1_3,
+            diagnostic3_2,
+        ]);
 
         // Act
-        emitter.emit_diagnostics(&diagnostics).unwrap();
+        let converted_diagnostics = state.get_annotated_diagnostics(&SliceOptions::default());
+        println!("{converted_diagnostics:?}");
 
-        // Assert: that the duplicate 'diagnostic1 wasn't emitted, and the correct order is still preserved.
-        let expected = concat!(
-            r#"{"message":"This is a test","severity":"error","snippet":null,"notes":[],"error_code":"Test"}"#,
-            "\n",
-            r#"{"message":"This is also a test","severity":"error","snippet":null,"notes":[],"error_code":"Test"}"#,
-            "\n",
-        );
-        assert_eq!(expected, String::from_utf8(output).unwrap());
+        // Assert
+        assert_eq!(converted_diagnostics.len(), 4);
+        assert_eq!(converted_diagnostics[0].message, "This is a test");
+        assert_eq!(converted_diagnostics[1].message, "This is also test");
+        assert_eq!(converted_diagnostics[2].message, "compact structs must be non-empty");
+        assert_eq!(converted_diagnostics[3].message, "compact structs must be non-empty");
     }
 
     #[test]
