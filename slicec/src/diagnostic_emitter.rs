@@ -54,70 +54,79 @@ impl<'a> DiagnosticEmitter<'a> {
 
     /// Emits the provided diagnostics to this emitter's output.
     pub fn emit_diagnostics(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
-        // Emit the diagnostics in whatever form the user requested.
-        match self.diagnostic_format {
-            DiagnosticFormat::Human => self.emit_diagnostics_in_human(diagnostics),
-            DiagnosticFormat::Json => self.emit_diagnostics_in_json(diagnostics),
+        // Select an emission function corresponding to what 'diagnostic format' the user requested.
+        let emission_func = match self.diagnostic_format {
+            DiagnosticFormat::Human => Self::emit_diagnostics_in_human,
+            DiagnosticFormat::Json => Self::emit_diagnostics_in_json,
+        };
+
+        // Emit the diagnostics.
+        // We do not emit a diagnostic if we have already emitted an exact duplicate of it.
+        // Duplicates are expected when using multiple plugins which run identical validation, best to filter them out.
+        let mut alread_emitted: Vec<&AnnotatedDiagnostic> = Vec::with_capacity(diagnostics.len());
+        for diagnostic in diagnostics {
+            if !alread_emitted.contains(&diagnostic) {
+                emission_func(self, diagnostic)?;
+                alread_emitted.push(diagnostic);
+            }
         }
+
+        Ok(())
     }
 
-    fn emit_diagnostics_in_human(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
-        for diagnostic in diagnostics {
-            // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
-            // to the previously emitted diagnostic.
-            let code = &diagnostic.code;
-            let prefix = match &diagnostic.level {
-                DiagnosticLevel::Error => console::style(format!("error [{code}]")).red().bold(),
-                DiagnosticLevel::Warning => console::style(format!("warning [{code}]")).yellow().bold(),
-                DiagnosticLevel::Info => console::style("info".to_owned()).blue().bold(),
-                DiagnosticLevel::Allowed => continue,
-            };
+    fn emit_diagnostics_in_human(&mut self, diagnostic: &AnnotatedDiagnostic) -> Result<()> {
+        // Style the prefix. Note that for `Notes` we do not insert a newline since they should be "attached"
+        // to the previously emitted diagnostic.
+        let code = &diagnostic.code;
+        let prefix = match &diagnostic.level {
+            DiagnosticLevel::Error => console::style(format!("error [{code}]")).red().bold(),
+            DiagnosticLevel::Warning => console::style(format!("warning [{code}]")).yellow().bold(),
+            DiagnosticLevel::Info => console::style("info".to_owned()).blue().bold(),
+            DiagnosticLevel::Allowed => return Ok(()),
+        };
 
-            // Emit the message with the prefix.
-            writeln!(self.output, "{prefix}: {}", console::style(&diagnostic.message).bold())?;
+        // Emit the message with the prefix.
+        writeln!(self.output, "{prefix}: {}", console::style(&diagnostic.message).bold())?;
 
-            // If the diagnostic contains a snippet of the offending code, display it.
-            if let Some(snippet) = &diagnostic.snippet {
+        // If the diagnostic contains a snippet of the offending code, display it.
+        if let Some(snippet) = &diagnostic.snippet {
+            self.emit_snippet(snippet)?;
+        }
+
+        // If the diagnostic contains notes, display them.
+        for note in &diagnostic.notes {
+            writeln!(
+                self.output,
+                "{}: {}",
+                console::style("note").blue().bold(),
+                console::style(&note.message).bold(),
+            )?;
+
+            if let Some(snippet) = &note.snippet {
                 self.emit_snippet(snippet)?;
-            }
-
-            // If the diagnostic contains notes, display them.
-            for note in &diagnostic.notes {
-                writeln!(
-                    self.output,
-                    "{}: {}",
-                    console::style("note").blue().bold(),
-                    console::style(&note.message).bold(),
-                )?;
-
-                if let Some(snippet) = &note.snippet {
-                    self.emit_snippet(snippet)?;
-                }
             }
         }
         Ok(())
     }
 
-    fn emit_diagnostics_in_json(&mut self, diagnostics: &[AnnotatedDiagnostic]) -> Result<()> {
-        // Write each diagnostic as a single line of JSON.
-        for diagnostic in diagnostics {
-            let severity = match diagnostic.level {
-                DiagnosticLevel::Error => "error",
-                DiagnosticLevel::Warning => "warning",
-                DiagnosticLevel::Info => "info",
-                DiagnosticLevel::Allowed => continue,
-            };
+    fn emit_diagnostics_in_json(&mut self, diagnostic: &AnnotatedDiagnostic) -> Result<()> {
+        let severity = match diagnostic.level {
+            DiagnosticLevel::Error => "error",
+            DiagnosticLevel::Warning => "warning",
+            DiagnosticLevel::Info => "info",
+            DiagnosticLevel::Allowed => return Ok(()),
+        };
 
-            let mut serializer = serde_json::Serializer::new(&mut *self.output);
-            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
-            state.serialize_field("message", &diagnostic.message)?;
-            state.serialize_field("severity", severity)?;
-            state.serialize_field("snippet", &diagnostic.snippet)?;
-            state.serialize_field("notes", &diagnostic.notes)?;
-            state.serialize_field("error_code", &diagnostic.code)?;
-            state.end()?;
-            writeln!(self.output)?; // Separate each diagnostic by a newline character.
-        }
+        let mut serializer = serde_json::Serializer::new(&mut *self.output);
+        let mut state = serializer.serialize_struct("Diagnostic", 5)?;
+        state.serialize_field("message", &diagnostic.message)?;
+        state.serialize_field("severity", severity)?;
+        state.serialize_field("snippet", &diagnostic.snippet)?;
+        state.serialize_field("notes", &diagnostic.notes)?;
+        state.serialize_field("error_code", &diagnostic.code)?;
+        state.end()?;
+        writeln!(self.output)?; // Each diagnostic should end with a newline character.
+
         Ok(())
     }
 

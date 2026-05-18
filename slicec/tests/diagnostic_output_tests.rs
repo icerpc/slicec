@@ -5,10 +5,12 @@ mod test_helpers;
 mod output {
     use crate::test_helpers::parse;
     use slicec::diagnostic_emitter::DiagnosticEmitter;
+    use slicec::diagnostics::AnnotatedDiagnostic;
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
     fn output_to_json() {
+        // Arrange
         let slice = r#"
         module Foo
 
@@ -48,6 +50,7 @@ mod output {
 
     #[test]
     fn output_to_console() {
+        // Arrange
         let slice = "
         module Foo
 
@@ -110,7 +113,49 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
+    fn duplicate_diagnostics_are_filtered_out() {
+        // Arrange
+        let diagnostic1 = AnnotatedDiagnostic {
+            message: "This is a test".to_owned(),
+            level: slicec::diagnostics::DiagnosticLevel::Error,
+            code: "Test".to_owned(),
+            snippet: None,
+            notes: Vec::new(),
+        };
+        let diagnostic2 = AnnotatedDiagnostic {
+            message: "This is also a test".to_owned(),
+            level: slicec::diagnostics::DiagnosticLevel::Error,
+            code: "Test".to_owned(),
+            snippet: None,
+            notes: Vec::new(),
+        };
+        let diagnostics = vec![diagnostic1.clone(), diagnostic2, diagnostic1];
+
+        // Set the output format to JSON.
+        let options = SliceOptions {
+            diagnostic_format: DiagnosticFormat::Json,
+            ..Default::default()
+        };
+
+        let mut output: Vec<u8> = Vec::new();
+        let mut emitter = DiagnosticEmitter::new(&mut output, &options);
+
+        // Act
+        emitter.emit_diagnostics(&diagnostics).unwrap();
+
+        // Assert: that the duplicate 'diagnostic1 wasn't emitted, and the correct order is still preserved.
+        let expected = concat!(
+            r#"{"message":"This is a test","severity":"error","snippet":null,"notes":[],"error_code":"Test"}"#,
+            "\n",
+            r#"{"message":"This is also a test","severity":"error","snippet":null,"notes":[],"error_code":"Test"}"#,
+            "\n",
+        );
+        assert_eq!(expected, String::from_utf8(output).unwrap());
+    }
+
+    #[test]
     fn allow_all_lints_flag() {
+        // Arrange
         let slice = "
             module Foo
 
@@ -143,6 +188,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
     #[test]
     fn allow_specific_lint_flag() {
+        // Arrange
         let slice = "
             module Foo
 
@@ -180,6 +226,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
     #[test]
     fn crlf_line_endings() {
+        // Arrange
         let slice = "module Foo \r\n   enum\r\n E\r : uint8\r\n{}\r\n\r";
 
         // Disable ANSI color codes.

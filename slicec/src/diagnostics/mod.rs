@@ -43,7 +43,7 @@ pub enum DiagnosticLevel {
 }
 
 /// Stores additional information about a diagnostic.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Note {
     pub message: String,
     pub span: Option<Span>,
