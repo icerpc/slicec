@@ -152,7 +152,6 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
         // Act
         let converted_diagnostics = state.get_annotated_diagnostics(&SliceOptions::default());
-        println!("{converted_diagnostics:?}");
 
         // Assert
         assert_eq!(converted_diagnostics.len(), 4);

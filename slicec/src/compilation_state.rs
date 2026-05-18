@@ -42,7 +42,7 @@ impl CompilationState {
         }
     }
 
-    /// Creates an [`AnnotatedDiagnostic`] for each (`Diagnostic`)[crate::diagnostics::Diagnostic] stored in this
+    /// Creates an [`AnnotatedDiagnostic`] for each [`Diagnostic`](crate::diagnostics::Diagnostic) stored in this
     /// `CompilationState`. This does not "use up" the diagnostics. Calling this function multiple times will yield the
     /// same output.
     ///
