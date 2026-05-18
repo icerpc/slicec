@@ -129,7 +129,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         });
         // This diagnostic is unique, there should be no other diagnostics equal to it.
         let diagnostic2_1 = Diagnostic::from_lint(Lint::Other {
-            message: "This is also test".to_owned(),
+            message: "This is also a test".to_owned(),
         });
         // These 2 diagnostics are equal.
         let diagnostic3_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
@@ -156,7 +156,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         // Assert
         assert_eq!(converted_diagnostics.len(), 4);
         assert_eq!(converted_diagnostics[0].message, "This is a test");
-        assert_eq!(converted_diagnostics[1].message, "This is also test");
+        assert_eq!(converted_diagnostics[1].message, "This is also a test");
         assert_eq!(converted_diagnostics[2].message, "compact structs must be non-empty");
         assert_eq!(converted_diagnostics[3].message, "compact structs must be non-empty");
 
