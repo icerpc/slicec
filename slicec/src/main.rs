@@ -91,15 +91,10 @@ fn collect_plugin_output(subprocess: Child) -> std::io::Result<Vec<u8>> {
 
     // If the subprocess wrote anything to its 'stderr', we consider this a failure and don't generate any code.
     if !output.stderr.is_empty() {
-        // Obtain an exclusive handle to this process's 'stderr'.
-        let mut stderr = std::io::stderr().lock();
-
-        // Pipe the output from the subprocess's 'stderr' to this process's 'stderr', and then return.
-        let error = match stderr.write_all(&output.stderr) {
-            Ok(_) => Error::other("errors reported on 'stderr'"),
-            Err(err) => Error::new(ErrorKind::BrokenPipe, err),
-        };
-        return Err(error);
+        // TODO: switch to 'from_utf8_lossy_owned' when stabilized (https://github.com/rust-lang/rust/issues/129436).
+        let mut error_string = String::from_utf8_lossy(&output.stderr).into_owned();
+        error_string.insert_str(0, "errors reported on 'stderr':\n");
+        return Err(Error::other(error_string));
     }
 
     // Otherwise, check the subprocess's status code to determine success.

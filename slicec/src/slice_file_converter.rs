@@ -182,7 +182,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
         Some(ext) if ext.starts_with("attributes::") => get_attribute_span(attributable, ext, output),
 
-        // Otherwise this is an unknown extensions and we can't handle it. Report a diagnostic and use the default span.
+        // Otherwise this is an unknown extension and we can't handle it. Report a diagnostic and use the default span.
         Some(unknown) => {
             let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
             let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
@@ -199,7 +199,7 @@ fn get_attribute_span<T: Attributable + ?Sized>(symbol: &T, extension: &str, out
     let indices = extension.split("::").collect::<Vec<_>>();
     assert!(indices.len() > 1 && indices[0] == "attributes");
 
-    // Make sure we either 1 or 2 indices after 'attributes'.
+    // Make sure we have either 1 or 2 indices after 'attributes'.
     let (attribute_index_str, argument_index_str) = match &indices[1..] {
         [i] => (i.parse::<usize>(), None),
         [i, j] => (i.parse::<usize>(), Some(j.parse::<usize>())),
