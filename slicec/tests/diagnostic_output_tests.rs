@@ -6,7 +6,7 @@ mod output {
     use crate::test_helpers::parse;
     use slicec::compilation_state::CompilationState;
     use slicec::diagnostic_emitter::DiagnosticEmitter;
-    use slicec::diagnostics::{Diagnostic, Error};
+    use slicec::diagnostics::{Diagnostic, Error, Lint};
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
@@ -118,17 +118,17 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         // Arrange
 
         // All of these diagnostics are equal.
-        let diagnostic1_1 = Diagnostic::from_error(Error::Other {
+        let diagnostic1_1 = Diagnostic::from_lint(Lint::Other {
             message: "This is a test".to_owned(),
         });
-        let diagnostic1_2 = Diagnostic::from_error(Error::Other {
+        let diagnostic1_2 = Diagnostic::from_lint(Lint::Other {
             message: "This is a test".to_owned(),
         });
-        let diagnostic1_3 = Diagnostic::from_error(Error::Other {
+        let diagnostic1_3 = Diagnostic::from_lint(Lint::Other {
             message: "This is a test".to_owned(),
         });
         // This diagnostic is unique, there should be no other diagnostics equal to it.
-        let diagnostic2_1 = Diagnostic::from_error(Error::Other {
+        let diagnostic2_1 = Diagnostic::from_lint(Lint::Other {
             message: "This is also test".to_owned(),
         });
         // These 2 diagnostics are equal.
@@ -160,6 +160,10 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         assert_eq!(converted_diagnostics[1].message, "This is also test");
         assert_eq!(converted_diagnostics[2].message, "compact structs must be non-empty");
         assert_eq!(converted_diagnostics[3].message, "compact structs must be non-empty");
+
+        let (warnings, errors) = DiagnosticEmitter::get_totals(&converted_diagnostics);
+        assert_eq!(warnings, 2);
+        assert_eq!(errors, 2);
     }
 
     #[test]
