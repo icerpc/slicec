@@ -9,7 +9,7 @@ use serde::Serialize;
 
 /// An annotated version of a [`Diagnostic`], whose [`DiagnosticLevel`] has been computed (taking into account any
 /// 'allow' attributes or command-line flags), and that has pre-extracted text snippets to display alongside messages.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AnnotatedDiagnostic {
     pub message: String,
     pub level: DiagnosticLevel,
@@ -18,13 +18,13 @@ pub struct AnnotatedDiagnostic {
     pub notes: Vec<AnnotatedNote>,
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, Eq, PartialEq)]
 pub struct AnnotatedNote {
     pub message: String,
     pub snippet: Option<Snippet>,
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, Eq, PartialEq)]
 pub struct Snippet {
     pub span: Span,
     pub text: String,
