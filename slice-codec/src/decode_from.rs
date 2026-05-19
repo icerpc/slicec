@@ -41,16 +41,25 @@ pub use implement_decode_from_on_numeric_primitive_type; // Re-export the macro 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! decode_dictionary_entries {
-    ($map:ident, $decoder:ident, $length:ident) => {
-        // Decode each entry, and insert them into the map, one by one.
+    ($dictionary:ident, $decoder:ident, $length:ident) => {
+        // Decode each entry, and insert them into the dictionary, one by one.
         for _ in 0..$length {
             let key = $decoder.decode()?;
             let value = $decoder.decode()?;
-            if let Some(_duplicate) = $map.insert(key, value) {
-                // TODO
-                // If you insert a duplicate key into the map, it will return the old key.
-                // So, if we hit this, we return  an error, because dictionary keys must be unique.
-                todo!();
+
+            // Check if the key already exists in the dictionary
+            match $dictionary.contains_key(&key) {
+                false => {
+                    // If it doesn't, insert it normally, and assert that 'insert' returned `None`.
+                    debug_assert!($dictionary.insert(key, value).is_none());
+                }
+                true => {
+                    // If it does, immediately return a duplicate key error.
+                    let error = InvalidDataErrorKind::DuplicateDictionaryKey {
+                        key: alloc::format!("{key:?}"),
+                    };
+                    return Err(error.into());
+                }
             }
         }
     };

@@ -12,6 +12,8 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use core::fmt::Debug;
 
 // We only support `HashMap` if the standard library is available through the `std` feature flag.
 #[cfg(feature = "std")]
@@ -237,14 +239,14 @@ where
 #[cfg(feature = "std")]
 impl<K, V> DecodeFrom for HashMap<K, V>
 where
-    K: DecodeFrom + Eq + Hash,
+    K: DecodeFrom + Debug + Eq + Hash,
     V: DecodeFrom,
 {
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
-        let mut map = HashMap::new();
+        let mut map = HashMap::<K, V>::new();
         map.try_reserve(length)?;
 
         // Decode 'length'-many entries into the map.
@@ -256,14 +258,14 @@ where
 #[cfg(feature = "alloc")]
 impl<K, V> DecodeFrom for BTreeMap<K, V>
 where
-    K: DecodeFrom + Ord,
+    K: DecodeFrom + Debug + Ord,
     V: DecodeFrom,
 {
     /// TODO
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
-        let mut map = BTreeMap::new();
+        let mut map = BTreeMap::<K, V>::new();
 
         // Decode 'length'-many entries into the map.
         decode_dictionary_entries!(map, decoder, length);
