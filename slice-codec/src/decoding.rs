@@ -246,7 +246,7 @@ where
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
-        let mut map = HashMap::<K, V>::new();
+        let mut map = HashMap::new();
         map.try_reserve(length)?;
 
         // Decode 'length'-many entries into the map.
@@ -265,7 +265,7 @@ where
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         // Decode how many entries are in this dictionary, and attempt to allocate a map with the necessary capacity.
         let length = decoder.decode_varuint()?;
-        let mut map = BTreeMap::<K, V>::new();
+        let mut map = BTreeMap::new();
 
         // Decode 'length'-many entries into the map.
         decode_dictionary_entries!(map, decoder, length);
