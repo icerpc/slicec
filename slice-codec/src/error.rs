@@ -200,6 +200,7 @@ impl Display for InvalidDataErrorKind {
                 )
             }
 
+            #[cfg(feature = "alloc")]
             Self::DuplicateDictionaryKey { key } => write!(f, "duplicate key: {key}"),
         }
     }

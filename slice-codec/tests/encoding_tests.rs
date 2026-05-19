@@ -390,8 +390,9 @@ mod variable_sized {
         }
 
         #[test]
+        #[cfg(feature = "alloc")]
         fn dictionary_decoding_rejects_duplicate_key() {
-            use std::collections::HashMap;
+            use std::collections::BTreeMap;
 
             // Arrange
             let mut buffer = Vec::new();
@@ -406,7 +407,7 @@ mod variable_sized {
             let mut decoder = Decoder::new(SliceInputSource::from(&buffer));
 
             // Act
-            let result = decoder.decode::<HashMap<i32, String>>();
+            let result = decoder.decode::<BTreeMap<i32, String>>();
             println!("{result:?}");
 
             // Assert
