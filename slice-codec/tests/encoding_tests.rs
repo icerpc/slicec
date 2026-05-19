@@ -408,7 +408,6 @@ mod variable_sized {
 
             // Act
             let result = decoder.decode::<BTreeMap<i32, String>>();
-            println!("{result:?}");
 
             // Assert
             assert!(result.is_err());
