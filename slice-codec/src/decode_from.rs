@@ -47,19 +47,16 @@ macro_rules! decode_dictionary_entries {
             let key = $decoder.decode()?;
             let value = $decoder.decode()?;
 
-            // Check if the key already exists in the dictionary
-            match $dictionary.contains_key(&key) {
-                false => {
-                    // If it doesn't, insert it normally, and assert that 'insert' returned `None`.
-                    debug_assert!($dictionary.insert(key, value).is_none());
-                }
-                true => {
-                    // If it does, immediately return a duplicate key error.
-                    let error = InvalidDataErrorKind::DuplicateDictionaryKey {
-                        key: alloc::format!("{key:?}"),
-                    };
-                    return Err(error.into());
-                }
+            // Check if the key already exists in the dictionary. If it does, we return a duplicate-key error.
+            // Otherwise, we insert the key normally.
+            if $dictionary.contains_key(&key) {
+                let error = InvalidDataErrorKind::DuplicateDictionaryKey {
+                    key: alloc::format!("{key:?}"),
+                };
+                return Err(error.into());
+            } else {
+                // `insert` should always return `None` for a new key.
+                debug_assert!($dictionary.insert(key, value).is_none());
             }
         }
     };
