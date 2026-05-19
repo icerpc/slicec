@@ -399,7 +399,7 @@ mod variable_sized {
             // Arrange
             let mut buffer = Vec::new();
             let mut encoder = Encoder::new(VecOutputTarget::from(&mut buffer));
-            encoder.encode_size(4).unwrap();
+            encoder.encode_size(3).unwrap();
             encoder.encode(1001_i32).unwrap(); // Key 1
             encoder.encode("foobar").unwrap(); // Value 1
             encoder.encode(1002_i32).unwrap(); // Key 2
