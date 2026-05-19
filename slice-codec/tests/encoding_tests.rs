@@ -142,9 +142,10 @@ mod fixed_size {
 #[cfg(test)]
 mod variable_sized {
     use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
-    use slice_codec::buffer::vec::VecOutputTarget;
     use slice_codec::decoder::Decoder;
     use slice_codec::encoder::Encoder;
+
+    #[cfg(feature = "alloc")]
     use slice_codec::{ErrorKind, InvalidDataErrorKind};
 
     use core::fmt::Debug;
@@ -390,9 +391,10 @@ mod variable_sized {
         }
 
         #[test]
-        #[cfg(feature = "alloc")]
+        #[cfg(feature = "std")]
         fn dictionary_decoding_rejects_duplicate_key() {
-            use std::collections::BTreeMap;
+            use slice_codec::buffer::vec::VecOutputTarget;
+            use std::collections::HashMap;
 
             // Arrange
             let mut buffer = Vec::new();
@@ -407,7 +409,7 @@ mod variable_sized {
             let mut decoder = Decoder::new(SliceInputSource::from(&buffer));
 
             // Act
-            let result = decoder.decode::<BTreeMap<i32, String>>();
+            let result = decoder.decode::<HashMap<i32, String>>();
 
             // Assert
             assert!(result.is_err());
