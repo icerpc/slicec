@@ -2,7 +2,7 @@
 
 use super::super::*;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Primitive {
     Bool,
     Int8,

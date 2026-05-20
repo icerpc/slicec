@@ -4,11 +4,14 @@ mod test_helpers;
 
 mod output {
     use crate::test_helpers::parse;
+    use slicec::compilation_state::CompilationState;
     use slicec::diagnostic_emitter::DiagnosticEmitter;
+    use slicec::diagnostics::{Diagnostic, Error, Lint};
     use slicec::slice_options::{DiagnosticFormat, SliceOptions};
 
     #[test]
     fn output_to_json() {
+        // Arrange
         let slice = r#"
         module Foo
 
@@ -48,6 +51,7 @@ mod output {
 
     #[test]
     fn output_to_console() {
+        // Arrange
         let slice = "
         module Foo
 
@@ -110,7 +114,60 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
     }
 
     #[test]
+    fn duplicate_diagnostics_are_filtered_out() {
+        // Arrange
+
+        // All of these diagnostics are equal.
+        let diagnostic1_1 = Diagnostic::from_lint(Lint::Other {
+            message: "This is a test".to_owned(),
+        });
+        let diagnostic1_2 = Diagnostic::from_lint(Lint::Other {
+            message: "This is a test".to_owned(),
+        });
+        let diagnostic1_3 = Diagnostic::from_lint(Lint::Other {
+            message: "This is a test".to_owned(),
+        });
+        // This diagnostic is unique, there should be no other diagnostics equal to it.
+        let diagnostic2_1 = Diagnostic::from_lint(Lint::Other {
+            message: "This is also a test".to_owned(),
+        });
+        // These 2 diagnostics are equal.
+        let diagnostic3_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
+        let diagnostic3_2 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
+        // This diagnostic should not be equal to diagnostic 3, since this one has a note.
+        let diagnostic4_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty)
+            .add_note("This diagnostic is different because it has a note", None);
+
+        // Manually set the diagnostics in our compilation state.
+        let mut state = CompilationState::create();
+        state.diagnostics.extend([
+            diagnostic1_1,
+            diagnostic1_2,
+            diagnostic2_1,
+            diagnostic3_1,
+            diagnostic4_1,
+            diagnostic1_3,
+            diagnostic3_2,
+        ]);
+
+        // Act
+        let converted_diagnostics = state.get_annotated_diagnostics(&SliceOptions::default());
+
+        // Assert
+        assert_eq!(converted_diagnostics.len(), 4);
+        assert_eq!(converted_diagnostics[0].message, "This is a test");
+        assert_eq!(converted_diagnostics[1].message, "This is also a test");
+        assert_eq!(converted_diagnostics[2].message, "compact structs must be non-empty");
+        assert_eq!(converted_diagnostics[3].message, "compact structs must be non-empty");
+
+        let (warnings, errors) = DiagnosticEmitter::get_totals(&converted_diagnostics);
+        assert_eq!(warnings, 2);
+        assert_eq!(errors, 2);
+    }
+
+    #[test]
     fn allow_all_lints_flag() {
+        // Arrange
         let slice = "
             module Foo
 
@@ -143,6 +200,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
     #[test]
     fn allow_specific_lint_flag() {
+        // Arrange
         let slice = "
             module Foo
 
@@ -180,6 +238,7 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
 
     #[test]
     fn crlf_line_endings() {
+        // Arrange
         let slice = "module Foo \r\n   enum\r\n E\r : uint8\r\n{}\r\n\r";
 
         // Disable ANSI color codes.
