@@ -54,11 +54,10 @@ macro_rules! decode_dictionary_entries {
                     key: alloc::format!("{key:?}"),
                 };
                 return Err(error.into());
-            } else {
-                // `insert` should always return `None` for a new key.
-                let result = $dictionary.insert(key, value);
-                debug_assert!(result.is_none());
             }
+
+            let result = $dictionary.insert(key, value);
+            debug_assert!(result.is_none()); // `insert` should always return `None` for a new key.
         }
     };
 }
