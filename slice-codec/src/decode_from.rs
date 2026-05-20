@@ -56,7 +56,8 @@ macro_rules! decode_dictionary_entries {
                 return Err(error.into());
             } else {
                 // `insert` should always return `None` for a new key.
-                debug_assert!($dictionary.insert(key, value).is_none());
+                let result = $dictionary.insert(key, value);
+                debug_assert!(result.is_none());
             }
         }
     };
