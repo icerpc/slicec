@@ -97,7 +97,7 @@ fn convert_diagnostic_kind(kind: DiagnosticKind) -> SlicecDiagnosticKind {
             => SlicecDiagnosticKind::Error(SlicecError::InvalidAttributeArgument { directive, argument }),
 
         DiagnosticKind::IncorrectAttributeArgumentCount { directive, min_expected, max_expected, actual_count } => {
-            let min_expected = if min_expected == u8::MAX { usize::MAX } else { min_expected as usize };
+            let min_expected = min_expected as usize;
             let max_expected = if max_expected == u8::MAX { usize::MAX - 1 } else { max_expected as usize };
             SlicecDiagnosticKind::Error(SlicecError::IncorrectAttributeArgumentCount {
                 directive,
