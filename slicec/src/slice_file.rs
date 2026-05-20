@@ -40,7 +40,7 @@ impl Default for Location {
     }
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Clone, Debug, Eq, PartialEq)]
 pub struct Span {
     pub start: Location,
     pub end: Location,

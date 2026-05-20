@@ -26,7 +26,7 @@ pub enum DiagnosticKind {
 }
 
 /// Diagnostic levels describe the severity of a diagnostic, and how the compiler should react to their emission.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub enum DiagnosticLevel {
     #[rustfmt::skip] // See https://github.com/rust-lang/rustfmt/issues/5801
     /// Diagnostics with the `Error` level will be emitted and will cause compilation to fail with a non-zero exit code.
@@ -43,7 +43,7 @@ pub enum DiagnosticLevel {
 }
 
 /// Stores additional information about a diagnostic.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Note {
     pub message: String,
     pub span: Option<Span>,
