@@ -13,7 +13,7 @@ module Compiler
 /// index of the attribute to reference, and optionally, the index of an argument to that attribute. For example:
 /// 'MyMod::MyEnum::$attributes::0' references the first attribute of 'MyEnum', and '#MyFile.slice::$attributes::0::1'
 /// references the second argument of the first attribute on 'MyFile.slice'.
-typealias Source = string
+typealias DiagnosticSource = string
 
 /// A message that is reported to provide information and context for errors, warnings, or other issues.
 struct Diagnostic {
@@ -21,7 +21,7 @@ struct Diagnostic {
     kind: DiagnosticKind
 
     /// The fully-scoped Slice identifier of the element that this diagnostic is in reference to (if there is one).
-    source: Source?
+    source: DiagnosticSource?
 
     /// Any additional information that should be reported alongside this diagnostic's main message.
     notes: Sequence<DiagnosticNote>
@@ -33,7 +33,7 @@ struct DiagnosticNote {
     message: string
 
     /// The fully-scoped Slice identifier of the element that this note is in reference to (if there is one).
-    source: Source?
+    source: DiagnosticSource?
 }
 
 unchecked enum DiagnosticKind {
