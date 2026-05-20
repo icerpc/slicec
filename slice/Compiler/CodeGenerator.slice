@@ -8,9 +8,9 @@ interface CodeGenerator {
         (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
 }
 
-typealias Options = Sequence<KeyValuePair>
+typealias Options = Sequence<CodeGeneratorOption>
 
-struct KeyValuePair {
+struct CodeGeneratorOption {
     key: string
     value: string
 }
