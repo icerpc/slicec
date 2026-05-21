@@ -405,6 +405,8 @@ pub enum DiagnosticKind {
 impl DecodeFrom for DiagnosticKind {
     fn decode_from(decoder: &mut Decoder<impl InputSource>) -> Result<Self> {
         let value: usize = decoder.decode_varint()?;
+        let payload_size = decoder.decode_size()?;
+
         let variant = match value {
             0 => Self::Info {
                 message: decoder.decode()?,
@@ -441,7 +443,6 @@ impl DecodeFrom for DiagnosticKind {
             n => {
                 // Read the unknown variant's fields payload.
                 // We don't know what they are, but we at least know the length of the payload.
-                let payload_size = decoder.decode_size()?;
                 let mut fields_payload = vec![0; payload_size];
                 decoder.read_bytes_into_exact(&mut fields_payload)?;
 

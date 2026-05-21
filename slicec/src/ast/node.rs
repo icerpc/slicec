@@ -111,6 +111,34 @@ impl<'a> TryFrom<&'a Node> for WeakPtr<dyn Type> {
     }
 }
 
+impl<'a> TryFrom<&'a Node> for &'a dyn NamedSymbol {
+    type Error = LookupError;
+
+    /// Attempts to unwrap a node to a dynamically typed reference of a Slice [NamedSymbol].
+    ///
+    /// If the Slice element held by the node implements [NamedSymbol], this succeeds and returns a typed reference,
+    /// otherwise this fails and returns an error message.
+    fn try_from(node: &'a Node) -> Result<&'a dyn NamedSymbol, Self::Error> {
+        match node {
+            Node::Module(module_ptr) => Ok(module_ptr.borrow()),
+            Node::Struct(struct_ptr) => Ok(struct_ptr.borrow()),
+            Node::Field(field_ptr) => Ok(field_ptr.borrow()),
+            Node::Interface(interface_ptr) => Ok(interface_ptr.borrow()),
+            Node::Operation(operation_ptr) => Ok(operation_ptr.borrow()),
+            Node::Parameter(parameter_ptr) => Ok(parameter_ptr.borrow()),
+            Node::Enum(enum_ptr) => Ok(enum_ptr.borrow()),
+            Node::Enumerator(enumerator_ptr) => Ok(enumerator_ptr.borrow()),
+            Node::CustomType(custom_type_ptr) => Ok(custom_type_ptr.borrow()),
+            Node::TypeAlias(type_alias_ptr) => Ok(type_alias_ptr.borrow()),
+            _ => Err(LookupError::TypeMismatch {
+                expected: "named symbol".to_owned(),
+                actual: ccase!(lower, node.to_string()),
+                is_concrete: false,
+            }),
+        }
+    }
+}
+
 impl<'a> TryFrom<&'a Node> for &'a dyn Entity {
     type Error = LookupError;
 

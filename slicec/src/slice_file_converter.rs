@@ -29,8 +29,236 @@ use slicec::grammar::{Attributable, Commentable, Contained, Entity, Member, Name
 // Pull in the attribute types without aliases, since they're not ambiguous.
 use slicec::grammar::attributes::{Allow, Compress, Deprecated, Oneway, SlicedFormat, Unparsed};
 
+use slicec::diagnostics::Diagnostic as SlicecDiagnostic;
+use slicec::diagnostics::DiagnosticKind as SlicecDiagnosticKind;
+use slicec::diagnostics::Error as SlicecError;
+use slicec::diagnostics::Lint as SlicecLint;
+
+use slicec::ast::Ast;
+use slicec::diagnostics::Diagnostics;
+use slicec::slice_file::Span;
+
 // Pull in all the mapped Slice-compiler definition types.
 use crate::definition_types::*;
+
+use std::fmt::Write;
+
+// =============================== //
+// Diagnostic conversion functions //
+// =============================== //
+
+const CRITICAL_FLAW_STRING: &str = "this indicates a critical flaw in the plugin that generated this diagnostic";
+
+/// Converts a `Diagnostic` emitted from a plugin, to a `Diagnostic` that can be used by the Slice compiler.
+/// 
+/// Instead of directly returning the converted `Diagnostic`, this function pushes it into a provided `Diagnostics`
+/// container. This is because a single plugin-diagnostic may actually produce multiple compiler-diagnostics, for
+/// example, if a plugin emits a malformed or unknown diagnostic.
+pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSliceFile], output: &mut Diagnostics) {
+    // Convert between `DiagnosticKind` types.
+    let kind = convert_diagnostic_kind(diagnostic.kind);
+
+    // Convert any provided notes.
+    let notes = diagnostic.notes.into_iter().map(|note| {
+        let DiagnosticNote {message, source} = note;
+        let (span, _) = convert_source(source.as_deref(), ast, files, output);
+        slicec::diagnostics::Note { message, span }
+    }).collect();
+
+    // If a 'source' was provided, convert it to a corresponding 'span' and 'scope'.
+    let (span, scope) = convert_source(diagnostic.source.as_deref(), ast, files, output);
+
+    // Construct and push the converted 'slicec' `Diagnostic`.
+    let converted_diagnostic = slicec::diagnostics::Diagnostic { kind, span, scope, notes };
+    output.push(converted_diagnostic);
+}
+
+fn convert_diagnostic_kind(kind: DiagnosticKind) -> SlicecDiagnosticKind {
+    match kind {
+        DiagnosticKind::Info { message } => SlicecDiagnosticKind::Info(message),
+
+        DiagnosticKind::Warning { message } => SlicecDiagnosticKind::Lint(SlicecLint::Other { message }),
+
+        DiagnosticKind::Error { message } => SlicecDiagnosticKind::Error(SlicecError::Other { message }),
+
+        DiagnosticKind::InvalidAttribute { directive }
+            => SlicecDiagnosticKind::Error(SlicecError::InvalidAttribute { directive }),
+
+        DiagnosticKind::UnknownAttribute { directive }
+            => SlicecDiagnosticKind::Error(SlicecError::UnknownAttribute { directive }),
+
+        DiagnosticKind::MissingRequiredAttribute { expected_attribute }
+            => SlicecDiagnosticKind::Error(SlicecError::MissingRequiredAttribute { expected_attribute }),
+
+        DiagnosticKind::AttributeIsNotRepeatable { directive }
+            => SlicecDiagnosticKind::Error(SlicecError::AttributeIsNotRepeatable { directive }),
+
+        DiagnosticKind::InvalidAttributeArgument { directive, argument }
+            => SlicecDiagnosticKind::Error(SlicecError::InvalidAttributeArgument { directive, argument }),
+
+        DiagnosticKind::IncorrectAttributeArgumentCount { directive, min_expected, max_expected, actual_count } => {
+            let min_expected = min_expected as usize;
+            let max_expected = if max_expected == u8::MAX { usize::MAX - 1 } else { max_expected as usize };
+            SlicecDiagnosticKind::Error(SlicecError::IncorrectAttributeArgumentCount {
+                directive,
+                expected_count: min_expected..(max_expected + 1),
+                actual_count: actual_count as usize,
+            })
+        }
+
+        DiagnosticKind::Unknown { discriminant, fields_payload } => {
+            let mut message = format!("received an unknown diagnostic with a code of '{discriminant}'");
+            if !fields_payload.is_empty() {
+                write!(message, " and field-payload of:\n{fields_payload:?}").unwrap();
+            }
+            SlicecDiagnosticKind::Error(SlicecError::Other { message})
+        }
+    }
+}
+
+/// Parses a diagnostic 'source' string, and returns the corresponding 'span' and 'scope' for the referenced element.
+fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], output: &mut Diagnostics) -> (Option<Span>, Option<String>) {
+    // If no source was provided, we can immediately return `(None, None)` since there's nothing to convert.
+    let Some(source) = source else {
+        return (None, None);
+    };
+
+    let attributable: &dyn Attributable;
+    let scope: Option<String>;
+    let default_span: Option<Span>;
+
+    // Otherwise, split the provided source into 'the scoped id of a symbol' and an 'optional extension'.
+    // The optional extension always begins with a '$' and can be used to refer to meta-elements attached to the symbol.
+    // For example: `"MyModule::MyClass::$attributes::1"` refers to the 2nd attribute on "MyClass".
+    let (symbol_id, extension) = if let Some((symbol_id, extension)) = source.split_once("::$") {
+        (symbol_id, Some(extension))
+    } else {
+        (source, None)
+    };
+
+    // If the source starts with a '#', then it is referencing a file. Otherwise it is referencing a named symbol.
+    if let Some(diagnostic_file_path) = symbol_id.strip_prefix('#') {
+        // Lookup the file in the list of slice files and if it doesn't exist, emit a diagnostic and return immediately.
+        let slice_file = match files.iter().find(|file| file.relative_path == diagnostic_file_path) {
+            Some(file) => file,
+            None => {
+                let message = format!("no file with the relative path '{diagnostic_file_path}' was parsed by 'slicec'");
+                SlicecDiagnostic::from_error(SlicecError::Other { message })
+                    .add_note(CRITICAL_FLAW_STRING, None)
+                    .push_into(output);
+                return (None, None);
+            }
+        };
+
+        attributable = slice_file;
+        // The 'scope' is always `None`, since files do not logically have a Slice scope like symbols do.
+        scope = None;
+        // If the diagnostic source is the file itself, we use an empty span that points to the start of the file.
+        default_span = Some(Span::new((1, 1).into(), (1, 1).into(), &slice_file.relative_path));
+    } else {
+        // Lookup the named symbol in the AST and if it doesn't exist, emit a diagnostic and return immediately.
+        let named_symbol = match ast.find_element::<dyn NamedSymbol>(symbol_id) {
+            Ok(named_symbol) => named_symbol,
+            Err(err) => {
+                SlicecDiagnostic::from_error(err.into())
+                    .add_note(CRITICAL_FLAW_STRING, None)
+                    .push_into(output);
+                return (None, None);
+            }
+        };
+
+        attributable = named_symbol;
+        // The 'scope' is always the fully-scoped identifier of the symbol.
+        scope = Some(named_symbol.parser_scoped_identifier());
+        // If the diagnostic source is a Slice symbol, we just use the symbol's span.
+        default_span = Some(named_symbol.span().clone());
+    }
+
+    // Handle any optional extensions on the source, to see if we need to drill into the spans of any meta-elements.
+    let span = match extension {
+        // If there was no extension, we just use the default span we already computed.
+        None => default_span,
+
+        // If the extension starts with 'attributes::', then this diagnostic is referencing the symbol's attributes.
+        Some(ext) if ext.starts_with("attributes::") => get_attribute_span(attributable, ext, output),
+
+        // Otherwise this is an unknown extension and we can't handle it. Report a diagnostic and use the default span.
+        Some(unknown) => {
+            let message = format!("the diagnostic source '{source}' has an unrecognized extension '{unknown}'");
+            let error = SlicecDiagnostic::from_error(SlicecError::Other { message });
+            output.push(error);
+            default_span
+        }
+    };
+
+    (span, scope)
+}
+
+fn get_attribute_span<T: Attributable + ?Sized>(symbol: &T, extension: &str, output: &mut Diagnostics) -> Option<Span> {
+    // Split the extension string by '::' and ensure it starts with 'attributes' and has at least 2 parts.
+    let indices = extension.split("::").collect::<Vec<_>>();
+    assert!(indices.len() > 1 && indices[0] == "attributes");
+
+    // Make sure we have either 1 or 2 indices after 'attributes'.
+    let (attribute_index_str, argument_index_str) = match &indices[1..] {
+        [i] => (i.parse::<usize>(), None),
+        [i, j] => (i.parse::<usize>(), Some(j.parse::<usize>())),
+
+        [] => unreachable!("'get_attribute_span' had 0 indices despite asserting that there was at least 1!"),
+        _ => {
+            let message = format!("{} indices were supplied to the '$attributes' diagnostic source", indices.len() - 1);
+            let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
+                .add_note(CRITICAL_FLAW_STRING, None);
+            output.push(error);
+            return None;
+        }
+    };
+
+    // Retrieve the attribute being referenced based on the first index after "attributes::".
+    let Ok(attribute_index) = attribute_index_str else {
+        let message = format!("{} is not a valid integer", indices[1]);
+        let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
+            .add_note(CRITICAL_FLAW_STRING, None);
+        output.push(error);
+        return None;
+    };
+    let Some(&attribute) = symbol.attributes().get(attribute_index) else {
+        let message = format!("attribute index '{attribute_index}' is out of bounds");
+        let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
+            .add_note(CRITICAL_FLAW_STRING, None);
+        output.push(error);
+        return None;
+    };
+    // If there was no 2nd index, then we want to return the span of the entire attribute itself.
+    if argument_index_str.is_none() {
+        return Some(attribute.span.clone());
+    }
+
+    //// Otherwise, we know there was a 2nd index; retrieve the argument being referenced based on this 2nd index.
+    //let Ok(argument_index) = argument_index_str.unwrap() else {
+    //    let message = format!("{} is not a valid integer", indices[2]);
+    //    let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
+    //        .add_note(CRITICAL_FLAW_STRING, None);
+    //    output.push(error);
+    //    return None;
+    //};
+    //let Some(argument) = attribute.arguments().get(argument_index) else {
+    //    let message = format!("argument index '{argument_index}' is out of bounds");
+    //    let error = SlicecDiagnostic::from_error(SlicecError::Other { message })
+    //        .add_note(CRITICAL_FLAW_STRING, None);
+    //    output.push(error);
+    //    return None;
+    //};
+    //// Return the span of the argument.
+    //Some(argument.span().clone())
+
+    // TODO: we need to refactor the 'Attributes' API to expose arguments and their spans before we can implement this.
+    Some(attribute.span.clone())
+}
+
+// =================================== //
+// Grammar conversion helper functions //
+// =================================== //
 
 /// Returns an [EntityInfo] describing the provided element.
 fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {

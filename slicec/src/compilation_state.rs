@@ -34,7 +34,7 @@ impl CompilationState {
     ///
     /// # Safety
     ///
-    /// The caller of this function must ensure that no (`WeakPtr`s)[crate::utils::ptr_util::WeakPtr] exist that point
+    /// The caller of this function must ensure that no [`WeakPtr`](crate::utils::ptr_util::WeakPtr)s exist that point
     /// to the contents of this `CompilationState`. Even if they're not being actively used, their existence causes UB.
     pub unsafe fn apply_unsafe(&mut self, function: unsafe fn(&mut Self)) {
         if !self.diagnostics.has_errors() {
@@ -52,7 +52,7 @@ impl CompilationState {
     pub fn get_annotated_diagnostics(&self, options: &SliceOptions) -> Vec<AnnotatedDiagnostic> {
         let mut annotated_diagnostics = Vec::new();
         for diagnostic in &*self.diagnostics {
-            let converted = crate::diagnostics::convert_diagnostic(diagnostic, options, self);
+            let converted = crate::diagnostics::convert_diagnostic(diagnostic, options, &self.ast, &self.files);
             if !annotated_diagnostics.contains(&converted) {
                 annotated_diagnostics.push(converted);
             }

@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::compilation_state::CompilationState;
+use crate::ast::Ast;
 use crate::diagnostics::{Diagnostic, DiagnosticKind, DiagnosticLevel, Lint};
 use crate::grammar::{attributes, Attributable, Entity};
 use crate::slice_file::{SliceFile, Span};
@@ -34,18 +34,19 @@ pub struct Snippet {
 pub fn convert_diagnostic(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
-    compilation_state: &CompilationState,
+    ast: &Ast,
+    files: &[SliceFile],
 ) -> AnnotatedDiagnostic {
     let notes = diagnostic.notes.iter().map(|n| AnnotatedNote {
         message: n.message.clone(),
-        snippet: get_snippet(&n.span, &compilation_state.files),
+        snippet: get_snippet(&n.span, files),
     });
 
     AnnotatedDiagnostic {
         message: diagnostic.message(),
-        level: get_diagnostic_level_for(diagnostic, options, compilation_state),
+        level: get_diagnostic_level_for(diagnostic, options, ast, files),
         code: diagnostic.code().to_owned(),
-        snippet: get_snippet(&diagnostic.span, &compilation_state.files),
+        snippet: get_snippet(&diagnostic.span, files),
         notes: notes.collect(),
     }
 }
@@ -54,7 +55,8 @@ pub fn convert_diagnostic(
 fn get_diagnostic_level_for(
     diagnostic: &Diagnostic,
     options: &SliceOptions,
-    compilation_state: &CompilationState,
+    ast: &Ast,
+    files: &[SliceFile],
 ) -> DiagnosticLevel {
     // Only lints can have their diagnostic levels changed (through attributes or command-line options).
     // For other kinds of diagnostics, we can immediately return their levels.
@@ -83,7 +85,7 @@ fn get_diagnostic_level_for(
 
     // If the diagnostic has a span, check if it's affected by an `allow` attribute on its file.
     if let Some(span) = &diagnostic.span {
-        let file = compilation_state.files.iter().find(|f| f.relative_path == span.file);
+        let file = files.iter().find(|f| f.relative_path == span.file);
         if is_lint_allowed_by_attributes(file.unwrap(), lint) {
             return DiagnosticLevel::Allowed;
         }
@@ -91,7 +93,7 @@ fn get_diagnostic_level_for(
 
     // If the diagnostic has a scope, check if it's affected by an `allow` attribute in that scope.
     if let Some(scope) = &diagnostic.scope {
-        if let Ok(entity) = compilation_state.ast.find_element::<dyn Entity>(scope) {
+        if let Ok(entity) = ast.find_element::<dyn Entity>(scope) {
             if is_lint_allowed_by_attributes(entity, lint) {
                 return DiagnosticLevel::Allowed;
             }
