@@ -12,6 +12,8 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+use core::fmt::Debug;
 
 // We only support `HashMap` if the standard library is available through the `std` feature flag.
 #[cfg(feature = "std")]
@@ -237,7 +239,7 @@ where
 #[cfg(feature = "std")]
 impl<K, V> DecodeFrom for HashMap<K, V>
 where
-    K: DecodeFrom + Eq + Hash,
+    K: DecodeFrom + Debug + Eq + Hash,
     V: DecodeFrom,
 {
     /// TODO
@@ -256,7 +258,7 @@ where
 #[cfg(feature = "alloc")]
 impl<K, V> DecodeFrom for BTreeMap<K, V>
 where
-    K: DecodeFrom + Ord,
+    K: DecodeFrom + Debug + Ord,
     V: DecodeFrom,
 {
     /// TODO

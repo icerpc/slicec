@@ -145,6 +145,9 @@ mod variable_sized {
     use slice_codec::decoder::Decoder;
     use slice_codec::encoder::Encoder;
 
+    #[cfg(feature = "alloc")]
+    use slice_codec::{ErrorKind, InvalidDataErrorKind};
+
     use core::fmt::Debug;
 
     mod encoding_of {
@@ -383,8 +386,37 @@ mod variable_sized {
             assert!(decoded.is_err());
             assert!(matches!(
                 decoded.err().unwrap().kind(),
-                slice_codec::ErrorKind::InvalidData(slice_codec::InvalidDataErrorKind::InvalidString(_))
+                ErrorKind::InvalidData(InvalidDataErrorKind::InvalidString(_))
             ));
+        }
+
+        #[test]
+        #[cfg(feature = "std")]
+        fn dictionary_decoding_rejects_duplicate_key() {
+            use slice_codec::buffer::vec::VecOutputTarget;
+            use std::collections::HashMap;
+
+            // Arrange
+            let mut buffer = Vec::new();
+            let mut encoder = Encoder::new(VecOutputTarget::from(&mut buffer));
+            encoder.encode_size(3).unwrap();
+            encoder.encode(1001_i32).unwrap(); // Key 1
+            encoder.encode("foobar").unwrap(); // Value 1
+            encoder.encode(1002_i32).unwrap(); // Key 2
+            encoder.encode("foobar").unwrap(); // Value 2
+            encoder.encode(1001_i32).unwrap(); // Key 3 (duplicate)
+            encoder.encode("foobar").unwrap(); // Value 3
+            let mut decoder = Decoder::new(SliceInputSource::from(&buffer));
+
+            // Act
+            let result = decoder.decode::<HashMap<i32, String>>();
+
+            // Assert
+            assert!(result.is_err());
+            assert!(matches!(
+                result.err().unwrap().kind(),
+                ErrorKind::InvalidData(InvalidDataErrorKind::DuplicateDictionaryKey),
+            ))
         }
     }
 }

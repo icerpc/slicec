@@ -170,6 +170,10 @@ pub enum InvalidDataErrorKind {
         max: i128,
         typename: &'static str,
     },
+
+    /// A key appears multiple times in a dictionary, violating the uniqueness requirement.
+    #[cfg(feature = "alloc")]
+    DuplicateDictionaryKey,
 }
 
 impl Display for InvalidDataErrorKind {
@@ -182,13 +186,19 @@ impl Display for InvalidDataErrorKind {
                     write!(f, "illegal value: {desc}")
                 }
             }
+
+            #[cfg(feature = "alloc")]
+            Self::InvalidString(inner) => inner.fmt(f),
+
             Self::OutOfRange { value, min, max, typename } => {
                 write!(
                     f,
                     "value '{value}' is outside the allowed range for type '{typename}'; values must be within [{min}..{max}]"
                 )
             }
-            _ => todo!(),
+
+            #[cfg(feature = "alloc")]
+            Self::DuplicateDictionaryKey => write!(f, "duplicate dictionary key encountered"),
         }
     }
 }
