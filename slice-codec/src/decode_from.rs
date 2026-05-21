@@ -47,7 +47,7 @@ macro_rules! decode_dictionary_entries {
             let key = $decoder.decode()?;
             let value = $decoder.decode()?;
 
-            // Insert the key,value pair into the dictionary. If the decoded key is already present, we return an error.
+            // Insert the (key,value) pair into the dictionary. If the decoded key is already present, we return an error.
             if $dictionary.insert(key, value).is_some() {
                 return Err(InvalidDataErrorKind::DuplicateDictionaryKey.into());
             }
