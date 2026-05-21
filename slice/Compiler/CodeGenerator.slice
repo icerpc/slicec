@@ -8,7 +8,12 @@ interface CodeGenerator {
         (generatedFiles: Sequence<GeneratedFile>, diagnostics: Sequence<Diagnostic>)
 }
 
-typealias Options = Dictionary<string, string>
+typealias Options = Sequence<CodeGeneratorOption>
+
+struct CodeGeneratorOption {
+    key: string
+    value: string
+}
 
 struct SliceFile {
     path: string
