@@ -13,7 +13,7 @@ use alloc::boxed::Box;
 #[cfg(feature = "alloc")]
 use alloc::collections::TryReserveError;
 #[cfg(feature = "alloc")]
-use alloc::string::{FromUtf8Error, String};
+use alloc::string::FromUtf8Error;
 
 /// A specialized [`Result`](core::result::Result) type for encoding and decoding functions which may produce errors.
 ///
@@ -173,10 +173,7 @@ pub enum InvalidDataErrorKind {
 
     /// A key appears multiple times in a dictionary, violating the uniqueness requirement.
     #[cfg(feature = "alloc")]
-    DuplicateDictionaryKey {
-        /// A string representation of the offending key.
-        key: String,
-    },
+    DuplicateDictionaryKey,
 }
 
 impl Display for InvalidDataErrorKind {
@@ -201,7 +198,7 @@ impl Display for InvalidDataErrorKind {
             }
 
             #[cfg(feature = "alloc")]
-            Self::DuplicateDictionaryKey { key } => write!(f, "duplicate key: {key}"),
+            Self::DuplicateDictionaryKey => write!(f, "duplicate dictionary key encountered"),
         }
     }
 }

@@ -415,7 +415,7 @@ mod variable_sized {
             assert!(result.is_err());
             assert!(matches!(
                 result.err().unwrap().kind(),
-                ErrorKind::InvalidData(InvalidDataErrorKind::DuplicateDictionaryKey { key }) if key == "1001",
+                ErrorKind::InvalidData(InvalidDataErrorKind::DuplicateDictionaryKey),
             ))
         }
     }
