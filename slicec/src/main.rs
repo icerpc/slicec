@@ -173,8 +173,8 @@ fn check_if_file_is_overwritten<'a>(
     written_to_paths: &mut HashMap<PathBuf, &'a Plugin>,
 ) -> Result<(), slicec::diagnostics::Error> {
     // Attempt to canonicalize the path. If that fails for any reason, fallback to using the path string as-is.
-    let canonical_path = std::fs::canonicalize(&generated_file.path)
-        .unwrap_or_else(|_| generated_file.path.to_owned().into());
+    let canonical_path = std::fs::canonicalize(generated_file.path.as_str())
+        .unwrap_or_else(|_| PathBuf::from(generated_file.path.clone()));
 
     // If we've already written to the file's path in this compilation run, return an error.
     if let Some(other_plugin) = written_to_paths.insert(canonical_path, generator) {
