@@ -239,10 +239,11 @@ fn main() -> ExitCode {
                 for generated_file in &generated_files {
                     // If we've already written to the file's path in this compilation run, report an error.
                     if let Some(original_plugin) = written_to_paths.insert(generated_file.path.clone(), generator) {
-                        let overwrite_error = slicec::diagnostics::Error::Other { message: format!(
+                        let message = format!(
                             "the path '{}' was already written to by '{}', and would be overwritten by '{}'",
                             &generated_file.path, &original_plugin.path, &generator.path,
-                        )};
+                        );
+                        let overwrite_error = slicec::diagnostics::Error::Other { message };
                         slicec::diagnostics::Diagnostic::from_error(overwrite_error).push_into(diagnostics);
                     }
 
