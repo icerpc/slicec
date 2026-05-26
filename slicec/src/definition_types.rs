@@ -249,6 +249,7 @@ impl EncodeInto for Options {
         for (e1, e2) in &self.0 {
             encoder.encode(e1)?;
             encoder.encode(e2)?;
+            encoder.encode_varint(TAG_END_MARKER)?;
         }
         Ok(())
     }
