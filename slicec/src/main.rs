@@ -164,6 +164,30 @@ fn write_generated_file(
     Ok(())
 }
 
+/// Checks if the path of the provided `generated_file` has already been written to during this compilation.
+/// If it has, this returns an `Err` with an error describing the overwriting. Otherwise this returns `Ok`.
+/// Note that this function normalizes/canonicalizes the path before checking.
+fn check_if_file_is_overwritten<'a>(
+    generated_file: &definition_types::GeneratedFile,
+    generator: &'a Plugin,
+    written_to_paths: &mut HashMap<PathBuf, &'a Plugin>,
+) -> Result<(), slicec::diagnostics::Error> {
+    // Attempt to canonicalize the path. If that fails for any reason, fallback to using the path string as-is.
+    let canonical_path = std::fs::canonicalize(&generated_file.path)
+        .unwrap_or_else(|_| generated_file.path.to_owned().into());
+
+    // If we've already written to the file's path in this compilation run, return an error.
+    if let Some(other_plugin) = written_to_paths.insert(canonical_path, generator) {
+        let message = format!(
+            "the path '{}' was already written to by '{}', and would be overwritten by '{}'",
+            &generated_file.path, &other_plugin.path, &generator.path,
+        );
+        Err(slicec::diagnostics::Error::Other { message })
+    } else {
+        Ok(())
+    }
+}
+
 /// Converts an [`std::io::Error`] that occurred while trying to write a generated file into a
 /// [`Diagnostic`](slicec::diagnostics::Diagnostic), and pushes it into the provided [`Diagnostics`] collection.
 fn report_file_writing_error(file_path: &String, io_error: std::io::Error, diagnostics: &mut Diagnostics) {
@@ -220,7 +244,7 @@ fn main() -> ExitCode {
 
         // Store which file-paths we've written code to, so we can reject overwrites.
         // Keys are file-paths, and values are the plugins that wrote to the path (for more actionable diagnostics).
-        let mut written_to_paths: HashMap<String, &Plugin> = HashMap::new();
+        let mut written_to_paths: HashMap<PathBuf, &Plugin> = HashMap::new();
 
         // Block on each generator process until they're finished. If a generator completes successfully,
         // we get the response payload from it, write any generated files in the payload, and store any diagnostics
@@ -238,13 +262,8 @@ fn main() -> ExitCode {
             if !generator_diagnostics.has_errors() {
                 for generated_file in &generated_files {
                     // If we've already written to the file's path in this compilation run, report an error.
-                    if let Some(original_plugin) = written_to_paths.insert(generated_file.path.clone(), generator) {
-                        let message = format!(
-                            "the path '{}' was already written to by '{}', and would be overwritten by '{}'",
-                            &generated_file.path, &original_plugin.path, &generator.path,
-                        );
-                        let overwrite_error = slicec::diagnostics::Error::Other { message };
-                        slicec::diagnostics::Diagnostic::from_error(overwrite_error).push_into(diagnostics);
+                    if let Err(error) = check_if_file_is_overwritten(generated_file, generator, &mut written_to_paths) {
+                        slicec::diagnostics::Diagnostic::from_error(error).push_into(diagnostics);
                     }
 
                     // Write the generated file to disk.
