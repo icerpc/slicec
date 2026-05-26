@@ -1,5 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Write};
 use std::path::PathBuf;
@@ -217,6 +218,10 @@ fn main() -> ExitCode {
             .map(|generator| (generator, spawn_plugin_process(generator, &encoded_request)))
             .collect::<Vec<_>>();
 
+        // Store which file-paths we've written code to, so we can reject overwrites.
+        // Keys are file-paths, and values are the plugins that wrote to the path (for more actionable diagnostics).
+        let mut written_to_paths: HashMap<String, &Plugin> = HashMap::new();
+
         // Block on each generator process until they're finished. If a generator completes successfully,
         // we get the response payload from it, write any generated files in the payload, and store any diagnostics
         // the generator reported so we can emit them at the end along with all the others.
@@ -232,8 +237,18 @@ fn main() -> ExitCode {
             // If the generator didn't report any errors, write the generated files.
             if !generator_diagnostics.has_errors() {
                 for generated_file in &generated_files {
+                    // If we've already written to the file's path in this compilation run, report an error.
+                    if let Some(original_plugin) = written_to_paths.insert(generated_file.path.clone(), generator) {
+                        let overwrite_error = slicec::diagnostics::Error::Other { message: format!(
+                            "the path '{}' was already written to by '{}', and would be overwritten by '{}'",
+                            &generated_file.path, &original_plugin.path, &generator.path,
+                        )};
+                        slicec::diagnostics::Diagnostic::from_error(overwrite_error).push_into(diagnostics);
+                    }
+
+                    // Write the generated file to disk.
+                    // If an error occurs while writing the file, report the error as a slicec diagnostic.
                     if let Err(io_error) = write_generated_file(generated_file, &slice_options.output_dir) {
-                        // If an error occurred while writing the file, report the error as a slicec diagnostic.
                         report_file_writing_error(&generated_file.path, io_error, &mut generator_diagnostics);
                     }
                 }
