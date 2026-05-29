@@ -58,7 +58,7 @@ pub fn convert_diagnostic(
     // If the diagnostic was reported by a plugin, we just use the filename of the plugin (not its entire path).
     let reported_by = diagnostic.plugin.as_deref().map_or("slicec", |plugin_path| {
         let path = std::path::Path::new(plugin_path);
-        path.file_name().unwrap().to_str().unwrap()
+        path.file_stem().unwrap().to_str().unwrap()
     });
 
     AnnotatedDiagnostic {

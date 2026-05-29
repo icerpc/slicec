@@ -77,7 +77,7 @@ impl<'a> DiagnosticEmitter<'a> {
             writeln!(self.output, "{prefix}: {}", console::style(&diagnostic.message).bold())?;
 
             // Emit what the diagnostic was reported by.
-            writeln!(self.output, "  Reported by: {:?}", diagnostic.reported_by)?;
+            writeln!(self.output, "  Reported by: [{}]", diagnostic.reported_by.join(", "))?;
 
             // If the diagnostic contains a snippet of the offending code, display it.
             if let Some(snippet) = &diagnostic.snippet {
