@@ -9,13 +9,26 @@ use serde::Serialize;
 
 /// An annotated version of a [`Diagnostic`], whose [`DiagnosticLevel`] has been computed (taking into account any
 /// 'allow' attributes or command-line flags), and that has pre-extracted text snippets to display alongside messages.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq)]
 pub struct AnnotatedDiagnostic {
     pub message: String,
     pub level: DiagnosticLevel,
     pub code: String,
     pub snippet: Option<Snippet>,
     pub notes: Vec<AnnotatedNote>,
+    pub reported_by: Vec<String>,
+}
+
+impl PartialEq for AnnotatedDiagnostic {
+    fn eq(&self, other: &Self) -> bool {
+        // Check every field for equality except for 'reported_by'.
+        // Who reported the diagnostic isn't an intrinsic property of the diagnostic itself.
+        self.message == other.message
+            && self.level == other.level
+            && self.code == other.code
+            && self.snippet == other.snippet
+            && self.notes == other.notes
+    }
 }
 
 #[derive(Serialize, Clone, Debug, Eq, PartialEq)]
@@ -42,12 +55,15 @@ pub fn convert_diagnostic(
         snippet: get_snippet(&n.span, files),
     });
 
+    let reported_by = diagnostic.plugin.as_deref().unwrap_or("slicec");
+
     AnnotatedDiagnostic {
         message: diagnostic.message(),
         level: get_diagnostic_level_for(diagnostic, options, ast, files),
         code: diagnostic.code().to_owned(),
         snippet: get_snippet(&diagnostic.span, files),
         notes: notes.collect(),
+        reported_by: vec![reported_by.to_owned()],
     }
 }
 

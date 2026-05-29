@@ -50,10 +50,12 @@ impl CompilationState {
     /// which may run identical validation. If multiple diagnostics are _exact_ duplicates, only the first will be
     /// present in the returned [`Vec`].
     pub fn get_annotated_diagnostics(&self, options: &SliceOptions) -> Vec<AnnotatedDiagnostic> {
-        let mut annotated_diagnostics = Vec::new();
+        let mut annotated_diagnostics = Vec::<AnnotatedDiagnostic>::new();
         for diagnostic in &*self.diagnostics {
             let converted = crate::diagnostics::convert_diagnostic(diagnostic, options, &self.ast, &self.files);
-            if !annotated_diagnostics.contains(&converted) {
+            if let Some(original) = annotated_diagnostics.iter_mut().find(|d| **d == converted) {
+                original.reported_by.extend(converted.reported_by);
+            } else {
                 annotated_diagnostics.push(converted);
             }
         }

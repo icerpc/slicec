@@ -76,6 +76,9 @@ impl<'a> DiagnosticEmitter<'a> {
             // Emit the message with the prefix.
             writeln!(self.output, "{prefix}: {}", console::style(&diagnostic.message).bold())?;
 
+            // Emit what the diagnostic was reported by.
+            writeln!(self.output, "    Reported by: {:?}", diagnostic.reported_by)?;
+
             // If the diagnostic contains a snippet of the offending code, display it.
             if let Some(snippet) = &diagnostic.snippet {
                 self.emit_snippet(snippet)?;
@@ -109,12 +112,13 @@ impl<'a> DiagnosticEmitter<'a> {
             };
 
             let mut serializer = serde_json::Serializer::new(&mut *self.output);
-            let mut state = serializer.serialize_struct("Diagnostic", 5)?;
+            let mut state = serializer.serialize_struct("Diagnostic", 6)?;
             state.serialize_field("message", &diagnostic.message)?;
             state.serialize_field("severity", severity)?;
             state.serialize_field("snippet", &diagnostic.snippet)?;
             state.serialize_field("notes", &diagnostic.notes)?;
             state.serialize_field("error_code", &diagnostic.code)?;
+            state.serialize_field("reported_by", &diagnostic.reported_by)?;
             state.end()?;
             writeln!(self.output)?; // Separate each diagnostic by a newline character.
         }
