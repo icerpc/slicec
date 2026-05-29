@@ -1,0 +1,6 @@
+
+module FooBar
+
+struct Hello {
+    tag(1) something: string1
+}
