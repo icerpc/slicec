@@ -120,7 +120,6 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
     fn duplicate_diagnostics_are_merged_together() {
         // Arrange
 
-        //
         // All of these diagnostics are equal.
         //
         let mut diagnostic1_1 = Diagnostic::from_lint(Lint::Other {
@@ -138,7 +137,6 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         });
         diagnostic1_3.plugin = None; // should map to 'slicec' when converted.
 
-        //
         // This diagnostic is unique, there should be no other diagnostics equal to it.
         //
         let mut diagnostic2_1 = Diagnostic::from_lint(Lint::Other {
@@ -146,7 +144,6 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         });
         diagnostic2_1.plugin = Some("/path/bar.exe".to_owned());
 
-        //
         // These 2 diagnostics are equal.
         //
         let mut diagnostic3_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
@@ -155,7 +152,6 @@ error [E008]: invalid enum 'E': enums must contain at least one enumerator
         let mut diagnostic3_2 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty);
         diagnostic3_2.plugin = Some("foo".to_owned());
 
-        //
         // This diagnostic should not be equal to diagnostic 3, since this one has a note.
         //
         let mut diagnostic4_1 = Diagnostic::from_error(Error::CompactStructCannotBeEmpty)
