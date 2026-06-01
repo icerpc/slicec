@@ -24,7 +24,7 @@ console = "0.16.3"
 convert_case = "0.11.0"
 in_definite = "1.1.2"
 # The default features enable a built-in lexer. We supply our own lexer so we don't need these.
-lalrpop-util = { version = "0.23.1", default-features = false }
+lalrpop-util = { version = "0.23.1", default-features = false, features = ["std", "unicode"] }
 # derive feature allows structs to derive Serialize automatically
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
