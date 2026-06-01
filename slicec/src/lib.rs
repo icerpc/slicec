@@ -20,6 +20,28 @@ use slice_options::SliceOptions;
 use std::collections::HashSet;
 use utils::file_util;
 
+/// ```
+/// use slicec::compile_from_strings;
+/// use slicec::grammar::Enum;
+/// 
+/// let source = "
+///     module Example
+/// 
+///     enum Color {
+///         Hex(color: string)
+///         Rgb(red: uint8, green: uint8, blue: uint8, tag(1) alpha: uint8?)
+///         Hsl(hue: int32, saturation: float32, lightness: float32)
+///     }
+/// ";
+/// 
+/// // Compile the Slice definitions. `None` means "use the default compiler options".
+/// let compilation_state = compile_from_strings(&[source], None);
+/// 
+/// // Inspect the contents of the resulting AST.
+/// let color_enum = compilation_state.ast.find_element::<Enum>("Example::Color").unwrap();
+/// // Make sure no diagnostics were reported.
+/// assert!(!compilation_state.diagnostics.has_errors());
+/// ```
 pub fn compile_from_options(options: &SliceOptions) -> CompilationState {
     // Create an instance of `CompilationState` for holding all the compiler's state.
     let mut state = CompilationState::create();

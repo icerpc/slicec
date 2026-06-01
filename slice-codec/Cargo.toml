@@ -20,15 +20,11 @@ edition.workspace = true
 name = "slice_codec"
 path = "src/lib.rs"
 
-[dependencies]
-tokio = { version = "1.52.3", optional = true }
-bytes = { version = "1.11.1", optional = true }
-
 [dev-dependencies]
 test-case = "3.3.1"
 
 [features]
-default = ["std"]
+default = ["std", "alloc"]
 
 # Provides implementations for encoding and decoding common standard library types like `String`, `Vec`, `HashMap`, etc.
 # Introduces a dependency on the Rust standard library. This flag should be disabled for 'no-std' projects.
@@ -37,10 +33,6 @@ std = ["alloc"]
 # Provides implementations for decoding common types that require dynamic allocations like `String` and `Vec`.
 # This is typically used in no-std environments which have configured their own global allocators.
 alloc = []
-
-# Provides support for constructing encoders and decoders over various types from the tokio ecosystem.
-# Most notable are `Buf` & `BufMut` from the `bytes` crate, and `AsyncRead` & `AsyncWrite` from the `tokio` crate.
-tokio = ["dep:tokio", "dep:bytes", "std"]
 
 [package.metadata.docs.rs]
 all-features = true
