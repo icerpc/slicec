@@ -46,8 +46,8 @@ body:
     attributes:
       label: Configuration
       description: |
-        Please provide more information on your IceRPC configuration:
-          - Which version of IceRPC are you using?
+        Please provide more information on your configuration:
+          - Which version of `slicec` or the `slice-codec` are you using?
           - What operating system, version, and architecture?
       placeholder: Configuration
     validations:
