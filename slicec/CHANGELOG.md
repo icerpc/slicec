@@ -4,7 +4,7 @@
 
 This is a major release which changes the model of `slicec` from being a pure library, to a binary executable ([705]).  
 Instead of writing executables which use the `slicec` library to generate code, you now call the `slicec` executable
-and supply code-generator plugins to it using the `--generate` (`-G` for short) command-line option ([752], [767]).  
+and supply code-generator plugins to it using the `--generator` (`-G` for short) command-line option ([752], [767]).  
 Run `cargo run -- --help` for an full explanation of the new command-line interface.
 ### Enhancements
 - Duplicate diagnostic messages are now filtered out ([778]).
