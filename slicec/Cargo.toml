@@ -8,7 +8,7 @@ documentation = "https://docs.rs/slicec"
 repository = "https://github.com/icerpc/slicec/slicec"
 readme = "README.md"
 keywords = ["slice", "ice", "icerpc"]
-rust-version = "1.82"
+rust-version = "1.87"
 
 # Get these crate fields from the top-level workspace 'Cargo.toml'.
 version.workspace = true
@@ -19,18 +19,19 @@ edition.workspace = true
 [dependencies]
 slice-codec = { path = "../slice-codec", version = "0.4.0" }
 # derive feature allows structs to derive Parser automatically
-clap = { version = "4.5.53", features = ["derive"] }
-console = "0.16.1"
-convert_case = "0.10.0"
+clap = { version = "4.6.1", features = ["derive"] }
+console = "0.16.3"
+convert_case = "0.11.0"
 in_definite = "1.1.2"
-lalrpop-util = "0.22.2"
+# The default features enable a built-in lexer. We supply our own lexer so we don't need these.
+lalrpop-util = { version = "0.23.1", default-features = false, features = ["std", "unicode"] }
 # derive feature allows structs to derive Serialize automatically
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
+serde_json = "1.0.150"
 
 [build-dependencies]
 # The default features enable a built-in lexer. We supply our own lexer so we don't need these.
-lalrpop = { version = "0.22.2", default-features = false }
+lalrpop = { version = "0.23.1", default-features = false }
 
 [dev-dependencies]
 test-case = "3.3.1"
