@@ -408,7 +408,7 @@ where
                 }
             }
 
-            // We've reached the end of the current source block.
+            #[allow(clippy::question_mark)] // For clarity and better comment placement: don't condense this with a '?'
             if let Some(next_source_block) = self.source_blocks.next() {
                 // Drop the current source block and replace it with the next source block.
                 self.current_block = next_source_block;

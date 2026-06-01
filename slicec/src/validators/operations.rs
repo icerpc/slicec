@@ -71,7 +71,7 @@ fn validate_returns_tags_for_operation_with_single_return(
             Diagnostic::from_lint(Lint::IncorrectDocComment {
                 message: format!(
                     "comment has a 'returns' tag for '{}', but operation '{}' doesn't return anything with that name",
-                    &tag_identifier.value,
+                    tag_identifier.value,
                     operation.identifier(),
                 ),
             })

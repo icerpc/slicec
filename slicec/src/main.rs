@@ -180,7 +180,7 @@ fn check_if_file_is_overwritten<'a>(
     if let Some(other_plugin) = written_to_paths.insert(canonical_path, generator) {
         let message = format!(
             "the path '{}' was already written to by '{}', and would be overwritten by '{}'",
-            &generated_file.path, &other_plugin.path, &generator.path,
+            generated_file.path, other_plugin.path, generator.path,
         );
         Err(slicec::diagnostics::Error::Other { message })
     } else {
