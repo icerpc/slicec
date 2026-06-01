@@ -3,7 +3,7 @@ name = "slicec"
 description = """
 The Slice parser and other core components for Slice compilers.
 """
-homepage = "https://docs.icerpc.dev/slice2"
+homepage = "https://docs.icerpc.dev/slice"
 documentation = "https://docs.rs/slicec"
 repository = "https://github.com/icerpc/slicec/slicec"
 readme = "README.md"

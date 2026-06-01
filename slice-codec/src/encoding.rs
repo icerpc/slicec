@@ -86,12 +86,12 @@ fn varuint_range_error(value: impl Into<i128>) -> Error {
 impl<O: OutputTarget> Encoder<O> {
     /// Encodes a signed integer on between 1 and 8 bytes in the variable length '[varint]' format.
     ///
-    /// [varint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
+    /// [varint]: https://docs.icerpc.dev/slice/language-guide/primitive-types#variable-size-integral-types
     #[rustfmt::skip] // To keep the arms of `match required_bits` aligned for readability.
     pub fn encode_varint(&mut self, value: impl Into<i64>) -> Result<()> {
         let value: i64 = value.into();
 
-        // See: https://docs.icerpc.dev/slice2/encoding/primitive-types#variable-size-integral-types.
+        // See: https://docs.icerpc.dev/slice/encoding/primitive-types#variable-size-integral-types.
 
         // Compute how many bits are required to encode this value.
         let mut required_bits = i64::BITS - match value.is_negative() {
@@ -115,12 +115,12 @@ impl<O: OutputTarget> Encoder<O> {
 
     /// Encodes an unsigned integer on between 1 and 8 bytes in the variable length '[varuint]' format.
     ///
-    /// [varuint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
+    /// [varuint]: https://docs.icerpc.dev/slice/language-guide/primitive-types#variable-size-integral-types
     #[rustfmt::skip] // To keep the arms of `match required_bits` aligned for readability.
     pub fn encode_varuint(&mut self, value: impl Into<u64>) -> Result<()> {
         let value: u64 = value.into();
 
-        // See: https://docs.icerpc.dev/slice2/encoding/primitive-types#variable-size-integral-types.
+        // See: https://docs.icerpc.dev/slice/encoding/primitive-types#variable-size-integral-types.
 
         // Compute how many bits are required to encode this value.
         let required_bits = u64::BITS - value.leading_zeros();

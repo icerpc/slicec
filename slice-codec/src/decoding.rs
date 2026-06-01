@@ -115,11 +115,11 @@ impl<I: InputSource> Decoder<I> {
     /// Reads between 1 and 8 bytes from the buffer and decodes a single signed integer from them.
     /// This integer must of been encoded in the variable length '[varint]' format.
     ///
-    /// [varint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
+    /// [varint]: https://docs.icerpc.dev/slice/language-guide/primitive-types#variable-size-integral-types
     pub fn decode_varint<T: TryFrom<i64>>(&mut self) -> Result<T> {
         // Peek the next byte in the buffer. The lowest two bits of this byte tell us how many total bytes to read, so
         // we can pick an appropriate decoding function. This works because 'varint's are always encoded little-endian.
-        // See: https://docs.icerpc.dev/slice2/encoding/primitive-types#variable-size-integral-types.
+        // See: https://docs.icerpc.dev/slice/encoding/primitive-types#variable-size-integral-types.
         #[rustfmt::skip] // To keep the match arms aligned for readability.
         let mut value = match self.peek_byte()? & 0b11 {
             0b00 =>  i8::decode_from(self)? as i64,
@@ -142,11 +142,11 @@ impl<I: InputSource> Decoder<I> {
     /// Reads between 1 and 8 bytes from the buffer and decodes a single unsigned integer from them.
     /// This integer must of been encoded in the variable length '[varuint]' format.
     ///
-    /// [varuint]: https://docs.icerpc.dev/slice2/language-guide/primitive-types#variable-size-integral-types
+    /// [varuint]: https://docs.icerpc.dev/slice/language-guide/primitive-types#variable-size-integral-types
     pub fn decode_varuint<T: TryFrom<u64>>(&mut self) -> Result<T> {
         // Peek the next byte in the buffer. The lowest two bits of this byte tell us how many total bytes to read, so
         // we can pick an appropriate decoding function. This works because 'varuint's are always encoded little-endian.
-        // See: https://docs.icerpc.dev/slice2/encoding/primitive-types#variable-size-integral-types.
+        // See: https://docs.icerpc.dev/slice/encoding/primitive-types#variable-size-integral-types.
         #[rustfmt::skip] // To keep the match arms aligned for readability.
         let mut value = match self.peek_byte()? & 0b11 {
             0b00 =>  u8::decode_from(self)? as u64,
