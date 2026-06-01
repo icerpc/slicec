@@ -25,7 +25,7 @@ fn tags_are_unique(members: Vec<&impl Member>, diagnostics: &mut Diagnostics) {
                 format!(
                     "The tag '{}' is already being used by member '{}'",
                     window[0].tag().unwrap(),
-                    &window[0].identifier(),
+                    window[0].identifier(),
                 ),
                 Some(window[0].span()),
             )

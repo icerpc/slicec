@@ -209,7 +209,7 @@ fn construct_parameter(
         })
         .set_span(&span)
         .add_note("try using an '@param' tag on the operation it belongs to instead", None)
-        .add_note(format!("Ex: @param {}: {}", &identifier.value, raw_comment[0].0), None)
+        .add_note(format!("Ex: @param {}: {}", identifier.value, raw_comment[0].0), None)
         .push_into(parser.diagnostics);
     }
 
