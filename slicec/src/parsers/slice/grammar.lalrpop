@@ -322,9 +322,9 @@ UndelimitedList<T>: Vec<T> = {
 }
 
 ContainerIdentifier: Identifier = {
-    Identifier => {
-        parser.current_scope.push_scope(&<>.value);
-        <>
+    <identifier: Identifier> => {
+        parser.current_scope.push_scope(&identifier.value);
+        identifier
     },
 }
 
