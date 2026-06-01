@@ -1,6 +1,23 @@
 # Changelog
 
-## [0.4.0] - TBD
+## [0.4.0] - 2026-6-2
+
+This is a major release which changes the model of `slicec` from being a pure library, to a binary executable ([705]).  
+Instead of writing executables which use the `slicec` library to generate code, you now call the `slicec` executable
+and supply code-generator plugins to it using the `--generate` (`-G` for short) command-line option ([752], [767]).  
+Run `cargo run -- --help` for an full explanation of the new command-line interface.
+### Enhancements
+- Duplicate diagnostic messages are now filtered out ([778]).
+### Breaking
+- Dropped `Slice1` support. `slicec` now only accepts what were formerly called `Slice2`-mode files.
+    - Dropped support for `class` types and the `AnyClass` builtin type ([749]).
+    - Dropped support for `exception` declarations, `throws` clauses, and `@throws` tags in doc-comments ([750]).
+    - Dropped `mode` statements; since `slicec` now supports only one mode (formerly known as `Slice2`) ([751]).
+- `@link` and `@see` tags in doc-comments can no longer reference parameters or return members ([757]).
+- Removed all helper functions that were only used by downstream crates, and not `slicec` itself ([751], [753], [756]).
+### Changed
+- Changed the API for reporting and printing diagnostics, and added a new `Info` diagnostic level ([770], [772], [774]).
+- Changed the error codes to account for many errors which were removed ([766]).
 
 ## [0.3.3] - 2025-11-28
 ### Changed
@@ -65,6 +82,20 @@
 ## [0.1.0] - 2023-9-6
 Initial public release!
 
+[778]: https://github.com/icerpc/slicec/pull/778
+[774]: https://github.com/icerpc/slicec/pull/774
+[772]: https://github.com/icerpc/slicec/pull/772
+[770]: https://github.com/icerpc/slicec/pull/770
+[767]: https://github.com/icerpc/slicec/pull/767
+[766]: https://github.com/icerpc/slicec/pull/766
+[757]: https://github.com/icerpc/slicec/pull/757
+[756]: https://github.com/icerpc/slicec/pull/756
+[753]: https://github.com/icerpc/slicec/pull/753
+[752]: https://github.com/icerpc/slicec/pull/752
+[751]: https://github.com/icerpc/slicec/pull/751
+[750]: https://github.com/icerpc/slicec/pull/750
+[749]: https://github.com/icerpc/slicec/pull/749
+[705]: https://github.com/icerpc/slicec/pull/705
 [704]: https://github.com/icerpc/slicec/pull/704
 [702]: https://github.com/icerpc/slicec/pull/702
 [700]: https://github.com/icerpc/slicec/pull/700
@@ -85,6 +116,7 @@ Initial public release!
 [662]: https://github.com/icerpc/slicec/pull/662
 [659]: https://github.com/icerpc/slicec/pull/659
 
+[0.4.0]: https://github.com/icerpc/slicec/releases/tag/v0.4.0
 [0.3.3]: https://github.com/icerpc/slicec/releases/tag/v0.3.3
 [0.3.2]: https://github.com/icerpc/slicec/releases/tag/v0.3.2
 [0.3.1]: https://github.com/icerpc/slicec/releases/tag/v0.3.1
