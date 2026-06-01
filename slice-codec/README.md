@@ -77,7 +77,7 @@ If you have a global allocator and need to decode owned types like `String` or `
 ## Building
 
 This crate is part of the [`slicec` workspace](https://github.com/icerpc/slicec).
-Commands should be run From the repository root:
+Commands should be run from the repository root:
 
 ```shell
 # Build with the default features.
