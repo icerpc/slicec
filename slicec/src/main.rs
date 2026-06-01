@@ -274,8 +274,11 @@ fn main() -> ExitCode {
                 }
             }
 
-            // Store generator's diagnostics for later emission.
-            diagnostics.extend(generator_diagnostics.into_inner());
+            // Store generator's diagnostics for later emission, after setting the plugin that reported them.
+            for mut generator_diagnostic in generator_diagnostics.into_inner() {
+                generator_diagnostic.plugin = Some(generator.path.clone());
+                diagnostics.push(generator_diagnostic);
+            }
         }
     }
 

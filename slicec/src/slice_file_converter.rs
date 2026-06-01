@@ -69,7 +69,7 @@ pub fn convert_diagnostic(diagnostic: Diagnostic, ast: &Ast, files: &[GrammarSli
     let (span, scope) = convert_source(diagnostic.source.as_deref(), ast, files, output);
 
     // Construct and push the converted 'slicec' `Diagnostic`.
-    let converted_diagnostic = slicec::diagnostics::Diagnostic { kind, span, scope, notes };
+    let converted_diagnostic = slicec::diagnostics::Diagnostic { kind, span, scope, notes, plugin: None };
     output.push(converted_diagnostic);
 }
 

@@ -18,6 +18,9 @@ pub struct Diagnostic {
 
     /// Any additional information that should be reported alongside this diagnostic's main message.
     pub notes: Vec<Note>,
+
+    /// The plugin that reported this diagnostic, or `None` if this diagnostic was reported by 'slicec' itself.
+    pub plugin: Option<String>,
 }
 
 impl Diagnostic {
@@ -29,6 +32,7 @@ impl Diagnostic {
             span: None,
             scope: None,
             notes: Vec::new(),
+            plugin: None,
         }
     }
 
