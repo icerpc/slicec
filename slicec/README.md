@@ -56,9 +56,9 @@ cargo run -- hello.slice --generator /path/to/my/generator
 
 ## `slicec` library
 
-The `slicec` library contains all the logic for parsing Slice into typed definitions stored in a single AST. It can:
+The `slicec` library contains all the logic for parsing input into typed definitions stored in a single AST. It:
 
-- Parse Slice from files on disk or in-memory strings.
+- Parses Slice definitions from on-disk files or in-memory strings.
 - Validates definitions and reports findings through structured diagnostics.
 - Exposes APIs for traversing and searching through the AST and definitions within it.
 
@@ -99,7 +99,7 @@ let color_enum = compilation_state.ast.find_element::<Enum>("Example::Color").un
 ## Building
 
 This crate is part of the [`slicec` workspace](https://github.com/icerpc/slicec).
-Commands should be run From the repository root:
+Commands should be run from the repository root:
 
 ```shell
 # Build with the default features.
