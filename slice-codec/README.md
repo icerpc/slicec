@@ -71,8 +71,8 @@ If you have a global allocator and need to decode owned types like `String` or `
 
 | Feature  | Default | Description                                                                                                                      |
 | -------- | :-----: | ---------------------------------------------------------------------------------------------------------------------------------|
-| `std`    |   ✅    | Enables implementations to encode/decode standard-library types such as `String`, `Vec`, and `HashMap`. Implies `alloc`.         |
-| `alloc`  |   ✅    | Enables implementations to decode dynamically-allocated types like `String` and `Vec`. Intended for `no_std` + global allocator. |
+| `std`    |   ✅     | Enables implementations to encode/decode standard-library types such as `String`, `Vec`, and `HashMap`. Implies `alloc`.         |
+| `alloc`  |   ✅     | Enables implementations to decode dynamically-allocated types like `String` and `Vec`. Intended for `no_std` + global allocator. |
 
 ## Building
 
