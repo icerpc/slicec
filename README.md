@@ -1,36 +1,58 @@
-# slicec
+<p align="center">
+  <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
+</p>
 
-To build slicec you must have Rust and Cargo installed.
-To install these, we recommend reading the following [guide](https://doc.rust-lang.org/cargo/getting-started/installation.html).
+# Slice for Rust
+
+[![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-badge]
+[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)](./LICENSE)
+
+This repository is home to the Rust crates for working with [Slice][slice], the interface definition language (IDL)
+used by [IceRPC][icerpc]. It is a Cargo workspace made up of the following crates:
+
+| Crate                          | Description                                                                                  | crates.io                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| [`slicec`](./slicec)           | The Slice parser and compiler. Ships as both a library and the `slicec` command-line binary. | [![slicec][slicec-badge]][slicec-crate]         |
+| [`slice-codec`](./slice-codec) | A lightweight, `no_std`-friendly library for encoding and decoding Slice-encoded data.       | [![slice-codec][codec-badge]][codec-crate]      |
+
+See each crate's README for more specific details.
 
 ## Building
 
-Run the following command to build slicec and its dependencies:
+To build everything in the workspace you'll need [Rust and Cargo][rust-install] installed.
+From the root of the repository, run:
 
 ```shell
 cargo build
 ```
 
-## Running the tests
-
-Run the following command to run the test suite:
+To run the full test suite for every crate in the workspace, run:
 
 ```shell
 cargo test
 ```
 
-## Generating documentation
-
-To generate documentation for slicec, run the following command:
+To generate documentation for every crate in the workspace, run:
 
 ```shell
 cargo doc --no-deps --document-private-items
 ```
 
-This will generate documentation in the `target/doc/` directory.
+## Documentation
 
-Additionally, you can easily view the documentation after generating it with the `open` flag:
+- Slice language documentation: <https://docs.icerpc.dev/slice>
+- `slicec` API docs: <https://docs.rs/slicec>
+- `slice-codec` API docs: <https://docs.rs/slice-codec>
 
-```shell
-cargo doc --no-deps --document-private-items --open
-```
+## License
+
+Licensed under the [Apache License, Version 2.0](./LICENSE).
+
+[ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
+[slice]: https://docs.icerpc.dev/slice
+[icerpc]: https://github.com/icerpc/icerpc-csharp
+[rust-install]: https://doc.rust-lang.org/cargo/getting-started/installation.html
+[slicec-crate]: https://crates.io/crates/slicec
+[slicec-badge]: https://img.shields.io/crates/v/slicec?color=blue
+[codec-crate]: https://crates.io/crates/slice-codec
+[codec-badge]: https://img.shields.io/crates/v/slice-codec?color=blue
