@@ -5,7 +5,7 @@
 # Slice for Rust
 
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-badge]
-[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
+[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)](./LICENSE)
 
 This repository is home to the Rust crates for working with [Slice][slice], the interface definition language (IDL)
 used by [IceRPC][icerpc]. It is a Cargo workspace made up of the following crates:
@@ -46,10 +46,9 @@ cargo doc --no-deps --document-private-items
 
 ## License
 
-Licensed under the [Apache License, Version 2.0][license].
+Licensed under the [Apache License, Version 2.0](./LICENSE).
 
 [ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
-[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
 [slice]: https://docs.icerpc.dev/slice
 [icerpc]: https://github.com/icerpc/icerpc-csharp
 [rust-install]: https://doc.rust-lang.org/cargo/getting-started/installation.html
