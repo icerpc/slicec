@@ -21,7 +21,7 @@ The `slicec` binary is a command-line tool that takes Slice files, parses them i
 Code generation is performed by **generator plugins**: external executables that are passed with `--generator` (or `-G`)
 on the command line. `slicec` spawns each generator as a subprocess, sends the Slice-encoded AST over its `stdin`, and
 waits for a response over its `stdout`. This response consists of generated files (which `slicec` will then write to the
-appropriate location) or diagnostics (which are collected and reported by `slicec` at the end).
+appropriate location) and diagnostics (which are collected and reported by `slicec` at the end).
 
 ### Installation
 
