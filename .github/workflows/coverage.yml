@@ -2,7 +2,7 @@ name: coverage
 
 on:
   push:
-    branches: ["main"]
+    branches: [0.4.x]
 
 permissions:
   contents: read

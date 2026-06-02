@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/icerpc/slicec/raw/main/.github/assets/slicec-banner.svg" height="100" width="100" />
+  <img src="https://github.com/icerpc/slicec/raw/0.4.x/.github/assets/slicec-banner.svg" height="100" width="100" />
 </p>
 
 # The Slice codec (slice-codec)
