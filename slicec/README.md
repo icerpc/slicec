@@ -7,7 +7,7 @@
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-badge]
 [![crates.io](https://img.shields.io/crates/v/slicec?color=blue)][crates-home]
 [![docs.rs](https://img.shields.io/docsrs/slicec)][docs-home]
-[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
+[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)](./LICENSE)
 
 `slicec` is the compiler for [Slice][slice], the _Interface Definition Language_ (IDL) used by [IceRPC][icerpc].
 
@@ -111,12 +111,11 @@ cargo test -p slicec
 
 ## License
 
-'slicec' is licensed under the [Apache License, Version 2.0][license].
+'slicec' is licensed under the [Apache License, Version 2.0](./LICENSE).
 
 [ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [crates-home]: https://crates.io/crates/slicec
 [docs-home]: https://docs.rs/slicec
-[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
 [slice]: https://docs.icerpc.dev/slice
 [slice-encoding]: https://docs.icerpc.dev/slice/encoding/overview
 [icerpc]: https://github.com/icerpc/icerpc-csharp

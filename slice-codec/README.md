@@ -7,7 +7,7 @@
 [![CI](https://github.com/icerpc/slicec/actions/workflows/ci.yml/badge.svg)][ci-badge]
 [![crates.io](https://img.shields.io/crates/v/slice-codec?color=blue)][crates-home]
 [![docs.rs](https://img.shields.io/docsrs/slice-codec)][docs-home]
-[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)][license]
+[![License](https://img.shields.io/github/license/icerpc/slicec?color=blue)](./LICENSE)
 
 `slice-codec` is a lightweight library for encoding and decoding values using the [Slice encoding][slice-encoding].
 
@@ -89,10 +89,9 @@ cargo test -p slice-codec --all-features
 
 ## License
 
-'slicec-codec' is licensed under the [Apache License, Version 2.0][license].
+'slicec-codec' is licensed under the [Apache License, Version 2.0](./LICENSE).
 
 [ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [crates-home]: https://crates.io/crates/slice-codec
 [docs-home]: https://docs.rs/slice-codec
-[license]: https://github.com/icerpc/slicec/blob/main/LICENSE
 [slice-encoding]: https://docs.icerpc.dev/slice/encoding/overview
