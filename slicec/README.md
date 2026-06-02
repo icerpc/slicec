@@ -111,7 +111,7 @@ cargo test -p slicec
 
 ## License
 
-Licensed under the [Apache License, Version 2.0][license].
+'slicec' is licensed under the [Apache License, Version 2.0][license].
 
 [ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [crates-home]: https://crates.io/crates/slicec
