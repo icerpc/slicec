@@ -50,7 +50,7 @@ Licensed under the [Apache License, Version 2.0](./LICENSE).
 
 [ci-badge]: https://github.com/icerpc/slicec/actions/workflows/ci.yml
 [slice]: https://docs.icerpc.dev/slice
-[icerpc]: https://github.com/icerpc/icerpc-csharp
+[icerpc]: https://github.com/icerpc/icerpc-rust
 [rust-install]: https://doc.rust-lang.org/cargo/getting-started/installation.html
 [slicec-crate]: https://crates.io/crates/slicec
 [slicec-badge]: https://img.shields.io/crates/v/slicec?color=blue
