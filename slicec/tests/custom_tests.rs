@@ -10,12 +10,10 @@ mod custom {
     #[test]
     fn type_parses() {
         // Arrange
-        let slice = format!(
-            "
-                module Test
-                custom ACustomType
-            "
-        );
+        let slice = "
+            module Test
+            custom ACustomType
+        ";
 
         // Act
         let ast = parse_for_ast(slice);
