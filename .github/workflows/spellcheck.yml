@@ -1,8 +1,10 @@
 name: "Check spelling"
 
 on:
-  pull_request:
   push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
 
 permissions:
   contents: read
@@ -15,4 +17,4 @@ jobs:
       - uses: streetsidesoftware/cspell-action@v8
         with:
           files: |
-            **/*.{rs,md,json}
+            **/*.{rs,slice,md,json,yml,toml}

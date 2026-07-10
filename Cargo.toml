@@ -11,3 +11,4 @@ version = "0.4.0"
 authors = ["ZeroC Inc."]
 license = "Apache-2.0"
 edition = "2021"
+repository = "https://github.com/icerpc/slicec"
