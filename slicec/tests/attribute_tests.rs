@@ -114,7 +114,7 @@ mod attributes {
             let updated_diagnostics = parse(slice, Some(&options)).get_annotated_diagnostics(&options);
 
             // Assert
-            let all_expected_lints = vec![
+            let all_expected_lints = [
                 Diagnostic::from_lint(Lint::Deprecated {
                     identifier: "S".to_owned(),
                     reason: Some("test".to_owned()),
