@@ -29,12 +29,8 @@ pub trait InputSource {
     /// [`UnexpectedEob`]: crate::ErrorKind::UnexpectedEob
     fn read_byte(&mut self) -> Result<u8>;
 
-    // TODO these 4 functions need comments.
-    // TODO remove any of these functions that don't end up being used anywhere.
-    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]>;
+    // TODO remove these functions after adding `advance_by` and the low-level required API functions.
     fn read_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]>;
-
-    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]>;
     fn read_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]>;
 
     /// Reads bytes from this source into the provided buffer, and advances past them (consuming them).
