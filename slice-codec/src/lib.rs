@@ -14,18 +14,16 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-// These modules are private because they don't export any types, just implementations.
+pub mod input_source;
+pub mod output_target;
+
 mod decoding;
 mod encoding;
-
-pub mod buffer;
-pub mod decode_from;
-pub mod decoder;
-pub mod encode_into;
-pub mod encoder;
-
-// Re-export the contents of the `error` module directly into the crate root, so they're easier to reference.
 mod error;
+
+// Re-export the contents of some modules directly into the crate root, so they're easier to reference.
+pub use decoding::*;
+pub use encoding::*;
 pub use error::*;
 
 /// The smallest value that can be represented as a `varint32`.

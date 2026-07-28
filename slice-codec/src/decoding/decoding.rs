@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::InputSource;
-use crate::decode_from::*;
-use crate::decoder::Decoder;
+use super::decode_from::*;
+use super::decoder::Decoder;
+use crate::input_source::InputSource;
 use crate::{Error, InvalidDataErrorKind, Result};
 
 // We only support `String`, `Vec`, and `BTreeMap` if the `alloc` crate is available through the `alloc` feature flag.
