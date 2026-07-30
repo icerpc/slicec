@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::OutputTarget;
-use crate::encode_into::EncodeInto;
+use super::encode_into::EncodeInto;
+use crate::output_target::OutputTarget;
 use crate::Result;
 use core::ops::{Deref, DerefMut};
 

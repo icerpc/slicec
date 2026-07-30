@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::InputSource;
-use crate::decoder::Decoder;
+use super::decoder::Decoder;
+use crate::input_source::InputSource;
 use crate::Result;
 
 /// TODO

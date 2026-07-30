@@ -5,12 +5,12 @@
 #[cfg(test)]
 mod fixed_size {
 
-    use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
-    use slice_codec::buffer::{InputSource, OutputTarget};
     use slice_codec::decode_from::DecodeFrom;
     use slice_codec::decoder::Decoder;
     use slice_codec::encode_into::EncodeInto;
     use slice_codec::encoder::Encoder;
+    use slice_codec::input_source::{InputSource, SliceInputSource};
+    use slice_codec::output_target::{OutputTarget, SliceOutputTarget};
 
     use test_case::test_case;
 
@@ -141,9 +141,10 @@ mod fixed_size {
 
 #[cfg(test)]
 mod variable_sized {
-    use slice_codec::buffer::slice::{SliceInputSource, SliceOutputTarget};
     use slice_codec::decoder::Decoder;
     use slice_codec::encoder::Encoder;
+    use slice_codec::input_source::SliceInputSource;
+    use slice_codec::output_target::SliceOutputTarget;
 
     #[cfg(feature = "alloc")]
     use slice_codec::{ErrorKind, InvalidDataErrorKind};
@@ -264,7 +265,7 @@ mod variable_sized {
         fn string(str: &str) {
             // Arrange
             let mut buffer = vec![];
-            let output_target = slice_codec::buffer::vec::VecOutputTarget::from(&mut buffer);
+            let output_target = slice_codec::output_target::VecOutputTarget::from(&mut buffer);
             let mut encoder = Encoder::new(output_target);
             let utf8_byte_count = str.len(); // Strings are always UTF-8, and `len` returns the number of bytes.
 
@@ -355,7 +356,7 @@ mod variable_sized {
         fn string(str: &str) {
             // Arrange
             let mut buffer = vec![];
-            let output_target = slice_codec::buffer::vec::VecOutputTarget::from(&mut buffer);
+            let output_target = slice_codec::output_target::VecOutputTarget::from(&mut buffer);
             let mut encoder = Encoder::new(output_target);
             encoder.encode(str).expect("failed to encode string");
 
@@ -393,7 +394,7 @@ mod variable_sized {
         #[test]
         #[cfg(feature = "std")]
         fn dictionary_decoding_rejects_duplicate_key() {
-            use slice_codec::buffer::vec::VecOutputTarget;
+            use slice_codec::output_target::VecOutputTarget;
             use std::collections::HashMap;
 
             // Arrange

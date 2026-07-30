@@ -105,7 +105,7 @@ pub enum ErrorKind {
 
     /// A buffer reservation did not fit within its buffer.
     /// This error represents a serious problem in the implementation, or intentional tampering by callers.
-    /// See [`write_bytes_exact_into_reserved`](crate::buffer::OutputTarget::write_bytes_into_reserved_exact).
+    /// See [`write_bytes_exact_into_reserved`](crate::output_target::OutputTarget::write_bytes_into_reserved_exact).
     InvalidReservation {
         /// The length of the buffer.
         buffer_len: usize,

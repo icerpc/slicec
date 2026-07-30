@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::OutputTarget;
-use crate::encoder::Encoder;
+use super::encoder::Encoder;
+use crate::output_target::OutputTarget;
 use crate::Result;
 
 /// TODO

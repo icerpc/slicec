@@ -1,8 +1,8 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::OutputTarget;
-use crate::encode_into::*;
-use crate::encoder::Encoder;
+use super::encode_into::*;
+use super::encoder::Encoder;
+use crate::output_target::OutputTarget;
 use crate::{Error, InvalidDataErrorKind, Result, VARINT62_MAX, VARINT62_MIN, VARUINT62_MAX, VARUINT62_MIN};
 
 // We only support 'owned' sequence/dictionary types if the `alloc` crate is available through the `alloc` feature flag.

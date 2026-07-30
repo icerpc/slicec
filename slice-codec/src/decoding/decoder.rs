@@ -1,7 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::buffer::InputSource;
-use crate::decode_from::DecodeFrom;
+use super::decode_from::DecodeFrom;
+use crate::input_source::InputSource;
 use crate::Result;
 use core::ops::{Deref, DerefMut};
 

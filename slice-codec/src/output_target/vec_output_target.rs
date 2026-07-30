@@ -46,12 +46,15 @@ impl OutputTarget for VecOutputTarget<'_> {
     fn write_byte(&mut self, byte: u8) -> Result<()> {
         self.ensure_buffer_has_at_least(1)?;
 
-        // SAFETY: the above function call guarantees there's enough space in `self.buffer` to write a single byte.
+        // SAFETY: the above function call guarantees there's enough spare capacity in `self.buffer` to write 1 byte,
+        // and we only write into the vector's spare capacity, we never read from it (it's uninitialized at this point).
         unsafe {
+            // Write the byte into the buffer's spare capacity.
             debug_assert!(self.buffer.spare_capacity_mut().get_mut(0).is_some());
             let target = self.buffer.spare_capacity_mut().get_unchecked_mut(0);
             target.write(byte);
 
+            // Increase the buffer's length by 1, since we just wrote a byte into it.
             let old_length = self.buffer.len();
             self.buffer.set_len(old_length + 1);
             Ok(())
@@ -63,17 +66,18 @@ impl OutputTarget for VecOutputTarget<'_> {
         self.ensure_buffer_has_at_least(count)?;
 
         // SAFETY: the above function call guarantees there's enough spare capacity in `self.buffer` to write `bytes`,
-        // and we know the slice cannot overlap because the mutable borrow of `self` guarantees exclusive access.
+        // and we know the slices cannot overlap because the mutable borrow of `self` guarantees exclusive access,
+        // and we only write into the vector's spare capacity, we never read from it (it's uninitialized at this point).
         unsafe {
             debug_assert!(self.buffer.spare_capacity_mut().get_mut(..count).is_some());
             let target_slice = self.buffer.spare_capacity_mut().get_unchecked_mut(..count);
 
-            debug_assert_eq!(target_slice.len(), count);
             // SAFETY: `MaybeUninit<T>` is guaranteed to have the same memory layout as `T`.
-            let source: &[MaybeUninit<u8>] = core::mem::transmute(bytes);
+            debug_assert_eq!(target_slice.len(), count);
+            let source_slice: &[MaybeUninit<u8>] = core::mem::transmute(bytes);
+            core::ptr::copy_nonoverlapping(source_slice.as_ptr(), target_slice.as_mut_ptr(), count);
 
-            core::ptr::copy_nonoverlapping(source.as_ptr(), target_slice.as_mut_ptr(), count);
-
+            // Increase the buffer's length by 'count', since we just wrote that many bytes into it.
             let old_length = self.buffer.len();
             self.buffer.set_len(old_length + count);
             Ok(())
@@ -138,12 +142,12 @@ impl<'a> From<&'a mut Vec<u8>> for VecOutputTarget<'a> {
 
 // Allows users to create an [`Encoder`] directly from a vector,
 // without needing to construct an intermediate [`VecOutputTarget`].
-impl<'a, T> From<T> for crate::encoder::Encoder<VecOutputTarget<'a>>
+impl<'a, T> From<T> for crate::encoding::encoder::Encoder<VecOutputTarget<'a>>
 where
     T: Into<VecOutputTarget<'a>>,
 {
     fn from(value: T) -> Self {
-        crate::encoder::Encoder::new(value.into())
+        crate::encoding::encoder::Encoder::new(value.into())
     }
 }
 
