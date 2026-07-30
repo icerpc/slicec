@@ -5,12 +5,12 @@
 
 #![allow(dead_code)]
 
-use slice_codec::input_source::InputSource;
-use slice_codec::output_target::OutputTarget;
 use slice_codec::decode_from::DecodeFrom;
 use slice_codec::decoder::Decoder;
 use slice_codec::encode_into::EncodeInto;
 use slice_codec::encoder::Encoder;
+use slice_codec::input_source::InputSource;
+use slice_codec::output_target::OutputTarget;
 use slice_codec::Result;
 
 /// TAG_END_MARKER must be encoded at the end of every non-compact type.

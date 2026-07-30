@@ -5,12 +5,12 @@
 #[cfg(test)]
 mod fixed_size {
 
-    use slice_codec::input_source::{InputSource, SliceInputSource};
-    use slice_codec::output_target::{OutputTarget, SliceOutputTarget};
     use slice_codec::decode_from::DecodeFrom;
     use slice_codec::decoder::Decoder;
     use slice_codec::encode_into::EncodeInto;
     use slice_codec::encoder::Encoder;
+    use slice_codec::input_source::{InputSource, SliceInputSource};
+    use slice_codec::output_target::{OutputTarget, SliceOutputTarget};
 
     use test_case::test_case;
 
@@ -141,10 +141,10 @@ mod fixed_size {
 
 #[cfg(test)]
 mod variable_sized {
-    use slice_codec::input_source::SliceInputSource;
-    use slice_codec::output_target::SliceOutputTarget;
     use slice_codec::decoder::Decoder;
     use slice_codec::encoder::Encoder;
+    use slice_codec::input_source::SliceInputSource;
+    use slice_codec::output_target::SliceOutputTarget;
 
     #[cfg(feature = "alloc")]
     use slice_codec::{ErrorKind, InvalidDataErrorKind};
