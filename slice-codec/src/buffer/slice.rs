@@ -30,38 +30,6 @@ impl<'a> SliceInputSource<'a> {
             Ok(())
         }
     }
-
-    /// The implementation used by `peek_bytes_exact` and `read_bytes_exact`.
-    /// It's implemented as a separate function so we can return a different lifetime than what the trait demands.
-    ///
-    /// The trait function requires we return a lifetime bound to `self`, whereas this function returns a lifetime
-    /// bound to the underlying buffer (`'a`). Returning a narrower lifetime lets us mutate other fields of `self`.
-    fn peek_bytes_exact_impl<const N: usize>(&self) -> Result<&'a [u8; N]> {
-        let bytes = self.peek_byte_slice_exact_impl(N)?;
-
-        // SAFETY: `peek_byte_slice_exact_impl` is guaranteed to return exactly 'N' bytes, which means it's safe to
-        // convert, since `&[u8; N]` has the same layout as an `&[u8]` over 'N' bytes.
-        unsafe {
-            debug_assert_eq!(bytes.len(), N);
-            Ok(bytes.try_into().unwrap_unchecked())
-        }
-    }
-
-    /// The implementation used by `peek_byte_slice_exact` and `read_byte_slice_exact`.
-    /// It's implemented as a separate function so we can return a different lifetime than what the trait demands.
-    ///
-    /// The trait function requires we return a lifetime bound to `self`, whereas this function returns a lifetime
-    /// bound to the underlying buffer (`'a`). Returning a narrower lifetime lets us mutate other fields of `self`.
-    fn peek_byte_slice_exact_impl(&self, count: usize) -> Result<&'a [u8]> {
-        self.does_buffer_have_at_least(count)?;
-
-        // SAFETY: the necessary bounds checking is performed by the above function call.
-        unsafe {
-            let end = self.pos + count;
-            debug_assert!(self.buffer.get(self.pos..end).is_some());
-            Ok(self.buffer.get_unchecked(self.pos..end))
-        }
-    }
 }
 
 impl InputSource for SliceInputSource<'_> {
@@ -85,22 +53,28 @@ impl InputSource for SliceInputSource<'_> {
         Ok(byte)
     }
 
-    fn peek_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]> {
-        self.peek_bytes_exact_impl()
-    }
-
     fn read_bytes_exact<const N: usize>(&mut self) -> Result<&[u8; N]> {
-        let bytes = self.peek_bytes_exact_impl()?;
-        self.pos += N;
-        Ok(bytes)
-    }
+        let byte_slice = self.read_byte_slice_exact(N)?;
 
-    fn peek_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]> {
-        self.peek_byte_slice_exact_impl(count)
+        // SAFETY: `read_byte_slice_exact` is guaranteed to return exactly 'N' bytes, which means it's safe to
+        // convert, since `&[u8; N]` has the same layout as an `&[u8]` over 'N' bytes.
+        let byte_array = unsafe {
+            debug_assert_eq!(byte_slice.len(), N);
+            byte_slice.try_into().unwrap_unchecked()
+        };
+
+        Ok(byte_array)
     }
 
     fn read_byte_slice_exact(&mut self, count: usize) -> Result<&[u8]> {
-        let byte_slice = self.peek_byte_slice_exact_impl(count)?;
+        self.does_buffer_have_at_least(count)?;
+
+        // SAFETY: the necessary bounds checking is performed by the above function call.
+        let byte_slice = unsafe {
+            let end = self.pos + count;
+            debug_assert!(self.buffer.get(self.pos..end).is_some());
+            self.buffer.get_unchecked(self.pos..end)
+        };
         self.pos += count;
         Ok(byte_slice)
     }
@@ -337,23 +311,6 @@ mod tests {
             assert_eq!(result.unwrap(), 115);
             assert_eq!(source.pos, 1);
             assert_eq!(source.remaining(), 4);
-        }
-
-        /// Verifies that [`peek_bytes_exact`] returns the correct number of bytes from the buffer without consuming
-        /// them.
-        #[test]
-        fn peek_bytes_exact_returns_correct_bytes() {
-            // Arrange
-            let mut source = SliceInputSource::from(&[115, 108, 105, 99, 101]);
-
-            // Act
-            let result = source.peek_bytes_exact::<3>();
-
-            // Assert
-            assert!(result.is_ok());
-            assert_eq!(result.unwrap(), &[115, 108, 105]);
-            assert_eq!(source.pos, 0);
-            assert_eq!(source.remaining(), 5);
         }
 
         /// Verifies that [`read_bytes_exact`] returns the correct number of bytes from the buffer and consumes them.
