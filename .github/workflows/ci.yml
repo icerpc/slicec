@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 env:
-  WARNINGS_AS_ERRORS: yes
+  RUSTFLAGS: "-D warnings"
+  RUSTDOCFLAGS: "-D warnings"
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -30,8 +31,6 @@ jobs:
         run: cargo clippy --all-targets --no-deps -p slicec
       - name: 📚 Generate Documentation
         run: cargo doc --document-private-items --no-deps -p slicec
-        env:
-          RUSTDOCFLAGS: "-D warnings"
 
   slice-codec:
     strategy:
@@ -64,8 +63,6 @@ jobs:
         run: cargo clippy --all-targets --no-default-features $FEATURES --no-deps -p slice-codec
       - name: 📚 Generate Documentation
         run: cargo doc --document-private-items --no-deps --no-default-features $FEATURES -p slice-codec
-        env:
-          RUSTDOCFLAGS: "-D warnings"
 
   format:
     runs-on: ubuntu-latest

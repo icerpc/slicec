@@ -203,7 +203,7 @@ mod associated_fields {
 
         let d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
         assert!(matches!(d.value, EnumeratorValue::Implicit(3)));
-        assert!(d.fields.as_ref().unwrap().len() == 0);
+        assert!(d.fields.as_ref().unwrap().is_empty());
     }
 
     #[test_case("unchecked enum", true ; "unchecked")]

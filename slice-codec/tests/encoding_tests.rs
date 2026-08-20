@@ -76,7 +76,7 @@ mod fixed_size {
         );
         let remaining = &buffer[expected.len()..];
         assert!(
-            remaining.into_iter().all(|&x| x == 0),
+            remaining.iter().all(|&x| x == 0),
             "remaining bytes weren't zeroed: {remaining:?}"
         );
         // Also make sure that the encoder used the expected number of bytes.
@@ -266,7 +266,7 @@ mod variable_sized {
             let mut buffer = vec![];
             let output_target = slice_codec::buffer::vec::VecOutputTarget::from(&mut buffer);
             let mut encoder = Encoder::new(output_target);
-            let utf8_byte_count = str.as_bytes().len();
+            let utf8_byte_count = str.len(); // Strings are always UTF-8, and `len` returns the number of bytes.
 
             // Act
             encoder.encode(str).expect("failed to encode string");
