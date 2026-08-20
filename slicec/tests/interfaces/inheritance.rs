@@ -3,6 +3,7 @@
 use crate::test_helpers::*;
 use slicec::diagnostics::{Diagnostic, Error};
 use slicec::grammar::*;
+use test_case::test_case;
 
 #[test]
 fn supports_single_inheritance() {
@@ -66,16 +67,21 @@ fn supports_multiple_inheritance() {
     );
 }
 
-#[test]
-fn must_inherit_from_interface() {
+#[test_case("uint8", "uint8"; "primitive")]
+#[test_case("S", "struct"; "r#struct")]
+#[test_case("Sequence<bool>", "Sequence<bool>"; "sequence")]
+#[test_case("Result<int32, int32>", "Result<int32, int32>"; "result")]
+fn must_inherit_from_interface(base_type: &str, kind: &str) {
     // Arrange
-    let slice = "
+    let slice = format!(
+        "
         module Test
 
-        struct S {}
+        struct S {{}}
 
-        interface I : S {}
-    ";
+        interface I : {base_type} {{}}
+        "
+    );
 
     // Act
     let diagnostics = parse_for_diagnostics(slice);
@@ -83,7 +89,7 @@ fn must_inherit_from_interface() {
     // Assert
     let expected = Diagnostic::from_error(Error::TypeMismatch {
         expected: "interface".to_owned(),
-        actual: "struct".to_owned(),
+        actual: kind.to_owned(),
         is_concrete: true,
     });
     check_diagnostics(diagnostics, [expected]);

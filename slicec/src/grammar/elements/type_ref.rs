@@ -51,7 +51,10 @@ impl<T: Element + ?Sized> TypeRef<T> {
 impl<T: Type + ?Sized> TypeRef<T> {
     // This intentionally shadows the trait method of the same name on `Type`.
     pub fn type_string(&self) -> String {
-        let mut s = self.definition().type_string();
+        let mut s = match &self.definition {
+            TypeRefDefinition::Patched(ptr) => ptr.borrow().type_string(),
+            TypeRefDefinition::Unpatched(ident) => ident.value.clone(),
+        };
         if self.is_optional {
             s += "?";
         }

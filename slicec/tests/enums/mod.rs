@@ -36,6 +36,9 @@ fn supported_numeric_underlying_types_succeed(valid_type: &str) {
 #[test_case("string"; "string")]
 #[test_case("float32"; "float32")]
 #[test_case("float64"; "float64")]
+#[test_case("Sequence<bool>"; "sequence")]
+#[test_case("Dictionary<string, Sequence<int8>>?"; "dictionary")]
+#[test_case("Result<uint8, varuint32>?"; "result")]
 fn invalid_underlying_type(underlying_type: &str) {
     // Arrange
     let slice = format!(
@@ -58,16 +61,48 @@ fn invalid_underlying_type(underlying_type: &str) {
     check_diagnostics(diagnostics, [expected]);
 }
 
-#[test]
-fn optional_underlying_types_fail() {
+#[test_case("string"; "string")]
+#[test_case("float32"; "float32")]
+fn invalid_optional_underlying_types_fail(underlying_type: &str) {
     // Arrange
-    let slice = "
+    let slice = format!(
+        "
+            module Test
+            enum E : {underlying_type}? {{
+                A
+            }}
+        "
+    );
+
+    // Act
+    let diagnostics = parse_for_diagnostics(slice);
+
+    // Assert
+    let expected = [
+        Diagnostic::from_error(Error::EnumUnderlyingTypeNotSupported {
+            enum_identifier: "E".to_owned(),
+            kind: Some(underlying_type.to_owned()),
+        }),
+        Diagnostic::from_error(Error::CannotUseOptionalUnderlyingType {
+            enum_identifier: "E".to_owned(),
+        }),
+    ];
+    check_diagnostics(diagnostics, expected);
+}
+
+#[test_case("int32"; "int32")]
+#[test_case("varuint32"; "varuint32")]
+fn optional_underlying_types_fail(underlying_type: &str) {
+    // Arrange
+    let slice = format!(
+        "
         module Test
 
-        enum E : int32? {
+        enum E : {underlying_type}? {{
             A = 1
-        }
-    ";
+        }}
+        "
+    );
 
     // Act
     let diagnostics = parse_for_diagnostics(slice);
