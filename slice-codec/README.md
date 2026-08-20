@@ -52,7 +52,7 @@ Add `slice-codec` as a dependency to your project's `Cargo.toml` file:
 
 ```toml
 [dependencies]
-slice-codec = "0.4"
+slice-codec = "0.5"
 ```
 
 ### Usage in `no_std` Projects
@@ -62,7 +62,7 @@ To use the codec in a `no_std` project, just disable default features:
 
 ```toml
 [dependencies]
-slice-codec = { version = "0.4", default-features = false }
+slice-codec = { version = "0.5", default-features = false }
 ```
 
 If you have a global allocator and need to decode owned types like `String` or `Vec`, also enable the `alloc` feature.

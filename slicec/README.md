@@ -68,7 +68,7 @@ Add `slicec` as a dependency to your project's `Cargo.toml` file:
 
 ```toml
 [dependencies]
-slicec = "0.4"
+slicec = "0.5"
 ```
 
 ### Example
