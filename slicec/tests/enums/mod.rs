@@ -33,13 +33,13 @@ fn supported_numeric_underlying_types_succeed(valid_type: &str) {
     assert_parses(slice);
 }
 
-#[test_case("string"; "string")]
-#[test_case("float32"; "float32")]
-#[test_case("float64"; "float64")]
-#[test_case("Sequence<bool>"; "sequence")]
-#[test_case("Dictionary<string, Sequence<int8>>?"; "dictionary")]
-#[test_case("Result<uint8, varuint32>?"; "result")]
-fn invalid_underlying_type(underlying_type: &str) {
+#[test_case("string", "string"; "string")]
+#[test_case("float32", "float32"; "float32")]
+#[test_case("float64", "float64"; "float64")]
+#[test_case("Sequence<bool>", "sequence"; "sequence")]
+#[test_case("Dictionary<string, Sequence<int8>>?", "dictionary"; "dictionary")]
+#[test_case("Result<uint8, varuint32>?", "result"; "result")]
+fn invalid_underlying_type(underlying_type: &str, expected_kind: &str) {
     // Arrange
     let slice = format!(
         "
@@ -56,7 +56,7 @@ fn invalid_underlying_type(underlying_type: &str) {
     // Assert
     let expected = Diagnostic::from_error(Error::EnumUnderlyingTypeNotSupported {
         enum_identifier: "E".to_owned(),
-        kind: Some(underlying_type.to_owned()),
+        kind: Some(expected_kind.to_owned()),
     });
     check_diagnostics(diagnostics, [expected]);
 }

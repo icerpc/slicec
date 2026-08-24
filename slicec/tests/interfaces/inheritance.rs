@@ -69,9 +69,10 @@ fn supports_multiple_inheritance() {
 
 #[test_case("uint8", "uint8"; "primitive")]
 #[test_case("S", "struct"; "r#struct")]
-#[test_case("Sequence<bool>", "Sequence<bool>"; "sequence")]
-#[test_case("Result<int32, int32>", "Result<int32, int32>"; "result")]
-fn must_inherit_from_interface(base_type: &str, kind: &str) {
+#[test_case("Sequence<bool>", "sequence"; "sequence")]
+#[test_case("Dictionary<int8, string>?", "dictionary"; "dictionary")]
+#[test_case("Result<int32, int32>", "result"; "result")]
+fn must_inherit_from_interface(base_type: &str, expected_kind: &str) {
     // Arrange
     let slice = format!(
         "
@@ -89,7 +90,7 @@ fn must_inherit_from_interface(base_type: &str, kind: &str) {
     // Assert
     let expected = Diagnostic::from_error(Error::TypeMismatch {
         expected: "interface".to_owned(),
-        actual: kind.to_owned(),
+        actual: expected_kind.to_owned(),
         is_concrete: true,
     });
     check_diagnostics(diagnostics, [expected]);

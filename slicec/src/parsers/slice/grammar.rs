@@ -144,7 +144,8 @@ fn construct_interface(
             if interface_ref.is_err() {
                 Diagnostic::from_error(Error::TypeMismatch {
                     expected: "interface".to_owned(),
-                    actual: base.type_string(),
+                    // 'kind' is safe to call here. `downcast` can only fail if the type is already patched.
+                    actual: base.definition().kind().to_owned(),
                     is_concrete: true,
                 })
                 .set_span(&base.span)
@@ -286,7 +287,8 @@ fn construct_enum(
         if primitive_ref.is_err() {
             Diagnostic::from_error(Error::EnumUnderlyingTypeNotSupported {
                 enum_identifier: identifier.value.clone(),
-                kind: Some(type_ref.type_string()),
+                // 'kind' is safe to call here. `downcast` can only fail if the type is already patched.
+                kind: Some(type_ref.definition().kind().to_owned()),
             })
             .set_span(&type_ref.span)
             .push_into(parser.diagnostics);
