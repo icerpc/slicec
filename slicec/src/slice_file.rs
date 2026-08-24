@@ -187,10 +187,9 @@ fn get_highlight(line: &str, highlight_start: usize, highlight_end: usize) -> St
             .filter(|c| *c == '\t')
             .count();
 
-        // Since tab is only 1 character, we have to account for the extra 3 characters that are displayed
-        // for each tab.
+        // Since tab is only 1 character we have to account for the extra 3 characters that are displayed for each tab.
         let highlight_length = (highlight_end - highlight_start) + (highlight_tab_count * (EXPANDED_TAB.len() - 1));
-        style(format!("{:-<1$}", "", highlight_length)).yellow().bold()
+        style("-".repeat(highlight_length)).yellow().bold()
     };
 
     " ".repeat(whitespace_count) + &highlight.to_string()
