@@ -61,7 +61,7 @@ fn allowed_underlying_types(enum_def: &Enum, diagnostics: &mut Diagnostics) {
                 enum_identifier: enum_def.identifier().to_owned(),
                 kind: Some(underlying_type.definition().kind().to_owned()),
             })
-            .set_span(enum_def.span())
+            .set_span(underlying_type.span())
             .push_into(diagnostics);
         }
     }

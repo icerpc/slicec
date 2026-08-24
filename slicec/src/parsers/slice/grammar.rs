@@ -139,8 +139,22 @@ fn construct_interface(
     let bases = bases
         .unwrap_or_default() // Create an empty vector if no bases were specified.
         .into_iter()
-        .map(|base| base.downcast::<Interface>().unwrap())
+        .filter_map(|base| {
+            let interface_ref = base.downcast::<Interface>();
+            if interface_ref.is_err() {
+                Diagnostic::from_error(Error::TypeMismatch {
+                    expected: "interface".to_owned(),
+                    // 'kind' is safe to call here. `downcast` can only fail if the type is already patched.
+                    actual: base.definition().kind().to_owned(),
+                    is_concrete: true,
+                })
+                .set_span(&base.span)
+                .push_into(parser.diagnostics);
+            }
+            interface_ref.ok()
+        })
         .collect::<Vec<_>>();
+
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut interface_ptr = OwnedPtr::new(Interface {
@@ -268,7 +282,20 @@ fn construct_enum(
     enumerators: Vec<OwnedPtr<Enumerator>>,
     span: Span,
 ) -> OwnedPtr<Enum> {
-    let underlying = underlying_type.map(|type_ref| type_ref.downcast::<Primitive>().unwrap());
+    let underlying = underlying_type.and_then(|type_ref| {
+        let primitive_ref = type_ref.downcast::<Primitive>();
+        if primitive_ref.is_err() {
+            Diagnostic::from_error(Error::EnumUnderlyingTypeNotSupported {
+                enum_identifier: identifier.value.clone(),
+                // 'kind' is safe to call here. `downcast` can only fail if the type is already patched.
+                kind: Some(type_ref.definition().kind().to_owned()),
+            })
+            .set_span(&type_ref.span)
+            .push_into(parser.diagnostics);
+        }
+        primitive_ref.ok()
+    });
+
     let comment = parse_doc_comment(parser, &identifier.value, raw_comment);
 
     let mut enum_ptr = OwnedPtr::new(Enum {
