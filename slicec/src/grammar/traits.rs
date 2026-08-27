@@ -3,7 +3,6 @@
 use super::attributes::AttributeKind;
 use super::comments::DocComment;
 use super::elements::{Attribute, Identifier, Integer, TypeRef};
-use super::util::Scope;
 use super::wrappers::{AsEntities, AsTypes};
 use crate::slice_file::Span;
 
@@ -18,7 +17,6 @@ pub trait Symbol: Element {
 pub trait ScopedSymbol: Symbol {
     fn parser_scope(&self) -> &str;
     fn module_scope(&self) -> &str;
-    fn get_raw_scope(&self) -> &Scope;
 }
 
 pub trait NamedSymbol: Symbol + Attributable {
@@ -121,10 +119,6 @@ macro_rules! implement_Scoped_Symbol_for {
 
             fn module_scope(&self) -> &str {
                 &self.scope.module_scope
-            }
-
-            fn get_raw_scope(&self) -> &Scope {
-                &self.scope
             }
         }
     };
