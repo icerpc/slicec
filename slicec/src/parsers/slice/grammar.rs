@@ -71,15 +71,14 @@ fn construct_module(
         .push_into(parser.diagnostics);
     }
 
-    let module_ptr = OwnedPtr::new(Module {
+    parser.current_scope.module_scope = identifier.value.clone();
+    parser.current_scope.parser_scope = identifier.value.clone();
+
+    OwnedPtr::new(Module {
         identifier,
         attributes,
         span,
-    });
-
-    parser.current_scope.module = Some(module_ptr.downgrade());
-    parser.current_scope.parser_scope = module_ptr.borrow().nested_module_identifier().to_owned();
-    module_ptr
+    })
 }
 
 fn construct_struct(
