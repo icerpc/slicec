@@ -14,7 +14,7 @@ use std::collections::HashMap;
 ///
 /// The AST is primarily for centralizing ownership of Slice elements, but also features lookup functions for finding
 /// nodes (see [`find_node`](Ast::find_node) and [`find_node_with_scope`](Ast::find_node_with_scope)) and their
-/// elements (see [`find_element`](Ast::find_element)).
+/// elements (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
 ///
 /// In practice, there is a single instance of the AST per compilation, which is [created](Ast::create) during
 /// initialization and lives as long as the program does, making the AST effectively `'static`.
@@ -101,7 +101,8 @@ impl Ast {
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
-    /// If you just need the Slice element itself, use [`find_element`](Ast::find_element) instead.
+    ///
+    /// If you want a reference to the Slice construct itself, use [find_symbol_by_id](Ast::find_symbol_by_id) instead.
     ///
     /// # Returns
     ///
@@ -152,7 +153,8 @@ impl Ast {
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
-    /// If you just need the Slice element itself, use [find_element](Ast::find_element) instead.
+    ///
+    /// If you want a reference to the Slice construct itself, use [find_symbol_by_id](Ast::find_symbol_by_id) instead.
     ///
     /// # Returns
     ///
@@ -196,41 +198,17 @@ impl Ast {
         self.find_node(identifier)
     }
 
-    /// Returns a reference to a Slice element with the provided identifier and specified type, if one exists.
-    /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
+    /// Returns a reference to a Slice symbol (user-defined element) with the provided identifier and specified type,
+    /// if one exists. The identifier must be fully qualified, but should not begin with a leading '::'.
     ///
-    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
-    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
+    /// Care should be taken when looking up modules (which can be re-opened) or parameters and return members
+    /// (which share an AST scope), since these may not be unique.
     ///
     /// # Returns
     ///
-    /// If a Slice element of the specified type can be found with the provided identifier, this returns a reference to
-    /// it, wrapped in `Ok`. Otherwise, this returns `Err` with a string describing why the lookup failed.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use slicec::ast::Ast;
-    /// # use slicec::grammar::*;
-    /// let ast = Ast::create();
-    ///
-    /// // Look up a primitive type.
-    /// let int32_def = ast.find_element::<Primitive>("int32");
-    /// assert!(int32_def.is_ok());
-    /// assert_eq!(int32_def.unwrap().kind(), "int32");
-    ///
-    /// // TODO add more examples once parsing is easier.
-    ///
-    /// // If an element doesn't exist with the specified identifier, `Err` is returned.
-    /// let fake_element = ast.find_element::<dyn Entity>("foo::bar");
-    /// assert!(fake_element.is_err());
-    ///
-    /// // If an element exists but has the wrong type, `Err` is also returned.
-    /// let wrong_type = ast.find_element::<Struct>("bool");
-    /// assert!(wrong_type.is_err());
-    /// ```
-    pub fn find_element<'a, T: Element + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, LookupError>
+    /// If a symbol with the specified identifier and type can be found in this `Ast`, this returns a reference to it,
+    /// wrapped in `Ok`. Otherwise, this returns `Err` with a string describing why the lookup failed.
+    pub fn find_symbol_by_id<'a, T: NamedSymbol + ?Sized>(&'a self, identifier: &str) -> Result<&'a T, LookupError>
     where
         &'a T: TryFrom<&'a Node, Error = LookupError>,
     {

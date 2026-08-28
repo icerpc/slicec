@@ -24,7 +24,7 @@ mod results {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
         let returns = operation.return_members();
 
         assert_eq!(returns.len(), 1);
@@ -63,7 +63,7 @@ mod results {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
         let returns = operation.return_members();
         assert_eq!(returns.len(), 1);
         let Types::ResultType(result_type) = returns[0].data_type().concrete_type() else { panic!() };

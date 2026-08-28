@@ -71,7 +71,7 @@ fn string_literals_support_character_escaping() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let struct_def = ast.find_element::<Struct>("Test::Foo").unwrap();
+    let struct_def = ast.find_symbol_by_id::<Struct>("Test::Foo").unwrap();
     let deprecated = struct_def.find_attribute::<attributes::Deprecated>().unwrap();
     assert_eq!(deprecated.reason, Some("This is a backslash\"\\\"n.".to_owned()))
 }
@@ -91,7 +91,7 @@ fn integer_literals_can_contain_underscores() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let enumerator = ast.find_element::<Enumerator>("Test::Foo::A").unwrap();
+    let enumerator = ast.find_symbol_by_id::<Enumerator>("Test::Foo::A").unwrap();
     assert_eq!(enumerator.value(), 17_000_000);
 }
 

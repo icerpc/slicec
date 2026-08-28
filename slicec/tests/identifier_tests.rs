@@ -20,9 +20,9 @@ fn escaped_keywords() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("module::interface").is_ok());
-    assert!(ast.find_element::<Struct>("module::struct").is_ok());
-    assert!(ast.find_element::<CustomType>("module::custom").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("module::interface").is_ok());
+    assert!(ast.find_symbol_by_id::<Struct>("module::struct").is_ok());
+    assert!(ast.find_symbol_by_id::<CustomType>("module::custom").is_ok());
 }
 
 #[test]
@@ -39,9 +39,9 @@ fn escaped_identifiers() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("MyModule::MyInterface").is_ok());
-    assert!(ast.find_element::<Struct>("MyModule::MyStruct").is_ok());
-    assert!(ast.find_element::<CustomType>("MyModule::MyCustom").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("MyModule::MyInterface").is_ok());
+    assert!(ast.find_symbol_by_id::<Struct>("MyModule::MyStruct").is_ok());
+    assert!(ast.find_symbol_by_id::<CustomType>("MyModule::MyCustom").is_ok());
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn escaped_scoped_identifiers_containing_keywords() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Struct>("Foo::module").is_ok());
+    assert!(ast.find_symbol_by_id::<Struct>("Foo::module").is_ok());
 }
 
 #[test]

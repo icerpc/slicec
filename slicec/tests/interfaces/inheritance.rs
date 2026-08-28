@@ -20,8 +20,8 @@ fn supports_single_inheritance() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
-    let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
+    let interface_i_def = ast.find_symbol_by_id::<Interface>("Test::I").unwrap();
+    let interface_j_def = ast.find_symbol_by_id::<Interface>("Test::J").unwrap();
     let interface_j_bases = interface_j_def.base_interfaces();
 
     assert!(interface_i_def.base_interfaces().is_empty());
@@ -49,9 +49,9 @@ fn supports_multiple_inheritance() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let interface_i_def = ast.find_element::<Interface>("Test::I").unwrap();
-    let interface_j_def = ast.find_element::<Interface>("Test::J").unwrap();
-    let interface_k_def = ast.find_element::<Interface>("Test::K").unwrap();
+    let interface_i_def = ast.find_symbol_by_id::<Interface>("Test::I").unwrap();
+    let interface_j_def = ast.find_symbol_by_id::<Interface>("Test::J").unwrap();
+    let interface_k_def = ast.find_symbol_by_id::<Interface>("Test::K").unwrap();
     let interface_k_bases = interface_k_def.base_interfaces();
 
     assert!(interface_i_def.base_interfaces().is_empty());
@@ -148,9 +148,9 @@ fn inherits_correct_operations() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let interface_a_def = ast.find_element::<Interface>("Test::A").unwrap();
-    let interface_b_def = ast.find_element::<Interface>("Test::B").unwrap();
-    let interface_d_def = ast.find_element::<Interface>("Test::D").unwrap();
+    let interface_a_def = ast.find_symbol_by_id::<Interface>("Test::A").unwrap();
+    let interface_b_def = ast.find_symbol_by_id::<Interface>("Test::B").unwrap();
+    let interface_d_def = ast.find_symbol_by_id::<Interface>("Test::D").unwrap();
 
     assert_eq!(interface_a_def.operations().len(), 1);
     assert_eq!(interface_a_def.all_inherited_operations().len(), 0);

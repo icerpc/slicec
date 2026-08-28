@@ -34,10 +34,10 @@ mod scope_resolution {
         let ast = parse_multiple_for_ast(&[slice1, slice2]);
 
         // Assert
-        let s1_type = ast.find_element::<Field>("A::C::s1").unwrap().data_type();
-        let s2_type = ast.find_element::<Field>("A::C::s2").unwrap().data_type();
-        let s3_type = ast.find_element::<Field>("A::C::s3").unwrap().data_type();
-        let s4_type = ast.find_element::<Field>("A::C::s4").unwrap().data_type();
+        let s1_type = ast.find_symbol_by_id::<Field>("A::C::s1").unwrap().data_type();
+        let s2_type = ast.find_symbol_by_id::<Field>("A::C::s2").unwrap().data_type();
+        let s3_type = ast.find_symbol_by_id::<Field>("A::C::s3").unwrap().data_type();
+        let s4_type = ast.find_symbol_by_id::<Field>("A::C::s4").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::Int32)));
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::Int32)));
@@ -70,10 +70,10 @@ mod scope_resolution {
         let ast = parse_multiple_for_ast(&[slice1, slice2]);
 
         // Assert
-        let s1_type = ast.find_element::<Field>("A::B::C::s1").unwrap().data_type();
-        let s2_type = ast.find_element::<Field>("A::B::C::s2").unwrap().data_type();
-        let s3_type = ast.find_element::<Field>("A::B::C::s3").unwrap().data_type();
-        let s4_type = ast.find_element::<Field>("A::B::C::s4").unwrap().data_type();
+        let s1_type = ast.find_symbol_by_id::<Field>("A::B::C::s1").unwrap().data_type();
+        let s2_type = ast.find_symbol_by_id::<Field>("A::B::C::s2").unwrap().data_type();
+        let s3_type = ast.find_symbol_by_id::<Field>("A::B::C::s3").unwrap().data_type();
+        let s4_type = ast.find_symbol_by_id::<Field>("A::B::C::s4").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Primitive(Primitive::String)));
         assert!(matches!(s2_type.concrete_type(), Types::Primitive(Primitive::String)));
@@ -107,9 +107,9 @@ mod scope_resolution {
         let ast = parse_multiple_for_ast(&[slice1, slice2, slice3]);
 
         // Assert
-        let s1_type = ast.find_element::<Field>("A::B::B::C::s1").unwrap().data_type();
-        let s2_type = ast.find_element::<Field>("A::B::B::C::s2").unwrap().data_type();
-        let s3_type = ast.find_element::<Field>("A::B::B::C::s3").unwrap().data_type();
+        let s1_type = ast.find_symbol_by_id::<Field>("A::B::B::C::s1").unwrap().data_type();
+        let s2_type = ast.find_symbol_by_id::<Field>("A::B::B::C::s2").unwrap().data_type();
+        let s3_type = ast.find_symbol_by_id::<Field>("A::B::B::C::s3").unwrap().data_type();
 
         assert!(matches!(s1_type.concrete_type(), Types::Struct(_)));
         assert!(matches!(s2_type.concrete_type(), Types::Struct(_)));
@@ -143,10 +143,10 @@ mod scope_resolution {
         let ast = parse_multiple_for_ast(&[slice1, slice2, slice3]);
 
         // Assert
-        let nested_s1_type = ast.find_element::<Field>("A::B::A::B::C::s1").unwrap().data_type();
-        let nested_s2_type = ast.find_element::<Field>("A::B::A::B::C::s2").unwrap().data_type();
-        let s1_type = ast.find_element::<Field>("A::C::s1").unwrap().data_type();
-        let s2_type = ast.find_element::<Field>("A::C::s2").unwrap().data_type();
+        let nested_s1_type = ast.find_symbol_by_id::<Field>("A::B::A::B::C::s1").unwrap().data_type();
+        let nested_s2_type = ast.find_symbol_by_id::<Field>("A::B::A::B::C::s2").unwrap().data_type();
+        let s1_type = ast.find_symbol_by_id::<Field>("A::C::s1").unwrap().data_type();
+        let s2_type = ast.find_symbol_by_id::<Field>("A::C::s2").unwrap().data_type();
 
         assert!(matches!(
             nested_s1_type.concrete_type(),

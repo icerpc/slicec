@@ -22,7 +22,7 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::b").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::b").unwrap();
         assert_eq!(field.tag(), Some(10));
     }
 }

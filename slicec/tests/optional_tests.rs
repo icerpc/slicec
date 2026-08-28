@@ -27,7 +27,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
     }
 
@@ -49,7 +49,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert_eq!(field.data_type.type_string(), type_name.to_owned() + "?");
     }
 
@@ -84,7 +84,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
     }
 
@@ -107,7 +107,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
     }
 
@@ -125,7 +125,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
 
         let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
@@ -147,7 +147,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(!field.data_type.is_optional);
 
         let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
@@ -169,7 +169,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(!field.data_type.is_optional);
 
         let Types::ResultType(result_type) = field.data_type().concrete_type() else { panic!() };
@@ -191,7 +191,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
 
         let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
@@ -212,7 +212,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(!field.data_type.is_optional);
 
         let Types::Sequence(sequence) = field.data_type().concrete_type() else { panic!() };
@@ -233,7 +233,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(field.data_type.is_optional);
 
         let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
@@ -256,7 +256,7 @@ mod optional {
         let ast = parse(slice, None).ast; // use `parse` to ignore errors.
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(!field.data_type.is_optional);
 
         let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
@@ -278,7 +278,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(!field.data_type.is_optional);
 
         let Types::Dictionary(dictionary) = field.data_type().concrete_type() else { panic!() };
@@ -300,22 +300,22 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let parameter_a = ast.find_element::<Parameter>("Test::I::op::a").unwrap();
+        let parameter_a = ast.find_symbol_by_id::<Parameter>("Test::I::op::a").unwrap();
         assert!(parameter_a.data_type().is_optional);
 
-        let parameter_b = ast.find_element::<Parameter>("Test::I::op::b").unwrap();
+        let parameter_b = ast.find_symbol_by_id::<Parameter>("Test::I::op::b").unwrap();
         assert!(!parameter_b.data_type().is_optional);
 
-        let parameter_c = ast.find_element::<Parameter>("Test::I::op::c").unwrap();
+        let parameter_c = ast.find_symbol_by_id::<Parameter>("Test::I::op::c").unwrap();
         assert!(parameter_c.data_type().is_optional);
 
-        let return_x = ast.find_element::<Parameter>("Test::I::op::x").unwrap();
+        let return_x = ast.find_symbol_by_id::<Parameter>("Test::I::op::x").unwrap();
         assert!(!return_x.data_type().is_optional);
 
-        let return_y = ast.find_element::<Parameter>("Test::I::op::y").unwrap();
+        let return_y = ast.find_symbol_by_id::<Parameter>("Test::I::op::y").unwrap();
         assert!(return_y.data_type().is_optional);
 
-        let return_z = ast.find_element::<Parameter>("Test::I::op::z").unwrap();
+        let return_z = ast.find_symbol_by_id::<Parameter>("Test::I::op::z").unwrap();
         assert!(!return_z.data_type().is_optional);
     }
 
@@ -333,7 +333,7 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let return_value = ast.find_element::<Parameter>("Test::I::op::returnValue").unwrap();
+        let return_value = ast.find_symbol_by_id::<Parameter>("Test::I::op::returnValue").unwrap();
         assert!(return_value.data_type().is_optional);
     }
 
@@ -353,13 +353,13 @@ mod optional {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let member_a = ast.find_element::<Field>("Test::S::a").unwrap();
+        let member_a = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
         assert!(member_a.data_type().is_optional);
 
-        let member_b = ast.find_element::<Field>("Test::S::b").unwrap();
+        let member_b = ast.find_symbol_by_id::<Field>("Test::S::b").unwrap();
         assert!(!member_b.data_type().is_optional);
 
-        let member_c = ast.find_element::<Field>("Test::S::c").unwrap();
+        let member_c = ast.find_symbol_by_id::<Field>("Test::S::c").unwrap();
         assert!(member_c.data_type().is_optional);
     }
 }

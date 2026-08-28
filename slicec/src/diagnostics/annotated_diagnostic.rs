@@ -115,7 +115,7 @@ fn get_diagnostic_level_for(
 
     // If the diagnostic has a scope, check if it's affected by an `allow` attribute in that scope.
     if let Some(scope) = &diagnostic.scope {
-        if let Ok(entity) = ast.find_element::<dyn Entity>(scope) {
+        if let Ok(entity) = ast.find_symbol_by_id::<dyn Entity>(scope) {
             if is_lint_allowed_by_attributes(entity, lint) {
                 return DiagnosticLevel::Allowed;
             }

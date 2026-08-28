@@ -23,7 +23,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
+        let interface_def = ast.find_symbol_by_id::<Interface>("tests::MyInterface").unwrap();
 
         let interface_doc = interface_def.comment().unwrap();
         assert_eq!(interface_doc.span.start, (4, 13).into());
@@ -56,7 +56,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
+        let interface_def = ast.find_symbol_by_id::<Interface>("tests::MyInterface").unwrap();
 
         let interface_doc = interface_def.comment().unwrap();
         assert_eq!(interface_doc.span.start, (4, 13).into());
@@ -86,7 +86,7 @@ mod comments {
 
             interface TestInterface {
                 /// @param testParam: My test param
-                testOp(testParam: string)
+                op(testParam: string)
             }
         ";
 
@@ -94,7 +94,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("tests::TestInterface::op").unwrap();
 
         let param_tags = &operation.comment().unwrap().params;
         assert_eq!(param_tags.len(), 1);
@@ -126,7 +126,7 @@ mod comments {
 
             interface TestInterface {
                 /// @returns bool
-                testOp(testParam: string) -> bool
+                op(testParam: string) -> bool
             }
         ";
 
@@ -134,7 +134,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("tests::TestInterface::op").unwrap();
 
         let returns_tags = &operation.comment().unwrap().returns;
         assert_eq!(returns_tags.len(), 1);
@@ -217,7 +217,7 @@ mod comments {
             interface TestInterface {
                 /// @param testParam1: A string param
                 /// @returns: bool
-                testOp(testParam1: string) -> bool
+                op(testParam1: string) -> bool
             }
         ";
 
@@ -233,7 +233,7 @@ mod comments {
 
             interface TestInterface {
                 /// @see MySee
-                testOp(testParam: string) -> bool
+                op(testParam: string) -> bool
             }
         ";
 
@@ -241,7 +241,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("tests::TestInterface::testOp").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("tests::TestInterface::op").unwrap();
 
         let see_tags = &operation.comment().unwrap().see;
         assert_eq!(see_tags.len(), 1);
@@ -274,7 +274,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let interface_def = ast.find_element::<Interface>("tests::MyInterface").unwrap();
+        let interface_def = ast.find_symbol_by_id::<Interface>("tests::MyInterface").unwrap();
         let interface_doc = interface_def.comment();
 
         assert!(interface_doc.is_none());
@@ -294,7 +294,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let struct_def = ast.find_element::<Struct>("Test::Foo").unwrap();
+        let struct_def = ast.find_symbol_by_id::<Struct>("Test::Foo").unwrap();
         let struct_doc = struct_def.comment();
 
         assert!(struct_doc.is_none());
@@ -314,7 +314,7 @@ mod comments {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let struct_def = ast.find_element::<Struct>("tests::TestStruct").unwrap();
+        let struct_def = ast.find_symbol_by_id::<Struct>("tests::TestStruct").unwrap();
         let overview = &struct_def.comment().unwrap().overview;
         let message = &overview.as_ref().unwrap().value;
 
