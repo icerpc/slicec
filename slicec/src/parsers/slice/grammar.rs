@@ -415,10 +415,9 @@ fn construct_type_ref(
 }
 
 fn primitive_to_type_ref_definition(parser: &Parser, primitive: Primitive) -> TypeRefDefinition {
-    // These unwraps are safe because the primitive types are always defined in the AST.
-    let node = parser.ast.find_node(primitive.kind()).unwrap();
-    let weak_ptr: WeakPtr<Primitive> = node.try_into().unwrap();
-    TypeRefDefinition::Patched(upcast_weak_as!(weak_ptr, dyn Type))
+    let node = parser.ast.find_primitive_node(primitive);
+    let primitive_ptr: WeakPtr<Primitive> = node.try_into().unwrap();
+    TypeRefDefinition::Patched(upcast_weak_as!(primitive_ptr, dyn Type))
 }
 
 fn anonymous_type_to_type_ref_definition<T>(parser: &mut Parser, ptr: OwnedPtr<T>) -> TypeRefDefinition
