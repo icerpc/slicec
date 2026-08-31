@@ -20,7 +20,7 @@ fn can_have_no_parameters() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     assert!(operation.parameters().is_empty());
 }
 
@@ -39,7 +39,7 @@ fn can_have_no_return_type() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     assert!(operation.return_members().is_empty());
 }
 
@@ -58,7 +58,7 @@ fn can_contain_tags() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     let tag_def = operation.parameters()[0].tag();
     assert_eq!(tag_def, Some(1));
 }
@@ -78,7 +78,7 @@ fn parameter_and_return_can_have_the_same_tag() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     let parameter_tag = operation.parameters()[0].tag();
     let return_tag = operation.return_members()[0].tag();
     assert_eq!(parameter_tag, Some(1));
@@ -100,7 +100,7 @@ fn can_have_parameters() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     let parameters = operation.parameters();
 
     assert_eq!(parameters.len(), 3);
@@ -136,7 +136,7 @@ fn can_have_return_value() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 1);
@@ -159,7 +159,7 @@ fn can_have_return_tuple() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+    let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
     let returns = operation.return_members();
 
     assert_eq!(returns.len(), 2);
@@ -263,7 +263,7 @@ mod streams {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+        let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
         let parameters = operation.parameters();
         let returns = operation.return_members();
 

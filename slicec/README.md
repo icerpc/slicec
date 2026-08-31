@@ -93,7 +93,7 @@ let compilation_state = compile_from_strings(&[source], None);
 // Make sure no diagnostics were reported.
 assert!(!compilation_state.diagnostics.has_errors());
 // Inspect the contents of the resulting AST.
-let color_enum = compilation_state.ast.find_element::<Enum>("Example::Color").unwrap();
+let color_enum = compilation_state.ast.find_symbol_by_id::<Enum>("Example::Color").unwrap();
 ```
 
 ## Building

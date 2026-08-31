@@ -157,7 +157,7 @@ fn convert_source(source: Option<&str>, ast: &Ast, files: &[GrammarSliceFile], o
         default_span = Some(Span::new((1, 1).into(), (1, 1).into(), &slice_file.relative_path));
     } else {
         // Lookup the named symbol in the AST and if it doesn't exist, emit a diagnostic and return immediately.
-        let named_symbol = match ast.find_element::<dyn NamedSymbol>(symbol_id) {
+        let named_symbol = match ast.find_symbol_by_id::<dyn NamedSymbol>(symbol_id) {
             Ok(named_symbol) => named_symbol,
             Err(err) => {
                 SlicecDiagnostic::from_error(err.into())

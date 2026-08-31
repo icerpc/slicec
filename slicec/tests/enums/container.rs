@@ -46,7 +46,7 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::E::A::b").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::E::A::b").unwrap();
         assert!(field.is_tagged());
     }
 
@@ -87,19 +87,19 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enumerator_a = ast.find_element::<Enumerator>("Test::E::A").unwrap();
+        let enumerator_a = ast.find_symbol_by_id::<Enumerator>("Test::E::A").unwrap();
         assert!(matches!(enumerator_a.value, EnumeratorValue::Implicit(0)));
         assert_eq!(enumerator_a.value(), 0);
 
-        let enumerator_b = ast.find_element::<Enumerator>("Test::E::B").unwrap();
+        let enumerator_b = ast.find_symbol_by_id::<Enumerator>("Test::E::B").unwrap();
         assert!(matches!(enumerator_b.value, EnumeratorValue::Explicit(_)));
         assert_eq!(enumerator_b.value(), 7);
 
-        let enumerator_c = ast.find_element::<Enumerator>("Test::E::C").unwrap();
+        let enumerator_c = ast.find_symbol_by_id::<Enumerator>("Test::E::C").unwrap();
         assert!(matches!(enumerator_c.value, EnumeratorValue::Implicit(8)));
         assert_eq!(enumerator_c.value(), 8);
 
-        let enumerator_d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
+        let enumerator_d = ast.find_symbol_by_id::<Enumerator>("Test::E::D").unwrap();
         assert!(matches!(enumerator_d.value, EnumeratorValue::Explicit(_)));
         assert_eq!(enumerator_d.value(), 4);
     }
@@ -168,7 +168,7 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        assert!(ast.find_element::<Field>("Test::Foo::Bar::baz").is_ok());
+        assert!(ast.find_symbol_by_id::<Field>("Test::Foo::Bar::baz").is_ok());
     }
 
     #[test]
@@ -189,19 +189,19 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let a = ast.find_element::<Enumerator>("Test::E::A").unwrap();
+        let a = ast.find_symbol_by_id::<Enumerator>("Test::E::A").unwrap();
         assert!(matches!(a.value, EnumeratorValue::Implicit(0)));
         assert!(a.fields.is_none());
 
-        let b = ast.find_element::<Enumerator>("Test::E::B").unwrap();
+        let b = ast.find_symbol_by_id::<Enumerator>("Test::E::B").unwrap();
         assert!(matches!(b.value, EnumeratorValue::Implicit(1)));
         assert!(b.fields.as_ref().unwrap().len() == 1);
 
-        let c = ast.find_element::<Enumerator>("Test::E::C").unwrap();
+        let c = ast.find_symbol_by_id::<Enumerator>("Test::E::C").unwrap();
         assert!(matches!(c.value, EnumeratorValue::Implicit(2)));
         assert!(c.fields.as_ref().unwrap().len() == 2);
 
-        let d = ast.find_element::<Enumerator>("Test::E::D").unwrap();
+        let d = ast.find_symbol_by_id::<Enumerator>("Test::E::D").unwrap();
         assert!(matches!(d.value, EnumeratorValue::Implicit(3)));
         assert!(d.fields.as_ref().unwrap().is_empty());
     }
@@ -224,7 +224,7 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enum_def = ast.find_symbol_by_id::<Enum>("Test::E").unwrap();
         assert_eq!(enum_def.is_unchecked, expected);
     }
 
@@ -260,7 +260,7 @@ mod associated_fields {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enum_def = ast.find_symbol_by_id::<Enum>("Test::E").unwrap();
         assert_eq!(enum_def.enumerators.len(), 0);
     }
 
@@ -328,7 +328,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
+        let enumerators = ast.find_symbol_by_id::<Enum>("Test::E").unwrap().enumerators();
         assert_eq!(enumerators[0].value(), 0);
         assert_eq!(enumerators[1].value(), 1);
         assert_eq!(enumerators[2].value(), 2);
@@ -350,7 +350,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enumerators = ast.find_element::<Enum>("Test::E").unwrap().enumerators();
+        let enumerators = ast.find_symbol_by_id::<Enum>("Test::E").unwrap().enumerators();
         assert_eq!(enumerators[1].value(), 3);
         assert_eq!(enumerators[2].value(), 4);
     }
@@ -488,7 +488,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enum_def = ast.find_symbol_by_id::<Enum>("Test::E").unwrap();
         assert_eq!(enum_def.is_unchecked, expected);
     }
 
@@ -524,7 +524,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enum_def = ast.find_symbol_by_id::<Enum>("Test::E").unwrap();
         assert_eq!(enum_def.enumerators.len(), 0);
     }
 
@@ -546,10 +546,14 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        assert_eq!(ast.find_element::<Enumerator>("Test::E::B").unwrap().value(), 0b1001111);
-        assert_eq!(ast.find_element::<Enumerator>("Test::E::D").unwrap().value(), 128);
-        assert_eq!(ast.find_element::<Enumerator>("Test::E::H").unwrap().value(), 0xA4FD);
-        assert_eq!(ast.find_element::<Enumerator>("Test::E::N").unwrap().value(), -0xbc81);
+        let enumerator_b = ast.find_symbol_by_id::<Enumerator>("Test::E::B").unwrap();
+        assert_eq!(enumerator_b.value(), 0b1001111);
+        let enumerator_d = ast.find_symbol_by_id::<Enumerator>("Test::E::D").unwrap();
+        assert_eq!(enumerator_d.value(), 128);
+        let enumerator_h = ast.find_symbol_by_id::<Enumerator>("Test::E::H").unwrap();
+        assert_eq!(enumerator_h.value(), 0xA4FD);
+        let enumerator_n = ast.find_symbol_by_id::<Enumerator>("Test::E::N").unwrap();
+        assert_eq!(enumerator_n.value(), -0xbc81);
     }
 
     #[test]
@@ -629,7 +633,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def = ast.find_element::<Enum>("Test::E").unwrap();
+        let enum_def = ast.find_symbol_by_id::<Enum>("Test::E").unwrap();
         let enumerators = enum_def.enumerators();
 
         assert_eq!(enumerators.len(), 3);
@@ -661,7 +665,7 @@ mod underlying_type {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let enum_def_a = ast.find_element::<Enum>("Test::A").unwrap();
+        let enum_def_a = ast.find_symbol_by_id::<Enum>("Test::A").unwrap();
         let enumerators_a = enum_def_a.enumerators();
 
         assert!(matches!(enumerators_a[0].value, EnumeratorValue::Explicit(..)));

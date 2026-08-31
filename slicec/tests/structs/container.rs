@@ -24,7 +24,7 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let fields = ast.find_element::<Struct>("Test::S").unwrap().fields();
+        let fields = ast.find_symbol_by_id::<Struct>("Test::S").unwrap().fields();
 
         assert_eq!(fields.len(), 3);
         assert_eq!(fields[0].identifier(), "i");
@@ -58,7 +58,7 @@ mod structs {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let fields = ast.find_element::<Struct>("Test::S").unwrap().fields();
+        let fields = ast.find_symbol_by_id::<Struct>("Test::S").unwrap().fields();
         assert_eq!(fields.len(), 0);
     }
 
