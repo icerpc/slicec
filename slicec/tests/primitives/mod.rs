@@ -33,7 +33,7 @@ fn type_parses(slice_component: &str, expected: Primitive) {
     let ast = parse_for_ast(slice);
 
     // Assert
-    let underlying = &ast.find_element::<TypeAlias>("Test::P").unwrap().underlying;
+    let underlying = &ast.find_symbol_by_id::<TypeAlias>("Test::P").unwrap().underlying;
     if let TypeRefDefinition::Patched(ptr) = &underlying.definition {
         let primitive = ptr.clone().downcast::<Primitive>().unwrap();
         assert_eq!(

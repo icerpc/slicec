@@ -163,7 +163,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
             let attribute = operation.find_attribute::<SlicedFormat>().unwrap();
 
             assert!(attribute.sliced_args);
@@ -262,7 +262,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
             assert!(operation.has_attribute::<Deprecated>());
         }
 
@@ -306,7 +306,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
 
             let deprecated_attribute = operation.find_attribute::<Deprecated>().unwrap();
             assert_eq!(deprecated_attribute.reason.as_deref(), Some("Deprecation message here"));
@@ -424,7 +424,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
             let attribute = operation.find_attribute::<Compress>().unwrap();
 
             assert!(attribute.compress_args);
@@ -615,7 +615,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
 
             let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
             assert_eq!(unparsed_attribute.directive, "foo::bar");
@@ -638,7 +638,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
 
             let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
             assert_eq!(unparsed_attribute.directive, "foo::bar");
@@ -668,7 +668,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let operation = ast.find_element::<Operation>("Test::I::op").unwrap();
+            let operation = ast.find_symbol_by_id::<Operation>("Test::I::op").unwrap();
 
             let unparsed_attribute = operation.find_attribute::<Unparsed>().unwrap();
             let arguments = unparsed_attribute.args.iter().map(String::as_str).collect::<Vec<_>>();
@@ -714,7 +714,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let parameter = ast.find_element::<Parameter>("A::I::op::s").unwrap();
+            let parameter = ast.find_symbol_by_id::<Parameter>("A::I::op::s").unwrap();
             let parent_attributes = parameter
                 .all_attributes()
                 .into_iter()
@@ -788,7 +788,7 @@ mod attributes {
             let ast = parse_for_ast(slice);
 
             // Assert
-            let module = ast.find_element::<Module>("Test").unwrap();
+            let module = ast.find_symbol_by_id::<Module>("Test").unwrap();
             assert_eq!(module.attributes.len(), 1);
 
             let attribute = module.find_attribute::<Unparsed>().unwrap();

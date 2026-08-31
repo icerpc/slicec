@@ -20,7 +20,7 @@ mod sequences {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let seq_def = ast.find_element::<TypeAlias>("Test::Seq").unwrap();
+        let seq_def = ast.find_symbol_by_id::<TypeAlias>("Test::Seq").unwrap();
         let seq_type = seq_def.underlying.concrete_type();
 
         match seq_type {

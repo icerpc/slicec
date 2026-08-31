@@ -19,7 +19,7 @@ mod custom {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let custom_type = ast.find_element::<CustomType>("Test::ACustomType").unwrap();
+        let custom_type = ast.find_symbol_by_id::<CustomType>("Test::ACustomType").unwrap();
         assert_eq!(custom_type.identifier(), "ACustomType");
     }
 }

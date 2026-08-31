@@ -16,7 +16,7 @@ mod module {
         let ast = parse_for_ast(slice);
 
         // Assert
-        assert!(ast.find_element::<Module>("Test").is_ok());
+        assert!(ast.find_symbol_by_id::<Module>("Test").is_ok());
     }
 
     #[test]
@@ -30,7 +30,7 @@ mod module {
         let ast = parse_for_ast(slice);
 
         // Assert
-        assert!(ast.find_element::<Module>("A::B::C::D").is_ok());
+        assert!(ast.find_symbol_by_id::<Module>("A::B::C::D").is_ok());
     }
 
     #[test]
@@ -68,7 +68,7 @@ mod module {
         let ast = parse_multiple_for_ast(&[slice1, slice2]);
 
         // Assert
-        assert!(ast.find_element::<Struct>("Foo::Test1").is_ok());
-        assert!(ast.find_element::<Struct>("Foo::Test2").is_ok());
+        assert!(ast.find_symbol_by_id::<Struct>("Foo::Test1").is_ok());
+        assert!(ast.find_symbol_by_id::<Struct>("Foo::Test2").is_ok());
     }
 }

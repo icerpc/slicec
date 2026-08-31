@@ -79,7 +79,7 @@ mod tags {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
 
         assert_eq!(field.tag(), Some(1));
         assert!(field.data_type.is_optional);

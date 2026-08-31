@@ -30,7 +30,8 @@ fn command_line_defined_symbols() {
     let compilation_state = parse(slice, Some(&options));
 
     // Assert
-    assert!(compilation_state.ast.find_element::<Operation>("Test::I::op").is_ok());
+    let operation = compilation_state.ast.find_symbol_by_id::<Operation>("Test::I::op");
+    assert!(operation.is_ok());
 }
 
 #[test]
@@ -47,7 +48,7 @@ fn undefined_preprocessor_directive_blocks_are_consumed() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test]
@@ -91,7 +92,7 @@ fn preprocessor_define_symbol() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_ok());
 }
 
 #[test]
@@ -111,7 +112,7 @@ fn preprocessor_undefine_symbol() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test]
@@ -132,7 +133,7 @@ fn preprocessor_define_symbol_multiples_times() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_ok());
 }
 #[test_case("Foo", "I" ; "Foo is defined")]
 #[test_case("Bar", "J" ; "Bar is defined")]
@@ -176,7 +177,7 @@ fn preprocessor_conditional_compilation(define: &str, interface: &str) {
 
     // Assert
     assert!(ast
-        .find_element::<Interface>(format!("Test::{interface}").as_str())
+        .find_symbol_by_id::<Interface>(format!("Test::{interface}").as_str())
         .is_ok());
 }
 
@@ -195,7 +196,7 @@ fn preprocessor_not_expressions() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test]
@@ -214,7 +215,7 @@ fn preprocessor_and_expressions() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_ok());
 }
 
 #[test]
@@ -232,7 +233,7 @@ fn preprocessor_or_expressions() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_ok());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_ok());
 }
 
 #[test]
@@ -250,7 +251,7 @@ fn preprocessor_grouped_expressions() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test]
@@ -269,7 +270,7 @@ fn preprocessor_nested_expressions() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test_case(
@@ -321,9 +322,9 @@ fn preprocessor_nested_conditional_blocks() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Struct>("Test::NotFooStruct").is_ok());
-    assert!(ast.find_element::<Struct>("Test::NotBarStruct").is_ok());
-    assert!(ast.find_element::<Struct>("Test::ElseStruct").is_err());
+    assert!(ast.find_symbol_by_id::<Struct>("Test::NotFooStruct").is_ok());
+    assert!(ast.find_symbol_by_id::<Struct>("Test::NotBarStruct").is_ok());
+    assert!(ast.find_symbol_by_id::<Struct>("Test::ElseStruct").is_err());
 }
 
 #[test]
@@ -343,7 +344,7 @@ fn preprocessor_ignores_comments() {
     let ast = parse_for_ast(slice);
 
     // Assert
-    assert!(ast.find_element::<Interface>("Test::I").is_err());
+    assert!(ast.find_symbol_by_id::<Interface>("Test::I").is_err());
 }
 
 #[test]

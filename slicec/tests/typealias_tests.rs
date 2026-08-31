@@ -32,7 +32,7 @@ mod typealias {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let type_alias = ast.find_element::<TypeAlias>("Test::Alias").unwrap();
+        let type_alias = ast.find_symbol_by_id::<TypeAlias>("Test::Alias").unwrap();
         type_alias.underlying.definition(); // Panics if the type-alias hasn't been initialized correctly.
     }
 
@@ -78,7 +78,7 @@ mod typealias {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let type_alias = ast.find_element::<TypeAlias>("Test::MyInt").unwrap();
+        let type_alias = ast.find_symbol_by_id::<TypeAlias>("Test::MyInt").unwrap();
 
         assert_eq!(type_alias.identifier(), "MyInt");
         assert!(matches!(
@@ -102,7 +102,7 @@ mod typealias {
         let ast = parse_for_ast(slice);
 
         // Assert
-        let field = ast.find_element::<Field>("Test::S::a").unwrap();
+        let field = ast.find_symbol_by_id::<Field>("Test::S::a").unwrap();
 
         assert_eq!(field.identifier(), "a");
         assert!(matches!(
