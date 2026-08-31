@@ -6,8 +6,7 @@ use crate::slice_options::SliceOptions;
 use std::path::{Path, PathBuf};
 use std::{fs, io};
 
-/// A wrapper around a file path that implements Hash and Eq. This allows us to use a HashMap to store the path the user
-/// supplied while using the canonicalized path as the key.
+/// A wrapper around a file path that allows us to store and compare canonicalized paths.
 #[derive(Debug, Eq)]
 struct FilePath {
     // The path that the user supplied
