@@ -103,11 +103,11 @@ impl Ast {
     /// working outwards through each of its parent scopes until reaching global scope.
     ///
     /// This returns the first matching AST node it can find. If another node in a more outward scope also has the
-    /// specified identifier, it is shadowed, and will not be returned.
-    ///
-    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// specified identifier, it is shadowed, and will not be returned. Exercise care when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
+    ///
+    /// Primitive types (`int32`, `string`, etc.) and anonymous types (results, sequences, and dictionaries)
+    /// cannot be looked up with this method.
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
@@ -129,8 +129,8 @@ impl Ast {
             // If it doesn't exist, keep checking for it in parent scopes until all enclosing scopes have been checked.
             while !scopes.is_empty() {
                 let candidate = scopes.join("::") + "::" + identifier;
-                if let Some(i) = self.lookup_table.get(&candidate) {
-                    return Ok(&self.elements[*i]);
+                if let Ok(node) = self.lookup_node_by_id(&candidate) {
+                    return Ok(node);
                 }
                 // Pop the last scope segment off to get to the next highest scope.
                 scopes.pop();
@@ -142,11 +142,7 @@ impl Ast {
         // Remove any leading '::' from the identifier, since the lookup table doesn't store them.
         // TODO switch to 'trim_prefix' (https://github.com/rust-lang/rust/issues/142312) when it's stabilized.
         let stripped_identifier = identifier.strip_prefix("::").unwrap_or(identifier);
-        let Some(index) = self.lookup_table.get(stripped_identifier) else {
-            let identifier = stripped_identifier.to_owned();
-            return Err(LookupError::DoesNotExist { identifier });
-        };
-        Ok(&self.elements[*index])
+        self.lookup_node_by_id(stripped_identifier)
     }
 
     /// Returns a reference to a Slice symbol (user-defined element) with the provided identifier and specified type,
@@ -163,11 +159,7 @@ impl Ast {
     where
         &'a T: TryFrom<&'a Node, Error = LookupError>,
     {
-        let Some(index) = self.lookup_table.get(identifier) else {
-            let identifier = identifier.to_owned();
-            return Err(LookupError::DoesNotExist { identifier });
-        };
-        (&self.elements[*index]).try_into()
+        self.lookup_node_by_id(identifier)?.try_into()
     }
 
     /// Returns an immutable slice of all the [nodes](Node) contained in this AST.
@@ -225,6 +217,15 @@ impl Ast {
 
         // Add the element to this AST.
         self.add_element(element)
+    }
+
+    fn lookup_node_by_id<'a>(&'a self, identifier: &str) -> Result<&'a Node, LookupError> {
+        match self.lookup_table.get(identifier) {
+            Some(index) => Ok(&self.elements[*index]),
+            None => Err(LookupError::DoesNotExist {
+                identifier: identifier.to_owned(),
+            }),
+        }
     }
 }
 
