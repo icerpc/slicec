@@ -90,7 +90,7 @@ fn top_level_element_named_after_primitive_keyword_is_allowed() {
     // Assert
     // The struct parses correctly, and has an identifier of "string".
     let string_struct = ast.find_symbol_by_id::<Struct>("Test::string").unwrap();
-    assert!(string_struct.identifier() == "string");
+    assert_eq!(string_struct.identifier(), "string");
 
     // The fields in `Foo` correctly resolve to the primitive type, and the struct, depending on escaping.
     let field_a = ast.find_symbol_by_id::<Field>("Test::Foo::a").unwrap();

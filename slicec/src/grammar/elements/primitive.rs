@@ -1,8 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
-use std::str::FromStr;
-
 use super::super::*;
+use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Primitive {

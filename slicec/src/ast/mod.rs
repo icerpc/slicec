@@ -129,8 +129,9 @@ impl Ast {
             // If it doesn't exist, keep checking for it in parent scopes until all enclosing scopes have been checked.
             while !scopes.is_empty() {
                 let candidate = scopes.join("::") + "::" + identifier;
-                if let Ok(node) = self.lookup_node_by_id(&candidate) {
-                    return Ok(node);
+
+                if let Some(index) = self.lookup_table.get(&candidate) {
+                    return Ok(&self.elements[*index]);
                 }
                 // Pop the last scope segment off to get to the next highest scope.
                 scopes.pop();
