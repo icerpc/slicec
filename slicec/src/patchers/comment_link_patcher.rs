@@ -104,10 +104,10 @@ impl CommentLinkPatcher<'_> {
 
         // Look up the linked-to entity in the AST.
         let result = ast
-            .find_node_with_scope(&identifier.value, &commentable.parser_scoped_identifier())
+            .find_node_by_id(&identifier.value, &commentable.parser_scoped_identifier())
             .map_err(|lookup_error| match lookup_error {
                 LookupError::DoesNotExist { identifier } => format!("no element named '{identifier}' exists in scope"),
-                _ => unreachable!("`find_node_with_scope` reported an error other than `DoesNotExist`"),
+                _ => unreachable!("`find_node_by_id` reported an error other than `DoesNotExist`"),
             })
             .and_then(convert_node_to_entity_ptr);
 

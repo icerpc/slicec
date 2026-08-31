@@ -13,7 +13,7 @@ use std::collections::HashMap;
 /// slice files passed into the compiler.
 ///
 /// The AST is primarily for centralizing ownership of Slice elements, but also features lookup functions for finding
-/// nodes (see [`find_node_with_scope`](Ast::find_node_with_scope)) and their
+/// nodes (see [`find_node_by_id`](Ast::find_node_by_id)) and their
 /// elements (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
 ///
 /// In practice, there is a single instance of the AST per compilation, which is [created](Ast::create) during
@@ -118,7 +118,7 @@ impl Ast {
     ///
     /// If a node can be found with the provided identifier, this returns a reference to its [node](Node) in the AST
     /// wrapped in `Ok`. Otherwise, this returns `Err` with a string describing why the lookup failed.
-    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, LookupError> {
+    pub fn find_node_by_id<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, LookupError> {
         // If the identifier isn't globally scoped, we check for it in the provided scope,
         // followed by each of its parent scopes, until finally landing at global scope.
         if !identifier.starts_with("::") {

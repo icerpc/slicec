@@ -44,3 +44,34 @@ fn type_parses(slice_component: &str, expected: Primitive) {
         panic!("type alias was unpatched");
     }
 }
+
+#[test_case(Primitive::Bool; "bool")]
+#[test_case(Primitive::Int8; "int8")]
+#[test_case(Primitive::UInt8; "uint8")]
+#[test_case(Primitive::Int16; "int16")]
+#[test_case(Primitive::UInt16; "uint16")]
+#[test_case(Primitive::Int32; "int32")]
+#[test_case(Primitive::UInt32; "uint32")]
+#[test_case(Primitive::VarInt32; "varint32")]
+#[test_case(Primitive::VarUInt32; "varuint32")]
+#[test_case(Primitive::Int64; "int64")]
+#[test_case(Primitive::UInt64; "uint64")]
+#[test_case(Primitive::VarInt62; "varint62")]
+#[test_case(Primitive::VarUInt62; "varuint62")]
+#[test_case(Primitive::Float32; "float32")]
+#[test_case(Primitive::Float64; "float64")]
+#[test_case(Primitive::String; "string")]
+fn find_primitive_node_returns_the_correct_node(primitive: Primitive) {
+    // `find_primitive_node` indexes into the AST's elements by the primitive's discriminant, 
+    // which relies on the ordering of the `Primitive` enum. This test ensures this ordering is consistent.
+
+    // Arrange
+    let ast = slicec::ast::Ast::create();
+    let expected_kind = primitive.kind();
+
+    // Act
+    let element: &dyn Element = ast.find_primitive_node(primitive).into();
+
+    // Assert
+    assert_eq!(element.kind(), expected_kind);
+}
