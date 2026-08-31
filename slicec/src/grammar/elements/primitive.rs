@@ -1,5 +1,7 @@
 // Copyright (c) ZeroC, Inc.
 
+use std::str::FromStr;
+
 use super::super::*;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -89,6 +91,32 @@ impl Element for Primitive {
             Self::Float32 => "float32",
             Self::Float64 => "float64",
             Self::String => "string",
+        }
+    }
+}
+
+impl FromStr for Primitive {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "bool" => Ok(Self::Bool),
+            "int8" => Ok(Self::Int8),
+            "uint8" => Ok(Self::UInt8),
+            "int16" => Ok(Self::Int16),
+            "uint16" => Ok(Self::UInt16),
+            "int32" => Ok(Self::Int32),
+            "uint32" => Ok(Self::UInt32),
+            "varint32" => Ok(Self::VarInt32),
+            "varuint32" => Ok(Self::VarUInt32),
+            "int64" => Ok(Self::Int64),
+            "uint64" => Ok(Self::UInt64),
+            "varint62" => Ok(Self::VarInt62),
+            "varuint62" => Ok(Self::VarUInt62),
+            "float32" => Ok(Self::Float32),
+            "float64" => Ok(Self::Float64),
+            "string" => Ok(Self::String),
+            _ => Err(()),
         }
     }
 }

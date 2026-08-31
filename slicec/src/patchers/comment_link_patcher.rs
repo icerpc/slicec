@@ -7,6 +7,7 @@ use crate::diagnostics::{Diagnostic, Diagnostics, Lint};
 use crate::grammar::*;
 use crate::utils::ptr_util::{downgrade_as, WeakPtr};
 use std::collections::VecDeque;
+use std::str::FromStr;
 
 macro_rules! patch_link {
     ($self:ident, $tag:expr) => {
@@ -101,13 +102,16 @@ impl CommentLinkPatcher<'_> {
         let TypeRefDefinition::Unpatched(identifier) = link else {
             panic!("encountered comment link that was already patched");
         };
-
         // Look up the linked-to entity in the AST.
         let result = ast
             .find_node_by_id(&identifier.value, &commentable.parser_scoped_identifier())
-            .map_err(|lookup_error| match lookup_error {
-                LookupError::DoesNotExist { identifier } => format!("no element named '{identifier}' exists in scope"),
-                _ => unreachable!("`find_node_by_id` reported an error other than `DoesNotExist`"),
+            .map_err(|lookup_error| {
+                if Primitive::from_str(&identifier.value).is_ok() {
+                    "primitive types cannot be linked to".to_owned()
+                } else {
+                    assert!(matches!(lookup_error, LookupError::DoesNotExist { .. }));
+                    format!("no element named '{}' exists in scope", identifier.value)
+                }
             })
             .and_then(convert_node_to_entity_ptr);
 
@@ -163,8 +167,7 @@ fn convert_node_to_entity_ptr(node: &Node) -> Result<WeakPtr<dyn Entity>, String
 
         Node::Module(_) => Err("modules cannot be linked to".to_owned()),
         Node::Parameter(_) => Err("parameters cannot be linked to".to_owned()), // TODO improve for return members.
-        Node::Primitive(_) => Err("primitive types cannot be linked to".to_owned()),
 
-        _ => unreachable!("`convert_node_to_entity_ptr` was called on an anonymous type or attribute"),
+        _ => unreachable!("`convert_node_to_entity_ptr` was called on a non-user-defined element!"),
     }
 }

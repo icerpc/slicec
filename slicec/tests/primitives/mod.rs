@@ -62,7 +62,7 @@ fn type_parses(slice_component: &str, expected: Primitive) {
 #[test_case(Primitive::Float64; "float64")]
 #[test_case(Primitive::String; "string")]
 fn find_primitive_node_returns_the_correct_node(primitive: Primitive) {
-    // `find_primitive_node` indexes into the AST's elements by the primitive's discriminant, 
+    // `find_primitive_node` indexes into the AST's elements by the primitive's discriminant,
     // which relies on the ordering of the `Primitive` enum. This test ensures this ordering is consistent.
 
     // Arrange

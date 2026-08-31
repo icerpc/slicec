@@ -396,6 +396,30 @@ mod comments {
     }
 
     #[test]
+    fn doc_comment_links_preferentially_resolve_to_user_defined_elements() {
+        // Arrange
+        let slice = "
+            module tests
+
+            struct \\int32 {}
+
+            /// A test struct, should probably use {@link int32}.
+            struct TestStruct {}
+        ";
+
+        // Act
+        let ast = parse_for_ast(slice);
+
+        // Assert
+        let struct_def = ast.find_symbol_by_id::<Struct>("tests::TestStruct").unwrap();
+        let message = &struct_def.comment().unwrap().overview.as_ref().unwrap().value;
+
+        assert_eq!(message.len(), 4);
+        let MessageComponent::Link(link) = &message[1] else { panic!() };
+        assert_eq!(link.linked_entity().unwrap().parser_scoped_identifier(), "tests::int32");
+    }
+
+    #[test]
     fn param_tag_is_rejected_for_operations_with_no_parameters() {
         // Arrange
         let slice = "

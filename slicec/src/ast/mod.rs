@@ -13,8 +13,8 @@ use std::collections::HashMap;
 /// slice files passed into the compiler.
 ///
 /// The AST is primarily for centralizing ownership of Slice elements, but also features lookup functions for finding
-/// nodes (see [`find_node_by_id`](Ast::find_node_by_id)) and their
-/// elements (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
+/// nodes (see [`find_node_by_id`](Ast::find_node_by_id)) and their elements
+/// (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
 ///
 /// In practice, there is a single instance of the AST per compilation, which is [created](Ast::create) during
 /// initialization and lives as long as the program does, making the AST effectively `'static`.
