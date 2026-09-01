@@ -273,20 +273,31 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
 ///
 /// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' tag applied to an enclosing
 /// operation. But this is an implementation detail of the language, not something code-generators should deal with.
-fn get_doc_comment_for_parameter(parameter: &GrammarParameter) -> Option<DocComment> {
+fn get_doc_comment_for_parameter(parameter: &GrammarParameter, is_return: bool) -> Option<DocComment> {
     let operation_comment = parameter.parent().comment()?;
 
-    // We get the parameter's doc-comment in 3 steps:
-    // 1) Try to find a matching '@param' tag on the operation's doc-comment.
-    // 2) If one was present, extract just its `Message` field, and convert it to the mapped type.
-    // 3) Construct a mapped `DocComment` which contains the mapped message.
-    operation_comment.params.iter()
-        .find(|param_tag| param_tag.identifier.value == parameter.identifier())
-        .map(|param_tag| param_tag.message.value.iter().map(Into::into).collect())
-        .map(|message| DocComment {
-            overview: message,
-            see_tags: Vec::new(),
-        })
+    let message = if is_return {
+        let return_tag = if parameter.identifier() == "returnValue" {
+            // If this is a single return-type, we search the operation's doc-comment for a '@returns' tag with no name.
+            operation_comment.returns.iter().find(|return_tag| return_tag.identifier.is_none())
+        } else {
+            // If this is a named return parameter, we search the operation's doc-comment for a matching '@returns' tag.
+            operation_comment.returns.iter().find(|return_tag| {
+                return_tag.identifier.as_ref().map(|id| id.value.as_str()) == Some(parameter.identifier())
+            })
+        };
+        return_tag.map(|return_tag| &return_tag.message)
+    } else {
+        // If this isn't a return parameter, we search the operation's doc-comment for a matching '@param' tag.
+        operation_comment.params.iter()
+            .find(|param_tag| param_tag.identifier.value == parameter.identifier())
+            .map(|param_tag| &param_tag.message)
+    };
+
+    message.map(|m| DocComment {
+        overview: m.value.iter().map(Into::into).collect(),
+        see_tags: Vec::new(),
+    })
 }
 
 /// Helper function to convert the result of `tag.linked_entity()` into an [`EntityId`].
@@ -426,7 +437,7 @@ impl SliceFileContentsConverter {
     fn convert(contents: &[GrammarDefinition]) -> Vec<Symbol> {
         // Create a new converter.
         let mut converter = SliceFileContentsConverter {
-            converted_contents: Vec::new()
+            converted_contents: Vec::new(),
         };
 
         // Iterate through the provided file's contents, and convert each of it's top-level definitions.
@@ -457,11 +468,11 @@ impl SliceFileContentsConverter {
         Struct {
             entity_info: get_entity_info_for(struct_def),
             is_compact: struct_def.is_compact,
-            fields: struct_def.fields().into_iter().map(|e| self.convert_field(e)).collect(),
+            fields: struct_def.fields().into_iter().map(|e| self.convert_struct_field(e)).collect(),
         }
     }
 
-    fn convert_field(&mut self, field: &GrammarField) -> Field {
+    fn convert_struct_field(&mut self, field: &GrammarField) -> Field {
         Field {
             entity_info: get_entity_info_for(field),
             tag: field.tag.as_ref().map(|integer| integer.value as i32),
@@ -483,12 +494,12 @@ impl SliceFileContentsConverter {
         Operation {
             entity_info: get_entity_info_for(operation),
             is_idempotent: operation.is_idempotent,
-            parameters: operation.parameters().into_iter().map(|e| self.convert_parameter(e)).collect(),
+            parameters: operation.parameters().into_iter().map(|e| self.convert_parameter(e, false)).collect(),
             has_streamed_parameter: operation
                 .parameters
                 .last()
                 .is_some_and(|parameter| parameter.borrow().is_streamed),
-            return_type: operation.return_members().into_iter().map(|e| self.convert_parameter(e)).collect(),
+            return_type: operation.return_members().into_iter().map(|e| self.convert_parameter(e, true)).collect(),
             has_streamed_return: operation
                 .return_type
                 .last()
@@ -496,11 +507,11 @@ impl SliceFileContentsConverter {
         }
     }
 
-    fn convert_parameter(&mut self, parameter: &GrammarParameter) -> Field {
+    fn convert_parameter(&mut self, parameter: &GrammarParameter, is_return: bool) -> Field {
         let parameter_info = EntityInfo {
             identifier: parameter.identifier().to_owned(),
             attributes: get_attributes_from(parameter.attributes()),
-            comment: get_doc_comment_for_parameter(parameter),
+            comment: get_doc_comment_for_parameter(parameter, is_return),
         };
 
         Field {
@@ -540,14 +551,33 @@ impl SliceFileContentsConverter {
     fn convert_variant(&mut self, enumerator: &GrammarEnumerator) -> Variant {
         let entity_info = get_entity_info_for(enumerator);
         let discriminant = enumerator.value().try_into().unwrap();
-        let fields = enumerator.fields().into_iter().map(|e| self.convert_field(e)).collect();
+        let fields = enumerator.fields().into_iter()
+            .map(|field| self.convert_variant_field(field, enumerator)).collect();
 
         Variant { entity_info, discriminant, fields }
     }
 
+    fn convert_variant_field(&mut self, field: &GrammarField, enumerator: &GrammarEnumerator) -> Field {
+        let mut entity_info = get_entity_info_for(field);
+
+        // Variant fields get '@param' tags on their parent enumerator, so if there is a comment on the enumerator,
+        // we check for a matching '@param' tag, and use it's message as the field's comment.
+        if let Some(variant_comment) = enumerator.comment() {
+            entity_info.comment = variant_comment.params.iter()
+                .find(|param_tag| param_tag.identifier.value == field.identifier())
+                .map(|param_tag| param_tag.message.value.iter().map(Into::into).collect())
+                .map(|overview| DocComment { overview, see_tags: Vec::new() });
+        }
+
+        Field {
+            entity_info,
+            tag: field.tag.as_ref().map(|integer| integer.value as i32),
+            data_type: self.convert_type_ref(field.data_type()),
+        }
+    }
     fn convert_custom_type(&mut self, custom_type: &GrammarCustomType) -> CustomType {
         CustomType {
-            entity_info: get_entity_info_for(custom_type)
+            entity_info: get_entity_info_for(custom_type),
         }
     }
 
