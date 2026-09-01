@@ -271,22 +271,22 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
 
 /// Returns a [`DocComment`] describing the provided parameter if one is present.
 ///
-/// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' tag applied to an enclosing
-/// operation. But this is an implementation detail of the language, not something code-generators should deal with.
+/// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' or '@returns' tag applied to
+/// an enclosing operation. But this is a detail of the language, not something code-generators should deal with.
 fn get_doc_comment_for_parameter(parameter: &GrammarParameter, is_return: bool) -> Option<DocComment> {
     let operation_comment = parameter.parent().comment()?;
 
     let message = if is_return {
-        let return_tag = if parameter.identifier() == "returnValue" {
-            // If this is a single return-type, we search the operation's doc-comment for a '@returns' tag with no name.
-            operation_comment.returns.iter().find(|return_tag| return_tag.identifier.is_none())
-        } else {
-            // If this is a named return parameter, we search the operation's doc-comment for a matching '@returns' tag.
-            operation_comment.returns.iter().find(|return_tag| {
-                return_tag.identifier.as_ref().map(|id| id.value.as_str()) == Some(parameter.identifier())
-            })
+        // If this is a single return-type, we search the operation's doc-comment for a '@returns' tag with no name.
+        // If this is a named return parameter, we search the operation's doc-comment for a matching '@returns' tag.
+        let expected = match parameter.parent().return_members().len() {
+            1 => None,
+            _ => Some(parameter.identifier()),
         };
-        return_tag.map(|return_tag| &return_tag.message)
+
+        operation_comment.returns.iter()
+            .find(|return_tag| return_tag.identifier.as_ref().map(|id| id.value.as_str()) == expected)
+            .map(|return_tag| &return_tag.message)
     } else {
         // If this isn't a return parameter, we search the operation's doc-comment for a matching '@param' tag.
         operation_comment.params.iter()
@@ -440,7 +440,7 @@ impl SliceFileContentsConverter {
             converted_contents: Vec::new(),
         };
 
-        // Iterate through the provided file's contents, and convert each of it's top-level definitions.
+        // Iterate through the provided file's contents, and convert each of its top-level definitions.
         for definition in contents {
             let converted = match definition {
                 GrammarDefinition::Struct(v) => Symbol::Struct(converter.convert_struct(v.borrow())),
@@ -558,23 +558,21 @@ impl SliceFileContentsConverter {
     }
 
     fn convert_variant_field(&mut self, field: &GrammarField, enumerator: &GrammarEnumerator) -> Field {
-        let mut entity_info = get_entity_info_for(field);
+        // Construct the field as normal by re-using the logic of 'convert_struct_field'.
+        let mut converted_field = self.convert_struct_field(field);
 
         // Variant fields get '@param' tags on their parent enumerator, so if there is a comment on the enumerator,
-        // we check for a matching '@param' tag, and use it's message as the field's comment.
+        // we check for a matching '@param' tag, and use its message as the field's comment.
         if let Some(variant_comment) = enumerator.comment() {
-            entity_info.comment = variant_comment.params.iter()
+            converted_field.entity_info.comment = variant_comment.params.iter()
                 .find(|param_tag| param_tag.identifier.value == field.identifier())
                 .map(|param_tag| param_tag.message.value.iter().map(Into::into).collect())
                 .map(|overview| DocComment { overview, see_tags: Vec::new() });
         }
 
-        Field {
-            entity_info,
-            tag: field.tag.as_ref().map(|integer| integer.value as i32),
-            data_type: self.convert_type_ref(field.data_type()),
-        }
+        converted_field
     }
+
     fn convert_custom_type(&mut self, custom_type: &GrammarCustomType) -> CustomType {
         CustomType {
             entity_info: get_entity_info_for(custom_type),
