@@ -77,6 +77,10 @@ impl<'a> RedefinitionChecker<'a> {
                 Entities::Enum(enum_def) => {
                     self.check_if_redefined(enum_def, &mut seen_definitions);
                     self.check_contents_for_redefinitions(enum_def.contents());
+
+                    for enumerator in enum_def.enumerators() {
+                        self.check_contents_for_redefinitions(enumerator.contents());
+                    }
                 }
                 Entities::CustomType(custom_type) => {
                     self.check_if_redefined(custom_type, &mut seen_definitions);

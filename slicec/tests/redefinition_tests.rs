@@ -68,6 +68,187 @@ mod redefinition {
     }
 
     #[test]
+    fn redefined_struct_fields_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            struct S {
+                i: int32
+                i: string
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "i".to_owned(),
+        })
+        .set_span(&Span::new((6, 17).into(), (6, 18).into(), "string-0"))
+        .add_note(
+            "'i' was previously defined here",
+            Some(&Span::new((5, 17).into(), (5, 18).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefined_operations_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            interface I {
+                op()
+                op()
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "op".to_owned(),
+        })
+        .set_span(&Span::new((6, 17).into(), (6, 19).into(), "string-0"))
+        .add_note(
+            "'op' was previously defined here",
+            Some(&Span::new((5, 17).into(), (5, 19).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefined_parameters_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            interface I {
+                op(a: int32, a: string)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "a".to_owned(),
+        })
+        .set_span(&Span::new((5, 30).into(), (5, 31).into(), "string-0"))
+        .add_note(
+            "'a' was previously defined here",
+            Some(&Span::new((5, 20).into(), (5, 21).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefined_return_members_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            interface I {
+                op() -> (r: int32, r: string)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "r".to_owned(),
+        })
+        .set_span(&Span::new((5, 36).into(), (5, 37).into(), "string-0"))
+        .add_note(
+            "'r' was previously defined here",
+            Some(&Span::new((5, 26).into(), (5, 27).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefined_enumerators_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            enum E {
+                A
+                A
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "A".to_owned(),
+        })
+        .set_span(&Span::new((6, 17).into(), (6, 18).into(), "string-0"))
+        .add_note(
+            "'A' was previously defined here",
+            Some(&Span::new((5, 17).into(), (5, 18).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn redefined_enumerator_fields_are_disallowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            enum E {
+                A(i: int32, i: string)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::Redefinition {
+            identifier: "i".to_owned(),
+        })
+        .set_span(&Span::new((5, 29).into(), (5, 30).into(), "string-0"))
+        .add_note(
+            "'i' was previously defined here",
+            Some(&Span::new((5, 19).into(), (5, 20).into(), "string-0")),
+        );
+
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn identical_fields_in_different_enumerators_are_allowed() {
+        // Arrange
+        let slice = "
+            module Test
+
+            enum E {
+                A(i: int32)
+                B(i: int32)
+            }
+        ";
+
+        // Act/Assert
+        assert_parses(slice);
+    }
+
+    #[test]
     fn orthogonal_redefinitions_are_disallowed_separately() {
         // Arrange
         let slice = "
