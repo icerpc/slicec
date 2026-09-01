@@ -161,7 +161,7 @@ impl TypeRefPatcher<'_> {
         // Second, handle the case where the type is an alias (by resolving down to its concrete underlying type).
         // Third, get the type's pointer from its node and attempt to cast it to `T` (the required Slice type).
         let lookup_result = ast
-            .find_node_with_scope(&identifier.value, type_ref.module_scope())
+            .find_node_by_id(&identifier.value, type_ref.module_scope())
             .and_then(|node| {
                 // We perform the deprecation check here instead of the validators since we need to check type-aliases
                 // which are resolved and erased after TypeRef patching is completed.
@@ -266,7 +266,7 @@ impl TypeRefPatcher<'_> {
             };
 
             // We hit another unpatched alias; try to resolve its underlying type's identifier in the AST.
-            let node = ast.find_node_with_scope(&identifier.value, underlying_type.module_scope())?;
+            let node = ast.find_node_by_id(&identifier.value, underlying_type.module_scope())?;
             // If the resolved node is another type alias, push it onto the chain and loop again, otherwise return it.
             if let Node::TypeAlias(next_type_alias) = node {
                 current_type_alias = next_type_alias.borrow();

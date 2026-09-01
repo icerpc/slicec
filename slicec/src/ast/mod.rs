@@ -13,8 +13,8 @@ use std::collections::HashMap;
 /// slice files passed into the compiler.
 ///
 /// The AST is primarily for centralizing ownership of Slice elements, but also features lookup functions for finding
-/// nodes (see [`find_node`](Ast::find_node) and [`find_node_with_scope`](Ast::find_node_with_scope)) and their
-/// elements (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
+/// nodes (see [`find_node_by_id`](Ast::find_node_by_id)) and their elements
+/// (see [`find_symbol_by_id`](Ast::find_symbol_by_id)).
 ///
 /// In practice, there is a single instance of the AST per compilation, which is [created](Ast::create) during
 /// initialization and lives as long as the program does, making the AST effectively `'static`.
@@ -50,7 +50,6 @@ impl Ast {
     pub fn create() -> Ast {
         // Primitive types are built in to the compiler. Since they aren't defined in Slice, we 'define' them here,
         // when the AST is created, to ensure they're always available.
-
         let elements = vec![
             Node::Primitive(OwnedPtr::new(Primitive::Bool)),
             Node::Primitive(OwnedPtr::new(Primitive::Int8)),
@@ -70,44 +69,14 @@ impl Ast {
             Node::Primitive(OwnedPtr::new(Primitive::String)),
         ];
 
-        let lookup_table = HashMap::from([
-            ("bool".to_owned(), 0),
-            ("int8".to_owned(), 1),
-            ("uint8".to_owned(), 2),
-            ("int16".to_owned(), 3),
-            ("uint16".to_owned(), 4),
-            ("int32".to_owned(), 5),
-            ("uint32".to_owned(), 6),
-            ("varint32".to_owned(), 7),
-            ("varuint32".to_owned(), 8),
-            ("int64".to_owned(), 9),
-            ("uint64".to_owned(), 10),
-            ("varint62".to_owned(), 11),
-            ("varuint62".to_owned(), 12),
-            ("float32".to_owned(), 13),
-            ("float64".to_owned(), 14),
-            ("string".to_owned(), 15),
-        ]);
+        let lookup_table = HashMap::new();
 
         Ast { elements, lookup_table }
     }
 
-    /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
-    /// The identifier must be fully qualified, since this performs no scope resolution, but cannot begin with '::'.
-    ///
-    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
-    /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
+    /// Returns a reference to the Ast [node](Node) that corresponds to the provided [primitive](Primitive) type.
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
-    /// Only use this if you need access to the node, or the pointer, holding a slice element.
-    ///
-    /// If you want a reference to the Slice construct itself, use [find_symbol_by_id](Ast::find_symbol_by_id) instead.
-    ///
-    /// # Returns
-    ///
-    /// If a [node](Node) can be found with the provided identifier, this returns a reference to its [node](Node) in
-    /// the AST, wrapped in `Ok`. Otherwise, this returns `Err` with a string describing why the lookup failed.
     ///
     /// # Examples
     ///
@@ -117,39 +86,28 @@ impl Ast {
     /// let ast = Ast::create();
     ///
     /// // Lookup a primitive type.
-    /// let int32_node = ast.find_node("int32");
-    /// assert!(int32_node.is_ok());
-    ///
-    /// // TODO add more examples once parsing is easier.
-    ///
-    /// // If an element doesn't exist with the specified identifier, `Err` is returned.
-    /// let fake_node = ast.find_node("foo::bar");
-    /// assert!(fake_node.is_err());
+    /// let int32: &dyn Element = ast.find_primitive_node(Primitive::Int32).into();
+    /// assert_eq!(int32.kind(), "int32");
     /// ```
-    pub fn find_node<'a>(&'a self, identifier: &str) -> Result<&'a Node, LookupError> {
-        self.lookup_table
-            .get(identifier)
-            .map(|i| &self.elements[*i])
-            .ok_or_else(|| LookupError::DoesNotExist {
-                identifier: identifier.to_owned(),
-            })
+    pub fn find_primitive_node(&self, primitive: Primitive) -> &Node {
+        self.elements.get(primitive as usize).expect("Missing primitive node!")
     }
 
     /// Returns a reference to the AST [node](Node) with the provided identifier, if one exists.
     ///
-    /// If the identifier begins with '::' it is treated as globally scoped, and this function just forwards to
-    /// [`find_node`](Ast::find_node). Otherwise the identifier is treated as being relatively scoped.
+    /// If the identifier starts with '::' it is treated as globally scoped, otherwise it is treated as relatively
+    /// scoped.
     ///
     /// For relative identifiers, this method first checks if the identifier is defined in the provided scope. If so, a
     /// reference is returned to it. Otherwise each enclosing scope is checked, starting from the provided scope, and
     /// working outwards through each of its parent scopes until reaching global scope.
     ///
     /// This returns the first matching AST node it can find. If another node in a more outward scope also has the
-    /// specified identifier, it is shadowed, and will not be returned.
-    ///
-    /// Anonymous types (those without identifiers) cannot be looked up. These are results, sequences, and dictionaries.
-    /// Primitive types can be looked up by their Slice keywords. Care should be taken when looking up modules (which
+    /// specified identifier, it is shadowed, and will not be returned. Exercise care when looking up modules (which
     /// can be re-opened) or parameters and return members (which share an AST scope), since these may not be unique.
+    ///
+    /// Primitive types (`int32`, `string`, etc.) and anonymous types (results, sequences, and dictionaries)
+    /// cannot be looked up with this method.
     ///
     /// This is a low level method used for retrieving nodes from the AST directly.
     /// Only use this if you need access to the node, or the pointer, holding a slice element.
@@ -160,42 +118,32 @@ impl Ast {
     ///
     /// If a node can be found with the provided identifier, this returns a reference to its [node](Node) in the AST
     /// wrapped in `Ok`. Otherwise, this returns `Err` with a string describing why the lookup failed.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use slicec::ast::Ast;
-    /// # use slicec::grammar::*;
-    /// let ast = Ast::create();
-    ///
-    /// // TODO add more examples once parsing is easier.
-    ///
-    /// // If an element doesn't exist with the specified identifier, `Err` is returned.
-    /// let fake_node = ast.find_node_with_scope("hello", "foo::bar");
-    /// assert!(fake_node.is_err());
-    /// ```
-    pub fn find_node_with_scope<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, LookupError> {
-        // If the identifier is globally scoped (starts with '::'), find the node without scoping.
-        if let Some(unprefixed_identifier) = identifier.strip_prefix("::") {
-            return self.find_node(unprefixed_identifier);
-        }
+    pub fn find_node_by_id<'a>(&'a self, identifier: &str, scope: &str) -> Result<&'a Node, LookupError> {
+        // If the identifier isn't globally scoped, we check for it in the provided scope,
+        // followed by each of its parent scopes, until finally landing at global scope.
+        if !identifier.starts_with("::") {
+            // Split the provided scope into an iterator of scope segments.
+            let mut scopes = scope.split("::").collect::<Vec<_>>();
 
-        // Split the provided scope into an iterator of scope segments.
-        let mut scopes = scope.split("::").collect::<Vec<_>>();
+            // Check for the identifier with the full scope first.
+            // If it doesn't exist, keep checking for it in parent scopes until all enclosing scopes have been checked.
+            while !scopes.is_empty() {
+                let candidate = scopes.join("::") + "::" + identifier;
 
-        // Check for the identifier with the full scope first.
-        // If it doesn't exist, keep checking for it in parent scopes until all enclosing scopes have been checked.
-        while !scopes.is_empty() {
-            let candidate = scopes.join("::") + "::" + identifier;
-            if let Some(i) = self.lookup_table.get(&candidate) {
-                return Ok(&self.elements[*i]);
+                if let Some(index) = self.lookup_table.get(&candidate) {
+                    return Ok(&self.elements[*index]);
+                }
+                // Pop the last scope segment off to get to the next highest scope.
+                scopes.pop();
             }
-            // Pop the last scope segment off to get to the next highest scope.
-            scopes.pop();
+
+            // If the identifier wasn't defined in any of the scopes, fallback to checking for it at global scope.
         }
 
-        // If the identifier wasn't defined in any of the scopes, check for it at global scope.
-        self.find_node(identifier)
+        // Remove any leading '::' from the identifier, since the lookup table doesn't store them.
+        // TODO switch to 'trim_prefix' (https://github.com/rust-lang/rust/issues/142312) when it's stabilized.
+        let stripped_identifier = identifier.strip_prefix("::").unwrap_or(identifier);
+        self.lookup_node_by_id(stripped_identifier)
     }
 
     /// Returns a reference to a Slice symbol (user-defined element) with the provided identifier and specified type,
@@ -212,7 +160,7 @@ impl Ast {
     where
         &'a T: TryFrom<&'a Node, Error = LookupError>,
     {
-        self.find_node(identifier).and_then(|x| x.try_into())
+        self.lookup_node_by_id(identifier)?.try_into()
     }
 
     /// Returns an immutable slice of all the [nodes](Node) contained in this AST.
@@ -270,6 +218,15 @@ impl Ast {
 
         // Add the element to this AST.
         self.add_element(element)
+    }
+
+    fn lookup_node_by_id<'a>(&'a self, identifier: &str) -> Result<&'a Node, LookupError> {
+        match self.lookup_table.get(identifier) {
+            Some(index) => Ok(&self.elements[*index]),
+            None => Err(LookupError::DoesNotExist {
+                identifier: identifier.to_owned(),
+            }),
+        }
     }
 }
 
