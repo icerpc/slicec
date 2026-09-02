@@ -269,7 +269,7 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
     }
 }
 
-/// Returns a [DocComment] with it's overview set to the provided message, with no other tags.
+/// Returns a [DocComment] with its overview set to the provided message, with no other tags.
 fn get_basic_doc_comment_from_message(message: &slicec::grammar::Message) -> DocComment {
     DocComment {
         overview: message.value.iter().map(Into::into).collect(),
