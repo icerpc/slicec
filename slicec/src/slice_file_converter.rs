@@ -269,9 +269,17 @@ fn get_entity_info_for(element: &impl Commentable) -> EntityInfo {
     }
 }
 
+/// Returns a [DocComment] with it's overview set to the provided message, with no other tags.
+fn get_basic_doc_comment_from_message(message: &slicec::grammar::Message) -> DocComment {
+    DocComment {
+        overview: message.value.iter().map(Into::into).collect(),
+        see_tags: Vec::new(),
+    }
+}
+
 /// Returns a [`DocComment`] describing the provided parameter if one is present.
 ///
-/// In Slice, doc-comments are not allowed on parameters. Instead, you would use a '@param' or '@returns' tag applied to
+/// In Slice, doc-comments are not allowed on parameters. Instead, you use a '@param' or '@returns' tag applied to
 /// an enclosing operation. But this is a detail of the language, not something code-generators should deal with.
 fn get_doc_comment_for_parameter(parameter: &GrammarParameter, is_return: bool) -> Option<DocComment> {
     let operation_comment = parameter.parent().comment()?;
@@ -294,10 +302,7 @@ fn get_doc_comment_for_parameter(parameter: &GrammarParameter, is_return: bool) 
             .map(|param_tag| &param_tag.message)
     };
 
-    message.map(|m| DocComment {
-        overview: m.value.iter().map(Into::into).collect(),
-        see_tags: Vec::new(),
-    })
+    message.map(get_basic_doc_comment_from_message)
 }
 
 /// Helper function to convert the result of `tag.linked_entity()` into an [`EntityId`].
@@ -389,7 +394,7 @@ impl From<&GrammarSliceFile> for SliceFile {
 impl From<&GrammarDocComment> for DocComment {
     fn from(doc_comment: &GrammarDocComment) -> Self {
         let overview = doc_comment.overview.as_ref().map(|message| {
-            message.value.iter().map(Into::into)
+            message.value.iter().map(Into::into).collect()
         });
 
         let see_tags = doc_comment.see.iter().map(|tag| {
@@ -397,7 +402,7 @@ impl From<&GrammarDocComment> for DocComment {
         });
 
         DocComment {
-            overview: overview.map_or(Vec::new(), |v| v.collect()),
+            overview: overview.unwrap_or_default(),
             see_tags: see_tags.collect(),
         }
     }
@@ -566,8 +571,7 @@ impl SliceFileContentsConverter {
         if let Some(variant_comment) = enumerator.comment() {
             converted_field.entity_info.comment = variant_comment.params.iter()
                 .find(|param_tag| param_tag.identifier.value == field.identifier())
-                .map(|param_tag| param_tag.message.value.iter().map(Into::into).collect())
-                .map(|overview| DocComment { overview, see_tags: Vec::new() });
+                .map(|param_tag| get_basic_doc_comment_from_message(&param_tag.message));
         }
 
         converted_field
