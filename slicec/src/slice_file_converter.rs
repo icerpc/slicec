@@ -445,7 +445,6 @@ impl SliceFileContentsConverter {
             converted_contents: Vec::new(),
         };
 
-        // Iterate through the provided file's contents, and convert each of its top-level definitions.
         for definition in contents {
             let converted = match definition {
                 GrammarDefinition::Struct(v) => Symbol::Struct(converter.convert_struct(v.borrow())),
@@ -563,11 +562,10 @@ impl SliceFileContentsConverter {
     }
 
     fn convert_variant_field(&mut self, field: &GrammarField, enumerator: &GrammarEnumerator) -> Field {
-        // Construct the field as normal by re-using the logic of 'convert_struct_field'.
         let mut converted_field = self.convert_struct_field(field);
 
-        // Variant fields get '@param' tags on their parent enumerator, so if there is a comment on the enumerator,
-        // we check for a matching '@param' tag, and use its message as the field's comment.
+        // Variant fields get their doc-comments from matching '@param' tags on their parent enumerator.
+        // If one exists, we construct a new `DocComment` with its overview set from the '@param' tag's message.
         if let Some(variant_comment) = enumerator.comment() {
             converted_field.entity_info.comment = variant_comment.params.iter()
                 .find(|param_tag| param_tag.identifier.value == field.identifier())
