@@ -435,7 +435,7 @@ mod comments {
     }
 
     #[test]
-    fn param_tag_is_rejected_if_its_identifier_does_not_match_a_fields() {
+    fn param_tag_is_rejected_if_its_identifier_does_not_match_a_field() {
         // Arrange
         let slice = "
             module tests
