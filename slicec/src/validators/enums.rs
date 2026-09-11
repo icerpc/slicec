@@ -1,6 +1,6 @@
 // Copyright (c) ZeroC, Inc.
 
-use crate::diagnostics::{Diagnostic, Diagnostics, Error};
+use crate::diagnostics::{Diagnostic, Diagnostics, Error, Lint};
 use crate::grammar::*;
 
 use std::collections::HashMap;
@@ -16,6 +16,10 @@ pub fn validate_enum(enum_def: &Enum, diagnostics: &mut Diagnostics) {
 
     if enum_def.underlying.is_some() {
         cannot_contain_fields(enum_def, diagnostics);
+    }
+
+    for enumerator in enum_def.enumerators() {
+        validate_param_tags(enumerator, diagnostics);
     }
 }
 
@@ -179,6 +183,27 @@ fn compact_enums_cannot_contain_tags(enum_def: &Enum, diagnostics: &mut Diagnost
                         .push_into(diagnostics);
                 }
             }
+        }
+    }
+}
+
+/// Validates that any `@param` tags on an enumerator are valid (i.e. they refer to actual fields of the enumerator).
+fn validate_param_tags(enumerator: &Enumerator, diagnostics: &mut Diagnostics) {
+    let Some(comment) = enumerator.comment() else { return };
+
+    let fields: Vec<_> = enumerator.fields().iter().map(|f| f.identifier()).collect();
+    for param_tag in &comment.params {
+        let tag_identifier = param_tag.identifier.value.as_str();
+        if !fields.contains(&tag_identifier) {
+            Diagnostic::from_lint(Lint::IncorrectDocComment {
+                message: format!(
+                    "comment has a 'param' tag for '{tag_identifier}', but enumerator '{}' has no field with that name",
+                    enumerator.identifier(),
+                ),
+            })
+            .set_span(param_tag.span())
+            .set_scope(enumerator.parser_scoped_identifier())
+            .push_into(diagnostics);
         }
     }
 }
