@@ -315,4 +315,25 @@ mod streams {
         });
         check_diagnostics(diagnostics, [expected]);
     }
+
+    #[test]
+    fn stream_parameter_cannot_be_tagged() {
+        // Arrange
+        let slice = "
+            module Test
+
+            interface I {
+                op(tag(79) s: stream bool?)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_error(Error::StreamedParamsCannotBeTagged {
+            parameter_identifier: "s".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
 }
