@@ -8,11 +8,11 @@ pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: 
     // Only run this validation if a doc comment is present.
     let Some(comment) = commentable.comment() else { return };
 
-    only_operations_have_parameters(comment, commentable, diagnostics);
-    only_operations_can_return(comment, commentable, diagnostics);
+    validate_param_tag_placement(comment, commentable, diagnostics);
+    validate_returns_tag_placement(comment, commentable, diagnostics);
 }
 
-fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
+fn validate_param_tag_placement(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     let concrete_entity = entity.concrete_entity();
     if !matches!(concrete_entity, Entities::Operation(_) | Entities::Enumerator(_)) {
         for param_tag in &comment.params {
@@ -27,7 +27,7 @@ fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentabl
     }
 }
 
-fn only_operations_can_return(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
+fn validate_returns_tag_placement(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for returns_tag in &comment.returns {
             report_only_operation_error(
