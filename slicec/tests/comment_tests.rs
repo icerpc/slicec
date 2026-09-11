@@ -588,7 +588,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
-            message: "comment has a 'param' tag, but only operations can have parameters".to_owned(),
+            message: "comment has a 'param' tag, but only operations and enumerators have parameters".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
@@ -608,7 +608,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag, but only operations can return".to_owned(),
+            message: "comment has a 'returns' tag, but only operations have return types".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }

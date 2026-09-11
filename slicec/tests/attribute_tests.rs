@@ -123,7 +123,7 @@ mod attributes {
                     message: "no element named 'fake' exists in scope".to_owned(),
                 }),
                 Diagnostic::from_lint(Lint::IncorrectDocComment {
-                    message: "comment has a 'returns' tag, but only operations can return".to_owned(),
+                    message: "comment has a 'returns' tag, but only operations have return types".to_owned(),
                 }),
             ];
             for (index, lint) in updated_diagnostics.iter().enumerate() {
