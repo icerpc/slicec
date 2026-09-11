@@ -8,29 +8,42 @@ pub fn validate_common_doc_comments(commentable: &dyn Commentable, diagnostics: 
     // Only run this validation if a doc comment is present.
     let Some(comment) = commentable.comment() else { return };
 
-    only_operations_have_parameters(comment, commentable, diagnostics);
-    only_operations_can_return(comment, commentable, diagnostics);
+    validate_param_tag_placement(comment, commentable, diagnostics);
+    validate_returns_tag_placement(comment, commentable, diagnostics);
 }
 
-fn only_operations_have_parameters(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
+fn validate_param_tag_placement(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     let concrete_entity = entity.concrete_entity();
     if !matches!(concrete_entity, Entities::Operation(_) | Entities::Enumerator(_)) {
         for param_tag in &comment.params {
-            report_only_operation_error(param_tag, param_tag.message.span(), entity, diagnostics);
+            report_only_operation_error(
+                "comment has a 'param' tag, but only operations and enumerators have parameters".to_owned(),
+                param_tag,
+                param_tag.message.span(),
+                entity,
+                diagnostics,
+            );
         }
     }
 }
 
-fn only_operations_can_return(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
+fn validate_returns_tag_placement(comment: &DocComment, entity: &dyn Commentable, diagnostics: &mut Diagnostics) {
     if !matches!(entity.concrete_entity(), Entities::Operation(_)) {
         for returns_tag in &comment.returns {
-            report_only_operation_error(returns_tag, returns_tag.message.span(), entity, diagnostics);
+            report_only_operation_error(
+                "comment has a 'returns' tag, but only operations have return types".to_owned(),
+                returns_tag,
+                returns_tag.message.span(),
+                entity,
+                diagnostics,
+            );
         }
     }
 }
 
 /// Helper function that reports an error if an operation-only comment-tag was used on something other than a comment.
 fn report_only_operation_error(
+    message: String,
     tag: &impl Symbol,
     message_span: &Span,
     entity: &dyn Commentable,
@@ -43,19 +56,9 @@ fn report_only_operation_error(
         a = crate::utils::string_util::indefinite_article(entity_kind),
     );
 
-    // All tag kinds are of the form "<kind> tag", so it's safe to unwrap. We only want the first word for the message.
-    let tag_kind = tag.kind().split_once(' ').unwrap().0;
-    let action_phrase = match tag_kind {
-        "param" => "have parameters",
-        "returns" => "return",
-        _ => unreachable!("'report_only_operation_error' was called with unsupported tag '{tag_kind}'"),
-    };
-
-    Diagnostic::from_lint(Lint::IncorrectDocComment {
-        message: format!("comment has a '{tag_kind}' tag, but only operations can {action_phrase}"),
-    })
-    .set_span(&(tag.span() + message_span))
-    .set_scope(entity.parser_scoped_identifier())
-    .add_note(note, Some(entity.span()))
-    .push_into(diagnostics);
+    Diagnostic::from_lint(Lint::IncorrectDocComment { message })
+        .set_span(&(tag.span() + message_span))
+        .set_scope(entity.parser_scoped_identifier())
+        .add_note(note, Some(entity.span()))
+        .push_into(diagnostics);
 }

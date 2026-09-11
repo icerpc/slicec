@@ -209,6 +209,23 @@ mod comments {
     }
 
     #[test]
+    fn enumerator_with_correct_doc_comments() {
+        // Arrange
+        let slice = "
+            module tests
+
+            enum E {
+                /// This enumerator has 2 fields.
+                /// @param testParam1: A string param
+                A(testParam1: string, testParam2: bool)
+            }
+        ";
+
+        // Act/Assert
+        assert_parses(slice);
+    }
+
+    #[test]
     fn operation_with_correct_doc_comments() {
         // Arrange
         let slice = "
@@ -396,6 +413,50 @@ mod comments {
     }
 
     #[test]
+    fn param_tag_is_rejected_for_enumerators_with_no_fields() {
+        // Arrange
+        let slice = "
+            module tests
+
+            enum E {
+                /// @param foo: this parameter doesn't exist.
+                A
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
+            message: "comment has a 'param' tag for 'foo', but enumerator 'A' has no field with that name".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
+    fn param_tag_is_rejected_if_its_identifier_does_not_match_a_field() {
+        // Arrange
+        let slice = "
+            module tests
+
+            enum E {
+                /// @param foo: this parameter doesn't exist.
+                A(bar: bool)
+            }
+        ";
+
+        // Act
+        let diagnostics = parse_for_diagnostics(slice);
+
+        // Assert
+        let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
+            message: "comment has a 'param' tag for 'foo', but enumerator 'A' has no field with that name".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected]);
+    }
+
+    #[test]
     fn param_tag_is_rejected_for_operations_with_no_parameters() {
         // Arrange
         let slice = "
@@ -513,7 +574,7 @@ mod comments {
     }
 
     #[test]
-    fn param_tags_can_only_be_used_with_operations() {
+    fn param_tags_are_rejected_on_incorrect_elements() {
         // Arrange
         let slice = "
             module tests
@@ -527,13 +588,13 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
-            message: "comment has a 'param' tag, but only operations can have parameters".to_owned(),
+            message: "comment has a 'param' tag, but only operations and enumerators have parameters".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
 
     #[test]
-    fn returns_tags_can_only_be_used_with_operations() {
+    fn returns_tags_are_rejected_on_incorrect_elements() {
         // Arrange
         let slice = "
             module tests
@@ -547,7 +608,7 @@ mod comments {
 
         // Assert
         let expected = Diagnostic::from_lint(Lint::IncorrectDocComment {
-            message: "comment has a 'returns' tag, but only operations can return".to_owned(),
+            message: "comment has a 'returns' tag, but only operations have return types".to_owned(),
         });
         check_diagnostics(diagnostics, [expected]);
     }
