@@ -5,6 +5,7 @@ use crate::grammar::*;
 
 pub fn validate_parameters(members: &[&Parameter], diagnostics: &mut Diagnostics) {
     stream_parameter_is_last(members, diagnostics);
+    stream_parameters_cannot_be_tagged(members, diagnostics);
     at_most_one_stream_parameter(members, diagnostics);
 }
 
@@ -16,6 +17,17 @@ fn at_most_one_stream_parameter(members: &[&Parameter], diagnostics: &mut Diagno
         .unwrap().1 // All members before the split. Safe to unwrap since we know there are at least two members.
         .iter()
         .for_each(|m| Diagnostic::from_error(Error::MultipleStreamedMembers).set_span(m.span()).push_into(diagnostics));
+    }
+}
+
+fn stream_parameters_cannot_be_tagged(members: &[&Parameter], diagnostics: &mut Diagnostics) {
+    for member in members {
+        if member.is_streamed && member.tag().is_some() {
+            let parameter_identifier = member.identifier().to_owned();
+            Diagnostic::from_error(Error::StreamedParamsCannotBeTagged { parameter_identifier })
+                .set_span(member.span())
+                .push_into(diagnostics);
+        }
     }
 }
 
