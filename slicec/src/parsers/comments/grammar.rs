@@ -111,7 +111,8 @@ fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Mess
                 common_leading_whitespace = Some(&clw[..new_prefix_offset]);
             }
             None => {
-                common_leading_whitespace = Some(text);
+                let first_non_whitespace_index = text.find(|c: char| !c.is_whitespace()).unwrap_or(text.len());
+                common_leading_whitespace = Some(&text[..first_non_whitespace_index]);
             }
         }
     }
