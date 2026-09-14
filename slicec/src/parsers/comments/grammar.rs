@@ -90,15 +90,15 @@ fn construct_section_message(
 /// `None` means the line existed but was empty, `Some(message)` means the line had a message.
 ///
 /// Note that the message's span is not updated to reflect the stripping of common leading whitespace.
-fn sanitize_message_lines(lines: Vec<Option<Vec<MessageComponent>>>, span: Span) -> Message {
+fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Message {
     // First compute the amount of leading whitespace that is common to every line.
     let mut common_leading_whitespace = usize::MAX;
     for line in &lines {
         // We only check lines that have a message on them (eg: they're non-empty).
-        if let Some(message) = &line {
+        if let Some(message) = line.first() {
             // To check the start of the line, we check the first message component.
             // It's safe to unwrap because we know the line was non-empty in this block.
-            match message.first().unwrap() {
+            match message {
                 MessageComponent::Text(text) => {
                     // Determine how many whitespace characters are at the beginning of this line,
                     // then take the minimum of this and the amount of whitespace on all the other lines so far.
@@ -118,18 +118,13 @@ fn sanitize_message_lines(lines: Vec<Option<Vec<MessageComponent>>>, span: Span)
     // Now that we know the common leading whitespace, we iterate through the lines again and remove the whitespace.
     let value = lines
         .into_iter()
-        .flat_map(|line| match line {
+        .flat_map(|mut line| {
             // If the message had text, we remove the common leading whitespace and append a newline at the end.
-            Some(mut message) => {
-                if let MessageComponent::Text(text) = message.first_mut().unwrap() {
-                    text.replace_range(..common_leading_whitespace, "");
-                }
-                message.push(MessageComponent::Text("\n".to_owned()));
-                message
+            if let MessageComponent::Text(text) = line.first_mut().unwrap() {
+                text.replace_range(..common_leading_whitespace, "");
             }
-
-            // If the line was empty, we create a new message that only contains a newline character.
-            None => vec![MessageComponent::Text("\n".to_owned())],
+            line.push(MessageComponent::Text("\n".to_owned()));
+            line
         })
         .collect();
 

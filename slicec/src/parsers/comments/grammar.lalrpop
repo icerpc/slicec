@@ -80,20 +80,20 @@ InlineLink: LinkTag = {
 }
 
 Section: Message = {
-    <l: @L> <inline_message: (":" <Message?>)?> newline <message_lines: MessageLines?> <r: @R> => {
+    <l: @L> <inline_message: (":" <Message>)?> newline <message_lines: MessageLines?> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
-        construct_section_message(inline_message.flatten(), message_lines, span)
+        construct_section_message(inline_message, message_lines, span)
     },
 }
 
 MessageLines: Message = {
-    <l: @L> <m: (<Message?> newline)+> <r: @R> => {
+    <l: @L> <m: (<Message> newline)+> <r: @R> => {
         let span = Span::new(l, r, comment_parser.file_name);
         sanitize_message_lines(m, span)
     }
 }
 
-Message = MessageComponent+;
+Message = MessageComponent*;
 
 MessageComponent: MessageComponent = {
     <text: text> => MessageComponent::Text(text.to_owned()),
