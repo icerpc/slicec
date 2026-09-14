@@ -68,7 +68,7 @@ fn construct_section_message(
 ) -> Message {
     let mut value = message_lines.map(|m| m.value).unwrap_or_default();
 
-    if let Some(mut message) = inline_message {
+    if let Some(mut message) = inline_message.filter(|m| !m.is_empty()) {
         // Remove any leading whitespace from the inline portion of the message.
         if let Some(MessageComponent::Text(text)) = message.first_mut() {
             *text = text.trim_start().to_owned();
@@ -86,8 +86,7 @@ fn construct_section_message(
 }
 
 /// Removes any common leading whitespace from the provided lines and returns the result.
-/// Each element in the vector represents one line of the message.
-/// `None` means the line existed but was empty, `Some(message)` means the line had a message.
+/// Each element in the outermost vector represents one line of the message. These lines may be empty.
 ///
 /// Note that the message's span is not updated to reflect the stripping of common leading whitespace.
 fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Message {
@@ -120,7 +119,7 @@ fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Mess
         .into_iter()
         .flat_map(|mut line| {
             // If the message had text, we remove the common leading whitespace and append a newline at the end.
-            if let MessageComponent::Text(text) = line.first_mut().unwrap() {
+            if let Some(MessageComponent::Text(text)) = line.first_mut() {
                 text.replace_range(..common_leading_whitespace, "");
             }
             line.push(MessageComponent::Text("\n".to_owned()));
