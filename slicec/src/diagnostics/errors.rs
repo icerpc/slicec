@@ -99,6 +99,12 @@ pub enum Error {
         parameter_identifier: String,
     },
 
+    /// A streamed parameter was also tagged.
+    StreamedParamsCannotBeTagged {
+        /// The identifier of the parameter that caused the error.
+        parameter_identifier: String,
+    },
+
     /// Return tuples for an operation must contain at least two element.
     ReturnTuplesMustContainAtLeastTwoElements,
 
@@ -255,6 +261,7 @@ impl Error {
             Self::Shadows { .. } => "E011",
             Self::CannotHaveDuplicateTag { .. } => "E012",
             Self::StreamedMembersMustBeLast { .. } => "E013",
+            Self::StreamedParamsCannotBeTagged { .. } => "E037",
             Self::ReturnTuplesMustContainAtLeastTwoElements => "E014",
             Self::CompactTypeCannotContainTaggedFields { .. } => "E015",
             Self::TaggedMemberMustBeOptional { .. } => "E016",
@@ -328,6 +335,9 @@ impl Error {
 
             Self::StreamedMembersMustBeLast { parameter_identifier }
                 => format!("invalid parameter '{parameter_identifier}': only the last parameter in an operation can use the stream modifier"),
+
+            Self::StreamedParamsCannotBeTagged { parameter_identifier }
+                => format!("invalid parameter '{parameter_identifier}': streamed parameters cannot be tagged"),
 
             Self::ReturnTuplesMustContainAtLeastTwoElements => "return tuples must have at least 2 elements".to_owned(),
 
