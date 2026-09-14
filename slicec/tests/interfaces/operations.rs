@@ -323,7 +323,8 @@ mod streams {
             module Test
 
             interface I {
-                op(tag(79) s: stream bool?)
+                op1(tag(79) bools: stream bool?)
+                op2(s: stream bool?) -> (index: int32, tag(79) strings: stream string?)
             }
         ";
 
@@ -331,9 +332,12 @@ mod streams {
         let diagnostics = parse_for_diagnostics(slice);
 
         // Assert
-        let expected = Diagnostic::from_error(Error::StreamedParamsCannotBeTagged {
-            parameter_identifier: "s".to_owned(),
+        let expected1 = Diagnostic::from_error(Error::StreamedParamsCannotBeTagged {
+            parameter_identifier: "bools".to_owned(),
         });
-        check_diagnostics(diagnostics, [expected]);
+        let expected2 = Diagnostic::from_error(Error::StreamedParamsCannotBeTagged {
+            parameter_identifier: "strings".to_owned(),
+        });
+        check_diagnostics(diagnostics, [expected1, expected2]);
     }
 }
