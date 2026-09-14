@@ -6,12 +6,21 @@ on:
       quality:
         required: true
         type: string
+      authenticode_sign:
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       quality:
         description: "Release quality (e.g., stable, nightly, RC)"
         required: true
         default: "nightly"
+      authenticode_sign:
+        description: "Sign the Windows binary with Authenticode (always on for non-nightly releases)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -25,6 +34,7 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
       channel: ${{ steps.get-version.outputs.channel }}
+      authenticode_sign: ${{ steps.get-signing.outputs.authenticode_sign }}
 
     steps:
       - name: Checkout Repository
@@ -43,6 +53,20 @@ jobs:
           channel="${version%.*}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "channel=$channel" >> "$GITHUB_OUTPUT"
+
+      - name: Get Signing Policy
+        id: get-signing
+        shell: bash
+        env:
+          QUALITY: ${{ inputs.quality }}
+          AUTHENTICODE_SIGN: ${{ inputs.authenticode_sign }}
+        run: |
+          # Signing is mandatory for releases, and optional for nightly builds.
+          if [[ "$QUALITY" != "nightly" || "$AUTHENTICODE_SIGN" == "true" ]]; then
+            echo "authenticode_sign=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "authenticode_sign=false" >> "$GITHUB_OUTPUT"
+          fi
 
   build:
     needs: metadata
@@ -77,6 +101,32 @@ jobs:
 
       - name: Build slicec binary
         run: cargo build --release --target ${{ matrix.target }} -p slicec
+
+      - name: Sign slicec binary
+        if: runner.os == 'Windows' && needs.metadata.outputs.authenticode_sign == 'true'
+        uses: azure/trusted-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
+        with:
+          azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          azure-client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          azure-client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: zeroc
+          certificate-profile-name: zeroc-ice
+          files: ${{ github.workspace }}\target\${{ matrix.target }}\release\${{ matrix.artifact }}
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # Fail the build rather than upload an unsigned binary when signing is required.
+      - name: Verify slicec binary signature
+        if: runner.os == 'Windows' && needs.metadata.outputs.authenticode_sign == 'true'
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature "target\${{ matrix.target }}\release\${{ matrix.artifact }}"
+          if ($signature.Status -ne 'Valid') {
+            throw "${{ matrix.artifact }} is not validly signed: $($signature.Status) $($signature.StatusMessage)"
+          }
+          Write-Output "Signed by $($signature.SignerCertificate.Subject)"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
