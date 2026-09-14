@@ -96,7 +96,6 @@ fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Mess
         // We only check lines that have a message on them (eg: they're non-empty).
         if let Some(message) = line.first() {
             // To check the start of the line, we check the first message component.
-            // It's safe to unwrap because we know the line was non-empty in this block.
             match message {
                 MessageComponent::Text(text) => {
                     // Determine how many whitespace characters are at the beginning of this line,
