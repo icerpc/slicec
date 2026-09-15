@@ -17,7 +17,7 @@ on:
         required: true
         default: "nightly"
       authenticode_sign:
-        description: "Sign the Windows binary with Authenticode (always on for non-nightly releases)"
+        description: "Sign the Windows binary with Authenticode (upstream only; always on for non-nightly releases)"
         required: false
         type: boolean
         default: false
@@ -34,7 +34,6 @@ jobs:
     outputs:
       version: ${{ steps.get-version.outputs.version }}
       channel: ${{ steps.get-version.outputs.channel }}
-      authenticode_sign: ${{ steps.get-signing.outputs.authenticode_sign }}
 
     steps:
       - name: Checkout Repository
@@ -53,20 +52,6 @@ jobs:
           channel="${version%.*}"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "channel=$channel" >> "$GITHUB_OUTPUT"
-
-      - name: Get Signing Policy
-        id: get-signing
-        shell: bash
-        env:
-          QUALITY: ${{ inputs.quality }}
-          AUTHENTICODE_SIGN: ${{ inputs.authenticode_sign }}
-        run: |
-          # Signing is mandatory for releases, and optional for nightly builds.
-          if [[ "$QUALITY" != "nightly" || "$AUTHENTICODE_SIGN" == "true" ]]; then
-            echo "authenticode_sign=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "authenticode_sign=false" >> "$GITHUB_OUTPUT"
-          fi
 
   build:
     needs: metadata
@@ -103,7 +88,10 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }} -p slicec
 
       - name: Sign slicec binary
-        if: runner.os == 'Windows' && needs.metadata.outputs.authenticode_sign == 'true'
+        if: >-
+          github.repository == 'icerpc/slicec' &&
+          runner.os == 'Windows' &&
+          (inputs.authenticode_sign || inputs.quality != 'nightly')
         uses: azure/trusted-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
         with:
           azure-tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -119,12 +107,18 @@ jobs:
 
       # Fail the build rather than upload an unsigned binary when signing is required.
       - name: Verify slicec binary signature
-        if: runner.os == 'Windows' && needs.metadata.outputs.authenticode_sign == 'true'
+        if: >-
+          github.repository == 'icerpc/slicec' &&
+          runner.os == 'Windows' &&
+          (inputs.authenticode_sign || inputs.quality != 'nightly')
         shell: pwsh
         run: |
           $signature = Get-AuthenticodeSignature "target\${{ matrix.target }}\release\${{ matrix.artifact }}"
           if ($signature.Status -ne 'Valid') {
             throw "${{ matrix.artifact }} is not validly signed: $($signature.Status) $($signature.StatusMessage)"
+          }
+          if (-not $signature.TimeStamperCertificate) {
+            throw "${{ matrix.artifact }} is signed but not timestamped; the signature would expire with the signing certificate."
           }
           Write-Output "Signed by $($signature.SignerCertificate.Subject)"
 
