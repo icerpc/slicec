@@ -103,23 +103,15 @@ fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Mess
             break;
         };
 
-        match common_leading_whitespace {
-            Some(clw) => {
-                let mut comparator_iter = text.char_indices().zip(clw.char_indices());
-                let index_of_first_difference = comparator_iter.find_map(|((i, c1), (_, c2))| (c1 != c2).then_some(i));
-                let new_prefix_offset = index_of_first_difference.unwrap_or_else(|| text.len().min(clw.len()));
-                common_leading_whitespace = Some(&clw[..new_prefix_offset]);
-            }
-            None => {
-                let first_non_whitespace_index = text.find(|c: char| !c.is_whitespace()).unwrap_or(text.len());
-                common_leading_whitespace = Some(&text[..first_non_whitespace_index]);
-            }
-        }
+        common_leading_whitespace = Some(match common_leading_whitespace {
+            Some(current_whitespace) => get_common_prefix(current_whitespace, text),
+            None => get_leading_whitespace(text),
+        });
     }
     // All we need is the length of the common leading whitespace.
-    let common_leading_whitespace_len = common_leading_whitespace.map_or(0, |clw| clw.len());
+    let common_leading_whitespace_len = common_leading_whitespace.map_or(0, str::len);
 
-    // Remove the common leading whitespace from each line, and we add '\n' to the end of each line for downstream use.
+    // Remove the common leading whitespace from each line, and add '\n' to the end of each line for downstream use.
     let sanitized_lines = lines.into_iter().flat_map(|mut line| {
         if let Some(MessageComponent::Text(text)) = line.first_mut() {
             text.drain(..common_leading_whitespace_len);
@@ -131,4 +123,16 @@ fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Mess
         value: sanitized_lines.collect(),
         span,
     }
+}
+
+fn get_common_prefix<'a>(s1: &'a str, s2: &'a str) -> &'a str {
+    let mut comparator_iter = s1.char_indices().zip(s2.char_indices());
+    let index_of_first_difference = comparator_iter.find_map(|((i, c1), (_, c2))| (c1 != c2).then_some(i));
+    let prefix_offset = index_of_first_difference.unwrap_or_else(|| s1.len().min(s2.len()));
+    &s1[..prefix_offset]
+}
+
+fn get_leading_whitespace(s: &str) -> &str {
+    let first_non_whitespace_index = s.find(|c: char| !c.is_whitespace()).unwrap_or(s.len());
+    &s[..first_non_whitespace_index]
 }
