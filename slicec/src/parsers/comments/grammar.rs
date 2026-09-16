@@ -90,41 +90,49 @@ fn construct_section_message(
 ///
 /// Note that the message's span is not updated to reflect the stripping of common leading whitespace.
 fn sanitize_message_lines(lines: Vec<Vec<MessageComponent>>, span: Span) -> Message {
-    // First compute the amount of leading whitespace that is common to every line.
-    let mut common_leading_whitespace = usize::MAX;
+    // Determine the amount of leading whitespace that is common to every line.
+    let mut common_leading_whitespace = None;
     for line in &lines {
-        // We only check lines that have a message on them (eg: they're non-empty).
-        if let Some(message) = line.first() {
-            // To check the start of the line, we check the first message component.
-            match message {
-                MessageComponent::Text(text) => {
-                    // Determine how many whitespace characters are at the beginning of this line,
-                    // then take the minimum of this and the amount of whitespace on all the other lines so far.
-                    let whitespace_index = text.find(|c: char| !c.is_whitespace()).unwrap_or_default();
-                    common_leading_whitespace = std::cmp::min(whitespace_index, common_leading_whitespace);
-                }
-                MessageComponent::Link(_) => {
-                    // If a line starts with a link, the common leading whitespace must be 0.
-                    // We set this, then exit the loop, since the loop won't find less than 0 whitespace characters.
-                    common_leading_whitespace = 0;
-                    break;
-                }
-            }
-        }
+        // If this line is empty, we don't consider it when determining the common leading whitespace. Just skip it.
+        let Some(first_component) = line.first() else { continue };
+
+        // Leading whitespace will always show up as a `Text` component. If the first component is not `Text`,
+        // then this line has no leading whitespace, so the _common_ leading whitespace must be empty.
+        let MessageComponent::Text(text) = first_component else {
+            common_leading_whitespace = Some("");
+            break;
+        };
+
+        common_leading_whitespace = Some(match common_leading_whitespace {
+            Some(current_whitespace) => get_common_prefix(current_whitespace, text),
+            None => get_leading_whitespace(text),
+        });
     }
+    // All we need is the length of the common leading whitespace.
+    let common_leading_whitespace_len = common_leading_whitespace.map_or(0, str::len);
 
-    // Now that we know the common leading whitespace, we iterate through the lines again and remove the whitespace.
-    let value = lines
-        .into_iter()
-        .flat_map(|mut line| {
-            // If the message had text, we remove the common leading whitespace and append a newline at the end.
-            if let Some(MessageComponent::Text(text)) = line.first_mut() {
-                text.replace_range(..common_leading_whitespace, "");
-            }
-            line.push(MessageComponent::Text("\n".to_owned()));
-            line
-        })
-        .collect();
+    // Remove the common leading whitespace from each line, and add '\n' to the end of each line for downstream use.
+    let sanitized_lines = lines.into_iter().flat_map(|mut line| {
+        if let Some(MessageComponent::Text(text)) = line.first_mut() {
+            text.drain(..common_leading_whitespace_len);
+        }
+        line.push(MessageComponent::Text("\n".to_owned()));
+        line
+    });
+    Message {
+        value: sanitized_lines.collect(),
+        span,
+    }
+}
 
-    Message { value, span }
+fn get_common_prefix<'a>(s1: &'a str, s2: &'a str) -> &'a str {
+    let mut comparator_iter = s1.char_indices().zip(s2.char_indices());
+    let index_of_first_difference = comparator_iter.find_map(|((i, c1), (_, c2))| (c1 != c2).then_some(i));
+    let prefix_offset = index_of_first_difference.unwrap_or_else(|| s1.len().min(s2.len()));
+    &s1[..prefix_offset]
+}
+
+fn get_leading_whitespace(s: &str) -> &str {
+    let first_non_whitespace_index = s.find(|c: char| !c.is_whitespace()).unwrap_or(s.len());
+    &s[..first_non_whitespace_index]
 }
