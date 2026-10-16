@@ -158,8 +158,7 @@ fn write_generated_file(
         }
     }
 
-    // Create the directories of the generated file, which may not exist yet: the output directory itself, or the
-    // directories of a nested path such as a Java package directory.
+    // Create any intermediate directories for the generated file, which may not exist yet.
     if let Some(parent_dir) = generated_file_path.parent() {
         std::fs::create_dir_all(parent_dir)?;
     }
