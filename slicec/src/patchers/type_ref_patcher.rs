@@ -33,7 +33,10 @@ impl TypeRefPatcher<'_> {
                     self.resolve_definition(type_ref, ast).map(PatchKind::FieldType)
                 }
                 Node::Interface(interface_ptr) => {
-                    interface_ptr.borrow().bases.iter()
+                    interface_ptr
+                        .borrow()
+                        .bases
+                        .iter()
                         .map(|type_ref| self.resolve_definition(type_ref, ast))
                         .collect::<Option<Vec<_>>>() // None if any of the bases couldn't be resolved.
                         .map(PatchKind::BaseInterfaces)
