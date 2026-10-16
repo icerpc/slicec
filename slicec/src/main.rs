@@ -158,6 +158,12 @@ fn write_generated_file(
         }
     }
 
+    // Create the directories of the generated file, which may not exist yet: the output directory itself, or the
+    // directories of a nested path such as a Java package directory.
+    if let Some(parent_dir) = generated_file_path.parent() {
+        std::fs::create_dir_all(parent_dir)?;
+    }
+
     // Write the generated file to disk.
     let mut file = File::create(&generated_file_path)?;
     file.write_all(generated_file_bytes)?;
